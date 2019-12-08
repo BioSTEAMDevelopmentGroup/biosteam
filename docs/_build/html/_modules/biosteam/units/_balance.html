@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -182,8 +187,8 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Unit</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">MissingStream</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">MissingStream</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;MassBalance&#39;</span><span class="p">,)</span>
 
@@ -214,7 +219,7 @@
     <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">exact</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;flow&#39;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
@@ -236,7 +241,7 @@
             <span class="n">sID</span><span class="p">,</span> <span class="n">s_index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">sID</span> <span class="o">!=</span> <span class="n">s_index</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="n">f</span><span class="s2">&quot;length of species (</span><span class="si">{sID}</span><span class="s2">) must be equal to the length of streams_index (</span><span class="si">{s_index}</span><span class="s2">) when exact solution is needed&quot;</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s2">&quot;length of species (</span><span class="si">{sID}</span><span class="s2">) must be equal to the length of streams_index (</span><span class="si">{s_index}</span><span class="s2">) when exact solution is needed&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">solver</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span>
 

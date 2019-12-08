@@ -121,6 +121,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -440,7 +445,7 @@ co-production of ethanol and biodiesel:</p>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
                  <span class="n">operating_days</span><span class="p">,</span> <span class="n">lang_factor</span><span class="p">,</span> <span class="n">construction_schedule</span><span class="p">,</span> <span class="n">WC_over_FCI</span><span class="p">,</span>
                  <span class="n">labor_cost</span><span class="p">,</span> <span class="n">fringe_benefits</span><span class="p">,</span> <span class="n">property_tax</span><span class="p">,</span>
                  <span class="n">property_insurance</span><span class="p">,</span> <span class="n">supplies</span><span class="p">,</span> <span class="n">maintenance</span><span class="p">,</span> <span class="n">administration</span><span class="p">):</span>
@@ -490,7 +495,7 @@ co-production of ethanol and biodiesel:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam.biorefineries</span> <span class="k">import</span> <span class="n">lipidcane</span> <span class="k">as</span> <span class="n">lc</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam.biorefineries</span> <span class="kn">import</span> <span class="n">lipidcane</span> <span class="k">as</span> <span class="n">lc</span>
 
 <span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">LipidcaneTEA</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span>
                              <span class="n">IRR</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>

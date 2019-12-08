@@ -719,7 +719,7 @@ class MixedStream(Stream):
                 split_dipoles = np.array(split_dipoles)
                 try:
                     split = split_dipoles/max(dipoles)
-                except TypeError as TE:
+                except TypeError:
                     missing_dipoles = []
                     for i, is_missing in enumerate(split_dipoles==None):
                         if is_missing:

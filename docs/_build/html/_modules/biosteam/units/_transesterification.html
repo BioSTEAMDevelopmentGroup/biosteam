@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -181,9 +186,9 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span>
-<span class="kn">from</span> <span class="nn">..reaction</span> <span class="k">import</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">ParallelReaction</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="kn">import</span> <span class="n">cost</span>
+<span class="kn">from</span> <span class="nn">..reaction</span> <span class="kn">import</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">ParallelReaction</span>
 
 <div class="viewcode-block" id="Transesterification"><a class="viewcode-back" href="../../../units/Transesterification.html#biosteam.units.Transesterification">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Reactor&#39;</span><span class="p">,</span>
       <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,)</span>
@@ -223,7 +228,7 @@
                 <span class="p">(</span><span class="s1">&#39;Conversion efficiency&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;Working volume fraction&#39;</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">efficiency</span><span class="p">,</span> <span class="n">methanol2lipid</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">catalyst_molfrac</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="c1">#: [ParallelReaction] Transesterification and catalyst consumption reaction</span>

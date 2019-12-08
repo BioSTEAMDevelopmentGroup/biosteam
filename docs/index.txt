@@ -57,6 +57,13 @@ Key Features & Capabilities
    evaluation/evaluation
 
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer's guide
+   
+   developer's guide/Contributing to BioSTEAM
+   developer's guide/Code of conduct
+
 Licence
 -------
 We intend to keep BioSTEAM perpetually open source with a liberal

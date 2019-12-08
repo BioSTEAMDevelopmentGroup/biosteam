@@ -124,6 +124,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -643,8 +648,8 @@ MixedStream: ms1
 MixedStream: ms1
  phase: &#39;lg&#39;, T: 351 K, P: 101325 Pa
          species  kmol/hr
- liquid: Water    5.39
-         Ethanol  3.19
+ liquid: Water    5.4
+         Ethanol  3.2
 
  vapor:  Water    0.555
          Ethanol  3
@@ -670,7 +675,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>8.581060526320748
+<span></span>8.601120825151575
 </pre></div>
 </div>
 </div>
@@ -751,7 +756,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>tuple_array([0.3976676602743484, 0.6023323397256516], dtype=object)
+<span></span>tuple_array([0.3976665922854577, 0.6023334077145422], dtype=object)
 </pre></div>
 </div>
 </div>
@@ -795,7 +800,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>tuple_array([5.944, 6.192])
+<span></span>tuple_array([5.957, 6.199])
 </pre></div>
 </div>
 </div>
@@ -815,7 +820,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>tuple_array([107.085, 285.257])
+<span></span>tuple_array([107.312, 285.601])
 </pre></div>
 </div>
 </div>
@@ -861,7 +866,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>204334.2743237495
+<span></span>204996.65103660987
 </pre></div>
 </div>
 </div>
@@ -881,7 +886,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>3.9221069813948026
+<span></span>3.927814864795724
 </pre></div>
 </div>
 </div>
@@ -960,9 +965,9 @@ MixedStream: ms1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;l&#39;, T: 353.88 K, P: 101325 Pa
+ phase: &#39;g&#39;, T: 353.88 K, P: 101325 Pa
          species  kmol/hr
- liquid: Water    3
+ vapor:  Water    3
          Ethanol  3
 </pre></div></div>
 </div>
@@ -984,13 +989,13 @@ MixedStream: ms2
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;lg&#39;, T: 352.95 K, P: 101325 Pa
+ phase: &#39;lg&#39;, T: 357.39 K, P: 101325 Pa
          species  kmol/hr
- liquid: Water    2.99
-         Ethanol  2.99
+ liquid: Water    0.0236
+         Ethanol  0.00425
 
- vapor:  Water    0.00515
-         Ethanol  0.00991
+ vapor:  Water    2.98
+         Ethanol  3
 </pre></div></div>
 </div>
 <p>Set vapor fraction and pressure:</p>
@@ -1011,7 +1016,7 @@ MixedStream: ms2
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;lg&#39;, T: 353.87 K, P: 101325 Pa
+ phase: &#39;lg&#39;, T: 353.91 K, P: 101325 Pa
          species  kmol/hr
  liquid: Water    1.84
          Ethanol  1.16

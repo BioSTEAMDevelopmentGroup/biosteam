@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -183,11 +188,11 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
-<span class="kn">from</span> <span class="nn">.._tea</span> <span class="k">import</span> <span class="n">TEA</span><span class="p">,</span> <span class="n">CombinedTEA</span>
-<span class="kn">from</span> <span class="nn">.._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">_Q</span>
-<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">.._tea</span> <span class="kn">import</span> <span class="n">TEA</span><span class="p">,</span> <span class="n">CombinedTEA</span>
+<span class="kn">from</span> <span class="nn">.._stream</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">_Q</span>
+<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="kn">import</span> <span class="n">DimensionError</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
@@ -260,7 +265,7 @@
         <span class="c1"># Cash flow</span>
         <span class="n">tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     
     
     <span class="c1"># Stream tables</span>
@@ -345,8 +350,8 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit operation&#39;</span><span class="p">,</span>
-              <span class="n">f</span><span class="s1">&#39;Purchase cost (10^6 USD)&#39;</span><span class="p">,</span>
-              <span class="n">f</span><span class="s1">&#39;Utility cost (10^6 USD/yr)&#39;</span><span class="p">)</span>
+              <span class="sa">f</span><span class="s1">&#39;Purchase cost (10^6 USD)&#39;</span><span class="p">,</span>
+              <span class="sa">f</span><span class="s1">&#39;Utility cost (10^6 USD/yr)&#39;</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">tea</span><span class="o">.</span><span class="n">units</span>
     <span class="n">operating_days</span> <span class="o">=</span> <span class="n">tea</span><span class="o">.</span><span class="n">operating_days</span>
     <span class="n">N_units</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
@@ -458,7 +463,7 @@
     <span class="k">elif</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
         <span class="n">flow_attr</span> <span class="o">=</span> <span class="s1">&#39;vol&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
     
     <span class="c1"># Prepare rows and columns</span>
     <span class="n">ss</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">streams</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="n">_stream_key</span><span class="p">)</span>
@@ -508,11 +513,11 @@
     <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">prop_molar_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="n">attr</span><span class="p">]);</span> <span class="n">p</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">unit</span><span class="p">);</span> <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">magnitude</span>
-        <span class="n">prop_molar_keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{attr}</span><span class="s1"> (</span><span class="si">{unit}</span><span class="s1">)&#39;</span>
+        <span class="n">prop_molar_keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{attr}</span><span class="s1"> (</span><span class="si">{unit}</span><span class="s1">)&#39;</span>
         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
     
     <span class="c1"># Make data frame object</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prop_molar_keys</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;flow (</span><span class="si">{flow}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="s1">&#39;Composition:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prop_molar_keys</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;flow (</span><span class="si">{flow}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="s1">&#39;Composition:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
 
 

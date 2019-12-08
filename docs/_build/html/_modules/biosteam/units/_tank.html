@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -182,11 +187,11 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">.._unit</span> <span class="k">import</span> <span class="n">Unit</span>
-<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">DesignError</span>
-<span class="kn">from</span> <span class="nn">._mixer</span> <span class="k">import</span> <span class="n">Mixer</span>
-<span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span>
-<span class="kn">from</span> <span class="nn">._static</span> <span class="k">import</span> <span class="n">Static</span>
+<span class="kn">from</span> <span class="nn">.._unit</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="kn">import</span> <span class="n">DesignError</span>
+<span class="kn">from</span> <span class="nn">._mixer</span> <span class="kn">import</span> <span class="n">Mixer</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="kn">import</span> <span class="n">cost</span>
+<span class="kn">from</span> <span class="nn">._static</span> <span class="kn">import</span> <span class="n">Static</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
@@ -237,7 +242,7 @@
         <span class="k">elif</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">50e3</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Tank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">250000</span> <span class="o">+</span> <span class="mf">94.2</span><span class="o">*</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="n">N</span><span class="p">))</span> <span class="o">*</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mf">525.4</span>
         <span class="k">else</span><span class="p">:</span>    
-            <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Volume is out of bounds for costing&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volume is out of bounds for costing&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units/MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Total volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
       <span class="n">N</span><span class="o">=</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">)</span>

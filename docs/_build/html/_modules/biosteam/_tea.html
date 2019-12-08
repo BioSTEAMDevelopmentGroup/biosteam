@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -184,9 +189,9 @@
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="k">import</span> <span class="n">wegstein_secant</span><span class="p">,</span> <span class="n">aitken_secant</span><span class="p">,</span> <span class="n">secant</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span> <span class="k">as</span> <span class="n">copy_</span>
-<span class="kn">from</span> <span class="nn">numba</span> <span class="k">import</span> <span class="n">njit</span>
+<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">wegstein_secant</span><span class="p">,</span> <span class="n">aitken_secant</span><span class="p">,</span> <span class="n">secant</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span> <span class="k">as</span> <span class="n">copy_</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TEA&#39;</span><span class="p">,</span> <span class="s1">&#39;CombinedTEA&#39;</span><span class="p">)</span>
 
@@ -352,7 +357,7 @@
         <span class="k">if</span> <span class="n">isabstract</span><span class="p">:</span> <span class="k">return</span>
         <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_TDC&#39;</span><span class="p">,</span> <span class="s1">&#39;_FCI&#39;</span><span class="p">,</span> <span class="s1">&#39;_FOC&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;subclass must implement a &#39;</span><span class="si">{method}</span><span class="s2">&#39; method unless the &#39;isabstract&#39; keyword argument is True&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;subclass must implement a &#39;</span><span class="si">{method}</span><span class="s2">&#39; method unless the &#39;isabstract&#39; keyword argument is True&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TEA.like"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.like">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">like</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -363,7 +368,7 @@
         <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
                  <span class="n">operating_days</span><span class="p">,</span> <span class="n">lang_factor</span><span class="p">,</span> <span class="n">construction_schedule</span><span class="p">,</span>
                  <span class="n">startup_months</span><span class="p">,</span> <span class="n">startup_FOCfrac</span><span class="p">,</span> <span class="n">startup_VOCfrac</span><span class="p">,</span>
                  <span class="n">startup_salesfrac</span><span class="p">,</span> <span class="n">WC_over_FCI</span><span class="p">,</span> <span class="n">finance_interest</span><span class="p">,</span>
@@ -445,7 +450,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_depreciation_array</span> <span class="o">=</span> <span class="n">_MACRS</span><span class="p">[</span><span class="n">depreciation</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;depreciation must be either &#39;MACRS5&#39;, &#39;MACRS7&#39;, &#39;MACRS10&#39; or &#39;MACRS15 (not {repr(depreciation)})&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;depreciation must be either &#39;MACRS5&#39;, &#39;MACRS7&#39;, &#39;MACRS10&#39; or &#39;MACRS15 (not {repr(depreciation)})&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_depreciation</span> <span class="o">=</span> <span class="n">depreciation</span>
     
     <span class="nd">@property</span>
@@ -769,16 +774,16 @@
         <span class="k">elif</span> <span class="n">stream</span><span class="o">.</span><span class="n">source</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">price</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sales</span><span class="o">/</span><span class="n">price2cost</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;stream must be either a feed or a product&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;stream must be either a feed or a product&quot;</span><span class="p">)</span></div>
     
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.system.ID}</span><span class="s1">&gt;&#39;</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.system.ID}</span><span class="s1">&gt;&#39;</span>
     
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.system.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="n">f</span><span class="s1">&#39; NPV: </span><span class="si">{self.NPV:.3g}</span><span class="s1"> USD at </span><span class="si">{self.IRR:.1%}</span><span class="s1"> IRR</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="n">f</span><span class="s1">&#39; ROI: </span><span class="si">{self.ROI:.3g}</span><span class="s1"> 1/yr</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="n">f</span><span class="s1">&#39; PBP: </span><span class="si">{self.PBP:.3g}</span><span class="s1"> yr&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.system.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; NPV: </span><span class="si">{self.NPV:.3g}</span><span class="s1"> USD at </span><span class="si">{self.IRR:.1%}</span><span class="s1"> IRR</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; ROI: </span><span class="si">{self.ROI:.3g}</span><span class="s1"> 1/yr</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; PBP: </span><span class="si">{self.PBP:.3g}</span><span class="s1"> yr&#39;</span><span class="p">)</span>
     
 <div class="viewcode-block" id="TEA.show"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prints information on unit.&quot;&quot;&quot;</span>
@@ -792,7 +797,7 @@
     
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TEAs&#39;</span><span class="p">,)</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TEAs</span><span class="p">,</span> <span class="n">IRR</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TEAs</span><span class="p">,</span> <span class="n">IRR</span><span class="p">):</span>
         <span class="c1">#: iterable[TEA] All TEA objects for cashflow calculation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">TEAs</span> <span class="o">=</span> <span class="n">TEAs</span>
         
@@ -1016,16 +1021,16 @@
         <span class="k">elif</span> <span class="n">stream</span><span class="o">.</span><span class="n">source</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">price</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sales</span><span class="o">/</span><span class="n">price2cost</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;stream must be either a feed or a product&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;stream must be either a feed or a product&quot;</span><span class="p">)</span></div>
     
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: {&quot;, &quot;.join([i.system.ID for i in self.TEAs])}&gt;&#39;</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: {&quot;, &quot;.join([i.system.ID for i in self.TEAs])}&gt;&#39;</span>
     
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: {&quot;, &quot;.join([i.system.ID for i in self.TEAs])}</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="n">f</span><span class="s1">&#39; NPV: </span><span class="si">{self.NPV:.3g}</span><span class="s1"> USD at </span><span class="si">{self.IRR:.1%}</span><span class="s1"> IRR</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="n">f</span><span class="s1">&#39; ROI: </span><span class="si">{self.ROI:.3g}</span><span class="s1"> 1/yr</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="n">f</span><span class="s1">&#39; PBP: </span><span class="si">{self.PBP:.3g}</span><span class="s1"> yr&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;{type(self).__name__}: {&quot;, &quot;.join([i.system.ID for i in self.TEAs])}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; NPV: </span><span class="si">{self.NPV:.3g}</span><span class="s1"> USD at </span><span class="si">{self.IRR:.1%}</span><span class="s1"> IRR</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; ROI: </span><span class="si">{self.ROI:.3g}</span><span class="s1"> 1/yr</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; PBP: </span><span class="si">{self.PBP:.3g}</span><span class="s1"> yr&#39;</span><span class="p">)</span>
     
 <div class="viewcode-block" id="CombinedTEA.show"><a class="viewcode-back" href="../../CombinedTEA.html#biosteam.CombinedTEA.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prints information on unit.&quot;&quot;&quot;</span>

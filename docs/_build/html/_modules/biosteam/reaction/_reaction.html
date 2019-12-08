@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -181,17 +186,17 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_parse</span> <span class="k">as</span> <span class="n">prs</span>
-<span class="kn">from</span> <span class="nn">.._species</span> <span class="k">import</span> <span class="n">WorkingSpecies</span><span class="p">,</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">UndefinedCompound</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_parse</span> <span class="k">as</span> <span class="n">prs</span>
+<span class="kn">from</span> <span class="nn">.._species</span> <span class="kn">import</span> <span class="n">WorkingSpecies</span><span class="p">,</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="kn">import</span> <span class="n">UndefinedCompound</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Reaction&#39;</span><span class="p">,</span> <span class="s1">&#39;ParallelReaction&#39;</span><span class="p">,</span> <span class="s1">&#39;SeriesReaction&#39;</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">stoi2str</span><span class="p">(</span><span class="n">stoi</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Parse a stoichiometric array and species to a reaction definition.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;{prs.arr2str(stoi, species)}&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{prs.arr2str(stoi, species)}&quot;</span>
 
 <div class="viewcode-block" id="Reaction"><a class="viewcode-back" href="../../../reaction.html#biosteam.reaction.Reaction">[docs]</a><span class="k">class</span> <span class="nc">Reaction</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Reaction object which defines a stoichiometric reaction and conversion. When called, it returns the change in material due to the reaction.</span>
@@ -229,7 +234,7 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_species&#39;</span><span class="p">,</span> <span class="s1">&#39;_Xindex&#39;</span><span class="p">,</span> <span class="s1">&#39;_stoi&#39;</span><span class="p">,</span> <span class="s1">&#39;_X&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction</span><span class="p">,</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction</span><span class="p">,</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">species</span><span class="p">:</span>
             <span class="n">species</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span>            
             <span class="k">assert</span> <span class="n">species</span><span class="p">,</span> <span class="s1">&#39;must define Stream.species first&#39;</span>
@@ -255,7 +260,7 @@
         <span class="n">copy</span><span class="o">.</span><span class="n">_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X</span>
         <span class="k">return</span> <span class="n">copy</span></div>
     
-    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="s1">&#39;working species must be the same to add reactions&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactant</span><span class="p">,</span> <span class="s1">&#39;reactants must be the same to add reactions&#39;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -264,7 +269,7 @@
         <span class="n">new</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">+</span> <span class="n">rxn</span><span class="o">.</span><span class="n">X</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
         <span class="k">return</span> <span class="n">new</span>
     
-    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="s1">&#39;working species must be the same to add reactions&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactant</span><span class="p">,</span> <span class="s1">&#39;reactants must be the same to add reactions&#39;</span>
         <span class="n">stoi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">+</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_stoi</span><span class="o">*</span><span class="n">rxn</span><span class="o">.</span><span class="n">X</span>
@@ -272,15 +277,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">+</span> <span class="n">rxn</span><span class="o">.</span><span class="n">X</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
         <span class="k">return</span> <span class="bp">self</span>
     
-    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">new</span><span class="o">.</span><span class="n">X</span> <span class="o">*=</span> <span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new</span>
     
-    <span class="k">def</span> <span class="nf">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__imul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__imul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">*=</span> <span class="n">num</span>
         <span class="k">return</span> <span class="bp">self</span>
     
@@ -293,12 +298,12 @@
     <span class="k">def</span> <span class="nf">__idiv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__imul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">num</span><span class="p">)</span> 
     
-    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">new</span><span class="o">.</span><span class="n">X</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.</span>
         <span class="k">return</span> <span class="n">new</span>
     
-    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="s1">&#39;working species must be the same to add reactions&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactant</span><span class="p">,</span> <span class="s1">&#39;reactants must be the same to add reactions&#39;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -307,7 +312,7 @@
         <span class="n">new</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">-</span> <span class="n">rxn</span><span class="o">.</span><span class="n">X</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
         <span class="k">return</span> <span class="n">new</span>
     
-    <span class="k">def</span> <span class="nf">__isub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__isub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="s1">&#39;working species must be the same to add reactions&#39;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactant</span><span class="p">,</span> <span class="s1">&#39;reactants must be the same to add reactions&#39;</span>
         <span class="n">stoi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">+</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_stoi</span><span class="o">*</span><span class="n">rxn</span><span class="o">.</span><span class="n">X</span>
@@ -315,7 +320,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">-</span> <span class="n">rxn</span><span class="o">.</span><span class="n">X</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
         <span class="k">return</span> 
     
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
         <span class="n">material</span> <span class="o">+=</span> <span class="n">material</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span>
     
     <span class="nd">@property</span>
@@ -339,11 +344,11 @@
         <span class="sd">&quot;&quot;&quot;[str] Reactant associated to conversion.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_IDs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span><span class="p">]</span>
     
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}(&#39;{stoi2str(self._stoi, self._species)}&#39;, reactant=&#39;</span><span class="si">{self.reactant}</span><span class="s2">&#39;, X=</span><span class="si">{self.X:.3g}</span><span class="s2">)&quot;</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(&#39;{stoi2str(self._stoi, self._species)}&#39;, reactant=&#39;</span><span class="si">{self.reactant}</span><span class="s2">&#39;, X=</span><span class="si">{self.X:.3g}</span><span class="s2">)&quot;</span>
     
     <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">outs</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}:&quot;</span>
+        <span class="n">outs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}:&quot;</span>
         <span class="n">rxn</span> <span class="o">=</span> <span class="n">stoi2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="p">)</span>
         <span class="nb">cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant</span>
         <span class="n">lrxn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
@@ -354,7 +359,7 @@
         <span class="n">outs</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> stoichiometry&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxrxnlen</span> <span class="o">-</span> <span class="mi">13</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;reactant&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxcmplen</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;  X[%]&#39;</span>
         <span class="n">rxn_spaces</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxrxnlen</span> <span class="o">-</span> <span class="n">lrxn</span><span class="p">)</span>
         <span class="n">cmp_spaces</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxcmplen</span> <span class="o">-</span> <span class="n">lcmp</span><span class="p">)</span>
-        <span class="n">outs</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="si">{rxn}{rxn_spaces}{cmp}{cmp_spaces}</span><span class="s2">{X*100: &gt;6.2f}&quot;</span>
+        <span class="n">outs</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="si">{rxn}{rxn_spaces}{cmp}{cmp_spaces}</span><span class="s2">{X*100: &gt;6.2f}&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>
 
@@ -362,7 +367,7 @@
 <span class="k">class</span> <span class="nc">ReactionItem</span><span class="p">(</span><span class="n">Reaction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a ReactionItem object from a ReactionSet and index.&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_index&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxnset</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxnset</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span> <span class="o">=</span> <span class="n">rxnset</span><span class="o">.</span><span class="n">_stoi</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_X</span> <span class="o">=</span> <span class="n">rxnset</span><span class="o">.</span><span class="n">_X</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">rxnset</span><span class="o">.</span><span class="n">_species</span>
@@ -387,14 +392,14 @@
 <span class="k">class</span> <span class="nc">ReactionSet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a ReactionSet that contains all reactions and conversions as an array.&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_stoi&#39;</span><span class="p">,</span> <span class="s1">&#39;_X&#39;</span><span class="p">,</span> <span class="s1">&#39;_Xindex&#39;</span><span class="p">,</span> <span class="s1">&#39;_species&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">({</span><span class="n">i</span><span class="o">.</span><span class="n">species</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">})</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;all reactions must have the same species&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">_stoi</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">X</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">_Xindex</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">reactions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">species</span>
     
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">stoi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stoi</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ReactionItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
@@ -426,11 +431,11 @@
         <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_IDs</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">IDs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;&lt;{type(self).__name__}: {&#39;, &#39;.join(set(self.reactants))}&gt;&quot;</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;{type(self).__name__}: {&#39;, &#39;.join(set(self.reactants))}&gt;&quot;</span>
     
     <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">outs</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}:&quot;</span>
+        <span class="n">outs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}:&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
         <span class="n">rxns</span> <span class="o">=</span> <span class="p">[</span><span class="n">stoi2str</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="p">]</span>
         <span class="n">maxrxnlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="mi">13</span><span class="p">,</span> <span class="o">*</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rxns</span><span class="p">]])</span> <span class="o">+</span> <span class="mi">2</span>
@@ -439,13 +444,13 @@
         <span class="n">Xs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span>
         <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Xs</span><span class="p">)</span>
         <span class="n">maxnumspace</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">N</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-        <span class="n">outs</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">index&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxnumspace</span><span class="o">-</span><span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;stoichiometry&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxrxnlen</span> <span class="o">-</span> <span class="mi">13</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;reactant&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxcmplen</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;  X[%]&#39;</span>
+        <span class="n">outs</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">index&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxnumspace</span><span class="o">-</span><span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;stoichiometry&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxrxnlen</span> <span class="o">-</span> <span class="mi">13</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;reactant&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxcmplen</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;  X[%]&#39;</span>
         <span class="k">for</span> <span class="n">N</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="nb">cmp</span><span class="p">,</span> <span class="n">X</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">),</span> <span class="n">rxns</span><span class="p">,</span> <span class="n">cmps</span><span class="p">,</span> <span class="n">Xs</span><span class="p">):</span>
             <span class="n">rxn_spaces</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxrxnlen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn</span><span class="p">))</span>
             <span class="n">cmp_spaces</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxcmplen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">cmp</span><span class="p">))</span>
             <span class="n">num</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
             <span class="n">numspace</span> <span class="o">=</span> <span class="p">(</span><span class="n">maxnumspace</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">num</span><span class="p">))</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span>
-            <span class="n">outs</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[</span><span class="si">{N}</span><span class="s2">]</span><span class="si">{numspace}{rxn}{rxn_spaces}{cmp}{cmp_spaces}</span><span class="s2">{X*100: &gt;6.2f}&quot;</span>
+            <span class="n">outs</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[</span><span class="si">{N}</span><span class="s2">]</span><span class="si">{numspace}{rxn}{rxn_spaces}{cmp}{cmp_spaces}</span><span class="s2">{X*100: &gt;6.2f}&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span>
         
@@ -453,7 +458,7 @@
     <span class="sd">&quot;&quot;&quot;Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all parallel reactions.&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
         <span class="n">material</span> <span class="o">+=</span> <span class="n">material</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span>
 
     <span class="nd">@property</span>
@@ -471,7 +476,7 @@
     <span class="sd">&quot;&quot;&quot;Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all reactions in series.&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="p">):</span>
             <span class="n">material</span> <span class="o">+=</span> <span class="n">material</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">j</span><span class="o">*</span><span class="n">k</span>
 

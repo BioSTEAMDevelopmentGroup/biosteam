@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -181,12 +186,12 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Facility</span>
-<span class="kn">from</span> <span class="nn">..decorators</span> <span class="k">import</span> <span class="n">cost</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Static</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Facility</span>
+<span class="kn">from</span> <span class="nn">..decorators</span> <span class="kn">import</span> <span class="n">cost</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Static</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">Stream</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">HeatUtility</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
 
 <span class="c1"># from copy import copy</span>
 
@@ -203,7 +208,7 @@
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">evaporation</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">blowdown</span> <span class="o">=</span> <span class="mf">0.001</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="n">water</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">species</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span> <span class="o">=</span> <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;cooling_tower_makeup_water&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">water</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="s1">&#39;evaporation_and_blowdown&#39;</span><span class="p">,</span> <span class="n">makeup_water</span><span class="p">)</span>

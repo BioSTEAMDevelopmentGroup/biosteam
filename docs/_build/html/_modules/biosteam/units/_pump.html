@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -182,9 +187,9 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">fluids.pump</span> <span class="k">import</span> <span class="n">nema_sizes_hp</span>
-<span class="kn">from</span> <span class="nn">.designtools._vacuum</span> <span class="k">import</span> <span class="n">_calc_MotorEfficiency</span><span class="p">,</span> <span class="n">_calc_BreakEfficiency</span>
-<span class="kn">from</span> <span class="nn">._static</span> <span class="k">import</span> <span class="n">Static</span>
+<span class="kn">from</span> <span class="nn">fluids.pump</span> <span class="kn">import</span> <span class="n">nema_sizes_hp</span>
+<span class="kn">from</span> <span class="nn">.designtools._vacuum</span> <span class="kn">import</span> <span class="n">_calc_MotorEfficiency</span><span class="p">,</span> <span class="n">_calc_BreakEfficiency</span>
+<span class="kn">from</span> <span class="nn">._static</span> <span class="kn">import</span> <span class="n">Static</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
@@ -303,10 +308,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">F_Mdict</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
         
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         
@@ -368,7 +373,7 @@
                 <span class="n">Type</span> <span class="o">=</span> <span class="s1">&#39;MeteringPlunger&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">NPSH</span> <span class="o">=</span> <span class="n">calc_NPSH</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">P_vapor</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;no pump type available at current power (</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no pump type available at current power (</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
                 
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span> <span class="c1"># Set power in kW</span>
@@ -408,7 +413,7 @@
             <span class="k">elif</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1450</span> <span class="ow">and</span> <span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">q</span> <span class="o">&lt;=</span> <span class="mi">1500</span> <span class="ow">and</span> <span class="mi">650</span> <span class="o">&lt;=</span> <span class="n">h</span> <span class="o">&lt;=</span> <span class="mi">3200</span><span class="p">:</span>
                 <span class="n">F_T</span> <span class="o">=</span> <span class="n">F_Tdict</span><span class="p">[</span><span class="s1">&#39;2+HSC3600&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;no centrifugal pump available at current power (</span><span class="si">{p:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{h:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no centrifugal pump available at current power (</span><span class="si">{p:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{h:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
             <span class="n">S</span> <span class="o">=</span> <span class="n">q</span><span class="o">*</span><span class="n">h</span><span class="o">**</span><span class="mf">0.5</span> <span class="c1"># Size factor</span>
             <span class="n">S_new</span> <span class="o">=</span> <span class="n">S</span> <span class="k">if</span> <span class="n">S</span> <span class="o">&gt;</span> <span class="mi">400</span> <span class="k">else</span> <span class="mi">400</span>
             <span class="n">lnS</span> <span class="o">=</span> <span class="n">ln</span><span class="p">(</span><span class="n">S_new</span><span class="p">)</span>

@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -182,15 +187,15 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_Q</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_Q</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">DisplayUnits</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">DisplayUnits</span><span class="p">,</span> \
                     <span class="n">tuple_array</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">Source</span><span class="p">,</span> <span class="n">MissingStream</span>
-<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span>
-<span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">WorkingSpecies</span>
-<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
-<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="k">import</span> <span class="n">SolverError</span>
-<span class="kn">from</span> <span class="nn">._equilibrium</span> <span class="k">import</span> <span class="n">Dortmund</span><span class="p">,</span> <span class="n">VLE</span><span class="p">,</span> <span class="n">BubblePoint</span><span class="p">,</span> <span class="n">DewPoint</span>
+<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="kn">import</span> <span class="n">find</span>
+<span class="kn">from</span> <span class="nn">._species</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">WorkingSpecies</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="kn">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
+<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">SolverError</span>
+<span class="kn">from</span> <span class="nn">._equilibrium</span> <span class="kn">import</span> <span class="n">Dortmund</span><span class="p">,</span> <span class="n">VLE</span><span class="p">,</span> <span class="n">BubblePoint</span><span class="p">,</span> <span class="n">DewPoint</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Stream&#39;</span><span class="p">,)</span>
@@ -222,7 +227,7 @@
             <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;as a function of T &#39;</span>
         <span class="k">elif</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span>
             <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;as a function of P &#39;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{propID}</span><span class="s2">: [</span><span class="si">{datatype}</span><span class="s2">] {description.capitalize()} &quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{propID}</span><span class="s2">: [</span><span class="si">{datatype}</span><span class="s2">] {description.capitalize()} &quot;</span>
               <span class="s2">&quot;</span><span class="si">{dependency}</span><span class="s2">(</span><span class="si">{units}</span><span class="s2">).&quot;</span><span class="p">)</span>
 
     <span class="c1"># Many helpdata, print all the nice strings</span>
@@ -311,7 +316,7 @@
 
 <span class="k">def</span> <span class="nf">flow</span><span class="p">(</span><span class="n">fget</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">fget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;can&#39;t set attribute&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;can&#39;t set attribute&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="p">,</span> <span class="n">fset</span><span class="p">)</span>
 
 
@@ -583,7 +588,7 @@
                                  <span class="n">fraction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                  <span class="n">N</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
                  <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
         <span class="c1"># Get species and set species information</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
@@ -629,7 +634,7 @@
             <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;m3/hr&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">Dortmund</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span> <span class="o">=</span> <span class="n">BubblePoint</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
@@ -643,14 +648,14 @@
         <span class="n">q</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dimensionality</span>
         <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
-            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kmol/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+            <span class="n">exec</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;self._mol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kmol/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mass_flow_dim</span><span class="p">:</span>
-            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mass[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kg/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+            <span class="n">exec</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;self._mass[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kg/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
-            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._vol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;m3/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+            <span class="n">exec</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;self._vol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;m3/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, &quot;</span>
-                                 <span class="n">f</span><span class="s2">&quot;mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dimensions for flow units must be in molar, &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Stream.getflow"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.getflow">[docs]</a>    <span class="k">def</span> <span class="nf">getflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get flow rates of species in given units.&quot;&quot;&quot;</span>
@@ -664,8 +669,8 @@
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">q</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;m3/hr&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, &quot;</span>
-                                 <span class="n">f</span><span class="s2">&quot;mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dimensions for flow units must be in molar, &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
     
     <span class="k">def</span> <span class="nf">_setflows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow_pairs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize molar flow rates according to the species order, and flow_pairs. Instance species do not change.&quot;&quot;&quot;</span>
@@ -688,15 +693,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">_N</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
                 
     <span class="c1"># Forward pipping</span>
-    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">Sink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported operand type(s) for -: &quot;</span>
-                            <span class="n">f</span><span class="s2">&quot;&#39;{type(self)}&#39; and &#39;{type(index)}&#39;&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;&#39;{type(self)}&#39; and &#39;{type(index)}&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">index</span><span class="o">.</span><span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         
-    <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">Source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
@@ -715,7 +720,7 @@
     <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">phase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;phase must be either &#39;s&#39;, &#39;l&#39;, or &#39;g&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;phase must be either &#39;s&#39;, &#39;l&#39;, or &#39;g&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">phase</span>
     
 <div class="viewcode-block" id="Stream.proxy"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.proxy">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -759,7 +764,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">Error</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span> <span class="k">raise</span> <span class="n">Error</span>
-            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;link must be a Stream object, not a &quot;</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;link must be a Stream object, not a &quot;</span>
                                   <span class="s2">&quot;&#39;{type(stream).__name__}&#39; object.&quot;</span><span class="p">)</span>
     
     <span class="nd">@property</span>
@@ -1024,7 +1029,7 @@
                     <span class="k">else</span><span class="p">:</span> <span class="n">it</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">Error</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;cannot set enthalpy to empty stream&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cannot set enthalpy to empty stream&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">Error</span>
 
@@ -1727,7 +1732,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_helpdata</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">:</span> <span class="n">_print_helpdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No matching property &#39;</span><span class="si">{prop}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
+        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No matching property &#39;</span><span class="si">{prop}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Stream.T_equilibrium"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.T_equilibrium">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">T_equilibrium</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">T_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">approximate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -1791,7 +1796,7 @@
             
             <span class="c1"># Check iteration</span>
             <span class="k">if</span> <span class="n">it</span> <span class="o">&gt;</span> <span class="mi">40</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;could not solve temperature&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;could not solve temperature&quot;</span><span class="p">)</span>
             
             <span class="c1"># Update</span>
             <span class="n">T_guess</span> <span class="o">=</span> <span class="n">T</span>
@@ -1855,7 +1860,7 @@
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">inst</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;streams must only contain Stream &#39;</span>
-                                    <span class="n">f</span><span class="s1">&#39;objects, not {type(s).__name__} objects&#39;</span><span class="p">)</span>
+                                    <span class="sa">f</span><span class="s1">&#39;objects, not {type(s).__name__} objects&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">Error</span>
 
         <span class="c1"># Energy Balance</span>
@@ -1920,21 +1925,21 @@
         <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">source</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="s1">&#39;</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="s1">&#39;</span>
         <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span>
         <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sink</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">sink</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="s1">&#39;</span>
+            <span class="n">sink</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="s1">&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}: </span><span class="si">{self.ID}{source}{sink}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}: </span><span class="si">{self.ID}{source}{sink}</span><span class="s2">&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}</span><span class="si">{source}{sink}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}</span><span class="si">{source}{sink}</span><span class="s2">&quot;</span>
         
     <span class="k">def</span> <span class="nf">_info_phaseTP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">):</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">T_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">P_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot; phase: &#39;</span><span class="si">{phases}</span><span class="s2">&#39;, T: </span><span class="si">{T:.5g}</span><span class="s2"> </span><span class="si">{T_units}</span><span class="s2">, P: </span><span class="si">{P:.6g}</span><span class="s2"> </span><span class="si">{P_units}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot; phase: &#39;</span><span class="si">{phases}</span><span class="s2">&#39;, T: </span><span class="si">{T:.5g}</span><span class="s2"> </span><span class="si">{T_units}</span><span class="s2">, P: </span><span class="si">{P:.6g}</span><span class="s2"> </span><span class="si">{P_units}</span><span class="se">\n</span><span class="s2">&quot;</span>
 
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
@@ -1944,7 +1949,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_mol&#39;</span><span class="p">):</span>
             <span class="n">nonzero</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonzero_species</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; link: </span><span class="si">{self._link}</span><span class="s1">&#39;</span>
+            <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39; link: </span><span class="si">{self._link}</span><span class="s1">&#39;</span>
         <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span>
                                                      <span class="nb">zip</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span><span class="p">)]</span>
         <span class="n">basic_info</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_phaseTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">,</span> <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">)</span>
@@ -1964,11 +1969,11 @@
                 <span class="n">flownet</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volnet</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;volnet&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">flow_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
                 <span class="n">flow</span> <span class="o">=</span> <span class="s1">&#39;volfrac&#39;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
             <span class="n">beginning</span> <span class="o">=</span> <span class="s1">&#39; flow: &#39;</span>
-            <span class="n">end</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">*</span><span class="si">{flownet:.3g}</span><span class="s1"> </span><span class="si">{flow_units}</span><span class="s1"> &#39;</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">*</span><span class="si">{flownet:.3g}</span><span class="s1"> </span><span class="si">{flow_units}</span><span class="s1"> &#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">beginning</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39; flow (</span><span class="si">{flow_units}</span><span class="s1">): &#39;</span>
+            <span class="n">beginning</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; flow (</span><span class="si">{flow_units}</span><span class="s1">): &#39;</span>
             <span class="n">end</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="k">if</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
                 <span class="n">flow</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span>
@@ -1977,7 +1982,7 @@
             <span class="k">elif</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
                 <span class="n">flow</span> <span class="o">=</span> <span class="s1">&#39;vol&#39;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="c1"># Remaining lines (all flow rates)</span>
         <span class="n">new_line_spaces</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">beginning</span><span class="p">)</span> <span class="o">*</span> <span class="s1">&#39; &#39;</span>
         <span class="k">if</span> <span class="s1">&#39;frac&#39;</span> <span class="ow">in</span> <span class="n">flow</span><span class="p">:</span>
@@ -1994,9 +1999,9 @@
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">_N</span><span class="p">:</span>
                 <span class="n">flowrates</span> <span class="o">+=</span> <span class="s1">&#39;...</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">new_line_spaces</span>
                 <span class="k">break</span>
-            <span class="n">flowrates</span> <span class="o">+=</span> <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">spaces</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; </span><span class="si">{flow[i]:.3g}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">new_line_spaces</span>
+            <span class="n">flowrates</span> <span class="o">+=</span> <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">spaces</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{flow[i]:.3g}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">new_line_spaces</span>
         <span class="n">spaces</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="n">lengths</span><span class="p">[</span><span class="n">len_</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">flowrates</span> <span class="o">+=</span> <span class="n">species</span><span class="p">[</span><span class="n">len_</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">spaces</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; </span><span class="si">{flow[len_-1]:.3g}</span><span class="s1">&#39;</span>
+        <span class="n">flowrates</span> <span class="o">+=</span> <span class="n">species</span><span class="p">[</span><span class="n">len_</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">spaces</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{flow[len_-1]:.3g}</span><span class="s1">&#39;</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">basic_info</span> 
               <span class="o">+</span> <span class="n">beginning</span>
               <span class="o">+</span> <span class="n">flowrates</span>
@@ -2033,16 +2038,16 @@
         <span class="k">if</span> <span class="n">ins</span><span class="p">:</span> <span class="n">ins</span><span class="p">[</span><span class="n">ins</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span> <span class="o">=</span> <span class="n">MissingStream</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
-        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
         
         
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_mixed_stream</span> <span class="k">as</span> <span class="n">MS</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_mixed_stream</span> <span class="k">as</span> <span class="n">MS</span>
 </pre></div>
 
            </div>

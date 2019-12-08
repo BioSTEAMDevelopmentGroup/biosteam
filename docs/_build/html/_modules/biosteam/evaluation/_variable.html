@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -182,7 +187,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Variable&#39;</span><span class="p">,)</span>
-<span class="kn">from</span> <span class="nn">._name</span> <span class="k">import</span> <span class="n">element_name</span>
+<span class="kn">from</span> <span class="nn">._name</span> <span class="kn">import</span> <span class="n">element_name</span>
 
 
 <div class="viewcode-block" id="Variable"><a class="viewcode-back" href="../../../evaluation/Variable.html#biosteam.evaluation.Variable">[docs]</a><span class="k">class</span> <span class="nc">Variable</span><span class="p">:</span>
@@ -228,10 +233,10 @@
             <span class="n">distribution</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">return</span> <span class="n">name</span> <span class="o">+</span> <span class="n">units</span> <span class="o">+</span> <span class="n">distribution</span></div>
     
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot; (</span><span class="si">{self.units}</span><span class="s2">)&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">element</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot; [</span><span class="si">{self.element_name}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}:</span><span class="si">{element}</span><span class="s1"> </span><span class="si">{self.name}{units}</span><span class="s1">&gt;&#39;</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{self.units}</span><span class="s2">)&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{self.element_name}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}:</span><span class="si">{element}</span><span class="s1"> </span><span class="si">{self.name}{units}</span><span class="s1">&gt;&#39;</span>
     
     <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>

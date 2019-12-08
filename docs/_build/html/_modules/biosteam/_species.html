@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -181,8 +186,8 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">compounds</span> <span class="k">as</span> <span class="n">cmps</span>
-<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">UndefinedCompound</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">compounds</span> <span class="k">as</span> <span class="n">cmps</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="kn">import</span> <span class="n">UndefinedCompound</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
@@ -223,7 +228,7 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;can only set Compound objects as attributes&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">IDs</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">IDs</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Sphinx docs look ugly if a class is in the default argument</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">IDs</span><span class="p">:</span> <span class="k">return</span>
         <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="bp">cls</span> <span class="o">=</span> <span class="n">cmps</span><span class="o">.</span><span class="n">Chemical</span>
@@ -235,16 +240,16 @@
     <span class="k">def</span> <span class="nf">IDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">compound</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">compound</span><span class="p">,</span> <span class="n">cmps</span><span class="o">.</span><span class="n">Compound</span><span class="p">):</span>
             <span class="n">compound</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="n">_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">compound</span><span class="p">)</span>
@@ -276,8 +281,8 @@
         <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span> 
             <span class="n">_setattr</span><span class="p">(</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">),</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span></div>
     
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: {&quot;, &quot;.join(self.IDs)}&gt;&#39;</span></div>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: {&quot;, &quot;.join(self.IDs)}&gt;&#39;</span></div>
 
 
 <span class="k">class</span> <span class="nc">WorkingSpecies</span><span class="p">:</span>
@@ -285,7 +290,7 @@
     
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">subgroup</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">working_species</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_species</span><span class="p">,</span> <span class="bp">cls</span><span class="p">),</span> <span class="n">f</span><span class="s2">&quot;working_species must be a &#39;</span><span class="si">{cls.__name__}</span><span class="s2">&#39; object&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_species</span><span class="p">,</span> <span class="bp">cls</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;working_species must be a &#39;</span><span class="si">{cls.__name__}</span><span class="s2">&#39; object&quot;</span>
         <span class="bp">self</span> <span class="o">=</span> <span class="n">Species</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">working_species</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
         <span class="n">WorkingSpecies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -295,7 +300,7 @@
                 <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span>
     
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="bp">cls</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span>
         <span class="n">_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;__class__&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
         <span class="n">me</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
@@ -320,7 +325,7 @@
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_MW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">MW</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">self</span>
     
-    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span> <span class="ow">and</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;_&#39;</span><span class="p">))]</span>
 
     <span class="k">def</span> <span class="nf">get_synonyms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
@@ -332,7 +337,7 @@
         <span class="n">compound</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span>
         <span class="n">dct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
         <span class="k">if</span> <span class="n">synonym</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="n">dct</span><span class="p">[</span><span class="n">synonym</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">compound</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;synonym &#39;</span><span class="si">{synonym}</span><span class="s2">&#39; already in use by {repr(dct[synonym])}&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;synonym &#39;</span><span class="si">{synonym}</span><span class="s2">&#39; already in use by {repr(dct[synonym])}&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_indexdct</span><span class="p">[</span><span class="n">synonym</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexdct</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
             <span class="n">dct</span><span class="p">[</span><span class="n">synonym</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound</span>
@@ -434,19 +439,19 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span> <span class="k">raise</span> <span class="n">UndefinedCompound</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>       
     
-    <span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
     
-    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">compound</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
     
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
     
     <span class="nd">@property</span>

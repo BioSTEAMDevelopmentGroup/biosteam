@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -182,7 +187,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Parameter&#39;</span><span class="p">,)</span>
-<span class="kn">from</span> <span class="nn">._variable</span> <span class="k">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">._variable</span> <span class="kn">import</span> <span class="n">Variable</span>
 
 <div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../evaluation/Parameter.html#biosteam.evaluation.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="n">Variable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Parameter object that, when called, runs the setter and the simulate functions.</span>
@@ -210,7 +215,7 @@
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;setter&#39;</span><span class="p">,</span> <span class="s1">&#39;simulate&#39;</span><span class="p">,</span> <span class="s1">&#39;element&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;distribution&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;baseline&#39;</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">simulate</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">simulate</span><span class="p">,</span>
                  <span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span>
                  <span class="n">units</span><span class="p">,</span> <span class="n">baseline</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
@@ -222,16 +227,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span> <span class="o">=</span> <span class="n">baseline</span>
     
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.name}</span><span class="se">\n</span><span class="s1">&#39;</span>
-             <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39; element: </span><span class="si">{self.element_name}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-             <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39; system: </span><span class="si">{self.system}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-             <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39; units: </span><span class="si">{self.units}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-             <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39; distribution: </span><span class="si">{self.distribution}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.name}</span><span class="se">\n</span><span class="s1">&#39;</span>
+             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39; element: </span><span class="si">{self.element_name}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39; system: </span><span class="si">{self.system}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39; units: </span><span class="si">{self.units}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39; distribution: </span><span class="si">{self.distribution}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">))</span></div>
     
                 
     

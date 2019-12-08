@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -181,10 +186,10 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">._compound</span> <span class="k">import</span> <span class="n">Compound</span><span class="p">,</span> <span class="n">_R</span>
-<span class="kn">from</span> <span class="nn">._chemical</span> <span class="k">import</span> <span class="n">Chemical</span>
+<span class="kn">from</span> <span class="nn">._compound</span> <span class="kn">import</span> <span class="n">Compound</span><span class="p">,</span> <span class="n">_R</span>
+<span class="kn">from</span> <span class="nn">._chemical</span> <span class="kn">import</span> <span class="n">Chemical</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Substance&#39;</span><span class="p">,</span> <span class="s1">&#39;StaticChemical&#39;</span><span class="p">)</span>
 
@@ -248,7 +253,7 @@
 <span class="sd">        997</span>
 <span class="sd">            </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">MW</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">Cp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">Pr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">):</span>
@@ -288,7 +293,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_ref</span> <span class="o">=</span> <span class="n">phase</span>
         
         <span class="k">if</span> <span class="n">phase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;slg&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;default phase must be either &#39;s&#39;, &#39;l&#39; or &#39;g&#39;, not &#39;</span><span class="si">{phase}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;default phase must be either &#39;s&#39;, &#39;l&#39; or &#39;g&#39;, not &#39;</span><span class="si">{phase}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         
         <span class="c1"># Phase change temperature consitent with phase</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">phase</span><span class="o">==</span><span class="s1">&#39;g&#39;</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span> 

@@ -299,10 +299,10 @@ class VLE:
         P_bubble, y_bubble = self._bubble_point.solve_Py(self._zs, T)
         
         # Check if there is equilibrium
-        if P >= P_dew:
+        if P <= P_dew:
             self._vapor_mol[self._index] = self._mol
             self._liquid_mol[self._index] = 0
-        elif P <= P_bubble:
+        elif P >= P_bubble:
             self._vapor_mol[self._index] = 0
             self._liquid_mol[self._index] = self._mol
         else:
@@ -464,7 +464,7 @@ class VLE:
         
         # Guess T, overall vapor fraction, and vapor flow rates
         self.V = V = self.V or dH_bubble/(H_dew - H_bubble)
-        self._v = V*self._zs + (1-V)*y_bubble*V*self._molnet
+        self._v = (V*self._zs + (1-V)*y_bubble) * V * self._molnet
         
         massnet = self._massnet
         self.Q = Hin/massnet

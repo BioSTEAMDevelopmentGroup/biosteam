@@ -315,8 +315,8 @@
       "MixedStream: ms1\n",
       " phase: 'lg', T: 351 K, P: 101325 Pa\n",
       "         species  kmol/hr\n",
-      " liquid: Water    5.39\n",
-      "         Ethanol  3.19\n",
+      " liquid: Water    5.4\n",
+      "         Ethanol  3.2\n",
       "\n",
       " vapor:  Water    0.555\n",
       "         Ethanol  3\n"
@@ -351,7 +351,7 @@
     {
      "data": {
       "text/plain": [
-       "8.581060526320748"
+       "8.601120825151575"
       ]
      },
      "execution_count": 13,
@@ -438,7 +438,7 @@
     {
      "data": {
       "text/plain": [
-       "tuple_array([0.3976676602743484, 0.6023323397256516], dtype=object)"
+       "tuple_array([0.3976665922854577, 0.6023334077145422], dtype=object)"
       ]
      },
      "execution_count": 17,
@@ -492,7 +492,7 @@
     {
      "data": {
       "text/plain": [
-       "tuple_array([5.944, 6.192])"
+       "tuple_array([5.957, 6.199])"
       ]
      },
      "execution_count": 19,
@@ -512,7 +512,7 @@
     {
      "data": {
       "text/plain": [
-       "tuple_array([107.085, 285.257])"
+       "tuple_array([107.312, 285.601])"
       ]
      },
      "execution_count": 20,
@@ -573,7 +573,7 @@
     {
      "data": {
       "text/plain": [
-       "204334.2743237495"
+       "204996.65103660987"
       ]
      },
      "execution_count": 22,
@@ -593,7 +593,7 @@
     {
      "data": {
       "text/plain": [
-       "3.9221069813948026"
+       "3.927814864795724"
       ]
      },
      "execution_count": 23,
@@ -685,9 +685,9 @@
      "output_type": "stream",
      "text": [
       "MixedStream: ms2\n",
-      " phase: 'l', T: 353.88 K, P: 101325 Pa\n",
+      " phase: 'g', T: 353.88 K, P: 101325 Pa\n",
       "         species  kmol/hr\n",
-      " liquid: Water    3\n",
+      " vapor:  Water    3\n",
       "         Ethanol  3\n"
      ]
     }
@@ -718,13 +718,13 @@
      "output_type": "stream",
      "text": [
       "MixedStream: ms2\n",
-      " phase: 'lg', T: 352.95 K, P: 101325 Pa\n",
+      " phase: 'lg', T: 357.39 K, P: 101325 Pa\n",
       "         species  kmol/hr\n",
-      " liquid: Water    2.99\n",
-      "         Ethanol  2.99\n",
+      " liquid: Water    0.0236\n",
+      "         Ethanol  0.00425\n",
       "\n",
-      " vapor:  Water    0.00515\n",
-      "         Ethanol  0.00991\n"
+      " vapor:  Water    2.98\n",
+      "         Ethanol  3\n"
      ]
     }
    ],
@@ -750,7 +750,7 @@
      "output_type": "stream",
      "text": [
       "MixedStream: ms2\n",
-      " phase: 'lg', T: 353.87 K, P: 101325 Pa\n",
+      " phase: 'lg', T: 353.91 K, P: 101325 Pa\n",
       "         species  kmol/hr\n",
       " liquid: Water    1.84\n",
       "         Ethanol  1.16\n",

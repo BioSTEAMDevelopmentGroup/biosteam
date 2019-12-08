@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -177,7 +182,7 @@
   <h1>Source code for biosteam.units.designtools._tables</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; A module of tables and graphs for constants</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">pi</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">pi</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;GTable&#39;</span><span class="p">,</span> <span class="s1">&#39;HNATable&#39;</span><span class="p">,</span> <span class="s1">&#39;FinalValue&#39;</span><span class="p">,</span>
            <span class="s1">&#39;VesselWeightAndWallThickness&#39;</span><span class="p">,</span> <span class="s1">&#39;Kvalue&#39;</span><span class="p">)</span>
@@ -443,7 +448,7 @@
     <span class="k">elif</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mf">40.0</span> <span class="ow">and</span> <span class="n">P</span> <span class="o">&lt;=</span> <span class="mf">5500.0</span><span class="p">:</span>
         <span class="n">K</span> <span class="o">=</span> <span class="mf">0.43</span> <span class="o">-</span> <span class="mf">0.023</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;invalid Pressure </span><span class="si">{P}</span><span class="s1"> psia&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid Pressure </span><span class="si">{P}</span><span class="s1"> psia&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">K</span></div>
 
 

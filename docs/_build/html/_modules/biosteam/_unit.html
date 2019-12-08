@@ -113,6 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -183,17 +188,17 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
-<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">DesignWarning</span><span class="p">,</span> <span class="n">_try_method</span>
-<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">save_digraph</span>
-<span class="kn">from</span> <span class="nn">._graphics</span> <span class="k">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
-<span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">._heat_utility</span> <span class="k">import</span> <span class="n">HeatUtility</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">NotImplementedMethod</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="kn">import</span> <span class="n">DesignWarning</span><span class="p">,</span> <span class="n">_try_method</span>
+<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="kn">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">save_digraph</span>
+<span class="kn">from</span> <span class="nn">._graphics</span> <span class="kn">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
+<span class="kn">from</span> <span class="nn">._stream</span> <span class="kn">import</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">._heat_utility</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">NotImplementedMethod</span><span class="p">,</span> \
                    <span class="n">_add_upstream_neighbors</span><span class="p">,</span> <span class="n">_add_downstream_neighbors</span><span class="p">,</span> \
                    <span class="n">format_unit_line</span>
-<span class="kn">from</span> <span class="nn">._power_utility</span> <span class="k">import</span> <span class="n">PowerUtility</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">._power_utility</span> <span class="kn">import</span> <span class="n">PowerUtility</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,)</span>
@@ -203,26 +208,26 @@
 <span class="k">def</span> <span class="nf">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">Warning</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a Warning object with source description.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;@</span><span class="si">{source}</span><span class="s1">: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;@</span><span class="si">{source}</span><span class="s1">: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
         <span class="k">elif</span> <span class="n">source</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;@{type(source).__name__} {str(source)}: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;@{type(source).__name__} {str(source)}: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
         <span class="k">return</span> <span class="n">category</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             
 <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
     <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb:.4g}{units}</span><span class="s2">).&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb:.4g}{units}</span><span class="s2">).&quot;</span>
     <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb}{units}</span><span class="s2">).&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb}{units}</span><span class="s2">).&quot;</span>
     
     <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
     
 <span class="k">def</span> <span class="nf">_ub_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
     <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
     <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
     
     <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
 
@@ -230,7 +235,7 @@
     
 <span class="k">class</span> <span class="nc">unit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Unit metaclass for keeping track for Unit lines and graphics.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># Make new Unit class</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         
@@ -362,7 +367,7 @@
         
     <span class="c1">### Initialize ###</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">()):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">()):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
@@ -419,7 +424,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>         
     
     <span class="c1"># Forward pipping</span>
-    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Source streams.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
             <span class="n">other</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
@@ -438,7 +443,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sink streams.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="n">other</span><span class="p">]</span>
@@ -616,9 +621,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">lb</span><span class="o">&lt;=</span><span class="n">value</span> <span class="ow">and</span> <span class="n">ub</span><span class="o">&gt;=</span><span class="n">value</span><span class="p">:</span>
             <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
             <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
             <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Warn that value is below lower bound.</span>
@@ -910,34 +915,34 @@
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Information on unit.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">info</span><span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;ins...</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;{type(self).__name__}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">info</span><span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;ins...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
             <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">source_info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">source_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">source_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">source_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;outs...</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;outs...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
             <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">sink_info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">sink_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">sink_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">sink_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">info</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -963,14 +968,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
 
 <span class="n">_Unit_is_done</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
