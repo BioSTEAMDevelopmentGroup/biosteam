@@ -9,7 +9,8 @@ from . import biorefinery_tests
 from . import binary_distillation_tests
 
 __all__ = (*biorefinery_tests.__all__,
-           *binary_distillation_tests.__all__)
+           *binary_distillation_tests.__all__,
+           "test_all")
 
 from biorefinery_tests import *
 from binary_distillation_tests import *

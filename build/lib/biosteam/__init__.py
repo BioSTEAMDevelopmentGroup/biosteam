@@ -53,6 +53,7 @@ from ._flowsheet import Flowsheet, find
 
 
 LazyPkg(__name__, ['_equilibrium', 'utils', 'units', 'evaluation',
-                   'inspect', 'compounds', 'reaction', 'thermo'],
+                   'inspect', 'compounds', 'reaction', 'thermo',
+                   'tests'],
         unsearchable=biorefineries.__all__)
 

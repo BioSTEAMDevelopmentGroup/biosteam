@@ -102,6 +102,10 @@ biosteam/price/utilities.py
 biosteam/reaction/__init__.py
 biosteam/reaction/_parse.py
 biosteam/reaction/_reaction.py
+biosteam/tests/__init__.py
+biosteam/tests/binary_distillation_tests.py
+biosteam/tests/biorefinery_tests.py
+biosteam/tests/utils.py
 biosteam/thermo/__init__.py
 biosteam/thermo/acentric.py
 biosteam/thermo/activity.py

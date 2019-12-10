@@ -611,8 +611,9 @@ class MixedStream(Stream):
                 Desired phase of stream.
             
         """
+        mol = self.mol
         self.__class__ = Stream
-        self.__init__(ID=self._ID, flow=self.mol, T=self.T, P=self.P, phase=phase)
+        self.__init__(ID=self._ID, flow=mol, T=self.T, P=self.P, phase=phase)
 
     def enable_phases(self):
         """Cast stream into a MixedStream object."""
