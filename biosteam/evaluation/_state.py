@@ -21,16 +21,16 @@ def param_unit(param):
     elif isinstance(element, Stream): return element._sink
 
 def parameter(system, element, setter, kind, name, distribution, units, baseline):
-    if kind is 'coupled':
+    if kind == 'coupled':
         return Block(element, system).parameter(setter, name=name,
                     distribution=distribution, units=units, baseline=baseline)
-    elif kind is 'isolated':
+    elif kind == 'isolated':
         return Block(element, None).parameter(setter, name=name,
                     distribution=distribution, units=units, baseline=baseline)
-    elif kind is 'design':
+    elif kind == 'design':
         return Block(element, None).parameter(setter, element._summary,
                     name, distribution=distribution, units=units, baseline=baseline)
-    elif kind is 'cost':
+    elif kind == 'cost':
         if hasattr(element, '_end'):
             def simulate():
                 element._cost()
