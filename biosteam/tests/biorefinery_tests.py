@@ -20,6 +20,6 @@ def test_lipidcane():
 def test_cornstover():
     from biosteam.biorefineries.cornstover import system
     MESP = system.cornstover_tea.solve_price(system.ethanol)
-    assert 0.746 < MESP < 0.749,  ("MESP of the corn stover biorefinery changed significantly "
-                                  f"from 0.747 to {MESP} USD/kg")
+    assert 0.747 < MESP < 0.751,  ("MESP of the corn stover biorefinery changed significantly "
+                                   f"from 0.747 to {MESP} USD/kg")
     

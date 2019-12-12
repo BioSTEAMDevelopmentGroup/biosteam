@@ -970,7 +970,7 @@ class Distillation(Dist):
         
         # Results
         Design = self._Design
-        Design['Theoretical feed stage'] = feed_stage
+        Design['Theoretical feed stage'] = stages - feed_stage
         Design['Theoretical stages'] = stages
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R

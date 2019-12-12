@@ -334,11 +334,10 @@ class VLE:
             self._vapor_mol[self._index] = 0
             self._liquid_mol[self._index] = self._mol
         else:
-            self.V = V
             self._v = (V*self._zs + (1-V)*y_bubble)*V*self._molnet
             self.P = stream.P = self.solver(self._V_at_P,
                                             P_bubble, P_dew, 0, 1,
-                                            self.P, self.V,
+                                            self.P, V,
                                             self.P_tol, self.V_tol)
             self._vapor_mol[self._index] = self._v
             self._liquid_mol[self._index] = self._mol - self._v
@@ -417,7 +416,6 @@ class VLE:
             return
         else:
             self._v = (V*self._zs + (1-V)*y_bubble) * V * self._molnet
-            self.V = V
             self.T = stream.T = self.solver(self._V_at_T,
                                             T_bubble, T_dew, 0, 1,
                                             self.T, V,
@@ -502,7 +500,7 @@ class VLE:
         gamma = self._gamma
         self._Psat_P = np.array([s.VaporPressure(T) for s in gamma.species])/P
         l = self._mol - self._v
-        x = self.itersolver(self._x_iter, l/l.sum(), 1e-4)
+        x = self.itersolver(self._x_iter, l/l.sum(), 1e-5)
         self._v = self._molnet*self.V*x/x.sum()*self._Ks            
         return self._v
 
