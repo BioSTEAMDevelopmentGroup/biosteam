@@ -40,7 +40,7 @@ class VLE:
                  '_zs', '_Ks', '_Psat_gama', '_Psat_P')
     
     solver = staticmethod(IQ_interpolation)
-    itersolver = staticmethod(aitken)
+    itersolver = staticmethod(wegstein)
     T_tol = 0.00001
     P_tol = 0.1
     Q_tol = 0.1
