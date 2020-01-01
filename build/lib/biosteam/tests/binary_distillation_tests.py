@@ -6,6 +6,8 @@ Created on Sun Dec  8 02:13:07 2019
 """
 from .utils import assert_unit_streams, assert_unit_results
 
+__all__ = ('test_binary_distillation',)
+
 def test_binary_distillation():
     from biosteam import Species, Stream
     from biosteam.units import Distillation

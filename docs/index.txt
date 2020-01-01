@@ -33,7 +33,7 @@ Key Features & Capabilities
    tutorial/Inheriting from Unit
    tutorial/Unit decorators
    tutorial/Stoichiometric reactions
-   tutorial/Advanced simulation
+   tutorial/Monte Carlo
 
 
 .. toctree::

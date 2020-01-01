@@ -5,7 +5,7 @@ Created on Sun Dec  8 02:01:41 2019
 @author: yoelr
 """
 
-__all__ = ('test_lipidcane', 'test_cornstover')
+__all__ = ('test_biorefineries', 'test_lipidcane', 'test_cornstover')
 
 def test_biorefineries():
     test_lipidcane()

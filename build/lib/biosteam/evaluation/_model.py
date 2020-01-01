@@ -196,7 +196,7 @@ class Model(State):
             timer.tic()
             def evaluate():
                 self.evaluate()
-                print(f"Elapsed time: {timer.elapsed_time:.0f} sec")
+                print(f"[{n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
             evaluate = self.evaluate
         

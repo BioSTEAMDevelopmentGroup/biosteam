@@ -7,6 +7,7 @@ Created on Sat Nov 17 09:48:34 2018
 import numpy as np
 import pandas as pd
 from warnings import warn
+from openpyxl.drawing.image import Image
 from .._tea import TEA, CombinedTEA
 from .._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import _Q
@@ -58,7 +59,7 @@ def save_report(system, file='report.xlsx', **stream_properties):
         Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
         
     """
-    writer = ExcelWriter(file)
+    writer = ExcelWriter(file, endgine='openpyxl')
     units = list(system._costunits)
     try:
         system.diagram('thorough', file='diagram', format='png')
@@ -66,8 +67,9 @@ def save_report(system, file='report.xlsx', **stream_properties):
         diagram_completed = False
         warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
     else:
-        flowsheet = writer.book.add_worksheet('Flowsheet')
-        flowsheet.insert_image('A1', 'diagram.png')
+        flowsheet = writer.book.create_sheet('Flowsheet')
+        image = Image('diagram.png')
+        flowsheet.add_image(image, anchor='A1')
         diagram_completed = True
     
     if system._TEA:

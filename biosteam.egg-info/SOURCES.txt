@@ -27,59 +27,6 @@ biosteam/_equilibrium/vle.py
 biosteam/_report/__init__.py
 biosteam/_report/plot.py
 biosteam/_report/table.py
-biosteam/biorefineries/__init__.py
-biosteam/biorefineries/cornstover/Monte Carlo cornstover.xlsx
-biosteam/biorefineries/cornstover/Spearman correlation cornstover.xlsx
-biosteam/biorefineries/cornstover/Spearman correlation lipidcane.xlsx
-biosteam/biorefineries/cornstover/__init__.py
-biosteam/biorefineries/cornstover/_analysis.py
-biosteam/biorefineries/cornstover/_humbird2011.xlsx
-biosteam/biorefineries/cornstover/_plot_bars.py
-biosteam/biorefineries/cornstover/_plot_spearman.py
-biosteam/biorefineries/cornstover/_plot_uncertainty_bottom.py
-biosteam/biorefineries/cornstover/_plot_uncertainty_top.py
-biosteam/biorefineries/cornstover/cashflow.xlsx
-biosteam/biorefineries/cornstover/cornstover TEA.xlsx
-biosteam/biorefineries/cornstover/distribution_summary.xlsx
-biosteam/biorefineries/cornstover/lipidcane TEA.xlsx
-biosteam/biorefineries/cornstover/model.py
-biosteam/biorefineries/cornstover/process_settings.py
-biosteam/biorefineries/cornstover/species.py
-biosteam/biorefineries/cornstover/system.py
-biosteam/biorefineries/cornstover/tea.py
-biosteam/biorefineries/cornstover/units.py
-biosteam/biorefineries/lipidcane/Monte Carlo across lipid fraction.xlsx
-biosteam/biorefineries/lipidcane/Monte Carlo sugarcane.xlsx
-biosteam/biorefineries/lipidcane/Spearman correlation lipidcane.xlsx
-biosteam/biorefineries/lipidcane/__init__.py
-biosteam/biorefineries/lipidcane/_analysis.py
-biosteam/biorefineries/lipidcane/_plot_spearman.py
-biosteam/biorefineries/lipidcane/_plot_uncertainty.py
-biosteam/biorefineries/lipidcane/distribution_summary.xlsx
-biosteam/biorefineries/lipidcane/model.py
-biosteam/biorefineries/lipidcane/process_settings.py
-biosteam/biorefineries/lipidcane/tea.py
-biosteam/biorefineries/lipidcane/species/__init__.py
-biosteam/biorefineries/lipidcane/species/biodiesel.py
-biosteam/biorefineries/lipidcane/species/ethanol.py
-biosteam/biorefineries/lipidcane/species/lipid.py
-biosteam/biorefineries/lipidcane/species/pretreatment.py
-biosteam/biorefineries/lipidcane/species/tripalmitin_liquid.xlsx
-biosteam/biorefineries/lipidcane/system/__init__.py
-biosteam/biorefineries/lipidcane/system/biodiesel.py
-biosteam/biorefineries/lipidcane/system/biorefinery.py
-biosteam/biorefineries/lipidcane/system/ethanol.py
-biosteam/biorefineries/lipidcane/system/pretreatment.py
-biosteam/biorefineries/lipidcane/utils/__init__.py
-biosteam/biorefineries/lipidcane/utils/composition.py
-biosteam/biorefineries/sugarcane/Monte Carlo across lipid fraction.xlsx
-biosteam/biorefineries/sugarcane/Monte Carlo sugarcane.xlsx
-biosteam/biorefineries/sugarcane/__init__.py
-biosteam/biorefineries/sugarcane/distribution_summary.xlsx
-biosteam/biorefineries/sugarcane/model.py
-biosteam/biorefineries/sugarcane/process_settings.py
-biosteam/biorefineries/sugarcane/species.py
-biosteam/biorefineries/sugarcane/system.py
 biosteam/compounds/__init__.py
 biosteam/compounds/_chemical.py
 biosteam/compounds/_compound.py
@@ -261,9 +208,6 @@ biosteam/thermo/Viscosity/VDI PPDS Dynamic viscosity of saturated liquids polyno
 biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term Exponential.tsv
 biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term.tsv
 biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 3 term.tsv
-biosteam/units/Monte Carlo across lipid fraction.xlsx
-biosteam/units/Monte Carlo sugarcane.xlsx
-biosteam/units/Spearman correlation lipidcane.xlsx
 biosteam/units/__init__.py
 biosteam/units/_balance.py
 biosteam/units/_centrifuge_LLE.py

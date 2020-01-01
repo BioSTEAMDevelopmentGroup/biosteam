@@ -12,8 +12,8 @@ __all__ = (*biorefinery_tests.__all__,
            *binary_distillation_tests.__all__,
            "test_all")
 
-from biorefinery_tests import *
-from binary_distillation_tests import *
+from .biorefinery_tests import *
+from .binary_distillation_tests import *
 
 def test_all():
     biorefinery_tests.test_biorefineries()

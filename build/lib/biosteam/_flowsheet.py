@@ -14,7 +14,7 @@ def make_digraph(units, streams, **graph_attrs):
     """Return digraph of units and streams."""
     # Create a digraph and set direction left to right
     f = Digraph(format='svg')
-    f.attr(rankdir='LR', **graph_attrs)
+    f.attr(rankdir='LR', dpi='300', **graph_attrs)
     # Set up unit nodes
     UD = {}  # Contains full description (ID and line) by ID
     for u in units:

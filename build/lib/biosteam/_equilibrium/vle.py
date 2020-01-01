@@ -15,32 +15,176 @@ __all__ = ('VLE', 'V_2N', 'V_3N', 'V_error')
 def V_error(V, zs, Ks):
     """Vapor fraction error."""
     return (zs*(Ks-1.)/(1.+V*(Ks-1.))).sum()
-
 @njit
 def V_2N(zs, Ks):
     """Solution for 2 component flash vessel."""
     z1, z2 = zs
     K1, K2 = Ks
-    return (-K1*z1 - K2*z2 + z1 + z2)/(K1*K2*z1 + K1*K2 *
-                                       z2 - K1*z1 - K1*z2
-                                       - K2*z1 - K2*z2 + z1 + z2)
-@njit    
+    K1z1 = K1*z1
+    K1z2 = K1*z2
+    K2z1 = K2*z1
+    K2z2 = K2*z2
+    K1K2 = K1*K2
+    K1K2z1 = K1K2*z1
+    K1K2z2 = K1K2*z2
+    z1_z2 = z1 + z2
+    K1z1_K2z2 = K1z1 + K2z2
+    return (-K1z1_K2z2 + z1_z2)/(K1K2z1 + K1K2z2 - K1z2 - K1z1_K2z2 - K2z1 + z1_z2)
+@njit
 def V_3N(zs, Ks):
     """Solution for 3 component flash vessel."""
     z1, z2, z3 = zs
     K1, K2, K3 = Ks
-    return (-K1*K2*z1/2 - K1*K2*z2/2 - K1*K3*z1/2 - K1*K3*z3/2 + K1*z1 + K1*z2/2 + K1*z3/2 - K2*K3*z2/2 - K2*K3*z3/2 + K2*z1/2 + K2*z2 + K2*z3/2 + K3*z1/2 + K3*z2/2 + K3*z3 - z1 - z2 - z3 - (K1**2*K2**2*z1**2 + 2*K1**2*K2**2*z1*z2 + K1**2*K2**2*z2**2 - 2*K1**2*K2*K3*z1**2 - 2*K1**2*K2*K3*z1*z2 - 2*K1**2*K2*K3*z1*z3 + 2*K1**2*K2*K3*z2*z3 - 2*K1**2*K2*z1*z2 + 2*K1**2*K2*z1*z3 - 2*K1**2*K2*z2**2 - 2*K1**2*K2*z2*z3 + K1**2*K3**2*z1**2 + 2*K1**2*K3**2*z1*z3 + K1**2*K3**2*z3**2 + 2*K1**2*K3*z1*z2 - 2*K1**2*K3*z1*z3 - 2*K1**2*K3*z2*z3 - 2*K1**2*K3*z3**2 + K1**2*z2**2 + 2*K1**2*z2*z3 + K1**2*z3**2 - 2*K1*K2**2*K3*z1*z2 + 2*K1*K2**2*K3*z1*z3 - 2*K1*K2**2*K3*z2**2 - 2*K1*K2**2*K3*z2*z3 - 2*K1*K2**2*z1**2 - 2*K1*K2**2*z1*z2 - 2*K1*K2**2*z1*z3 + 2*K1*K2**2*z2*z3 + 2*K1*K2*K3**2*z1*z2 - 2*K1*K2*K3**2*z1*z3 - 2*K1*K2*K3**2*z2*z3 - 2*K1*K2*K3**2*z3**2 + 4*K1*K2*K3*z1**2 + 4*K1*K2*K3*z1*z2 + 4*K1*K2*K3*z1*z3 + 4*K1*K2*K3*z2**2 + 4*K1*K2*K3*z2*z3 + 4*K1*K2*K3*z3**2 + 2*K1*K2*z1*z2 - 2*K1*K2*z1*z3 - 2*K1*K2*z2*z3 - 2*K1*K2*z3**2 - 2*K1*K3**2*z1**2 - 2*K1*K3**2*z1*z2 - 2*K1*K3**2*z1*z3 + 2*K1*K3**2*z2*z3 - 2*K1*K3*z1*z2 + 2*K1*K3*z1*z3 - 2*K1*K3*z2**2 - 2*K1*K3*z2*z3 + K2**2*K3**2*z2**2 + 2*K2**2*K3**2*z2*z3 + K2**2*K3**2*z3**2 + 2*K2**2*K3*z1*z2 - 2*K2**2*K3*z1*z3 - 2*K2**2*K3*z2*z3 - 2*K2**2*K3*z3**2 + K2**2*z1**2 + 2*K2**2*z1*z3 + K2**2*z3**2 - 2*K2*K3**2*z1*z2 + 2*K2*K3**2*z1*z3 - 2*K2*K3**2*z2**2 - 2*K2*K3**2*z2*z3 - 2*K2*K3*z1**2 - 2*K2*K3*z1*z2 - 2*K2*K3*z1*z3 + 2*K2*K3*z2*z3 + K3**2*z1**2 + 2*K3**2*z1*z2 + K3**2*z2**2)**0.5/2)/(K1*K2*K3*z1 + K1*K2*K3*z2 + K1*K2*K3*z3 - K1*K2*z1 - K1*K2*z2 - K1*K2*z3 - K1*K3*z1 - K1*K3*z2 - K1*K3*z3 + K1*z1 + K1*z2 + K1*z3 - K2*K3*z1 - K2*K3*z2 - K2*K3*z3 + K2*z1 + K2*z2 + K2*z3 + K3*z1 + K3*z2 + K3*z3 - z1 - z2 - z3)
+    
+    K1z1 = K1*z1
+    K1z2 = K1*z2
+    K1z3 = K1*z3
+    
+    K2z1 = K2*z1
+    K2z2 = K2*z2
+    K2z3 = K2*z3
+    
+    K3z1 = K3*z1
+    K3z2 = K3*z2
+    K3z3 = K3*z3
+    
+    K1K2 = K1*K2
+    K1K3 = K1*K3
+    K2K3 = K2*K3
+    
+    K1K2z1 = K1K2*z1
+    K1K2z2 = K1K2*z2
+    K1K3z1 = K1K3*z1
+    K1K3z3 = K1K3*z3
+    K2K3z2 = K2K3*z2
+    K2K3z3 = K2K3*z3
+    
+    K12 = K1**2
+    K22 = K2**2
+    K32 = K3**2
+    
+    K12K2 = K12*K2
+    K12K3 = K12*K3
+    K12K22 = K12*K22
+    K12K2K3 = K12*K2*K3
+    K1K22 = K1*K22
+    K1K22K3 = K1K22*K3
+    
+    K1K2K3 = K1K2*K3
+    K22K3 = K22*K3
+    K1K32 = K1*K32
+    K2K32 = K2*K32
+    K22K32 = K22*K32
+    K12K32 = K12K3*K3
+    
+    
+    z1_z2_z3 = z1 + z2 + z3
+    z12 = z1**2
+    z22 = z2**2
+    z32 = z3**2
+    z1z2 = z1*z2
+    z1z3 = z1*z3
+    z2z3 = z2*z3
+    
+    K1K2K32 = K1K2K3*K3
+    K12K2K3 = K12K2*K3
+    K12K22z12 = K12K22*z12
+    K12K22z1z2 = K12K22*z1z2
+    K12K22z22 = K12K22*z22
+    K12K2K3z12 = K12K2K3*z12
+    K12K2K3z1z2 = K12K2K3*z1z2
+    K12K2K3z1z3 = K12K2K3*z1z3
+    K12K2K3z2z3 = K12K2K3*z2z3
+    K12K2z1z2 = K12K2*z1z2
+    K12K2z1z3 = K12K2*z1z3
+    K12K2z22 = K12K2*z22
+    K12K2z2z3 = K12K2*z2z3
+    K12K32z12 = K12K32*z12
+    K12K32z1z3 = K12K32*z1z3
+    K12K32z32 = K12K32*z32
+    K12K3z1z2 = K12K3*z1z2
+    K12K3z1z3 = K12K3*z1z3
+    K12K3z2z3 = K12K3*z2z3
+    K12K3z32 = K12K3*z32
+    K12z2z3 = K12*z2z3
+    K12z22 = K12*z22
+    K12z32 = K12*z32
+    K1K22K3z1z2 = K1K22K3*z1z2
+    K1K22K3z1z3 = K1K22K3*z1z3
+    K1K22K3z22 = K1K22K3*z22
+    K1K22K3z2z3 = K1K22K3*z2z3
+    K1K22z12 = K1K22*z12
+    K1K22z1z2 = K1K22*z1z2
+    K1K22z1z3 = K1K22*z1z3
+    K1K22z2z3 = K1K22*z2z3
+    K1K2K32z1z2 = K1K2K32*z1z2
+    K1K2K32z1z3 = K1K2K32*z1z3
+    K1K2K32z2z3 = K1K2K32*z2z3
+    K1K2K32z32 = K1K2K32*z32
+    K1K2K3z12 = K1K2K3*z12
+    K1K2K3z1z2 = K1K2K3*z1z2
+    K1K2K3z1z3 = K1K2K3*z1z3
+    K1K2K3z22 = K1K2K3*z22
+    K1K2K3z2z3 = K1K2K3*z2z3
+    K1K2K3z32 = K1K2K3*z32
+    K1K2z1z2 = K1K2*z1z2
+    K1K2z1z3 = K1K2*z1z3
+    K1K2z2z3 = K1K2*z2z3
+    K1K2z32 = K1K2*z32
+    K1K32z12 = K1K32*z12
+    K1K2z1z3 = K1K2*z1z3
+    K1K32z1z2 = K1K32*z1z2
+    K1K32z1z3 = K1K32*z1z3
+    K1K32z2z3 = K1K32*z2z3
+    K1K3z1z2 = K1K3*z1z2
+    K1K3z1z3 = K1K3*z1z3
+    K1K3z22 = K1K3*z22
+    K1K3z2z3 = K1K3*z2z3
+    K22K32z22 = K22K32*z22
+    K22K3z1z2 = K22K3*z1z2
+    K22K32z2z3 = K22K32*z2z3
+    K22K32z32 = K22K32*z32
+    return ((-K1K2z1/2 - K1K2z2/2 - K1K3z1/2 - K1K3z3/2 + K1z1
+             + K1z2/2 + K1z3/2 - K2K3z2/2 - K2K3z3/2 + K2z1/2 + K2z2
+             + K2z3/2 + K3z1/2 + K3z2/2 + K3z3 - z1_z2_z3
+             - (K12K22z12 + 2*K12K22z1z2 + K12K22z22
+                - 2*K12K2K3z12 - 2*K12K2K3z1z2 - 2*K12K2K3z1z3
+                + 2*K12K2K3z2z3 - 2*K12K2z1z2 + 2*K12K2z1z3
+                - 2*K12K2z22 - 2*K12K2z2z3 + K12K32z12
+                + 2*K12K32z1z3 + K12K32z32 + 2*K12K3z1z2
+                - 2*K12K3z1z3 - 2*K12K3z2z3 - 2*K12K3z32
+                + K12z22 + 2*K12z2z3 + K12z32
+                - 2*K1K22K3z1z2 + 2*K1K22K3z1z3 - 2*K1K22K3z22
+                - 2*K1K22K3z2z3 - 2*K1K22z12 - 2*K1K22z1z2
+                - 2*K1K22z1z3 + 2*K1K22z2z3 + 2*K1K2K32z1z2
+                - 2*K1K2K32z1z3 - 2*K1K2K32z2z3 - 2*K1K2K32z32
+                + 4*K1K2K3z12 + 4*K1K2K3z1z2 + 4*K1K2K3z1z3
+                + 4*K1K2K3z22 + 4*K1K2K3z2z3 + 4*K1K2K3z32
+                + 2*K1K2z1z2 - 2*K1K2z1z3 - 2*K1K2z2z3 - 2*K1K2z32
+                - 2*K1K32z12 - 2*K1K32z1z2 - 2*K1K32z1z3
+                + 2*K1K32z2z3 - 2*K1K3z1z2 + 2*K1K3z1z3 - 2*K1K3z22
+                - 2*K1K3z2z3 + K22K32z22 + 2*K22K32z2z3
+                + K22K32z32 + 2*K22K3z1z2 - 2*K22K3*z1z3
+                - 2*K22K3*z2z3 - 2*K22K3*z32 + K22*z12
+                + 2*K22*z1z3 + K22*z32 - 2*K2K32*z1z2
+                + 2*K2K32*z1z3 - 2*K2K32*z22 - 2*K2K32*z2z3
+                - 2*K2K3*z12 - 2*K2K3*z1z2 - 2*K2K3*z1z3
+                + 2*K2K3*z2z3 + K32*z12 + 2*K32*z1z2 + K32*z22)**0.5/2)
+                / (K1K2K3*z1 + K1K2K3*z2 + K1K2K3*z3 - K1K2*z1 - K1K2*z2
+                   - K1K2*z3 - K1K3*z1 - K1K3*z2 - K1K3*z3 + K1z1 + K1z2
+                   + K1z3 - K2K3*z1 - K2K3*z2 - K2K3*z3 + K2z1 + K2z2 + K2z3
+                   + K3z1 + K3z2 + K3z3 - z1_z2_z3))
 
 class VLE:
     """Create a VLE object for solving VLE."""
-    __slots__ = ('T', 'P', 'Q', 'V', '_stream', '_gamma',
+    __slots__ = ('T', 'P', 'Q', 'V', '_stream', '_gamma', '_y',
                  '_dew_point', '_bubble_point', '_v', '_liquid_mol',
                  '_vapor_mol', '_index', '_massnet', '_compound',
                  '_update_V', '_mol', '_molnet', '_N', '_solve_V',
                  '_zs', '_Ks', '_Psat_gama', '_Psat_P')
     
     solver = staticmethod(IQ_interpolation)
-    itersolver = staticmethod(aitken)
+    itersolver = staticmethod(wegstein)
     T_tol = 0.00001
     P_tol = 0.1
     Q_tol = 0.1
@@ -54,6 +198,7 @@ class VLE:
         self._gamma = stream._gamma
         self._liquid_mol = stream.liquid_mol
         self._vapor_mol = stream.vapor_mol
+        self._y = None
     
     def __call__(self, species_IDs=None, LNK=None, HNK=None,
                  P=None, Q=None, T=None, V=None, x=None, y=None):
@@ -171,6 +316,16 @@ class VLE:
         self._molnet = molnet = self._mol.sum()
         assert molnet != 0, 'empty stream cannot perform equilibrium'
         self._zs = self._mol/molnet
+
+    def _estimate_v(self, V, y_bubble):
+        return (V*self._zs + (1-V)*y_bubble)*V*self._molnet
+    
+    def _refresh_v(self, V, y_bubble):
+        y = self._y
+        if y is not None:
+            self._v = y * self._molnet * V
+        else:
+            self._v = self._estimate_v(V, y_bubble)
 
     ### Single component equilibrium case ###
         
@@ -309,10 +464,7 @@ class VLE:
             # Guess composition in the vapor is a
             # weighted average of bubble/dew points
             self.V = V = self.V or (T - P_dew)/(P_bubble - P_dew)
-            y = V*self._zs + (1-V)*y_bubble
-            
-            # Guess vapor flow rates
-            self._v = y * V * self._mol
+            self._refresh_v(V, y_bubble)
 
             # Solve
             self._vapor_mol[self._index] = self._solve_v(T, P)
@@ -379,8 +531,7 @@ class VLE:
 
         # Guess overall vapor fraction, and vapor flow rates
         V = self.V or dH_bubble/(H_dew - H_bubble)
-        # Guess composition in the vapor is a weighted average of boiling points
-        self._v = V*self._zs + (1-V)*y_bubble*V*self._molnet
+        self._refresh_v(V, y_bubble)
         massnet = self._massnet
         self.Q = Hin/massnet
         self.P = stream.P = self.solver(self._Q_at_P,
@@ -415,7 +566,7 @@ class VLE:
             liquid_mol[index] = mol
             return
         else:
-            self._v = (V*self._zs + (1-V)*y_bubble) * V * self._molnet
+            self._refresh_v(V, y_bubble)
             self.T = stream.T = self.solver(self._V_at_T,
                                             T_bubble, T_dew, 0, 1,
                                             self.T, V,
@@ -462,7 +613,7 @@ class VLE:
         
         # Guess T, overall vapor fraction, and vapor flow rates
         self.V = V = self.V or dH_bubble/(H_dew - H_bubble)
-        self._v = (V*self._zs + (1-V)*y_bubble) * V * self._molnet
+        self._refresh_v(V, y_bubble)
         
         massnet = self._massnet
         self.Q = Hin/massnet
@@ -501,64 +652,40 @@ class VLE:
         self._Psat_P = np.array([s.VaporPressure(T) for s in gamma.species])/P
         l = self._mol - self._v
         x = self.itersolver(self._x_iter, l/l.sum(), 1e-5)
-        self._v = self._molnet*self.V*x/x.sum()*self._Ks            
-        return self._v
+        self._v = v = self._molnet*self.V*x/x.sum()*self._Ks         
+        self._y = v / v.sum()
+        return v
 
     def _V_error(self, V):
         """Vapor fraction error."""
         return (self._zs*(self._Ks-1.)/(1.+V*(self._Ks-1.))).sum()
 
+    def _set_V(self, V):
+        if V > 1.:
+            V = 1.
+        elif V < 0.:
+            V = 0.
+        self.V = V     
+
     def _solve_V_N(self):
         """Update V for N components."""
-        self.V = self.solver(self._V_error, 0, 1,
-                             self._V_error(0), self._V_error(1),
-                             self.V, 0, 1e-4, 1e-7)
-        return self.V
+        V = self.solver(self._V_error, 0, 1,
+                        self._V_error(0), self._V_error(1),
+                        self.V, 0, 1e-4, 1e-7)
+        self._set_V(V)
+        return V
 
     def _solve_V_2(self):
         """Update V for 2 components."""
-        z1, z2 = self._zs
-        K1, K2 = self._Ks
-        self.V = (-K1*z1 - K2*z2 + z1 + z2)/(K1*K2*z1 + K1*K2 *
-                                             z2 - K1*z1 - K1*z2
-                                             - K2*z1 - K2*z2 + z1 + z2)
-        return self.V
+        V = V_2N(self._zs, self._Ks)
+        self._set_V(V)
+        return V
     
     def _solve_V_3(self):
         """Update V for 3 components."""
-        z1, z2, z3 = self._zs
-        K1, K2, K3 = self._Ks
-        self.V = ((-K1*K2*z1/2 - K1*K2*z2/2 - K1*K3*z1/2 - K1*K3*z3/2 + K1*z1
-                   + K1*z2/2 + K1*z3/2 - K2*K3*z2/2 - K2*K3*z3/2 + K2*z1/2
-                   + K2*z2 + K2*z3/2 + K3*z1/2 + K3*z2/2 + K3*z3 - z1 - z2 - z3
-                   - (K1**2*K2**2*z1**2 + 2*K1**2*K2**2*z1*z2 + K1**2*K2**2*z2**2
-                      - 2*K1**2*K2*K3*z1**2 - 2*K1**2*K2*K3*z1*z2 - 2*K1**2*K2*K3*z1*z3
-                      + 2*K1**2*K2*K3*z2*z3 - 2*K1**2*K2*z1*z2 + 2*K1**2*K2*z1*z3
-                      - 2*K1**2*K2*z2**2 - 2*K1**2*K2*z2*z3 + K1**2*K3**2*z1**2
-                      + 2*K1**2*K3**2*z1*z3 + K1**2*K3**2*z3**2 + 2*K1**2*K3*z1*z2
-                      - 2*K1**2*K3*z1*z3 - 2*K1**2*K3*z2*z3 - 2*K1**2*K3*z3**2
-                      + K1**2*z2**2 + 2*K1**2*z2*z3 + K1**2*z3**2 - 2*K1*K2**2*K3*z1*z2
-                      + 2*K1*K2**2*K3*z1*z3 - 2*K1*K2**2*K3*z2**2 - 2*K1*K2**2*K3*z2*z3
-                      - 2*K1*K2**2*z1**2 - 2*K1*K2**2*z1*z2 - 2*K1*K2**2*z1*z3
-                      + 2*K1*K2**2*z2*z3 + 2*K1*K2*K3**2*z1*z2 - 2*K1*K2*K3**2*z1*z3
-                      - 2*K1*K2*K3**2*z2*z3 - 2*K1*K2*K3**2*z3**2 + 4*K1*K2*K3*z1**2
-                      + 4*K1*K2*K3*z1*z2 + 4*K1*K2*K3*z1*z3 + 4*K1*K2*K3*z2**2
-                      + 4*K1*K2*K3*z2*z3 + 4*K1*K2*K3*z3**2 + 2*K1*K2*z1*z2
-                      - 2*K1*K2*z1*z3 - 2*K1*K2*z2*z3 - 2*K1*K2*z3**2 - 2*K1*K3**2*z1**2
-                      - 2*K1*K3**2*z1*z2 - 2*K1*K3**2*z1*z3 + 2*K1*K3**2*z2*z3
-                      - 2*K1*K3*z1*z2 + 2*K1*K3*z1*z3 - 2*K1*K3*z2**2 - 2*K1*K3*z2*z3
-                      + K2**2*K3**2*z2**2 + 2*K2**2*K3**2*z2*z3 + K2**2*K3**2*z3**2
-                      + 2*K2**2*K3*z1*z2 - 2*K2**2*K3*z1*z3 - 2*K2**2*K3*z2*z3
-                      - 2*K2**2*K3*z3**2 + K2**2*z1**2 + 2*K2**2*z1*z3
-                      + K2**2*z3**2 - 2*K2*K3**2*z1*z2 + 2*K2*K3**2*z1*z3
-                      - 2*K2*K3**2*z2**2 - 2*K2*K3**2*z2*z3 - 2*K2*K3*z1**2
-                      - 2*K2*K3*z1*z2 - 2*K2*K3*z1*z3 + 2*K2*K3*z2*z3 + K3**2*z1**2
-                      + 2*K3**2*z1*z2 + K3**2*z2**2)**0.5/2)
-                   / (K1*K2*K3*z1 + K1*K2*K3*z2 + K1*K2*K3*z3 - K1*K2*z1
-                      - K1*K2*z2 - K1*K2*z3 - K1*K3*z1 - K1*K3*z2 - K1*K3*z3
-                      + K1*z1 + K1*z2 + K1*z3 - K2*K3*z1 - K2*K3*z2 - K2*K3*z3
-                      + K2*z1 + K2*z2 + K2*z3 + K3*z1 + K3*z2 + K3*z3 - z1 - z2 - z3))
-        return self.V
+        V = V_3N(self._zs, self._Ks)
+        self._set_V(V)
+        return V
 
     def __repr__(self):
         return f"{repr(self._stream)}.VLE"

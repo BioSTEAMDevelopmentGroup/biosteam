@@ -9,7 +9,8 @@ from ._flash import RatioFlash
 from ._splitter import Splitter
 from .decorators import cost
 
-__all__ = ('Centrifuge_LLE', 'SplitCentrifuge_LLE', 'RatioCentrifuge_LLE')
+__all__ = ('Centrifuge_LLE', 'SplitCentrifuge_LLE', 'RatioCentrifuge_LLE',
+           'LiquidSplitCentrifuge')
 
 # electricity kW/(m3/hr) from USDA biosdiesel Super Pro model
 # Possibly 1.4  kW/(m3/hr)
@@ -106,5 +107,5 @@ class SplitCentrifuge_LLE(Centrifuge_LLE):
     # def __init__(self, ID='', ins=None, outs=(), *, order=None, split):
     #     Splitter.__init__(self, ID, ins, outs, split=split, order=order)
     
-    
+LiquidSplitCentrifuge = SplitCentrifuge_LLE
     
