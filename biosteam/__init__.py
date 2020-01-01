@@ -7,10 +7,9 @@ Created on Sat Oct 28 17:28:09 2017
 """
 __all__ = ['Species', 'WorkingSpecies', 'Stream', 'MixedStream',
            'Unit', 'System', 'TEA', 'CombinedTEA', 'PowerUtility', 'HeatUtility',
-           'find', 'Flowsheet', 'CE', 'biorefineries']
+           'find', 'Flowsheet', 'CE']
 
 from lazypkg import LazyPkg
-from . import biorefineries
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 CE = 567.5 
@@ -54,6 +53,5 @@ from ._flowsheet import Flowsheet, find
 
 LazyPkg(__name__, ['_equilibrium', 'utils', 'units', 'evaluation',
                    'inspect', 'compounds', 'reaction', 'thermo',
-                   'tests'],
-        unsearchable=biorefineries.__all__)
+                   'tests'])
 

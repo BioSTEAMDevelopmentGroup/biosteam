@@ -255,13 +255,13 @@ class Pump(Static):
         Cost['Motor'] = exp(5.9332 + 0.16829*lnp - 0.110056*lnp2 + 0.071413*lnp3 - 0.0063788*lnp4)*I
     
     @staticmethod
-    def _nearest_PumpPower(p:'hp'):
+    def _nearest_PumpPower(p):
         for power in nema_sizes_hp:
             if power >= p: return power
         return power
         
     @staticmethod
-    def _calc_Efficiency(q:'gpm', p:'hp'):
+    def _calc_Efficiency(q, p):
         mup = _calc_BreakEfficiency(q)
         mum = _calc_MotorEfficiency(p/mup)
         return mup*mum

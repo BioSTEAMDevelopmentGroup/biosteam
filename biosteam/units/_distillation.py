@@ -12,6 +12,7 @@ from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
 import biosteam as bst
+from .. import _equilibrium as eq
 array = np.array
 
 # %% Equations
@@ -163,7 +164,8 @@ class Dist(Unit, isabstract=True):
         self._LHK = LK, HK = LHK
         species = self.outs[0].species
         self._LHK_index = LK_index, HK_index = species.indices(LHK)
-        self._LHK_species = [getattr(species, ID) for ID in LHK]
+        gamma = eq.Dortmund(getattr(species, LK), getattr(species, HK))
+        self._bubble_point = eq.BubblePoint(gamma)
         
         species_list = list(species)
         indices = list(range(len(species_list)))
@@ -408,8 +410,8 @@ class Dist(Unit, isabstract=True):
         T = np.zeros(100)
         n = 0
         
-        vap._gamma.species = self._LHK_species
-        bubble_T = vap._bubble_point.solve_Ty
+        bp = self._bubble_point
+        bubble_T = bp.solve_Ty
         for xi in x_eq:
             T[n], y = bubble_T(array([xi, 1-xi]), P)
             y_eq[n] = y[0]
@@ -443,15 +445,15 @@ class Dist(Unit, isabstract=True):
         # Vapor equilibrium graph
         plt.plot(x_eq, y_eq, lw=2)
 
-    def _cost_trays(self, N_T, Di:'ft'):
-        """Return total cost of all trays at a CE of 500."""
+    def _cost_trays(self, N_T, Di):
+        """Return total cost of all trays at a CE of 500 given number of trays, `N_T`, and inner diameter, `Di`, in ft."""
         # Note: Can only use this function after running design method.
         C_BT = self._calc_TrayBaseCost(Di)
         F_NT = self._calc_NTrayFactor(N_T)
         return N_T*F_NT*self._F_TT*self._F_TM(Di)*C_BT
 
-    def _cost_tower(self, Di:'ft', L:'ft', W:'lb'):
-        """Return cost of tower at a CE of 500."""
+    def _cost_tower(self, Di, L, W):
+        """Return cost of tower at a CE of 500 given the inner diameter, `Di`, and length, `L` in ft and weight, `W`, in lb."""
         C_V = self._calc_EmptyTowerCost(W)
         C_PL = self._calc_PlaformLadderCost(Di, L)
         return (self._F_M*C_V + C_PL)
@@ -666,12 +668,13 @@ class Dist(Unit, isabstract=True):
         return C_sbf * F_HA * F_ST * ((rho_L-rho_V)/rho_V)**0.5
     
     @staticmethod
-    def _calc_DowncomerAreaRatio(F_LV) -> 'A_dn':
+    def _calc_DowncomerAreaRatio(F_LV):
         """Return A_dn, the ratio of downcomer area to net (total) area.
         
-        **Parameters**
-        
-            F_LV: Flow parameter
+        Parameters
+        ----------
+        F_LV : float
+            Flow parameter.
         
         """
         if F_LV < 0.1:
@@ -925,8 +928,8 @@ class Distillation(Dist):
             q = 1 - 1e-5
         self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
         
-        bottoms._gamma.species = self._LHK_species
-        bubble_T = bottoms._bubble_point.solve_Ty
+        bp = self._bubble_point
+        bubble_T = bp.solve_Ty
         Rmin_intersection = lambda x: q_line(x) - bubble_T(array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
@@ -958,7 +961,7 @@ class Distillation(Dist):
         self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, x_m, bubble_T)
         yi = y_stages[-1]
         xi = rs(yi)
-        x_stages[-1] = xi if xi < 1 else 0.99999
+        x_stages[-1] = xi if xi < 1 else 0.9999999
         self._equilibrium_staircase(rs, x_stages, y_stages, T_stages, y_top, bubble_T)
         
         # Find feed stage
@@ -990,7 +993,7 @@ class Distillation(Dist):
         
         condensate = self._condensate
         rho_L = condensate.rho
-        sigma = condensate.sigma # dyn/cm
+        sigma = 1000 * condensate.sigma # dyn/cm
         L = condensate.massnet
         V = L*(R+1)/R
         vapor_stream = self._vapor_stream

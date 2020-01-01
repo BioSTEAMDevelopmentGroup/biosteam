@@ -482,7 +482,7 @@ class HXutility(HX):
                     vapmol = s.vapor_mol
                     liqmol = s.liquid_mol
                     mol = vapmol + liqmol
-                    vapmol[:] = mol*V
+                    vapmol[:] = vapmol = mol*V
                     liqmol[:] = mol - vapmol
             if T:
                 s.T = T

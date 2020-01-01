@@ -17,7 +17,8 @@ class BubblePoint:
         self.gamma = gamma
     
     def _T_error(self, T, z_over_P, z, VPs):
-        self.y =  z_over_P * array([i(T) for i in VPs]) * self.gamma(z, T)
+        VPs = [i(T) for i in VPs]
+        self.y =  z_over_P * array(VPs) * self.gamma(z, T)    
         return 1. - self.y.sum()
     
     def _P_error(self, P, T, z, Psat_gamma):
