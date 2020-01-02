@@ -23,14 +23,19 @@ class Variable:
         Distribution of variable
         
     """
-    
+    __slots__ = ()
+    include_units_in_index = True
     @property
     def element_name(self):
         return element_name(self.element)
     
     @property
     def index(self):
-        return (self.element_name, self.name)
+        name = self.name
+        if self.include_units_in_index:
+            units = self.units
+            if units: name += f" [{units}]"
+        return (self.element_name, name)
     
     def describe(self, number_format='.3g') -> str:
         """Return description of variable."""
@@ -43,11 +48,12 @@ class Variable:
             units = (' (' + str(self.units) + ')')
         else:
             units = ''
-        try:
+        if self.distribution:
+            distribution_values = self.distribution._repr.values()
             distribution = ', '.join([format(j, number_format)
-                                      for j in self.distribution._repr.values()])
+                                      for j in distribution_values])
             distribution = ' [' + distribution + ']'
-        except:
+        else:
             distribution = ''
         return name + units + distribution
     

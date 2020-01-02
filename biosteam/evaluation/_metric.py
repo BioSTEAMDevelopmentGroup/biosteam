@@ -23,7 +23,7 @@ class Metric(Variable):
     
     """
     __slots__ = ('name', 'units', 'getter', 'element')
-    
+    distribution = None
     def __init__(self, name, getter, units=None, element='Biorefinery'):
         self.name = name
         self.units = units

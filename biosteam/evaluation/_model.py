@@ -217,15 +217,13 @@ class Model(State):
                 data[:] = metric_data[metric]
                 data.to_excel(writer, sheet_name=metric[-1])
     
-    def spearman(self, metrics=(), excluded_params=()):
+    def spearman(self, metrics=()):
         """Return DataFrame of Spearman's rank correlation for metrics vs parameters.
         
         Parameters
         ----------
         metrics=() : Iterable[Metric], defaults to all metrics
-            Metrics to be be correlated with parameters.
-        excluded_params=() : Iterable[str], optional
-            Names of parameters to exclude.
+            Metrics to be correlated with parameters.
         """
         data = self.table
         param_cols = list(data)
@@ -235,15 +233,6 @@ class Model(State):
         else:
             metric_names = varindices(metrics)
         params = list(self._params)
-        for i in excluded_params:
-            for j in params:
-                if j.name == i:
-                    params.remove(j)
-                    break
-            for j in param_cols: 
-                if j[0] == i:
-                    param_cols.remove(j)
-                    break
         
         for i in all_metric_names: param_cols.remove(i)
         param_descriptions = [i.describe() for i in params]
