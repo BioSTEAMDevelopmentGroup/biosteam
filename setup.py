@@ -12,7 +12,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='1.0.6',
+    version='1.0.7',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
@@ -23,7 +23,8 @@ setup(
                       'array_collections==0.1.9', 'free_properties==0.1.9',
                       'pandas==0.25.2', 'graphviz==0.8.3', 'matplotlib==3.1.1',
 				  'lazypkg>=1.4', 'chaospy==3.0.11', 'coolprop==6.3.0',
-				  'numpy==1.17.3', 'xlrd==1.2.0', 'openpyxl==3.0.0', 'flexsolve'],
+				  'numpy==1.17.3', 'xlrd==1.2.0', 'openpyxl==3.0.0', 'flexsolve',
+                      'llvmlite==0.30.0'],
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_equilibrium/*', 'inspect/*', 'price/*', '_report/*',

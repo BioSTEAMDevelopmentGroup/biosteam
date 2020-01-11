@@ -977,15 +977,15 @@ class VolumeLiquid(TPDependentProperty):
             self.VDI_Tmax = Ts[-1]
             self.tabular_data[VDI_TABULAR] = (Ts, props)
             Tmins.append(self.VDI_Tmin); Tmaxs.append(self.VDI_Tmax)
-        if self.Tc and self.CASRN in COSTALD_data.index:
-            methods.append(HTCOSTALDFIT)
-            self.COSTALD_Vchar = float(COSTALD_data.at[self.CASRN, 'Vchar'])
-            self.COSTALD_omega_SRK = float(COSTALD_data.at[self.CASRN, 'omega_SRK'])
-            Tmins.append(0); Tmaxs.append(self.Tc)
-        if self.Tc and self.Pc and self.CASRN in COSTALD_data.index and not np.isnan(COSTALD_data.at[self.CASRN, 'Z_RA']):
-            methods.append(RACKETTFIT)
-            self.RACKETT_Z_RA = float(COSTALD_data.at[self.CASRN, 'Z_RA'])
-            Tmins.append(0); Tmaxs.append(self.Tc)
+        # if self.Tc and self.CASRN in COSTALD_data.index:
+        #     methods.append(HTCOSTALDFIT)
+        #     self.COSTALD_Vchar = float(COSTALD_data.at[self.CASRN, 'Vchar'])
+        #     self.COSTALD_omega_SRK = float(COSTALD_data.at[self.CASRN, 'omega_SRK'])
+        #     Tmins.append(0); Tmaxs.append(self.Tc)
+        # if self.Tc and self.Pc and self.CASRN in COSTALD_data.index and not np.isnan(COSTALD_data.at[self.CASRN, 'Z_RA']):
+        #     methods.append(RACKETTFIT)
+        #     self.RACKETT_Z_RA = float(COSTALD_data.at[self.CASRN, 'Z_RA'])
+        #     Tmins.append(0); Tmaxs.append(self.Tc)
         if self.CASRN in CRC_inorg_l_const_data.index:
             methods.append(CRC_INORG_L_CONST)
             self.CRC_INORG_L_CONST_Vm = float(CRC_inorg_l_const_data.at[self.CASRN, 'Vm'])
