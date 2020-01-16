@@ -118,6 +118,13 @@ class Substance(Compound):
         self.Tm = np.inf if phase=='s' else 0
         for i in properties: setattr(self, i, properties[i])
         
+    def copy(self):
+        copy = self.__new__(self.__class__)
+        copy.__dict__.update(self.__dict__)
+        return copy
+        
+    __copy__ = copy
+    
     @property
     def H(self):
         return self.Cpm*(self.T-self.T_ref)

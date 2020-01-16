@@ -139,6 +139,7 @@ class WorkingSpecies:
                                            for i in cmps])
         me['_compounds'] = cmps
         me['_IDs'] = IDs
+        me['_CASs'] = tup([i.CAS for i in cmps])
         me['_N'] = N
         me['_MW'] = np.array([i.MW for i in cmps])
         return self
@@ -274,8 +275,12 @@ class WorkingSpecies:
     
     @property
     def IDs(self):
-        """[tuple] IDs of Species object."""
+        """[tuple] IDs of each compound."""
         return self._IDs
+    @property
+    def CASs(self):
+        """[tuple] CAS identification of each compound."""
+        return self._CASs
 
     ### Material Properties ###
     getprops = Species.getprops

@@ -98,7 +98,6 @@ SUPERPRO = (298.15, 101325, 'calc', 0, 0, True) # No support for entropy found, 
 
 reference_states = [IAPWS, ASHRAE, IIR, REFPROP, CHEMSEP, PRO_II, HYSYS,
                     UNISIM, SUPERPRO]
-_chemical_cache = {}
 
 
 class Chemical(object): # pragma: no cover
@@ -521,7 +520,7 @@ class Chemical(object): # pragma: no cover
     Zl
     Zs
     '''
-
+    _chemical_cache = {}
     __atom_fractions = None
     __mass_fractions = None
     __UNIFAC_groups = None
@@ -535,52 +534,36 @@ class Chemical(object): # pragma: no cover
     def __repr__(self):
         return '<Chemical [%s], T=%.2f K, P=%.0f Pa>' %(self.name, self.T, self.P)
 
-    def __init__(self, ID, T=298.15, P=101325):
-        if isinstance(ID, dict):
-            self.CAS = ID['CASRN']
-            self.ID = self.name = ID['name']
-            self.formula = ID['formula']
-            self.MW = ID['MW'] if 'MW' in ID else molecular_weight(simple_formula_parser(self.formula))
-            self.PubChem = ID['PubChem'] if 'PubChem' in ID else None
-            self.smiles = ID['smiles'] if 'smiles' in ID else None
-            self.InChI = ID['InChI'] if 'InChI' in ID else None
-            self.InChI_Key = ID['InChI_Key'] if 'InChI_Key' in ID else None
-            self.synonyms = ID['synonyms'] if 'synonyms' in ID else None
-        else:
-            self.ID = ID
-            # Identification
-            self.CAS = CAS_from_any(ID)
-            self.ChemicalMetadata = pubchem_db.search_CAS(self.CAS)
-
-
-        if self.CAS in _chemical_cache and caching:
-            self.__dict__.update(_chemical_cache[self.CAS].__dict__)
-            self.calculate(T, P)
-        else:
-            if not isinstance(ID, dict):
-                self.PubChem = self.ChemicalMetadata.pubchemid
-                self.MW = self.ChemicalMetadata.MW
-                self.formula = self.ChemicalMetadata.formula
-                self.smiles = self.ChemicalMetadata.smiles
-                self.InChI = self.ChemicalMetadata.InChI
-                self.InChI_Key = self.ChemicalMetadata.InChI_key
-                self.IUPAC_name = self.ChemicalMetadata.iupac_name.lower()
-                self.name = self.ChemicalMetadata.common_name.lower()
-                self.synonyms = self.ChemicalMetadata.all_names
-
-            self.atoms = simple_formula_parser(self.formula)
-            self.similarity_variable = similarity_variable(self.atoms, self.MW)
-
-            self.eos_in_a_box = []
-            self.set_constant_sources()
-            self.set_constants()
-            self.set_eos(T=T, P=P)
-            self.set_TP_sources()
-            self.set_ref()
-            self.calculate(T, P)
-            if len(_chemical_cache) < 1000:
-                _chemical_cache[self.CAS] = self
-
+    def __new__(cls, ID, T=298.15, P=101325):
+        CAS = CAS_from_any(ID)
+        cache = cls._chemical_cache
+        if CAS in cache:
+            return cache[CAS]
+        self = super().__new__(cls)
+        self.ID = ID
+        # Identification
+        self.CAS = CAS
+        self.ChemicalMetadata = pubchem_db.search_CAS(self.CAS)
+        self.PubChem = self.ChemicalMetadata.pubchemid
+        self.MW = self.ChemicalMetadata.MW
+        self.formula = self.ChemicalMetadata.formula
+        self.smiles = self.ChemicalMetadata.smiles
+        self.InChI = self.ChemicalMetadata.InChI
+        self.InChI_Key = self.ChemicalMetadata.InChI_key
+        self.IUPAC_name = self.ChemicalMetadata.iupac_name.lower()
+        self.name = self.ChemicalMetadata.common_name.lower()
+        self.synonyms = self.ChemicalMetadata.all_names
+        self.atoms = simple_formula_parser(self.formula)
+        self.similarity_variable = similarity_variable(self.atoms, self.MW)
+        self.eos_in_a_box = []
+        self.set_constant_sources()
+        self.set_constants()
+        self.set_eos(T=T, P=P)
+        self.set_TP_sources()
+        self.set_ref()
+        self.calculate(T, P)
+        cache[CAS] = self
+        return self
 
 
     def calculate(self, T=None, P=None):

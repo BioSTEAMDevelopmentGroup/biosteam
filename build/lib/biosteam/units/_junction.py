@@ -8,7 +8,6 @@ from .._unit import Unit
 from .._stream import Stream
 from .._mixed_stream import MixedStream
 from ..utils import MissingStream, Ins, Outs
-from .._flowsheet import find
 
 __all__ = ('Junction',)
 
@@ -32,7 +31,7 @@ def _getstreams(self):
 # %% Connect between different flowsheets
 
 default_species = lambda upstream, downstream: \
-        set(upstream.species._IDs).intersection(downstream.species._IDs)
+    [i.ID for i in set(upstream.species._compounds).intersection(downstream.species._compounds)]
 
 class Junction(Unit):
     """Create a Junction object that copies specifications from `upstream`
@@ -61,7 +60,7 @@ class Junction(Unit):
     >>> s1 = Stream('s1', Water=20)
     >>> Stream.species = Species('Water', 'Ethanol')
     >>> s2 = Stream('s2') # Note that s2 and s1 have different Species objects
-    >>> J1 = units.Junction(s1, s2)
+    >>> J1 = units.Junction(upstream=s1, downstream=s2)
     >>> J1.simulate()
     >>> J1.show()
     Junction:
@@ -77,7 +76,7 @@ class Junction(Unit):
     """
     _has_cost = False
     _N_ins = _N_outs = 1
-    def __init__(self, upstream=None, downstream='', species=None):
+    def __init__(self, ID="", upstream=None, downstream='', species=None):
         # Init upstream
         if upstream is None:
             self._ins = Ins(self, (MissingStream,))
@@ -94,57 +93,38 @@ class Junction(Unit):
         elif isinstance(downstream, str):
             self._outs = Outs(self, (Stream(downstream),))
         
-        find.unit[self.ID] = self
-        upstream, downstream = _getstreams(self)
-        if upstream and downstream:
-            self.species = default_species(upstream, downstream)
+        self.species = species
+        self.ID = ID
+    
+    def _material_balance(self, upstream, downstream):
+        if isinstance(upstream, MixedStream):
+            downstream.enable_phases()
+            downstream._mol[:, self._downindex] = upstream._mol[:, self._upindex]
         else:
-            self._species = None
+            downstream.disable_phases(upstream._phase)
+            downstream._mol[self._downindex] = upstream._mol[self._upindex]
     
     def _run(self):
         upstream, downstream = _getstreams(self)
-        try:
-            if isinstance(upstream, MixedStream):
-                downstream.enable_phases()
-                downstream._mol[:, self._downindex] = upstream._mol[:, self._upindex]
-            else:
-                downstream.disable_phases(upstream._phase)
-                downstream._mol[self._downindex] = upstream._mol[self._upindex]
-        except AttributeError as error:
-            species = default_species(upstream, downstream)
-            if self._species and all([(i in self._species) for i in species]): raise error
-            downstream._mol[:] = 0
-            self.species = species
-            self._run()
+        if not self._species:
+            self.species = default_species(upstream, downstream)
+        self._material_balance(upstream, downstream)
         downstream.T = upstream.T
         downstream.P = upstream.P
     simulate = _run
-    
-    @property
-    def ID(self):
-        upstream, downstream = _getstreams(self)
-        if (upstream or downstream):
-            return f"{self._ins[0]} to {self._outs[0]}"
-        else:
-            return "missing streams"
-    _ID = ID
     
     @property
     def species(self):
         return self._species
     @species.setter
     def species(self, IDs):
-        upstream, downstream = _getstreams(self)
-        self._species = tuple(IDs)
-        self._upindex = upstream.indices(IDs)
-        self._downindex = downstream.indices(IDs)
-    
-    def _info(self, T, P, flow, fraction, N):
-        info = super()._info(T, P, flow, fraction, N)
-        return info[:info.index(':')+1] + info[info.index('\n'):]
-    
-    def __repr__(self):
-        return f"<{type(self).__name__}: {self.ID}>"
+        if IDs is None:
+            self._species = IDs
+        else:
+            upstream, downstream = _getstreams(self)
+            self._species = IDs = tuple(IDs)
+            self._upindex = upstream.indices(IDs)
+            self._downindex = downstream.indices(IDs)
 
 
 def node_function(self):
