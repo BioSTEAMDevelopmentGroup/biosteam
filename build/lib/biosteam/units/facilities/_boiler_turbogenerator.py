@@ -40,7 +40,7 @@ class BoilerTurbogenerator(Facility):
         Fraction of steam heat converted to electricity.
     """
     #: TODO: Make this a whole system instead of approximating duty per mol values
-    duty_over_mol = 50000 # Superheat steam with 50000 kJ/kmol
+    duty_over_mol = 45000 # Superheat steam with 45000 kJ/kmol
     boiler_blowdown = 0.03
     RO_rejection = 0
     _N_outs = _N_ins = 3
@@ -79,7 +79,7 @@ class BoilerTurbogenerator(Facility):
                 for hu in u.heat_utilities:
                     if hu.ID == 'Low pressure steam':
                         steam_utilities.add(hu)
-        steam.mol[0] = steam_mol = sum([i.flow for i in steam_utilities])
+        steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
         duty_over_mol = self.duty_over_mol
         feed = self._ins[0]
         feed2 = self._ins[1]
@@ -101,7 +101,7 @@ class BoilerTurbogenerator(Facility):
         H_content = feed_Hc*B_eff - F_mass_feed*2300*moisture_content
         
         #: [float] Total steam produced by the boiler (kmol/hr)
-        self.total_steam = H_content / 45000 
+        self.total_steam = H_content / 40000 
         # Note: A portion of the steam produced is at milder conditions,
         #       so it does not consume as much energy.
         #       This is a really vague approximation, a more rigorous 
