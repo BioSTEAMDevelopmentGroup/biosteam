@@ -4,10 +4,9 @@ Created on Mon May 20 22:04:02 2019
 
 @author: yoelr
 """
-from .. import Unit, Stream
-from numpy import asarray
-from pandas import Series
-
+from .. import Unit
+import numpy as np 
+from thermosteam.indexer import ChemicalIndexer
 __all__ = ('run_split', 'run_split_with_mixing')
 
 
@@ -15,21 +14,22 @@ def run_split(self):
     """Splitter mass and energy balance function based on one input stream."""
     top, bot = self.outs
     feed = self._ins[0]
-    net_mol = feed.mol
-    top._mol[:] = net_mol * self._split
-    bot._mol[:] = net_mol - top._mol
+    top_mol = top.mol
+    feed_mol = feed.mol
+    top_mol[:] = feed_mol * self.split
+    bot.mol[:] = feed_mol - top_mol
     bot.T = top.T = feed.T
     bot.P = top.P = feed.P
 
 def run_split_with_mixing(self):
     """Splitter mass and energy balance function with mixing all input streams."""
-    top, bot = self._outs
-    ins = self._ins
-    if len(ins) > 1: Stream.sum(top, ins)
-    else: top.copylike(ins[0])
-    bot.copylike(top)
-    top._mol[:] *= self._split
-    bot._mol[:] -= top._mol
+    top, bot = self.outs
+    ins = self.ins
+    top.mix_from(ins)
+    bot.copy_like(top)
+    top_mol = top.mol
+    top_mol[:] *= self.split
+    bot.mol[:] -= top_mol
 
 
 class Splitter(Unit):
@@ -51,13 +51,16 @@ class Splitter(Unit):
     
     Examples
     --------
-    Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:
+    Create a Splitter object with an ID, a feed stream, two output streams,
+    and an overall split:
         
     .. code-block:: python
     
-       >>> from biosteam import Species, Stream, units
-       >>> Stream.species = Species('Water', 'Ethanol')
-       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+       >>> from biosteam import units
+       >>> import thermosteam as tmo
+       >>> chemicals = tmo.Chemicals(['Water', 'Ethanol'])
+       >>> tmo.settings.set_thermo(chemicals)
+       >>> feed = tmo.Stream('feed', Water=20, Ethanol=10, T=340)
        >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
        >>> S1.simulate()
        >>> S1.show()
@@ -81,11 +84,8 @@ class Splitter(Unit):
         
     .. code-block:: python
     
-       >>> from biosteam import Species, Stream, units
-       >>> Stream.species = Species('Water', 'Ethanol')
-       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
        >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
-       ...                     split=(0.1, 0.99))
+       ...                     split={'Water': 0.1, 'Ethanol': 0.99})
        >>> S1.simulate()
        >>> S1.show()
        Splitter: S1
@@ -108,11 +108,9 @@ class Splitter(Unit):
         
     .. code-block:: python
     
-       >>> from biosteam import Species, Stream, units
-       >>> Stream.species = Species('Water', 'Ethanol')
-       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
        >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
-       ...                     split=(0.99, 0.01), order=('Ethanol', 'Water'))
+       ...                     order=('Ethanol', 'Water'),
+       ...                     split=(0.99, 0.10))
        >>> S1.simulate()
        >>> S1.show()
        Splitter: S1
@@ -135,24 +133,43 @@ class Splitter(Unit):
     _N_outs = 6
     
     @property
+    def isplit(self):
+        """[ChemicalIndexer] Componentwise split of feed to 0th output stream."""
+        return self._isplit
+    @property
     def split(self):
-        """[array] Componentwise split of feed to 0th output stream."""
-        return self._split_series
+        """[Array] Componentwise split of feed to 0th output stream."""
+        return self._isplit._data
     
-    def __init__(self, ID='', ins=None, outs=(), *, split, order=None):
-        Unit.__init__(self, ID, ins, outs)
-        self._split = split = Stream.species.array(order, split) if order else asarray(split)
-        self._split_series =  Series(split, Stream.species.IDs)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split, order=None):
+        Unit.__init__(self, ID, ins, outs, thermo)
+        chemicals = self.thermo.chemicals
+        if isinstance(split, dict):
+            assert not order, "cannot pass 'other' key word argument when split is a dictionary"
+            order, split = zip(*split.items())
+        
+        if order:
+            isplit = chemicals.iarray(order, split)
+        elif hasattr(split, '__len__'):
+            isplit = ChemicalIndexer.from_data(np.asarray(split),
+                                               phase=None,
+                                               chemicals=chemicals)
+        else:
+            split = split * np.ones(chemicals.size)
+            isplit = ChemicalIndexer.from_data(split,
+                                               phase=None,
+                                               chemicals=chemicals)
+        self._isplit = isplit
 
     def _run(self):
-        top, bot = self._outs
-        feed = self._ins[0]
-        net_mol = feed.mol
+        top, bot = self.outs
+        feed, = self.ins
+        feed_mol = feed.mol
         bot.T = top.T = feed.T
         bot.P = top.P = feed.P
-        bot._phase = top._phase = feed._phase
-        top._mol[:] = net_mol * self._split
-        bot._mol[:] = net_mol - top._mol
+        bot.phase = top.phase = feed.phase
+        top.mol[:] = top_mol = feed_mol * self.split
+        bot.mol[:] = feed_mol - top_mol
 
 Splitter._N_outs = 2
 
@@ -162,7 +179,7 @@ class InvSplitter(Unit):
     _graphics = Splitter._graphics
     def _run(self):
         feed = self.ins[0]
-        feed._mol[:] = self._mol_out
+        feed.mol[:] = self.mol_out
         T = feed.T
         P = feed.P
         phase = feed.phase

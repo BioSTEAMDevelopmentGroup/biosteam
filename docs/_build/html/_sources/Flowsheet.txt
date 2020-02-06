@@ -5,8 +5,5 @@ As BioSTEAM objects are created, they are automatically registered. The `find` o
 
 :doc:`tutorial/Managing flowsheets` 
 
-
-.. module:: biosteam
-
-.. autoclass:: Flowsheet
+.. autoclass:: biosteam.Flowsheet
    :members:

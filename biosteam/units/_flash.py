@@ -4,14 +4,17 @@ Created on Thu Aug 23 16:21:56 2018
 
 @author: yoelr
 """
-from .. import Stream, Unit, MixedStream, PowerUtility
+from .. import Unit, PowerUtility
+from thermosteam import MultiStream
 from math import pi, ceil
 import numpy as np
-from .designtools import vacuum_system, HNATable, FinalValue, \
+from .designtools import calculate_vacuum_system_power_and_cost, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
 from ._splitter import Splitter
 from ._hx import HX, HXutility
+from ..utils import bounds_warning
 import biosteam as bst
+from ._CAS import H2O_CAS
 
 exp = np.exp
 ln = np.log
@@ -72,12 +75,6 @@ class Flash(Unit):
         * **V:** Molar vapor fraction
         * **x:** Molar composition of liquid (for binary mixture)
         * **y:** Molar composition of vapor (for binary mixture)
-    species_IDs=None : tuple, optional
-        IDs of species in equilibrium.
-    LNK=None : tuple[str], optional
-        Light non-keys that remain as a vapor (disregards equilibrium).
-    LNK=None : tuple[str], optional
-        Heavy non-keys that remain as a liquid (disregards equilibrium).
 
     References
     ----------
@@ -158,18 +155,16 @@ class Flash(Unit):
             raise ValueError(f"material must be one of the following: {dummy}")
         self._material = material  
 
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 species_IDs=None, LNK=(), HNK=(),
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 keys=None, LNK=(), HNK=(),
                  V=None, T=None, Q=None, P=None,
                  y=None, x=None):
-        Unit.__init__(self, ID, ins, outs)
-        vap, liq = self.outs
-        vap._phase = 'g'
-        self._mixedstream = MixedStream(None)
+        Unit.__init__(self, ID, ins, outs, thermo)
+        self._multistream = MultiStream(None)
         self._heat_exchanger = None
         
-        #: tuple[str] IDs of species in thermodynamic equilibrium
-        self.species_IDs = species_IDs
+        #: tuple[str] IDs of chemicals in thermodynamic equilibrium
+        self.keys = keys
         
         #: tuple[str] Light non-keys assumed to remain as a vapor
         self.LNK = LNK
@@ -195,15 +190,14 @@ class Flash(Unit):
         #: Operating pressure (Pa)
         self.P = P
         
-        
     @property
     def P(self):
         """Operating pressure (Pa)."""
         return self._P
     @P.setter
     def P(self, P):
-        if P < 101325 and not self._power_utility:
-            self._power_utility = PowerUtility()
+        if P < 101325 and not self.power_utility:
+            self.power_utility = PowerUtility()
         self._P = P
     
     @property
@@ -216,9 +210,9 @@ class Flash(Unit):
             self._heat_exchanger = None
         elif not self._heat_exchanger:
             self._heat_exchanger = he = HXutility(None, outs=None) 
-            self._heat_utilities = he._heat_utilities
+            self.heat_utilities = he.heat_utilities
             he._ins = self._ins
-            he._outs[0] = self._mixedstream
+            he._outs[0] = self._multistream
         self._Q = Q
 
     def _run(self):
@@ -227,16 +221,19 @@ class Flash(Unit):
         feed = self.ins[0]
 
         # Vapor Liquid Equilibrium
-        ms = self._mixedstream
+        ms = self._multistream
         ms.empty()
-        ms.liquid_mol[:] = feed.mol
+        ms.imol['l'] = feed.mol
         ms.T = feed.T
-        ms.VLE(self.species_IDs, self.LNK, self.HNK, self.P,
-               self.Q, self.T, self.V, self.x, self.y)
+        Q = self.Q
+        H = feed.H + Q if Q is not None else None
+        ms.vle(self.P, H, self.T, self.V, self.x, self.y)
 
         # Set Values
-        vap._mol[:] = ms.vapor_mol
-        liq._mol[:] = ms.liquid_mol
+        vap.phase = 'g'
+        liq.phase = 'l'
+        vap.mol[:] = ms.imol['g']
+        liq.mol[:] = ms.imol['l']
         vap.T = liq.T = ms.T
         vap.P = liq.P = ms.P
 
@@ -244,10 +241,8 @@ class Flash(Unit):
         # Set horizontal or vertical vessel
         SepType = self.SepType
         if SepType == 'Default':
-            if self.outs[0].massnet/self.outs[1].massnet > 0.2:
-                isVertical = True
-            else:
-                isVertical = False
+            vap, liq = self.outs
+            isVertical = vap.F_mass/liq.F_mass > 0.2
         elif SepType == 'Vertical':
             isVertical = True
         elif SepType == 'Horizontal':
@@ -260,10 +255,10 @@ class Flash(Unit):
         if isVertical: self._vertical()
         else: self._horizontal()
         if self._heat_exchanger: self._heat_exchanger._design()
-        self._Design['Material'] = self._material
+        self.design_results['Material'] = self._material
 
     def _cost(self):
-        Design = self._Design
+        Design = self.design_results
         W = Design['Weight']
         D = Design['Diameter']
         L = Design['Length']
@@ -278,50 +273,51 @@ class Flash(Unit):
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
             C_pl = 2275*D**0.20294
             
-        self._Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
+        self.purchase_costs['Flash'] = CE/567*(self._F_material*C_v+C_pl)
         if self._heat_exchanger:
             hx = self._heat_exchanger
             hx._cost()
-            self._Cost.update(hx._Cost)
+            self.purchase_costs.update(hx.purchase_costs)
         self._cost_vacuum()
 
     def _cost_vacuum(self):
         P = self.P
         if not P or P > 101320: return 
         
-        Design = self._Design
-        vol = 0.02832 * np.pi * Design['Length'] * (Design['Diameter']/2)**2
+        Design = self.design_results
+        volume = 0.02832 * np.pi * Design['Length'] * (Design['Diameter']/2)**2
         
         # If vapor is condensed, assume vacuum system is after condenser
         vapor = self.outs[0]
         hx = vapor.sink
         if isinstance(hx, HX):
-            index = hx._ins.index(vapor)
-            stream = hx._outs[index]
-            if isinstance(stream, MixedStream):
-                massflow = stream.vapor_massnet
-                volflow = stream.vapor_volnet
+            index = hx.ins.index(vapor)
+            stream = hx.outs[index]
+            if isinstance(stream, MultiStream):
+                vapor = stream['g']
+                F_mass = vapor.F_mass
+                F_vol = vapor.F_vol
             else:
-                if stream._phase == 'g':
-                    massflow = stream.massnet
-                    volflow = stream.volnet
+                if stream.phase == 'g':
+                    F_mass = stream.F_mass
+                    F_vol = stream.F_vol
                 else:
-                    massflow = 0
-                    volflow = 0
+                    F_mass = 0
+                    F_vol = 0
         else:
-            massflow = vapor.massnet
-            volflow = vapor.volnet
+            F_mass = vapor.F_mass
+            F_vol = vapor.F_vol
         
-        power, cost = vacuum_system(massflow, volflow,
-                                    P, vol, self.vacuum_system_preference)
-        self._Cost['Liquid-ring pump'] = cost
-        self._power_utility(power)
+        power, cost = calculate_vacuum_system_power_and_cost(
+                          F_mass, F_vol, P, volume, self.vacuum_system_preference)
+        self.purchase_costs['Liquid-ring pump'] = cost
+        self.power_utility(power)
 
     def _design_parameters(self):
         # Retrieve run_args and properties
         vap, liq = self._outs
-        rhov = vap.rho*0.06243  # VapDensity (lb/ft3)
-        rhol = liq.rho*0.06243  # LLiqDensity (lb/ft3)
+        rhov = vap.get_property('rho', 'lb/ft3')
+        rhol = liq.get_property('rho', 'lb/ft3')
         P = liq.P*0.000145  # Pressure (psi)
 
         # SepType (str), HoldupTime (min), SurgeTime (min), Mist (bool)
@@ -331,8 +327,8 @@ class Flash(Unit):
         Mist = self.Mist
 
         # Calculate the volumetric flowrate
-        Qv = vap.volnet * 0.0098096 # ft3/s
-        Qll = liq.volnet * 0.58857 # ft3/min
+        Qv = vap.get_total_flow('ft^3 / s')
+        Qll = liq.get_total_flow('ft^3 / min')
 
         # Calculate Ut and set Uv
         K = Kvalue(P)
@@ -369,17 +365,11 @@ class Flash(Unit):
 
         # Calculate the height from Hlll to  Normal liq level, Hnll
         Hh = Vh/(pi/4.0*Dvd**2)
-        if Hh < 1.0:
-            Hh = 1.0
-        else:
-            Hh = FinalValue(Hh)
+        Hh = 1.0 if Hh < 1.0 else FinalValue(Hh)
 
         # Calculate the height from Hnll to  High liq level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
-        if Hs < 0.5:
-            Hs = 0.5
-        else:
-            Hs = FinalValue(Hs)
+        Hs = 0.5 if Hs < 0.5 else FinalValue(Hs)
 
         # Calculate dN
         Qm = Qll + Qv
@@ -393,18 +383,12 @@ class Flash(Unit):
 
         # Calculate the vapor disengagement height
         Hv = 0.5*Dvd
-        if Mist:
-            Hv2 = 2.0 + dN/2.0
-        else:
-            Hv2 = 3.0 + dN/2.0
-
+        Hv2 = (2.0 if Mist else 3.0) + dN/2.0
         if Hv2 < Hv: Hv = Hv2
         Hv = ceil(Hv)
 
         # Calculate total height, Ht
-        Hme = 0.0
-        if Mist:
-            Hme = 1.5
+        Hme = 1.5 if Mist else 0.0
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = FinalValue(Ht)
 
@@ -423,9 +407,9 @@ class Flash(Unit):
         # Hhll = Hs + Hh + Hlll
         # Hnll = Hh + Hlll
 
-        Design = self._Design
-        self._checkbounds('Vertical vessel weight', VW, 'lb', self._bounds['Vertical vessel weight'])
-        self._checkbounds('Vertical vessel length', Ht, 'ft', self._bounds['Vertical vessel length'])
+        Design = self.design_results
+        bounds_warning(self, 'Vertical vessel weight', VW, 'lb', self._bounds['Vertical vessel weight'])
+        bounds_warning(self, 'Vertical vessel length', Ht, 'ft', self._bounds['Vertical vessel length'])
         Design['SepType'] = 'Vertical'
         Design['Length'] = Ht     # ft
         Design['Diameter'] = D    # ft
@@ -528,8 +512,8 @@ class Flash(Unit):
         # Y = HNATable(2, X)
         # Hnll = Y*D
         
-        Design = self._Design
-        self._checkbounds('Horizontal vessel weight', VW, 'lb', self._bounds['Horizontal vessel weight'])
+        Design = self.design_results
+        bounds_warning(self, 'Horizontal vessel weight', VW, 'lb', self._bounds['Horizontal vessel weight'])
         Design['SepType'] = 'Horizontal'
         Design['Length'] = L  # ft
         Design['Diameter'] = D  # ft
@@ -537,7 +521,7 @@ class Flash(Unit):
         Design['Wall thickness'] = VWT  # in    
         
     def _end_decorated_cost_(self):
-        if self._heat_utilities: self._heat_utilities[0](self._Hnet, self.T)
+        if self.heat_utilities: self.heat_utilities[0](self.Hnet, self.T)
     
 
 # %% Special
@@ -548,7 +532,7 @@ class SplitFlash(Flash):
     def __init__(self, ID='', ins=None, outs=(), *, split,
                  order=None, T=None, P=None, Q=None):
         Splitter.__init__(self, ID, ins, outs, split=split, order=order)
-        self._mixedstream = MixedStream(None)
+        self._multistream = MultiStream(None)
         self._heat_exchanger = None
         self.T = T #: Operating temperature (K)
         self.P = P #: Operating pressure (Pa)
@@ -559,17 +543,19 @@ class SplitFlash(Flash):
     
     def _run(self):
         top, bot = self.outs
-        net_mol = self._ins[0].mol
-        top._mol[:] = net_mol * self._split
-        bot._mol[:] = net_mol - top._mol
+        feed, = self.ins
+        feed_mol = feed.mol
+        top.mol[:] = top_mol = feed_mol * self.split
+        bot.mol[:] = feed_mol - top_mol
         top.phase = 'g'
+        bot.phase = 'l'
         bot.T = top.T = self.T
         bot.P = top.P = self.P
 
     def _design(self):
         if self._heat_exchanger:
-            self._heat_exchanger.outs[0] = ms = self._mixedstream
-            ms = MixedStream.sum(ms, self.outs)
+            self._heat_exchanger.outs[0] = ms = self._multistream
+            ms.mix_from(self.outs)
         super()._design()
 
 
@@ -587,8 +573,8 @@ class SplitFlash(Flash):
 #         top, bot = self.outs
 #         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
 #         index = top._species._IDs.index
-#         if P < 101325 and not self._power_utility:
-#             self._power_utility = PowerUtility()
+#         if P < 101325 and not self.power_utility:
+#             self.power_utility = PowerUtility()
 #         self._args = ([index(i) for i in species_IDs],
 #                       [index(i) for i in LNK],
 #                       [index(i) for i in HNK],
@@ -629,10 +615,10 @@ class RatioFlash(Flash):
     _N_heat_utilities = 1
 
     def __init__(self, ID='', ins=None, outs=(), *,
-                 Kspecies, Ks, top_solvents=(), top_split=(),
+                 K_chemicals, Ks, top_solvents=(), top_split=(),
                  bot_solvents=(), bot_split=()):
         Unit.__init__(self, ID, ins, outs)
-        self.Kspecies = Kspecies
+        self.K_chemicals = K_chemicals
         self.Ks = Ks
         self.top_solvents = top_solvents
         self.top_split = top_split
@@ -642,8 +628,8 @@ class RatioFlash(Flash):
     def _run(self):
         feed = self.ins[0]
         top, bot = self.outs
-        indices = feed.indices
-        Kindex = indices(self.Kspecies)
+        indices = self.chemicals.get_index
+        K_index = indices(self.K_chemicals)
         top_index = indices(self.top_solvents)
         bot_index = indices(self.bot_solvents)
         top_mol = top.mol; bot_mol = bot.mol; feed_mol = feed.mol
@@ -654,8 +640,8 @@ class RatioFlash(Flash):
         topnet = top_mol[top_index].sum()
         botnet = bot_mol[bot_index].sum()
         molnet = topnet+botnet
-        top_mol[Kindex] = self.Ks * topnet * feed_mol[Kindex] / molnet  # solvent * mol ratio
-        bot_mol[Kindex] = feed_mol[Kindex] - top_mol[Kindex]
+        top_mol[K_index] = self.Ks * topnet * feed_mol[K_index] / molnet  # solvent * mol ratio
+        bot_mol[K_index] = feed_mol[K_index] - top_mol[K_index]
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
 
@@ -663,117 +649,103 @@ class RatioFlash(Flash):
 # %% Single Component
 
 class Evaporator_PQ(Unit):
-
+    _N_ins = 2
+    _N_outs = 3
     @property
     def P(self):
         return self._P
     @P.setter
     def P(self, P):
-        vap = self.outs[0]
-        liq = self.outs[1]
-        liq.T = vap.T = getattr(vap.species, self.component).Tsat(P)
-        liq.P = vap.P = P
+        water = getattr(self.chemicals, H2O_CAS)
+        self._T = T = water.Tsat(P)
+        self._Hvap = water.Hvap(T)
+        self._P = P
+    @property
+    def T(self):
+        return self._T
+    @T.setter
+    def T(self, T):
+        water = getattr(self.chemicals, H2O_CAS)
+        self._P = water.Psat(T)
+        self._Hvap = water.Hvap(T)
+        self._T = T
     
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 component='Water', Q=0, P=101325):
+    def __init__(self, ID='', ins=None, outs=(), *, Q=0, P=101325):
         super().__init__(ID, ins, outs)
-        self.component = component
         self.Q = Q
         self.P = P
-        vapor, liquid = self.outs[:2]
-        Tf = getattr(vapor._species, component).Tsat(P)
-
-        # Set-up streams for energy balance
-        vapor.empty()
-        species = vapor._species
-        index = species.index(component)
-        vapor.mol[index] = 1
-        vapor._phase = 'g'
-        liquid.T = vapor.T = Tf
-
-        liquid.empty()
-        liquid.mol[index] = 1
-
-        no_ph_ch = Stream(None)
-        self._vapor_H = vapor.H
-        self._liquid_H = liquid.H
-        self._no_ph_ch = no_ph_ch
-        self._index = species.index(component)
-
+    
     def _run(self):
-        feed = self.ins[0]
-        vapor, liquid = self.outs[:2]
-
-        # Set-up streams for energy balance
-        vapor_H = self._vapor_H
-        liquid_H = self._liquid_H
-        no_ph_ch = self._no_ph_ch
-        no_ph_ch._mol[:] = feed.mol
-        index = self._index
-        no_ph_ch.mol[index] = 0
-        Q = self.Q
-        no_ph_ch_H = no_ph_ch.H
-        feed_H = feed.H
-        # Optional if Q also comes from condensing a side stream
-        if len(self.ins) == 2:
-            boiler_liq = self.outs[2]
-            boiler_vap = self.ins[1]
-            boiler_liq.copylike(boiler_vap)
-            boiler_liq.phase = 'l'
-            Q = Q + boiler_vap.H - boiler_liq.H
-
-        # Energy balance to find vapor fraction
-        f = feed.mol[index]
-        H = feed_H + Q - no_ph_ch_H
-        V = (H/f - liquid_H)/(vapor_H + liquid_H)
+        feed, utility_vapor = self.ins
+        vapor, liquid, utility_liquid = self.outs
         
-        liquid._mol[:] = no_ph_ch._mol
+        # Optional if Q also comes from condensing a side stream
+        Q = self.Q
+        if utility_liquid:
+            utility_liquid.copy_like(utility_vapor)
+            utility_liquid.phase = 'l'
+            Q += utility_vapor.H - utility_liquid.H
+        feed_H = feed.H
+    
+        # Set exit conditions
+        vapor.T = liquid.T = self.T
+        vapor.P = liquid.P = self.P
+        liquid.phase = 'l'
+        vapor.phase = 'g'
+        liquid.copy_flow(feed, IDs=H2O_CAS, exclude=True)
+        
+        # Energy balance to find vapor fraction
+        f = feed.imol[H2O_CAS]
+        H = feed_H + Q - liquid.H
+        V = (H/f)/(self._Hvap)
         if V < 0:
             V = 0
         elif V > 1:
             V = 1
-        vapor.mol[index] = V*feed.mol[index]
-        liquid.mol[index] = (1-V)*feed.mol[index]
+        evaporated = f * V
+        vapor.imol[H2O_CAS] = evaporated
+        liquid.imol[H2O_CAS] = (1-V)*f
         self._Q = Q
         self._V = V
 
 
 class Evaporator_PV(Unit):
     _N_heat_utilities = 1
-    _kwargs = {'component': 'Water',
-               'V': 0.5,
-               'P': 101325}
 
     @property
     def P(self):
         return self._P
     @P.setter
     def P(self, P):
-        vap, liq = self.outs
-        liq.T = vap.T = getattr(vap.species, self.component).Tsat(P)
-        liq.P = vap.P = P
+        water = getattr(self.chemicals, H2O_CAS)
+        self._T = water.Tsat(P)
+        self._P = P
+    @property
+    def T(self):
+        return self._T
+    @T.setter
+    def T(self, T):
+        water = getattr(self.chemicals, H2O_CAS)
+        self._P = water.Psat(T)
+        self._T = T
     
     @property
     def component(self):
         return self._component
 
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 component='Water', V=0.5, P=101325):
+    def __init__(self, ID='', ins=None, outs=(), *, V=0.5, P=101325):
         super().__init__(ID, ins, outs)
-        vap, liq = self.outs
-        self._index = vap.species.index(component)
-        self._component = component
         self.V = V
         self.P = P
-        vap._phase = 'g'
-        liq.phase = 'l'
 
     def _run(self):
         feed = self.ins[0]
         vapor, liquid = self.outs
-        index = self._index
-        vapor._mol[index] = self.V*feed.mol[index]
-        liquid._mol[:] = feed.mol
-        liquid._mol[index] = (1-self.V)*feed.mol[index]
+        H2O_index = self.chemicals.index(H2O_CAS)
+        water_mol = feed.mol[H2O_index]
+        vapor.mol[H2O_index] = self.V * water_mol
+        liquid_mol = liquid.mol
+        liquid_mol[:] = feed.mol
+        liquid_mol[H2O_index] = (1-self.V) * water_mol
 
         

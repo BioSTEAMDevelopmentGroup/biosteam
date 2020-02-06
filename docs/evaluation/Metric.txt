@@ -1,8 +1,6 @@
 Metric
 ======
 
-.. module:: biosteam.evaluation
-
-.. autoclass:: Metric
+.. autoclass:: biosteam.evaluation.Metric
    :members:
    :special-members: __call__

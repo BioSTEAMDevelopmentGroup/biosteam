@@ -8,7 +8,6 @@ Created on Sun Apr 15 20:39:46 2018
 from . import _flash
 from . import _centrifuge_LLE
 from .._graphics import Graphics
-from ._static import Static
 from ._mixer import Mixer
 from ._splitter import Splitter, InvSplitter
 from ._pump import Pump
@@ -39,7 +38,7 @@ from ._vent_scrubber import VentScrubber
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'MassBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'SolidsSeparator', 'VentScrubber', 'Static']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Transesterification', 'Fermentation', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'MassBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'SolidsSeparator', 'VentScrubber']
 __all__.extend(_flash.__all__)
 __all__.extend(_centrifuge_LLE.__all__)
 

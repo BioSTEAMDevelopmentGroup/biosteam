@@ -35,7 +35,7 @@ def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1):
 
 def load_default_parameters(self, feedstock, shape=triang,
                             bounded_shape=bounded_triang,
-                            operating_days=False):
+                            operating_days=False, include_feedstock_price=True):
     """Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.
     
     Parameters
@@ -57,7 +57,7 @@ def load_default_parameters(self, feedstock, shape=triang,
     """
     bounded_shape = bounded_shape or shape
     add_all_cost_item_params(self, shape, bounded_shape)
-    add_all_stream_price_params(self, shape)
+    add_all_stream_price_params(self, shape, feedstock, include_feedstock_price)
     add_power_utility_price_param(self, shape)
     add_heat_utility_price_params(self, shape)
     add_flow_rate_param(self, feedstock, shape)
@@ -84,63 +84,69 @@ def add_all_cost_item_params(model, shape, exp_shape):
             _exp(model, ID, item, line, exp_shape)
             _kW(model, ID, item, line, shape)
             
-def add_all_stream_price_params(model, shape):
+def add_all_stream_price_params(model, shape, feedstock, include_feedstock_price):
     # Add stream prices as parameters
     system = model._system
-    for s in system.feeds: add_stream_price_param(model, s, shape)
-    for s in system.products: add_stream_price_param(model, s, shape)
-    
+    feeds = system.feeds
+    products = system.products
+    if not include_feedstock_price:
+        feeds = feeds.copy()
+        feeds.discard(feedstock)
+    for s in feeds: add_stream_price_param(model, s, shape)
+    for s in products: add_stream_price_param(model, s, shape)
+
+def set_price(price):
+    bst.PowerUtility.price = price
+        
 def add_power_utility_price_param(model, shape):
     if bst.PowerUtility.price:
-        @model.parameter(element='Electricity', units='USD/kWhr',
-                         distribution=shape(bst.PowerUtility.price))
-        def set_price(price):
-            bst.PowerUtility.price = price
-
+        model.parameter(set_price, element='Electricity', units='USD/kWhr',
+                        distribution=shape(bst.PowerUtility.price))
+        
 def add_heat_utility_price_params(model, shape):
-    named_agents = (*bst.HeatUtility.cooling_agents.items(),
-                    *bst.HeatUtility.heating_agents.items())
+    named_agents = (*bst.HeatUtility.cooling_agents,
+                    *bst.HeatUtility.heating_agents)
     for name, agent in named_agents:
         add_agent_price_params(model, name, agent, shape)
         
+class Setter:
+    __slots__ = ('obj', 'attr')
+    def __init__(self, obj, attr):
+        self.obj = obj
+        self.attr = attr
+    def __call__(self, value):
+        setattr(self.obj, self.attr, value)
+        
 def add_agent_price_params(model, name, agent, shape):
     if agent.price_kJ:
-        @model.parameter(element=name, units='USD/kJ',
-                         name='Price',
-                         distribution=shape(agent.price_kJ))
-        def set_price(price_kJ):
-            agent.price_kJ = price_kJ 
+        model.parameter(Setter(agent, 'price_kJ'), element=name, units='USD/kJ',
+                        name='Price', distribution=shape(agent.price_kJ))
     elif agent.price_kmol:
-        @model.parameter(element=name, units='USD/kmol',
-                         name='Price',
-                         distribution=shape(agent.price_kmol))
-        def set_price(price_kmol):
-            agent.price_kmol = price_kmol 
+        model.parameter(Setter(agent, 'price_kmol'), element=name, units='USD/kmol',
+                        name='Price', distribution=shape(agent.price_kmol))
         
 def add_flow_rate_param(model, feed, shape):
-    @model.parameter(element=feed, units='kg/hr',
-                     distribution=shape(feed.massnet),
-                     kind='coupled')
-    def set_flow_rate(flow_rate):
-        feed.mol[:] *= flow_rate/feed.massnet
+    model.parameter(Setter(feed, 'F_mass'), element=feed, units='kg/hr',
+                    distribution=shape(feed.F_mass), kind='coupled',
+                    name='Flow rate')
     
 def add_basic_TEA_params(model, shape, operating_days):
     param = model.parameter
     TEA = model._system.TEA
     
     if operating_days:
-        @param(element='TEA', distribution=shape(TEA.operating_days))
-        def set_operating_days(operating_days):
-            TEA.operating_days = operating_days
+        param(Setter(TEA, 'operating_days'), element='TEA', 
+              distribution=shape(TEA.operating_days),
+              name='Operating days')
         
-    @param(element='TEA', distribution=shape(TEA.income_tax))
-    def set_income_tax(income_tax):
-        TEA.income_tax = income_tax
+    param(Setter(TEA, 'income_tax'),
+                 element='TEA',
+                 distribution=shape(TEA.income_tax),
+                 name='Income tax')
         
     if TEA.startup_months:
-        @param(element='TEA', distribution=shape(TEA.startup_months))
-        def set_startup_months(startup_months):
-            TEA.startup_months = startup_months
+        param(Setter(TEA, 'startup_months'), element='TEA', 
+              distribution=shape(TEA.startup_months), name='startup_months')
             
     
 
@@ -149,8 +155,10 @@ def add_basic_TEA_params(model, shape, operating_days):
 def add_stream_price_param(model, stream, shape):
     mid = stream.price
     if not mid: return
-    @model.parameter(element=stream, units='USD/kg', distribution=shape(mid))
-    def set_price(price): stream.price = price
+    model.parameter(Setter(stream, 'price'),
+                    element=stream, units='USD/kg',
+                    distribution=shape(mid),
+                    name='price')
 
 def _cost(model, ID, item, line, shape):
     key = 'cost'
@@ -172,6 +180,15 @@ def _exp(model, ID, item, line, shape):
     else: ID = name
     _cost_option(model, ID, item, key, line, distribution, None)
 
+class CostItemSetter:
+    __slots__ = ('item', 'key', 'size')
+    def __init__(self, item, key, size=1):
+        self.item = item
+        self.key = key
+        self.size = size
+    def __call__(self, value):
+        self.item[self.key] = value*self.size
+
 def _kW(model, ID, item, line, shape):
     key = 'kW'
     mid = float(item[key])
@@ -180,16 +197,14 @@ def _kW(model, ID, item, line, shape):
     size = item.S
     mid = mid/size
     distribution = shape(mid)
-    units = (bst._Q(1, 'kW') / bst._Q(1, units)).units
+    units = 'kW / ' + units
     name = 'electricity rate'
     if ID!=line: ID = ID + ' ' + name
     else: ID = name
-    @model.parameter(element=line, units=units, distribution=distribution, name=ID)
-    def set_cost_option(value):
-        item[key] = value*size
+    model.parameter(CostItemSetter(item, key, size), element=line,
+                    units=units, distribution=distribution, name=ID)
 
 def _cost_option(model, ID, item, key, line, distribution, units):
-    @model.parameter(element=line, units=units, distribution=distribution, name=ID)
-    def set_cost_option(value):
-        item[key] = value
+    model.parameter(CostItemSetter(item, key), element=line, units=units, 
+                    distribution=distribution, name=ID)
  

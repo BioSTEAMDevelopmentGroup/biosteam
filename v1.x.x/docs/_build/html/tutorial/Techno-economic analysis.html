@@ -1,0 +1,1394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>10. Techno-economic analysis &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="11. Inheriting from Unit" href="Inheriting from Unit.html" />
+    <link rel="prev" title="9. Bioferineries" href="Biorefineries.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">10. Techno-economic analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Inhereting-from-TEA-objects">10.1. Inhereting from TEA objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Perform-cash-flow-analysis">10.2. Perform cash flow analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Find-production-cost,-price,-and-IRR">10.3. Find production cost, price, and IRR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#System-report">10.4. System report</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">14. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>10. Techno-economic analysis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/Techno-economic analysis.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Techno-economic-analysis">
+<h1>10. Techno-economic analysis<a class="headerlink" href="#Techno-economic-analysis" title="Permalink to this headline">¶</a></h1>
+<p>TEA objects can perform cashflow analysis on a System object and
+arguments for cashflow analysis. These include arguments such as
+operating days, lang factor, and income tax, as well as arguments for
+taking into account startup operation, construction schedule, and
+capital cost financing.</p>
+<div class="section" id="Inhereting-from-TEA-objects">
+<h2>10.1. Inhereting from TEA objects<a class="headerlink" href="#Inhereting-from-TEA-objects" title="Permalink to this headline">¶</a></h2>
+<p>Depending on the rigour and flexibility of the techno-economic analysis,
+different parameters may be needed to calculate total depreciable
+capital (TDC), fixed capital investment (FCI), and fixed operating cost
+(FOC). For this reason, the TEA object is left as an <em>abstract class</em>
+with <em>abstract methods</em> <code class="docutils literal notranslate"><span class="pre">_TDC</span></code>, <code class="docutils literal notranslate"><span class="pre">_FCI</span></code>, and <code class="docutils literal notranslate"><span class="pre">_FOC</span></code>. Here is an
+example TEA subclass from the lipidcane biorefinery design for the
+co-production of ethanol and biodiesel:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+
+<span class="k">class</span> <span class="nc">LipidcaneTEA</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">TEA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a TEA_lipidcane object for techno-economic analysis of a biorefinery [1]</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">        system: [System] Should contain feed and product streams.</span>
+
+<span class="sd">        IRR: [float]  Internal rate of return (fraction).</span>
+
+<span class="sd">        duration: tuple[int, int] Start and end year of venture (e.g. (2018, 2038)).</span>
+
+<span class="sd">        depreciation: [str] &#39;MACRS&#39; + number of years (e.g. &#39;MACRS7&#39;).</span>
+
+<span class="sd">        operating_days: [float] Number of operating days per year.</span>
+
+<span class="sd">        income_tax: [float] Combined federal and state income tax rate (fraction).</span>
+
+<span class="sd">        lang_factor: [float] Lang factor for getting fixed capital investment from</span>
+<span class="sd">        total purchase cost. If no lang factor, estimate capital investment</span>
+<span class="sd">        using bare module factors.</span>
+
+<span class="sd">        startup_schedule: tuple[float] Startup investment fractions per year</span>
+<span class="sd">        (e.g. (0.5, 0.5) for 50% capital investment in the first year and 50%</span>
+<span class="sd">        investment in the second).</span>
+
+<span class="sd">        WC_over_FCI: [float] Working capital as a fraction of fixed capital investment.</span>
+
+<span class="sd">        labor_cost: [float] Total labor cost (USD/yr).</span>
+
+<span class="sd">        fringe_benefits: [float] Cost of fringe benefits as a fraction of labor cost.</span>
+
+<span class="sd">        property_tax: [float] Fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">        property_insurance: [float] Fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">        supplies: [float] Yearly fee as a fraction of labor cost.</span>
+
+<span class="sd">        maintenance: [float] Yearly fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">        administration: [float] Yearly fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">    References</span>
+
+<span class="sd">        [1] Huang, H., Long, S., &amp; Singh, V. (2016). Techno-economic analysis of biodiesel</span>
+<span class="sd">        and ethanol co-production from lipid-producing sugarcane. Biofuels, Bioproducts</span>
+<span class="sd">        and Biorefining, 10(3), 299–315. https://doi.org/10.1002/bbb.1640</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
+                 <span class="n">operating_days</span><span class="p">,</span> <span class="n">lang_factor</span><span class="p">,</span> <span class="n">construction_schedule</span><span class="p">,</span> <span class="n">WC_over_FCI</span><span class="p">,</span>
+                 <span class="n">labor_cost</span><span class="p">,</span> <span class="n">fringe_benefits</span><span class="p">,</span> <span class="n">property_tax</span><span class="p">,</span>
+                 <span class="n">property_insurance</span><span class="p">,</span> <span class="n">supplies</span><span class="p">,</span> <span class="n">maintenance</span><span class="p">,</span> <span class="n">administration</span><span class="p">):</span>
+        <span class="c1"># Huang et. al. does not take into account financing or startup</span>
+        <span class="c1"># so these parameters are 0 by default</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
+                         <span class="n">operating_days</span><span class="p">,</span> <span class="n">lang_factor</span><span class="p">,</span> <span class="n">construction_schedule</span><span class="p">,</span>
+                         <span class="n">startup_months</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">startup_FOCfrac</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">startup_VOCfrac</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">startup_salesfrac</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">finance_interest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">finance_years</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">finance_fraction</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">WC_over_FCI</span><span class="o">=</span><span class="n">WC_over_FCI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labor_cost</span> <span class="o">=</span> <span class="n">labor_cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fringe_benefits</span> <span class="o">=</span> <span class="n">fringe_benefits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">property_tax</span> <span class="o">=</span> <span class="n">property_tax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">property_insurance</span> <span class="o">=</span> <span class="n">property_insurance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supplies</span><span class="o">=</span> <span class="n">supplies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maintenance</span> <span class="o">=</span> <span class="n">maintenance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">administration</span> <span class="o">=</span> <span class="n">administration</span>
+
+    <span class="c1"># The abstract _TDC method should take direct permanent investment</span>
+    <span class="c1"># and return the total depreciable capital. Huang et. al. assume</span>
+    <span class="c1"># these values are equal</span>
+    <span class="k">def</span> <span class="nf">_TDC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DPI</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DPI</span>
+
+    <span class="c1"># The abstract _FCI method should take total depreciable capital</span>
+    <span class="c1"># and return the fixed capital investment. Again, Huang et. al.</span>
+    <span class="c1"># assume these values are equal.</span>
+    <span class="k">def</span> <span class="nf">_FCI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TDC</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">TDC</span>
+
+    <span class="c1"># The abstract _FOC method should take fixed capital investment</span>
+    <span class="c1"># and return the fixed operating cost.</span>
+    <span class="k">def</span> <span class="nf">_FOC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">FCI</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">FCI</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">property_tax</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_insurance</span>
+                     <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">maintenance</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">administration</span><span class="p">)</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">labor_cost</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">fringe_benefits</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">supplies</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Perform-cash-flow-analysis">
+<h2>10.2. Perform cash flow analysis<a class="headerlink" href="#Perform-cash-flow-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Create a TEA object from a system:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam.biorefineries</span> <span class="kn">import</span> <span class="n">lipidcane</span> <span class="k">as</span> <span class="n">lc</span>
+
+<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">LipidcaneTEA</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span>
+                             <span class="n">IRR</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>
+                             <span class="n">duration</span><span class="o">=</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">2038</span><span class="p">),</span>
+                             <span class="n">depreciation</span><span class="o">=</span><span class="s1">&#39;MACRS7&#39;</span><span class="p">,</span>
+                             <span class="n">income_tax</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>
+                             <span class="n">operating_days</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                             <span class="n">lang_factor</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                             <span class="n">construction_schedule</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
+                             <span class="n">WC_over_FCI</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                             <span class="n">labor_cost</span><span class="o">=</span><span class="mf">2.5e6</span><span class="p">,</span>
+                             <span class="n">fringe_benefits</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+                             <span class="n">property_tax</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                             <span class="n">property_insurance</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+                             <span class="n">supplies</span><span class="o">=</span><span class="mf">0.20</span><span class="p">,</span>
+                             <span class="n">maintenance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                             <span class="n">administration</span><span class="o">=</span><span class="mf">0.005</span><span class="p">)</span>
+
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Print TEA summary at current options</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+LipidcaneTEA: lipid_cane_system
+ NPV: 6.45e+07 USD at 15.0% IRR
+ ROI: 0.183 1/yr
+ PBP: 5.19 yr
+</pre></div></div>
+</div>
+<p>Retrieve complete cashflow analysis as a DataFrame object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Depreciable capital</th>
+      <th>Fixed capital investment</th>
+      <th>Working capital</th>
+      <th>Depreciation</th>
+      <th>Loan</th>
+      <th>...</th>
+      <th>Net earnings</th>
+      <th>Cash flow</th>
+      <th>Discount factor</th>
+      <th>Net present value (NPV)</th>
+      <th>Cumulative NPV</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2016</th>
+      <td>8.13e+07</td>
+      <td>8.13e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-8.13e+07</td>
+      <td>1.15</td>
+      <td>-9.35e+07</td>
+      <td>-9.35e+07</td>
+    </tr>
+    <tr>
+      <th>2017</th>
+      <td>1.22e+08</td>
+      <td>1.22e+08</td>
+      <td>1.02e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-1.32e+08</td>
+      <td>1</td>
+      <td>-1.32e+08</td>
+      <td>-2.26e+08</td>
+    </tr>
+    <tr>
+      <th>2018</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2.91e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.03e+07</td>
+      <td>4.93e+07</td>
+      <td>0.87</td>
+      <td>4.29e+07</td>
+      <td>-1.83e+08</td>
+    </tr>
+    <tr>
+      <th>2019</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4.98e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>6.77e+06</td>
+      <td>5.66e+07</td>
+      <td>0.756</td>
+      <td>4.28e+07</td>
+      <td>-1.4e+08</td>
+    </tr>
+    <tr>
+      <th>2020</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3.56e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>1.6e+07</td>
+      <td>5.16e+07</td>
+      <td>0.658</td>
+      <td>3.39e+07</td>
+      <td>-1.06e+08</td>
+    </tr>
+    <tr>
+      <th>2021</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2.54e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.26e+07</td>
+      <td>4.8e+07</td>
+      <td>0.572</td>
+      <td>2.75e+07</td>
+      <td>-7.87e+07</td>
+    </tr>
+    <tr>
+      <th>2022</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.82e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.73e+07</td>
+      <td>4.55e+07</td>
+      <td>0.497</td>
+      <td>2.26e+07</td>
+      <td>-5.6e+07</td>
+    </tr>
+    <tr>
+      <th>2023</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.81e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.73e+07</td>
+      <td>4.55e+07</td>
+      <td>0.432</td>
+      <td>1.97e+07</td>
+      <td>-3.64e+07</td>
+    </tr>
+    <tr>
+      <th>2024</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.82e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.73e+07</td>
+      <td>4.55e+07</td>
+      <td>0.376</td>
+      <td>1.71e+07</td>
+      <td>-1.93e+07</td>
+    </tr>
+    <tr>
+      <th>2025</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>9.07e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.32e+07</td>
+      <td>4.23e+07</td>
+      <td>0.327</td>
+      <td>1.38e+07</td>
+      <td>-5.44e+06</td>
+    </tr>
+    <tr>
+      <th>2026</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.284</td>
+      <td>1.11e+07</td>
+      <td>5.68e+06</td>
+    </tr>
+    <tr>
+      <th>2027</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.247</td>
+      <td>9.67e+06</td>
+      <td>1.54e+07</td>
+    </tr>
+    <tr>
+      <th>2028</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.215</td>
+      <td>8.41e+06</td>
+      <td>2.38e+07</td>
+    </tr>
+    <tr>
+      <th>2029</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.187</td>
+      <td>7.31e+06</td>
+      <td>3.11e+07</td>
+    </tr>
+    <tr>
+      <th>2030</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.163</td>
+      <td>6.36e+06</td>
+      <td>3.74e+07</td>
+    </tr>
+    <tr>
+      <th>2031</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.141</td>
+      <td>5.53e+06</td>
+      <td>4.3e+07</td>
+    </tr>
+    <tr>
+      <th>2032</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.123</td>
+      <td>4.81e+06</td>
+      <td>4.78e+07</td>
+    </tr>
+    <tr>
+      <th>2033</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.107</td>
+      <td>4.18e+06</td>
+      <td>5.2e+07</td>
+    </tr>
+    <tr>
+      <th>2034</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0929</td>
+      <td>3.64e+06</td>
+      <td>5.56e+07</td>
+    </tr>
+    <tr>
+      <th>2035</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0808</td>
+      <td>3.16e+06</td>
+      <td>5.88e+07</td>
+    </tr>
+    <tr>
+      <th>2036</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0703</td>
+      <td>2.75e+06</td>
+      <td>6.15e+07</td>
+    </tr>
+    <tr>
+      <th>2037</th>
+      <td>0</td>
+      <td>0</td>
+      <td>-1.02e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>4.93e+07</td>
+      <td>0.0611</td>
+      <td>3.01e+06</td>
+      <td>6.45e+07</td>
+    </tr>
+  </tbody>
+</table>
+<p>22 rows × 15 columns</p>
+</div></div>
+</div>
+</div>
+<div class="section" id="Find-production-cost,-price,-and-IRR">
+<h2>10.3. Find production cost, price, and IRR<a class="headerlink" href="#Find-production-cost,-price,-and-IRR" title="Permalink to this headline">¶</a></h2>
+<p>Find production cost:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;ethanol&#39;</span><span class="p">),</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;biodiesel&#39;</span><span class="p">)]</span>
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">production_cost</span><span class="p">(</span><span class="n">products</span><span class="p">)</span><span class="c1"># USD/yr</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>array([23325917.293, 30425272.193])
+</pre></div>
+</div>
+</div>
+<p>Solve for the price of a stream at the break even point:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;lipid_cane&#39;</span><span class="p">)</span>
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_price</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span> <span class="c1"># USD/kg</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>0.04446239974906339
+</pre></div>
+</div>
+</div>
+<p>Solve for the IRR at the break even point:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">IRR</span> <span class="o">=</span> <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span><span class="p">()</span>
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+LipidcaneTEA: lipid_cane_system
+ NPV: -2.2e-05 USD at 20.0% IRR
+ ROI: 0.183 1/yr
+ PBP: 5.19 yr
+</pre></div></div>
+</div>
+<p>Note that the cashflow table is created up to date:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Depreciable capital</th>
+      <th>Fixed capital investment</th>
+      <th>Working capital</th>
+      <th>Depreciation</th>
+      <th>Loan</th>
+      <th>...</th>
+      <th>Net earnings</th>
+      <th>Cash flow</th>
+      <th>Discount factor</th>
+      <th>Net present value (NPV)</th>
+      <th>Cumulative NPV</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2016</th>
+      <td>8.13e+07</td>
+      <td>8.13e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-8.13e+07</td>
+      <td>1.2</td>
+      <td>-9.76e+07</td>
+      <td>-9.76e+07</td>
+    </tr>
+    <tr>
+      <th>2017</th>
+      <td>1.22e+08</td>
+      <td>1.22e+08</td>
+      <td>1.02e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-1.32e+08</td>
+      <td>1</td>
+      <td>-1.32e+08</td>
+      <td>-2.3e+08</td>
+    </tr>
+    <tr>
+      <th>2018</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2.91e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.03e+07</td>
+      <td>4.93e+07</td>
+      <td>0.833</td>
+      <td>4.11e+07</td>
+      <td>-1.89e+08</td>
+    </tr>
+    <tr>
+      <th>2019</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4.98e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>6.77e+06</td>
+      <td>5.66e+07</td>
+      <td>0.694</td>
+      <td>3.93e+07</td>
+      <td>-1.49e+08</td>
+    </tr>
+    <tr>
+      <th>2020</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3.56e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>1.6e+07</td>
+      <td>5.16e+07</td>
+      <td>0.578</td>
+      <td>2.98e+07</td>
+      <td>-1.2e+08</td>
+    </tr>
+    <tr>
+      <th>2021</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2.54e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.26e+07</td>
+      <td>4.8e+07</td>
+      <td>0.482</td>
+      <td>2.31e+07</td>
+      <td>-9.65e+07</td>
+    </tr>
+    <tr>
+      <th>2022</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.82e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.73e+07</td>
+      <td>4.55e+07</td>
+      <td>0.401</td>
+      <td>1.83e+07</td>
+      <td>-7.82e+07</td>
+    </tr>
+    <tr>
+      <th>2023</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.81e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.73e+07</td>
+      <td>4.55e+07</td>
+      <td>0.334</td>
+      <td>1.52e+07</td>
+      <td>-6.3e+07</td>
+    </tr>
+    <tr>
+      <th>2024</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.82e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.73e+07</td>
+      <td>4.55e+07</td>
+      <td>0.279</td>
+      <td>1.27e+07</td>
+      <td>-5.03e+07</td>
+    </tr>
+    <tr>
+      <th>2025</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>9.07e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.32e+07</td>
+      <td>4.23e+07</td>
+      <td>0.232</td>
+      <td>9.82e+06</td>
+      <td>-4.05e+07</td>
+    </tr>
+    <tr>
+      <th>2026</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.193</td>
+      <td>7.57e+06</td>
+      <td>-3.3e+07</td>
+    </tr>
+    <tr>
+      <th>2027</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.161</td>
+      <td>6.3e+06</td>
+      <td>-2.67e+07</td>
+    </tr>
+    <tr>
+      <th>2028</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.134</td>
+      <td>5.25e+06</td>
+      <td>-2.14e+07</td>
+    </tr>
+    <tr>
+      <th>2029</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.112</td>
+      <td>4.37e+06</td>
+      <td>-1.7e+07</td>
+    </tr>
+    <tr>
+      <th>2030</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0931</td>
+      <td>3.64e+06</td>
+      <td>-1.34e+07</td>
+    </tr>
+    <tr>
+      <th>2031</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0776</td>
+      <td>3.04e+06</td>
+      <td>-1.04e+07</td>
+    </tr>
+    <tr>
+      <th>2032</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0646</td>
+      <td>2.53e+06</td>
+      <td>-7.82e+06</td>
+    </tr>
+    <tr>
+      <th>2033</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0538</td>
+      <td>2.11e+06</td>
+      <td>-5.72e+06</td>
+    </tr>
+    <tr>
+      <th>2034</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0449</td>
+      <td>1.76e+06</td>
+      <td>-3.96e+06</td>
+    </tr>
+    <tr>
+      <th>2035</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0374</td>
+      <td>1.46e+06</td>
+      <td>-2.5e+06</td>
+    </tr>
+    <tr>
+      <th>2036</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>3.91e+07</td>
+      <td>0.0311</td>
+      <td>1.22e+06</td>
+      <td>-1.28e+06</td>
+    </tr>
+    <tr>
+      <th>2037</th>
+      <td>0</td>
+      <td>0</td>
+      <td>-1.02e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.91e+07</td>
+      <td>4.93e+07</td>
+      <td>0.0259</td>
+      <td>1.28e+06</td>
+      <td>-2.21e-05</td>
+    </tr>
+  </tbody>
+</table>
+<p>22 rows × 15 columns</p>
+</div></div>
+</div>
+</div>
+<div class="section" id="System-report">
+<h2>10.4. System report<a class="headerlink" href="#System-report" title="Permalink to this headline">¶</a></h2>
+<p>Save stream tables, utility requirements, itemized costs, TEA results,
+and a cash flow table:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Try this on your computer and open excel</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">save_report</span><span class="p">(</span><span class="s1">&#39;Lipidcane report.xlsx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Inheriting from Unit.html" class="btn btn-neutral float-right" title="11. Inheriting from Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Biorefineries.html" class="btn btn-neutral float-left" title="9. Bioferineries" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

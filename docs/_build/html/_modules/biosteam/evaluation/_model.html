@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -192,6 +184,7 @@
 <span class="kn">from</span> <span class="nn">._metric</span> <span class="kn">import</span> <span class="n">Metric</span>
 <span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="kn">import</span> <span class="n">TicToc</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">spearmanr</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Model&#39;</span><span class="p">,)</span>
 
@@ -201,8 +194,8 @@
 <span class="n">varcolumns</span> <span class="o">=</span> <span class="k">lambda</span> <span class="nb">vars</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span>
                                  <span class="n">varindices</span><span class="p">(</span><span class="nb">vars</span><span class="p">),</span>
                                  <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Element&#39;</span><span class="p">,</span> <span class="s1">&#39;Variable&#39;</span><span class="p">))</span>
+            
 
-    
 <span class="c1"># %% Grid of simulation blocks</span>
 
 <div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../evaluation/Model.html#biosteam.evaluation.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
@@ -219,7 +212,7 @@
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    :doc:`../tutorial/Advanced simulation`</span>
+<span class="sd">    :doc:`../tutorial/Monte Carlo`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_table&#39;</span><span class="p">,</span>   <span class="c1"># [DataFrame] All arguments and results</span>
@@ -331,38 +324,30 @@
         <span class="n">cols</span> <span class="o">=</span> <span class="n">varindices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_metrics</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">zip_</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">zip_</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">)):</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span></div>
     
-<div class="viewcode-block" id="Model.evaluate_across_coordinate"><a class="viewcode-back" href="../../../evaluation/Model.html#biosteam.evaluation.Model.evaluate_across_coordinate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_across_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_coordinate</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
-                                   <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">xlfile</span><span class="p">,</span>
-                                   <span class="n">N_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">N_points</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>  <span class="n">rule</span><span class="o">=</span><span class="s1">&#39;L&#39;</span><span class="p">,</span>
-                                   <span class="n">notify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.evaluate_across_coordinate"><a class="viewcode-back" href="../../../evaluation/Model.html#biosteam.evaluation.Model.evaluate_across_coordinate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_across_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">f_coordinate</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">,</span>
+                                   <span class="o">*</span><span class="p">,</span> <span class="n">xlfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">notify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">multi_coordinate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluate across coordinate and save sample metrics.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        name : str or tuple[str]</span>
+<span class="sd">            Name of coordinate</span>
 <span class="sd">        f_coordinate : function</span>
 <span class="sd">            Should change state of system given the coordinate.</span>
-<span class="sd">        lb : float</span>
-<span class="sd">            Lower bound of coordinate.</span>
-<span class="sd">        ub : float</span>
-<span class="sd">            Upper bound of coordinate.</span>
-<span class="sd">        xlfile : str</span>
+<span class="sd">        coordinte : array</span>
+<span class="sd">            Coordinate values.</span>
+<span class="sd">        xlfile : str, optional</span>
 <span class="sd">            Name of file to save. File must end with &quot;.xlsx&quot;</span>
-<span class="sd">        N_samples=1000 : int, optional</span>
-<span class="sd">            Number of samples at each coordinate.</span>
-<span class="sd">        N_points=20 : int, optional</span>
-<span class="sd">            Number of points between lb and ub evaluated.</span>
 <span class="sd">        rule=&#39;L&#39; : str</span>
 <span class="sd">            Sampling rule.</span>
 <span class="sd">        notify=True : bool, optional</span>
 <span class="sd">            If True, notify elapsed time after each coordinate evaluation.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Load samples</span>
-        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">N_samples</span><span class="p">,</span> <span class="s1">&#39;L&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">load_samples</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
-        
-        <span class="c1"># Points to evaluate</span>
-        <span class="n">coordinate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">N_points</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span>
+        <span class="n">N_samples</span><span class="p">,</span> <span class="n">N_parameters</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">N_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinate</span><span class="p">)</span>
         
         <span class="c1"># Initialize data containers</span>
         <span class="n">metric_data</span> <span class="o">=</span> <span class="p">{}</span>
@@ -378,36 +363,40 @@
             <span class="n">timer</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
             <span class="k">def</span> <span class="nf">evaluate</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elapsed time: </span><span class="si">{timer.elapsed_time:.0f}</span><span class="s2"> sec&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{n}</span><span class="s2">] Elapsed time: </span><span class="si">{timer.elapsed_time:.0f}</span><span class="s2"> sec&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">evaluate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span>
         
-        <span class="c1"># Simulate lipidcane biorefinery    </span>
-        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span>
-        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coordinate</span><span class="p">):</span>
-            <span class="n">f_coordinate</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coordinate</span><span class="p">):</span>
+            <span class="n">f_coordinate</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">multi_coordinate</span> <span class="k">else</span> <span class="n">f_coordinate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">evaluate</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metric_data</span><span class="p">:</span>
                 <span class="n">metric_data</span><span class="p">[</span><span class="n">metric</span><span class="p">][:,</span> <span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span>
         
-        <span class="c1"># Save data to excel</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">N_points</span><span class="p">]),</span> <span class="n">columns</span><span class="o">=</span><span class="n">coordinate</span><span class="p">)</span>
-        <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        
-        <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelWriter</span><span class="p">(</span><span class="n">xlfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metric_data</span><span class="p">:</span>
-                <span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">metric_data</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span>
-                <span class="n">data</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="n">metric</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+        <span class="k">if</span> <span class="n">xlfile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">multi_coordinate</span><span class="p">:</span>
+                <span class="n">columns</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">coordinate</span><span class="p">,</span>
+                                                    <span class="n">names</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">columns</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">coordinate</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            
+            <span class="c1"># Save data to excel</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">N_points</span><span class="p">]),</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+            
+            <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelWriter</span><span class="p">(</span><span class="n">xlfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">metric_data</span><span class="p">):</span>
+                    <span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">metric_data</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">metric_data</span></div>
     
-<div class="viewcode-block" id="Model.spearman"><a class="viewcode-back" href="../../../evaluation/Model.html#biosteam.evaluation.Model.spearman">[docs]</a>    <span class="k">def</span> <span class="nf">spearman</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">(),</span> <span class="n">excluded_params</span><span class="o">=</span><span class="p">()):</span>
+<div class="viewcode-block" id="Model.spearman"><a class="viewcode-back" href="../../../evaluation/Model.html#biosteam.evaluation.Model.spearman">[docs]</a>    <span class="k">def</span> <span class="nf">spearman</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Return DataFrame of Spearman&#39;s rank correlation for metrics vs parameters.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        metrics=() : Iterable[Metric], defaults to all metrics</span>
-<span class="sd">            Metrics to be be correlated with parameters.</span>
-<span class="sd">        excluded_params=() : Iterable[str], optional</span>
-<span class="sd">            Names of parameters to exclude.</span>
+<span class="sd">            Metrics to be correlated with parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span>
         <span class="n">param_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -417,15 +406,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">metric_names</span> <span class="o">=</span> <span class="n">varindices</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">excluded_params</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">j</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">i</span><span class="p">:</span>
-                    <span class="n">params</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
-                    <span class="k">break</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">param_cols</span><span class="p">:</span> 
-                <span class="k">if</span> <span class="n">j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">:</span>
-                    <span class="n">param_cols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
-                    <span class="k">break</span>
         
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_metric_names</span><span class="p">:</span> <span class="n">param_cols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="n">param_descriptions</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>

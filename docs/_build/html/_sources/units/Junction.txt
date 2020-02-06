@@ -1,7 +1,5 @@
 Junction
 ========
 
-.. module:: biosteam.units
-
-.. autoclass:: Junction
+.. autoclass:: biosteam.units.Junction
    :members:

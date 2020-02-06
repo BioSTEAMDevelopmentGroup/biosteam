@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -188,20 +180,20 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Facility</span>
 <span class="kn">from</span> <span class="nn">..decorators</span> <span class="kn">import</span> <span class="n">cost</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Static</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
-
+<span class="kn">from</span> <span class="nn">...utils.stream_link_options</span> <span class="kn">import</span> <span class="n">static</span>
 <span class="c1"># from copy import copy</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;CoolingTower&#39;</span><span class="p">,)</span> <span class="c1">#&#39;CoolingTowerWithPowerDemand&#39;)</span>
 
-<div class="viewcode-block" id="CoolingTower"><a class="viewcode-back" href="../../../../units/facilities.html#biosteam.units.facilities.CoolingTower">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling water pump&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="CoolingTower"><a class="viewcode-back" href="../../../../units/facilities.html#biosteam.units.facilities.CoolingTower">[docs]</a><span class="nd">@static</span>
+<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling water pump&#39;</span><span class="p">,</span>
       <span class="n">S</span><span class="o">=</span><span class="mi">557183</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">1021</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">283671</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">3.1</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling tower&#39;</span><span class="p">,</span>
       <span class="n">S</span><span class="o">=</span><span class="mi">557183</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">1598</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">1375e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">CoolingTower</span><span class="p">(</span><span class="n">Facility</span><span class="p">,</span> <span class="n">Static</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">CoolingTower</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a cooling tower that is cost based on flow rate of cooling water.&quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;kmol/hr&#39;</span><span class="p">}</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
@@ -209,11 +201,13 @@
     <span class="n">evaporation</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">blowdown</span> <span class="o">=</span> <span class="mf">0.001</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-        <span class="n">water</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">species</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span> <span class="o">=</span> <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;cooling_tower_makeup_water&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">water</span><span class="p">)</span>
-        <span class="n">loss</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="s1">&#39;evaporation_and_blowdown&#39;</span><span class="p">,</span> <span class="n">makeup_water</span><span class="p">)</span>
+        <span class="n">thermo</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">thermo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span> <span class="o">=</span> <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;cooling_tower_makeup_water&#39;</span><span class="p">,</span>
+                                                  <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">makeup_water</span><span class="o">.</span><span class="n">flow_proxy</span><span class="p">()</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;evaporation_and_blowdown&#39;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;return_cooling_water&#39;</span><span class="p">,</span> <span class="n">makeup_water</span><span class="p">),</span>
-                         <span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">,</span> <span class="n">loss</span><span class="p">),</span> <span class="n">water</span><span class="p">)</span>
+                         <span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">,</span> <span class="n">loss</span><span class="p">),</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water_utilities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -221,22 +215,24 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cwu</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span> <span class="k">continue</span>
-                <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Cooling water&#39;</span><span class="p">:</span>
                         <span class="n">cwu</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hu</span><span class="p">)</span>
         <span class="n">used</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         
         <span class="c1">#: Cooling water flow rate (kmol/hr)</span>
-        <span class="n">used</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">])</span>
-        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">used</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">])</span>
+        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">cw</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">cw</span><span class="o">.</span><span class="n">T</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;Cooling water&#39;</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span><span class="o">*</span><span class="n">cw</span><span class="o">.</span><span class="n">price_kmol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaporation</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">blowdown</span><span class="p">)</span></div>
 
-   
+<span class="n">CoolingTower</span><span class="o">.</span><span class="n">_N_outs</span> <span class="o">=</span> <span class="n">CoolingTower</span><span class="o">.</span><span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
+    
 <span class="c1"># class CoolingTowerWithPowerDemand(CoolingTower):</span>
 <span class="c1">#     _has_power_utility = True</span>
 <span class="c1">#     _N_heat_utilities = 1</span>
@@ -245,7 +241,7 @@
 <span class="c1">#     def _cost(self):</span>
 <span class="c1">#         super()._cost()</span>
 <span class="c1">#         q = self._molar_flow # kmol/hr</span>
-<span class="c1">#         hu = self._heat_utilities[0]</span>
+<span class="c1">#         hu = self.heat_utilities[0]</span>
 <span class="c1">#         cw = hu.cooling_agents[&#39;Cooling water&#39;]</span>
 <span class="c1">#         hu.ID = &#39;Cooling water&#39;</span>
 <span class="c1">#         hu.flow = -q</span>

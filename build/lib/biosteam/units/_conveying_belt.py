@@ -5,10 +5,10 @@ Created on Mon Mar  4 11:10:49 2019
 @author: yoelr
 """
 from .decorators import cost
-from ._static import Static
+from .._unit import Unit
 
 @cost('Flow rate', CE=567, cost=813, ub=500, n=0.38, N='Number of conveyors')
-class ConveyingBelt(Static):
+class ConveyingBelt(Unit):
     length = 40 #: ft
     height = 20 #: ft
     _N_outs = 1
@@ -18,11 +18,12 @@ class ConveyingBelt(Static):
     
     def _design(self):
         feed = self.ins[0]
-        self._Design['Flow rate'] = volnet = feed.volnet*35.315 # ft3/hr
-        if volnet < self._minimum_flow:
-            self._lb_warning('Flow rate', volnet, self._minimum_flow)
-        massnet = feed.massnet*0.0006124 #lb/s
-        self._power_utility(0.00058*massnet**0.82*self.length + self.height*0.00182*massnet * 0.7457) # kW
+        self.design_results['Flow rate'] = F_vol = feed.F_vol*35.315 # ft3/hr
+        if F_vol < self._minimum_flow:
+            self._lb_warning('Flow rate', F_vol, self._minimum_flow)
+        F_mass = feed.F_mass*0.0006124 #lb/s
+        self.power_utility(0.00058*F_mass**0.82*self.length
+                           + self.height*0.00182*F_mass * 0.7457) # kW
         
         
 

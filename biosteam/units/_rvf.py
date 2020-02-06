@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from ._solids_separator import SolidsSeparator
-from .designtools import vacuum_system
+from .designtools import calculate_vacuum_system_power_and_cost
 import numpy as np
 import biosteam as bst
 
@@ -51,11 +51,11 @@ class RotaryVacuumFilter(SolidsSeparator):
     power_efficiency = 0.9
     
     def _design(self):
-        flow = sum(stream.massnet for stream in self.outs)
-        self._Design['Area'] = self._calc_Area(flow, self.filter_rate)
+        flow = sum([stream.F_mass for stream in self.outs])
+        self.design_results['Area'] = self._calc_Area(flow, self.filter_rate)
         
     def _cost(self):
-        Design = self._Design
+        Design = self.design_results
         Area = Design['Area']
         ub = self._bounds['Individual area'][1]
         N_vessels = np.ceil(Area/ub)
@@ -65,7 +65,7 @@ class RotaryVacuumFilter(SolidsSeparator):
         Design['Individual area'] = iArea
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
-        self._Cost['Cost of vessels'] = N_vessels*Cost*bst.CE/567
+        self.purchase_costs['Cost of vessels'] = N_vessels*Cost*bst.CE/567
     
     def _power(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs
@@ -88,16 +88,16 @@ class RotaryVacuumFilter(SolidsSeparator):
         # cent_a = (2*np.pi*rps)**2*radius
         # cent_F = (mass_cake + mass_plates)*cent_a
         # work_rot = rps*2*np.pi*radius*cent_F
-        Area = self._Design['Area']
-        vol = radius*Area*0.0929/2 # m3
+        Area = self.design_results['Area']
+        vessel_volume = radius*Area*0.0929/2 # m3
         
         # Assume same volume of air comes in as volume of liquid
-        volflow = s_vacuumed.volnet
-        massflow = volflow*1.2041 # multiply by density of air kg/m3 
-        work_vacuum, self._Cost['Liquid-ring pump'] = vacuum_system(
-                massflow, volflow, self.P_suction, vol)
+        F_vol = s_vacuumed.F_vol
+        F_mass = F_vol * 1.2041 # multiply by density of air kg/m3 
+        work_vacuum, self.purchase_costs['Liquid-ring pump'] = calculate_vacuum_system_power_and_cost(
+                F_mass, F_vol, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
-        self._power_utility(work_vacuum)
+        self.power_utility(work_vacuum)
     
     @staticmethod
     def _calc_Area(flow, filter_rate):

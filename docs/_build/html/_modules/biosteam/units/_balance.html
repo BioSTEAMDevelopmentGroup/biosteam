@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -187,27 +179,27 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Unit</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">MissingStream</span>
+<span class="kn">from</span> <span class="nn">..utils.piping</span> <span class="kn">import</span> <span class="n">StreamSequence</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">PowerUtility</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;MassBalance&#39;</span><span class="p">,)</span>
 
 <span class="c1"># %% Mass Balance Unit</span>
 
 <div class="viewcode-block" id="MassBalance"><a class="viewcode-back" href="../../../units/MassBalance.html#biosteam.units.MassBalance">[docs]</a><span class="k">class</span> <span class="nc">MassBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. </span>
+    <span class="sd">&quot;&quot;&quot;Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified IDs. </span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    species : tuple[str]</span>
-<span class="sd">        Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</span>
+<span class="sd">    IDs : tuple[str]</span>
+<span class="sd">        Chemicals that will be used to solve mass balance linear equations. The number of chemicals must be same as the number of input streams varied.</span>
 <span class="sd">    streams : tuple[int]</span>
 <span class="sd">        Indices of input streams that can vary in net flow rate</span>
-<span class="sd">    exact=True : bool, optional</span>
-<span class="sd">        True if exact flow rate solution is required for the specified species.</span>
-<span class="sd">    balance=&#39;flow&#39; : {&#39;flow&#39;, &#39;fraction&#39;}, optional</span>
+<span class="sd">    is_exact=True : bool, optional</span>
+<span class="sd">        True if exact flow rate solution is required for the specified IDs.</span>
+<span class="sd">    balance=&#39;flow&#39; : {&#39;flow&#39;, &#39;composition&#39;}, optional</span>
 <span class="sd">          * &#39;flow&#39;: Satisfy output flow rates</span>
-<span class="sd">          * &#39;fraction&#39;: Satisfy net output molar fractions</span>
+<span class="sd">          * &#39;composition&#39;: Satisfy net output molar composition</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -217,83 +209,35 @@
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Balance&#39;</span>
     <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">heat_utilities</span> <span class="o">=</span> <span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">exact</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;flow&#39;</span><span class="p">):</span>
+                 <span class="n">chemical_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">is_exact</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_balance</span> <span class="o">=</span> <span class="n">balance</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span> <span class="o">=</span> <span class="n">streams</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
+        <span class="n">thermo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_thermo</span><span class="p">(</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">StreamSequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">thermo</span><span class="p">,</span> <span class="n">fixed_size</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">StreamSequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">,</span> <span class="n">fixed_size</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">streams</span> <span class="o">=</span> <span class="n">streams</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chemical_IDs</span> <span class="o">=</span> <span class="n">chemical_IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_exact</span> <span class="o">=</span> <span class="n">is_exact</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">balance</span>
         
-        <span class="c1"># Make sure balance type is valid</span>
-        <span class="k">if</span> <span class="n">balance</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;fraction&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;balance type must be one of the following: &#39;flow&#39;, &#39;fraction&#39;&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Catch correct solver and make sure linear system of equations is square to achieve exact solution</span>
-        <span class="k">if</span> <span class="n">exact</span><span class="p">:</span>
-            <span class="n">solver</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span>
-            <span class="n">species_IDs</span> <span class="o">=</span> <span class="n">species</span>
-            <span class="n">sID</span><span class="p">,</span> <span class="n">s_index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">sID</span> <span class="o">!=</span> <span class="n">s_index</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;length of species (</span><span class="si">{sID}</span><span class="s2">) must be equal to the length of streams_index (</span><span class="si">{s_index}</span><span class="s2">) when exact solution is needed&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">solver</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span>
-
-        <span class="c1"># Cach indices for species and solver</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bal_index</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_linalg_solver</span> <span class="o">=</span> <span class="n">solver</span>
-
-    <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">ins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">MissingStream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)]</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">ins</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="n">ins</span><span class="p">)]</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">ins</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ins</span><span class="p">]</span>
-    
-    <span class="k">def</span> <span class="nf">_init_outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize output streams.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="n">outs</span><span class="p">)]</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">outs</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MissingStream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)]</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">]</span>
-
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solve mass balance by iteration.&quot;&quot;&quot;</span>
         <span class="c1"># SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS</span>
         <span class="c1"># SOLVING BY LEAST-SQUARES TAKES 40 LOOPS</span>
-        <span class="n">stream_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span>
-        <span class="n">balance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_balance</span>
-        <span class="n">solver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linalg_solver</span>
+        <span class="n">stream_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span>
+        <span class="n">balance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">balance</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_exact</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span>
+        <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
 
         <span class="c1"># Set up constant and variable streams</span>
-        <span class="n">vary</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Streams to vary in mass balance</span>
-        <span class="n">constant</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Constant streams</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_index</span><span class="p">:</span>
-                <span class="n">vary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">constant</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-
-        <span class="c1"># Species indices used in mass balace</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bal_index</span>
+        <span class="n">vary</span> <span class="o">=</span> <span class="p">[</span><span class="n">ins</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_index</span><span class="p">]</span>  <span class="c1"># Streams to vary in mass balance</span>
+        <span class="n">constant</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ins</span> <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="ow">and</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vary</span><span class="p">)]</span>  <span class="c1"># Constant streams</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chemical_IDs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">balance</span> <span class="o">==</span> <span class="s1">&#39;flow&#39;</span><span class="p">:</span>
             <span class="c1"># Perform the following calculation: Ax = b = f - g</span>
@@ -306,7 +250,7 @@
 
             <span class="c1"># Solve linear equations for mass balance</span>
             <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">vary</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_out</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_out</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">g</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">constant</span><span class="p">])</span>
             <span class="n">b</span> <span class="o">=</span> <span class="n">f</span> <span class="o">-</span> <span class="n">g</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">solver</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
@@ -329,7 +273,7 @@
             <span class="c1"># Set all variables</span>
             <span class="n">A_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">vary</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
             <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">vary</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_molfrac_out</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_mol_out</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">g_</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">constant</span><span class="p">])</span>
             <span class="n">g</span> <span class="o">=</span> <span class="n">g_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="n">O</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">g_</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span> <span class="o">-</span> <span class="n">g</span>
@@ -339,7 +283,6 @@
             <span class="n">not_converged</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">while</span> <span class="n">not_converged</span><span class="p">:</span>
                 <span class="c1"># Solve linear equations for mass balance</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">A_</span> <span class="o">*</span> <span class="n">x_guess</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">*</span><span class="n">f</span> <span class="o">+</span> <span class="n">O</span>
                 <span class="n">x_new</span> <span class="o">=</span> <span class="n">solver</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
                 <span class="n">not_converged</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(((</span><span class="n">x_new</span> <span class="o">-</span> <span class="n">x_guess</span><span class="p">)</span><span class="o">/</span><span class="n">x_new</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0001</span>
@@ -348,25 +291,9 @@
             <span class="c1"># Set flow rates for input streams</span>
             <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_new</span><span class="p">,</span> <span class="n">vary</span><span class="p">):</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="o">*</span> <span class="n">factor</span>
-
-    <span class="c1"># Setting input and output streams do not change sources or sinks</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[:] Input streams&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-
-    <span class="nd">@ins</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">streams</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[:] Output streams&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
-
-    <span class="nd">@outs</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">streams</span></div>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;balance type must be one of the following: &#39;flow&#39;, &#39;composition&#39;&quot;</span><span class="p">)</span></div>
 
 
 <span class="c1"># %% Energy Balance Unit</span>

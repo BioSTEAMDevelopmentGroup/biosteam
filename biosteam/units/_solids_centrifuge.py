@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 import numpy as np
-from .. import Stream
+from ..utils.design_warning import lb_warning
 from .decorators import cost
 from ._splitter import Splitter
 
@@ -40,17 +40,24 @@ class SolidsCentrifuge(Splitter):
     def __init__(self, ID='', ins=None, outs=(), *,
                  split, order=None, solids=None):
         super().__init__(ID, ins, outs, split=split, order=order)
-        self._solids_index = Stream.indices(solids)
+        self.solids = solids
+    
+    @property
+    def solids(self):
+        return self._solids
+    @solids.setter
+    def solids(self, solids):
+        self._solids = tuple(solids)
     
     def _design(self):
         mass_solids = 0
-        index = self._solids_index
+        solids = self._solids
         for s in self.ins:
-            mass_solids += s.mass[index]
+            mass_solids += s.imass[solids]
         ts = np.asarray(mass_solids).sum() # Total solids
         ts *= 0.0011023 # To short tons (2000 lbs/hr)
-        self._Design['Solids loading'] = ts
+        self.design_results['Solids loading'] = ts
         lb = self._minimum_solids_loading
         if ts < lb:
-            self._lb_warning('Solids loading', ts, 'tonn/hr', lb)
+            lb_warning('Solids loading', ts, 'tonn/hr', lb)
     

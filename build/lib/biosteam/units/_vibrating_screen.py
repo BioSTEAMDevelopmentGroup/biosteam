@@ -8,7 +8,7 @@ from .decorators import cost
 from ._splitter import Splitter
 
 @cost('Area', units='ft^2', ub=200, CE=567, cost=1010, n=0.91, BM=1.73, N='Number of screens',
-      fsize=lambda self: self.ins[0].massnet/(self.capacity*self.mesh_opening))
+      fsize=lambda self, _: self.ins[0].F_mass/(self.capacity*self.mesh_opening))
 class VibratingScreen(Splitter):
     # Assume 3-deck vibrating screen
     

@@ -9,7 +9,6 @@ from .._unit import Unit
 from .._exceptions import DesignError
 from ._mixer import Mixer
 from .decorators import cost
-from ._static import Static
 import numpy as np
 import biosteam as bst
 
@@ -26,7 +25,8 @@ class Tank(Unit, isabstract=True):
     def tau(self, tau):
         self._tau = tau
 
-class StorageTank(Static, Tank):
+
+class StorageTank(Tank):
     r"""Create a storage tank with volume based on residence time [1].
 
     .. math::
@@ -44,21 +44,21 @@ class StorageTank(Static, Tank):
     #: [float] residence time (hr)
     _tau = 4*7*24
 
-    def _more_design_specs(self):
+    def _get_design_specs(self):
         return (('Residence time', self.tau/24, 'days'),)
 
     def _design(self):
-        V = self._tau*self._volnet_out
-        self._Design['Number of tanks'] = N = np.ceil(V/50e3)
-        self._Design['Total volume'] = V/N
+        V = self._tau * self.F_vol_out
+        self.design_results['Number of tanks'] = N = np.ceil(V/50e3)
+        self.design_results['Total volume'] = V/N
 
     def _cost(self):
-        N = self._Design['Number of tanks']
-        V = self._Design['Total volume']
+        N = self.design_results['Number of tanks']
+        V = self.design_results['Total volume']
         if V < 2e3:
-            self._Cost['Tank'] = N * (65000 + 158.7*(V/N)) * bst.CE/525.4
+            self.purchase_costs['Tank'] = N * (65000 + 158.7*(V/N)) * bst.CE/525.4
         elif V < 50e3:
-            self._Cost['Tank'] = N * (250000 + 94.2*(V/N)) * bst.CE/525.4
+            self.purchase_costs['Tank'] = N * (250000 + 94.2*(V/N)) * bst.CE/525.4
         else:    
             raise DesignError(f"Volume is out of bounds for costing")
 
@@ -87,7 +87,7 @@ class MixTank(Tank):
     #: Fraction of working volume
     _V_wf = 0.8
     
-    def _more_design_specs(self):
+    def _get_design_specs(self):
         return (('Residence time', self.tau, 'hr'),
                 ('Working volume fraction', self.working_volume_fraction, ''))
     
@@ -103,6 +103,6 @@ class MixTank(Tank):
         self._V_wf = V_wf
     
     def _design(self):
-        self._Design['Total volume'] = V = self._tau * self.outs[0].volnet / self._V_wf
-        if V < self._minimum_volume: self._lb_warning('Volume', V, 'm^3', self._minimum_volume)
+        self.design_results['Total volume'] = self._tau * self.outs[0].F_vol / self._V_wf
+        # if V < self._minimum_volume: self._lb_warning('Volume', V, 'm^3', self._minimum_volume)
 

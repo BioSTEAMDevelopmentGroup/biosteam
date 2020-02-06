@@ -1,7 +1,5 @@
 MolecularSieve
 ==============
 
-.. module:: biosteam.units
-
-.. autoclass:: MolecularSieve
+.. autoclass:: biosteam.units.MolecularSieve
    :members:

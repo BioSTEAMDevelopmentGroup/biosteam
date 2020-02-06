@@ -7,84 +7,39 @@ This module includes classes and functions relating exception handling.
 
 @author: Yoel Rene Cortes-Pena
 """
-import sys as _sys
+# import sys as _sys
 
-__all__ = ('DesignError', 'EquilibriumError','DimensionError', 'DesignWarning')
+__all__ = ('DesignError',)
 
 # %% Biosteam errors
 
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
 
-class EquilibriumError(RuntimeError):
-    """RuntimeError regarding equilibrium."""
-
-class DimensionError(ValueError):
-    """ValueError regarding wrong dimensions."""
-
-class UndefinedCompound(AttributeError):
-    """LookupError regarding undefined compounds."""
-    def __init__(self, ID): super().__init__(f"'{ID}'")
-
-# Python's built in KeyError quotes the message, used as a by-pass for the debbuger
-_KE = type('KeyError', (Exception, ), {})
+# class UnitError(RuntimeError):
+#     """RuntimeError regarding unit operations."""
+#     def __init__(self, unit, method, error):
+#         # Add location to message
+#         msg = (f'{type(error).__name__} at {repr(unit)}.{method.__name__}\n{error}')
+        
+#         # Raise exception with same traceback but new message
+#         super().__init__(msg)
+#         self.original_exception = error
+#         self.with_traceback(_sys.exc_info()[2])
 
 
-# %% Biosteam Warnings
-
-class DesignWarning(Warning):
-    """Warning regarding design constraints."""
-    
 #%% Decorators and functions
 
-# def _notify_error(func):
-#     """Decorate class method to provide a location summary when an error occurs."""
-#     if hasattr(func, '_original'):
-#         func = func._original
-
-#     def wrapper(self, *args, **kwargs):
-#         try: return func(self, *args, **kwargs)
-#         except Exception as e:
-#             # If exception already include location, it is replaced
-#             location = f'@{type(self).__name__} {self}'
-#             msg = str(e).strip('\n').replace(location + ': ', '')
-            
-#             # Add location to message
-#             if not ('@' in msg and ':\n' in msg):
-#                 msg = location + f'.{func.__name__}:\n' + msg                 
-            
-#             # Raise exception with same traceback but new message
-#             if type(e) is KeyError:
-#                 raise _KE(msg).with_traceback(_sys.exc_info()[2])
-#             else:
-#                 raise type(e)(msg).with_traceback(_sys.exc_info()[2])
-    
-#     wrapper.__name__ = func.__name__
-#     wrapper.__doc__ = func.__doc__
-#     wrapper._original = func
-#     wrapper.__annotations__ = func.__annotations__
-#     return wrapper
-
-def _try_method(method):
-    try: return method()
-    except Exception as e:
-        # If exception already include location, it is replaced
-        try:
-            self = method.__self__
-        except:
-            raise e
-        location = f'@{type(self).__name__} {self}'
-        msg = str(e).strip('\n').replace(location + ': ', '')
+# def _try_method(method):
+#     try: return method()
+#     except UnitError:
+#         raise UnitError
+#     except Exception as error:
+#         # If exception already include location, it is replaced
+#         try:
+#             self = method.__self__
+#         except:
+#             raise error
+#         raise UnitError(self, method, error)
         
-        # Add location to message
-        if not ('@' in msg and ':\n' in msg):
-            msg = location + f'.{method.__name__}:\n' + msg                 
-        
-        # Raise exception with same traceback but new message
-        if type(e) is KeyError:
-            raise _KE(msg).with_traceback(_sys.exc_info()[2])
-        elif type(e) is UndefinedCompound:
-             raise e
-        else:
-            raise type(e)(msg).with_traceback(_sys.exc_info()[2])
 

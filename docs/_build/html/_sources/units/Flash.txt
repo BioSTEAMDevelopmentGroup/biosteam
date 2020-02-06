@@ -1,7 +1,5 @@
 Flash
 =====
 
-.. module:: biosteam.units
-
-.. autoclass:: Flash
+.. autoclass:: biosteam.units.Flash
    :members:

@@ -85,23 +85,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
@@ -109,12 +104,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
@@ -132,8 +125,6 @@
 <li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -225,11 +216,11 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="module-biosteam.units">
-<span id="mixtank"></span><h1>MixTank<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="mixtank">
+<h1>MixTank<a class="headerlink" href="#mixtank" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.MixTank">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MixTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">species=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MixTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a mixing tank with volume based on residence time.</p>
 <div class="math">
 <p><img src="../_images/math/9a3932a776b412b93bac2cc7cc48e12b0c195684.png" alt="V &amp;= \frac{\tau* Q}{0.8}
@@ -238,9 +229,75 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 </div><p class="rubric">References</p>
 <p>[1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</p>
 <dl class="method">
+<dt id="biosteam.units.MixTank.F_mass_in">
+<em class="property">property </em><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.MixTank.F_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going in (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.F_mass_out">
+<em class="property">property </em><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.units.MixTank.F_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going out (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.F_mol_in">
+<em class="property">property </em><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.units.MixTank.F_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.F_mol_out">
+<em class="property">property </em><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.units.MixTank.F_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going out (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.F_vol_in">
+<em class="property">property </em><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.units.MixTank.F_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going in (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.F_vol_out">
+<em class="property">property </em><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.units.MixTank.F_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going out (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.H_in">
+<em class="property">property </em><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.units.MixTank.H_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going in (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.H_out">
+<em class="property">property </em><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.units.MixTank.H_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going out (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.Hf_in">
+<em class="property">property </em><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.units.MixTank.Hf_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going in (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.Hf_out">
+<em class="property">property </em><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.units.MixTank.Hf_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going out (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.Hnet">
+<em class="property">property </em><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.units.MixTank.Hnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.MixTank.ID">
 <em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.MixTank.ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 <dl class="method">
@@ -269,6 +326,42 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.units.MixTank.ins">
+<em class="property">property </em><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.MixTank.ins" title="Permalink to this definition">¶</a></dt>
+<dd><p>All input streams.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.mass_in">
+<em class="property">property </em><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.units.MixTank.mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going in (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.mass_out">
+<em class="property">property </em><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.units.MixTank.mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going out (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.mol_in">
+<em class="property">property </em><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.units.MixTank.mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.mol_out">
+<em class="property">property </em><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.units.MixTank.mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going out (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.outs">
+<em class="property">property </em><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.MixTank.outs" title="Permalink to this definition">¶</a></dt>
+<dd><p>All output streams.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.MixTank.purchase_cost">
 <em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.MixTank.purchase_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total purchase cost (USD).</p>
@@ -282,7 +375,7 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">fraction=None</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
@@ -305,9 +398,57 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.units.MixTank.vol_in">
+<em class="property">property </em><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.units.MixTank.vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going in (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.vol_out">
+<em class="property">property </em><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.units.MixTank.vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going out (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.MixTank.working_volume_fraction">
 <em class="property">property </em><code class="sig-name descname">working_volume_fraction</code><a class="headerlink" href="#biosteam.units.MixTank.working_volume_fraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fraction of working volume.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.z_mass_in">
+<em class="property">property </em><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.units.MixTank.z_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.z_mass_out">
+<em class="property">property </em><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.units.MixTank.z_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going out.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.z_mol_in">
+<em class="property">property </em><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.units.MixTank.z_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.z_mol_out">
+<em class="property">property </em><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.units.MixTank.z_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.z_vol_in">
+<em class="property">property </em><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.units.MixTank.z_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.z_vol_out">
+<em class="property">property </em><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.units.MixTank.z_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going out.</p>
 </dd></dl>
 
 </dd></dl>

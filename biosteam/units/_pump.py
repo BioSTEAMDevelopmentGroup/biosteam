@@ -6,8 +6,9 @@ Created on Thu Aug 23 15:53:14 2018
 """
 import numpy as np
 from fluids.pump import nema_sizes_hp
-from .designtools._vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
-from ._static import Static
+from .designtools.mechanical import calculate_NPSH, pump_efficiency, nearest_NEMA_motor_size
+from .._unit import Unit
+from ..utils import static_flow_and_phase
 import biosteam as bst
 
 ln = np.log
@@ -41,23 +42,15 @@ F_Tcentrifugal = {'VSC3600':   1,
                   '2HSC3600':  2.7,
                   '2+HSC3600': 8.9}
 
-# %% Pump selection
-
 # Pump types
 Types = ('CentrifugalSingle', 'CentrifugalDouble', 'Gear')
-
-
-def calc_NPSH(P_suction, P_vapor, rho_liq):
-    """Return NPSH in ft given suction and vapor pressure in Pa and density in kg/m^3."""
-    # Note: NPSH = (P_suction - P_vapor)/(rho_liq*gravity)
-    # Taking into account units, NPSH will be equal to return value
-    return 0.334438*(P_suction - P_vapor)/rho_liq
     
 
 # %% Classes
 
 # TODO: Fix pump selection to include NPSH available and required.
-class Pump(Static):
+@static_flow_and_phase
+class Pump(Unit):
     """Create a pump that sets the pressure of the 0th output stream.
 
     Parameters
@@ -129,47 +122,59 @@ class Pump(Static):
             raise ValueError(f"material must be one of the following: {dummy}")
         self._F_Mstr = material  
         
-    def __init__(self, ID='', ins=None, outs=(), P=None):
+    def __init__(self, ID='', ins=None, outs=(), P=101325):
         super().__init__(ID, ins, outs)
-        self.P = P
-        
+        self.P = 101325
+    
+    def _setup(self):
+        s_in, = self.ins
+        s_out, = self.outs
+        s_out.P = self.P
+    
     def _run(self):
-        out = self._outs[0]
-        feed = self._ins[0]
-        out.P = self.P or feed.P
-        out.T = feed.T
-        out._phase = feed._phase
+        s_in, = self.ins
+        s_out, = self.outs
+        s_out.T = s_in.T
     
     def _design(self):
-        Design = self._Design
-        si = self.ins[0]
-        so = self.outs[0]
+        Design = self.design_results
+        si, = self.ins
+        so, = self.outs
         Pi = si.P
         Po = so.P
-        Qi = si.volnet
-        mass = si.massnet
+        Qi = si.F_vol
+        mass = si.F_mass
         nu = si.nu
         dP = Po - Pi
         if dP < 1: dP = self.P_startup - Pi
         Design['Ideal power'] = power_ideal = Qi*dP*3.725e-7 # hp
         Design['Flow rate'] = q = Qi*4.403 # gpm
         if power_ideal <= max_hp:
-            Design['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
-            Design['Actual power'] = power = power_ideal/e
-            Design['Pump power'] = self._nearest_PumpPower(power)
-            Design['N'] = 1
+            Design['Efficiency'] = efficiency = pump_efficiency(q, power_ideal)
+            Design['Actual power'] = power = power_ideal/efficiency
+            Design['Pump power'] = nearest_NEMA_motor_size(power)
+            Design['N'] = N = 1
             Design['Head'] = head = power/mass*897806 # ft
             # Note that:
             # head = power / (mass * gravity)
             # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
             # and 897806 = (conversion_factor/9.81)
         else:
-            raise NotImplementedError('more than 1 pump required, but not yet implemented')
+            power_ideal /= 2
+            q /= 2
+            if power_ideal <= max_hp:
+                Design['Efficiency'] = efficiency = pump_efficiency(q, power_ideal)
+                Design['Actual power'] = power = power_ideal/efficiency
+                Design['Pump power'] = nearest_NEMA_motor_size(power)
+                Design['N'] = N = 2
+                Design['Head'] = head = power/mass*897806 # ft
+            else:
+                raise NotImplementedError('more than 2 pump required, but not yet implemented')
         
         if self.ignore_NPSH:
             NPSH_satisfied = True
         else:
-            Design['NPSH'] = NPSH = calc_NPSH(Pi, si.P_vapor, si.rho)
+            Design['NPSH'] = NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
             NPSH_satisfied = NPSH > 1.52
         
         # Get type
@@ -190,16 +195,16 @@ class Pump(Static):
                   and nu < 0.01):
                 Type = 'MeteringPlunger'
             else:
-                NPSH = calc_NPSH(Pi, si.P_vapor, si.rho)
+                NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
                 raise NotImplementedError(f'no pump type available at current power ({power:.3g} hp), flow rate ({q:.3g} gpm), and head ({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft)')
                 
         Design['Type'] = Type
-        self._power_utility(power/1.341) # Set power in kW
+        self.power_utility(power/N/1.341) # Set power in kW
     
     def _cost(self):
         # Parameters
-        Design = self._Design
-        Cost = self._Cost
+        Design = self.design_results
+        Cost = self.purchase_costs
         Type = Design['Type']
         q = Design['Flow rate']
         h = Design['Head']
@@ -252,18 +257,10 @@ class Pump(Static):
         lnp2 = lnp**2
         lnp3 = lnp2*lnp
         lnp4 = lnp3*lnp
-        Cost['Motor'] = exp(5.9332 + 0.16829*lnp - 0.110056*lnp2 + 0.071413*lnp3 - 0.0063788*lnp4)*I
+        Cost['Motor'] = exp(5.9332 + 0.16829*lnp
+                            - 0.110056*lnp2 + 0.071413*lnp3
+                            - 0.0063788*lnp4)*I
     
-    @staticmethod
-    def _nearest_PumpPower(power):
-        for nearest_power in nema_sizes_hp:
-            if nearest_power >= power: return nearest_power
-        raise ValueError(f'no NEMA motor size bigger than {power} hp')
         
-    @staticmethod
-    def _calc_Efficiency(q, p):
-        mup = _calc_BreakEfficiency(q)
-        mum = _calc_MotorEfficiency(p/mup)
-        return mup*mum
         
         

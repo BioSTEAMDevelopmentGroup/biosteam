@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -260,13 +252,13 @@
     <span class="n">show</span> <span class="o">=</span> <span class="n">_ipython_display_</span></div>
 
 <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
-    <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span>
     <span class="n">kW</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_items</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">S</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">_basis</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ub</span><span class="p">:</span>
-            <span class="n">D</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">N</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">S</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">ub</span><span class="p">)</span>
+            <span class="n">D</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">N</span> <span class="ow">or</span> <span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">S</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">ub</span><span class="p">)</span>
             <span class="n">q</span> <span class="o">=</span> <span class="n">S</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">S</span>
             <span class="n">F</span> <span class="o">=</span> <span class="n">q</span><span class="o">/</span><span class="n">N</span>
             <span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">CE</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">cost</span><span class="o">*</span><span class="n">F</span><span class="o">**</span><span class="n">x</span><span class="o">.</span><span class="n">n</span>
@@ -280,7 +272,7 @@
             <span class="n">F</span> <span class="o">=</span> <span class="n">S</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">S</span>
             <span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">CE</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">cost</span><span class="o">*</span><span class="n">F</span><span class="o">**</span><span class="n">x</span><span class="o">.</span><span class="n">n</span>
             <span class="n">kW</span> <span class="o">+=</span> <span class="n">x</span><span class="o">.</span><span class="n">kW</span><span class="o">*</span><span class="n">F</span>
-    <span class="k">if</span> <span class="n">kW</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">kW</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kW</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">kW</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_extended_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -297,7 +289,7 @@
 
 <span class="nd">@property</span>
 <span class="k">def</span> <span class="nf">installation_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">j</span><span class="o">.</span><span class="n">BM</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_items</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
 <div class="viewcode-block" id="cost"><a class="viewcode-back" href="../../../../units/decorators.html#biosteam.units.decorators.cost">[docs]</a><span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>    

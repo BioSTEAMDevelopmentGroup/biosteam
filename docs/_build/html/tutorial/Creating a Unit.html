@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5. Creating a Unit &mdash; BioSTEAM 0.1 documentation</title>
+  <title>4. Creating a Unit &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="6. Unit operation examples" href="../units/notebooks/examples.html" />
-    <link rel="prev" title="4. Thermodynamic equilibrium" href="Thermodynamic equilibrium.html" /> 
+    <link rel="next" title="5. Unit operation examples" href="../units/notebooks/examples.html" />
+    <link rel="prev" title="3. Getting started" href="Getting started.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,23 +85,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
@@ -109,10 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -164,7 +156,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>5. Creating a Unit</li>
+      <li><span class="section-number">4. </span>Creating a Unit</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -367,7 +359,7 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Creating-a-Unit">
-<h1>5. Creating a Unit<a class="headerlink" href="#Creating-a-Unit" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">4. </span>Creating a Unit<a class="headerlink" href="#Creating-a-Unit" title="Permalink to this headline">¶</a></h1>
 <p><strong>A Unit object is created with optional input and output streams or
 stream IDs. A Unit subclass may include additional key word arguments.</strong></p>
 <p>Initialize a Unit with an <code class="docutils literal notranslate"><span class="pre">ID</span></code>, <code class="docutils literal notranslate"><span class="pre">ins</span></code> streams, and <code class="docutils literal notranslate"><span class="pre">outs</span></code> streams.
@@ -375,12 +367,14 @@ Either an iterable of Stream objects, or a Stream object work for
 <code class="docutils literal notranslate"><span class="pre">ins</span></code> and <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [1]:
+<span></span>In [2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Species</span>
-<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
+<span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
 <span class="n">ins</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in0&#39;</span><span class="p">)</span>
 <span class="n">outs</span> <span class="o">=</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;out0&#39;</span><span class="p">),</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">))</span>
 <span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">ins</span><span class="p">)</span>
@@ -394,11 +388,11 @@ Either an iterable of Stream objects, or a Stream object work for
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Unit: P1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] in0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] out0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
@@ -410,7 +404,7 @@ Unit: P1
 <p>You can also view a diagram() to check connections:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
+<span></span>In [3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -428,7 +422,7 @@ Unit: P1
 <p>IDs for Stream objects can also be used instead:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [3]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -443,11 +437,11 @@ Unit: P1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Unit: P1
-<span class="ansi-white-fg">ins...</span>
-[0] in0
+ins...
+[0] s1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] out0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
@@ -460,7 +454,7 @@ Unit: P1
 <code class="docutils literal notranslate"><span class="pre">ins</span></code>, and empty streams to <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -475,13 +469,13 @@ Unit: P1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Unit: U1
-<span class="ansi-white-fg">ins...</span>
-[0] Missing Stream
-<span class="ansi-white-fg">outs...</span>
-[0] d1
+ins...
+[0] missing stream
+outs...
+[0] s2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d2
+[1] s3
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -491,7 +485,7 @@ initialized. If an empty iterable is given, empty streams are
 initialized:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -506,16 +500,16 @@ initialized:</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Unit: P1
-<span class="ansi-white-fg">ins...</span>
-[0] Missing Stream
-<span class="ansi-white-fg">outs...</span>
-[0] Missing Stream
-[1] Missing Stream
+ins...
+[0] missing stream
+outs...
+[0] missing stream
+[1] missing stream
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<span></span>In [7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -530,15 +524,15 @@ Unit: P1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Unit: P1
-<span class="ansi-white-fg">ins...</span>
-[0] d3
+ins...
+[0] s4
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-<span class="ansi-white-fg">outs...</span>
-[0] d4
+outs...
+[0] s5
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d5
+[1] s6
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -546,7 +540,7 @@ Unit: P1
 <p>The number of default streams is different for each Unit subclass:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -561,22 +555,25 @@ Unit: P1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Mixer: U2
-<span class="ansi-white-fg">ins...</span>
-[0] Missing Stream
-[1] Missing Stream
-<span class="ansi-white-fg">outs...</span>
-[0] d6
+ins...
+[0] missing stream
+[1] missing stream
+[2] missing stream
+[3] missing stream
+[4] missing stream
+outs...
+[0] s7
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<span></span>In [10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">Splitter</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span></span><span class="n">Splitter</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -585,14 +582,14 @@ Mixer: U2
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Splitter: U3
-<span class="ansi-white-fg">ins...</span>
-[0] Missing Stream
-<span class="ansi-white-fg">outs...</span>
-[0] d7
+Splitter: U2
+ins...
+[0] missing stream
+outs...
+[0] s8
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d8
+[1] s9
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -607,10 +604,10 @@ Splitter: U3
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../units/notebooks/examples.html" class="btn btn-neutral float-right" title="6. Unit operation examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../units/notebooks/examples.html" class="btn btn-neutral float-right" title="5. Unit operation examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Thermodynamic equilibrium.html" class="btn btn-neutral float-left" title="4. Thermodynamic equilibrium" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Getting started.html" class="btn btn-neutral float-left" title="3. Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

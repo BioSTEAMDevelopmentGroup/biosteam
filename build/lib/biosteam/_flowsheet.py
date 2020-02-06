@@ -3,94 +3,12 @@
 As BioSTEAM objects are created, they are automatically registered. The `find` object allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
 
 """
-from graphviz import Digraph
-from IPython import display
-from .utils import Register, search_register
+from thermosteam.utils import Registry
+from ._digraph import make_digraph, save_digraph
+from thermosteam import Stream
+from . import Unit, System
 
 __all__ = ('find', 'Flowsheet')
-
-
-def make_digraph(units, streams, **graph_attrs):
-    """Return digraph of units and streams."""
-    # Create a digraph and set direction left to right
-    f = Digraph(format='svg')
-    f.attr(rankdir='LR', dpi='300', **graph_attrs)
-    # Set up unit nodes
-    UD = {}  # Contains full description (ID and line) by ID
-    for u in units:
-        if hasattr(u, 'link_streams'): u.link_streams()
-        graphics = u._graphics
-        if not graphics.in_system:
-            continue  # Ignore Unit
-        
-        # Initialize graphics and make Unit node with attributes
-        Type = graphics.node_function(u) or u.line
-        name = u.ID + '\n' + Type
-        f.attr('node', **u._graphics.node)
-        f.node(name)
-        UD[u] = name
-        
-    keys = UD.keys()
-
-    # Set attributes for graph and streams
-    f.attr('node', shape='rarrow', fillcolor='#79dae8',
-           style='filled', orientation='0', width='0.6',
-           height='0.6', color='black', peripheries='1')
-    f.attr('graph', splines='normal', overlap='orthoyx',
-           outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
-    f.attr('edge', dir='foward')
-    for s in streams:
-        if not s: continue  # Ignore stream
-
-        oU = s._source
-        if oU:
-            oi = oU._outs.index(s) 
-        
-        dU = s._sink
-        if dU:
-            di = dU._ins.index(s)
-        
-        # Make stream nodes / unit-stream edges / unit-unit edges
-        if oU not in keys and dU not in keys: pass
-            # Stream is not attached to anything
-        elif oU not in keys:
-            # Feed stream case
-            f.node(s.ID)
-            edge_in = dU._graphics.edge_in
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[di])
-            f.edge(s.ID, UD[dU])
-        elif dU not in keys:
-            # Product stream case
-            f.node(s.ID)
-            edge_out = oU._graphics.edge_out
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **edge_out[oi])
-            f.edge(UD[oU], s.ID)
-        else:
-            # Process stream case
-            edge_in = dU._graphics.edge_in
-            edge_out = oU._graphics.edge_out
-            f.attr('edge', arrowtail='none', arrowhead='normal',
-                   **edge_in[di], **edge_out[oi])
-            f.edge(UD[oU], UD[dU], label=s.ID)
-    return f
-
-def save_digraph(digraph, file, format):
-    if not file:
-        if format == 'svg':
-            x = display.SVG(digraph.pipe(format=format))
-        else:
-            x = display.Image(digraph.pipe(format='png'))
-        display.display(x)
-    else:
-        if '.' not in file:
-            file += '.' + format
-        img = digraph.pipe(format=format)
-        f = open(file, 'wb')
-        f.write(img)
-        f.close()
-
 
 # %% Flowsheet search      
 
@@ -122,13 +40,13 @@ class Flowsheet:
     
     def __init__(self, ID):        
         #: [Register] Contains all System objects as attributes.
-        self.system = Register()
+        self.system = Registry()
         
         #: [Register] Contains all Unit objects as attributes.
-        self.unit = Register()
+        self.unit = Registry()
         
         #: [Register] Contains all Stream objects as attributes.
-        self.stream = Register()
+        self.stream = Registry()
         
         #: [str] ID of flowsheet.
         self._ID = ID
@@ -171,11 +89,11 @@ class Flowsheet:
         for u in units:
             streams.update(u._ins)
             streams.update(u._outs)
-        f = make_digraph(units, streams, **graph_attrs)
+        f = make_digraph(units, streams, format=format, **graph_attrs)
         save_digraph(f, file, format)
     
     def _minimal_diagram(self, file, format, **graph_attrs):
-        from . import _system, Stream
+        from . import _system
         streams = list(self.stream)
         feeds = set(filter(_system._isfeed, streams))
         products = set(filter(_system._isproduct, streams))
@@ -192,7 +110,7 @@ class Flowsheet:
         unit.diagram(1, file, format, **graph_attrs)
         
     def _surface_diagram(self, file, format, **graph_attrs):
-        from . import _system, Stream
+        from . import _system
         units = set(self.unit)
         StrUnit = _system._streamUnit
         refresh_units = set()
@@ -250,9 +168,9 @@ class Flowsheet:
     
         """
         ID = ID.replace(' ', '_')
-        obj = (search_register(self.stream, ID)
-                or search_register(self.unit, ID)
-                or search_register(self.system, ID))
+        obj = (self.stream.search(ID)
+               or self.unit.search(ID)
+               or self.system.search(ID))
         if not obj: raise LookupError(f"no registered item '{ID}'")
         return obj
     
@@ -271,10 +189,21 @@ class MainFlowsheet(Flowsheet):
     def set_flowsheet(flowsheet):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):
-            object.__setattr__(find, '__dict__', flowsheet.__dict__)
+            dct = flowsheet.__dict__
+        elif isinstance(flowsheet, str):
+            if flowsheet in find.flowsheet:
+                dct = find.flowsheet[flowsheet].__dict__
+            else:
+                new_flowsheet = Flowsheet(flowsheet)
+                find.flowsheet.__dict__[flowsheet] = new_flowsheet
+                dct = new_flowsheet.__dict__
         else:
             raise TypeError('flowsheet must be a Flowsheet object')
-    
+        Stream.registry = dct['stream']
+        System.registry = dct['system']
+        Unit.registry = dct['unit']
+        object.__setattr__(find, '__dict__', dct)
+        
     __setattr__ = Flowsheets.__setattr__
     
     def __new__(cls):
@@ -286,7 +215,7 @@ class MainFlowsheet(Flowsheet):
     
 #: [find] Find BioSTEAM objects by ID.
 find = object.__new__(MainFlowsheet)
-find.set_flowsheet(Flowsheet('default'))
+find.set_flowsheet('default')
     
 
 # %% Attempt at contantly rendered digraph

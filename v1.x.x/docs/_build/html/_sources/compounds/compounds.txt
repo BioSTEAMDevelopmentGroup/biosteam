@@ -1,0 +1,10 @@
+compounds
+=========
+
+.. toctree::
+   :maxdepth: 3
+      
+   Compound
+   Substance
+   Chemical
+   

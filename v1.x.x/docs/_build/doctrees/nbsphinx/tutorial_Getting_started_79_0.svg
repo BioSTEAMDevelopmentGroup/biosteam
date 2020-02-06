@@ -1,0 +1,114 @@
+<svg height="327pt" viewBox="0.00 0.00 371.39 327.24" width="371pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 323.24)">
+<title>%3</title>
+<polygon fill="white" points="-4,4 -4,-323.24 367.392,-323.24 367.392,4 -4,4" stroke="none"/>
+<!-- M1
+Mixer&#45;&gt;d4 -->
+<g class="edge" id="edge5"><title>M1
+Mixer:e-&gt;d4:w</title>
+<path d="M149.196,-53.7401C175.061,-53.7401 181.527,-53.7401 207.392,-53.7401" fill="none" stroke="black"/>
+</g>
+<!-- S1
+Splitter&#45;&gt;d5 -->
+<g class="edge" id="edge1"><title>S1
+Splitter:c-&gt;d5:w</title>
+<path d="M119.134,-174.994C144.296,-176.822 177.756,-178.74 207.392,-178.74" fill="none" stroke="black"/>
+</g>
+<!-- S1
+Splitter&#45;&gt;d6 -->
+<g class="edge" id="edge6"><title>S1
+Splitter:c-&gt;d6:w</title>
+<path d="M118.941,-149.341C143.47,-137.236 176.317,-124.74 207.392,-124.74" fill="none" stroke="black"/>
+</g>
+<!-- F1
+Flash&#45;&gt;product -->
+<g class="edge" id="edge2"><title>F1
+Flash:n-&gt;product:w</title>
+<path d="M230.392,-298.74C230.392,-330.743 270.389,-297.74 302.392,-297.74" fill="none" stroke="black"/>
+</g>
+<!-- F1
+Flash&#45;&gt;d2 -->
+<g class="edge" id="edge3"><title>F1
+Flash:s-&gt;d2:w</title>
+<path d="M230.392,-216.74C230.392,-199.072 292.224,-217.74 309.892,-217.74" fill="none" stroke="black"/>
+</g>
+<!-- d3&#45;&gt;F1
+Flash -->
+<g class="edge" id="edge4"><title>d3:e-&gt;F1
+Flash:c</title>
+<path d="M102.196,-257.74C133.332,-257.74 168.756,-257.74 194.299,-257.74" fill="none" stroke="black"/>
+</g>
+<!-- M1
+Mixer -->
+<g class="node" id="node1"><title>M1
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="44.6492" x2="148.289" y1="-53.7401" y2="-53.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="148.289,-53.7401 44.6492,-107.721 44.6492,0.241193 148.289,-53.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-57.5401">M1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-42.5401">Mixer</text>
+</g>
+<!-- S1
+Splitter -->
+<g class="node" id="node2"><title>S1
+Splitter</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_1" x1="-0.196446" x2="118.892" y1="-171.74" y2="-171.74">
+<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_1)" points="-0.196446,-171.74 118.892,-117.759 118.892,-225.721 -0.196446,-171.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-175.54">S1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-160.54">Splitter</text>
+</g>
+<!-- F1
+Flash -->
+<g class="node" id="node3"><title>F1
+Flash</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_2" x1="194.392" x2="266.392" y1="-257.74" y2="-257.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_2)" points="266.392,-297.24 194.392,-297.24 194.392,-218.24 266.392,-218.24 266.392,-297.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="230.392" y="-261.54">F1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="230.392" y="-246.54">Flash</text>
+</g>
+<!-- d5 -->
+<g class="node" id="node4"><title>d5</title>
+<polygon fill="#79dae8" points="233.892,-194.24 208.892,-194.24 208.892,-163.24 233.892,-163.24 233.892,-157.24 251.892,-178.74 233.892,-200.24 233.892,-194.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="230.392" y="-175.04">d5</text>
+</g>
+<!-- product -->
+<g class="node" id="node5"><title>product</title>
+<polygon fill="#79dae8" points="345.392,-313.24 302.392,-313.24 302.392,-282.24 345.392,-282.24 345.392,-276.24 363.392,-297.74 345.392,-319.24 345.392,-313.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="332.892" y="-294.04">product</text>
+</g>
+<!-- d2 -->
+<g class="node" id="node6"><title>d2</title>
+<polygon fill="#79dae8" points="336.392,-233.24 311.392,-233.24 311.392,-202.24 336.392,-202.24 336.392,-196.24 354.392,-217.74 336.392,-239.24 336.392,-233.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="332.892" y="-214.04">d2</text>
+</g>
+<!-- d3 -->
+<g class="node" id="node7"><title>d3</title>
+<polygon fill="#79dae8" points="82.696,-273.24 57.696,-273.24 57.696,-242.24 82.696,-242.24 82.696,-236.24 100.696,-257.74 82.696,-279.24 82.696,-273.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-254.04">d3</text>
+</g>
+<!-- d4 -->
+<g class="node" id="node8"><title>d4</title>
+<polygon fill="#79dae8" points="233.892,-69.2401 208.892,-69.2401 208.892,-38.2401 233.892,-38.2401 233.892,-32.2401 251.892,-53.7401 233.892,-75.2401 233.892,-69.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="230.392" y="-50.0401">d4</text>
+</g>
+<!-- d6 -->
+<g class="node" id="node9"><title>d6</title>
+<polygon fill="#79dae8" points="233.892,-140.24 208.892,-140.24 208.892,-109.24 233.892,-109.24 233.892,-103.24 251.892,-124.74 233.892,-146.24 233.892,-140.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="230.392" y="-121.04">d6</text>
+</g>
+</g>
+</svg>

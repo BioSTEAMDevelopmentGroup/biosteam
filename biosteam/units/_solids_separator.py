@@ -4,9 +4,8 @@ Created on Thu Aug 23 22:14:01 2018
 
 @author: yoelr
 """
-from .._exceptions import UndefinedCompound
 from ._splitter import Splitter, run_split_with_mixing
-import biosteam as bst
+from ._CAS import H2O_CAS
 
 class SolidsSeparator(Splitter):
     """Create SolidsSeparator object.
@@ -32,21 +31,15 @@ class SolidsSeparator(Splitter):
         Splitter.__init__(self, ID, ins, outs, order=order, split=split)
         #: Moisture content of retentate
         self.mositure_content = moisture_content
-        try:
-            self._water_index = wi = bst.Stream.species._indexdct['7732-18-5']
-        except KeyError:
-            raise UndefinedCompound('7732-18-5')
-        if self._split[wi] != 0:
-            raise ValueError('cannot define water split, only moisture content')
+        assert self.isplit[H2O_CAS] == 0, 'cannot define water split, only moisture content'
     
     def _run(self):
         run_split_with_mixing(self)
-        wi = self._water_index
         retentate, permeate = self.outs
-        solids = retentate.massnet
+        solids = retentate.F_mass
         mc = self.mositure_content
-        retentate._mol[wi] = water = (solids * mc/(1-mc))/18.01528
-        permeate._mol[wi] -= water
-        if permeate._mol[wi] < water:
+        retentate.imol[H2O_CAS] = water = (solids * mc/(1-mc))/18.01528
+        permeate.imol[H2O_CAS] -= water
+        if permeate.imol[H2O_CAS] < water:
             raise ValueError(f'not enough water for {repr(self)}')
     

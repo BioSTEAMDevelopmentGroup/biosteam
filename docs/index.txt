@@ -23,7 +23,6 @@ Key Features & Capabilities
    Overview
    Installation
    tutorial/Getting started
-   tutorial/Thermodynamic equilibrium
    tutorial/Creating a Unit
    units/notebooks/examples
    tutorial/Managing flowsheets
@@ -32,7 +31,6 @@ Key Features & Capabilities
    tutorial/Techno-economic analysis
    tutorial/Inheriting from Unit
    tutorial/Unit decorators
-   tutorial/Stoichiometric reactions
    tutorial/Monte Carlo
 
 
@@ -40,9 +38,6 @@ Key Features & Capabilities
    :maxdepth: 1
    :caption: BioSTEAM API
    
-   Species
-   Stream
-   MixedStream
    Unit
    PowerUtility
    HeatUtility
@@ -50,10 +45,7 @@ Key Features & Capabilities
    TEA
    CombinedTEA
    Flowsheet
-   compounds/compounds
    units/units
-   inspect
-   reaction
    evaluation/evaluation
 
 

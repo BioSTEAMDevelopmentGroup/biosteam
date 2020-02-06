@@ -5,27 +5,27 @@ Created on Sat Sep  1 17:35:28 2018
 @author: yoelr
 """
 import numpy as np
-from .. import Stream, Unit
-from ..utils import MissingStream
+from ..utils.piping import StreamSequence
+from .. import Unit, PowerUtility
 
 __all__ = ('MassBalance',)
 
 # %% Mass Balance Unit
 
 class MassBalance(Unit):
-    """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. 
+    """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified IDs. 
 
     Parameters
     ----------
-    species : tuple[str]
-        Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.
+    IDs : tuple[str]
+        Chemicals that will be used to solve mass balance linear equations. The number of chemicals must be same as the number of input streams varied.
     streams : tuple[int]
         Indices of input streams that can vary in net flow rate
-    exact=True : bool, optional
-        True if exact flow rate solution is required for the specified species.
-    balance='flow' : {'flow', 'fraction'}, optional
+    is_exact=True : bool, optional
+        True if exact flow rate solution is required for the specified IDs.
+    balance='flow' : {'flow', 'composition'}, optional
           * 'flow': Satisfy output flow rates
-          * 'fraction': Satisfy net output molar fractions
+          * 'composition': Satisfy net output molar composition
 
     Examples
     --------
@@ -35,83 +35,35 @@ class MassBalance(Unit):
     line = 'Balance'
     results = None
     _has_cost = False
-    _N_outs = 0
+    _N_ins = 2
+    heat_utilities = ()
 
     def __init__(self, ID='', outs=(), ins=None,
-                 species=None, streams=None,
-                 exact=True, balance='flow'):
+                 chemical_IDs=None, streams=None,
+                 is_exact=True, balance='flow', thermo=None):
         self.ID = ID
-        self._init_ins(ins)
-        self._init_outs(outs)
-        self._balance = balance
-        self._streams = streams
-        self._species = species
+        thermo = self._load_thermo(thermo)
+        self._ins = StreamSequence(self._N_ins, ins, thermo, fixed_size=False)
+        self._outs = StreamSequence(self._N_outs, outs, thermo, fixed_size=False)
+        self._power_utility = PowerUtility()
+        self.streams = streams
+        self.chemical_IDs = chemical_IDs
+        self.is_exact = is_exact
+        self.balance = balance
         
-        # Make sure balance type is valid
-        if balance not in ('flow', 'fraction'):
-            raise ValueError(
-                "balance type must be one of the following: 'flow', 'fraction'")
-
-        # Catch correct solver and make sure linear system of equations is square to achieve exact solution
-        if exact:
-            solver = np.linalg.solve
-            species_IDs = species
-            sID, s_index = len(species_IDs), len(streams)
-            if sID != s_index:
-                raise ValueError(
-                    f"length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed")
-        else:
-            solver = np.linalg.lstsq
-
-        # Cach indices for species and solver
-        self._bal_index = Stream.indices(species)
-        self._linalg_solver = solver
-
-    def _init_ins(self, ins):
-        """Initialize input streams."""
-        if ins is None:
-            self._ins = [MissingStream for i in range(self._N_ins)]
-        elif isinstance(ins, Stream):
-            self._ins = [ins]
-        elif isinstance(ins, str):
-            self._ins = [Stream(ins)]
-        elif not ins:
-            self._ins = [Stream('') for i in range(self._N_ins)]
-        else:
-            self._ins = [Stream(i) if isinstance(i, str) else i for i in ins]
-    
-    def _init_outs(self, outs):
-        """Initialize output streams."""
-        if isinstance(outs, str):
-            self._outs = [Stream(outs)]
-        elif isinstance(outs, Stream):
-            self._outs = [outs]
-        elif outs is None:
-            self._outs = [MissingStream for i in range(self._N_outs)]
-        elif not outs:
-            self._outs = [Stream('') for i in range(self._N_outs)]
-        else:
-            self._outs = [Stream(i) if isinstance(i, str) else i for i in outs]
-
     def _run(self):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-        stream_index = self._streams
-        balance = self._balance
-        solver = self._linalg_solver
+        stream_index = self.streams
+        balance = self.balance
+        solver = np.linalg.solve if self.is_exact else np.linalg.lstsq
+        ins = self.ins
 
         # Set up constant and variable streams
-        vary = []  # Streams to vary in mass balance
-        constant = []  # Constant streams
-        for i in range(len(self.ins)):
-            if i in stream_index:
-                vary.append(self.ins[i])
-            else:
-                constant.append(self.ins[i])
-
-        # Species indices used in mass balace
-        index = self._bal_index
+        vary = [ins[i] for i in stream_index]  # Streams to vary in mass balance
+        constant = [i for i in ins if (i and i not in vary)]  # Constant streams
+        index = self.chemicals.get_index(self.chemical_IDs)
 
         if balance == 'flow':
             # Perform the following calculation: Ax = b = f - g
@@ -124,7 +76,7 @@ class MassBalance(Unit):
 
             # Solve linear equations for mass balance
             A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = self._mol_out[index]
+            f = self.mol_out[index]
             g = sum([s.mol[index] for s in constant])
             b = f - g
             x = solver(A, b)
@@ -147,7 +99,7 @@ class MassBalance(Unit):
             # Set all variables
             A_ = np.array([s.mol for s in vary]).transpose()
             A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = self._molfrac_out[index]
+            f = self.z_mol_out[index]
             g_ = sum([s.mol for s in constant])
             g = g_[index]
             O = sum(g_) * f - g
@@ -157,7 +109,6 @@ class MassBalance(Unit):
             not_converged = True
             while not_converged:
                 # Solve linear equations for mass balance
-                i += 1
                 b = (A_ * x_guess).sum()*f + O
                 x_new = solver(A, b)
                 not_converged = sum(((x_new - x_guess)/x_new)**2) > 0.0001
@@ -166,25 +117,9 @@ class MassBalance(Unit):
             # Set flow rates for input streams
             for factor, s in zip(x_new, vary):
                 s.mol = s.mol * factor
-
-    # Setting input and output streams do not change sources or sinks
-    @property
-    def ins(self):
-        """[:] Input streams"""
-        return self._ins
-
-    @ins.setter
-    def ins(self, streams):
-        self._ins[:] = streams
-
-    @property
-    def outs(self):
-        """[:] Output streams"""
-        return self._outs
-
-    @outs.setter
-    def outs(self, streams):
-        self._outs[:] = streams
+        
+        else:
+            raise ValueError( "balance type must be one of the following: 'flow', 'composition'")
 
 
 # %% Energy Balance Unit

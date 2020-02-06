@@ -7,7 +7,6 @@ units
    decorators
    designtools
    facilities
-   Centrifuge_LLE
    Distillation
    Fermentation
    Flash

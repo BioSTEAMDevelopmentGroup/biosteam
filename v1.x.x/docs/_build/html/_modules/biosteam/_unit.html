@@ -1,0 +1,1022 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam._unit &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam._unit</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam._unit</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Sat Aug 18 14:40:28 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="kn">import</span> <span class="n">DesignWarning</span><span class="p">,</span> <span class="n">_try_method</span>
+<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="kn">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">save_digraph</span>
+<span class="kn">from</span> <span class="nn">._graphics</span> <span class="kn">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
+<span class="kn">from</span> <span class="nn">._stream</span> <span class="kn">import</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">._heat_utility</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">NotImplementedMethod</span><span class="p">,</span> \
+                   <span class="n">_add_upstream_neighbors</span><span class="p">,</span> <span class="n">_add_downstream_neighbors</span><span class="p">,</span> \
+                   <span class="n">format_unit_line</span>
+<span class="kn">from</span> <span class="nn">._power_utility</span> <span class="kn">import</span> <span class="n">PowerUtility</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,)</span>
+
+<span class="c1"># %% Bounds checking</span>
+
+<span class="k">def</span> <span class="nf">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">Warning</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a Warning object with source description.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;@</span><span class="si">{source}</span><span class="s1">: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;@{type(source).__name__} {str(source)}: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">return</span> <span class="n">category</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            
+<span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb:.4g}{units}</span><span class="s2">).&quot;</span>
+    <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb}{units}</span><span class="s2">).&quot;</span>
+    
+    <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">_ub_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
+    <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
+    
+    <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
+
+<span class="c1"># %% Metaclass for Unit operations</span>
+    
+<span class="k">class</span> <span class="nc">unit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unit metaclass for keeping track for Unit lines and graphics.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Make new Unit class</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+        
+        <span class="k">try</span><span class="p">:</span> <span class="n">Unit</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span>
+        
+        <span class="c1"># Set line</span>
+        <span class="k">if</span> <span class="s1">&#39;line&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span>
+            <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">or</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,</span> <span class="s1">&#39;Mixer&#39;</span><span class="p">,</span> <span class="s1">&#39;Static&#39;</span><span class="p">,</span> <span class="s1">&#39;Splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;Solids separator&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility&#39;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="c1"># Set new graphics for specified line</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">format_unit_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                
+        <span class="k">elif</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+            <span class="c1"># Set new graphics for specified line</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isabstract</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span>        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_run&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&#39;Unit&#39; subclass must have a &#39;_run&#39; method unless the &#39;isabstract&#39; keyword argument is True&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">cls</span>
+
+
+<span class="c1"># %% Unit Operation</span>
+
+<div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain `_run`, `_design` and `_cost` methods to estimate stream outputs of a Unit and find design and cost information.  </span>
+
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">    ID=&#39;&#39; : str, defaults to a unique ID</span>
+<span class="sd">        A unique identification. If ID is None, unit will not be</span>
+<span class="sd">        registered in flowsheet.</span>
+<span class="sd">    ins=None : tuple[str or Stream], defaults to missing streams</span>
+<span class="sd">        Input streams or IDs to initialize input streams.</span>
+<span class="sd">        If empty, default IDs will be given.</span>
+<span class="sd">    outs=() : tuple[str or Stream], defaults to new streams</span>
+<span class="sd">        Output streams or IDs to initialize output streams. If None, </span>
+<span class="sd">        leave streams missing.</span>
+<span class="sd">    species=None : Species or WorkingSpecies, defaults to Stream.species</span>
+<span class="sd">        Species object to initialize input and output streams.</span>
+
+<span class="sd">    **Abstract class attributes**</span>
+<span class="sd">    </span>
+<span class="sd">    line=None : str</span>
+<span class="sd">        Name denoting the type of Unit class. Defaults to the class</span>
+<span class="sd">        name of the first child class.</span>
+<span class="sd">    BM=None : float</span>
+<span class="sd">        Bare module factor (installation factor).</span>
+<span class="sd">    _units={} : dict</span>
+<span class="sd">        Units of measure for results Operation and Design.</span>
+<span class="sd">    _N_ins=1 : int</span>
+<span class="sd">        Expected number of input streams.</span>
+<span class="sd">    _N_outs=2 : int</span>
+<span class="sd">        Expected number of output streams.</span>
+<span class="sd">    _N_heat_utilities=0: int</span>
+<span class="sd">        Number of heat utilities created with each instance</span>
+<span class="sd">    _has_power_utility=False : bool</span>
+<span class="sd">        If True, a PowerUtility object is created with each instance.</span>
+<span class="sd">    _has_cost=True : bool</span>
+<span class="sd">        Should be True if it has any associated cost.</span>
+<span class="sd">    _graphics : biosteam.Graphics, abstract, optional</span>
+<span class="sd">        Settings for diagram representation.</span>
+
+<span class="sd">    **Abstract class methods**</span>
+<span class="sd">    </span>
+<span class="sd">    _run()</span>
+<span class="sd">        Run simulation and update output streams.</span>
+<span class="sd">    _design()</span>
+<span class="sd">        Add design requirements to &quot;_Design&quot; dictionary attribute.</span>
+<span class="sd">    _cost()</span>
+<span class="sd">        Add itemized purchse costs to results &quot;_Cost&quot; dictionary attribute.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    :doc:`tutorial/Creating a Unit`</span>
+<span class="sd">    </span>
+<span class="sd">    :doc:`tutorial/Using -pipe- notation`</span>
+<span class="sd">    </span>
+<span class="sd">    :doc:`tutorial/Inheriting from Unit`</span>
+<span class="sd">    </span>
+<span class="sd">    :doc:`tutorial/Unit decorators`</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="c1">### Abstract Attributes ###</span>
+    
+    <span class="c1"># [float] Bare module factor (installation factor).</span>
+    <span class="n">BM</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># [dict] Default units for construction</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1"># [int] Expected number of input streams</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>  
+    
+    <span class="c1"># [int] Expected number of output streams</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>  
+    
+    <span class="c1"># [int] number of heat utilities</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="c1"># [PowerUtility] A PowerUtility object, if required</span>
+    <span class="n">_power_utility</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># [bool] If True, a PowerUtility object is created for every instance.</span>
+    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span> 
+    
+    <span class="c1"># [biosteam Graphics] a Graphics object for diagram representation.</span>
+    <span class="n">_graphics</span> <span class="o">=</span> <span class="n">default_graphics</span>
+    
+    <span class="c1"># [str] The general type of unit, regardless of class</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Unit&#39;</span>
+
+    <span class="c1">### Other defaults ###</span>
+
+    <span class="c1">#: [str] Default ID for all units (class attribute)</span>
+    <span class="n">default_ID</span> <span class="o">=</span> <span class="s1">&#39;U&#39;</span>
+    
+    <span class="c1">#: [int] Current number for default IDs (class attribute)</span>
+    <span class="n">default_ID_number</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="c1"># Default ID</span>
+    <span class="n">_ID</span> <span class="o">=</span> <span class="kc">None</span> 
+    
+    <span class="c1">#: [list] HeatUtility objects associated to unit</span>
+    <span class="n">_heat_utilities</span> <span class="o">=</span> <span class="p">()</span>
+        
+    <span class="c1">### Initialize ###</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">()):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_heat_utils</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_power_util</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+
+    <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">MissingStream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ins</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">),))</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">ins</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span> <span class="k">else</span> <span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ins</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">_init_outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize output streams.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">MissingStream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">outs</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">),))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span> <span class="k">else</span> <span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">))</span>        
+    
+    <span class="k">def</span> <span class="nf">_init_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize attributes to store results.&quot;&quot;&quot;</span>
+        <span class="c1"># [dict] Updated in `_cost` method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># [dict] Updated in `_design` method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># [dict] Greenhouse gas emissions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">def</span> <span class="nf">_init_heat_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize heat utilities.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_heat_utilities</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">HeatUtility</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                                    <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_heat_utilities</span><span class="p">)]</span>
+        
+    <span class="k">def</span> <span class="nf">_init_power_util</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize power utility.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_power_utility</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>         
+    
+    <span class="c1"># Forward pipping</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Source streams.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+            <span class="k">return</span> <span class="n">other</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="n">other</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="p">,)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span>
+                <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sink streams.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="n">other</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="p">,)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span>
+                <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="c1"># Backwards pipping</span>
+    <span class="fm">__pow__</span> <span class="o">=</span> <span class="fm">__sub__</span>
+    <span class="fm">__rpow__</span> <span class="o">=</span> <span class="fm">__rsub__</span>
+    
+    <span class="c1"># Abstract methods</span>
+    <span class="n">_design</span>   <span class="o">=</span> <span class="n">NotImplementedMethod</span>
+    <span class="n">_cost</span>     <span class="o">=</span> <span class="n">NotImplementedMethod</span>
+    <span class="n">_more_design_specs</span> <span class="o">=</span> <span class="n">NotImplementedMethod</span>
+    
+    <span class="c1"># Summary</span>
+    <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate all results from unit run.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">purchase_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total purchase cost (USD).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">installation_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Installation cost (USD).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">utility_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total utility cost (USD/hr).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">])</span>
+                                 <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
+        <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
+        <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Unit.results"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_utilities</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
+        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addkey</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">with_units</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">include_utilities</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">rate</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
+            <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_more_design_specs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span><span class="p">,</span> <span class="n">ui</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_more_design_specs</span><span class="p">():</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">((</span><span class="n">ui</span><span class="p">,</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">Cost</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Cost&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">include_total_cost</span><span class="p">:</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">utility_cost</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
+                <span class="n">GHG_units</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_GHG_units</span>
+                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="n">GHG_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ko</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">GHG_units</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">a_unit</span><span class="p">,</span> <span class="n">b_unit</span> <span class="o">=</span> <span class="n">GHG_units</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">a_unit</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">b_unit</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span>
+                              <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">),</span>
+                              <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">))</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span>
+            <span class="k">return</span> <span class="n">df</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">include_utilities</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">rate</span><span class="p">)</span>
+                    <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
+                        <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
+                        <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_more_design_specs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span><span class="p">,</span> <span class="n">ui</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_more_design_specs</span><span class="p">():</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Cost&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>    
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="p">:</span>
+                <span class="n">GHG_units</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_GHG_units</span>
+                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
+                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">GHG_units</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">include_total_cost</span><span class="p">:</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">)</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">utility_cost</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="k">return</span> <span class="n">series</span></div>
+
+    <span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Issue a warning if value is out of bounds.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">              Name of value.</span>
+<span class="sd">        value : float</span>
+<span class="sd">        units : str</span>
+<span class="sd">                Units of value        </span>
+<span class="sd">        bounds : iterable[float, float]</span>
+<span class="sd">                 Upper and lower bounds.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Warn when value is out of bounds</span>
+        <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="n">bounds</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lb</span><span class="o">&lt;=</span><span class="n">value</span> <span class="ow">and</span> <span class="n">ub</span><span class="o">&gt;=</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
+            <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Warn that value is below lower bound.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">              Name of value.</span>
+<span class="sd">        value : float</span>
+<span class="sd">        units : str </span>
+<span class="sd">                Units of value.</span>
+<span class="sd">        lb : float</span>
+<span class="sd">             Lower bound.</span>
+<span class="sd">    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unique Identification (str). If set as &#39;&#39;, it will choose a default ID.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span>
+
+    <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="c1"># Select a default ID if requested</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">default_ID_number</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ID</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_ID_number</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ID</span> <span class="ow">and</span> <span class="n">ID</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="c1"># Input and output streams</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># list of input streams</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># list of output streams</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_downstream_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return set of all units downstream.&quot;&quot;&quot;</span>
+        <span class="n">downstream_units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">outer_periphery</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">_add_downstream</span> <span class="o">=</span> <span class="n">_add_downstream_neighbors</span>
+        <span class="n">_add_downstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outer_periphery</span><span class="p">)</span>
+        <span class="n">inner_periphery</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">old_length</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">new_length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">new_length</span> <span class="o">!=</span> <span class="n">old_length</span><span class="p">:</span>
+            <span class="n">old_length</span> <span class="o">=</span> <span class="n">new_length</span>
+            <span class="n">inner_periphery</span> <span class="o">=</span> <span class="n">outer_periphery</span>
+            <span class="n">downstream_units</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inner_periphery</span><span class="p">)</span>
+            <span class="n">outer_periphery</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">inner_periphery</span><span class="p">:</span>
+                <span class="n">_add_downstream</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">outer_periphery</span><span class="p">)</span>
+            <span class="n">new_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">downstream_units</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">downstream_units</span>
+        
+    <span class="k">def</span> <span class="nf">_neighborhood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return all neighboring units within given radius.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : int</span>
+<span class="sd">                 Maxium number streams between neighbors.</span>
+<span class="sd">        downstream=True : bool, optional</span>
+<span class="sd">            Whether to include downstream operations</span>
+<span class="sd">        upstream=True : bool, optional</span>
+<span class="sd">            Whether to include upstream operations</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">radius</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">neighborhood</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">radius</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">neighborhood</span>
+        <span class="n">upstream</span> <span class="ow">and</span> <span class="n">_add_upstream_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
+        <span class="n">downstream</span> <span class="ow">and</span> <span class="n">_add_downstream_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
+        <span class="n">direct_neighborhood</span> <span class="o">=</span> <span class="n">neighborhood</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">radius</span><span class="p">):</span>
+            <span class="n">neighbors</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">direct_neighborhood</span><span class="p">:</span>
+                <span class="n">upstream</span> <span class="ow">and</span> <span class="n">_add_upstream_neighbors</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">)</span>
+                <span class="n">downstream</span> <span class="ow">and</span> <span class="n">_add_downstream_neighbors</span><span class="p">(</span><span class="n">neighbor</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">neighbors</span> <span class="o">==</span> <span class="n">direct_neighborhood</span><span class="p">:</span> <span class="k">break</span>
+            <span class="n">direct_neighborhood</span> <span class="o">=</span> <span class="n">neighbors</span>
+            <span class="n">neighborhood</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">direct_neighborhood</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">neighborhood</span>
+
+<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram of the unit and all neighboring units within given radius.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : int</span>
+<span class="sd">                 Maxium number streams between neighbors.</span>
+<span class="sd">        downstream=True : bool, optional</span>
+<span class="sd">            Whether to show downstream operations</span>
+<span class="sd">        upstream=True : bool, optional</span>
+<span class="sd">            Whether to show upstream operations</span>
+<span class="sd">        file : Must be one of the following:</span>
+<span class="sd">            * [str] File name to save diagram.</span>
+<span class="sd">            * [None] Display diagram in console.</span>
+<span class="sd">        format : str</span>
+<span class="sd">                 Format of file.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">radius</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">neighborhood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neighborhood</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span><span class="p">)</span>
+            <span class="n">neighborhood</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">sys</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>
+        
+        <span class="n">graphics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span>
+
+        <span class="c1"># Make a Digraph handle</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">splines</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="n">outputorder</span><span class="o">=</span><span class="s1">&#39;edgesfirst&#39;</span><span class="p">,</span>
+               <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;1.1&#39;</span><span class="p">,</span> <span class="n">ranksep</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="s1">&#39;1000&#39;</span><span class="p">)</span>  <span class="c1"># Specifications</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="n">rankdir</span><span class="o">=</span><span class="s1">&#39;LR&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>  <span class="c1"># Left to right</span>
+
+        <span class="c1"># If many streams, keep streams close</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;0.4&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Initialize node arguments based on unit and make node</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">type_</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># Set stream node attributes</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;rarrow&#39;</span><span class="p">,</span> <span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;#79dae8&#39;</span><span class="p">,</span>
+               <span class="n">style</span><span class="o">=</span><span class="s1">&#39;filled&#39;</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span>
+               <span class="n">height</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">peripheries</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Make nodes and edges for input streams</span>
+        <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  
+            <span class="n">edge_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_in</span>
+            <span class="k">if</span> <span class="n">di</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_in</span><span class="p">):</span> <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                   <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">])</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">di</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Make nodes and edges for output streams</span>
+        <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Origin position of stream</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> 
+            <span class="n">edge_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>  
+            <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_out</span><span class="p">):</span> <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                   <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+            <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
+    
+    <span class="c1">### Net input and output flows ###</span>
+    
+    <span class="c1"># Molar flow rates</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Molar flows going in (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Molar flows going out (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_molfrac_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Molar fractions going in (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_molnet_in</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_molfrac_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Molar fractions going in.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_out</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_molnet_out</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_molnet_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net molar flow going in (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">molnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_molnet_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net molar flow going out (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">molnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
+
+    <span class="c1"># Mass flow rates</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mass_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mass flows going in (kg/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mass</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_mass_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mass flows going out (kg/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mass</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_massfrac_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mass fractions going in.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass_in</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_massnet_in</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_massfrac_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mass fractions going out.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass_out</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_massnet_out</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_massnet_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net mass flow going in (kg/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_massnet_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net mass flow going out (kg/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
+
+    <span class="c1"># Volumetric flow rates</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_vol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Volumetric flows going in (m3/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">vol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_volnet_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net volumetric flow going in (m3/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vol_in</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_volfrac_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Volumetric fractions going in.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vol_in</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_volnet_in</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_vol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Volumetric flows going out (m3/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">vol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_volnet_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net volumetric flow going out (m3/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vol_out</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_volfrac_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Volumetric fractions going out.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vol_out</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
+
+    <span class="c1"># Enthalpy flow rates</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_H_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy flow going in (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_H_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy flow going out (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_Hf_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going in (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Hf</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_Hf_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going out (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Hf</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_Hnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Net enthalpy flow (including enthalpies of formation).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hf_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hf_in</span>
+    
+    <span class="c1"># Representation</span>
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Information on unit.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;{type(self).__name__}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">info</span><span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;ins...</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">source_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">source_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;outs...</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sink_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">sink_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">info</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Unit.show"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prints information on unit.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span></div>
+    
+    <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="p">:</span> 
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_source</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">_ID</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_sink</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">_ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
+
+<span class="n">_Unit_is_done</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

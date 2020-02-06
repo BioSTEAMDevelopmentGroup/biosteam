@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Fermentation" href="Fermentation.html" />
-    <link rel="prev" title="Centrifuge_LLE" href="Centrifuge_LLE.html" /> 
+    <link rel="prev" title="facilities" href="facilities.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,23 +85,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
@@ -109,12 +104,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
@@ -132,8 +125,6 @@
 <li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -225,11 +216,11 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="module-biosteam.units">
-<span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="distillation">
+<h1>Distillation<a class="headerlink" href="#distillation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Distillation">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">y_top</em>, <em class="sig-param">x_bot</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">y_top</em>, <em class="sig-param">x_bot</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -261,9 +252,75 @@
 <p class="rubric">Examples</p>
 <p><a class="reference internal" href="notebooks/Distillation Example.html"><span class="doc">Distillation</span></a></p>
 <dl class="method">
+<dt id="biosteam.units.Distillation.F_mass_in">
+<em class="property">property </em><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.Distillation.F_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going in (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.F_mass_out">
+<em class="property">property </em><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.units.Distillation.F_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going out (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.F_mol_in">
+<em class="property">property </em><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.units.Distillation.F_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.F_mol_out">
+<em class="property">property </em><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.units.Distillation.F_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going out (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.F_vol_in">
+<em class="property">property </em><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.units.Distillation.F_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going in (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.F_vol_out">
+<em class="property">property </em><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.units.Distillation.F_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going out (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.H_in">
+<em class="property">property </em><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.units.Distillation.H_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going in (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.H_out">
+<em class="property">property </em><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.units.Distillation.H_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going out (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.Hf_in">
+<em class="property">property </em><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.units.Distillation.Hf_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going in (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.Hf_out">
+<em class="property">property </em><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.units.Distillation.Hf_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going out (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.Hnet">
+<em class="property">property </em><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.units.Distillation.Hnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.Distillation.ID">
 <em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 <dl class="method">
@@ -304,15 +361,51 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.units.Distillation.ins">
+<em class="property">property </em><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.Distillation.ins" title="Permalink to this definition">¶</a></dt>
+<dd><p>All input streams.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.Distillation.installation_cost">
 <em class="property">property </em><code class="sig-name descname">installation_cost</code><a class="headerlink" href="#biosteam.units.Distillation.installation_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Installation cost (USD).</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.units.Distillation.mass_in">
+<em class="property">property </em><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.units.Distillation.mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going in (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.mass_out">
+<em class="property">property </em><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.units.Distillation.mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going out (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.mol_in">
+<em class="property">property </em><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.units.Distillation.mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.mol_out">
+<em class="property">property </em><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.units.Distillation.mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going out (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.Distillation.open_area_factor">
 <em class="property">property </em><code class="sig-name descname">open_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.open_area_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ratio of open area, A_h, to active area, A_a.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.outs">
+<em class="property">property </em><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.Distillation.outs" title="Permalink to this definition">¶</a></dt>
+<dd><p>All output streams.</p>
 </dd></dl>
 
 <dl class="method">
@@ -329,7 +422,7 @@
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">fraction=None</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
@@ -376,6 +469,54 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.units.Distillation.vol_in">
+<em class="property">property </em><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.units.Distillation.vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going in (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.vol_out">
+<em class="property">property </em><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.units.Distillation.vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going out (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.z_mass_in">
+<em class="property">property </em><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.units.Distillation.z_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.z_mass_out">
+<em class="property">property </em><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.units.Distillation.z_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going out.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.z_mol_in">
+<em class="property">property </em><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.units.Distillation.z_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.z_mol_out">
+<em class="property">property </em><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.units.Distillation.z_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.z_vol_in">
+<em class="property">property </em><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.units.Distillation.z_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.z_vol_out">
+<em class="property">property </em><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.units.Distillation.z_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going out.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.units.Distillation.is_divided">
 <em class="property">property </em><code class="sig-name descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
@@ -402,7 +543,7 @@
         <a href="Fermentation.html" class="btn btn-neutral float-right" title="Fermentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Centrifuge_LLE.html" class="btn btn-neutral float-left" title="Centrifuge_LLE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="facilities.html" class="btn btn-neutral float-left" title="facilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

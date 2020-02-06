@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="PowerUtility" href="PowerUtility.html" />
-    <link rel="prev" title="MixedStream" href="MixedStream.html" /> 
+    <link rel="prev" title="12. Monte Carlo" href="tutorial/Monte Carlo.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,23 +85,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
@@ -109,10 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -202,11 +194,11 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="module-biosteam">
-<span id="unit"></span><h1>Unit<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="unit">
+<h1>Unit<a class="headerlink" href="#unit" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Unit">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">Unit</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">species=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">Unit</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract parent class for Unit objects. Child objects must contain <cite>_run</cite>, <cite>_design</cite> and <cite>_cost</cite> methods to estimate stream outputs of a Unit and find design and cost information.</p>
 <p><strong>Parameters</strong></p>
 <dl class="simple">
@@ -219,7 +211,7 @@ If empty, default IDs will be given.</p>
 <dt>outs=()<span class="classifier">tuple[str or Stream], defaults to new streams</span></dt><dd><p>Output streams or IDs to initialize output streams. If None, 
 leave streams missing.</p>
 </dd>
-<dt>species=None<span class="classifier">Species or WorkingSpecies, defaults to Stream.species</span></dt><dd><p>Species object to initialize input and output streams.</p>
+<dt>thermo=None<span class="classifier">Thermo, defaults to settings.thermo</span></dt><dd><p>Thermo object to initialize input and output streams.</p>
 </dd>
 </dl>
 <p><strong>Abstract class attributes</strong></p>
@@ -235,9 +227,11 @@ name of the first child class.</p>
 </dd>
 <dt>_N_outs=2<span class="classifier">int</span></dt><dd><p>Expected number of output streams.</p>
 </dd>
-<dt>_N_heat_utilities=0: int</dt><dd><p>Number of heat utilities created with each instance</p>
+<dt>_ins_size_is_fixed=True<span class="classifier">bool</span></dt><dd><p>Whether the number of streams in ins is fixed.</p>
 </dd>
-<dt>_has_power_utility=False<span class="classifier">bool</span></dt><dd><p>If True, a PowerUtility object is created with each instance.</p>
+<dt>_outs_size_is_fixed=True<span class="classifier">bool</span></dt><dd><p>Whether the number of streams in outs is fixed.</p>
+</dd>
+<dt>_N_heat_utilities=0: int</dt><dd><p>Number of heat utilities created with each instance</p>
 </dd>
 <dt>_has_cost=True<span class="classifier">bool</span></dt><dd><p>Should be True if it has any associated cost.</p>
 </dd>
@@ -248,9 +242,9 @@ name of the first child class.</p>
 <dl class="simple">
 <dt>_run()</dt><dd><p>Run simulation and update output streams.</p>
 </dd>
-<dt>_design()</dt><dd><p>Add design requirements to “_Design” dictionary attribute.</p>
+<dt>_design()</dt><dd><p>Add design requirements to the <cite>design_results</cite> dictionary.</p>
 </dd>
-<dt>_cost()</dt><dd><p>Add itemized purchse costs to results “_Cost” dictionary attribute.</p>
+<dt>_cost()</dt><dd><p>Add itemized purchse costs to the “purchase_costs” dictionary.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -258,18 +252,6 @@ name of the first child class.</p>
 <p><a class="reference internal" href="tutorial/Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
 <p><a class="reference internal" href="tutorial/Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
 <p><a class="reference internal" href="tutorial/Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
-<dl class="attribute">
-<dt id="biosteam.Unit.default_ID">
-<code class="sig-name descname">default_ID</code><em class="property"> = 'U'</em><a class="headerlink" href="#biosteam.Unit.default_ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>[str] Default ID for all units (class attribute)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Unit.default_ID_number">
-<code class="sig-name descname">default_ID_number</code><em class="property"> = 0</em><a class="headerlink" href="#biosteam.Unit.default_ID_number" title="Permalink to this definition">¶</a></dt>
-<dd><p>[int] Current number for default IDs (class attribute)</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="biosteam.Unit.purchase_cost">
 <em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.Unit.purchase_cost" title="Permalink to this definition">¶</a></dt>
@@ -301,9 +283,15 @@ name of the first child class.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Unit.ID">
-<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.Unit.ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+<dt id="biosteam.Unit.ins">
+<em class="property">property </em><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.Unit.ins" title="Permalink to this definition">¶</a></dt>
+<dd><p>All input streams.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.outs">
+<em class="property">property </em><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.Unit.outs" title="Permalink to this definition">¶</a></dt>
+<dd><p>All output streams.</p>
 </dd></dl>
 
 <dl class="method">
@@ -332,9 +320,153 @@ name of the first child class.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.Unit.mol_in">
+<em class="property">property </em><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.Unit.mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.mol_out">
+<em class="property">property </em><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.Unit.mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going out (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.z_mol_in">
+<em class="property">property </em><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.Unit.z_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.z_mol_out">
+<em class="property">property </em><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.Unit.z_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.F_mol_in">
+<em class="property">property </em><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.Unit.F_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going in (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.F_mol_out">
+<em class="property">property </em><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.Unit.F_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going out (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.mass_in">
+<em class="property">property </em><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.Unit.mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going in (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.mass_out">
+<em class="property">property </em><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.Unit.mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going out (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.z_mass_in">
+<em class="property">property </em><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.Unit.z_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.z_mass_out">
+<em class="property">property </em><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.Unit.z_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going out.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.F_mass_in">
+<em class="property">property </em><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.Unit.F_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going in (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.F_mass_out">
+<em class="property">property </em><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.Unit.F_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going out (kg/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.vol_in">
+<em class="property">property </em><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.Unit.vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going in (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.F_vol_in">
+<em class="property">property </em><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.Unit.F_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going in (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.z_vol_in">
+<em class="property">property </em><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.Unit.z_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going in.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.vol_out">
+<em class="property">property </em><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.Unit.vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going out (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.F_vol_out">
+<em class="property">property </em><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.Unit.F_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going out (m3/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.z_vol_out">
+<em class="property">property </em><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.Unit.z_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going out.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.H_in">
+<em class="property">property </em><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.Unit.H_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going in (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.H_out">
+<em class="property">property </em><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.Unit.H_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going out (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.Hf_in">
+<em class="property">property </em><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.Unit.Hf_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going in (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.Hf_out">
+<em class="property">property </em><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.Unit.Hf_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going out (kJ/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.Hnet">
+<em class="property">property </em><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.Unit.Hnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.Unit.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">fraction=None</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.ID">
+<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.Unit.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 </dd></dl>
@@ -352,7 +484,7 @@ name of the first child class.</p>
         <a href="PowerUtility.html" class="btn btn-neutral float-right" title="PowerUtility" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="MixedStream.html" class="btn btn-neutral float-left" title="MixedStream" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="tutorial/Monte Carlo.html" class="btn btn-neutral float-left" title="12. Monte Carlo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

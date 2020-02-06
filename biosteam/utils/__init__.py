@@ -9,38 +9,42 @@ from . import array_utils
 from . import color_utils
 from . import other_utils
 from . import stream_utils
-from . import display_units
 from . import plot_utils
-from . import register
 from . import tictoc
 from . import not_implemented_method
 from . import network_utils
+from . import piping
+from . import stream_link_options
+from . import design_warning
+
+__all__ = ('array_utils', 
+           'color_utils',
+           'other_utils', 
+           'stream_utils',
+           'plot_utils', 
+           'tictoc',
+           'not_implemented_method',
+           'network_utils',
+           *plot_utils.__all__, 
+           *not_implemented_method.__all__, 
+           *array_utils.__all__, 
+           *color_utils.__all__,
+           *other_utils.__all__, 
+           *stream_utils.__all__, 
+           *tictoc.__all__, 
+           *network_utils.__all__, 
+           *piping.__all__, 
+           *stream_link_options.__all__,
+           *design_warning.__all__)
 
 from .not_implemented_method import *
 from .array_utils import *
 from .color_utils import *
 from .other_utils import *
 from .stream_utils import *
-from .display_units import *
 from .plot_utils import *
 from .tictoc import *
-from .register import *
 from .network_utils import *
-
-__all__ = ['array_utils', 'color_utils',
-           'other_utils', 'stream_utils',
-           'display_units', 'plot_utils',
-           'register', 'tictoc',
-           'not_implemented_method',
-           'network_utils']
-
-__all__.extend(plot_utils.__all__)
-__all__.extend(not_implemented_method.__all__)
-__all__.extend(display_units.__all__)
-__all__.extend(array_utils.__all__)
-__all__.extend(color_utils.__all__)
-__all__.extend(other_utils.__all__)
-__all__.extend(stream_utils.__all__)
-__all__.extend(register.__all__)
-__all__.extend(tictoc.__all__)
-__all__.extend(network_utils.__all__)
+from .piping import *
+from .stream_link_options import *
+from .design_warning import *

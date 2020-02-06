@@ -4,8 +4,7 @@ Created on Sun Nov 11 11:20:42 2018
 
 @author: yoelr
 """
-from . import _Q
-from .utils import DisplayUnits
+from thermosteam.base.units_of_measure import DisplayUnits, convert
 
 __all__ = ('PowerUtility',)
 
@@ -28,22 +27,21 @@ class PowerUtility:
     
        >>> pu(rate=500)
        >>> pu
-       <PowerUtility: 500 kW, 30 USD/hr>
+       <PowerUtility: 500 kW, 39.1 USD/hr>
        
     Results are accessible:
         
     .. code-block:: python
     
        >>> pu.rate, pu.cost
-       (500, 30.)
+       (500, 39.1)
     
     """
-    _units = dict(rate='kW', cost='USD/hr')
+    __slots__ = ('rate', 'cost')
     
     #: [DisplayUnits] Units of measure for IPython display
-    display_units = DisplayUnits(**_units)
+    display_units = DisplayUnits(rate='kW', cost='USD/hr')
     
-    __slots__ = ('rate', 'cost')
     #: [float] USD/kWhr
     price = 0.0782
     
@@ -55,7 +53,7 @@ class PowerUtility:
         self.cost = 0
     
     def __call__(self, rate):
-        """Calculate cost and save. 
+        """Calculate cost and save results. 
         
         Parameters
         ----------
@@ -66,12 +64,15 @@ class PowerUtility:
         self.rate = rate
         self.cost = self.price * rate
     
-    def __repr__(self):
+    def show(self, rate=None, cost=None):
         # Get units of measure
-        units = self._units
-        rate_units, cost_units = self.display_units
-        rate = _Q(self.rate, units['rate']).to(rate_units).magnitude
-        cost = _Q(self.cost, units['cost']).to(cost_units).magnitude
+        display_units = self.display_units
+        rate_units = rate or display_units.rate
+        cost_units = cost or display_units.cost
+        rate = convert(self.rate, 'kW', rate_units)
+        cost = convert(self.cost, 'USD/hr', cost_units)
         return (f'<{type(self).__name__}: {rate:.3g} {rate_units}, {cost:.3g} {cost_units}>')
-        
-        
+    _ipython_display = show    
+    
+    def __repr__(self):
+        return (f'<{type(self).__name__}: {self.rate:.3g} kW, {self.cost:.3g} USD/hr>')    

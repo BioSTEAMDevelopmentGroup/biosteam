@@ -1,0 +1,7 @@
+Mixer
+=====
+
+.. module:: biosteam.units
+
+.. autoclass:: Mixer
+   :members:

@@ -4,12 +4,10 @@ Created on Sat Aug 18 14:25:34 2018
 
 @author: yoelr
 """
-from ._exceptions import DimensionError
-from .utils import DisplayUnits
-from ._species import Species
-from ._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from . import _Q
-
+from thermosteam._stream import Stream, mol_units, mass_units, vol_units
+from thermosteam.base.units_of_measure import convert, get_dimensionality, DisplayUnits
+from thermosteam.exceptions import DimensionError
+from thermosteam import Thermo
 
 __all__ = ('HeatUtility',)
 
@@ -17,12 +15,132 @@ __all__ = ('HeatUtility',)
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-# %% Default Heat Transfer species
+# %% Default Heat Transfer chemicals
 
-_Water = Species('Water')
-
+_Water = Thermo(['Water'])
 
 # %% Utility classes
+
+class UtilityAgent:
+    """Create a UtilityAgent object that defines a utility option.
+    
+    Parameters
+    ----------
+    thermo: Thermo
+    z_mol: tuple[float]
+            Molar fraction of chemicals.
+    phase : {'g', 'l'}
+            Either gas ("g") or liquid ("l").
+    Hvap : float
+           Latent heat of vaporization (kJ/kmol)
+    T_limit : float
+              Temperature limit (K)
+    price_kJ : float
+               Price (USD/kJ)
+    price_kmol : float
+                 Price (USD/kmol)
+    efficiency : float
+                 Heat transfer efficiency (between 0 to 1)
+            
+    """
+    __slots__ = ('thermo', 'z_mol', 'T', 'P', 'phase', 'Hvap', 'T_limit',
+                 'price_kJ', 'price_kmol', 'efficiency')
+    def __init__(self, thermo, z_mol, T, P, phase, Hvap, T_limit,
+                 price_kJ, price_kmol, efficiency):
+        self.thermo = thermo
+        self.z_mol = z_mol
+        self.T = T
+        self.P = P
+        self.phase = phase
+        self.Hvap = Hvap
+        self.T_limit = T_limit
+        self.price_kJ = price_kJ
+        self.price_kmol = price_kmol
+        self.efficiency = efficiency
+    
+    def __repr__(self):
+        return f"<{type(self).__name__}: T={self.T} K>"
+    
+    def _ipython_display_(self):
+        print(f"{type(self).__name__}:\n"
+             +f" thermo                Thermo({self.thermo.chemicals}, ...)\n"
+             +f" z_mol                 ({', '.join([format(i,'.2f') for i in self.z_mol])},)\n"
+             +f" T           K         {self.T:,.2f}\n"
+             +f" P           Pa        {self.P:,.0f}\n"
+             +f" phase                 '{self.phase}'\n"
+             +f" Hvap        kJ/kmol   {self.Hvap and format(self.Hvap, ',.4g')}\n"
+             +f" T_limit     K         {self.T_limit and format(self.T_limit, ',.2f')}\n"
+             +f" price_kJ    USD/kJ    {self.price_kJ:.4g}\n"
+             +f" price_kmol  USD/kmol  {self.price_kmol:.4g}\n"
+             +f" efficiency            {self.efficiency:.2f}")
+        
+    show = _ipython_display_
+
+            
+class UtilityAgents:
+    __slots__ = ('_agents',)
+    
+    def __init__(self, agents):
+        self._agents = dict(agents)
+        
+    def __getitem__(self, key):
+        return self._agents[key]
+    
+    def __setitem__(self, ID, agent):
+        assert isinstance(agent, UtilityAgent)
+        agents = sorted([*self._agents.items(), (ID, agent)], key=self._sorting_key)
+        self._agents = dict(agents)
+    
+    def __iter__(self):
+        yield from self._agents.items()
+        
+    def __repr__(self):
+        return f"{type(self).__name__}({self._agents})"
+
+
+class HeatingAgents(UtilityAgents):
+    __slots__ = ()
+    
+    @staticmethod
+    def _sorting_key(ID_agent):
+        _, agent = ID_agent
+        return agent.T
+    
+    def select_agent(self, T_pinch):
+        """Return a heating agent that works at the pinch temperature and return UtilityAgent.
+        
+        Parameters
+        ----------
+        T_pinch : float
+                  Pinch temperature of process stream (K)
+        
+        """
+        for ID, agent in self:
+            if T_pinch < agent.T: return ID, agent
+        raise RuntimeError(f'no heating agent that can heat over {T_pinch} K')
+    
+
+class CoolingAgents(UtilityAgents):
+    __slots__ = ()
+    
+    @staticmethod
+    def _sorting_key(ID_agent):
+        _, agent = ID_agent
+        return 1 / agent.T
+
+    # Selection of a heat transfer agent
+    def select_agent(self, T_pinch):
+        """Select a cooling agent that works at the pinch temperature and return UtilityAgent.
+        
+        Parameters
+        ----------
+        T_pinch : float
+                  Pinch temperature of process stream (K)
+        
+        """
+        for ID, agent in self:
+            if T_pinch > agent.T: return ID, agent
+        raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')
 
 
 class HeatUtility:
@@ -47,132 +165,73 @@ class HeatUtility:
         
     .. code-block:: python
     
+       >>> from biosteam import HeatUtility
        >>> hu = HeatUtility()
-       >>> hu
+       >>> hu.show()
        HeatUtility: None
         duty: 0
         flow: 0
         cost: 0
     
-    Calculate utility requirement by calling it with a duty (kJ/hr), and enter and exit temperature (K):
+    Calculate utility requirement by calling it with a duty (kJ/hr), and entrance and exit temperature (K):
         
     .. code-block:: python
     
        >>> hu(1000, 300, 350)
-       >>> hu
+       >>> hu.show()
        HeatUtility: Low pressure steam
-        duty: 1.11e+03 kJ/hr
-        flow: 0.0284 kmol/hr,
-        cost: 0.00674 USD/hr
+        duty: 1.05e+03 kJ/hr
+        flow: 0.0271 kmol/hr
+        cost: 0.00644 USD/hr
    
     All results are accessible:
         
     .. code-block:: python
     
        >>> hu.ID, hu.duty, hu.flow, hu.cost
-       ('Low pressure steam',
-        1111.111111111111,
-        0.028351477551759364,
-        0.006741981361808377)
+       ('Low pressure steam', 1052.6315789473686, 0.027090580063500323, 0.006442139939100377)
            
     """
-    __slots__ = ('_fresh', '_used', 'ID', 'duty',
-                 'flow', 'cost', 'efficiency',
-                 '_args')
+    __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'ID', 'duty',
+                 'flow', 'cost', 'efficiency', '_args')
     dT = 5  #: [float] Pinch temperature difference
     
-    #: Units of measure for results dictionary
-    _units = dict(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
-    
     #: [DisplayUnits] Units of measure for IPython display
-    display_units = DisplayUnits(**_units)
+    display_units = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
 
-    class UtilityAgent:
-        """Create a UtilityAgent object that defines a utility option.
-        
-        Parameters
-        ----------
-        species: Species
-        molfrac: tuple[float]
-                 Molar fraction of species.
-        phase : {'g', 'l'}
-                Either gas ("g") or liquid ("l").
-        Hvap : float
-               Latent heat of vaporization (kJ/kmol)
-        T_limit : float
-                  Temperature limit (K)
-        price_kJ : float
-                   Price (USD/kJ)
-        price_kmol : float
-                     Price (USD/kmol)
-        efficiency : float
-                     Heat transfer efficiency (between 0 to 1)
-                
-        """
-        __slots__ = ('species', 'molfrac', 'T', 'P', 'phase', 'Hvap', 'T_limit',
-                     'price_kJ', 'price_kmol', 'efficiency')
-        def __init__(self, species, molfrac, T, P, phase, Hvap, T_limit,
-                     price_kJ, price_kmol, efficiency):
-            self.species = species
-            self.molfrac = molfrac
-            self.T = T
-            self.P = P
-            self.phase = phase
-            self.Hvap = Hvap
-            self.T_limit = T_limit
-            self.price_kJ = price_kJ
-            self.price_kmol = price_kmol
-            self.efficiency = efficiency
-        
-        def __repr__(self):
-            return f"<{type(self).__name__}: T={self.T} K>"
-        
-        def _ipython_display_(self):
-            print(f"{type(self).__name__}:\n"
-                 +f" species               {repr(self.species)}\n"
-                 +f" molfrac               ({', '.join([format(i,'.2f') for i in self.molfrac])},)\n"
-                 +f" T           K         {self.T:,.2f}\n"
-                 +f" P           Pa        {self.P:,.0f}\n"
-                 +f" phase                 '{self.phase}'\n"
-                 +f" Hvap        kJ/kmol   {self.Hvap and format(self.Hvap, ',.4g')}\n"
-                 +f" T_limit     K         {self.T_limit and format(self.T_limit, ',.2f')}\n"
-                 +f" price_kJ    USD/kJ    {self.price_kJ:.4g}\n"
-                 +f" price_kmol  USD/kmol  {self.price_kmol:.4g}\n"
-                 +f" efficiency            {self.efficiency:.2f}")
-            
-        show = _ipython_display_
-            
-
-    cooling_agents = {
+    cooling_agents = CoolingAgents({
         'Cooling water': UtilityAgent(_Water, (1,), 305.372, 101325, 'l',
                                       None, 324.817, 0, 4.8785e-4, 1),
         'Chilled water': UtilityAgent(_Water, (1,), 280.372, 101325, 'l',
                                       None, 300.372, -5e-6, 0, 1),
         'Chilled Brine': UtilityAgent(_Water, (1,), 255.372, 101325, 'l',
-                                      None, 275.372, -8.145e-6, 0, 1)}
+                                      None, 275.372, -8.145e-6, 0, 1)})
 
-    heating_agents = {
+    heating_agents = HeatingAgents({
         'Low pressure steam': UtilityAgent(_Water, (1,), 411.494, 344738.0, 'g',
-                                           3.89e+04, None, 0, 0.2378, 0.95),
+                                           38856., None, 0, 0.2378, 0.95),
         'Medium pressure steam': UtilityAgent(_Water, (1,), 454.484, 1034214.0,
-                                              'g', 3.63e+04, None, 0, 0.2756, 0.90),
+                                              'g', 36264., None, 0, 0.2756, 0.90),
         'High pressure steam': UtilityAgent(_Water, (1,), 508.858, 3102642.0, 'g',
-                                            3.21e+04, None, 0, 0.3171, 0.85)}
+                                            32124., None, 0, 0.3171, 0.85)})
 
     def __init__(self, efficiency=None):
+        self.efficiency = efficiency
+        self.empty()
+
+    def _init_streams(self, flow, thermo, T, P, phase):
+        """Initialize utility streams."""
+        self.inlet_utility_stream = Stream(None, flow, thermo=thermo, T=T, P=P, phase=phase)
+        self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
+
+    def empty(self):
         self.ID = ''
         self.cost = self.flow = self.duty = 0
-        self.efficiency = efficiency
-        
+        self._args = None
         #: tuple[bool, float] Cached arguments:
         #:     * [0]: [bool] True if duty is negative 
-        #:     * [1]: [float] Temperature of operation
-        self._args = None
-
-    def _init_streams(self, flow, species, T, P, phase):
-        """Initialize utility streams."""
-        self._fresh = Stream(None, flow, species, T=T, P=P, phase=phase)
-        self._used = Stream.proxy(None, self._fresh)
+        #:     * [1]: [float] Pinch temperature of fresh utility
+            
 
     def __call__(self, duty, T_in, T_out=None):
         """Calculate utility requirements given the essential parameters.
@@ -183,170 +242,101 @@ class HeatUtility:
                Unit duty requirement (kJ/hr)
         T_in : float
                Entering process stream temperature (K)
-        T_out=None : float, optional
-            Exit process stream temperature (K)
+        T_out : float, optional
+                Exit process stream temperature (K)
         
         """
-        # Set pinch and operating temperature
-        if T_out is None:
-            T_pinch = T_op = T_in
-        else:
-            T_pinch, T_op = self._get_pinch(duty, T_in, T_out)
-        
         if duty == 0:
-            self.ID = ''
-            self.flow = self.duty = self.cost = 0
-            self._args = None
+            self.empty()
             return
+        T_out = T_out or T_in
+        iscooling = duty < 0
+        T_pinch_in, T_pinch_out = self._get_pinch(iscooling, T_in, T_out, self.dT)
+
+        ## Select heat transfer agent ##
         
-        negduty = duty < 0
-        args = (negduty, T_op)
-        if self._args == args:
-            if negduty:
-                agent = self.cooling_agents[self.ID]
-            else:
-                agent = self.heating_agents[self.ID]
+        args = (iscooling, T_pinch_in)
+        agents = self.cooling_agents if iscooling else self.heating_agents
+        if self._args == args:            
+            # Use cached agent
+            agent = agents[self.ID]
         else:
+            # Select agent
             self._args = args
-            # Select heat transfer agent
-            if negduty:
-                agent = self._select_cooling_agent(T_op)
-            else:
-                agent = self._select_heating_agent(T_op)
+            ID, agent = agents.select_agent(T_pinch_in)
+            self.load_agent(ID, agent)
             
-        # Calculate utility flow rate requirement
+        ## Calculate utility requirement ##
+        
         efficiency = self.efficiency or agent.efficiency
         duty = duty/efficiency
         if agent.Hvap:
-            self._update_flow_wt_phase_change(duty, agent.Hvap)
+            # Phase change
+            self.outlet_utility_stream.phase = 'g' if self.inlet_utility_stream.phase == 'l' else 'l'
+            dH = agent.Hvap * self.outlet_utility_stream.F_mol
         else:
-            self._update_flow_wt_pinch_T(duty, T_pinch, agent.T_limit, negduty)
+            # Temperature change
+            self.outlet_utility_stream.T = self._T_exit(T_pinch_out, agent.T_limit, iscooling)
+            dH = self.inlet_utility_stream.H - self.outlet_utility_stream.H
+        
+        # Update utility flow
+        self.outlet_utility_stream.mol[:] *= duty / dH
         
         # Update and return results
-        self.flow = mol = self._fresh.molnet
+        self.flow = F_mol = self.inlet_utility_stream.F_mol
         self.duty = duty
-        self.cost = agent.price_kJ*duty + agent.price_kmol*mol
+        self.cost = agent.price_kJ*duty + agent.price_kmol*F_mol
 
     @staticmethod
-    def _get_pinch(duty, T_in, T_out):
-        """Return pinch temperature and operating temperature."""
-        if duty < 0:
-            return (T_in, T_out) if T_in > T_out else (T_out, T_in)
+    def _get_pinch(iscooling, T_in, T_out, dT):
+        """Return pinch entrance and exit temperature of utility."""
+        if iscooling:
+            assert T_in + 1e-6 >= T_out, "entrance temperature must be larger than exit temperature if cooling"
+            T_pinch_in = T_out - dT
+            T_pinch_out = T_in - dT
         else:
-            return (T_in, T_out) if T_in < T_out else (T_out, T_in)
+            assert T_in <= T_out + 1e-6, "entrance temperature must be smaller than exit temperature if heating"
+            T_pinch_in = T_out + dT
+            T_pinch_out = T_in + dT
+        return T_pinch_in, T_pinch_out
     
-    # Selection of a heat transfer agent
-    def _select_cooling_agent(self, T_pinch):
-        """Select a cooling agent that works at the pinch temperature and return UtilityAgent.
-        
-        Parameters
-        ----------
-        T_pinch : float
-                  Pinch temperature of process stream (K)
-        
-        """
-        dt = 2*self.dT
-        T_max = T_pinch - dt
-        for ID, agent in self.cooling_agents.items():
-            if T_max > agent.T:
-                if self.ID != ID:
-                    self._init_streams(agent.molfrac, agent.species,
-                                       agent.T, agent.P, agent.phase)
-                    self.ID = ID
-                return agent
-        raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')
-            
-    def _select_heating_agent(self, T_pinch):
-        """Return a heating agent that works at the pinch temperature and return UtilityAgent.
-        
-        Parameters
-        ----------
-        T_pinch : float
-                  Pinch temperature of process stream (K)
-        
-        """
-        dt = 2*self.dT
-        T_min = T_pinch + dt
-        for ID, agent in self.heating_agents.items():
-            if T_min < agent.T:
-                if self.ID != ID:
-                    self._init_streams(agent.molfrac, agent.species,
-                                       agent.T, agent.P, agent.phase)
-                    self.ID = ID
-                return agent
-        raise RuntimeError(f'no heating agent that can heat over {T_pinch} K')
-
-    # Main Calculations
-    def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit, negduty):
-        """Set utility Temperature at the pinch, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        self._used.T = self._T_exit(T_pinch, self.dT, T_limit, negduty)
-        self._update_utility_flow(self._fresh, self._used, duty)
-
-    def _update_flow_wt_phase_change(self, duty, latent_heat):
-        """Change phase of utility, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        f = self._fresh
-        u = self._used
-        u._phase = 'g' if f._phase=='l' else 'l'
-        u._mol[:] = duty/latent_heat
+    def load_agent(self, ID, agent):
+        if self.ID != ID:
+            self._init_streams(agent.z_mol, agent.thermo,
+                               agent.T, agent.P, agent.phase)
+            self.ID = ID
 
     # Subcalculations
-    @staticmethod
-    def _update_utility_flow(fresh, utility, duty):
-        """Changes flow rate of utility such that it can meet the duty requirement"""
-        utility._mol *= duty/(fresh.H - utility.H)
 
     @staticmethod
-    def _T_exit(T_pinch, dT, T_limit, negduty):
+    def _T_exit(T_pinch, T_limit, iscooling):
         """Return exit temperature of the utility in a counter current heat exchanger
 
         Parameters
         ----------
         T_pinch : float
-                  Pinch temperature of process stream (K)
-        dT : float 
-             Pinch temperature difference (K)
-        negduty : bool
+                  Pinch temperature of utility stream (K)
+        iscooling : bool
                   True if exit temperature should be lower (process stream is gaining energy)
 
         """
-        if negduty:
-            T_exit = T_pinch - dT
-            if T_limit and T_limit < T_exit: T_exit = T_limit
+        if iscooling:
+            return T_limit if T_limit and T_limit < T_pinch else T_pinch
         else:
-            T_exit = T_pinch + dT
-            if T_limit and T_limit > T_exit: T_exit = T_limit
-        return T_exit
+            return T_limit if T_limit and T_limit > T_pinch else T_pinch
+        
 
     def _info_data(self, duty, flow, cost):
         # Get units of measure
         su = self.display_units
-        units = self._units
         duty_units = duty or su.duty
         flow_units = flow or su.flow
         cost_units = cost or su.cost
         
-        # Select flow dimensionality
-        flow_dim = _Q(0, flow_units).dimensionality
-        if flow_dim == mol_flow_dim:
-            flowattr = 'molnet'
-        elif flow_dim == mass_flow_dim:
-            flowattr = 'massnet'
-        elif flow_dim == vol_flow_dim:
-            flowattr = 'volnet'
-        else:
-            raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'")
-        
         # Change units and return info string
-        try:
-            u_in = self._fresh
-            flownet = getattr(u_in, flowattr)
-            flowunits = u_in.units[flowattr]
-            flow = _Q(flownet, flowunits).to(flow_units).magnitude
-        except:
-            flow = _Q(self.flow, 'kmol/hr').to(flow_units).magnitude
-        
-        duty = _Q(self.duty, units['duty']).to(duty_units).magnitude
-        cost = _Q(self.cost, units['cost']).to(cost_units).magnitude
+        flow = self.inlet_utility_stream.get_total_flow(flow_units)
+        duty = convert(self.duty, 'kJ/hr', duty_units)
+        cost = convert(self.cost, 'USD/hr', cost_units)
         return duty, flow, cost, duty_units, flow_units, cost_units
         
     def __repr__(self):

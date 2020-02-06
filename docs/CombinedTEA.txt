@@ -1,7 +1,5 @@
 CombinedTEA
 ===========
 
-.. module:: biosteam
-
-.. autoclass:: CombinedTEA
+.. autoclass:: biosteam.CombinedTEA
    :members:

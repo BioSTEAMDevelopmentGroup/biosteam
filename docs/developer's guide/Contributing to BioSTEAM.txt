@@ -68,9 +68,9 @@ If no errors are raised, all tests have passed. Changes made to a BioSTEAM unit 
     >>> test_binary_distillation()
     
 
-If no tests are available specfic to the unit operation, tests must be uploaded whereby the stream results and general simulation results are tested. Please use the "assert_unit_streams" and "assert_unit_results" functions within the test. You can use the "test_binary_distillation" source code as a template for how this may be done.
+If no tests are available specfic to the unit operation, tests must be uploaded whereby the stream results and general simulation results are tested. Using **doctests** is the preferred method for running tests, but assertions are also accepted so long as all results of the unit operation is tested. You can use the source code in the "biosteam.tests" folder as a template for how this may be done.
 
-.. note:: Doctests are not yet available, but any contributions towards rigorous doctests are welcome!
+.. note:: Several sections in biosteam are not fully documented. Any contributions towards rigorous testing is welcome!
 
 Documentation
 -------------
@@ -80,7 +80,7 @@ Concise and thorough documentation is required for any contribution. Make sure t
     * Use NumPy style docstrings.
     * Document all functions and classes.
     * Document short functions in one line if possible.
-    * Mention and reference any equations or methods used and make sure include the chapter and page number if it is a book or long document.
+    * Mention and reference any equations or methods used and make sure to include the chapter and page number if it is a book or a long document.
     * Include a text file with the sphix autodoc in the "docs" folder.
     * Preview the docs before making a pull request (open your cmd/terminal in the "docs" folder, run "make html", and open "docs/_build/html/index.html").
     

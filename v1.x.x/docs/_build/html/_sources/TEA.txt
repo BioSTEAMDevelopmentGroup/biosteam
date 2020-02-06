@@ -1,0 +1,7 @@
+TEA
+===
+
+.. module:: biosteam
+
+.. autoclass:: TEA
+   :members:

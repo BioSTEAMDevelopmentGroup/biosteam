@@ -6,12 +6,12 @@ Created on Thu Aug 23 22:45:47 2018
 """
 import numpy as np
 from ._hx import HXutility
-from .. import Stream, Unit
+from .. import Unit
 from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
 from .designtools import size_batch
-from ..reaction import Reaction
+from thermosteam.reaction import Reaction
 
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,
       cost=421e3, S=3785, n=0.6, BM=1.8, N='N')
@@ -87,7 +87,7 @@ class Fermentation(Unit):
                          0.45,  # Y_PS
                          0.18)  # a
     
-    def _more_design_specs(self):
+    def _get_design_specs(self):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
                 ('Working volume fraction', self.working_volume_fraction, ''),
                 ('Number of reactors', self.N, ''))
@@ -102,7 +102,7 @@ class Fermentation(Unit):
         self.tau = tau
         self.N = N
         self._cooler = hx = HXutility(None)
-        self._heat_utilities = hx._heat_utilities
+        self.heat_utilities = hx.heat_utilities
         hx._ins = hx._outs
         vent, effluent = self.outs
         hx._outs[0].T = effluent.T = vent.T = 305.15
@@ -115,8 +115,8 @@ class Fermentation(Unit):
                                    '492-61-5',
                                    '7732-18-5'])
         mass = feed.mass
-        volnet = feed.volnet
-        concentration_in = mass/volnet
+        F_vol = feed.F_vol
+        concentration_in = mass/F_vol
         X0, P0, S0 = (concentration_in[i] for i in (y, e, s))
         
         # Integrate to get final concentration
@@ -136,7 +136,7 @@ class Fermentation(Unit):
         return eff
         
     @staticmethod
-    def kinetic_model(z, t, *kinetic_constants) -> '(dXdt, dPdt, dSdt)':
+    def kinetic_model(z, t, *kinetic_constants):
         """Return change of yeast, ethanol, and substrate concentration in kg/m3.
         
         Parameters
@@ -203,13 +203,13 @@ class Fermentation(Unit):
 
     def _run(self):
         vent, effluent = self.outs
-        Stream.sum(effluent, self.ins)
+        effluent.mix_from(self.ins)
         effluent_mol = effluent.mol
         self.hydrolysis(effluent_mol)
         if self.iskinetic:
             self.fermentation.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation(effluent_mol)
-        vent.copyflow(effluent, ('CO2',), remove=True)
+        vent.copy_flow(effluent, ('CO2',), remove=True)
         vent.recieve_vent(effluent)
     
     @property
@@ -227,10 +227,10 @@ class Fermentation(Unit):
         return N - 1
         
     def _design(self):
-        v_0 = self.outs[1].volnet
+        v_0 = self.outs[1].F_vol
         tau = self._tau
         tau_0 = self.tau_0
-        Design = self._Design
+        Design = self.design_results
         if self.autoselect_N:
             self.autoselect_N = False
             self._N = self.N_at_minimum_capital_cost
@@ -238,14 +238,14 @@ class Fermentation(Unit):
         N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
-        hx.outs[0]._mol[:] = self.outs[0].mol/N 
-        hu = hx._heat_utilities[0]
-        hu(self._Hnet/N, self.outs[0].T)
+        hx.outs[0].mol[:] = self.outs[0].mol/N 
+        hu = hx.heat_utilities[0]
+        hu(self.Hnet/N, self.outs[0].T)
         hx._design(hu.duty)
         hx._cost()
         hu.duty *= N
         hu.cost *= N
         hu.flow *= N
-        self._Cost['Coolers'] = self._cooler._Cost['Heat exchanger'] * self._N
+        self.purchase_costs['Coolers'] = self._cooler.purchase_costs['Heat exchanger'] * self._N
         
     

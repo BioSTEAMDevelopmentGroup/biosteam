@@ -21,10 +21,10 @@ class VentScrubber(Unit):
     def _run(self):
         water, vent_entry = self.ins
         vent_exit, bottoms = self.outs
-        vent_exit.copylike(vent_entry)
-        bottoms.copyflow(vent_exit, self.gas,
+        vent_exit.copy_like(vent_entry)
+        bottoms.copy_flow(vent_exit, self.gas,
                          remove=True, exclude=True)
         bottoms.mol[:] += water.mol
         
     def _design(self):
-        self._Design['Flow rate'] = self._outs[0].massnet
+        self.design_results['Flow rate'] = self._outs[0].F_mass

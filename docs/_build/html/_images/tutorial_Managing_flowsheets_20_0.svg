@@ -3,9 +3,9 @@
 <title>%3</title>
 <polygon fill="white" points="-4,4 -4,-111.48 221.593,-111.48 221.593,4 -4,4" stroke="none"/>
 <!-- M3
-Mixer&#45;&gt;d3 -->
+Mixer&#45;&gt;s3 -->
 <g class="edge" id="edge1"><title>M3
-Mixer:e-&gt;d3:w</title>
+Mixer:e-&gt;s3:w</title>
 <path d="M138.593,-53.7401C154.593,-53.7401 158.593,-53.7401 174.593,-53.7401" fill="none" stroke="black"/>
 </g>
 <!-- M3
@@ -22,10 +22,10 @@ Mixer</title>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="69.2965" y="-57.5401">M3</text>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="69.2965" y="-42.5401">Mixer</text>
 </g>
-<!-- d3 -->
-<g class="node" id="node2"><title>d3</title>
+<!-- s3 -->
+<g class="node" id="node2"><title>s3</title>
 <polygon fill="#79dae8" points="199.593,-69.2401 174.593,-69.2401 174.593,-38.2401 199.593,-38.2401 199.593,-32.2401 217.593,-53.7401 199.593,-75.2401 199.593,-69.2401" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="196.093" y="-50.0401">d3</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="196.093" y="-50.0401">s3</text>
 </g>
 </g>
 </svg>

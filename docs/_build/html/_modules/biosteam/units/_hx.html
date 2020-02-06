@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -186,7 +178,8 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">fluids</span> <span class="kn">import</span> <span class="n">nearest_pipe</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -212,17 +205,27 @@
             <span class="s1">&#39;Monel/Monel&#39;</span><span class="p">:</span>	                 <span class="p">(</span><span class="mf">3.3</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">),</span>
             <span class="s1">&#39;Titanium/titanium&#39;</span><span class="p">:</span>	            <span class="p">(</span><span class="mf">9.6</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">)}</span>
 
+<span class="k">def</span> <span class="nf">compute_floating_head_purchase_price</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.0310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span>
+
+<span class="k">def</span> <span class="nf">compute_fixed_head_purchase_price</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.4185</span> <span class="o">-</span> <span class="mf">0.9228</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09861</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span>
+
+<span class="k">def</span> <span class="nf">compute_u_tube_purchase_price</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.5510</span> <span class="o">-</span> <span class="mf">0.9186</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09790</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span>
+
+<span class="k">def</span> <span class="nf">compute_kettle_vaporizer_purchase_price</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.3310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span>
+
+<span class="k">def</span> <span class="nf">compute_double_pipe_purchase_price</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">exp</span><span class="p">(</span> <span class="mf">7.2718</span> <span class="o">+</span> <span class="mf">0.16</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">))</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span>
+
 <span class="c1"># Purchase price</span>
-<span class="n">Cb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Floating head&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.0310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
-           <span class="s1">&#39;Fixed head&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.4185</span> <span class="o">-</span> <span class="mf">0.9228</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09861</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
-           <span class="s1">&#39;U tube&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.5510</span> <span class="o">-</span> <span class="mf">0.9186</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09790</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
-           <span class="s1">&#39;Kettle vaporizer&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.3310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
-           <span class="s1">&#39;Double pipe&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span> <span class="mf">7.2718</span> <span class="o">+</span> <span class="mf">0.16</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">))</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">}</span>
+<span class="n">Cb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Floating head&#39;</span><span class="p">:</span> <span class="n">compute_floating_head_purchase_price</span><span class="p">,</span>
+           <span class="s1">&#39;Fixed head&#39;</span><span class="p">:</span> <span class="n">compute_fixed_head_purchase_price</span><span class="p">,</span>
+           <span class="s1">&#39;U tube&#39;</span><span class="p">:</span> <span class="n">compute_u_tube_purchase_price</span><span class="p">,</span>
+           <span class="s1">&#39;Kettle vaporizer&#39;</span><span class="p">:</span> <span class="n">compute_kettle_vaporizer_purchase_price</span><span class="p">,</span>
+           <span class="s1">&#39;Double pipe&#39;</span><span class="p">:</span> <span class="n">compute_double_pipe_purchase_price</span><span class="p">}</span>
         
         
 <span class="k">class</span> <span class="nc">HX</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -256,7 +259,7 @@
     <span class="n">BM_shell_and_tube</span> <span class="o">=</span> <span class="mf">3.17</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">BM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Type</span> <span class="ow">is</span> <span class="s2">&quot;Double pipe&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Type</span> <span class="o">==</span> <span class="s2">&quot;Double pipe&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM_douple_pipe</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM_shell_and_tube</span>
@@ -331,23 +334,22 @@
             <span class="k">return</span> <span class="mf">0.5</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_dP</span><span class="p">(</span><span class="n">ip</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;psi&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_dP</span><span class="p">(</span><span class="n">inlet_phase</span><span class="p">,</span> <span class="n">outlet_phase</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return pressure drop (psi) based on heuristics.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">            </span>
-<span class="sd">            **ip:** [str] Inlet phase</span>
-<span class="sd">            </span>
-<span class="sd">            **op:** [str] Outlet phase</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inlet_phase: str</span>
+<span class="sd">        outlet_phase : str</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">ip</span> <span class="ow">and</span> <span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">op</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">ip</span> <span class="ow">and</span> <span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">op</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">inlet_phase</span> <span class="ow">and</span> <span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">outlet_phase</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">inlet_phase</span> <span class="ow">and</span> <span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">outlet_phase</span><span class="p">):</span>
             <span class="c1"># Latent fluid (boiling or condensing)</span>
             <span class="k">return</span> <span class="mf">1.5</span>
-        <span class="k">elif</span> <span class="n">ip</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">inlet_phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
             <span class="c1"># Sensible liquid</span>
             <span class="k">return</span> <span class="mi">5</span>
-        <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">outlet_phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
             <span class="c1"># Sensible vapor</span>
             <span class="k">return</span> <span class="mi">3</span>
         
@@ -355,11 +357,12 @@
     <span class="k">def</span> <span class="nf">_Dp_table</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an estimate of pressure drops.</span>
 <span class="sd">        </span>
-<span class="sd">        **Returns**</span>
-<span class="sd">            </span>
-<span class="sd">            **dP_in:** [float] Pressure drop inside (psi)</span>
-<span class="sd">        </span>
-<span class="sd">            **dP_out:** [float] Pressure drop outside (psi)</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------  </span>
+<span class="sd">        dP_in : float</span>
+<span class="sd">            Pressure drop inside (psi)</span>
+<span class="sd">        dP_out : float</span>
+<span class="sd">            Pressure drop outside (psi)</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cip</span><span class="p">,</span> <span class="n">hip</span><span class="p">,</span> <span class="n">cop</span><span class="p">,</span> <span class="n">hop</span> <span class="o">=</span> <span class="n">ci</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">hi</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">ho</span><span class="o">.</span><span class="n">phase</span>
@@ -379,7 +382,7 @@
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">298.15</span> <span class="o">-</span> <span class="n">ci</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hi</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_shellntube_streams</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;s_tube, s_shell&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_shellntube_streams</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return shell and tube streams for calculating non-dimensional numbers.&quot;&quot;&quot;</span>
         <span class="c1"># Mean temperatures</span>
         <span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span> <span class="o">=</span> <span class="n">ci</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">hi</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">co</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">ho</span><span class="o">.</span><span class="n">T</span>
@@ -392,12 +395,12 @@
         
         <span class="k">if</span> <span class="n">inside_heating</span><span class="p">:</span>
             <span class="c1"># Cold stream goes in tube side</span>
-            <span class="n">s_tube</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">ci</span><span class="p">);</span> <span class="n">s_tube</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tc_ave</span>
-            <span class="n">s_shell</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">hi</span><span class="p">);</span> <span class="n">s_shell</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Th_ave</span>
+            <span class="n">s_tube</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">ci</span><span class="p">);</span> <span class="n">s_tube</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tc_ave</span>
+            <span class="n">s_shell</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">hi</span><span class="p">);</span> <span class="n">s_shell</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Th_ave</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Hot stream goes in tube side</span>
-            <span class="n">s_tube</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">hi</span><span class="p">);</span> <span class="n">s_tube</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Th_ave</span>
-            <span class="n">s_shell</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">ci</span><span class="p">);</span> <span class="n">s_shell</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tc_ave</span>
+            <span class="n">s_tube</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">hi</span><span class="p">);</span> <span class="n">s_tube</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Th_ave</span>
+            <span class="n">s_shell</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">ci</span><span class="p">);</span> <span class="n">s_shell</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tc_ave</span>
         <span class="k">return</span> <span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span>
 
     <span class="nd">@staticmethod</span>
@@ -503,34 +506,36 @@
             <span class="k">return</span> <span class="n">in2</span><span class="p">,</span> <span class="n">in1</span><span class="p">,</span> <span class="n">out2</span><span class="p">,</span> <span class="n">out1</span>
         
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_ft</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ft&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_calc_ft</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return LMTD correction factor.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">Tco</span> <span class="o">-</span> <span class="n">Tci</span><span class="p">)</span><span class="o">/</span><span class="n">Tco</span> <span class="o">&lt;</span> <span class="mf">0.01</span> <span class="ow">or</span> <span class="p">(</span><span class="n">Thi</span><span class="o">-</span><span class="n">Tho</span><span class="p">)</span><span class="o">/</span><span class="n">Tho</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">1</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">ht</span><span class="o">.</span><span class="n">F_LMTD_Fakheri</span><span class="p">(</span><span class="n">Thi</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">Tci</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span>
-                                     <span class="n">shells</span><span class="o">=</span><span class="n">N_shells</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mf">0.6</span> <span class="c1"># Accounts for worst case scenario</span>
+        <span class="n">ft</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Tco</span> <span class="o">-</span> <span class="n">Tci</span><span class="p">)</span><span class="o">/</span><span class="n">Tco</span> <span class="o">&gt;</span> <span class="mf">0.01</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Thi</span><span class="o">-</span><span class="n">Tho</span><span class="p">)</span><span class="o">/</span><span class="n">Tho</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="n">ht</span><span class="o">.</span><span class="n">F_LMTD_Fakheri</span><span class="p">(</span><span class="n">Thi</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">Tci</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span>
+                                       <span class="n">shells</span><span class="o">=</span><span class="n">N_shells</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="k">pass</span>
+            <span class="k">if</span> <span class="n">ft</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">ft</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="c1"># Accounts for worst case scenario</span>
+        <span class="k">return</span> <span class="n">ft</span>
     
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Area&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return Area by LMTD correction factor method.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **LMTD:** [float] Log mean temperature difference</span>
-<span class="sd">            </span>
-<span class="sd">            **U:** [float] Heat transfer coefficient</span>
-<span class="sd">            </span>
-<span class="sd">            **Q:** [float] Duty</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        LMTD : float</span>
+<span class="sd">            Log mean temperature difference</span>
+<span class="sd">        U : float</span>
+<span class="sd">            Heat transfer coefficient</span>
+<span class="sd">        Q : float</span>
+<span class="sd">            Duty</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Q</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">LMTD</span><span class="o">*</span><span class="n">ft</span><span class="p">)</span>        
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1">###  Use LMTD correction factor method  ###</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         
         <span class="c1"># Get cold and hot inlet and outlet streams</span>
         <span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order_streams</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_streams</span><span class="p">())</span>
@@ -542,6 +547,7 @@
         <span class="n">dTF2</span> <span class="o">=</span> <span class="n">Tho</span><span class="o">-</span><span class="n">Tci</span>
         <span class="n">dummy</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dTF2</span><span class="o">/</span><span class="n">dTF1</span><span class="p">)</span>
         <span class="n">LMTD</span> <span class="o">=</span> <span class="p">(</span><span class="n">dTF2</span> <span class="o">-</span> <span class="n">dTF1</span><span class="p">)</span><span class="o">/</span><span class="n">ln</span><span class="p">(</span><span class="n">dummy</span><span class="p">)</span> <span class="k">if</span> <span class="n">dummy</span> <span class="o">&gt;</span> <span class="mf">1.1</span> <span class="k">else</span> <span class="n">dTF1</span>
+        <span class="n">LMTD</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">LMTD</span><span class="p">)</span>
         
         <span class="c1"># Get correction factor</span>
         <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_ft</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_shells</span><span class="p">)</span>
@@ -559,7 +565,6 @@
         
         <span class="c1"># Design pressure</span>
         <span class="n">P</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">ci</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">hi</span><span class="o">.</span><span class="n">P</span><span class="p">))</span>
-        
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.763</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Overall heat transfer coefficient&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">U</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Fouling correction factor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ft</span>
@@ -569,7 +574,7 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Total tube length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         <span class="n">A</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Total tube length&#39;</span><span class="p">]</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Operating pressure&#39;</span><span class="p">]</span>
@@ -599,7 +604,7 @@
         <span class="n">C_b</span> <span class="o">=</span> <span class="n">C_b_func</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="p">)</span>
         
         <span class="c1"># Free on board purchase prize </span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_p</span> <span class="o">*</span> <span class="n">F_l</span> <span class="o">*</span> <span class="n">F_m</span> <span class="o">*</span> <span class="n">C_b</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_p</span> <span class="o">*</span> <span class="n">F_l</span> <span class="o">*</span> <span class="n">F_m</span> <span class="o">*</span> <span class="n">C_b</span>
 
 
 <div class="viewcode-block" id="HXutility"><a class="viewcode-back" href="../../../units/HXutility.html#biosteam.units.HXutility">[docs]</a><span class="k">class</span> <span class="nc">HXutility</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
@@ -625,9 +630,9 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rigorous</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Temperature of output stream (K).</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: Vapor fraction of output stream.</span>
         
@@ -640,7 +645,7 @@
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">s</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span>
         <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -650,9 +655,9 @@
             <span class="k">if</span> <span class="n">T</span> <span class="ow">and</span> <span class="n">V_given</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;may only define either temperature, &#39;T&#39;, or vapor fraction &#39;V&#39;, in a rigorous simulation&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">V_given</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">V_given</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -660,46 +665,42 @@
                 <span class="k">elif</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">s</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-                    <span class="n">vapmol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">vapor_mol</span>
-                    <span class="n">liqmol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">liquid_mol</span>
-                    <span class="n">mol</span> <span class="o">=</span> <span class="n">vapmol</span> <span class="o">+</span> <span class="n">liqmol</span>
-                    <span class="n">vapmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span><span class="o">*</span><span class="n">V</span>
-                    <span class="n">liqmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vapmol</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">mol</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vap_mol</span> <span class="o">=</span> <span class="n">V</span> <span class="o">*</span> <span class="n">mol</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vap_mol</span>
             <span class="k">if</span> <span class="n">T</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
 
     <span class="k">def</span> <span class="nf">_get_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return cold and hot inlet and outlet streams.</span>
 <span class="sd">        </span>
-<span class="sd">        **Returns**</span>
-<span class="sd">        </span>
-<span class="sd">            **ci:** [Stream] Cold inlet</span>
-<span class="sd">            </span>
-<span class="sd">            **hi:** [Stream] Hot inlet</span>
-<span class="sd">            </span>
-<span class="sd">            **co:** [Stream] Cold outlet</span>
-<span class="sd">            </span>
-<span class="sd">            **ho:** [Stream] Hot outlet</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ci : Stream</span>
+<span class="sd">            Cold inlet.</span>
+<span class="sd">        hi : Stream</span>
+<span class="sd">            Hot inlet.</span>
+<span class="sd">        co : Stream</span>
+<span class="sd">            Cold outlet.</span>
+<span class="sd">        ho : Stream</span>
+<span class="sd">            Hot outlet.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">in1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">out1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">in2</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">_fresh</span>
-        <span class="n">out2</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">_used</span>
+        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">in2</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">inlet_utility_stream</span>
+        <span class="n">out2</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">outlet_utility_stream</span>
         <span class="k">return</span> <span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">out1</span><span class="p">,</span> <span class="n">out2</span>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Set duty and run heat utility</span>
-        <span class="k">if</span> <span class="n">duty</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">duty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span>
+        <span class="k">if</span> <span class="n">duty</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">duty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_in</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="n">duty</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_duty_kJ_mol_</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HXprocess"><a class="viewcode-back" href="../../../units/HXprocess.html#biosteam.units.HXprocess">[docs]</a><span class="k">class</span> <span class="nc">HXprocess</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.</span>
@@ -721,12 +722,6 @@
 <span class="sd">        * **&#39;ss&#39;:** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.</span>
 <span class="sd">        * **&#39;ll&#39;:** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.</span>
 <span class="sd">        * **&#39;ls&#39;:** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</span>
-<span class="sd">    species_IDs=None : tuple, optional</span>
-<span class="sd">        IDs of species in equilibrium.</span>
-<span class="sd">    LNK=None : tuple[str], optional</span>
-<span class="sd">        Light non-keys that remain as a vapor (disregards equilibrium).</span>
-<span class="sd">    LNK=None : tuple[str], optional</span>
-<span class="sd">        Heavy non-keys that remain as a liquid (disregards equilibrium).</span>
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -738,38 +733,15 @@
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span> <span class="c1">#: [float] Pinch temperature difference.</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
-                 <span class="n">U</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fluid_type</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="p">(),</span>
-                 <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">HNK</span><span class="o">=</span><span class="p">()):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">U</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fluid_type</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Hvaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_not_zero_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_run_args</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">)</span>
         
         <span class="c1">#: [float] Enforced overall heat transfer coefficent (kW/m^2/K)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">U</span>
         
-        <span class="c1">#: tuple[str] IDs of light non-keys  assumed to remain as a vapor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span> <span class="o">=</span> <span class="n">LNK</span>
-        
-        <span class="c1">#: tuple[str] IDs of heavy non-keys assumed to remain as a liquid</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span> <span class="o">=</span> <span class="n">HNK</span>
-        
         <span class="bp">self</span><span class="o">.</span><span class="n">fluid_type</span> <span class="o">=</span> <span class="n">fluid_type</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">species_IDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;IDs of compounds in thermodynamic equilibrium.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_IDs</span>
-    <span class="nd">@species_IDs</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">species_IDs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">IDs</span><span class="p">:</span>
-            <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">species</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">else</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_species_data</span> <span class="o">=</span> <span class="n">index</span><span class="p">,</span> <span class="n">IDs</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_species_data</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">fluid_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -795,16 +767,16 @@
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">so0</span><span class="p">,</span> <span class="n">so1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
         <span class="n">si0</span><span class="p">,</span> <span class="n">si1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-        <span class="n">s0_molnet</span> <span class="o">=</span> <span class="n">si0</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">s1_molnet</span> <span class="o">=</span> <span class="n">si1</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">s0_molnet</span><span class="p">:</span>
-            <span class="n">so1</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si1</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">s1_molnet</span><span class="p">:</span>
-            <span class="n">so0</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si0</span><span class="p">)</span>
+        <span class="n">s0_F_mol</span> <span class="o">=</span> <span class="n">si0</span><span class="o">.</span><span class="n">F_mol</span>
+        <span class="n">s1_F_mol</span> <span class="o">=</span> <span class="n">si1</span><span class="o">.</span><span class="n">F_mol</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s0_F_mol</span><span class="p">:</span>
+            <span class="n">so1</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">si1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">s1_F_mol</span><span class="p">:</span>
+            <span class="n">so0</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">si0</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fluid_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fluid_type</span>
-            <span class="n">so0</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si0</span><span class="p">)</span>
-            <span class="n">so1</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si1</span><span class="p">)</span>
+            <span class="n">so0</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">si0</span><span class="p">)</span>
+            <span class="n">so1</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">si1</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">fluid_type</span> <span class="o">==</span> <span class="s1">&#39;ss&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_run_ss</span><span class="p">()</span>
             <span class="k">elif</span> <span class="n">fluid_type</span> <span class="o">==</span> <span class="s1">&#39;ls&#39;</span><span class="p">:</span>
@@ -832,41 +804,38 @@
         <span class="n">s1_out</span><span class="p">,</span> <span class="n">s2_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">dT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dT</span>
         
-        <span class="c1"># Arguments for dew and bubble point</span>
-        <span class="n">index</span><span class="p">,</span> <span class="n">species_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_species_data</span><span class="p">(</span><span class="n">s1_out</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_IDs</span><span class="p">)</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">s1_out</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">P</span>
-        
         <span class="k">if</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
             <span class="c1"># Stream s1 is boiling</span>
             <span class="n">boiling</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_dew_point</span><span class="o">.</span><span class="n">solve_Tx</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dp</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">dew_point_at_P</span><span class="p">()</span>
+            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">T</span>
             <span class="n">T_pinch</span> <span class="o">=</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span> <span class="c1"># Minimum</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Stream s1 is condensing</span>
             <span class="n">boiling</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_bubble_point</span><span class="o">.</span><span class="n">solve_Ty</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">bp</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
+            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
             <span class="n">T_pinch</span> <span class="o">=</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">dT</span> <span class="c1"># Maximum</span>
         
         <span class="c1"># Calculate maximum latent heat and new temperature of sensible stream</span>
         <span class="n">duty</span> <span class="o">=</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">H</span>
         <span class="n">T_s2_new</span> <span class="o">=</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">duty</span><span class="o">/</span><span class="n">s2_out</span><span class="o">.</span><span class="n">C</span>
-        <span class="n">s1_out</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">s1_in</span><span class="p">)</span>
+        <span class="n">s1_out</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">s1_in</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">boiling</span> <span class="ow">and</span> <span class="n">T_s2_new</span> <span class="o">&lt;</span> <span class="n">T_pinch</span><span class="p">:</span>
             <span class="c1"># Partial boiling if temperature falls below pinch</span>
             <span class="n">H0</span> <span class="o">=</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_pinch</span>
             <span class="n">delH1</span> <span class="o">=</span> <span class="n">H0</span> <span class="o">-</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">H</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s1_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="n">delH1</span><span class="p">)</span>
+            <span class="n">s1_out</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="n">s1_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">s1_in</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">delH1</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">boiling</span> <span class="ow">and</span> <span class="n">T_s2_new</span> <span class="o">&gt;</span> <span class="n">T_pinch</span><span class="p">:</span>
             <span class="c1"># Partial condensation if temperature goes above pinch</span>
             <span class="n">H0</span> <span class="o">=</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_pinch</span>
             <span class="n">delH1</span> <span class="o">=</span> <span class="n">H0</span> <span class="o">-</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">H</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s1_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="n">delH1</span><span class="p">)</span>
+            <span class="n">s1_out</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="n">s1_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">s1_in</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">delH1</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">boiling</span><span class="p">:</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span><span class="s1">&#39;g&#39;</span>
             <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_s2_new</span>
@@ -879,22 +848,19 @@
     <span class="k">def</span> <span class="nf">_run_ll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s1_in</span><span class="p">,</span> <span class="n">s2_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
         <span class="n">s1_out</span><span class="p">,</span> <span class="n">s2_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">LNK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span>
-        <span class="n">HNK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span>
         
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-        <span class="n">Hvaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_Hvaps</span><span class="p">(</span><span class="n">s1_out</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">T</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">phase</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
             <span class="c1"># s2 boiling, s1 condensing</span>
             <span class="n">boiling</span> <span class="o">=</span> <span class="n">s2_out</span>
-            <span class="n">delH1</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1_out</span><span class="o">.</span><span class="n">vapor_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-            <span class="n">delH2</span> <span class="o">=</span> <span class="p">(</span><span class="n">s2_out</span><span class="o">.</span><span class="n">liquid_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">delH1</span> <span class="o">=</span> <span class="n">s1_out</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Hvap</span>
+            <span class="n">delH2</span> <span class="o">=</span> <span class="n">s2_out</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Hvap</span>
         <span class="k">elif</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">T</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">phase</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
             <span class="c1"># s1 boiling, s2 condensing</span>
             <span class="n">boiling</span> <span class="o">=</span> <span class="n">s1_out</span>
-            <span class="n">delH1</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1_out</span><span class="o">.</span><span class="n">liquid_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-            <span class="n">delH2</span> <span class="o">=</span> <span class="p">(</span><span class="n">s2_out</span><span class="o">.</span><span class="n">vapor_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">delH1</span> <span class="o">=</span> <span class="n">s1_out</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Hvap</span>
+            <span class="n">delH2</span> <span class="o">=</span> <span class="n">s2_out</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Hvap</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no latent heat streams available for heat exchange with Type=&#39;ll&#39;&quot;</span><span class="p">)</span>
         
@@ -903,57 +869,28 @@
         <span class="k">if</span> <span class="n">delH1</span> <span class="o">&gt;</span> <span class="n">delH2</span><span class="p">:</span>
             <span class="n">sc_in</span> <span class="o">=</span> <span class="n">s2_in</span>
             <span class="n">sc_out</span> <span class="o">=</span> <span class="n">s2_out</span>
+            <span class="n">sp_in</span> <span class="o">=</span> <span class="n">s1_in</span>
             <span class="n">sp_out</span> <span class="o">=</span> <span class="n">s1_out</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sc_in</span> <span class="o">=</span> <span class="n">s1_in</span>
             <span class="n">sc_out</span> <span class="o">=</span> <span class="n">s1_out</span>
+            <span class="n">sp_in</span> <span class="o">=</span> <span class="n">s2_in</span>
             <span class="n">sp_out</span> <span class="o">=</span> <span class="n">s2_out</span>
-        
-        <span class="c1"># Arguments for dew and bubble point</span>
-        <span class="n">index</span><span class="p">,</span> <span class="n">species_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_species_data</span><span class="p">(</span><span class="n">sc_out</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_IDs</span><span class="p">)</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">sc_out</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">P</span>
         
         <span class="k">if</span> <span class="n">sc_out</span> <span class="ow">is</span> <span class="n">boiling</span><span class="p">:</span>
             <span class="n">sc_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_dew_point</span><span class="o">.</span><span class="n">solve_Tx</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dp</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">dew_point_at_P</span><span class="p">()</span>
+            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">T</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sc_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_bubble_point</span><span class="o">.</span><span class="n">solve_Ty</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">bp</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
+            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
         
         <span class="c1"># VLE</span>
-        <span class="n">duty</span> <span class="o">=</span> <span class="p">(</span><span class="n">sc_in</span><span class="o">.</span><span class="n">H</span><span class="o">-</span><span class="n">sc_out</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
-        <span class="n">sp_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">sp_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="n">duty</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">duty</span><span class="p">)</span>
+        <span class="n">duty</span> <span class="o">=</span> <span class="p">(</span><span class="n">sc_in</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
+        <span class="n">sp_out</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="n">sp_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">sp_in</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">duty</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">duty</span><span class="p">)</span></div>
         
-    <span class="k">def</span> <span class="nf">_get_Hvaps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hvaps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">compounds</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span>
-            <span class="n">P</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">P</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_Hvaps</span> <span class="o">=</span> <span class="n">Hvaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">Hvapm</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">Hvaps</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hvaps</span>
-        
-    <span class="k">def</span> <span class="nf">_get_species_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">species_IDs</span><span class="p">):</span>
-        <span class="n">_species</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span>
-        <span class="k">if</span> <span class="n">species_IDs</span><span class="p">:</span>
-            <span class="n">stream</span><span class="o">.</span><span class="n">_gamma</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_species_data</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">not_zero_arr</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">mol</span> <span class="o">&gt;</span> <span class="mi">0</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_not_zero_arr</span> <span class="o">==</span> <span class="n">not_zero_arr</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_equilibrium_species_index</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">index</span> <span class="o">=</span> <span class="n">_species</span><span class="o">.</span><span class="n">_equilibrium_indices</span><span class="p">(</span><span class="n">not_zero_arr</span><span class="p">)</span>
-                <span class="n">cmps</span> <span class="o">=</span> <span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span>
-                <span class="n">species</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">]</span>
-                <span class="n">species_IDs</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_cached_species_data</span> <span class="o">=</span> <span class="n">out</span> <span class="o">=</span> <span class="n">index</span><span class="p">,</span> <span class="n">species_IDs</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_not_zero_arr</span> <span class="o">=</span> <span class="n">not_zero_arr</span>
-                <span class="n">stream</span><span class="o">.</span><span class="n">_gamma</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
-                <span class="k">return</span> <span class="n">out</span></div>
     
 <span class="c1"># elif U == &#39;Concentric tubes&#39;:</span>
 <span class="c1">#     raise NotImplementedError(&quot;&#39;Concentric tubes&#39; not yet implemented&quot;)</span>

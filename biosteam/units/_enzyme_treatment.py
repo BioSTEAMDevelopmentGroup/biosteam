@@ -18,14 +18,14 @@ class EnzymeTreatment(MixTank):
         super().__init__(ID, ins, outs)
         self.T = T #: Operating temperature
         self._heat_exchanger = he = HXutility(None, None, T=T) 
-        self._heat_utilities = he._heat_utilities
+        self.heat_utilities = he.heat_utilities
         he._ins = self._ins
         he._outs = self._outs
     
     def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
-        out._mol[:] = self._mol_in
+        out.mol[:] = self.mol_in
         out.phase = feed.phase
         out.P = feed.P
         out.T = self.T
@@ -38,5 +38,5 @@ class EnzymeTreatment(MixTank):
         super()._cost()
         he = self._heat_exchanger
         he._cost()
-        self._Cost['Heat exchanger'] = he._Cost['Heat exchanger'] 
+        self.purchase_costs['Heat exchanger'] = he.purchase_costs['Heat exchanger'] 
     

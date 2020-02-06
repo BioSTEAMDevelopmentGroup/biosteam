@@ -1,7 +1,5 @@
 PowerUtility
 ============
 
-.. module:: biosteam
-
-.. autoclass:: PowerUtility
+.. autoclass:: biosteam.PowerUtility
    :members:

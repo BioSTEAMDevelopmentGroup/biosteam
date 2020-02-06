@@ -5,7 +5,7 @@ Created on Sat Jun 15 00:46:41 2019
 @author: yoelr
 """
 from .. import Unit, units
-from ..utils import format_unit_name
+from ..utils import format_unit_name, static_flow_and_phase
 from . import decorators
 import pandas as pd
 import numpy as np
@@ -40,20 +40,23 @@ def df2dct(df):
         cost_items = df[name_sim]
         if '-' in name_sim:
             sim, name = name_sim.split('-')
+            is_static = False
         else:
             name = name_sim
-            sim = 'Static'
+            sim = 'Unit'
+            is_static = True
         name = format_unit_name(name)
         try:
-            supercls = getattr(units, sim)
+            if is_static:
+                supercls = Unit
+            else:
+                supercls = getattr(units, sim)
         except:
             supername = ''.join([i.capitalize() for i in sim.split(' ')])
             try: supercls = getattr(units, supername)
             except AttributeError:
                 raise ValueError(f"invalid simulation option '{sim}'")
-        finally:
-            new = df2unit(name, cost_items, supercls=supercls)
-        dct[name] = new
+        dct[name] = df2unit(name, cost_items, supercls=supercls)
     return dct
 
 def xl2dct(file, sheet_name=0):

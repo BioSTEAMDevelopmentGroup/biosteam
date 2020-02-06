@@ -85,23 +85,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
@@ -109,10 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="evaluation.html">evaluation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Variable.html">Variable</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Parameter.html">Parameter</a></li>
@@ -212,8 +204,8 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="module-biosteam.evaluation">
-<span id="model"></span><h1>Model<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="model">
+<h1>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.evaluation.Model">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.evaluation.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">metrics</em>, <em class="sig-param">skip=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model" title="Permalink to this definition">¶</a></dt>
@@ -231,7 +223,7 @@
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p><a class="reference internal" href="../tutorial/Advanced simulation.html"><span class="doc">Advanced simulation</span></a></p>
+<p><a class="reference internal" href="../tutorial/Monte Carlo.html"><span class="doc">Monte Carlo</span></a></p>
 <dl class="method">
 <dt id="biosteam.evaluation.Model.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.copy" title="Permalink to this definition">¶</a></dt>
@@ -280,22 +272,18 @@ If False, simulate only the affected parts of the system.</p>
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.evaluate_across_coordinate">
-<code class="sig-name descname">evaluate_across_coordinate</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">f_coordinate</em>, <em class="sig-param">name</em>, <em class="sig-param">lb</em>, <em class="sig-param">ub</em>, <em class="sig-param">xlfile</em>, <em class="sig-param">N_samples=1000</em>, <em class="sig-param">N_points=20</em>, <em class="sig-param">rule='L'</em>, <em class="sig-param">notify=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.evaluate_across_coordinate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.evaluate_across_coordinate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">evaluate_across_coordinate</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">name</em>, <em class="sig-param">f_coordinate</em>, <em class="sig-param">coordinate</em>, <em class="sig-param">*</em>, <em class="sig-param">xlfile=None</em>, <em class="sig-param">notify=True</em>, <em class="sig-param">multi_coordinate=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.evaluate_across_coordinate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.evaluate_across_coordinate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate across coordinate and save sample metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str or tuple[str]</span></dt><dd><p>Name of coordinate</p>
+</dd>
 <dt><strong>f_coordinate</strong><span class="classifier">function</span></dt><dd><p>Should change state of system given the coordinate.</p>
 </dd>
-<dt><strong>lb</strong><span class="classifier">float</span></dt><dd><p>Lower bound of coordinate.</p>
+<dt><strong>coordinte</strong><span class="classifier">array</span></dt><dd><p>Coordinate values.</p>
 </dd>
-<dt><strong>ub</strong><span class="classifier">float</span></dt><dd><p>Upper bound of coordinate.</p>
-</dd>
-<dt><strong>xlfile</strong><span class="classifier">str</span></dt><dd><p>Name of file to save. File must end with “.xlsx”</p>
-</dd>
-<dt><strong>N_samples=1000</strong><span class="classifier">int, optional</span></dt><dd><p>Number of samples at each coordinate.</p>
-</dd>
-<dt><strong>N_points=20</strong><span class="classifier">int, optional</span></dt><dd><p>Number of points between lb and ub evaluated.</p>
+<dt><strong>xlfile</strong><span class="classifier">str, optional</span></dt><dd><p>Name of file to save. File must end with “.xlsx”</p>
 </dd>
 <dt><strong>rule=’L’</strong><span class="classifier">str</span></dt><dd><p>Sampling rule.</p>
 </dd>
@@ -308,14 +296,12 @@ If False, simulate only the affected parts of the system.</p>
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.spearman">
-<code class="sig-name descname">spearman</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">metrics=()</em>, <em class="sig-param">excluded_params=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.spearman"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.spearman" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">spearman</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">metrics=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.spearman"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.spearman" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return DataFrame of Spearman’s rank correlation for metrics vs parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>metrics=()</strong><span class="classifier">Iterable[Metric], defaults to all metrics</span></dt><dd><p>Metrics to be be correlated with parameters.</p>
-</dd>
-<dt><strong>excluded_params=()</strong><span class="classifier">Iterable[str], optional</span></dt><dd><p>Names of parameters to exclude.</p>
+<dt><strong>metrics=()</strong><span class="classifier">Iterable[Metric], defaults to all metrics</span></dt><dd><p>Metrics to be correlated with parameters.</p>
 </dd>
 </dl>
 </dd>
@@ -342,7 +328,7 @@ If False, simulate only the affected parts of the system.</p>
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.load_default_parameters">
-<code class="sig-name descname">load_default_parameters</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">feedstock</em>, <em class="sig-param">shape=&lt;function triang at 0x000001A5C3FDB8C8&gt;</em>, <em class="sig-param">bounded_shape=&lt;function bounded_triang at 0x000001A5C3FDB950&gt;</em>, <em class="sig-param">operating_days=False</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.Model.load_default_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_default_parameters</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">feedstock</em>, <em class="sig-param">shape=&lt;function triang at 0x0000023F17BFF048&gt;</em>, <em class="sig-param">bounded_shape=&lt;function bounded_triang at 0x0000023F17BFF0D0&gt;</em>, <em class="sig-param">operating_days=False</em>, <em class="sig-param">include_feedstock_price=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.Model.load_default_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

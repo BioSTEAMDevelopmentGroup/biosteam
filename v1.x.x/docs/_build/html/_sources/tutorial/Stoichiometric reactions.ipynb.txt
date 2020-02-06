@@ -1,0 +1,641 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Stoichiometric reactions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**The biosteam.reaction package contains array based obejcts that can model stoichiometric reactions given a conversion.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Single reaction"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Create a Reaction object based on the transesterification reaction:\n",
+    "\n",
+    "|Reaction|Reactant|% Converted|\n",
+    "|---|---|---|\n",
+    "|Lipid + 3Methanol -> 3Biodiesel + Glycerol|Lipid|90|\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Reaction:\n",
+      " stoichiometry                                 reactant    X[%]\n",
+      " Lipid + 3 Methanol -> Glycerol + 3 Biodiesel  Lipid      90.00\n"
+     ]
+    }
+   ],
+   "source": [
+    "from biosteam import Stream, reaction\n",
+    "from lipidcane.species import biodiesel_species\n",
+    "rxn = reaction\n",
+    "Stream.species = biodiesel_species\n",
+    "\n",
+    "transesterification = rxn.Reaction('Lipid + 3Methanol -> 3Biodiesel + Glycerol',\n",
+    "                                   reactant='Lipid',  X=0.9)\n",
+    "transesterification"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<WorkingSpecies: Lipid, Methanol, Glycerol, Biodiesel, Water, NaOH, HCl, NaOCH3>"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "transesterification.species"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([-1., -3.,  1.,  3.,  0.,  0.,  0.,  0.])"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "transesterification.stoichiometry"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Lipid'"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "transesterification.reactant"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "transesterification.X"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "When a Reaction object is called with array (with each entry corresponding to species), it updates the array to reflect the change in material due to the reaction:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "BEFORE REACTION\n",
+      "Stream: d1\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " flow (kmol/hr): Lipid     100\n",
+      "                 Methanol  600\n",
+      "AFTER REACTION\n",
+      "Stream: d1\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " flow (kmol/hr): Lipid      10\n",
+      "                 Methanol   330\n",
+      "                 Glycerol   90\n",
+      "                 Biodiesel  270\n"
+     ]
+    }
+   ],
+   "source": [
+    "feed = Stream(Lipid=100, Methanol=600)\n",
+    "print('BEFORE REACTION')\n",
+    "feed.show()\n",
+    "\n",
+    "# React feed molar flow rate\n",
+    "transesterification(feed.mol)\n",
+    "\n",
+    "print('AFTER REACTION')\n",
+    "feed.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Parallel reactions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Model the pretreatment hydrolysis reactions and assumed conversions from Humbird et. al. as shown in the follwing table [[1]](#References):\n",
+    "\n",
+    "|Reaction|Reactant|% Converted|\n",
+    "|---|---|---|\n",
+    "|(Glucan)n + n H2O→ n Glucose|Glucan|9.9|\n",
+    "|(Glucan)n + n H2O → n Glucose Oligomer|Glucan|0.3|\n",
+    "|(Glucan)n → n HMF + 2n H2O|Glucan|0.3|\n",
+    "|Sucrose → HMF + Glucose + 2 H2O|Sucrose|100.0|\n",
+    "|(Xylan)n + n H2O→ n Xylose|Xylan|90.0|\n",
+    "|(Xylan)n + m H2O → m Xylose Oligomer|Xylan|2.4|\n",
+    "|(Xylan)n → n Furfural + 2n H2O|Xylan|5.0|\n",
+    "|Acetate → Acetic Acid|Acetate|100.0|\n",
+    "|(Lignin)n → n Soluble Lignin|Lignin|5.0|\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Create a ParallelReaction from Reaction objects:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "ParallelReaction:\n",
+      " stoichiometry                     reactant    X[%]\n",
+      " H2O + Glucan -> Glucose           Glucan      9.90\n",
+      " H2O + Glucan -> GlucoseOligomer   Glucan      0.30\n",
+      " Glucan -> 2 H2O + HMF             Glucan      0.30\n",
+      " Sucrose -> 2 H2O + HMF + Glucose  Sucrose     0.30\n",
+      " H2O + Xylan -> Xylose             Xylan      90.00\n",
+      " H2O + Xylan -> XyloseOligomer     Xylan       0.24\n",
+      " Xylan -> 2 H2O + Furfural         Xylan       0.50\n",
+      " Acetate -> AceticAcid             Acetate   100.00\n",
+      " Lignin -> SolubleLignin           Lignin      0.50\n"
+     ]
+    }
+   ],
+   "source": [
+    "from cornstover.species import species \n",
+    "\n",
+    "# Set Stream.species as defined in [1-4]\n",
+    "Stream.species = species\n",
+    "\n",
+    "# Create reactions\n",
+    "pretreatment_rxn = rxn.ParallelReaction([\n",
+    "    #            Reaction definition                 Reactant    Conversion\n",
+    "    rxn.Reaction('Glucan + H2O -> Glucose',          'Glucan',   0.0990),\n",
+    "    rxn.Reaction('Glucan + H2O -> GlucoseOligomer',  'Glucan',   0.0030),\n",
+    "    rxn.Reaction('Glucan -> HMF + 2 H2O',            'Glucan',   0.0030),\n",
+    "    rxn.Reaction('Sucrose -> HMF + Glucose + 2H2O',  'Sucrose',  0.0030),\n",
+    "    rxn.Reaction('Xylan + H2O -> Xylose',            'Xylan',    0.9000),\n",
+    "    rxn.Reaction('Xylan + H2O -> XyloseOligomer',    'Xylan',    0.0024),\n",
+    "    rxn.Reaction('Xylan -> Furfural + 2 H2O',        'Xylan',    0.0050),\n",
+    "    rxn.Reaction('Acetate -> AceticAcid',            'Acetate',  1.0000),\n",
+    "    rxn.Reaction('Lignin -> SolubleLignin',          'Lignin',   0.0050)])\n",
+    "\n",
+    "pretreatment_rxn"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Model the reaction:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "BEFORE REACTION\n",
+      "Stream: d2\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " flow (kmol/hr): H2O        2.07e+05\n",
+      "                 Ethanol    18\n",
+      "                 H2SO4      1.84e+03\n",
+      "                 Sucrose    1.87\n",
+      "                 Extract    67.8\n",
+      "                 Acetate    25.1\n",
+      "                 Ash        4.11e+03\n",
+      "                 Lignin     1.31e+04\n",
+      "                 Protein    108\n",
+      "                 Glucan     180\n",
+      "                 Xylan      123\n",
+      "                 Arabinan   9.02\n",
+      "                 Mannan     3.08\n",
+      "                 Furfurals  172\n",
+      "AFTER REACTION\n",
+      "Stream: d2\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " flow (kmol/hr): H2O              2.07e+05\n",
+      "                 Ethanol          18\n",
+      "                 AceticAcid       25.1\n",
+      "                 Furfural         0.615\n",
+      "                 H2SO4            1.84e+03\n",
+      "                 HMF              0.546\n",
+      "                 Glucose          17.8\n",
+      "                 Xylose           111\n",
+      "                 Sucrose          1.86\n",
+      "                 Extract          67.8\n",
+      "                 Ash              4.11e+03\n",
+      "                 Lignin           1.3e+04\n",
+      "                 SolubleLignin    65.5\n",
+      "                 GlucoseOligomer  0.54\n",
+      "                 XyloseOligomer   0.295\n",
+      "                 Protein          108\n",
+      "                 Glucan           161\n",
+      "                 Xylan            11.4\n",
+      "                 Arabinan         9.02\n",
+      "                 Mannan           3.08\n",
+      "                 Furfurals        172\n"
+     ]
+    }
+   ],
+   "source": [
+    "feed = Stream(H2O=2.07e+05,\n",
+    "              Ethanol=18,\n",
+    "              H2SO4=1.84e+03,\n",
+    "              Sucrose=1.87,\n",
+    "              Extract=67.8,\n",
+    "              Acetate=25.1,\n",
+    "              Ash=4.11e+03,\n",
+    "              Lignin=1.31e+04,\n",
+    "              Protein=108,\n",
+    "              Glucan=180,\n",
+    "              Xylan=123,\n",
+    "              Arabinan=9.02,\n",
+    "              Mannan=3.08,\n",
+    "              Furfurals=172)\n",
+    "print('BEFORE REACTION')\n",
+    "feed.show()\n",
+    "\n",
+    "# React feed molar flow rate\n",
+    "pretreatment_rxn(feed.mol)\n",
+    "\n",
+    "print('AFTER REACTION')\n",
+    "feed.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Reactions in series"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "SeriesReaction objects work the same way, but in series:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "SeriesReaction:\n",
+      " stoichiometry                     reactant    X[%]\n",
+      " H2O + Glucan -> Glucose           Glucan      9.90\n",
+      " H2O + Glucan -> GlucoseOligomer   Glucan      0.30\n",
+      " Glucan -> 2 H2O + HMF             Glucan      0.30\n",
+      " Sucrose -> 2 H2O + HMF + Glucose  Sucrose     0.30\n",
+      " H2O + Xylan -> Xylose             Xylan      90.00\n",
+      " H2O + Xylan -> XyloseOligomer     Xylan       0.24\n",
+      " Xylan -> 2 H2O + Furfural         Xylan       0.50\n",
+      " Acetate -> AceticAcid             Acetate   100.00\n",
+      " Lignin -> SolubleLignin           Lignin      0.50\n"
+     ]
+    }
+   ],
+   "source": [
+    "pretreatment_series_rxn = rxn.SeriesReaction(pretreatment_rxn)\n",
+    "pretreatment_series_rxn"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "NET CONVERSION IN PARALLEL\n",
+      "Glucan    0.105\n",
+      "Sucrose   0.003\n",
+      "Xylan     0.907\n",
+      "Acetate       1\n",
+      "Lignin    0.005\n",
+      "dtype: float64\n",
+      "\n",
+      "NET CONVERSION IN Series\n",
+      "Glucan    8.91e-07\n",
+      "Sucrose      0.003\n",
+      "Xylan     1.08e-05\n",
+      "Acetate          1\n",
+      "Lignin       0.005\n",
+      "dtype: float64\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "print('NET CONVERSION IN PARALLEL')\n",
+    "print(pd.Series(pretreatment_rxn.X_net))\n",
+    "\n",
+    "print('\\nNET CONVERSION IN SERIES')\n",
+    "print(pd.Series(pretreatment_series_rxn.X_net))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "BEFORE REACTION\n",
+      "Stream: d3\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " flow (kmol/hr): H2O        2.07e+05\n",
+      "                 Ethanol    18\n",
+      "                 H2SO4      1.84e+03\n",
+      "                 Sucrose    1.87\n",
+      "                 Extract    67.8\n",
+      "                 Acetate    25.1\n",
+      "                 Ash        4.11e+03\n",
+      "                 Lignin     1.31e+04\n",
+      "                 Protein    108\n",
+      "                 Glucan     180\n",
+      "                 Xylan      123\n",
+      "                 Arabinan   9.02\n",
+      "                 Mannan     3.08\n",
+      "                 Furfurals  172\n",
+      "AFTER REACTION\n",
+      "Stream: d3\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " flow (kmol/hr): H2O              2.07e+05\n",
+      "                 Ethanol          18\n",
+      "                 AceticAcid       25.1\n",
+      "                 Furfural         0.0614\n",
+      "                 H2SO4            1.84e+03\n",
+      "                 HMF              0.491\n",
+      "                 Glucose          17.8\n",
+      "                 Xylose           111\n",
+      "                 Sucrose          1.86\n",
+      "                 Extract          67.8\n",
+      "                 Ash              4.11e+03\n",
+      "                 Lignin           1.3e+04\n",
+      "                 SolubleLignin    65.5\n",
+      "                 GlucoseOligomer  0.487\n",
+      "                 XyloseOligomer   0.0295\n",
+      "                 Protein          108\n",
+      "                 Glucan           161\n",
+      "                 Xylan            12.2\n",
+      "                 Arabinan         9.02\n",
+      "                 Mannan           3.08\n",
+      "                 Furfurals        172\n"
+     ]
+    }
+   ],
+   "source": [
+    "feed = Stream(H2O=2.07e+05,\n",
+    "              Ethanol=18,\n",
+    "              H2SO4=1.84e+03,\n",
+    "              Sucrose=1.87,\n",
+    "              Extract=67.8,\n",
+    "              Acetate=25.1,\n",
+    "              Ash=4.11e+03,\n",
+    "              Lignin=1.31e+04,\n",
+    "              Protein=108,\n",
+    "              Glucan=180,\n",
+    "              Xylan=123,\n",
+    "              Arabinan=9.02,\n",
+    "              Mannan=3.08,\n",
+    "              Furfurals=172)\n",
+    "print('BEFORE REACTION')\n",
+    "feed.show()\n",
+    "\n",
+    "# React feed molar flow rate\n",
+    "pretreatment_series_rxn(feed.mol)\n",
+    "\n",
+    "print('AFTER REACTION')\n",
+    "feed.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Indexing reactions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Both SeriesReaction, and ParallelReaction objects are indexable:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "ParallelReaction:\n",
+      " stoichiometry                    reactant    X[%]\n",
+      " H2O + Glucan -> Glucose          Glucan      9.90\n",
+      " H2O + Glucan -> GlucoseOligomer  Glucan      0.30\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Index a slice\n",
+    "pretreatment_rxn[0:2]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "ReactionItem:\n",
+      " stoichiometry            reactant    X[%]\n",
+      " H2O + Glucan -> Glucose  Glucan      9.90\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Index an item\n",
+    "pretreatment_rxn[0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Change conversion through the item\n",
+    "pretreatment_rxn[0].X = 0.10"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "ParallelReaction:\n",
+      " stoichiometry                     reactant    X[%]\n",
+      " H2O + Glucan -> Glucose           Glucan     10.00\n",
+      " H2O + Glucan -> GlucoseOligomer   Glucan      0.30\n",
+      " Glucan -> 2 H2O + HMF             Glucan      0.30\n",
+      " Sucrose -> 2 H2O + HMF + Glucose  Sucrose     0.30\n",
+      " H2O + Xylan -> Xylose             Xylan      90.00\n",
+      " H2O + Xylan -> XyloseOligomer     Xylan       0.24\n",
+      " Xylan -> 2 H2O + Furfural         Xylan       0.50\n",
+      " Acetate -> AceticAcid             Acetate   100.00\n",
+      " Lignin -> SolubleLignin           Lignin      0.50\n"
+     ]
+    }
+   ],
+   "source": [
+    "pretreatment_rxn"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Notice how changing conversion of a ReationItem object changes the converion in the ParallelReaction object."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### References\n",
+    "\n",
+    "<a id='References'></a>\n",
+    "\n",
+    "1. Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A., Dudgeon, D. (2011). Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269\n",
+    "\n",
+    "2. Hatakeyama, T., Nakamura, K., & Hatakeyama, H. (1982). Studies on heat capacity of cellulose and lignin by differential scanning calorimetry. Polymer, 23(12), 1801–1804. https://doi.org/10.1016/0032-3861(82)90125-2\n",
+    "\n",
+    "3. Thybring, E. E. (2014). Explaining the heat capacity of wood constituents by molecular vibrations. Journal of Materials Science, 49(3), 1317–1327. https://doi.org/10.1007/s10853-013-7815-6\n",
+    "\n",
+    "4. Murphy W. K., and K. R. Masters. (1978). Gross heat of combustion of northern red oak (Quercus rubra) chemical components. Wood Sci. 10:139-141."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

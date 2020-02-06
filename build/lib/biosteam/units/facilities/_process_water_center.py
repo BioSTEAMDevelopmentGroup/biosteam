@@ -40,13 +40,12 @@ class ProcessWaterCenter(Facility):
     def _run(self):
         s_recycle, s_makeup = self._ins
         s_process, = self.outs
-        process_water = s_process.molnet
-        recycle_water = s_recycle.molnet
+        process_water = s_process.F_mol
+        recycle_water = s_recycle.F_mol
         process_loss = process_water - recycle_water
         makeup_water = process_loss if process_loss > 0 else 0
-        wi = s_makeup.index('7732-18-5')
-        s_makeup.mol[wi] = makeup_water
-        Design = self._Design
+        s_makeup.imol['7732-18-5'] = makeup_water
+        Design = self.design_results
         Design['Process water flow rate'] = process_water * 18.015
         Design['Makeup water flow rate'] = makeup_water * 18.015
         

@@ -6,10 +6,11 @@ Created on Thu Aug 23 21:43:13 2018
 """
 import numpy as np
 import biosteam as bst
-from .. import Unit, Stream
+from .. import Unit
 from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
-from .designtools import vacuum_system
+from .designtools import calculate_vacuum_system_power_and_cost
+from thermosteam import Stream
 from flexsolve import IQ_interpolation
 from warnings import warn
 import ht
@@ -84,8 +85,7 @@ class MultiEffectEvaporator(Unit):
             raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 component='Water', P, V):
+    def __init__(self, ID='', ins=None, outs=(), *, P, V):
         Unit.__init__(self, ID, ins, outs)
         # Unpack
         out_wt_solids, liq = self.outs
@@ -94,36 +94,15 @@ class MultiEffectEvaporator(Unit):
         
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
-        Stream.species = liq.species
-        evap0 = Evaporator_PV(None, outs=(None, None),
-                             component=component, P=P[0])
-        
+        evap0 = Evaporator_PV(None, outs=(None, None), P=P[0])
         evaporators = [evap0]
         for i in range(1, n):
-            evap = Evaporator_PQ(None,
-                                   outs=(None, None, None),
-                                   component=component, P=P[i], Q=0)
+            evap = Evaporator_PQ(None, outs=(None, None, None), P=P[i], Q=0)
             evaporators.append(evap)
         condenser = HXutility(None, outs=Stream(None), V=0)
-        evap0._heat_utilities[0], condenser._heat_utilities[0] = self._heat_utilities
+        self.heat_utilities = (evap0.heat_utilities[0], condenser.heat_utilities[0])
         mixer = Mixer(None, outs=Stream(None))
         
-        def V_final(v1):
-            # Run first evaporator
-            v_test = v1
-            evap0.V = v1
-            evap0._run()
-            # Put liquid first, then vapor side stream
-            ins = [evap0.outs[1], evap0.outs[0]]
-            for i in range(1, n):
-                evap = evaporators[i]
-                evap._ins[:] = ins
-                evap._run()
-                v_test += (1-v_test) * evap._V
-                # Put liquid first, then vapor side stream
-                ins = [evap.outs[1], evap.outs[0]]
-            return v_test
-        self._V_final = V_final
         self.components = {'evaporators': evaporators,
                            'condenser': condenser,
                            'mixer': mixer}
@@ -138,15 +117,32 @@ class MultiEffectEvaporator(Unit):
         # Set-up components
         components = self.components
         evaporators = components['evaporators']
-        evaporators[0].ins[:] = [Stream.like(i, None) for i in ins]
+        first_evaporator, *other_evaporators = evaporators
+        first_evaporator.ins[:] = [i.copy() for i in ins]
         condenser = components['condenser']
         mixer = components['mixer']
-        V_final = self._V_final
+        
+        def compute_overall_vapor_fraction(v1):
+            # Run first evaporator
+            v_test = v1
+            first_evaporator.V = v1
+            first_evaporator._run()
+            # Put liquid first, then vapor side stream
+            ins = [first_evaporator.outs[1], first_evaporator.outs[0]]
+            for evap in other_evaporators:
+                evap.ins[:] = ins
+                evap._run()
+                v_test += (1-v_test) * evap._V
+                # Put liquid first, then vapor side stream
+                ins = [evap.outs[1], evap.outs[0]]
+            return v_test
+        
         x0 = 0.0001
         x1 = 0.9910
-        y0 = V_final(x0)
-        y1 = V_final(x1)
-        self._V1 = IQ_interpolation(V_final, x0, x1, y0, y1, self._V1, self.V, 
+        y0 = compute_overall_vapor_fraction(x0)
+        y1 = compute_overall_vapor_fraction(x1)
+        self._V1 = IQ_interpolation(compute_overall_vapor_fraction,
+                                    x0, x1, y0, y1, self._V1, self.V, 
                                     xtol=0.0001, ytol=0.001)
         
         # Condensing vapor from last effector
@@ -156,7 +152,7 @@ class MultiEffectEvaporator(Unit):
         outs_liq = [condenser.outs[0]]  # list containing all output liquids
 
         # Unpack other output streams
-        out_wt_solids.copylike(evaporators[-1].outs[1])
+        out_wt_solids.copy_like(evaporators[-1].outs[1])
         for i in range(1, n):
             evap = evaporators[i]
             outs_liq.append(evap.outs[2])
@@ -164,7 +160,7 @@ class MultiEffectEvaporator(Unit):
         # Mix liquid streams
         mixer.ins[:] = outs_liq
         mixer._run()
-        liq.copylike(mixer.outs[0])
+        liq.copy_like(mixer.outs[0])
         
     def _design(self):
         # This functions also finds the cost
@@ -172,17 +168,17 @@ class MultiEffectEvaporator(Unit):
         components = self.components
         evaporators = components['evaporators']
         Design = self._Design
-        Cost = self._Cost
+        Cost = self.purchase_costs
         CE = bst.CE
         
         evap0 = evaporators[0]
-        hu = evap0._heat_utilities[0]
-        duty = evap0._H_out - evap0._H_in
+        hu = evap0.heat_utilities[0]
+        duty = evap0.H_out - evap0.H_in
         hu(duty, evap0.ins[0].T, evap0.outs[0].T)
         Q = abs(duty)
         Tci = evap0.ins[0].T
         Tco = evap0.outs[0].T
-        Th = evap0._heat_utilities[0]._fresh.T
+        Th = evap0.heat_utilities[0]._fresh.T
         LMTD = ht.LMTD(Th, Th, Tci, Tco)
         ft = 1
         A = HXutility._calc_area(LMTD, U, Q, ft)
@@ -192,7 +188,7 @@ class MultiEffectEvaporator(Unit):
         condenser = components['condenser']
         condenser._design()
         condenser._cost()
-        Cost['Condenser'] = condenser._Cost['Heat exchanger']
+        Cost['Condenser'] = condenser.purchase_costs['Heat exchanger']
         
         # Find area and cost of evaporators
         As = [A]
@@ -208,13 +204,13 @@ class MultiEffectEvaporator(Unit):
             evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)
-        Design['Volume'] = vol = self._N_evap * self.tau * self.ins[0].volnet
+        Design['Volume'] = total_volume = self._N_evap * self.tau * self.ins[0].F_vol
         Cost['Evaporators'] = sum(evap_costs)
         
         # Calculate power
-        power, cost = vacuum_system(massflow=0, volflow=0,
-                                    P_suction=evap.outs[0].P, vol=vol,
-                                    vacuum_system_preference='Liquid-ring pump')
+        power, cost = calculate_vacuum_system_power_and_cost(
+            F_mass=0, F_vol=0, P_suction=evap.outs[0].P, vessel_volume=total_volume,
+            vacuum_system_preference='Liquid-ring pump')
         Cost['Vacuum liquid-ring pump'] = cost
         self._power_utility(power)
         

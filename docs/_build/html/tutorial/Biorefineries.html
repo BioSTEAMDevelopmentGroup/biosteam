@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>9. Bioferineries &mdash; BioSTEAM 0.1 documentation</title>
+  <title>8. Bioferineries &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="10. Techno-economic analysis" href="Techno-economic analysis.html" />
-    <link rel="prev" title="8. Using -pipe- notation" href="Using -pipe- notation.html" /> 
+    <link rel="next" title="9. Techno-economic analysis" href="Techno-economic analysis.html" />
+    <link rel="prev" title="7. Using -pipe- notation" href="Using -pipe- notation.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,23 +85,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
@@ -109,10 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -164,7 +156,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>9. Bioferineries</li>
+      <li><span class="section-number">8. </span>Bioferineries</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -367,22 +359,34 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Bioferineries">
-<h1>9. Bioferineries<a class="headerlink" href="#Bioferineries" title="Permalink to this headline">¶</a></h1>
-<p>BioSTEAM comes with key biorefinery designs, including a design for 2nd
-generation ethanol production from corntover and a design for the
-co-production of ethanol and biodiesel from lipidcane <a class="reference external" href="#References">[1,
-2]</a>. To load the cornstover biorefinery, simply load the
-<code class="docutils literal notranslate"><span class="pre">system</span></code>:</p>
-<div class="nbinput nblast docutils container">
+<h1><span class="section-number">8. </span>Bioferineries<a class="headerlink" href="#Bioferineries" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">biorefineries</span></code> package comes with key BioSTEAM biorefinery
+designs, including a design for 2nd generation ethanol production from
+corntover and a design for the co-production of ethanol and biodiesel
+from lipidcane <a class="reference external" href="#References">[1, 2]</a>. To load the cornstover
+biorefinery, simply load the <code class="docutils literal notranslate"><span class="pre">system</span></code>:</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="kn">from</span> <span class="nn">biosteam.biorefineries.cornstover</span> <span class="kn">import</span> <span class="n">system</span>
+<span class="c1"># First &quot;pip install biorefineries&quot;</span>
+<span class="kn">from</span> <span class="nn">biorefineries.cornstover</span> <span class="kn">import</span> <span class="n">system</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\Users\yoelr\OneDrive\Code\Bioindustrial-Park\BioSTEAM 2.x.x\biorefineries\cornstover\units.py:455: RuntimeWarning: divide by zero encountered in double_scalars
+  cool_water.mol[:] *= (feed.H - H_at_35C)/(hot_water.H - cool_water.H)
+C:\Users\yoelr\OneDrive\Code\Bioindustrial-Park\BioSTEAM 2.x.x\biorefineries\cornstover\units.py:455: RuntimeWarning: invalid value encountered in multiply
+  cool_water.mol[:] *= (feed.H - H_at_35C)/(hot_water.H - cool_water.H)
+</pre></div></div>
 </div>
 <p>Now your flowsheet should change to the cornstover biorefinery:</p>
 <div class="nbinput docutils container">
@@ -430,6 +434,7 @@ flowsheet:</p>
  &lt;System: purification&gt;
  &lt;System: aerobic_digestion_sys&gt;
  &lt;System: cornstover_sys&gt;
+ &lt;System: Area700&gt;
 </pre></div>
 </div>
 </div>
@@ -460,9 +465,9 @@ as the flowsheet:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam.biorefineries.lipidcane</span> <span class="kn">import</span> <span class="n">system</span>
-<span class="n">cornstover_sys</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">lipidcane_sys</span>
-<span class="n">cornstover_sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane</span> <span class="kn">import</span> <span class="n">system</span>
+<span class="n">lipidcane_sys</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">lipidcane_sys</span>
+<span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -524,7 +529,7 @@ as the flowsheet:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -548,7 +553,7 @@ as the flowsheet:</p>
 </pre></div>
 </div>
 </div>
-<p>You can also import only the Species object used to model the
+<p>You can also import only the Chemicals object used to model the
 thermodynamic properties, without having to load the whole biorefinery
 system:</p>
 <div class="nbinput docutils container">
@@ -557,9 +562,9 @@ system:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam.biorefineries.lipidcane</span> <span class="kn">import</span> <span class="n">species</span>
+<span></span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane.chemicals</span> <span class="kn">import</span> <span class="n">lipidcane_chemicals</span>
 <span class="c1"># Note: The species module contains all species objects</span>
-<span class="n">species</span><span class="o">.</span><span class="n">lipidcane_species</span>
+<span class="n">lipidcane_chemicals</span>
 </pre></div>
 </div>
 </div>
@@ -569,7 +574,7 @@ system:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Species: Glucose, H3PO4, Flocculant, Ethanol, Lignin, Solids, Sucrose, CaO, Ash, Cellulose, Hemicellulose, Lipid, Water, Methanol, Glycerol, Biodiesel, NaOH, HCl, NaOCH3, CO2, Octane, DryYeast&gt;
+<span></span>CompiledChemicals([Water, Methanol, Ethanol, Glycerol, Glucose, Sucrose, H3PO4, CO2, Octane, Biodiesel, Ash, Cellulose, Hemicellulose, Flocculant, Lignin, Solids, DryYeast, CaO, HCl, NaOH, NaOCH3, Lipid])
 </pre></div>
 </div>
 </div>
@@ -585,6 +590,16 @@ Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
 Pretreatment and Enzymatic Hydrolysis of Corn Stover
 (No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p></li>
 </ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -595,10 +610,10 @@ Pretreatment and Enzymatic Hydrolysis of Corn Stover
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Techno-economic analysis.html" class="btn btn-neutral float-right" title="10. Techno-economic analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Techno-economic analysis.html" class="btn btn-neutral float-right" title="9. Techno-economic analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Using -pipe- notation.html" class="btn btn-neutral float-left" title="8. Using -pipe- notation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Using -pipe- notation.html" class="btn btn-neutral float-left" title="7. Using -pipe- notation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

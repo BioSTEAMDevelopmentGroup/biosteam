@@ -1,7 +1,5 @@
 Block
 =====
 
-.. module:: biosteam.evaluation
-
-.. autoclass:: Block
+.. autoclass:: biosteam.evaluation.Block
    :members:

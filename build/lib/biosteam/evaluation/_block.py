@@ -5,13 +5,14 @@ Created on Wed Mar  6 15:22:37 2019
 @author: yoelr
 """
         
-from .. import Unit, Stream
+from .. import Unit
+from thermosteam import Stream
 from inspect import signature
 from ._parameter import Parameter
 
 __all__ = ('Block',)
 
-do_nothing = lambda: None
+def do_nothing(): pass
 
 # %% Simulation blocks
 

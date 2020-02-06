@@ -8,6 +8,11 @@ __all__ = ('NotImplementedMethod',)
 
 class NotImplementedMethodType:
     __slots__ = ()
+    
+    @property
+    def __name__(self): return "NotImplementedMethod"
+    @property
+    def __doc__(self): return None
     def __new__(self): return NotImplementedMethod
     def __call__(self): pass
     def __bool__(self): return False

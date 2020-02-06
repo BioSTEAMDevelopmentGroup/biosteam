@@ -6,13 +6,13 @@ Created on Thu Aug 23 19:33:20 2018
 @author: yoelr
 """
 import numpy as np
-from .. import Unit, MixedStream, Stream
+from thermosteam import MultiStream, Stream
+from .. import Unit
 from ..utils import approx2step
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
 import biosteam as bst
-from .. import _equilibrium as eq
 array = np.array
 
 # %% Equations
@@ -30,11 +30,27 @@ F_TTdict = {'Sieve': 1,
             'Bubble cap': 1.87}
 
 # Tray Materials (inner diameter, Di, in ft)
-F_TMdict = {'Carbon steel': lambda Di: 1,
-            'Stainless steel 304': lambda Di: 1.189 + 0.058*Di,
-            'Stainless steel 316': lambda Di: 1.401 + 0.073*Di,
-            'Carpenter 20CB-3': lambda Di: 1.525 + 0.079*Di,
-            'Monel': lambda Di: 2.306 + 0.112*Di}
+
+def compute_carbon_steel_material_factor(Di):
+    return 1
+
+def compute_stainless_steel_304_material_factor(Di):
+    return 1.189 + 0.058*Di
+
+def compute_stainless_steel_316_material_factor(Di):
+    return 1.401 + 0.073*Di
+
+def compute_carpenter_20CB3_material_factor(Di):
+    return 1.525 + 0.079*Di
+
+def compute_monel_material_factor(Di):
+    return 2.306 + 0.112*Di
+
+F_TMdict = {'Carbon steel': compute_carbon_steel_material_factor,
+            'Stainless steel 304': compute_stainless_steel_304_material_factor,
+            'Stainless steel 316': compute_stainless_steel_316_material_factor,
+            'Carpenter 20CB-3': compute_carpenter_20CB3_material_factor,
+            'Monel': compute_monel_material_factor}
 
 # Column Material
 F_Mdict = {'Carbon steel': 1.0,
@@ -62,52 +78,6 @@ rho_Mdict = {'Carbon steel': 0.284 ,
 
 # %% Distillation
 
-# Abstract doc string for columns
-column_doc = """Create a {Column Type} column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O'Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].
-
-    Parameters
-    ----------
-    ins
-        [:] All input streams
-
-    outs
-        [0] Distillate product
-        
-        [1] Bottoms product
-
-    LHK : tuple[str]
-          Light and heavy keys.
-
-    P=101325 : float
-        Operating pressure (Pa).
-
-    y_top : float
-            Molar fraction of light key in the distillate.
-
-    x_bot : float
-            Molar fraction of light key in the bottoms.
-
-    k : float
-        Ratio of reflux to minimum reflux.
-
-    References
-    ----------
-    [1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. (2011)
-
-    [2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)
-    
-    [3] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
-
-    [4] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
-
-    [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    
-
-    Examples
-    --------
-    :doc:`notebooks/{Column Type} Example`
-    
-    """
-
 class Dist(Unit, isabstract=True):
     """Abstract class for a column."""
     # Bare module factor
@@ -123,7 +93,7 @@ class Dist(Unit, isabstract=True):
     
     # Tray material factor function
     _F_TMstr = 'Carbon steel'
-    _F_TM = staticmethod(lambda Di: 1)
+    _F_TM = staticmethod(F_TMdict['Carbon steel'])
     
     # [float] Tray spacing (225-600 mm)
     _TS = 450 
@@ -149,45 +119,32 @@ class Dist(Unit, isabstract=True):
                'Weight': (9000., 2.5e6)}
     
     @property
-    def P(self):
-        return self._P
-    @P.setter
-    def P(self, P):
-        vap, liq = self.outs
-        self._P = vap.P = liq.P = P
-    @property
     def LHK(self):
         return self._LHK
     @LHK.setter
     def LHK(self, LHK):
         # Set light non-key and heavy non-key indices
-        self._LHK = LK, HK = LHK
-        species = self.outs[0].species
-        self._LHK_index = LK_index, HK_index = species.indices(LHK)
-        gamma = eq.Dortmund(getattr(species, LK), getattr(species, HK))
-        self._bubble_point = eq.BubblePoint(gamma)
-        
-        species_list = list(species)
-        indices = list(range(len(species_list)))
-        species_list.pop(LK_index)
-        indices.pop(LK_index)
-        if HK_index > LK_index:
-            HK_index -= 1
-        species_list.pop(HK_index)
-        indices.pop(HK_index)
-        Tbs = [s.Tb for s in species_list]
-        
-        Tb_light = getattr(species, LK).Tb
-        Tb_heavy = getattr(species, HK).Tb
-        self._LNK_index = LNK_index = []
-        self._HNK_index = HNK_index = []
-        for Tb, i, s in zip(Tbs, indices, species_list):
-            if Tb < Tb_light:
-                LNK_index.append(i)
+        self._LHK = LHK = tuple(LHK)
+        chemicals = self.chemicals
+        LHK_chemicals = LK_chemical, HK_chemical = self.chemicals.retrieve(LHK)
+        Tb_light = LK_chemical.Tb
+        Tb_heavy = HK_chemical.Tb
+        LNK = []
+        HNK = []
+        if Tb_light > Tb_heavy:
+            raise ValueError(f"light key must be lighter than heavy key")
+        for chemical in chemicals:
+            Tb = chemical.Tb
+            if not Tb:
+                HNK.append(chemical.ID)
+            elif Tb < Tb_light:
+                LNK.append(chemical.ID)
             elif Tb > Tb_heavy:
-                HNK_index.append(i)
-            else:
-                raise ValueError(f"intermediate volatile specie, '{species_list[i]}', between light and heavy key, ['{LK}', '{HK}'].")
+                HNK.append(chemical.ID)
+            elif chemical not in LHK_chemicals:
+                raise ValueError(f"intermediate volatile specie, '{chemical}', between light and heavy key, ['{LK_chemical}', '{HK_chemical}']")
+        self._LNK = tuple(LNK)
+        self._HNK = tuple(HNK)
     
     @property
     def y_top(self):
@@ -205,10 +162,9 @@ class Dist(Unit, isabstract=True):
         self._x_bot = x_bot
         self._x = array([x_bot, 1-x_bot])
     
-    def __init__(self, ID='', ins=None, outs=(),
+    def __init__(self, ID='', ins=None, outs=(), thermo=None,
                  P=101325, *, LHK, y_top, x_bot, k):
-        super().__init__(ID, ins, outs)
-        self.outs[0]._phase = 'g'
+        super().__init__(ID, ins, outs, thermo)
         self.P = P
         self.LHK = LHK
         self.y_top = y_top
@@ -305,56 +261,40 @@ class Dist(Unit, isabstract=True):
         self._F_Mstr = vessel_material  
     
     def _mass_balance(self):
-        vap, liq = self.outs
-
         # Get all important flow rates (both light and heavy keys and non-keys)
-        LHK_index = self._LHK_index
-        LNK_index = self._LNK_index
-        HNK_index = self._HNK_index
-        mol = self._mol_in
+        get_index = self.chemicals.get_index
+        LHK_index = get_index(self._LHK)
+        LNK_index = get_index(self._LNK)
+        HNK_index = get_index(self._HNK)
+        mol = self.mol_in
         LHK_mol = mol[LHK_index]
         HNK_mol = mol[HNK_index]
         LNK_mol = mol[LNK_index]
 
         # Set light and heavy keys by lever rule
         light, heavy = LHK_mol
-        LHK_molnet = light + heavy
-        zf = light/LHK_molnet
+        LHK_F_mol = light + heavy
+        zf = light/LHK_F_mol
         split_frac = (zf-self.x_bot)/(self.y_top-self.x_bot)
-        top_net = LHK_molnet*split_frac
+        top_net = LHK_F_mol*split_frac
 
         # Set output streams
-        vap.mol[LHK_index] = top_net * self._y
-        liq.mol[LHK_index] = LHK_mol - vap.mol[LHK_index]
+        vap, liq = self.outs
+        vap.mol[LHK_index] = vap_LHK_mol = top_net * self._y
+        liq.mol[LHK_index] = LHK_mol - vap_LHK_mol
         vap.mol[LNK_index] = LNK_mol
         liq.mol[HNK_index] = HNK_mol
     
     def _run(self):
         self._mass_balance()
-        
-        # Unpack arguments
         vap, liq = self.outs
-        species = vap._species
-        cmps = species._compounds
-        self._top_index = top_index = species._equilibrium_indices(vap._mol > 0)
-        self._bot_index = bot_index = species._equilibrium_indices(liq._mol > 0)
-        self._vle_top = [cmps[i] for i in top_index]
-        self._vle_bot = [cmps[i] for i in bot_index]
-
-        # Get top and bottom compositions
-        vap_mol = vap.mol[top_index]
-        y = vap_mol/vap_mol.sum()
-
-        liq_mol = liq.mol[bot_index]
-        x = liq_mol/liq_mol.sum()
-
-        # Run top equilibrium to find temperature and composition of condensate
-        vap._gamma.species = self._vle_top
-        vap.T, self._condensate_molfrac = vap._dew_point.solve_Tx(y, vap.P)
-
-        # Run bottoms equilibrium to find temperature
-        liq._gamma.species = self._vle_bot
-        liq.T, self._boilup_molfrac = liq._bubble_point.solve_Ty(x, liq.P)
+        vap.phase = 'g'
+        liq.phase = 'l'
+        vap.P = liq.P = self.P
+        self._condensate_dew_point = dp = vap.dew_point_at_P()
+        self._boilup_bubble_point = bp = liq.bubble_point_at_P()
+        liq.T = bp.T
+        vap.T = dp.T
 
     def _equilibrium_staircase(self, operating_line, x_stairs,
                                y_stairs, T_stairs, x_limit, bubble_T):
@@ -401,7 +341,8 @@ class Dist(Unit, isabstract=True):
             self._design()
         x_stages = self._x_stages
         y_stages = self._y_stages
-        light = self.LHK[0]
+        LHK = self.LHK
+        LK = self.LHK[0]
         P = self.P
         
         # Equilibrium data
@@ -410,10 +351,10 @@ class Dist(Unit, isabstract=True):
         T = np.zeros(100)
         n = 0
         
-        bp = self._bubble_point
-        bubble_T = bp.solve_Ty
+        bp = vap.get_bubble_point(IDs=LHK)
+        solve_Ty = bp.solve_Ty
         for xi in x_eq:
-            T[n], y = bubble_T(array([xi, 1-xi]), P)
+            T[n], y = solve_Ty(array([xi, 1-xi]), P)
             y_eq[n] = y[0]
             n += 1
             
@@ -421,8 +362,8 @@ class Dist(Unit, isabstract=True):
         plt.figure()
         plt.xticks(np.arange(0, 1.1, 0.1), fontsize=12)
         plt.yticks(fontsize=12)
-        plt.xlabel('x (' + light + ')', fontsize=16)
-        plt.ylabel('y (' + light + ')', fontsize=16)
+        plt.xlabel('x (' + LK + ')', fontsize=16)
+        plt.ylabel('y (' + LK + ')', fontsize=16)
         plt.xlim([0, 1])
         
         # Plot stages
@@ -501,14 +442,20 @@ class Dist(Unit, isabstract=True):
     def _calc_WallThickness(Po, Di, L, S=15000, E=None, M=29.5):
         """Return tv, the wall thinkness (in) designed to withstand the internal pressure and the wind/earthquake load at the bottom.
         
-        **Parameters**
-        
-            Po: Operating internal pressure (psi)
-            Di: Internal diameter (ft)
-            L: Height (ft)
-            S: Maximum stress (psi)
-            E: Fractional weld efficiency
-            M: Elasticity (psi)
+        Parameters
+        ----------
+        Po : float
+            Operating internal pressure (psi)
+        Di : float
+            Internal diameter (ft)
+        L : float
+            Height (ft)
+        S : float
+            Maximum stress (psi)
+        E : float
+            Fractional weld efficiency
+        M : float
+            Elasticity (psi)
             
         """
         # TODO: Incorporate temperature for choosing S and M
@@ -634,8 +581,10 @@ class Dist(Unit, isabstract=True):
         
         **Parameters**
         
-            TS: Tray spacing (mm)
-            F_LV: Flow parameter
+            TS :
+                Tray spacing (mm)
+            F_LV :
+                Flow parameter
         
         """
         return 0.0105 + 8.127e-4*TS**0.755*np.exp(-1.463*F_LV**0.842)
@@ -645,14 +594,21 @@ class Dist(Unit, isabstract=True):
                                rho_L, rho_V, F_F, A_ha):
         """Return U_f, the maximum allowable vapor velocity through the net area of flow before flooding (m/s).
         
-        **Parameters**
+        Parameters
+        ----------
         
-            C_sbf: Maximum Capacity Parameter (m/s)
-            sigma: Liquid surface tension (dyn/cm)
-            rho_L: Liquid density
-            rho_V: Vapor density
-            F_F: Foaming factor
-            A_ha: Ratio of open area, A_h, to active area, A_a
+        C_sbf : 
+            Maximum Capacity Parameter (m/s)
+        sigma : 
+            Liquid surface tension (dyn/cm)
+        rho_L : 
+            Liquid density
+        rho_V : 
+            Vapor density
+        F_F : 
+            Foaming factor
+        A_ha : 
+            Ratio of open area, A_h, to active area, A_a
         
         """
         F_ST = (sigma/20)**0.2 # Surface tension factor
@@ -669,12 +625,12 @@ class Dist(Unit, isabstract=True):
     
     @staticmethod
     def _calc_DowncomerAreaRatio(F_LV):
-        """Return A_dn, the ratio of downcomer area to net (total) area.
+        """Return the ratio of downcomer area to net (total) area, `A_dn`.
         
-        Parameters
-        ----------
-        F_LV : float
-            Flow parameter.
+        **Parameters**
+        
+            F_LV : float
+                Flow parameter
         
         """
         if F_LV < 0.1:
@@ -728,14 +684,14 @@ class Dist(Unit, isabstract=True):
         condensate = self._condensate # Abstract attribute
         condenser = self._condenser
         s_in = condenser.ins[0]
-        s_in._mol[:] = distillate.mol+condensate.mol
+        s_in.mol[:] = distillate.mol+condensate.mol
         s_in.T = distillate.T
         s_in.P = distillate.P
         ms1 = condenser.outs[0]
-        ms1.liquid_mol[:] = condensate.mol
+        ms1.imol['l'] = condensate.mol
         ms1.T = condensate.T
         ms1.P = condensate.P
-        ms1.vapor_mol[:] = distillate.mol
+        ms1.imol['g'] = distillate.mol
         condenser._design()
         condenser._cost()
         
@@ -744,23 +700,23 @@ class Dist(Unit, isabstract=True):
         boil_up = self._boil_up # Abstract attribute
         boiler = self._boiler
         s_in = boiler.ins[0]
-        s_in.copylike(bottoms)
-        s_in._mol += boil_up.mol
+        s_in.copy_like(bottoms)
+        s_in.mol += boil_up.mol
         ms1 = boiler.outs[0]
         ms1.T = boil_up.T
         ms1.P = boil_up.P
-        ms1.vapor_mol[:] = boil_up.mol
-        ms1.liquid_mol[:] = bottoms.mol
+        ms1.imol['g'] = boil_up.mol
+        ms1.imol['l'] = bottoms.mol
         if hasattr(self, '_condenser'):
-            boiler._design(self._H_out - self._H_in - self._condenser._duty)
+            boiler._design(self.H_out - self.H_in - self._condenser._duty)
             boiler._cost()
         else:
             boiler._design()
             boiler._cost()
         
     def _cost(self):
-        Design = self._Design
-        Cost = self._Cost
+        Design = self.design_results
+        Cost = self.purchase_costs
         F_CE = bst.CE/500
         
         # Cost trays assuming a partial condenser
@@ -776,8 +732,135 @@ class Dist(Unit, isabstract=True):
         
 
 class Distillation(Dist):
+    """
+    Create a Distillation column that assumes all light and heavy non keys
+    separate to the top and bottoms product respectively. McCabe-Thiele
+    analysis is used to find both the number of stages and the reflux ratio
+    given a ratio of actual reflux to minimum reflux [1]_. This assumption
+    is good for both binary distillation of highly polar compounds and
+    ternary distillation assuming complete separation of light non-keys
+    and heavy non-keys with large differences in boiling points. Preliminary
+    analysis showed that the theoretical number of stages using this method
+    on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other
+    methods, such as the Fenske-Underwood-Gilliland method, are more suitable
+    for hydrocarbons. The Murphree efficiency is based on the modified
+    O'Connell correlation [2]_. The diameter is based on tray separation
+    and flooding velocity [1]_. Purchase costs are based on correlations
+    by Mulet et al. [3, 4]_ as compiled by Warren et. al. [5]_.
+
+    Parameters
+    ----------
+    ins
+        [:] All input streams
+    outs
+        [0] Distillate product
+        
+        [1] Bottoms product
+    LHK : tuple[str]
+          Light and heavy keys.
+    P=101325 : float
+        Operating pressure (Pa).
+    y_top : float
+            Molar fraction of light key in the distillate.
+    x_bot : float
+            Molar fraction of light key in the bottoms.
+    k : float
+        Ratio of reflux to minimum reflux.
+
+    References
+    ----------
+    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
+        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
+
+    .. [2] M. Duss, R. Taylor. (2018)
+        Predict Distillation Tray Efficiency. AICHE 
+    
+    .. [3] Mulet, A., A. B. Corripio, and L. B. Evans. (1981a).
+        Estimate Costs of Pressure Vessels via Correlations.
+        Chem. Eng., 88(20), 145–150.
+
+    .. [4] Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).
+        Estimate Costs of Distillation and Absorption Towers via Correlations.
+        Chem. Eng., 88(26), 77–82.
+
+    .. [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)    
+
+    Examples
+    --------
+    Binary distillation assuming 100% separation on non-keys:
+    
+    >>> from biosteam.units import Distillation
+    >>> from thermosteam import Stream, Chemicals, settings
+    >>> chemicals = Chemicals(['Water', 'Methanol', 'Glycerol'])
+    >>> settings.set_thermo(chemicals)
+    >>> feed = Stream('feed', flow=(80, 100, 25))
+    >>> bp = feed.bubble_point_at_P()
+    >>> feed.T = bp.T # Feed at bubble point T
+    >>> D1 = Distillation('D1', ins=feed,
+    ...                   LHK=('Methanol', 'Water'),
+    ...                   y_top=0.99, x_bot=0.01, k=2)
+    >>> D1.is_divided = True
+    >>> D1.simulate()
+    >>> # See all results
+    >>> D1.show(T='degC', P='atm', composition=True)
+    Distillation: D1
+    ins...
+    [0] feed
+        phase: 'l', T: 76.129 degC, P: 1 atm
+        composition: Water     0.39
+                     Methanol  0.488
+                     Glycerol  0.122
+                     --------  205 kmol/hr
+    outs...
+    [0] s1
+        phase: 'g', T: 64.91 degC, P: 1 atm
+        composition: Water     0.01
+                     Methanol  0.99
+                     --------  100 kmol/hr
+    [1] s2
+        phase: 'l', T: 100.06 degC, P: 1 atm
+        composition: Water     0.754
+                     Methanol  0.00761
+                     Glycerol  0.239
+                     --------  105 kmol/hr
+    
+    >>> D1.results()
+    Distillation                                    Units        D1
+    Power               Rate                           kW         0
+                        Cost                       USD/hr         0
+    Cooling water       Duty                        kJ/hr -5.11e+06
+                        Flow                      kmol/hr  3.49e+03
+                        Cost                       USD/hr      1.71
+    Low pressure steam  Duty                        kJ/hr  9.49e+06
+                        Flow                      kmol/hr       244
+                        Cost                       USD/hr      58.1
+    Design              Theoretical feed stage                    9
+                        Theoretical stages                       13
+                        Minimum reflux              Ratio     0.687
+                        Reflux                      Ratio      1.37
+                        Rectifier stages                         14
+                        Stripper stages                          13
+                        Rectifier height               ft      33.2
+                        Stripper height                ft      31.7
+                        Rectifier diameter             ft      3.93
+                        Stripper diameter              ft      3.01
+                        Rectifier wall thickness       in      0.25
+                        Stripper wall thickness        in      0.25
+                        Rectifier weight               lb  4.61e+03
+                        Stripper weight                lb  3.32e+03
+    Purchase cost       Rectifier trays               USD  1.45e+04
+                        Stripper trays                USD  1.21e+04
+                        Rectifier tower               USD  7.41e+04
+                        Stripper tower                USD   6.1e+04
+                        Condenser                     USD  3.41e+04
+                        Boiler                        USD  2.64e+04
+    Total purchase cost                               USD  2.22e+05
+    Utility cost                                   USD/hr      59.8
+    
+    """
     line = 'Distillation'
-    __doc__ = column_doc.replace('{Column Type}', 'Distillation')
     _N_heat_utilities = 0
     _graphics = Dist._graphics
     _is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.
@@ -807,19 +890,22 @@ class Distillation(Dist):
                       'Stripper wall thickness': 'in',
                       'Stripper weight': 'lb'}
     
-    def __init__(self, ID='', ins=None, outs=(),
+    def __init__(self, ID='', ins=None, outs=(), thermo=None,
                  P=101325, *, LHK, y_top, x_bot, k):
-        super().__init__(ID, ins, outs, P, LHK=LHK,
+        super().__init__(ID, ins, outs, thermo, P, LHK=LHK,
                          y_top=y_top, x_bot=x_bot, k=k)
+        thermo = self._load_thermo(thermo)
         self._condenser = HXutility(None,
-                                    ins=Stream(None, phase='g'),
-                                    outs=MixedStream(None))
+                                    ins=Stream(None, phase='g', thermo=thermo),
+                                    outs=MultiStream(None, thermo=thermo),
+                                    thermo=thermo)
         self._boiler = HXutility(None,
-                                 ins=Stream(None),
-                                 outs=MixedStream(None))
-        self._heat_utilities = self._condenser._heat_utilities + self._boiler._heat_utilities
-        self._condensate = Stream(None)
-        self._boil_up = Stream(None, phase='g')
+                                 ins=Stream(None, thermo=thermo),
+                                 outs=MultiStream(None, thermo=thermo),
+                                 thermo=thermo)
+        self.heat_utilities = self._condenser.heat_utilities + self._boiler.heat_utilities
+        self._condensate = Stream(None, thermo=thermo)
+        self._boil_up = Stream(None, phase='g', thermo=thermo)
         self._vapor_stream =  Stream(None)
         self._McCabeThiele_args = np.zeros(6)
     
@@ -836,7 +922,7 @@ class Distillation(Dist):
     def _calc_Nstages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
         vap, liq = self.outs
-        Design = self._Design
+        Design = self.design_results
         x_stages = self._x_stages
         y_stages = self._y_stages
         R = Design['Reflux']
@@ -850,26 +936,25 @@ class Distillation(Dist):
             return N_stages/stage_efficiency
         else:    
             # Calculate Murphree Efficiency for rectifying section
-            vap_molnet = vap.molnet
-            condensate_molfrac = self._condensate_molfrac
-            vle_top = self._vle_top
-            self._L_Rmol = L_Rmol = R*vap_molnet
-            self._V_Rmol = V_Rmol = (R+1)*vap_molnet
+            vap_F_mol = vap.F_mol
+            dp = self._condensate_dew_point
+            condensate_x_mol = dp.x
+            self._L_Rmol = L_Rmol = R*vap_F_mol
+            self._V_Rmol = V_Rmol = (R+1)*vap_F_mol
             condensate = self._condensate
-            condensate.setflow(condensate_molfrac, [i.ID for i in vle_top])
+            condensate.imol[dp.IDs] = condensate_x_mol * L_Rmol
             condensate.T = vap.T
             condensate.P = vap.P
-            condensate._mol[:] *= L_Rmol
-            mu = 1000*condensate.mu # mPa*s
+            mu = 1000 * condensate.mu # mPa*s
             K_light = y_stages[-1]/x_stages[-1] 
             K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
             alpha = K_light/K_heavy
             self._E_rectifier = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
             
             # Calculate Murphree Efficiency for stripping section
-            mu = 1000*liq.mu # mPa*s
-            self._V_Smol = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
-            self._L_Smol = L_Smol = R*vap_molnet + sum(liq_mol) 
+            mu = 1000 * liq.mu # mPa*s
+            self._V_Smol = V_Smol = (R+1)*vap_F_mol - sum(vap_mol)
+            self._L_Smol = L_Smol = R*vap_F_mol + sum(liq_mol) 
             K_light = y_stages[0]/x_stages[0] 
             K_heavy = (1-y_stages[0])/(1-x_stages[0] )
             alpha = K_light/K_heavy
@@ -883,33 +968,32 @@ class Distillation(Dist):
 
     def _McCabeThiele(self):
         distillate, bottoms = self.outs
-        LHK_index = self._LHK_index
+        chemicals = self.chemicals
+        LHK = self._LHK
+        LHK_index = chemicals.get_index(LHK)
 
         # Feed light key mol fraction
-        species = bottoms._species
-        N = species._N
-        liq_mol = np.zeros(N)
+        liq_mol = np.zeros(chemicals.size)
         vap_mol = liq_mol.copy()
         for s in self.ins:
-            if s.phase == 'g':
+            if isinstance(s, MultiStream):
+                liq_mol += s.imol['l']
+                vap_mol += s.imol['g']
+            elif s.phase == 'g':
                 vap_mol += s.mol
             elif s.phase.lower() == 'l':
                 liq_mol += s.mol
-            elif s.phase == 's':
-                pass
-            elif isinstance(s, MixedStream):
-                liq_mol += s.liquid_mol
-                vap_mol += s.vapor_mol
+            elif s.phase == 's': pass
             else:
                 raise RuntimeError(f'invalid phase encountered in {repr(s)}')
         self._feed_liqmol = liq_mol
         self._feed_vapmol = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
-        LHK_molnet = LHK_mol.sum()
-        zf = LHK_mol[0]/LHK_molnet
+        LHK_F_mol = LHK_mol.sum()
+        zf = LHK_mol[0]/LHK_F_mol
         
         # Get feed quality
-        q = liq_mol[LHK_index].sum()/LHK_molnet
+        q = liq_mol[LHK_index].sum()/LHK_F_mol
         
         # Main arguments
         P = self.P
@@ -920,17 +1004,17 @@ class Distillation(Dist):
         # Cache
         old_args = self._McCabeThiele_args
         args = np.array([P, k, y_top, x_bot, q, zf])
-        if (abs(old_args - args) < np.array([50, 0.01, 0.00001, 0.00001, 0.005, 0.005], float)).all(): return
+        if (abs(old_args - args) < np.array([50, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6], float)).all(): return
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
         if q == 1:
             q = 1 - 1e-5
-        self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
+        q_line = lambda x: q*x/(q-1) - zf/(q-1)
+        self._q_line_args = dict(q=q, zf=zf)
         
-        bp = self._bubble_point
-        bubble_T = bp.solve_Ty
-        Rmin_intersection = lambda x: q_line(x) - bubble_T(array((x, 1-x)), P)[1][0]
+        solve_Ty = bottoms.get_bubble_point(LHK).solve_Ty
+        Rmin_intersection = lambda x: q_line(x) - solve_Ty(array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
@@ -958,11 +1042,11 @@ class Distillation(Dist):
         self._x_stages = x_stages = [x_bot]
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
-        self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, x_m, bubble_T)
+        self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, x_m, solve_Ty)
         yi = y_stages[-1]
         xi = rs(yi)
-        x_stages[-1] = xi if xi < 1 else 0.9999999
-        self._equilibrium_staircase(rs, x_stages, y_stages, T_stages, y_top, bubble_T)
+        x_stages[-1] = xi if xi < 1 else 0.99999
+        self._equilibrium_staircase(rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
         
         # Find feed stage
         for i in range(len(y_stages)-1):
@@ -972,7 +1056,7 @@ class Distillation(Dist):
         stages = len(x_stages)
         
         # Results
-        Design = self._Design
+        Design = self.design_results
         Design['Theoretical feed stage'] = stages - feed_stage
         Design['Theoretical stages'] = stages
         Design['Minimum reflux'] = Rmin
@@ -982,7 +1066,7 @@ class Distillation(Dist):
     def _design(self):
         self._McCabeThiele()
         distillate, bottoms = self._outs
-        Design = self._Design
+        Design = self.design_results
         R = Design['Reflux']
         Rstages, Sstages = self._calc_Nstages()
         calc_Height = self._calc_Height
@@ -994,12 +1078,12 @@ class Distillation(Dist):
         condensate = self._condensate
         rho_L = condensate.rho
         sigma = 1000 * condensate.sigma # dyn/cm
-        L = condensate.massnet
+        L = condensate.F_mass
         V = L*(R+1)/R
         vapor_stream = self._vapor_stream
-        vapor_stream.copylike(distillate)
-        vapor_stream._mol *= R+1
-        V_vol = 0.0002778 * vapor_stream.volnet # m^3/s
+        vapor_stream.copy_like(distillate)
+        vapor_stream.mol *= R+1
+        V_vol = 0.0002778 * vapor_stream.F_vol # m^3/s
         rho_V = distillate.rho
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
@@ -1016,19 +1100,19 @@ class Distillation(Dist):
         
         V_mol = self._V_Smol
         rho_L = bottoms.rho
-        boil_up_flow = self._boilup_molfrac * V_mol
+        bp = self._boilup_bubble_point
+        boil_up_flow = bp.y * V_mol
         boil_up = self._boil_up
-        boil_up.T = bottoms.T; boil_up.P = bottoms.P
-        lookup = bottoms._species._compounds.index
-        index_ = [lookup(i) for i in self._vle_bot]
-        boil_up.mol[index_] = boil_up_flow
-        V = boil_up.massnet
-        V_vol = 0.0002778 * boil_up.volnet # m^3/s
+        boil_up.T = bottoms.T
+        boil_up.P = bottoms.P
+        boil_up.imol[bp.IDs] = boil_up_flow
+        V = boil_up.F_mass
+        V_vol = 0.0002778 * boil_up.F_vol # m^3/s
         rho_V = boil_up.rho
-        L = bottoms.massnet # To get liquid going down
+        L = bottoms.F_mass # To get liquid going down
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
-        sigma = 1000 * bottoms.sigma # dyn/cm
+        sigma = 1000 * bottoms.sigma
         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
@@ -1057,8 +1141,8 @@ class Distillation(Dist):
         
     def _cost(self):
         if not self.is_divided: return super()._cost()
-        Design = self._Design
-        Cost = self._Cost
+        Design = self.design_results
+        Cost = self.purchase_costs
         F_CE = bst.CE/500
         
         # Number of trays assuming a partial condenser
@@ -1081,11 +1165,11 @@ class Distillation(Dist):
     def _cost_components(self): 
         # Cost condenser
         self._calc_condenser()
-        self._Cost['Condenser'] = self._condenser._Cost['Heat exchanger']
+        self.purchase_costs['Condenser'] = self._condenser.purchase_costs['Heat exchanger']
         
         # Cost boiler
         self._calc_boiler()
-        self._Cost['Boiler'] = self._boiler._Cost['Heat exchanger']
+        self.purchase_costs['Boiler'] = self._boiler.purchase_costs['Heat exchanger']
         
     
     def plot_stages(self):
@@ -1093,9 +1177,12 @@ class Distillation(Dist):
         # Plot stages, graphical aid and equilibrium curve
         self._plot_stages()
         vap, liq = self.outs
-        Design = self._Design
+        Design = self.design_results
         if not hasattr(self, '_x_stages'): self._design()
-        q_line = self._q_line
+        q_args = self._q_line_args
+        zf = q_args['zf']
+        q = q_args['q']
+        q_line = lambda x: q*x/(q-1) - zf/(q-1)
         y_top = self.y_top
         x_bot = self.x_bot
         stages = Design['Theoretical stages']
@@ -1104,7 +1191,7 @@ class Distillation(Dist):
         feed_stage = Design['Theoretical feed stage']
         
         # q_line
-        def intersect2(x): return x - q_line(x)
+        intersect2 = lambda x: x - q_line(x)
         x_m2 = brentq(intersect2, 0, 1)
         
         # Graph q-line, Rectifying and Stripping section
@@ -1133,7 +1220,7 @@ class Distillation(Dist):
 #         self._boiler = HXutility(None,
 #                                  ins=Stream(None),
 #                                  outs=MixedStream(None))
-#         self._heat_utilities = self._boiler._heat_utilities
+#         self.heat_utilities = self._boiler.heat_utilities
 #         self._boil_up = Stream(None)
 #         self._McCabeThiele_args = np.array([0, 0, 0, 0])
     
@@ -1143,7 +1230,7 @@ class Distillation(Dist):
         
 #         # Cached Data
 #         vap, liq = self.outs
-#         Design = self._Design
+#         Design = self.design_results
 #         cached = self._cached
 #         x_stages = cached.get('x_stages')
 #         if not x_stages:
@@ -1169,7 +1256,7 @@ class Distillation(Dist):
 #         """Return the actunal number of stages"""
 #         vap, liq = self.outs
 #         cached = self._cached
-#         Design = self._Design
+#         Design = self.design_results
 #         x_stages = cached['x_stages']
 #         y_stages = cached['y_stages']
 #         LHK_index = cached['LHK_index']
@@ -1183,7 +1270,7 @@ class Distillation(Dist):
 #             # Calculate Murphree Efficiency for stripping section
 #             mu = 1000 * liq.mu # mPa*s
 #             cached['V_mol'] = V_mol = B*sum(liq.mol[LHK_index])
-#             cached['L_mol'] = L_mol = liq.molnet + V_mol
+#             cached['L_mol'] = L_mol = liq.F_mol + V_mol
 #             K_light = y_stages[0]/x_stages[0] 
 #             K_heavy = (1-y_stages[0])/(1-x_stages[0] )
 #             alpha = K_light/K_heavy
@@ -1192,11 +1279,11 @@ class Distillation(Dist):
     
 #     def _McCabeThiele(self):
 #         distillate, bottoms = self.outs
-#         Design = self._Design
+#         Design = self.design_results
 #         cached = self._cached
         
 #         # Some important info
-#         species = self._LHK_species
+#         species = self._LHK_chemicals
 #         P = self.P
 #         k = self.k
 #         y_top = self.y_top
@@ -1235,7 +1322,7 @@ class Distillation(Dist):
     
 #     def _design(self):
 #         distillate, bottoms = self.outs
-#         Design = self._Design
+#         Design = self.design_results
 #         cached = self._cached
         
 #         ### Get number of stages and height ###
@@ -1250,16 +1337,16 @@ class Distillation(Dist):
 #         V_mol = cached['V_mol']
 #         L_mol = cached['L_mol']
 #         rho_L = bottoms.rho
-#         boil_up_flow = cached['boilup_molfrac'] * V_mol
+#         boil_up_flow = cached['boilup_z_mol'] * V_mol
 #         boil_up = cached['boil_up']
 #         boil_up.T = bottoms.T; boil_up.P = bottoms.P
 #         lookup = bottoms._species._compounds.index
 #         index_ = [lookup(i) for i in cached['vle_bot']]
 #         boil_up.mol[index_] = boil_up_flow
-#         V = boil_up.massnet
-#         V_vol = 0.0002778 * boil_up.volnet # m^3/s
+#         V = boil_up.F_mass
+#         V_vol = 0.0002778 * boil_up.F_vol # m^3/s
 #         rho_V = boil_up.rho
-#         L = sum(bottoms.MW*bottoms.molfrac*L_mol) # To get liquid going down
+#         L = sum(bottoms.MW*bottoms.z_mol*L_mol) # To get liquid going down
 #         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
 #         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
 #         sigma = 1000 * bottoms.sigma # dyn/cm
@@ -1274,6 +1361,6 @@ class Distillation(Dist):
 #     def _cost_components(self):
 #         # Cost boiler
 #         self._calc_boiler()
-#         self._Cost['Boiler'] = self._boiler._Cost['Heat exchanger']
+#         self.purchase_costs['Boiler'] = self._boiler.purchase_costs['Heat exchanger']
 
     

@@ -85,23 +85,18 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
@@ -109,10 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -164,7 +156,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>1. Overview</li>
+      <li><span class="section-number">1. </span>Overview</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -203,12 +195,12 @@
 }
 </style>
 <div class="section" id="overview">
-<h1>1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">1. </span>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
 <div class="figure align-default" id="id1">
 <img alt="_images/UML.png" src="_images/UML.png" />
 <p class="caption"><span class="caption-text">A simplified UML class diagram of the core classes of BioSTEAM.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
-<p>The <a class="reference internal" href="Species.html"><span class="doc">Species</span></a> object defines the working compounds of the biorefinery. When a Species object is created, it identifies compounds by name and stores pure chemical properties as <a class="reference internal" href="compounds/Chemical.html"><span class="doc">Chemical</span></a> objects. <a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a> objects define material flows, and estimate mixture properties and thermodynamic equilibrium. Before estimating equilibrium, a Stream object is cast to a <a class="reference internal" href="MixedStream.html"><span class="doc">MixedStream</span></a> object to enable multiple phases. A <a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a> object stores input and output Stream objects in the <cite>ins</cite> and <cite>outs</cite> attributes respectively. A <a class="reference internal" href="System.html"><span class="doc">System</span></a> object serves to define a <cite>network</cite> of unit operations, functions, and subsystems, as well as a <cite>recycle</cite> stream (if any). When a System object is simulated, each network element is run sequentially within an iterative solver until the recycle stream converges (in both component flow rates and temperature). A <a class="reference internal" href="TEA.html"><span class="doc">TEA</span></a> object can perform cashflow analysis on a system given a set of options. Adjustments can be made to the available heating and cooling agents of the <a class="reference internal" href="HeatUtility.html"><span class="doc">HeatUtility</span></a> class (e.g., steam pressure, cooling water temperature, price) as well as the electricity price of the <a class="reference internal" href="PowerUtility.html"><span class="doc">PowerUtility</span></a> class.</p>
+<p><a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html">Stream</a> objects define material flows, and estimate mixture properties and thermodynamic equilibrium. Before creating any streams, a thermodynamic property package must be defined through <a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/">thermosteam</a>, BioSTEAM’s premire thermodynamic engine. A <a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a> object stores input and output Stream objects in the <cite>ins</cite> and <cite>outs</cite> attributes respectively. A <a class="reference internal" href="System.html"><span class="doc">System</span></a> object serves to define a <cite>network</cite> of unit operations, functions, and subsystems, as well as a <cite>recycle</cite> stream (if any). When a System object is simulated, each network element is run sequentially within an iterative solver until the recycle stream converges (in both component flow rates and temperature). A <a class="reference internal" href="TEA.html"><span class="doc">TEA</span></a> object can perform cashflow analysis on a system given a set of options. Adjustments can be made to the available heating and cooling agents of the <a class="reference internal" href="HeatUtility.html"><span class="doc">HeatUtility</span></a> class (e.g., steam pressure, cooling water temperature, price) as well as the electricity price of the <a class="reference internal" href="PowerUtility.html"><span class="doc">PowerUtility</span></a> class.</p>
 </div>
 
 

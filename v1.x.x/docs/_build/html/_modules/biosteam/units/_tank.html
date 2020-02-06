@@ -1,0 +1,332 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam.units._tank &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam.units._tank</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam.units._tank</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Aug 23 15:47:26 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.._unit</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="kn">import</span> <span class="n">DesignError</span>
+<span class="kn">from</span> <span class="nn">._mixer</span> <span class="kn">import</span> <span class="n">Mixer</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="kn">import</span> <span class="n">cost</span>
+<span class="kn">from</span> <span class="nn">._static</span> <span class="kn">import</span> <span class="n">Static</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+
+<span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract Tank class.&quot;&quot;&quot;</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Total volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Residence time (hr).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span>
+    <span class="nd">@tau</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">=</span> <span class="n">tau</span>
+
+<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../units/StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Static</span><span class="p">,</span> <span class="n">Tank</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a storage tank with volume based on residence time [1].</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        V &amp;= \\tau Q \\\\</span>
+<span class="sd">        C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., &amp; Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. https://doi.org/10.1016/j.fuproc.2009.04.017</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Storage tank&#39;</span>
+    
+    <span class="c1">#: [float] residence time (hr)</span>
+    <span class="n">_tau</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span>
+
+    <span class="k">def</span> <span class="nf">_more_design_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="s1">&#39;Residence time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="o">/</span><span class="mi">24</span><span class="p">,</span> <span class="s1">&#39;days&#39;</span><span class="p">),)</span>
+
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="mf">50e3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">/</span><span class="n">N</span>
+
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">]</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">2e3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Tank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">65000</span> <span class="o">+</span> <span class="mf">158.7</span><span class="o">*</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="n">N</span><span class="p">))</span> <span class="o">*</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mf">525.4</span>
+        <span class="k">elif</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">50e3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Tank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">250000</span> <span class="o">+</span> <span class="mf">94.2</span><span class="o">*</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="n">N</span><span class="p">))</span> <span class="o">*</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mf">525.4</span>
+        <span class="k">else</span><span class="p">:</span>    
+            <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volume is out of bounds for costing&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units/MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Total volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+      <span class="n">N</span><span class="o">=</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MixTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a mixing tank with volume based on residence time.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">       V &amp;= \\frac{\\tau* Q}{0.8}</span>
+
+<span class="sd">       C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Mix tank&#39;</span>
+    <span class="n">_tau</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">Mixer</span><span class="o">.</span><span class="n">_run</span>
+    <span class="n">_minimum_volume</span> <span class="o">=</span> <span class="mf">0.1</span>
+    
+    <span class="c1">#: Fraction of working volume</span>
+    <span class="n">_V_wf</span> <span class="o">=</span> <span class="mf">0.8</span>
+    
+    <span class="k">def</span> <span class="nf">_more_design_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="s1">&#39;Residence time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Working volume fraction&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_volume_fraction</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">working_volume_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fraction of working volume.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_wf</span>
+
+    <span class="nd">@working_volume_fraction</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">working_volume_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">V_wf</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">V_wf</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;working_volume_fraction must be between 0 to 1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V_wf</span> <span class="o">=</span> <span class="n">V_wf</span>
+    
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_wf</span>
+        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_volume</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lb_warning</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="s1">&#39;m^3&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_volume</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

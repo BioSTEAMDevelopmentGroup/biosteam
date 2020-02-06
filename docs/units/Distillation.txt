@@ -1,8 +1,6 @@
 Distillation
 ============
 
-.. module:: biosteam.units
-
-.. autoclass:: Distillation
+.. autoclass:: biosteam.units.Distillation
    :inherited-members: Dist
    :members:

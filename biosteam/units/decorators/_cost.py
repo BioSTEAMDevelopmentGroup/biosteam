@@ -78,13 +78,13 @@ class CostItem:
     show = _ipython_display_
 
 def _cost(self):
-    D = self._Design
-    C = self._Cost
+    D = self.design_results
+    C = self.purchase_costs
     kW = 0
     for i, x in self.cost_items.items():
         S = D[x._basis]
         if x.ub:
-            D[x.N] = N = ceil(S/x.ub)
+            D[x.N or '#' + i] = N = ceil(S/x.ub)
             q = S/x.S
             F = q/N
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
@@ -98,7 +98,7 @@ def _cost(self):
             F = S/x.S
             C[i] = bst.CE/x.CE*x.cost*F**x.n
             kW += x.kW*F
-    if kW: self._power_utility(kW)
+    if kW: self.power_utility(kW)
 
 def _extended_cost(self):
     _cost(self)
@@ -115,7 +115,7 @@ del BM
 
 @property
 def installation_cost(self):
-    C = self._Cost
+    C = self.purchase_costs
     return sum([C[i]*j.BM for i,j in self.cost_items.items()])
 
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None, N=None):    

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6.2. Distillation &mdash; BioSTEAM 0.1 documentation</title>
+  <title>5.1. Distillation &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="6.3. Fermentation" href="Fermentation Example.html" />
-    <link rel="prev" title="6.1. Centrifuge_LLE" href="Centrifuge_LLE Example.html" /> 
+    <link rel="next" title="5.2. Fermentation" href="Fermentation Example.html" />
+    <link rel="prev" title="5. Unit operation examples" href="examples.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,37 +85,31 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="examples.html">6. Unit operation examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE Example.html">6.1. Centrifuge_LLE</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">6.2. Distillation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Binary-distillation-assuming-100%-separation-on-non-keys">6.2.1. Binary distillation assuming 100% separation on non-keys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="examples.html">5. Unit operation examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.1. Distillation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Binary-distillation-assuming-100%-separation-on-non-keys">5.1.1. Binary distillation assuming 100% separation on non-keys</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="Fermentation Example.html">6.3. Fermentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Flash Example.html">6.4. Flash</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HXprocess Example.html">6.5. HXprocess</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HXutility Example.html">6.6. HXutility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MassBalance Example.html">6.7. MassBalance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MolecularSieve Example.html">6.8. MolecularSieve</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Pump Example.html">6.9. Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Fermentation Example.html">5.2. Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Flash Example.html">5.3. Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXprocess Example.html">5.4. HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXutility Example.html">5.5. HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MassBalance Example.html">5.6. MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MolecularSieve Example.html">5.7. MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Pump Example.html">5.8. Pump</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
@@ -123,10 +117,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -178,9 +169,9 @@
     
       <li><a href="../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="examples.html">6. Unit operation examples</a> &raquo;</li>
+          <li><a href="examples.html"><span class="section-number">5. </span>Unit operation examples</a> &raquo;</li>
         
-      <li>6.2. Distillation</li>
+      <li><span class="section-number">5.1. </span>Distillation</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -383,22 +374,25 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Distillation">
-<h1>6.2. Distillation<a class="headerlink" href="#Distillation" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">5.1. </span>Distillation<a class="headerlink" href="#Distillation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Binary-distillation-assuming-100%-separation-on-non-keys">
-<h2>6.2.1. Binary distillation assuming 100% separation on non-keys<a class="headerlink" href="#Binary-distillation-assuming-100%-separation-on-non-keys" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">5.1.1. </span>Binary distillation assuming 100% separation on non-keys<a class="headerlink" href="#Binary-distillation-assuming-100%-separation-on-non-keys" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [1]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Distillation</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Distillation</span>
+<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">settings</span>
+
+<span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
 
 <span class="c1"># Set up stream</span>
-<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
 <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_T</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Feed at bubble point T</span>
+<span class="n">bp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
+<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span> <span class="c1"># Feed at bubble point T</span>
 
 <span class="c1"># Set up column</span>
 <span class="n">D1</span> <span class="o">=</span> <span class="n">Distillation</span><span class="p">(</span><span class="s1">&#39;D1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span>
@@ -409,7 +403,7 @@ div.nboutput div.output_area.stderr {
 
 <span class="c1"># See all results</span>
 <span class="n">D1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-<span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">composition</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -429,27 +423,27 @@ Distillation: D1
 ins...
 [0] feed
     phase: &#39;l&#39;, T: 76.129 degC, P: 1 atm
-    flow: Water     0.39
-          Methanol  0.488
-          Glycerol  0.122
-          net       205 kmol/hr
+    composition: Water     0.39
+                 Methanol  0.488
+                 Glycerol  0.122
+                 --------  205 kmol/hr
 outs...
-[0] d1
+[0] s3
     phase: &#39;g&#39;, T: 64.91 degC, P: 1 atm
-    flow: Water     0.01
-          Methanol  0.99
-          net       100 kmol/hr
-[1] d2
+    composition: Water     0.01
+                 Methanol  0.99
+                 --------  100 kmol/hr
+[1] s4
     phase: &#39;l&#39;, T: 100.06 degC, P: 1 atm
-    flow: Water     0.754
-          Methanol  0.00761
-          Glycerol  0.239
-          net       105 kmol/hr
+    composition: Water     0.754
+                 Methanol  0.00761
+                 Glycerol  0.239
+                 --------  105 kmol/hr
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -459,7 +453,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[2]:
+<span></span>Out[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -488,42 +482,53 @@ outs...
   </thead>
   <tbody>
     <tr>
-      <th rowspan="3" valign="top">Cooling water</th>
-      <th>Duty</th>
-      <td>kJ/hr</td>
-      <td>-4.87e+06</td>
-    </tr>
-    <tr>
-      <th>Flow</th>
-      <td>kmol/hr</td>
-      <td>3.33e+03</td>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>0</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>1.62</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Cooling water</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>-5.11e+06</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kmol/hr</td>
+      <td>3.49e+03</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>1.71</td>
     </tr>
     <tr>
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>9.04e+06</td>
+      <td>9.49e+06</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>232</td>
+      <td>244</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>55.2</td>
+      <td>58.1</td>
     </tr>
     <tr>
       <th rowspan="14" valign="top">Design</th>
       <th>Theoretical feed stage</th>
       <td></td>
-      <td>4</td>
+      <td>9</td>
     </tr>
     <tr>
       <th>Theoretical stages</th>
@@ -543,37 +548,37 @@ outs...
     <tr>
       <th>Rectifier stages</th>
       <td></td>
-      <td>6</td>
+      <td>14</td>
     </tr>
     <tr>
       <th>Stripper stages</th>
       <td></td>
-      <td>27</td>
+      <td>13</td>
     </tr>
     <tr>
       <th>Rectifier height</th>
       <td>ft</td>
-      <td>21.4</td>
+      <td>33.2</td>
     </tr>
     <tr>
       <th>Stripper height</th>
       <td>ft</td>
-      <td>52.4</td>
+      <td>31.7</td>
     </tr>
     <tr>
       <th>Rectifier diameter</th>
       <td>ft</td>
-      <td>7.84</td>
+      <td>3.93</td>
     </tr>
     <tr>
       <th>Stripper diameter</th>
       <td>ft</td>
-      <td>3</td>
+      <td>3.01</td>
     </tr>
     <tr>
       <th>Rectifier wall thickness</th>
       <td>in</td>
-      <td>0.312</td>
+      <td>0.25</td>
     </tr>
     <tr>
       <th>Stripper wall thickness</th>
@@ -583,55 +588,55 @@ outs...
     <tr>
       <th>Rectifier weight</th>
       <td>lb</td>
-      <td>6.98e+03</td>
+      <td>4.61e+03</td>
     </tr>
     <tr>
       <th>Stripper weight</th>
       <td>lb</td>
-      <td>5.31e+03</td>
+      <td>3.32e+03</td>
     </tr>
     <tr>
-      <th rowspan="6" valign="top">Cost</th>
+      <th rowspan="6" valign="top">Purchase cost</th>
       <th>Rectifier trays</th>
       <td>USD</td>
-      <td>1.38e+04</td>
+      <td>1.45e+04</td>
     </tr>
     <tr>
       <th>Stripper trays</th>
       <td>USD</td>
-      <td>1.9e+04</td>
+      <td>1.21e+04</td>
     </tr>
     <tr>
       <th>Rectifier tower</th>
       <td>USD</td>
-      <td>8.78e+04</td>
+      <td>7.41e+04</td>
     </tr>
     <tr>
       <th>Stripper tower</th>
       <td>USD</td>
-      <td>8.49e+04</td>
+      <td>6.1e+04</td>
     </tr>
     <tr>
       <th>Condenser</th>
       <td>USD</td>
-      <td>3.34e+04</td>
+      <td>3.41e+04</td>
     </tr>
     <tr>
       <th>Boiler</th>
       <td>USD</td>
-      <td>2.6e+04</td>
+      <td>2.64e+04</td>
     </tr>
     <tr>
-      <th>Purchase cost</th>
+      <th>Total purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>2.65e+05</td>
+      <td>2.22e+05</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>56.9</td>
+      <td>59.8</td>
     </tr>
   </tbody>
 </table>
@@ -648,10 +653,10 @@ outs...
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Fermentation Example.html" class="btn btn-neutral float-right" title="6.3. Fermentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Fermentation Example.html" class="btn btn-neutral float-right" title="5.2. Fermentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Centrifuge_LLE Example.html" class="btn btn-neutral float-left" title="6.1. Centrifuge_LLE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-left" title="5. Unit operation examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

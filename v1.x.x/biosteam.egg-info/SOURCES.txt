@@ -1,0 +1,266 @@
+README.rst
+setup.py
+biosteam/__init__.py
+biosteam/_exceptions.py
+biosteam/_facility.py
+biosteam/_flowsheet.py
+biosteam/_graphics.py
+biosteam/_heat_utility.py
+biosteam/_mixed_stream.py
+biosteam/_power_utility.py
+biosteam/_species.py
+biosteam/_stream.py
+biosteam/_system.py
+biosteam/_tea.py
+biosteam/_unit.py
+biosteam/my_units_defs.txt
+biosteam.egg-info/PKG-INFO
+biosteam.egg-info/SOURCES.txt
+biosteam.egg-info/dependency_links.txt
+biosteam.egg-info/requires.txt
+biosteam.egg-info/top_level.txt
+biosteam/_equilibrium/__init__.py
+biosteam/_equilibrium/bubble_point.py
+biosteam/_equilibrium/dew_point.py
+biosteam/_equilibrium/dortmund.py
+biosteam/_equilibrium/vle.py
+biosteam/_report/__init__.py
+biosteam/_report/plot.py
+biosteam/_report/table.py
+biosteam/compounds/__init__.py
+biosteam/compounds/_chemical.py
+biosteam/compounds/_compound.py
+biosteam/compounds/_substance.py
+biosteam/evaluation/__init__.py
+biosteam/evaluation/_block.py
+biosteam/evaluation/_metric.py
+biosteam/evaluation/_model.py
+biosteam/evaluation/_name.py
+biosteam/evaluation/_parameter.py
+biosteam/evaluation/_state.py
+biosteam/evaluation/_variable.py
+biosteam/evaluation/evaluation_tools/__init__.py
+biosteam/evaluation/evaluation_tools/parameter.py
+biosteam/evaluation/evaluation_tools/plot.py
+biosteam/inspect/__init__.py
+biosteam/inspect/_separation.py
+biosteam/price/__init__.py
+biosteam/price/utilities.py
+biosteam/reaction/__init__.py
+biosteam/reaction/_parse.py
+biosteam/reaction/_reaction.py
+biosteam/tests/__init__.py
+biosteam/tests/binary_distillation_tests.py
+biosteam/tests/biorefinery_tests.py
+biosteam/tests/utils.py
+biosteam/thermo/__init__.py
+biosteam/thermo/acentric.py
+biosteam/thermo/activity.py
+biosteam/thermo/chemical.py
+biosteam/thermo/combustion.py
+biosteam/thermo/coolprop.py
+biosteam/thermo/critical.py
+biosteam/thermo/datasheet.py
+biosteam/thermo/dipole.py
+biosteam/thermo/dippr.py
+biosteam/thermo/electrochem.py
+biosteam/thermo/elements.py
+biosteam/thermo/environment.py
+biosteam/thermo/eos.py
+biosteam/thermo/eos_mix.py
+biosteam/thermo/heat_capacity.py
+biosteam/thermo/identifiers.py
+biosteam/thermo/interface.py
+biosteam/thermo/joback.py
+biosteam/thermo/law.py
+biosteam/thermo/lennard_jones.py
+biosteam/thermo/miscdata.py
+biosteam/thermo/mixture.py
+biosteam/thermo/permittivity.py
+biosteam/thermo/phase_change.py
+biosteam/thermo/property_package.py
+biosteam/thermo/reaction.py
+biosteam/thermo/refractivity.py
+biosteam/thermo/safety.py
+biosteam/thermo/solubility.py
+biosteam/thermo/stream.py
+biosteam/thermo/temperature.py
+biosteam/thermo/thermal_conductivity.py
+biosteam/thermo/triple.py
+biosteam/thermo/unifac.py
+biosteam/thermo/units.py
+biosteam/thermo/utils.py
+biosteam/thermo/vapor_pressure.py
+biosteam/thermo/virial.py
+biosteam/thermo/viscosity.py
+biosteam/thermo/volume.py
+biosteam/thermo/Critical Properties/Appendix to PSRK Revision 4.tsv
+biosteam/thermo/Critical Properties/CRCCriticalOrganics.tsv
+biosteam/thermo/Critical Properties/IUPACOrganicCriticalProps.tsv
+biosteam/thermo/Critical Properties/Mathews1972InorganicCriticalProps.tsv
+biosteam/thermo/Critical Properties/PassutDanner1973.tsv
+biosteam/thermo/Critical Properties/Yaws Collection.tsv
+biosteam/thermo/Density/COSTALD Parameters.tsv
+biosteam/thermo/Density/CRC Inorganics densties of molten compounds and salts.tsv
+biosteam/thermo/Density/CRC Liquid Inorganic Constant Densities.tsv
+biosteam/thermo/Density/CRC Solid Inorganic Constant Densities.tsv
+biosteam/thermo/Density/CRC Virial polynomials.tsv
+biosteam/thermo/Density/Mchaweh SN0 deltas.tsv
+biosteam/thermo/Density/Perry Parameters 105.tsv
+biosteam/thermo/Density/VDI PPDS Density of Saturated Liquids.tsv
+biosteam/thermo/Electrolytes/CRC Thermodynamic Properties of Aqueous Ions.csv
+biosteam/thermo/Electrolytes/CRC conductivity infinite dilution.tsv
+biosteam/thermo/Electrolytes/Electrolyte dissociations.csv
+biosteam/thermo/Electrolytes/Laliberte2009.tsv
+biosteam/thermo/Electrolytes/Lange Pure Species Conductivity.tsv
+biosteam/thermo/Electrolytes/Magomedov Thermal Conductivity.tsv
+biosteam/thermo/Electrolytes/Marcus Ion Conductivities.tsv
+biosteam/thermo/Electrolytes/McCleskey Electrical Conductivity.csv
+biosteam/thermo/Electrolytes/Permittivity (Dielectric Constant) of Liquids.tsv
+biosteam/thermo/Environment/CRC logP table.tsv
+biosteam/thermo/Environment/Official Global Warming Potentials.tsv
+biosteam/thermo/Environment/Ozone Depletion Potentials.tsv
+biosteam/thermo/Environment/Syrres logP data.csv.gz
+biosteam/thermo/Heat Capacity/CRC Standard Thermodynamic Properties of Chemical Substances.tsv
+biosteam/thermo/Heat Capacity/CRCHeatCapacitySolids.tsv
+biosteam/thermo/Heat Capacity/Perrys Table 2-151-2.tsv
+biosteam/thermo/Heat Capacity/Perrys Table 2-151.tsv
+biosteam/thermo/Heat Capacity/PolingDatabank.tsv
+biosteam/thermo/Heat Capacity/TRC Thermodynamics of Organic Compounds in the Gas State.tsv
+biosteam/thermo/Heat Capacity/Zabransky.tsv
+biosteam/thermo/Identifiers/Anion db.tsv
+biosteam/thermo/Identifiers/Cation db.tsv
+biosteam/thermo/Identifiers/Chemicals with data.csv
+biosteam/thermo/Identifiers/Fake CAS Registry.tsv
+biosteam/thermo/Identifiers/Inorganic db.tsv
+biosteam/thermo/Identifiers/Mixtures Compositions.tsv
+biosteam/thermo/Identifiers/chemical identifiers example user db.tsv
+biosteam/thermo/Identifiers/chemical identifiers.tsv
+biosteam/thermo/Identifiers/dippr_2014.csv
+biosteam/thermo/Identifiers/dippr_2014_int.csv
+biosteam/thermo/Interface/Jasper-Lange.tsv
+biosteam/thermo/Interface/MuleroCachadinaParameters.tsv
+biosteam/thermo/Interface/Somayajulu.tsv
+biosteam/thermo/Interface/SomayajuluRevised.tsv
+biosteam/thermo/Interface/VDI PPDS surface tensions.tsv
+biosteam/thermo/Law/Canada Feb 11 2015 - DSL.csv.gz
+biosteam/thermo/Law/EC Inventory No Longer Polymers (NLP).csv
+biosteam/thermo/Law/ECHA Tonnage Bands.csv.zip
+biosteam/thermo/Law/EINECS 2015-03.csv.gz
+biosteam/thermo/Law/EPA 2012 Chemical Data Reporting.csv
+biosteam/thermo/Law/EPA Chemical Data Reporting - 2012.csv.gz
+biosteam/thermo/Law/HPV 2015 March 3.csv
+biosteam/thermo/Law/SPIN Inventory 2015-03.csv.gz
+biosteam/thermo/Law/TSCA Inventory 2016-01.csv.gz
+biosteam/thermo/Misc/CRC Handbook Organic RI.csv
+biosteam/thermo/Misc/CoolProp CP0MOLAR fits.json
+biosteam/thermo/Misc/CoolProp vapor properties fits.json
+biosteam/thermo/Misc/Element data.csv
+biosteam/thermo/Misc/Muller Supporting Info Dipoles.csv
+biosteam/thermo/Misc/Physical Constants of Inorganic Compounds.csv
+biosteam/thermo/Misc/Physical Constants of Organic Compounds.csv
+biosteam/thermo/Misc/Poling Dipole.csv
+biosteam/thermo/Misc/VDI Saturation Compounds Data.csv
+biosteam/thermo/Misc/cccbdb.nist.gov Dipoles.csv
+biosteam/thermo/Misc/element.txt
+biosteam/thermo/Phase Change/Alibakhshi one-coefficient enthalpy of vaporization.tsv
+biosteam/thermo/Phase Change/CRC Handbook Heat of Fusion.tsv
+biosteam/thermo/Phase Change/CRC Handbook Heat of Vaporization.tsv
+biosteam/thermo/Phase Change/DDBST UNIFAC assignments.tsv
+biosteam/thermo/Phase Change/Ghazerati Appendix Sublimation Enthalpy.tsv
+biosteam/thermo/Phase Change/Ghazerati Appendix Vaporization Enthalpy.tsv
+biosteam/thermo/Phase Change/OpenNotebook Melting Points.tsv
+biosteam/thermo/Phase Change/PSRK interaction parameters.tsv
+biosteam/thermo/Phase Change/Table 2-150 Heats of Vaporization of Inorganic and Organic Liquids.tsv
+biosteam/thermo/Phase Change/UNIFAC modified Dortmund interaction parameters 2006.tsv
+biosteam/thermo/Phase Change/UNIFAC modified Dortmund interaction parameters.tsv
+biosteam/thermo/Phase Change/UNIFAC modified NIST 2015 interaction parameters.tsv
+biosteam/thermo/Phase Change/UNIFAC original interaction parameters.tsv
+biosteam/thermo/Phase Change/VDI PPDS Enthalpies of vaporization.tsv
+biosteam/thermo/Phase Change/Yaws Boiling Points.tsv
+biosteam/thermo/Phase Change/phase STP.tsv
+biosteam/thermo/Reactions/API TDB Albahri Hf.tsv
+biosteam/thermo/Reactions/ATcT 1.112 (g).tsv
+biosteam/thermo/Reactions/ATcT 1.112 (l).tsv
+biosteam/thermo/Safety/DIPPR Tflash Serat.csv
+biosteam/thermo/Safety/IARC Carcinogen Database.tsv
+biosteam/thermo/Safety/IS IEC 60079-20-1 2010.tsv
+biosteam/thermo/Safety/NFPA 497 2008.tsv
+biosteam/thermo/Safety/National Toxicology Program Carcinogens.tsv
+biosteam/thermo/Safety/Ontario Exposure Limits.tsv
+biosteam/thermo/Thermal Conductivity/Table 2-314 Vapor Thermal Conductivity of Inorganic and Organic Substances.tsv
+biosteam/thermo/Thermal Conductivity/Table 2-315 Thermal Conductivity of Inorganic and Organic Liquids.tsv
+biosteam/thermo/Thermal Conductivity/VDI PPDS Thermal conductivity of gases.tsv
+biosteam/thermo/Thermal Conductivity/VDI PPDS Thermal conductivity of saturated liquids.tsv
+biosteam/thermo/Triple Properties/Staveley 1981.tsv
+biosteam/thermo/Vapor Pressure/Antoine Collection Poling.tsv
+biosteam/thermo/Vapor Pressure/Antoine Extended Collection Poling.tsv
+biosteam/thermo/Vapor Pressure/Table 2-8 Vapor Pressure of Inorganic and Organic Liquids.tsv
+biosteam/thermo/Vapor Pressure/VDI PPDS Boiling temperatures at different pressures.tsv
+biosteam/thermo/Vapor Pressure/Wagner Collection Poling.tsv
+biosteam/thermo/Vapor Pressure/Wagner Original McGarry.tsv
+biosteam/thermo/Viscosity/Dutt Prasad 3 term.tsv
+biosteam/thermo/Viscosity/MagalhaesLJ.tsv
+biosteam/thermo/Viscosity/Table 2-312 Vapor Viscosity of Inorganic and Organic Substances.tsv
+biosteam/thermo/Viscosity/Table 2-313 Viscosity of Inorganic and Organic Liquids.tsv
+biosteam/thermo/Viscosity/VDI PPDS Dynamic viscosity of gases polynomials.tsv
+biosteam/thermo/Viscosity/VDI PPDS Dynamic viscosity of saturated liquids polynomials.tsv
+biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term Exponential.tsv
+biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term.tsv
+biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 3 term.tsv
+biosteam/units/__init__.py
+biosteam/units/_balance.py
+biosteam/units/_centrifuge_LLE.py
+biosteam/units/_clarifier.py
+biosteam/units/_conveying_belt.py
+biosteam/units/_crushing_mill.py
+biosteam/units/_distillation.py
+biosteam/units/_enzyme_treatment.py
+biosteam/units/_fermentation.py
+biosteam/units/_flash.py
+biosteam/units/_hx.py
+biosteam/units/_junction.py
+biosteam/units/_magnetic_separator.py
+biosteam/units/_mixer.py
+biosteam/units/_molecular_sieve.py
+biosteam/units/_multi_effect_evaporator.py
+biosteam/units/_pump.py
+biosteam/units/_rvf.py
+biosteam/units/_screw_feeder.py
+biosteam/units/_shredder.py
+biosteam/units/_solids_centrifuge.py
+biosteam/units/_solids_separator.py
+biosteam/units/_splitter.py
+biosteam/units/_static.py
+biosteam/units/_tank.py
+biosteam/units/_transesterification.py
+biosteam/units/_vent_scrubber.py
+biosteam/units/_vent_tank.py
+biosteam/units/_vibrating_screen.py
+biosteam/units/factories.py
+biosteam/units/decorators/__init__.py
+biosteam/units/decorators/_cost.py
+biosteam/units/decorators/_design.py
+biosteam/units/decorators/_spec.py
+biosteam/units/designtools/__init__.py
+biosteam/units/designtools/_batch.py
+biosteam/units/designtools/_cost_index.py
+biosteam/units/designtools/_tables.py
+biosteam/units/designtools/_vacuum.py
+biosteam/units/facilities/__init__.py
+biosteam/units/facilities/_air_distribution_package.py
+biosteam/units/facilities/_boiler_turbogenerator.py
+biosteam/units/facilities/_chilled_water_package.py
+biosteam/units/facilities/_cooling_tower.py
+biosteam/units/facilities/_process_water_center.py
+biosteam/utils/__init__.py
+biosteam/utils/array_utils.py
+biosteam/utils/color_utils.py
+biosteam/utils/display_units.py
+biosteam/utils/network_utils.py
+biosteam/utils/not_implemented_method.py
+biosteam/utils/other_utils.py
+biosteam/utils/plot_utils.py
+biosteam/utils/register.py
+biosteam/utils/stream_utils.py
+biosteam/utils/tictoc.py

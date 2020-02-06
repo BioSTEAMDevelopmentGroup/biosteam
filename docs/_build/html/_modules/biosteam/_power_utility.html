@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -186,8 +178,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_Q</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">DisplayUnits</span>
+<span class="kn">from</span> <span class="nn">thermosteam.base.units_of_measure</span> <span class="kn">import</span> <span class="n">DisplayUnits</span><span class="p">,</span> <span class="n">convert</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;PowerUtility&#39;</span><span class="p">,)</span>
 
@@ -220,12 +211,11 @@
 <span class="sd">       (500, 30.)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
     
     <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>
-    <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="o">**</span><span class="n">_units</span><span class="p">)</span>
+    <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
     
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
     <span class="c1">#: [float] USD/kWhr</span>
     <span class="n">price</span> <span class="o">=</span> <span class="mf">0.0782</span>
     
@@ -237,7 +227,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calculate cost and save. </span>
+        <span class="sd">&quot;&quot;&quot;Calculate cost and save results. </span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -248,15 +238,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">=</span> <span class="n">rate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price</span> <span class="o">*</span> <span class="n">rate</span>
     
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Get units of measure</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-        <span class="n">rate_units</span><span class="p">,</span> <span class="n">cost_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span>
-        <span class="n">rate</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">rate_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-        <span class="n">cost</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cost_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{rate:.3g}</span><span class="s1"> </span><span class="si">{rate_units}</span><span class="s1">, </span><span class="si">{cost:.3g}</span><span class="s1"> </span><span class="si">{cost_units}</span><span class="s1">&gt;&#39;</span><span class="p">)</span></div>
-        
-        
+        <span class="n">display_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span>
+        <span class="n">rate_units</span> <span class="o">=</span> <span class="n">rate</span> <span class="ow">or</span> <span class="n">display_units</span><span class="o">.</span><span class="n">rate</span>
+        <span class="n">cost_units</span> <span class="o">=</span> <span class="n">cost</span> <span class="ow">or</span> <span class="n">display_units</span><span class="o">.</span><span class="n">cost</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">rate_units</span><span class="p">)</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">cost_units</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{rate:.3g}</span><span class="s1"> </span><span class="si">{rate_units}</span><span class="s1">, </span><span class="si">{cost:.3g}</span><span class="s1"> </span><span class="si">{cost_units}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
+    <span class="n">_ipython_display</span> <span class="o">=</span> <span class="n">show</span>    
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.rate:.3g}</span><span class="s1"> kW, </span><span class="si">{self.cost:.3g}</span><span class="s1"> USD&gt;&#39;</span><span class="p">)</span>    </div>
 </pre></div>
 
            </div>

@@ -1,8 +1,6 @@
 Unit
 ====
 
-.. module:: biosteam
-
-.. autoclass:: Unit
+.. autoclass:: biosteam.Unit
    :members:
 

@@ -1,12 +1,12 @@
 Metadata-Version: 1.2
 Name: biosteam
-Version: 1.0.7
+Version: 2.0.0a1
 Summary: The Biorefinery Simulation and Techno-Economic Analysis Modules
-Home-page: https://github.com/yoelcortes/biosteam
+Home-page: https://github.com/yoelcortes/biosteam2
 Author: Yoel Cortes-Pena
 Author-email: yoelcortes@gmail.com
 License: MIT
-Download-URL: https://github.com/yoelcortes/biosteam.git
+Download-URL: https://github.com/yoelcortes/biosteam2.git
 Description: =========================================================================
         BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
         =========================================================================
@@ -87,7 +87,7 @@ Keywords: chemical process simmulation bioprocess engineering mass energy balanc
 Platform: Windows
 Platform: Mac
 Platform: Linux
-Classifier: Development Status :: 4 - Beta
+Classifier: Development Status :: 3 - Alpha
 Classifier: Environment :: Console
 Classifier: License :: OSI Approved :: University of Illinois/NCSA Open Source License
 Classifier: Programming Language :: Python :: 3.6

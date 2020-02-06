@@ -4,7 +4,8 @@ Created on Thu Aug 23 14:38:34 2018
 
 @author: yoelr
 """
-from .. import Unit, Stream
+from .. import Unit
+from thermosteam import Stream
 from fluids import nearest_pipe
 import ht
 import numpy as np
@@ -30,17 +31,27 @@ F_Mdict =  {'Carbon steel/carbon steel':       (0, 0),
             'Monel/Monel':	                 (3.3, 0.08),
             'Titanium/titanium':	            (9.6, 0.06)}
 
+def compute_floating_head_purchase_price(A, CE):
+    return exp(12.0310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567
+
+def compute_fixed_head_purchase_price(A, CE):
+    return exp(11.4185 - 0.9228*ln(A) + 0.09861 * ln(A)**2)*CE/567
+
+def compute_u_tube_purchase_price(A, CE):
+    return exp(11.5510 - 0.9186*ln(A) + 0.09790 * ln(A)**2)*CE/567
+
+def compute_kettle_vaporizer_purchase_price(A, CE):
+    return exp(12.3310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567
+
+def compute_double_pipe_purchase_price(A, CE):
+    return exp( 7.2718 + 0.16*ln(A))*CE/567
+
 # Purchase price
-Cb_dict = {'Floating head':
-            lambda A, CE: exp(12.0310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567,
-           'Fixed head':
-            lambda A, CE: exp(11.4185 - 0.9228*ln(A) + 0.09861 * ln(A)**2)*CE/567,
-           'U tube':
-            lambda A, CE: exp(11.5510 - 0.9186*ln(A) + 0.09790 * ln(A)**2)*CE/567,
-           'Kettle vaporizer':
-            lambda A, CE: exp(12.3310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567,
-           'Double pipe':
-            lambda A, CE: exp( 7.2718 + 0.16*ln(A))*CE/567}
+Cb_dict = {'Floating head': compute_floating_head_purchase_price,
+           'Fixed head': compute_fixed_head_purchase_price,
+           'U tube': compute_u_tube_purchase_price,
+           'Kettle vaporizer': compute_kettle_vaporizer_purchase_price,
+           'Double pipe': compute_double_pipe_purchase_price}
         
         
 class HX(Unit, isabstract=True):
@@ -74,7 +85,7 @@ class HX(Unit, isabstract=True):
     BM_shell_and_tube = 3.17
     @property
     def BM(self):
-        if self._Type is "Double pipe":
+        if self._Type == "Double pipe":
             return self.BM_douple_pipe
         else:
             return self.BM_shell_and_tube
@@ -149,23 +160,22 @@ class HX(Unit, isabstract=True):
             return 0.5
 
     @staticmethod
-    def _get_dP(ip, op) -> 'psi':
+    def _get_dP(inlet_phase, outlet_phase):
         """Return pressure drop (psi) based on heuristics.
         
-        **Parameters**
-            
-            **ip:** [str] Inlet phase
-            
-            **op:** [str] Outlet phase
+        Parameters
+        ----------
+        inlet_phase: str
+        outlet_phase : str
             
         """
-        if ('l' in ip and 'g' in op) or ('g' in ip and 'l' in op):
+        if ('l' in inlet_phase and 'g' in outlet_phase) or ('g' in inlet_phase and 'l' in outlet_phase):
             # Latent fluid (boiling or condensing)
             return 1.5
-        elif ip == 'l':
+        elif inlet_phase == 'l':
             # Sensible liquid
             return 5
-        elif op == 'g':
+        elif outlet_phase == 'g':
             # Sensible vapor
             return 3
         
@@ -173,11 +183,12 @@ class HX(Unit, isabstract=True):
     def _Dp_table(cls, ci, hi, co, ho, inside_heating):
         """Return an estimate of pressure drops.
         
-        **Returns**
-            
-            **dP_in:** [float] Pressure drop inside (psi)
-        
-            **dP_out:** [float] Pressure drop outside (psi)
+        Returns
+        -------  
+        dP_in : float
+            Pressure drop inside (psi)
+        dP_out : float
+            Pressure drop outside (psi)
         
         """
         cip, hip, cop, hop = ci.phase, hi.phase, co.phase, ho.phase
@@ -197,7 +208,7 @@ class HX(Unit, isabstract=True):
         return abs(298.15 - ci.T) - abs(hi.T - 298.15) > 0
 
     @staticmethod
-    def _shellntube_streams(ci, hi, co, ho, inside_heating) -> 's_tube, s_shell':
+    def _shellntube_streams(ci, hi, co, ho, inside_heating):
         """Return shell and tube streams for calculating non-dimensional numbers."""
         # Mean temperatures
         Tci, Thi, Tco, Tho = ci.T, hi.T, co.T, ho.T
@@ -210,12 +221,12 @@ class HX(Unit, isabstract=True):
         
         if inside_heating:
             # Cold stream goes in tube side
-            s_tube.copylike(ci); s_tube.T = Tc_ave
-            s_shell.copylike(hi); s_shell.T = Th_ave
+            s_tube.copy_like(ci); s_tube.T = Tc_ave
+            s_shell.copy_like(hi); s_shell.T = Th_ave
         else:
             # Hot stream goes in tube side
-            s_tube.copylike(hi); s_tube.T = Th_ave
-            s_shell.copylike(ci); s_shell.T = Tc_ave
+            s_tube.copy_like(hi); s_tube.T = Th_ave
+            s_shell.copy_like(ci); s_shell.T = Tc_ave
         return s_tube, s_shell
 
     @staticmethod
@@ -321,34 +332,36 @@ class HX(Unit, isabstract=True):
             return in2, in1, out2, out1
         
     @staticmethod
-    def _calc_ft(Tci, Thi, Tco, Tho, N_shells) -> 'ft':
+    def _calc_ft(Tci, Thi, Tco, Tho, N_shells):
         """Return LMTD correction factor."""
-        if (Tco - Tci)/Tco < 0.01 or (Thi-Tho)/Tho < 0.01:
-            return 1
-        try:
-            return ht.F_LMTD_Fakheri(Thi, Tho, Tci, Tco,
-                                     shells=N_shells)
-        except ValueError:
-            return 0.6 # Accounts for worst case scenario
+        ft = 1
+        if abs(Tco - Tci)/Tco > 0.01 and abs(Thi-Tho)/Tho > 0.01:
+            try:
+                ft = ht.F_LMTD_Fakheri(Thi, Tho, Tci, Tco,
+                                       shells=N_shells)
+            except ValueError: pass
+            if ft > 1: ft = 0.6 # Accounts for worst case scenario
+        return ft
     
     @staticmethod
-    def _calc_area(LMTD, U, Q, ft) -> 'Area':
+    def _calc_area(LMTD, U, Q, ft):
         """Return Area by LMTD correction factor method.
         
-        **Parameters**
-        
-            **LMTD:** [float] Log mean temperature difference
-            
-            **U:** [float] Heat transfer coefficient
-            
-            **Q:** [float] Duty
+        Parameters
+        ----------
+        LMTD : float
+            Log mean temperature difference
+        U : float
+            Heat transfer coefficient
+        Q : float
+            Duty
         
         """
         return Q/(U*LMTD*ft)        
 
     def _design(self):
         ###  Use LMTD correction factor method  ###
-        Design = self._Design
+        Design = self.design_results
         
         # Get cold and hot inlet and outlet streams
         ci, hi, co, ho = self._order_streams(*self._get_streams())
@@ -360,6 +373,7 @@ class HX(Unit, isabstract=True):
         dTF2 = Tho-Tci
         dummy = abs(dTF2/dTF1)
         LMTD = (dTF2 - dTF1)/ln(dummy) if dummy > 1.1 else dTF1
+        LMTD = abs(LMTD)
         
         # Get correction factor
         ft = self._ft if self._ft else self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
@@ -377,7 +391,6 @@ class HX(Unit, isabstract=True):
         
         # Design pressure
         P = max((ci.P, hi.P))
-        
         Design['Area'] = self._calc_area(LMTD, U, Q, ft) * 10.763
         Design['Overall heat transfer coefficient'] = U
         Design['Fouling correction factor'] = ft
@@ -387,7 +400,7 @@ class HX(Unit, isabstract=True):
         Design['Total tube length'] = L
 
     def _cost(self):
-        Design = self._Design
+        Design = self.design_results
         A = Design['Area']
         L = Design['Total tube length']
         P = Design['Operating pressure']
@@ -417,7 +430,7 @@ class HX(Unit, isabstract=True):
         C_b = C_b_func(A, bst.CE)
         
         # Free on board purchase prize 
-        self._Cost['Heat exchanger'] = F_p * F_l * F_m * C_b
+        self.purchase_costs['Heat exchanger'] = F_p * F_l * F_m * C_b
 
 
 class HXutility(HX):
@@ -443,9 +456,9 @@ class HXutility(HX):
     
     """
     
-    def __init__(self, ID='', ins=None, outs=(), *,
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  T=None, V=None, rigorous=False, U=None):
-        super().__init__(ID, ins, outs)
+        super().__init__(ID, ins, outs, thermo)
         self.T = T #: Temperature of output stream (K).
         self.V = V #: Vapor fraction of output stream.
         
@@ -458,7 +471,7 @@ class HXutility(HX):
     def _run(self):
         feed = self.ins[0]
         s = self.outs[0]
-        s.copylike(feed)
+        s.copy_like(feed)
         T = self.T
         V = self.V
         V_given = V is not None
@@ -468,9 +481,9 @@ class HXutility(HX):
             if T and V_given:
                 raise ValueError("may only define either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
             if V_given:
-                s.VLE(V=V, P=s.P)
+                s.vle(V=V, P=s.P)
             else:
-                s.VLE(T=T, P=s.P)
+                s.vle(T=T, P=s.P)
         else:
             if V_given:
                 if V == 0:
@@ -478,46 +491,42 @@ class HXutility(HX):
                 elif V == 1:
                     s.phase = 'g'
                 else:
-                    s.enable_phases()
-                    vapmol = s.vapor_mol
-                    liqmol = s.liquid_mol
-                    mol = vapmol + liqmol
-                    vapmol[:] = vapmol = mol*V
-                    liqmol[:] = mol - vapmol
+                    s.phases = ('g', 'l')
+                    mol = s.mol
+                    s.imol['g'] = vap_mol = V * mol
+                    s.imol['l'] = mol - vap_mol
             if T:
                 s.T = T
 
     def _get_streams(self):
         """Return cold and hot inlet and outlet streams.
         
-        **Returns**
-        
-            **ci:** [Stream] Cold inlet
-            
-            **hi:** [Stream] Hot inlet
-            
-            **co:** [Stream] Cold outlet
-            
-            **ho:** [Stream] Hot outlet
+        Returns
+        -------
+        ci : Stream
+            Cold inlet.
+        hi : Stream
+            Hot inlet.
+        co : Stream
+            Cold outlet.
+        ho : Stream
+            Hot outlet.
         
         """
         in1 = self.ins[0]
         out1 = self.outs[0]
-        hu = self._heat_utilities[0]
-        in2 = hu._fresh
-        out2 = hu._used
+        hu = self.heat_utilities[0]
+        in2 = hu.inlet_utility_stream
+        out2 = hu.outlet_utility_stream
         return in1, in2, out1, out2
 
     def _design(self, duty=None):
         # Set duty and run heat utility
-        if duty is None: duty = self._H_out-self._H_in
+        if duty is None: duty = self.H_out - self.H_in
         self._duty = duty
-        self._heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
+        self.heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
         super()._design()
 
-    def _end_decorated_cost_(self):
-        self._heat_utilities[0](self._duty_kJ_mol_,
-                                self.ins[0].T, self.outs[0].T)
 
 class HXprocess(HX):
     """Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.
@@ -539,12 +548,6 @@ class HXprocess(HX):
         * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
         * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
         * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
-    species_IDs=None : tuple, optional
-        IDs of species in equilibrium.
-    LNK=None : tuple[str], optional
-        Light non-keys that remain as a vapor (disregards equilibrium).
-    LNK=None : tuple[str], optional
-        Heavy non-keys that remain as a liquid (disregards equilibrium).
     
     Examples
     --------
@@ -556,38 +559,15 @@ class HXprocess(HX):
     _N_outs = 2
     dT = 5 #: [float] Pinch temperature difference.
     
-    def __init__(self, ID='', ins=None, outs=(), *,
-                 U=None, fluid_type='ss', species_IDs=(),
-                 LNK=(), HNK=()):
-        super().__init__(ID, ins, outs)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 U=None, fluid_type='ss'):
+        super().__init__(ID, ins, outs, thermo)
         self._Hvaps = self._not_zero_arr = self._cached_run_args = None
-        self.species_IDs = tuple(species_IDs)
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
-        #: tuple[str] IDs of light non-keys  assumed to remain as a vapor
-        self.LNK = LNK
-        
-        #: tuple[str] IDs of heavy non-keys assumed to remain as a liquid
-        self.HNK = HNK
-        
         self.fluid_type = fluid_type
-    
-    @property
-    def species_IDs(self):
-        """IDs of compounds in thermodynamic equilibrium."""
-        return self._species_IDs
-    @species_IDs.setter
-    def species_IDs(self, IDs):
-        if IDs:
-            species = self._outs[0].species if self._outs else Stream.species
-            index = species.indices(IDs)
-            self._species = [getattr(species, ID) for ID in IDs]
-            self._cached_species_data = index, IDs
-        else:
-            self._cached_species_data = None
-        self._species_IDs = tuple(IDs)
     
     @property
     def fluid_type(self):
@@ -613,16 +593,16 @@ class HXprocess(HX):
     def _run(self):
         so0, so1 = self._outs
         si0, si1 = self._ins
-        s0_molnet = si0.molnet
-        s1_molnet = si1.molnet
-        if not s0_molnet:
-            so1.copylike(si1)
-        elif not s1_molnet:
-            so0.copylike(si0)
+        s0_F_mol = si0.F_mol
+        s1_F_mol = si1.F_mol
+        if not s0_F_mol:
+            so1.copy_like(si1)
+        elif not s1_F_mol:
+            so0.copy_like(si0)
         else:
             fluid_type = self._fluid_type
-            so0.copylike(si0)
-            so1.copylike(si1)
+            so0.copy_like(si0)
+            so1.copy_like(si1)
             if fluid_type == 'ss':
                 self._run_ss()
             elif fluid_type == 'ls':
@@ -650,41 +630,38 @@ class HXprocess(HX):
         s1_out, s2_out = self.outs
         dT = self.dT
         
-        # Arguments for dew and bubble point
-        index, species_IDs = self._get_species_data(s1_out, self._species_IDs)
-        z = s1_out.mol[index]/s1_out.molnet
-        P = s1_out.P
-        
         if s2_out.T > s1_in.T:
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out._dew_point.solve_Tx(z, P)[0]
+            dp = s1_out.dew_point_at_P()
+            s1_out.T = dp.T
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out._bubble_point.solve_Ty(z, P)[0]
+            bp = s1_out.bubble_point_at_P()
+            s1_out.T = bp.T
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
         duty = s1_in.H - s1_out.H
         T_s2_new = s2_out.T + duty/s2_out.C
-        s1_out.copylike(s1_in)
+        s1_out.copy_like(s1_in)
         
         if boiling and T_s2_new < T_pinch:
             # Partial boiling if temperature falls below pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Q=delH1)
+            s1_out.vle(P=s1_out.P, H=s1_in.H + delH1)
         elif not boiling and T_s2_new > T_pinch:
             # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Q=delH1)
+            s1_out.vle(P=s1_out.P, H=s1_in.H + delH1)
         elif boiling:
             s1_out.phase ='g'
             s2_out.T = T_s2_new
@@ -697,22 +674,19 @@ class HXprocess(HX):
     def _run_ll(self):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
-        LNK = self.LNK
-        HNK = self.HNK
         
-        for s in self.outs:
-            s.enable_phases()
-        Hvaps = self._get_Hvaps(s1_out)
         if s1_in.T > s2_in.T and ('g' in s1_in.phase) and ('l' in s2_in.phase):
+            for s in self.outs: s.phases = ('g', 'l')
             # s2 boiling, s1 condensing
             boiling = s2_out
-            delH1 = (s1_out.vapor_mol*Hvaps).sum()
-            delH2 = (s2_out.liquid_mol*Hvaps).sum()
+            delH1 = s1_out['g'].Hvap
+            delH2 = s2_out['l'].Hvap
         elif s1_in.T < s2_in.T and ('l' in s1_in.phase) and ('g' in s2_in.phase):
+            for s in self.outs: s.phases = ('g', 'l')
             # s1 boiling, s2 condensing
             boiling = s1_out
-            delH1 = (s1_out.liquid_mol*Hvaps).sum()
-            delH2 = (s2_out.vapor_mol*Hvaps).sum()
+            delH1 = s1_out['l'].Hvap
+            delH2 = s2_out['g'].Hvap
         else:
             raise ValueError(f"no latent heat streams available for heat exchange with Type='ll'")
         
@@ -721,57 +695,28 @@ class HXprocess(HX):
         if delH1 > delH2:
             sc_in = s2_in
             sc_out = s2_out
+            sp_in = s1_in
             sp_out = s1_out
         else:
             sc_in = s1_in
             sc_out = s1_out
+            sp_in = s2_in
             sp_out = s2_out
-        
-        # Arguments for dew and bubble point
-        index, species_IDs = self._get_species_data(sc_out, self._species_IDs)
-        z = sc_out.mol[index]/sc_out.molnet
-        P = sc_out.P
         
         if sc_out is boiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._dew_point.solve_Tx(z, P)[0]
+            dp = sc_out.dew_point_at_P()
+            sc_out.T = dp.T
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._bubble_point.solve_Ty(z, P)[0]
+            bp = sc_out.bubble_point_at_P()
+            sc_out.T = bp.T
         
         # VLE
-        duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(species_IDs, LNK, HNK, P=sp_out.P, Q=duty)
+        duty = (sc_in.H - sc_out.H)
+        sp_out.vle(P=sp_out.P, H=sp_in.H + duty)
         self._duty = abs(duty)
         
-    def _get_Hvaps(self, stream):
-        if self._Hvaps is None:
-            compounds = stream._species._compounds
-            P = stream.P
-            for c in compounds: c.P = P
-            self._Hvaps = Hvaps = np.array([c.Hvapm or 0 for c in stream._species._compounds])
-            return Hvaps
-        else:
-            return self._Hvaps
-        
-    def _get_species_data(self, stream, species_IDs):
-        _species = stream._species
-        if species_IDs:
-            stream._gamma.species = self._species
-            return self._cached_species_data
-        else:
-            not_zero_arr = stream.mol > 0
-            if (self._not_zero_arr == not_zero_arr).all():
-                return self._cached_equilibrium_species_index
-            else:
-                index = _species._equilibrium_indices(not_zero_arr)
-                cmps = _species._compounds
-                species = [cmps[i] for i in index]
-                species_IDs = [s.ID for s in cmps]
-                self._cached_species_data = out = index, species_IDs
-                self._not_zero_arr = not_zero_arr
-                stream._gamma.species = species
-                return out
     
 # elif U == 'Concentric tubes':
 #     raise NotImplementedError("'Concentric tubes' not yet implemented")

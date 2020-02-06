@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Key Features &amp; Capabilities &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1. Overview" href="Overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>Key Features &amp; Capabilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="figure align-default">
+<img alt="_images/BioSTEAM_logo.png" src="_images/BioSTEAM_logo.png" />
+</div>
+<div class="section" id="key-features-capabilities">
+<h1>Key Features &amp; Capabilities<a class="headerlink" href="#key-features-capabilities" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><strong>Fast and flexible techno-economic analysis.</strong>
+BioSTEAM presents basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, and recycle loops.</p></li>
+<li><p><strong>Clear representation of streams, unit operations, and recycle systems.</strong>
+Instantaneous generation of flowsheets and a clear representation of data allows users to visualize biorefineries in detail. BioSTEAM does not yet have a GUI but we are on our way to building one.</p></li>
+<li><p><strong>Automated process and technology evaluations.</strong>
+The evaluation of thousands of biorefinery designs is streamlined through smart and efficient management of biorefinery parameters to evaluate sets of design decisions and scenarios.</p></li>
+<li><p><strong>Complete biorefinery examples.</strong>
+Two complete biorefineries models are included in BioSTEAM: the co-production of ethanol and biodiesel from lipid-cane, and 2nd generation ethanol production from corn stover. Please refer to the tutorial to get started.</p></li>
+</ul>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="licence">
+<h1>Licence<a class="headerlink" href="#licence" title="Permalink to this headline">¶</a></h1>
+<p>We intend to keep BioSTEAM perpetually open source with a liberal
+open source license. All of the code in BioSTEAM is available under the
+University of Illinois/NCSA Open Source License, which boils down to this:</p>
+<ul class="simple">
+<li><p>You can freely distribute BioSTEAM.</p></li>
+<li><p>You must retain the copyright notice if you redistribute BioSTEAM.</p></li>
+<li><p>Binaries derived from BioSTEAM must reproduce the copyright notice.</p></li>
+<li><p>You can’t use our names to promote your BioSTEAM derived products.</p></li>
+<li><p>There’s no warranty on BioSTEAM at all.</p></li>
+</ul>
+<p>Any contributions to the project must be licensed under these terms.
+We believe this fosters the widest adoption of BioSTEAM as it allows
+commercial products to be derived from BioSTEAM with few restrictions and
+without a requirement for making any derived works also open source
+(i.e. not a “copyleft” license). If further clarification is needed,
+we suggest that you read the <a class="reference external" href="https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt">License</a>.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Overview.html" class="btn btn-neutral float-right" title="1. Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

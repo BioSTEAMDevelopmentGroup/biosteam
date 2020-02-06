@@ -23,7 +23,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
+   "execution_count": 2,
    "metadata": {},
    "outputs": [
     {
@@ -31,11 +31,11 @@
      "output_type": "stream",
      "text": [
       "Unit: P1\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
+      "ins...\n",
       "[0] in0\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
+      "outs...\n",
       "[0] out0\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
@@ -46,8 +46,10 @@
     }
    ],
    "source": [
-    "from biosteam import Unit, Stream, Species\n",
-    "Stream.species = Species('Water')\n",
+    "from biosteam import Unit\n",
+    "from thermosteam import Chemicals, Stream, settings\n",
+    "chemicals = Chemicals(['Water'])\n",
+    "settings.set_thermo(chemicals)\n",
     "ins = Stream('in0')\n",
     "outs = (Stream('out0'), Stream('out1'))\n",
     "P1 = Unit(ID='P1', outs=outs, ins=ins)\n",
@@ -63,7 +65,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": 3,
    "metadata": {},
    "outputs": [
     {
@@ -90,7 +92,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": 4,
    "metadata": {},
    "outputs": [
     {
@@ -98,11 +100,11 @@
      "output_type": "stream",
      "text": [
       "Unit: P1\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
-      "[0] in0\n",
+      "ins...\n",
+      "[0] s1\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
+      "outs...\n",
       "[0] out0\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
@@ -126,7 +128,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": 5,
    "metadata": {},
    "outputs": [
     {
@@ -134,13 +136,13 @@
      "output_type": "stream",
      "text": [
       "Unit: U1\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
-      "[0] Missing Stream\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
-      "[0] d1\n",
+      "ins...\n",
+      "[0] missing stream\n",
+      "outs...\n",
+      "[0] s2\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
-      "[1] d2\n",
+      "[1] s3\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n"
      ]
@@ -160,7 +162,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": 6,
    "metadata": {},
    "outputs": [
     {
@@ -168,11 +170,11 @@
      "output_type": "stream",
      "text": [
       "Unit: P1\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
-      "[0] Missing Stream\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
-      "[0] Missing Stream\n",
-      "[1] Missing Stream\n"
+      "ins...\n",
+      "[0] missing stream\n",
+      "outs...\n",
+      "[0] missing stream\n",
+      "[1] missing stream\n"
      ]
     }
    ],
@@ -183,7 +185,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 7,
    "metadata": {},
    "outputs": [
     {
@@ -191,15 +193,15 @@
      "output_type": "stream",
      "text": [
       "Unit: P1\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
-      "[0] d3\n",
+      "ins...\n",
+      "[0] s4\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
-      "[0] d4\n",
+      "outs...\n",
+      "[0] s5\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
-      "[1] d5\n",
+      "[1] s6\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n"
      ]
@@ -219,7 +221,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": 8,
    "metadata": {},
    "outputs": [
     {
@@ -227,11 +229,14 @@
      "output_type": "stream",
      "text": [
       "Mixer: U2\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
-      "[0] Missing Stream\n",
-      "[1] Missing Stream\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
-      "[0] d6\n",
+      "ins...\n",
+      "[0] missing stream\n",
+      "[1] missing stream\n",
+      "[2] missing stream\n",
+      "[3] missing stream\n",
+      "[4] missing stream\n",
+      "outs...\n",
+      "[0] s7\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n"
      ]
@@ -244,28 +249,28 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": 10,
    "metadata": {},
    "outputs": [
     {
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Splitter: U3\n",
-      "\u001b[37m\u001b[22mins...\u001b[0m\n",
-      "[0] Missing Stream\n",
-      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
-      "[0] d7\n",
+      "Splitter: U2\n",
+      "ins...\n",
+      "[0] missing stream\n",
+      "outs...\n",
+      "[0] s8\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n",
-      "[1] d8\n",
+      "[1] s9\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
       "    flow: 0\n"
      ]
     }
    ],
    "source": [
-    "Splitter().show()"
+    "Splitter(split=0.5).show()"
    ]
   }
  ],

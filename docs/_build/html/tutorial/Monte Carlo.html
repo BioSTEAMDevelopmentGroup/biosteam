@@ -1,0 +1,1146 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>12. Monte Carlo &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Unit" href="../Unit.html" />
+    <link rel="prev" title="11. Unit decorators" href="Unit decorators.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">12. Monte Carlo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Model-objects">12.1. Model objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Create-parameter-distributions">12.2. Create parameter distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Parameter-objects">12.3. Parameter objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Create-a-model-object">12.4. Create a model object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-design-parameters">12.5. Add design parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-cost-parameters">12.6. Add cost parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-isolated-parameters">12.7. Add isolated parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-coupled-parameters">12.8. Add coupled parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-given-a-sample">12.9. Evaluate metric given a sample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Monte-Carlo">12.10. Monte Carlo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Behind-the-scenes">12.11. Behind the scenes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li><span class="section-number">12. </span>Monte Carlo</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/Monte Carlo.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Monte-Carlo">
+<h1><span class="section-number">12.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="Model-objects">
+<h2><span class="section-number">12.1. </span>Model objects<a class="headerlink" href="#Model-objects" title="Permalink to this headline">¶</a></h2>
+<p>BioSTEAM streamlines uncertainty analysis with an object-oriented
+framework where a Model object samples from parameter distributions and
+reevaluates biorefinery metrics at each new condition. In essence, a
+Model object sets parameter values, simulates the biorefinery system,
+and evaluates metrics across an array of samples.</p>
+<div class="figure align-default" id="id2">
+<img alt="Model Simple UML" src="../_images/Model_Simple_UML.png" />
+<p class="caption"><span class="caption-text">Simple Model</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<p>Model objects are able to cut down simulation time by sorting the
+samples to minimize perturbations to the system between simulations.
+This decreases the number of iterations required to solve recycle
+systems. The following examples show how Model objects can be used.</p>
+</div>
+<div class="section" id="Create-parameter-distributions">
+<h2><span class="section-number">12.2. </span>Create parameter distributions<a class="headerlink" href="#Create-parameter-distributions" title="Permalink to this headline">¶</a></h2>
+<p><strong>Let’s first learn how to create common parameter distributions using</strong>
+<a class="reference external" href="https://chaospy.readthedocs.io/en/master/tutorial.html">chaospy</a>.</p>
+<p>A triangular distribution is typically used when the parameter is
+uncertain within given limits, but is heuristically known to take a
+particular value. Create a triangular distribution:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">chaospy</span> <span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">shape</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">most_probable</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">triang</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">Triangle</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">most_probable</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">triang</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Triangle(lower=0, midpoint=0.5, upper=1)
+</pre></div></div>
+</div>
+<p>A uniform distribution is used when the theoretical limits of the
+parameter is known, but no information is available to discern which
+values are more probable. Create a uniform distribution:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">chaospy</span> <span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">shape</span>
+<span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">upper_bound</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">unif</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">unif</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Uniform(lower=0, upper=1)
+</pre></div></div>
+</div>
+<p>A large set of distributions are available through chaospy, but
+generally triangular and uniform distributions are the most widely used
+to describe the uncertainty of parameters in Monte Carlo analyses.</p>
+</div>
+<div class="section" id="Parameter-objects">
+<h2><span class="section-number">12.3. </span>Parameter objects<a class="headerlink" href="#Parameter-objects" title="Permalink to this headline">¶</a></h2>
+<p><strong>Parameter objects are simply structures BioSTEAM uses to manage
+parameter values and distributions.</strong></p>
+<p>This section is just to get you familiar with Parameter objects. All the
+fields that a Parameter object can have are described below. Don’t worry
+if you don’t fully understand what each field does. The main idea is
+that we need to define the <code class="docutils literal notranslate"><span class="pre">setter</span></code> function that the Parameter object
+uses to set the parameter value to the <code class="docutils literal notranslate"><span class="pre">element</span></code> (e.g. unit operation,
+stream, etc.) it pertains to. We can also pass a <code class="docutils literal notranslate"><span class="pre">distribution</span></code>
+(i.e. a chaospy distribution) that will be accessible for Model objects
+to sample from. As for the <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">units</span></code> of measure, and the
+<code class="docutils literal notranslate"><span class="pre">baseline</span></code> value, these are all for bookkeeping purposes. BioSTEAM
+incorporates the <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">units</span></code> of measure when creating a
+DataFrame of Monte Carlo results and parameter distributions. Parameter
+objects are created by Model objects which implicitly pass both the
+<code class="docutils literal notranslate"><span class="pre">system</span></code> affected by the parameter, and the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> function. So
+don’t worry about these last two fields, they are automatically added by
+the Model object when creating the parameter.</p>
+<p><strong>simulate:</strong> [function] Should simulate parameter effects.</p>
+<p><strong>system:</strong> [System] System associated to parameter.</p>
+<p><strong>name:</strong> [str] Name of parameter.</p>
+<p><strong>units:</strong> [str] Units of measure.</p>
+<p><strong>baseline:</strong> [float] Baseline value of parameter.</p>
+<p><strong>element:</strong> [object] Element associated to parameter.</p>
+<p><strong>setter:</strong> [function] Should set the parameter.</p>
+<p><strong>distribution:</strong> [chaospy.Dist] Parameter distribution.</p>
+<p>Hopefully things will be become clearer as we start to create the
+parameter objects in the following sections…</p>
+</div>
+<div class="section" id="Create-a-model-object">
+<h2><span class="section-number">12.4. </span>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
+<p><strong>Model objects are used to evaluate metrics around multiple parameters
+of a system.</strong></p>
+<p>Create a Model object of the lipidcane biorefinery with internal rate of
+return and utility cost as metrics:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biorefineries</span> <span class="kn">import</span> <span class="n">lipidcane</span> <span class="k">as</span> <span class="n">lc</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="n">solve_IRR</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span>
+<span class="n">total_utility_cost</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">utility_cost</span> <span class="o">/</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span> <span class="c1"># In 10^6 USD/yr</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Metric</span><span class="p">(</span><span class="s1">&#39;Internal rate of return&#39;</span><span class="p">,</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">),</span>
+           <span class="n">bst</span><span class="o">.</span><span class="n">Metric</span><span class="p">(</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="n">total_utility_cost</span><span class="p">,</span> <span class="s1">&#39;10^6 USD/yr&#39;</span><span class="p">))</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+<p>The Model object begins with no paramters:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model: Biorefinery internal rate of return (%)
+       Biorefinery utility cost (10^6 USD/yr)
+ (No parameters)
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Add-design-parameters">
+<h2><span class="section-number">12.5. </span>Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>A design parameter is a Unit attribute that changes design
+requirements but does not affect mass and energy balances.</strong></p>
+<p>Add number of fermentation reactors as a “design” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">R301</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">R301</span> <span class="c1"># The Fermentation Unit</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">,</span>
+                 <span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;design&#39;</span><span class="p">,</span>
+                 <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">set_N_reactors</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">R301</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The decorator uses the function to create a Parameter object and add it
+to the model:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">parameters</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span>
+<span class="n">parameters</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>(&lt;Parameter: [Fermentation-R301] Number of reactors&gt;,)
+</pre></div>
+</div>
+</div>
+<p>Calling a Parameter object will update the parameter and results:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">set_N_reactors_parameter</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 5 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 8 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Puchase cost at 5 reactors: $2,604,573
+Puchase cost at 8 reactors: $2,604,573
+</pre></div></div>
+</div>
+<p>The distribution will come into play later, when creating samples for
+Monte Carlo simulations.</p>
+</div>
+<div class="section" id="Add-cost-parameters">
+<h2><span class="section-number">12.6. </span>Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>A cost parameter is a Unit attribute that affects cost but does not
+change design requirements.</strong></p>
+<p>Add the fermentation unit base cost as a “cost” parameter with a
+triangular distribution:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">reactors_cost_coefficients</span> <span class="o">=</span> <span class="n">R301</span><span class="o">.</span><span class="n">cost_items</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">]</span>
+<span class="n">mid</span> <span class="o">=</span> <span class="n">reactors_cost_coefficients</span><span class="o">.</span><span class="n">n</span> <span class="c1"># Most probable at baseline value</span>
+<span class="n">lb</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="c1"># Minimum</span>
+<span class="n">ub</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="c1"># Maximum</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span>
+                 <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Triangle</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span> <span class="n">ub</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">set_exponential_cost_coefficient</span><span class="p">(</span><span class="n">exponential_cost_coefficient</span><span class="p">):</span>
+    <span class="n">reactors_cost_coefficients</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">exponential_cost_coefficient</span>
+</pre></div>
+</div>
+</div>
+<p>Note that if the name was not defined, it defaults to the setter’s
+signature:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[9]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>(&lt;Parameter: [Fermentation-R301] Number of reactors&gt;,
+ &lt;Parameter: [Fermentation-R301] Exponential cost coefficient&gt;)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Add-isolated-parameters">
+<h2><span class="section-number">12.7. </span>Add isolated parameters<a class="headerlink" href="#Add-isolated-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>An isolated parameter should not affect Unit objects in any way.</strong></p>
+<p>Add feedstock price as a “isolated” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">lipid_cane</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipid_cane</span> <span class="c1"># The feedstock stream</span>
+<span class="n">lb</span> <span class="o">=</span> <span class="n">lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">*</span> <span class="mf">0.9</span> <span class="c1"># Minimum price</span>
+<span class="n">ub</span> <span class="o">=</span> <span class="n">lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">*</span> <span class="mf">1.1</span> <span class="c1"># Maximum price</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;USD/kg&#39;</span><span class="p">,</span>
+                 <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">feedstock_price</span><span class="p">):</span>
+    <span class="n">lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">feedstock_price</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Add-coupled-parameters">
+<h2><span class="section-number">12.8. </span>Add coupled parameters<a class="headerlink" href="#Add-coupled-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>A coupled parameter affects mass and energy balances of the system.</strong></p>
+<p>Add lipid fraction as a “coupled” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Note that if the setter function is already made,</span>
+<span class="c1"># you can pass it as the first argument</span>
+<span class="n">set_lipid_fraction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span>
+                                     <span class="n">element</span><span class="o">=</span><span class="n">lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">,</span>
+                                     <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>Add fermentation efficiency as a “coupled” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">,</span>
+                 <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Triangle</span><span class="p">(</span><span class="mf">0.85</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">set_fermentation_efficiency</span><span class="p">(</span><span class="n">efficiency</span><span class="p">):</span>
+    <span class="n">R301</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Evaluate-metric-given-a-sample">
+<h2><span class="section-number">12.9. </span>Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
+<p><strong>The model can be called to evaluate a sample of parameters.</strong></p>
+<p>Note that all parameters are stored in the model with highly coupled
+parameters first:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model: Biorefinery internal rate of return (%)
+       Biorefinery utility cost (10^6 USD/yr)
+ Element:           Parameter:
+ Stream-lipid cane  Lipid fraction
+ Fermentation-R301  Efficiency
+                    Number of reactors
+                    Exponential cost coefficient
+ Stream-lipid cane  Feedstock price
+</pre></div></div>
+</div>
+<p>Get dictionary that contain DataFrame objects of parameter
+distributions:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_dct</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_distribution_summary</span><span class="p">()</span>
+<span class="n">df_dct</span><span class="p">[</span><span class="s1">&#39;Uniform&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Element</th>
+      <th>Name</th>
+      <th>Units</th>
+      <th>Shape</th>
+      <th>lower</th>
+      <th>upper</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Stream-lipid cane</td>
+      <td>Lipid fraction</td>
+      <td></td>
+      <td>Uniform</td>
+      <td>0.02</td>
+      <td>0.1</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Fermentation-R301</td>
+      <td>Number of reactors</td>
+      <td></td>
+      <td>Uniform</td>
+      <td>4</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Stream-lipid cane</td>
+      <td>Feedstock price</td>
+      <td>USD/kg</td>
+      <td>Uniform</td>
+      <td>0.0311</td>
+      <td>0.038</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df_dct</span><span class="p">[</span><span class="s1">&#39;Triangle&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[15]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Element</th>
+      <th>Name</th>
+      <th>Units</th>
+      <th>Shape</th>
+      <th>lower</th>
+      <th>midpoint</th>
+      <th>upper</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Fermentation-R301</td>
+      <td>Efficiency</td>
+      <td></td>
+      <td>Triangle</td>
+      <td>0.85</td>
+      <td>0.9</td>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Fermentation-R301</td>
+      <td>Exponential cost coefficient</td>
+      <td></td>
+      <td>Triangle</td>
+      <td>0.4</td>
+      <td>0.5</td>
+      <td>0.6</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Evaluate sample:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="p">([</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">100000</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">])</span> <span class="c1"># Returns metrics (IRR and utility cost)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\Users\yoelr\OneDrive\Code\thermosteam\thermosteam\equilibrium\solve_composition.py:20: RuntimeWarning: invalid value encountered in true_divide
+  return y_phi / phi(y/y.sum(), T, P)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[16]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[0.111993180764959, -16.598678707133107]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Monte-Carlo">
+<h2><span class="section-number">12.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h2>
+<p>Sample from a joint distribution, and simulate samples:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">N_samples</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">rule</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span> <span class="c1"># For Latin-Hypercube sampling</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">rule</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_samples</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">table</span> <span class="c1"># All evaluations are stored as a pandas DataFrame</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th>Element</th>
+      <th>Stream-lipid cane</th>
+      <th colspan="3" halign="left">Fermentation-R301</th>
+      <th>Stream-lipid cane</th>
+      <th colspan="2" halign="left">Biorefinery</th>
+    </tr>
+    <tr>
+      <th>Variable</th>
+      <th>Lipid fraction</th>
+      <th>Efficiency</th>
+      <th>Number of reactors</th>
+      <th>Exponential cost coefficient</th>
+      <th>Feedstock price [USD/kg]</th>
+      <th>Internal rate of return [%]</th>
+      <th>Utility cost [10^6 USD/yr]</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.0724</td>
+      <td>0.897</td>
+      <td>9.5</td>
+      <td>0.53</td>
+      <td>0.0338</td>
+      <td>0.174</td>
+      <td>-20.5</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.0967</td>
+      <td>0.935</td>
+      <td>5.88</td>
+      <td>0.433</td>
+      <td>0.0344</td>
+      <td>0.194</td>
+      <td>-24.6</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.0959</td>
+      <td>0.882</td>
+      <td>4.03</td>
+      <td>0.558</td>
+      <td>0.0358</td>
+      <td>0.181</td>
+      <td>-24.9</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.0257</td>
+      <td>0.914</td>
+      <td>7.55</td>
+      <td>0.507</td>
+      <td>0.0375</td>
+      <td>0.113</td>
+      <td>-10.6</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.0813</td>
+      <td>0.862</td>
+      <td>5.21</td>
+      <td>0.518</td>
+      <td>0.0342</td>
+      <td>0.175</td>
+      <td>-22.4</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>95</th>
+      <td>0.0701</td>
+      <td>0.852</td>
+      <td>9.91</td>
+      <td>0.509</td>
+      <td>0.0313</td>
+      <td>0.176</td>
+      <td>-20.5</td>
+    </tr>
+    <tr>
+      <th>96</th>
+      <td>0.0611</td>
+      <td>0.913</td>
+      <td>7.51</td>
+      <td>0.513</td>
+      <td>0.0357</td>
+      <td>0.158</td>
+      <td>-18</td>
+    </tr>
+    <tr>
+      <th>97</th>
+      <td>0.0351</td>
+      <td>0.875</td>
+      <td>5.76</td>
+      <td>0.536</td>
+      <td>0.0347</td>
+      <td>0.131</td>
+      <td>-13.1</td>
+    </tr>
+    <tr>
+      <th>98</th>
+      <td>0.043</td>
+      <td>0.895</td>
+      <td>4.79</td>
+      <td>0.511</td>
+      <td>0.0331</td>
+      <td>0.153</td>
+      <td>-14.4</td>
+    </tr>
+    <tr>
+      <th>99</th>
+      <td>0.0843</td>
+      <td>0.905</td>
+      <td>7.7</td>
+      <td>0.435</td>
+      <td>0.0379</td>
+      <td>0.163</td>
+      <td>-22.6</td>
+    </tr>
+  </tbody>
+</table>
+<p>100 rows × 7 columns</p>
+</div></div>
+</div>
+<p>Note that coupled parameters are on the left most columns, and are
+ordered from upstream to downstream (e.g. &lt;Stream: Lipid cane&gt; is
+upstream from &lt;Fermentation: R301&gt;)</p>
+</div>
+<div class="section" id="Behind-the-scenes">
+<h2><span class="section-number">12.11. </span>Behind the scenes<a class="headerlink" href="#Behind-the-scenes" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-default" id="id3">
+<img alt="Model UML" src="../_images/Model_UML.png" />
+<p class="caption"><span class="caption-text">Model UML Diagram</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p>Model objects work with the help of Block and Parameter objects that are
+able to tell the relative importance of parameters through the
+<code class="docutils literal notranslate"><span class="pre">element</span></code> it affects and the <code class="docutils literal notranslate"><span class="pre">kind</span></code> (how it affects the system).
+Before a new parameter is made, if its <code class="docutils literal notranslate"><span class="pre">kind</span></code> is “coupled”, then the
+Model object creates a Block object that simulates only the objects
+affected by the parameter. The Block object, in turn, helps to create a
+Parameter object by passing its simulation method.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../Unit.html" class="btn btn-neutral float-right" title="Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Unit decorators.html" class="btn btn-neutral float-left" title="11. Unit decorators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

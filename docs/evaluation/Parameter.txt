@@ -1,7 +1,5 @@
 Parameter
 =========
 
-.. module:: biosteam.evaluation
-
-.. autoclass:: Parameter
+.. autoclass:: biosteam.evaluation.Parameter
    :members:

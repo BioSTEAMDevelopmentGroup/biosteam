@@ -4,9 +4,9 @@ Created on Thu Aug 23 22:49:58 2018
 
 @author: yoelr
 """
-from .. import Unit, Stream
+from .. import Unit
 from .decorators import cost
-from ..reaction import Reaction, ParallelReaction
+from thermosteam.reaction import Reaction, ParallelReaction
 
 @cost('Volume', 'Reactor',
       CE=525.4, cost=15000, n=0.55, kW=1.5, BM=4.3,)
@@ -55,11 +55,12 @@ class Transesterification(Unit):
                    reactant='Lipid',  X=efficiency),
           Reaction('NaOCH3 -> NaOH + Methanol',
                    reactant='NaOCH3', X=1)])
-        self._methanol_composition = Stream.species.kwarray(
-                Methanol=1-catalyst_molfrac,
-                NaOCH3=catalyst_molfrac)
+        chemicals = self.chemicals
+        self._methanol_composition = chemicals.kwarray(
+                dict(Methanol=1-catalyst_molfrac,
+                     NaOCH3=catalyst_molfrac))
         self._lipid_index, self._methanol_index, self._catalyst_index = \
-                Stream.indices(['Lipid', 'Methanol', 'NaOCH3'])
+                chemicals.get_index(('Lipid', 'Methanol', 'NaOCH3'))
         self._methanol2lipid = methanol2lipid
         self.T = T #: Operation temperature (K).
     
@@ -109,8 +110,8 @@ class Transesterification(Unit):
         
     def _design(self):
         effluent = self._outs[0]
-        self._Design['Volume'] = self._tau*effluent.volnet/0.8
-        self._heat_utilities[0](self._Hnet, effluent.T)
+        self.design_results['Volume'] = self._tau * effluent.F_vol / 0.8
+        self.heat_utilities[0](self.Hnet, effluent.T)
 
         
     

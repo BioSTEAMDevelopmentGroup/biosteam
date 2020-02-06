@@ -1,7 +1,5 @@
 HXprocess
 =========
 
-.. module:: biosteam.units
-
-.. autoclass:: HXprocess
+.. autoclass:: biosteam.units.HXprocess
    :members:

@@ -5,7 +5,8 @@ Created on Thu May  9 13:38:57 2019
 @author: Guest Group
 """
 from ._block import Block
-from .. import Unit, Stream
+from .. import Unit
+from thermosteam import Stream
 import numpy as np
 import pandas as pd
 from chaospy import J
@@ -41,39 +42,40 @@ def parameter(system, element, setter, kind, name, distribution, units, baseline
                     distribution=distribution, units=units, baseline=baseline)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
 
-def create_update_function_with_skipping(params):
-    cached = None
-    zip_= zip
-    params = tuple(params)
-    def update(sample): 
-        nonlocal cached
+class UpdateWithSkipping:
+    __slots__ = ('cache', 'params')
+    def __init__(self, params):
+        self.params = tuple(params)
+        self.cache = None
+    def __call__(self, sample):
         try:
             sim = None
-            for p, x, same in zip_(params, sample, cached==sample):
+            for p, x, same in zip(self.params, sample, self.cache==sample):
                 if same: continue
                 p.setter(x)
                 if sim: continue
                 if p.system: sim = p.simulate 
                 else: p.simulate()
             if sim: sim()
-            cached = sample.copy()
+            self.cache = sample.copy()
         except Exception as Error:
-            cached = None
+            self.cache = None
             raise Error
-    return update
 
-def create_update_function(params):
-    zip_= zip
-    params = tuple(params)
-    def update(sample): 
+class UpdateWithoutSkipping:
+    __slots__ = ('cache', 'params')
+    def __init__(self, params):
+        self.params = tuple(params)
+        self.cache = None
+    def __call__(self, sample):
         sim = None
-        for p, x in zip_(params, sample):
+        for p, x in zip(self.params, sample):
             p.setter(x)
             if sim: continue
             if p.system: sim = p.simulate 
             else: p.simulate()
         if sim: sim()
-    return update
+
 
 
 # %%
@@ -184,7 +186,7 @@ class State:
                           name, distribution, units, baseline)
         self._params.append(param)
         self._erase()
-        return param
+        return setter
     
     def sample(self, N, rule): 
         """Return N samples from parameter distribution at given rule.
@@ -234,11 +236,11 @@ class State:
     
     def _loadparams(self):
         """Load parameters."""
-        length = len(self._system._unitnetwork)
-        index =  self._system._unitnetwork.index
+        length = len(self._system._unit_network)
+        index =  self._system._unit_network.index
         self._params.sort(key=lambda x: index(param_unit(x)) if x.system else length)
-        self._update = (create_update_function_with_skipping if self._skip 
-                        else create_update_function)(self._params)
+        self._update = (UpdateWithSkipping if self._skip 
+                        else UpdateWithoutSkipping)(self._params)
     
     def __call__(self, sample):
         """Update state given sample of parameters."""

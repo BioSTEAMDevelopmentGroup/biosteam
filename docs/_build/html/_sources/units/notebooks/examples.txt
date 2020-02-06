@@ -4,7 +4,6 @@ Unit operation examples
 .. toctree::
    :maxdepth: 1
    
-   Centrifuge_LLE Example
    Distillation Example
    Fermentation Example
    Flash Example

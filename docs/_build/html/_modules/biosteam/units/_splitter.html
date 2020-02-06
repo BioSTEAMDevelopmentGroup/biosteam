@@ -83,23 +83,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
@@ -107,10 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
@@ -186,10 +178,9 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">asarray</span>
-<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">Series</span>
-
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+<span class="kn">from</span> <span class="nn">thermosteam.indexer</span> <span class="kn">import</span> <span class="n">ChemicalIndexer</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;run_split&#39;</span><span class="p">,</span> <span class="s1">&#39;run_split_with_mixing&#39;</span><span class="p">)</span>
 
 
@@ -197,21 +188,22 @@
     <span class="sd">&quot;&quot;&quot;Splitter mass and energy balance function based on one input stream.&quot;&quot;&quot;</span>
     <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
     <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">net_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
-    <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
-    <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
+    <span class="n">top_mol</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span>
+    <span class="n">feed_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+    <span class="n">top_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed_mol</span> <span class="o">-</span> <span class="n">top_mol</span>
     <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
     <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
 
 <span class="k">def</span> <span class="nf">run_split_with_mixing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Splitter mass and energy balance function with mixing all input streams.&quot;&quot;&quot;</span>
-    <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
-    <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span> <span class="n">top</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">bot</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
-    <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
-    <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">-=</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
+    <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+    <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+    <span class="n">top</span><span class="o">.</span><span class="n">mix_from</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+    <span class="n">top_mol</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span>
+    <span class="n">top_mol</span><span class="p">[:]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">-=</span> <span class="n">top_mol</span>
 
 
 <div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../units/Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
@@ -317,24 +309,43 @@
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">6</span>
     
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isplit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[ChemicalIndexer] Componentwise split of feed to 0th output stream.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isplit</span>
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[array] Componentwise split of feed to 0th output stream.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span>
+        <span class="sd">&quot;&quot;&quot;[Array] Componentwise split of feed to 0th output stream.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isplit</span><span class="o">.</span><span class="n">_data</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_split</span> <span class="o">=</span> <span class="n">split</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">split</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span> <span class="k">else</span> <span class="n">asarray</span><span class="p">(</span><span class="n">split</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span> <span class="o">=</span>  <span class="n">Series</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">IDs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
+        <span class="n">chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="o">.</span><span class="n">chemicals</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">order</span><span class="p">,</span> <span class="s2">&quot;cannot pass &#39;other&#39; key word argument when split is a dictionary&quot;</span>
+            <span class="n">order</span><span class="p">,</span> <span class="n">split</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">split</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        
+        <span class="k">if</span> <span class="n">order</span><span class="p">:</span>
+            <span class="n">isplit</span> <span class="o">=</span> <span class="n">chemicals</span><span class="o">.</span><span class="n">iarray</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">split</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+            <span class="n">isplit</span> <span class="o">=</span> <span class="n">ChemicalIndexer</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">split</span><span class="p">),</span>
+                                               <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                               <span class="n">chemicals</span><span class="o">=</span><span class="n">chemicals</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">split</span> <span class="o">=</span> <span class="n">split</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">chemicals</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">isplit</span> <span class="o">=</span> <span class="n">ChemicalIndexer</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">split</span><span class="p">,</span>
+                                               <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                               <span class="n">chemicals</span><span class="o">=</span><span class="n">chemicals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isplit</span> <span class="o">=</span> <span class="n">isplit</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
-        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">net_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">feed</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">feed_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
-        <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span></div>
+        <span class="n">bot</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">phase</span>
+        <span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">top_mol</span> <span class="o">=</span> <span class="n">feed_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed_mol</span> <span class="o">-</span> <span class="n">top_mol</span></div>
 
 <span class="n">Splitter</span><span class="o">.</span><span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
 
@@ -344,7 +355,7 @@
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_graphics</span>
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">feed</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_out</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_out</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">phase</span>

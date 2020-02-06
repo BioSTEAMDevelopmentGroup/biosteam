@@ -52,11 +52,15 @@ class MolecularSieve(Splitter):
     _units = {'Flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, order=None, split):
         Splitter.__init__(self, ID, ins, outs, order=order, split=split)
-        self._outs[0]._phase = self._outs[1]._phase = 'g'
+        
+    def _setup(self):
+        s1_out, s2_out = self.outs
+        s1_out.phase = s2_out.phase = 'g'
 
     def _design(self):
-        self._Design['Flow rate'] = flow = self._outs[1].massnet
+        self.design_results['Flow rate'] = flow = self._outs[1].F_mass
         T = self.ins[0].T
-        self._heat_utilities[0](1429.65*flow, T)
-        self._heat_utilities[1](-55.51*flow, T)
+        hu1, hu2 = self.heat_utilities
+        hu1(1429.65*flow, T)
+        hu2(-55.51*flow, T)
 

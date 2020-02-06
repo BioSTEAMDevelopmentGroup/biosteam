@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>MixTank &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Mixer" href="Mixer.html" />
+    <link rel="prev" title="MassBalance" href="MassBalance.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="units.html">units</a> &raquo;</li>
+        
+      <li>MixTank</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/units/MixTank.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units">
+<span id="mixtank"></span><h1>MixTank<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.MixTank">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MixTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">species=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a mixing tank with volume based on residence time.</p>
+<div class="math">
+<p><img src="../_images/math/9a3932a776b412b93bac2cc7cc48e12b0c195684.png" alt="V &amp;= \frac{\tau* Q}{0.8}
+
+C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
+</div><p class="rubric">References</p>
+<p>[1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</p>
+<dl class="method">
+<dt id="biosteam.units.MixTank.ID">
+<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.MixTank.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.diagram">
+<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>Maxium number streams between neighbors.</p>
+</dd>
+<dt><strong>downstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show downstream operations</p>
+</dd>
+<dt><strong>upstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show upstream operations</p>
+</dd>
+<dt><strong>file</strong><span class="classifier">Must be one of the following:</span></dt><dd><ul class="simple">
+<li><p>[str] File name to save diagram.</p></li>
+<li><p>[None] Display diagram in console.</p></li>
+</ul>
+</dd>
+<dt><strong>format</strong><span class="classifier">str</span></dt><dd><p>Format of file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.purchase_cost">
+<em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.MixTank.purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total purchase cost (USD).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.results">
+<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.show">
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">fraction=None</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints information on unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.simulate">
+<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run rigourous simulation and determine all design requirements.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.tau">
+<em class="property">property </em><code class="sig-name descname">tau</code><a class="headerlink" href="#biosteam.units.MixTank.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>Residence time (hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.utility_cost">
+<em class="property">property </em><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.units.MixTank.utility_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total utility cost (USD/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.MixTank.working_volume_fraction">
+<em class="property">property </em><code class="sig-name descname">working_volume_fraction</code><a class="headerlink" href="#biosteam.units.MixTank.working_volume_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fraction of working volume.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Mixer.html" class="btn btn-neutral float-right" title="Mixer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="MassBalance.html" class="btn btn-neutral float-left" title="MassBalance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

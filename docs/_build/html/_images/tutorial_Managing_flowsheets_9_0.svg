@@ -3,15 +3,15 @@
 <title>%3</title>
 <polygon fill="white" points="-4,4 -4,-229.48 221.593,-229.48 221.593,4 -4,4" stroke="none"/>
 <!-- M2
-Mixer&#45;&gt;d2 -->
-<g class="edge" id="edge2"><title>M2
-Mixer:e-&gt;d2:w</title>
+Mixer&#45;&gt;s2 -->
+<g class="edge" id="edge1"><title>M2
+Mixer:e-&gt;s2:w</title>
 <path d="M138.593,-53.7401C154.593,-53.7401 158.593,-53.7401 174.593,-53.7401" fill="none" stroke="black"/>
 </g>
 <!-- M1
-Mixer&#45;&gt;d1 -->
-<g class="edge" id="edge1"><title>M1
-Mixer:e-&gt;d1:w</title>
+Mixer&#45;&gt;s1 -->
+<g class="edge" id="edge2"><title>M1
+Mixer:e-&gt;s1:w</title>
 <path d="M138.593,-171.74C154.593,-171.74 158.593,-171.74 174.593,-171.74" fill="none" stroke="black"/>
 </g>
 <!-- M2
@@ -42,15 +42,15 @@ Mixer</title>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="69.2965" y="-175.54">M1</text>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="69.2965" y="-160.54">Mixer</text>
 </g>
-<!-- d1 -->
-<g class="node" id="node3"><title>d1</title>
-<polygon fill="#79dae8" points="199.593,-187.24 174.593,-187.24 174.593,-156.24 199.593,-156.24 199.593,-150.24 217.593,-171.74 199.593,-193.24 199.593,-187.24" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="196.093" y="-168.04">d1</text>
-</g>
-<!-- d2 -->
-<g class="node" id="node4"><title>d2</title>
+<!-- s2 -->
+<g class="node" id="node3"><title>s2</title>
 <polygon fill="#79dae8" points="199.593,-69.2401 174.593,-69.2401 174.593,-38.2401 199.593,-38.2401 199.593,-32.2401 217.593,-53.7401 199.593,-75.2401 199.593,-69.2401" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="196.093" y="-50.0401">d2</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="196.093" y="-50.0401">s2</text>
+</g>
+<!-- s1 -->
+<g class="node" id="node4"><title>s1</title>
+<polygon fill="#79dae8" points="199.593,-187.24 174.593,-187.24 174.593,-156.24 199.593,-156.24 199.593,-150.24 217.593,-171.74 199.593,-193.24 199.593,-187.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="196.093" y="-168.04">s1</text>
 </g>
 </g>
 </svg>

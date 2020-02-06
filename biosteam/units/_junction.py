@@ -5,33 +5,17 @@ Created on Sat Jun  8 23:29:37 2019
 @author: yoelr
 """
 from .._unit import Unit
-from .._stream import Stream
-from .._mixed_stream import MixedStream
-from ..utils import MissingStream, Ins, Outs
+from thermosteam import MultiStream
+from ..utils.piping import Ins, Outs
 
 __all__ = ('Junction',)
 
-def _getstreams(self):
-    try:
-        upstream, = self._ins
-        downstream, = self._outs
-    except ValueError as error:
-        N_ins = len(self._ins)
-        N_outs = len(self._outs)
-        print(self._ins)
-        print(self._outs)
-        if N_ins != 1:
-            raise RuntimeError(f'a Junction object must have 1 input stream, not {N_ins}')
-        elif N_outs != 1:
-            raise RuntimeError(f'a Junction object must have 1 output stream, not {N_outs}')
-        else:
-            raise error
-    return upstream, downstream
+
 
 # %% Connect between different flowsheets
 
-default_species = lambda upstream, downstream: \
-    [i.ID for i in set(upstream.species._compounds).intersection(downstream.species._compounds)]
+chemicals_in_common = lambda upstream, downstream: \
+    tuple(set(upstream.chemicals.IDs).intersection(downstream.chemicals.IDs))
 
 class Junction(Unit):
     """Create a Junction object that copies specifications from `upstream`
@@ -54,16 +38,14 @@ class Junction(Unit):
     Create a Junction object and connect streams with different Species objects:
         
     >>> from biosteam import *
-    >>> species = Species('Water')
-    >>> species.Sugar = compounds.Substance('Sugar')
-    >>> Stream.species = species
+    >>> settings.thermo = Thermo(['Water'])
     >>> s1 = Stream('s1', Water=20)
-    >>> Stream.species = Species('Water', 'Ethanol')
-    >>> s2 = Stream('s2') # Note that s2 and s1 have different Species objects
-    >>> J1 = units.Junction(upstream=s1, downstream=s2)
+    >>> settings.thermo = Thermo(['Ethanol', 'Water'])
+    >>> s2 = Stream('s2') # Note that s2 and s1 have different chemicals defined
+    >>> J1 = units.Junction('J1', s1, s2)
     >>> J1.simulate()
     >>> J1.show()
-    Junction:
+    Junction: J1
     ins...
     [0] s1
         phase: 'l', T: 298.15 K, P: 101325 Pa
@@ -76,60 +58,53 @@ class Junction(Unit):
     """
     _has_cost = False
     _N_ins = _N_outs = 1
-    def __init__(self, ID="", upstream=None, downstream='', species=None):
-        # Init upstream
-        if upstream is None:
-            self._ins = Ins(self, (MissingStream,))
-        elif isinstance(upstream, Stream):
-            self._ins = Ins(self, (upstream,))
-        elif isinstance(upstream, str):
-            self._ins = Ins(self, (Stream(upstream),))
-        
-        # Init downstream
-        if downstream is None:
-            self._outs = Outs(self, (MissingStream,))
-        elif isinstance(downstream, Stream):
-            self._outs = Outs(self, (downstream,))
-        elif isinstance(downstream, str):
-            self._outs = Outs(self, (Stream(downstream),))
-        
-        self.species = species
-        self.ID = ID
+    heat_utilities = ()
+    def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
+        thermo = self._load_thermo(thermo)
+        self._chemicals_in_common = self._past_streams = ()
+        self._ins = Ins(self, self._N_ins, upstream, thermo)
+        self._outs = Outs(self, self._N_outs, downstream, thermo)
+        self._register(ID)
     
-    def _material_balance(self, upstream, downstream):
-        if isinstance(upstream, MixedStream):
-            downstream.enable_phases()
-            downstream._mol[:, self._downindex] = upstream._mol[:, self._upindex]
+    def _get_chemicals_in_common(self, upstream, downstream):
+        if (upstream, downstream) == self._past_streams:
+            IDs = self._chemicals_in_common
         else:
-            downstream.disable_phases(upstream._phase)
-            downstream._mol[self._downindex] = upstream._mol[self._upindex]
+            self._chemicals_in_common = IDs = chemicals_in_common(upstream, downstream)
+        return IDs
+    
+    def _get_streams(self):
+        try:
+            upstream, = self._ins
+            downstream, = self._outs
+        except ValueError as error:
+            N_ins = self._ins.size
+            N_outs = self._outs.size
+            if N_ins != 1:
+                raise RuntimeError(f'a Junction object must have 1 input stream, not {N_ins}')
+            elif N_outs != 1:
+                raise RuntimeError(f'a Junction object must have 1 output stream, not {N_outs}')
+            else:
+                raise error
+        return upstream, downstream
     
     def _run(self):
-        upstream, downstream = _getstreams(self)
-        if not self._species:
-            self.species = default_species(upstream, downstream)
-        self._material_balance(upstream, downstream)
+        upstream, downstream = self._get_streams()
+        IDs = self._get_chemicals_in_common(upstream, downstream)
+        if isinstance(upstream, MultiStream):
+            downstream.phases = upstream.phases
+            downstream.imol[..., IDs] = upstream.imol[..., IDs]
+        else:
+            downstream.phase = upstream.phase
+            downstream.imol[IDs] = upstream.imol[IDs]
         downstream.T = upstream.T
         downstream.P = upstream.P
     simulate = _run
-    
-    @property
-    def species(self):
-        return self._species
-    @species.setter
-    def species(self, IDs):
-        if IDs is None:
-            self._species = IDs
-        else:
-            upstream, downstream = _getstreams(self)
-            self._species = IDs = tuple(IDs)
-            self._upindex = upstream.indices(IDs)
-            self._downindex = downstream.indices(IDs)
 
 
 def node_function(self):
     node = self._graphics.node
-    if not any(_getstreams(self)):
+    if not any(self._get_streams()):
         node['fontsize'] = '18'
         node['shape'] = 'plaintext'
         node['fillcolor'] = 'none'

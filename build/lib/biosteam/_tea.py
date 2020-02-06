@@ -10,6 +10,7 @@ import numpy as np
 from flexsolve import wegstein_secant, aitken_secant, secant
 from copy import copy as copy_
 from numba import njit
+
 __all__ = ('TEA', 'CombinedTEA')
 
 
@@ -47,6 +48,7 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
 
 # %% Utilities
     
+@njit    
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
@@ -55,6 +57,7 @@ def initial_loan_principal(loan, interest):
         principal *= k
     return principal
 
+@njit
 def final_loan_principal(payment, principal, interest, years):
     for iter in range(years):
         principal += principal * interest - payment
@@ -65,6 +68,7 @@ def solve_payment(payment, loan, interest, years):
     return wegstein_secant(final_loan_principal,
                            payment, payment+10., 1e-4, 1e-4,
                            args=(principal, interest, years))
+
 @njit
 def net_earnings(D, C, S, start,
                  FCI, TDC, VOC, FOC, sales,
@@ -357,7 +361,7 @@ class TEA:
         net_earnings = (1-self.income_tax)*(self.sales-self._AOC(FCI))
         return FCI/net_earnings
 
-    def get_cashflow(self):
+    def get_cashflow_table(self):
         """Return DataFrame of the cash flow analysis."""
         # Cash flow data and parameters
         # index: Year since construction until end of venture
@@ -553,7 +557,7 @@ class TEA:
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cashflow in solve_price method."""
-        return stream.massnet*self._annual_factor*(1-self.income_tax)
+        return stream.F_mass*self._annual_factor*(1-self.income_tax)
     
     def solve_price(self, stream):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 

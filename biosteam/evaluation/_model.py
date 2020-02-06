@@ -10,6 +10,7 @@ from ._state import State
 from ._metric import Metric
 from biosteam.utils import TicToc
 from scipy.stats import spearmanr
+import multiprocessing as mp
 
 __all__ = ('Model',)
 
@@ -19,8 +20,8 @@ varindices = lambda vars: [var.index for var in vars]
 varcolumns = lambda vars: pd.MultiIndex.from_tuples(
                                  varindices(vars),
                                  names=('Element', 'Variable'))
+            
 
-    
 # %% Grid of simulation blocks
 
 class Model(State):
@@ -37,7 +38,7 @@ class Model(State):
     
     Examples
     --------
-    :doc:`../tutorial/Advanced simulation`
+    :doc:`../tutorial/Monte Carlo`
     
     """
     __slots__ = ('_table',   # [DataFrame] All arguments and results
@@ -149,38 +150,30 @@ class Model(State):
         cols = varindices(self._metrics)
         for k, v in zip_(cols, zip_(*values)): self.table[k] = v
     
-    def evaluate_across_coordinate(self, f_coordinate, name,
-                                   lb, ub, xlfile,
-                                   N_samples=1000, N_points=20,  rule='L',
-                                   notify=True):
+    def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
+                                   *, xlfile=None, notify=True,
+                                   multi_coordinate=False):
         """Evaluate across coordinate and save sample metrics.
         
         Parameters
         ----------
+        name : str or tuple[str]
+            Name of coordinate
         f_coordinate : function
             Should change state of system given the coordinate.
-        lb : float
-            Lower bound of coordinate.
-        ub : float
-            Upper bound of coordinate.
-        xlfile : str
+        coordinte : array
+            Coordinate values.
+        xlfile : str, optional
             Name of file to save. File must end with ".xlsx"
-        N_samples=1000 : int, optional
-            Number of samples at each coordinate.
-        N_points=20 : int, optional
-            Number of points between lb and ub evaluated.
         rule='L' : str
             Sampling rule.
         notify=True : bool, optional
             If True, notify elapsed time after each coordinate evaluation.
         
         """
-        # Load samples
-        samples = self.sample(N_samples, 'L')
-        self.load_samples(samples)
-        
-        # Points to evaluate
-        coordinate = np.linspace(lb, ub, N_points)
+        table = self.table
+        N_samples, N_parameters = table.shape
+        N_points = len(coordinate)
         
         # Initialize data containers
         metric_data = {}
@@ -200,22 +193,28 @@ class Model(State):
         else:
             evaluate = self.evaluate
         
-        # Simulate lipidcane biorefinery    
-        table = self.table
-        for n, f in enumerate(coordinate):
-            f_coordinate(f)
+        for n, x in enumerate(coordinate):
+            f_coordinate(*x) if multi_coordinate else f_coordinate(x)
             evaluate()
             for metric in metric_data:
                 metric_data[metric][:, n] = table[metric]
         
-        # Save data to excel
-        data = pd.DataFrame(data=np.zeros([N_samples, N_points]), columns=coordinate)
-        data.columns.name = name
-        
-        with pd.ExcelWriter(xlfile) as writer:
-            for metric in metric_data:
-                data[:] = metric_data[metric]
-                data.to_excel(writer, sheet_name=metric[-1])
+        if xlfile:
+            if multi_coordinate:
+                columns = pd.MultiIndex.from_tuples(coordinate,
+                                                    names=name)
+            else:
+                columns = pd.Index(coordinate, name=name)
+            
+            # Save data to excel
+            data = pd.DataFrame(data=np.zeros([N_samples, N_points]),
+                                columns=columns)
+            
+            with pd.ExcelWriter(xlfile) as writer:
+                for i, metric in zip(self.metrics, metric_data):
+                    data[:] = metric_data[metric]
+                    data.to_excel(writer, sheet_name=i.name)
+        return metric_data
     
     def spearman(self, metrics=()):
         """Return DataFrame of Spearman's rank correlation for metrics vs parameters.

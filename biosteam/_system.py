@@ -6,9 +6,9 @@ Created on Sat Aug 18 15:04:55 2018
 """
 from scipy.optimize import newton
 from flexsolve import SolverError, conditional_wegstein, conditional_aitken
-from ._exceptions import _try_method
-from ._flowsheet import find, make_digraph, save_digraph
-from ._stream import Stream
+from ._digraph import make_digraph, save_digraph
+from thermosteam import Stream
+from thermosteam.utils import registered
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
@@ -31,8 +31,7 @@ def _evaluate(self, command=None):
     if command:
         # Build locals dictionary for evaluating command
         lcs = {} 
-        for attr in ('stream', 'unit', 'system'):
-            dct = getattr(find, attr).__dict__
+        for dct in self.flowsheet.__dict__.values():
             lcs.update({i:j() for i, j in dct.items()})
         lcs.update({attr:getattr(bst, attr) for attr in bst.__all__})
         try:
@@ -81,22 +80,25 @@ def _notify_run_wrapper(self, func):
     
 # %% System node for diagram
 
-class _systemUnit(Unit, isabstract=True):
-    """Dummy unit for displaying a system."""
-    line = 'System'
-    ID = None
+class DiagramOnlyUnit(Unit, isabstract=True):
+    _ID = ID = None
     _N_ins = _N_outs = 1
-    _ID = property(lambda self: self.ID)
+    _ins_size_is_fixed = _outs_size_is_fixed = False
+    def _register(self, ID): 
+        self.ID = self._ID = ID
+    
+class _systemUnit(DiagramOnlyUnit, isabstract=True):
+    """Dummy unit for displaying a system as a unit."""
+    line = 'System'
 
 _sysgraphics = _systemUnit._graphics
 _sysgraphics.edge_in = _sysgraphics.edge_in * 10
 _sysgraphics.edge_out = _sysgraphics.edge_out * 15
 _sysgraphics.node['peripheries'] = '2'
 
-class _streamUnit(Unit, isabstract=True):
+class _streamUnit(DiagramOnlyUnit, isabstract=True):
+    """Dummy unit for displaying a streams as a unit."""
     line = ''
-    ID = None
-    _ID = _systemUnit._ID
     
 _stream_graphics = _streamUnit._graphics
 _stream_graphics.node['fillcolor'] = 'white:#79dae8'
@@ -104,8 +106,8 @@ del _stream_graphics, _sysgraphics
 
 # %% Other
 
-_isfeed = lambda stream: not stream._source and stream._sink
-_isproduct = lambda stream: not stream._sink and stream._source
+_isfeed = lambda stream: stream and not stream._source and stream._sink
+_isproduct = lambda stream: stream and not stream._sink and stream._source
 
 
 # %% Process flow
@@ -128,7 +130,7 @@ class system(type):
         else:
             raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
 
-
+@registered('SYS')
 class System(metaclass=system):
     """Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.
 
@@ -152,7 +154,7 @@ class System(metaclass=system):
     maxiter = 100
 
     #: Molar tolerance (kmol/hr)
-    molar_tolerance = 0.01
+    molar_tolerance = 1.0
     
     #: Temperature tolerance (K)
     T_tolerance = 0.10
@@ -181,6 +183,8 @@ class System(metaclass=system):
         return system
     
     def __init__(self, ID, network, recycle=None, facilities=()):
+        from ._flowsheet import find
+        self.flowsheet = find.flowsheet[find.ID]
         
         #: Molar flow rate error (kmol/hr)
         self._mol_error = 0
@@ -201,7 +205,7 @@ class System(metaclass=system):
         self.subsystems = subsystems = set()
         
         #: list[Unit] Network of only unit operations
-        self._unitnetwork = units = []
+        self._unit_network = units = []
         
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
         self.network = tuple(network)
@@ -213,14 +217,13 @@ class System(metaclass=system):
                 streams.update(i._ins)
                 streams.update(i._outs)
             elif isa(i, System):
-                units.extend(i._unitnetwork)
+                units.extend(i._unit_network)
                 subsystems.add(i)
                 streams.update(i.streams)
         streams.discard(MissingStream) 
         
         # link all unit operations with linked streams
-        for u in units:
-            if isa(u, bst.Static): u.link_streams()
+        for u in units: u._load_stream_links()
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -261,15 +264,9 @@ class System(metaclass=system):
              "recycle must be a Stream instance or None, not "
             f"{type(recycle).__name__}")
         self._recycle = recycle
-        if ID: setattr(find.system, ID, self)
-        else: self._ID = ""
+        self._register(ID)
     
     save_report = save_report
-    
-    @property
-    def ID(self):
-        """Identification."""
-        return self._ID
     
     @property
     def TEA(self):
@@ -427,7 +424,7 @@ class System(metaclass=system):
     def _thorough_diagram(self, file, format, **graph_attrs):
         """Thoroughly display every unit within the network."""
         # Create a digraph and set direction left to right
-        f = make_digraph(self.units, self.streams, **graph_attrs)
+        f = make_digraph(self.units, self.streams, format=format, **graph_attrs)
         save_digraph(f, file, format)
         
     def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
@@ -486,12 +483,18 @@ class System(metaclass=system):
         else:
             return rmol.copy(), True
         
+    def _setup(self):
+        """Setup each element of the system."""
+        isa = isinstance
+        for a in self.network:
+            if isa(a, (Unit, System)): a._setup()
+            else: pass # Assume it is a function
+        
     def _run(self):
         """Rigorous run each element of the system."""
         isa = isinstance
-        _try = _try_method
         for a in self.network:
-            if isa(a, Unit): _try(a._run)
+            if isa(a, Unit): a._run()
             elif isa(a, System): a._converge()
             else: a() # Assume it is a function
     
@@ -499,7 +502,7 @@ class System(metaclass=system):
     def _fixed_point(self):
         """Converge system recycle using inner and outer loops with fixed-point iteration."""
         r = self.recycle
-        rmol = r._mol
+        rmol = r.mol
         while True:
             mol = rmol.copy()
             T = r.T
@@ -514,11 +517,11 @@ class System(metaclass=system):
             
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
-        conditional_wegstein(self._iter_run, self.recycle._mol.copy())
+        conditional_wegstein(self._iter_run, self.recycle.mol.copy())
     
     def _aitken(self):
         """Converge the system recycle iteratively using Aitken's method."""
-        conditional_aitken(self._iter_run, self.recycle._mol.copy())
+        conditional_aitken(self._iter_run, self.recycle.mol.copy())
     
     # Default converge method
     _converge = _aitken
@@ -562,7 +565,7 @@ class System(metaclass=system):
         Stream._default_ID = stream_format if stream_format else ['d', 0]
         streams = set()
         units = set()
-        for i in self._unitnetwork:
+        for i in self._unit_network:
             if i in units: continue
             try: i.ID = ''
             except: continue
@@ -588,9 +591,9 @@ class System(metaclass=system):
     def simulate(self):
         """Converge the network and simulate all units."""
         self._reset_iter()
+        self._setup()
         self._converge()
-        _try = _try_method
-        for u in self._network_costunits: _try(u._summary)
+        for u in self._network_costunits: u._summary()
         isa = isinstance
         for i in self.facilities:
             if isa(i, (Unit, System)): i.simulate()

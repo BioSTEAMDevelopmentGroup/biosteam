@@ -24,8 +24,8 @@ class Clarifier(Splitter):
     def _design(self):
         # Heuristic settling area estimation
         # Settling area in ft^2 = overflow in gpm
-        Design = self._Design
-        Design['Settling area'] = SetArea = self.outs[0].volnet *  4.4028
+        Design = self.design_results
+        Design['Settling area'] = SetArea = self.outs[0].F_vol *  4.4028
         # Checking to see which cost equation/material to use
         Steel_bounds, Concrete_bounds = self._bounds.values()
         if _iswithin(SetArea, Steel_bounds): Design['Material'] = 'Steel'
@@ -36,7 +36,7 @@ class Clarifier(Splitter):
 _cost = Clarifier._cost
 def _extended_cost(self):
     _cost(self)
-    self._Cost['Clarifier'] *= 1.4 if self._Design['Material']=='Steel' else 1
+    self.purchase_costs['Clarifier'] *= 1.4 if self.design_results['Material']=='Steel' else 1
 Clarifier._cost = _extended_cost
         
         
