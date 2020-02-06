@@ -1,8 +1,0 @@
-MixTank
-=======
-
-.. module:: biosteam.units
-
-.. autoclass:: MixTank
-   :inherited-members: Tank
-   :members:

@@ -1,8 +1,0 @@
-State
-=====
-
-.. module:: biosteam.evaluation
-
-.. autoclass:: State
-   :members:
-   :special-members: __call__

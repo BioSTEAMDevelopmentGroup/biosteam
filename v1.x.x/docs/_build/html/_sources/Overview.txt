@@ -1,8 +1,0 @@
-Overview
---------
-
-.. figure:: ./images/UML.png
-
-   A simplified UML class diagram of the core classes of BioSTEAM.
-
-The :doc:`Species` object defines the working compounds of the biorefinery. When a Species object is created, it identifies compounds by name and stores pure chemical properties as :doc:`compounds/Chemical` objects. :doc:`Stream` objects define material flows, and estimate mixture properties and thermodynamic equilibrium. Before estimating equilibrium, a Stream object is cast to a :doc:`MixedStream` object to enable multiple phases. A :doc:`Unit` object stores input and output Stream objects in the `ins` and `outs` attributes respectively. A :doc:`System` object serves to define a `network` of unit operations, functions, and subsystems, as well as a `recycle` stream (if any). When a System object is simulated, each network element is run sequentially within an iterative solver until the recycle stream converges (in both component flow rates and temperature). A :doc:`TEA` object can perform cashflow analysis on a system given a set of options. Adjustments can be made to the available heating and cooling agents of the :doc:`HeatUtility` class (e.g., steam pressure, cooling water temperature, price) as well as the electricity price of the :doc:`PowerUtility` class.

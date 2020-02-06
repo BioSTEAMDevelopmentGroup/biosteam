@@ -1,9 +1,0 @@
-Stream
-======
-
-A Stream object represents a material flow in a chemical process.
-
-.. module:: biosteam
-
-.. autoclass:: Stream
-   :members:

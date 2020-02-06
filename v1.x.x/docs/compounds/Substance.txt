@@ -1,7 +1,0 @@
-Substance
-=========
-
-.. module:: biosteam.compounds
-
-.. autoclass:: Substance
-   :members:

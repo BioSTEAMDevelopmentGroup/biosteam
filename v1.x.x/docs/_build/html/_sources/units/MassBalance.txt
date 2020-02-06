@@ -1,7 +1,0 @@
-MassBalance
-===========
-
-.. module:: biosteam.units
-
-.. autoclass:: MassBalance
-   :members:

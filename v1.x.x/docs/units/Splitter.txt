@@ -1,7 +1,0 @@
-Splitter
-========
-
-.. module:: biosteam.units
-
-.. autoclass:: Splitter
-   :members:

@@ -1,8 +1,0 @@
-Metric
-======
-
-.. module:: biosteam.evaluation
-
-.. autoclass:: Metric
-   :members:
-   :special-members: __call__

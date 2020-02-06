@@ -1,7 +1,0 @@
-Fermentation
-============
-
-.. module:: biosteam.units
-
-.. autoclass:: Fermentation
-   :members:

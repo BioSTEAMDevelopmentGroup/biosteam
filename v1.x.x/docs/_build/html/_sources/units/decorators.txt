@@ -1,5 +1,0 @@
-decorators
-==========
-
-.. automodule:: biosteam.units.decorators
-   :members:
