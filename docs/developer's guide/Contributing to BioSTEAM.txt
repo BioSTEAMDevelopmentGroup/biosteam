@@ -52,7 +52,14 @@ Here’s the short summary, complete TOC links are below:
 Testing
 -------
 
-General tests for biorefineries are available and should be run before making a pull request:
+For a full assessment of BioSTEAM, you can run the following:
+
+.. code-block:: python
+
+    >>> from biosteam.tests import test_biosteam
+    >>> test_biosteam()
+
+`test_biosteam` runs all the `doctests <https://docs.python.org/3.6/library/doctest.html>`__ in BioSTEAM, which covers most of the API, including unit operations. It also makes sure that the biorefineries are working properly. You can also just run each test separately for debuging. For example, the following runs the biorefinery tests:
 
 .. code-block:: python
     
@@ -60,15 +67,14 @@ General tests for biorefineries are available and should be run before making a 
     >>> test_biorefineries()
     
 
-If no errors are raised, all tests have passed. Changes made to a BioSTEAM unit operation requires it's specific unit test file to pass as well. For example:
+Changes made to a BioSTEAM unit operation requires it's specific unit test file to pass as well. For example:
 
 .. code-block:: python
 
     >>> from biosteam.tests import test_binary_distillation
     >>> test_binary_distillation()
-    
 
-If no tests are available specfic to the unit operation, tests must be uploaded whereby the stream results and general simulation results are tested. Using **doctests** is the preferred method for running tests, but assertions are also accepted so long as all results of the unit operation is tested. You can use the source code in the "biosteam.tests" folder as a template for how this may be done.
+If no tests are available specfic to the unit operation, tests must be uploaded whereby the stream results and general simulation results are tested. Using `doctests <https://docs.python.org/3.6/library/doctest.html>`__ is the preferred method for running tests, but assertions are also accepted so long as all results of the unit operation is tested. You can use the source code in the "biosteam.tests" folder as a template for how this may be done.
 
 .. note:: Several sections in biosteam are not fully documented. Any contributions towards rigorous testing is welcome!
 
