@@ -73,12 +73,32 @@ class Unit:
 
     **Abstract class methods**
     
+    _setup()
+        Set stream conditions and constant data.
     _run()
         Run simulation and update output streams.
     _design()
         Add design requirements to the `design_results` dictionary.
     _cost()
         Add itemized purchse costs to the "purchase_costs" dictionary.
+    
+    Attributes
+    ----------
+    ins : Ins[Stream]
+        Input streams.
+    outs : Outs[Stream]
+        Output streams.
+    power_utility : PowerUtility
+        Electricity rate requirements are stored here.
+    heat_utilities : tuple[HeatUtility]
+        Cooling and heating requirements are stored here.
+    design_results : dict
+        All design requirements.
+    purchase_costs : dict
+        Itemized purchase costs.
+    thermo : Thermo
+        The thermodynamic property package used by the unit.
+    
     
     Examples
     --------
