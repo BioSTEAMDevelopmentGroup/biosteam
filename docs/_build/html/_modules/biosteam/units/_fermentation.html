@@ -243,14 +243,13 @@
     <span class="c1">#: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.</span>
     <span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">False</span>
     
-    <span class="c1">#: Cleaning and unloading time (hr)</span>
+    <span class="c1">#: [float] Cleaning and unloading time (hr)</span>
     <span class="n">tau_0</span> <span class="o">=</span> <span class="mi">3</span>
     
-    <span class="c1">#: Fraction of filled tank to total tank volume</span>
-    <span class="n">working_volume_fraction</span> <span class="o">=</span> <span class="n">MixTank</span><span class="o">.</span><span class="n">working_volume_fraction</span>
-    <span class="n">_V_wf</span> <span class="o">=</span> <span class="mf">0.9</span>
+    <span class="c1">#: [float] Fraction of filled tank to total tank volume</span>
+    <span class="n">V_wf</span> <span class="o">=</span> <span class="mf">0.9</span>
     
-    <span class="c1">#: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria&#39;s model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</span>
+    <span class="c1">#: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria&#39;s model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</span>
     <span class="n">kinetic_constants</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.31</span><span class="p">,</span>  <span class="c1"># mu_m1</span>
                          <span class="mf">1.01</span><span class="p">,</span>  <span class="c1"># mu_m2</span>
                          <span class="mf">1.88</span><span class="p">,</span>  <span class="c1"># Ks1</span>
@@ -410,7 +409,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_at_minimum_capital_cost</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
-        <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_wf</span><span class="p">))</span>
+        <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="o">/</span><span class="n">N</span> 
         <span class="n">hu</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

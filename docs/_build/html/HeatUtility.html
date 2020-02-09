@@ -212,29 +212,27 @@ to losses to environment).</p>
 </dl>
 <p class="rubric">Examples</p>
 <p>Create a heat utility:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">HeatUtility: None</span>
 <span class="go"> duty: 0</span>
 <span class="go"> flow: 0</span>
 <span class="go"> cost: 0</span>
 </pre></div>
 </div>
-<p>Calculate utility requirement by calling it with a duty (kJ/hr), and enter and exit temperature (K):</p>
+<p>Calculate utility requirement by calling it with a duty (kJ/hr), and entrance and exit temperature (K):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">350</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">HeatUtility: Low pressure steam</span>
-<span class="go"> duty: 1.11e+03 kJ/hr</span>
-<span class="go"> flow: 0.0284 kmol/hr,</span>
-<span class="go"> cost: 0.00674 USD/hr</span>
+<span class="go"> duty: 1.05e+03 kJ/hr</span>
+<span class="go"> flow: 0.0271 kmol/hr</span>
+<span class="go"> cost: 0.00644 USD/hr</span>
 </pre></div>
 </div>
 <p>All results are accessible:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">hu</span><span class="o">.</span><span class="n">duty</span><span class="p">,</span> <span class="n">hu</span><span class="o">.</span><span class="n">flow</span><span class="p">,</span> <span class="n">hu</span><span class="o">.</span><span class="n">cost</span>
-<span class="go">(&#39;Low pressure steam&#39;,</span>
-<span class="go"> 1111.111111111111,</span>
-<span class="go"> 0.028351477551759364,</span>
-<span class="go"> 0.006741981361808377)</span>
+<span class="go">(&#39;Low pressure steam&#39;, 1052.6315789473686, 0.027090580063500323, 0.006442139939100377)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

@@ -97,7 +97,7 @@ class Flash(Unit):
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
-    _has_power_utility = False
+    _N_outs = 2
     _N_heat_utilities = 0
     
     # Bare module factor
@@ -156,21 +156,11 @@ class Flash(Unit):
         self._material = material  
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 keys=None, LNK=(), HNK=(),
                  V=None, T=None, Q=None, P=None,
                  y=None, x=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self._multistream = MultiStream(None)
         self._heat_exchanger = None
-        
-        #: tuple[str] IDs of chemicals in thermodynamic equilibrium
-        self.keys = keys
-        
-        #: tuple[str] Light non-keys assumed to remain as a vapor
-        self.LNK = LNK
-        
-        #: tuple[str] Heavy non-keys assumed to remain as a liquid
-        self.HNK = HNK
         
         #: Enforced molar vapor fraction
         self.V = V

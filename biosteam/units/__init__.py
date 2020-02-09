@@ -17,7 +17,7 @@ from ._flash import Flash
 from ._multi_effect_evaporator import MultiEffectEvaporator
 from ._centrifuge_LLE import *
 from ._distillation import Dist, Distillation
-from ._tank import StorageTank, MixTank
+from ._tank import Tank, StorageTank, MixTank
 from ._transesterification import Transesterification
 from ._fermentation import Fermentation
 from ._enzyme_treatment import EnzymeTreatment

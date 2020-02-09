@@ -123,6 +123,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tank.html">Tank</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
@@ -232,6 +233,32 @@
 </dl>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<p>Mix two streams:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Mixer: M1</span>
+<span class="go">ins...</span>
+<span class="go">[0] s1</span>
+<span class="go">    phase: &#39;l&#39;, T: 350 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water  20</span>
+<span class="go">[1] s2</span>
+<span class="go">    phase: &#39;l&#39;, T: 300 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol  30</span>
+<span class="go">outs...</span>
+<span class="go">[0] s3</span>
+<span class="go">    phase: &#39;l&#39;, T: 315.11 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol  30</span>
+<span class="go">                    Water    20</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>

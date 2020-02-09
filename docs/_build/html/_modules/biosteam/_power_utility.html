@@ -201,14 +201,14 @@
 <span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; pu(rate=500)</span>
 <span class="sd">       &gt;&gt;&gt; pu</span>
-<span class="sd">       &lt;PowerUtility: 500 kW, 30 USD/hr&gt;</span>
+<span class="sd">       &lt;PowerUtility: 500 kW, 39.1 USD/hr&gt;</span>
 <span class="sd">       </span>
 <span class="sd">    Results are accessible:</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; pu.rate, pu.cost</span>
-<span class="sd">       (500, 30.)</span>
+<span class="sd">       (500, 39.1)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
@@ -244,12 +244,12 @@
         <span class="n">rate_units</span> <span class="o">=</span> <span class="n">rate</span> <span class="ow">or</span> <span class="n">display_units</span><span class="o">.</span><span class="n">rate</span>
         <span class="n">cost_units</span> <span class="o">=</span> <span class="n">cost</span> <span class="ow">or</span> <span class="n">display_units</span><span class="o">.</span><span class="n">cost</span>
         <span class="n">rate</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">rate_units</span><span class="p">)</span>
-        <span class="n">cost</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">cost_units</span><span class="p">)</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">cost_units</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{rate:.3g}</span><span class="s1"> </span><span class="si">{rate_units}</span><span class="s1">, </span><span class="si">{cost:.3g}</span><span class="s1"> </span><span class="si">{cost_units}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
     <span class="n">_ipython_display</span> <span class="o">=</span> <span class="n">show</span>    
     
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.rate:.3g}</span><span class="s1"> kW, </span><span class="si">{self.cost:.3g}</span><span class="s1"> USD&gt;&#39;</span><span class="p">)</span>    </div>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.rate:.3g}</span><span class="s1"> kW, </span><span class="si">{self.cost:.3g}</span><span class="s1"> USD/hr&gt;&#39;</span><span class="p">)</span>    </div>
 </pre></div>
 
            </div>

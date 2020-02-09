@@ -11,16 +11,15 @@ class EnzymeTreatment(MixTank):
     """Create an EnzymeTreatment unit that is cost as a MixTank with a heat exchanger."""
     _N_outs = 1
     
-    #: Residence time (hr)
-    _tau = 1
-    
-    def __init__(self, ID='', ins=None, outs=(), *, T):
-        super().__init__(ID, ins, outs)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 vessel_type=None, tau=None, V_wf=None, material=None, T):
+        MixTank.__init__(self, ID, ins, outs, thermo, vessel_type=vessel_type,
+                         tau=tau, V_wf=V_wf, material=material)
         self.T = T #: Operating temperature
-        self._heat_exchanger = he = HXutility(None, None, T=T) 
-        self.heat_utilities = he.heat_utilities
-        he._ins = self._ins
-        he._outs = self._outs
+        self.heat_exchanger = hx = HXutility(None, None, T=T) 
+        self.heat_utilities = hx.heat_utilities
+        hx._ins = self._ins
+        hx._outs = self._outs
     
     def _run(self):
         feed = self.ins[0]
@@ -32,11 +31,11 @@ class EnzymeTreatment(MixTank):
         
     def _design(self):
         super()._design()
-        self._heat_exchanger._design()
+        self.heat_exchanger._design()
         
     def _cost(self):
         super()._cost()
-        he = self._heat_exchanger
-        he._cost()
-        self.purchase_costs['Heat exchanger'] = he.purchase_costs['Heat exchanger'] 
+        hx = self.heat_exchanger
+        hx._cost()
+        self.purchase_costs['Heat exchanger'] = hx.purchase_costs['Heat exchanger'] 
     

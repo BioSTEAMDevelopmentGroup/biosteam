@@ -271,7 +271,7 @@
               <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">}</span>
-    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="c1"># Bare module factor</span>
@@ -330,21 +330,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span>  
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                 <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">HNK</span><span class="o">=</span><span class="p">(),</span>
                  <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
-        
-        <span class="c1">#: tuple[str] IDs of chemicals in thermodynamic equilibrium</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keys</span> <span class="o">=</span> <span class="n">keys</span>
-        
-        <span class="c1">#: tuple[str] Light non-keys assumed to remain as a vapor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span> <span class="o">=</span> <span class="n">LNK</span>
-        
-        <span class="c1">#: tuple[str] Heavy non-keys assumed to remain as a liquid</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span> <span class="o">=</span> <span class="n">HNK</span>
         
         <span class="c1">#: Enforced molar vapor fraction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span>

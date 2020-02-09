@@ -339,38 +339,35 @@
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
+<span class="sd">       &gt;&gt;&gt; from biosteam import HeatUtility</span>
 <span class="sd">       &gt;&gt;&gt; hu = HeatUtility()</span>
-<span class="sd">       &gt;&gt;&gt; hu</span>
+<span class="sd">       &gt;&gt;&gt; hu.show()</span>
 <span class="sd">       HeatUtility: None</span>
 <span class="sd">        duty: 0</span>
 <span class="sd">        flow: 0</span>
 <span class="sd">        cost: 0</span>
 <span class="sd">    </span>
-<span class="sd">    Calculate utility requirement by calling it with a duty (kJ/hr), and enter and exit temperature (K):</span>
+<span class="sd">    Calculate utility requirement by calling it with a duty (kJ/hr), and entrance and exit temperature (K):</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; hu(1000, 300, 350)</span>
-<span class="sd">       &gt;&gt;&gt; hu</span>
+<span class="sd">       &gt;&gt;&gt; hu.show()</span>
 <span class="sd">       HeatUtility: Low pressure steam</span>
-<span class="sd">        duty: 1.11e+03 kJ/hr</span>
-<span class="sd">        flow: 0.0284 kmol/hr,</span>
-<span class="sd">        cost: 0.00674 USD/hr</span>
+<span class="sd">        duty: 1.05e+03 kJ/hr</span>
+<span class="sd">        flow: 0.0271 kmol/hr</span>
+<span class="sd">        cost: 0.00644 USD/hr</span>
 <span class="sd">   </span>
 <span class="sd">    All results are accessible:</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; hu.ID, hu.duty, hu.flow, hu.cost</span>
-<span class="sd">       (&#39;Low pressure steam&#39;,</span>
-<span class="sd">        1111.111111111111,</span>
-<span class="sd">        0.028351477551759364,</span>
-<span class="sd">        0.006741981361808377)</span>
+<span class="sd">       (&#39;Low pressure steam&#39;, 1052.6315789473686, 0.027090580063500323, 0.006442139939100377)</span>
 <span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;inlet_utility_stream&#39;</span><span class="p">,</span> <span class="s1">&#39;outlet_utility_stream&#39;</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;duty&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;efficiency&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_args&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;efficiency&#39;</span><span class="p">,</span> <span class="s1">&#39;_args&#39;</span><span class="p">)</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: [float] Pinch temperature difference</span>
     
     <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>

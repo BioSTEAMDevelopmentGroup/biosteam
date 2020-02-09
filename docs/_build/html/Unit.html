@@ -240,6 +240,8 @@ name of the first child class.</p>
 </dl>
 <p><strong>Abstract class methods</strong></p>
 <dl class="simple">
+<dt>_setup()</dt><dd><p>Set stream conditions and constant data.</p>
+</dd>
 <dt>_run()</dt><dd><p>Run simulation and update output streams.</p>
 </dd>
 <dt>_design()</dt><dd><p>Add design requirements to the <cite>design_results</cite> dictionary.</p>
@@ -252,6 +254,26 @@ name of the first child class.</p>
 <p><a class="reference internal" href="tutorial/Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
 <p><a class="reference internal" href="tutorial/Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
 <p><a class="reference internal" href="tutorial/Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference internal" href="#biosteam.Unit.ins" title="biosteam.Unit.ins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ins</span></code></a><span class="classifier">Ins[Stream]</span></dt><dd><p>All input streams.</p>
+</dd>
+<dt><a class="reference internal" href="#biosteam.Unit.outs" title="biosteam.Unit.outs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outs</span></code></a><span class="classifier">Outs[Stream]</span></dt><dd><p>All output streams.</p>
+</dd>
+<dt><strong>power_utility</strong><span class="classifier">PowerUtility</span></dt><dd><p>Electricity rate requirements are stored here.</p>
+</dd>
+<dt><strong>heat_utilities</strong><span class="classifier">tuple[HeatUtility]</span></dt><dd><p>Cooling and heating requirements are stored here.</p>
+</dd>
+<dt><strong>design_results</strong><span class="classifier">dict</span></dt><dd><p>All design requirements.</p>
+</dd>
+<dt><strong>purchase_costs</strong><span class="classifier">dict</span></dt><dd><p>Itemized purchase costs.</p>
+</dd>
+<dt><strong>thermo</strong><span class="classifier">Thermo</span></dt><dd><p>The thermodynamic property package used by the unit.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="method">
 <dt id="biosteam.Unit.purchase_cost">
 <em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.Unit.purchase_cost" title="Permalink to this definition">¶</a></dt>

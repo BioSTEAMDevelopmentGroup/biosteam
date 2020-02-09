@@ -460,6 +460,9 @@ Boiler class:</p>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
         <span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
+        <span class="c1"># Initialize MultiStream object to perform vapor-liquid equilibrium later</span>
+        <span class="c1"># NOTE: ID is None to not register it in the flowsheet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: Vapor fraction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="c1">#: Operating pressure</span>
 
@@ -471,10 +474,6 @@ Boiler class:</p>
 
         <span class="c1"># Initialize bottom stream as a liquid</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-
-        <span class="c1"># Initialize MultiStream object to perform vapor-liquid equilibrium later</span>
-        <span class="c1"># NOTE: ID is None to not register it in the flowsheet</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

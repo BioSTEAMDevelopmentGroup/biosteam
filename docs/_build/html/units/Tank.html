@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tank &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="evaluation" href="../evaluation/evaluation.html" />
+    <link rel="prev" title="Transesterification" href="Transesterification.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tank</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="units.html">units</a> &raquo;</li>
+        
+      <li>Tank</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/units/Tank.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="tank">
+<h1>Tank<a class="headerlink" href="#tank" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.Tank">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Tank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type=None</em>, <em class="sig-param">tau=None</em>, <em class="sig-param">V_wf=None</em>, <em class="sig-param">material=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#Tank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Tank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract Tank class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
+</dd>
+<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working value over total volume.</p>
+</dd>
+<dt><strong>material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The total volume [m^3] is given by:</p>
+<p><img class="math" src="../_images/math/101ef58882919af39acb61862815dadac78b19b7.png" alt="V_{total} = \frac{\tau \cdot Q }{V_f}"/></p>
+<p>Where <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> is the residence time [hr], <img class="math" src="../_images/math/90cab5ae70bdb6e45756490226ba488f522c4c4e.png" alt="Q"/> is the flow rate [m^3/hr],
+and <img class="math" src="../_images/math/fb102d8380fd930de00e85900bf4e300de904cc5.png" alt="V_f"/> is the fraction of working value over total volume.</p>
+<p>The number of tanks is given by:</p>
+<p><img class="math" src="../_images/math/d148d1d41ad55b272320ea442f7ab69c4be00f2e.png" alt="N = Ceil \left( \frac{V_{total}}{V_{max}} \right)"/></p>
+<p>Where <img class="math" src="../_images/math/74d89955ba639a9a198efa069a5da094554b9ce3.png" alt="V_{max}"/> is the maximum volume of a tank as given by the cost
+algorithm of the vessel type.</p>
+<p>The volume [m^3] of each tank is given by:</p>
+<p><img class="math" src="../_images/math/d47043fd7ae556bc5997a3d829e63bcf0a4b36c2.png" alt="V = \frac{V_{total}}{N}"/></p>
+<p>The purchase cost will depend on the cost algorithm of the vessel type.</p>
+<p>Child classes should implement the following class attributes and methods:</p>
+<dl class="simple">
+<dt>defaults<span class="classifier">dict[str: value]</span></dt><dd><p>Default values for <cite>tau</cite>, <cite>V_wf</cite>, and <cite>material</cite>.</p>
+</dd>
+<dt>cost_algorithms<span class="classifier">dict[str: VesselCostAlgorithm]</span></dt><dd><p>All cost algorithms available for vessel types.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working value over total volume [m^3].</p>
+</dd>
+<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
+</dd>
+<dt><strong>material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="biosteam.units.Tank.tau">
+<code class="sig-name descname">tau</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Tank.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Residence time in hours.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Tank.V_wf">
+<code class="sig-name descname">V_wf</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Tank.V_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of working volume to total volume.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Tank.material">
+<code class="sig-name descname">material</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Tank.material" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] Vessel construction material.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../evaluation/evaluation.html" class="btn btn-neutral float-right" title="evaluation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Transesterification.html" class="btn btn-neutral float-left" title="Transesterification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

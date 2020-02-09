@@ -69,14 +69,13 @@ class Fermentation(Unit):
     #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
     autoselect_N = False
     
-    #: Cleaning and unloading time (hr)
+    #: [float] Cleaning and unloading time (hr)
     tau_0 = 3
     
-    #: Fraction of filled tank to total tank volume
-    working_volume_fraction = MixTank.working_volume_fraction
-    _V_wf = 0.9
+    #: [float] Fraction of filled tank to total tank volume
+    V_wf = 0.9
     
-    #: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
+    #: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
                          1.01,  # mu_m2
                          1.88,  # Ks1
@@ -236,7 +235,7 @@ class Fermentation(Unit):
             self._N = self.N_at_minimum_capital_cost
             self.autoselect_N = True
         N = self._N
-        Design.update(size_batch(v_0, tau, tau_0, N, self._V_wf))
+        Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
         hx = self._cooler
         hx.outs[0].mol[:] = self.outs[0].mol/N 
         hu = hx.heat_utilities[0]

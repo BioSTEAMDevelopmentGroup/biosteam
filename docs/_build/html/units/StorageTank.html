@@ -123,6 +123,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">StorageTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tank.html">Tank</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
@@ -220,13 +221,33 @@
 <h1>StorageTank<a class="headerlink" href="#storagetank" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.StorageTank">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">StorageTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a storage tank with volume based on residence time [1].</p>
-<div class="math">
-<p><img src="../_images/math/fe622cf7ffd14dee121e8fd662db598a9f4cfe38.png" alt="V &amp;= \\tau Q \\\\
-C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\"/></p>
-</div><p class="rubric">References</p>
-<p>[1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., &amp; Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. <a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></p>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">StorageTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type=None</em>, <em class="sig-param">tau=None</em>, <em class="sig-param">V_wf=None</em>, <em class="sig-param">material=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a storage tank with a purchase cost based on volume as given by residence time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ins :</strong></dt><dd><p>[0] Feed stream.</p>
+</dd>
+<dt><strong>outs :</strong></dt><dd><p>[0] Effluent stream.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>For a detailed discussion on the design and cost algorithm,
+please read the <a class="reference internal" href="Tank.html"><span class="doc">Tank</span></a> documentation.</p>
+<dl class="attribute">
+<dt id="biosteam.units.StorageTank.cost_algorithms">
+<code class="sig-name descname">cost_algorithms</code><em class="property"> = {'Field erected': VesselCostAlgorithm(f_Cp=&lt;function compute_field_erected_vessel_purchase_cost&gt;, kW=0, V_min=0, V_max=50000.0, CE=525.4, material=Stainless steel, V_units=m^3)}</em><a class="headerlink" href="#biosteam.units.StorageTank.cost_algorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.StorageTank.defaults">
+<code class="sig-name descname">defaults</code><em class="property"> = {'V_wf': 1.0, 'material': 'Stainless steel', 'tau': 672, 'vessel_type': 'Field erected'}</em><a class="headerlink" href="#biosteam.units.StorageTank.defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] All default values.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="biosteam.units.StorageTank.F_mass_in">
 <em class="property">property </em><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.StorageTank.F_mass_in" title="Permalink to this definition">¶</a></dt>
@@ -388,12 +409,6 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\"/></
 <dt id="biosteam.units.StorageTank.simulate">
 <code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.StorageTank.tau">
-<em class="property">property </em><code class="sig-name descname">tau</code><a class="headerlink" href="#biosteam.units.StorageTank.tau" title="Permalink to this definition">¶</a></dt>
-<dd><p>Residence time (hr).</p>
 </dd></dl>
 
 <dl class="method">

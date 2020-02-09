@@ -225,13 +225,16 @@
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:</span>
+<span class="sd">    Create a Splitter object with an ID, a feed stream, two output streams,</span>
+<span class="sd">    and an overall split:</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
-<span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">       &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">       &gt;&gt;&gt; from biosteam import units</span>
+<span class="sd">       &gt;&gt;&gt; import thermosteam as tmo</span>
+<span class="sd">       &gt;&gt;&gt; chemicals = tmo.Chemicals([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
+<span class="sd">       &gt;&gt;&gt; tmo.settings.set_thermo(chemicals)</span>
+<span class="sd">       &gt;&gt;&gt; feed = tmo.Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
 <span class="sd">       &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;), split=0.1)</span>
 <span class="sd">       &gt;&gt;&gt; S1.simulate()</span>
 <span class="sd">       &gt;&gt;&gt; S1.show()</span>
@@ -255,11 +258,8 @@
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
-<span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">       &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
 <span class="sd">       &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
-<span class="sd">       ...                     split=(0.1, 0.99))</span>
+<span class="sd">       ...                     split={&#39;Water&#39;: 0.1, &#39;Ethanol&#39;: 0.99})</span>
 <span class="sd">       &gt;&gt;&gt; S1.simulate()</span>
 <span class="sd">       &gt;&gt;&gt; S1.show()</span>
 <span class="sd">       Splitter: S1</span>
@@ -282,11 +282,9 @@
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
-<span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">       &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
 <span class="sd">       &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
-<span class="sd">       ...                     split=(0.99, 0.01), order=(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">       ...                     order=(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
+<span class="sd">       ...                     split=(0.99, 0.10))</span>
 <span class="sd">       &gt;&gt;&gt; S1.simulate()</span>
 <span class="sd">       &gt;&gt;&gt; S1.show()</span>
 <span class="sd">       Splitter: S1</span>

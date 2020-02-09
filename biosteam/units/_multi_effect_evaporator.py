@@ -58,7 +58,7 @@ class MultiEffectEvaporator(Unit):
     """
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
-    _has_power_utility = True
+    _N_outs = 2
     _N_heat_utilities = 2
     BM = 2.45
     line = 'Multi-Effect Evaporator'
