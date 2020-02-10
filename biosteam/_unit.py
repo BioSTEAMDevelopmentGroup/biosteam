@@ -282,23 +282,25 @@ class Unit:
                 include_total_cost=True):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
         # TODO: Divide this into functions
-        ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
         if with_units:
             if include_utilities:
-                i = self.power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(('kW', i.rate))
-                addval(('USD/hr', i.cost))
-                for i in self.heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(('kJ/hr', i.duty))
-                    addval(('kmol/hr', i.flow))
-                    addval(('USD/hr', i.cost))
+                power_utility = self.power_utility
+                if power_utility:
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(('kW', power_utility.rate))
+                    addval(('USD/hr', power_utility.cost))
+                for heat_utility in self.heat_utilities:
+                    if heat_utility:
+                        ID = heat_utility.ID
+                        addkey((ID, 'Duty'))
+                        addkey((ID, 'Flow'))
+                        addkey((ID, 'Cost'))
+                        addval(('kJ/hr', heat_utility.duty))
+                        addval(('kmol/hr', heat_utility.flow))
+                        addval(('USD/hr', heat_utility.cost))
             units = self._units
             Cost = self.purchase_costs
             for ki, vi in self.design_results.items():
@@ -331,23 +333,27 @@ class Unit:
             if not keys: return None
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
-                              ('Units', ID))
+                              ('Units', self.ID))
             df.columns.name = self.line
             return df
         else:
             if include_utilities:
-                i = self.power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(i.rate)
-                addval(i.cost)
-                for i in self.heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(i.duty)
-                    addval(i.flow)
-                    addval(i.cost)
+                power_utility = self.power_utility
+                if power_utility:
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(power_utility.rate)
+                    addval(power_utility.cost)
+                for heat_utility in self.heat_utilities:
+                    if heat_utility:
+                        if heat_utility:
+                            ID = heat_utility.ID
+                            addkey((ID, 'Duty'))
+                            addkey((ID, 'Flow'))
+                            addkey((ID, 'Cost'))
+                            addval(heat_utility.duty)
+                            addval(heat_utility.flow)
+                            addval(heat_utility.cost)
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval(vi)
@@ -376,7 +382,7 @@ class Unit:
                 addval(self.utility_cost)
             if not keys: return None
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
-            series.name = ID
+            series.name = self.ID
             return series
 
     @property

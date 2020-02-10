@@ -219,6 +219,9 @@ class HeatUtility:
         self.efficiency = efficiency
         self.empty()
 
+    def __bool__(self):
+        return bool(self.ID)
+
     def _init_streams(self, flow, thermo, T, P, phase):
         """Initialize utility streams."""
         self.inlet_utility_stream = Stream(None, flow, thermo=thermo, T=T, P=P, phase=phase)

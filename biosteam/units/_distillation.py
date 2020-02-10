@@ -828,8 +828,6 @@ class Distillation(Dist):
     
     >>> D1.results()
     Distillation                                    Units        D1
-    Power               Rate                           kW         0
-                        Cost                       USD/hr         0
     Cooling water       Duty                        kJ/hr -5.11e+06
                         Flow                      kmol/hr  3.49e+03
                         Cost                       USD/hr      1.71

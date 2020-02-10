@@ -12,23 +12,24 @@ from .decorators import cost
 from math import ceil
 import numpy as np
 import biosteam as bst
+from thermosteam import settings
 from thermosteam.base import UnitsOfMeasure
 from warnings import warn
 
 # %% Cost classes for tanks
 
 class ExponentialFunction:
-    __slots__ = ('base', 'n')
+    __slots__ = ('A', 'n')
 
-    def __init__(self, base, n):
-        self.base = base
+    def __init__(self, A, n):
+        self.A = A
         self.n = n
 
     def __call__(self, S):
-        return self.base * S ** self.n
+        return self.A * S ** self.n
 
     def __repr__(self):
-        return f"{type(self).__name__}(base={self.base}, n={self.n})"
+        return f"{type(self).__name__}(A={self.A}, n={self.n})"
 
 
 class VesselCostResults:
@@ -43,7 +44,7 @@ class VesselCostResults:
 
 
 class VesselCostAlgorithm:
-    """
+    r"""
     Create a VesselCostAlgorithm for vessel costing.
     
     Parameters
@@ -79,10 +80,11 @@ class VesselCostAlgorithm:
         
     >>> from biosteam.units._tank import VesselCostAlgorithm
     >>> cost_algorithm = VesselCostAlgorithm(lambda V: 12080 * V **0.525,
-                                             V_min=0.1, V_max=30, V_units='m^3',
-                                             CE=525.4, kW=0.0985, 
-                                             material='Stainless steel')
+    ...                                      V_min=0.1, V_max=30, V_units='m^3',
+    ...                                      CE=525.4, kW=0.0985, 
+    ...                                      material='Stainless steel')
     >>> results = cost_algorithm(V_total=1., units='m^3', material='Stainless steel')
+    >>> results
     VesselCostResults(N=1, Cp=13047.963456414163, kW=0.0985)
     
     """
@@ -103,10 +105,10 @@ class VesselCostAlgorithm:
     def __call__(self, V_total, units, material, source="tank"):
         V_units = self.V_units
         V_total /= V_units.conversion_factor(units)
-        if V_total < self.V_min:
-            warn(f"volume of {repr(source)} ({V_total:.5g} {V_units}) is below "
-                 f"the lower bound ({self.V_min:.5g} {V_units})",
-                 RuntimeWarning)
+        if settings.debug and V_total < self.V_min:
+            raise ValueError(f"volume of {repr(source)} ({V_total:.5g} {V_units}) is below "
+                             f"the lower bound ({self.V_min:.5g} {V_units}) for purchase "
+                             "cost estimation")
         kW = self.kW * V_total
         N = ceil(V_total / self.V_max)
         V = V_total / N
@@ -125,7 +127,7 @@ class VesselCostAlgorithm:
 
 
 def field_erected_vessel_purchase_cost(V):
-    """
+    r"""
     Return the purchase cost [USD] of a single, field-erected vessel assuming
     stainless steel construction material.
 
@@ -303,11 +305,46 @@ class StorageTank(Tank):
     For a detailed discussion on the design and cost algorithm,
     please read the :doc:`Tank` documentation.
     
-    References for the purchase cost algorithms at a given vessel type are as follows:
+    References to the purchase cost algorithms at a given vessel type are as follows:
         
     * Field erected: [1]_
     * Floating roof: [2]_
     * Cone roof: [2]_
+    
+    Examples
+    --------
+    Create a carbon steel, floating roof storage tank for the storage of bioethanol:
+    
+    >>> import thermosteam as tmo
+    >>> from biosteam import units
+    >>> tmo.settings.set_thermo(tmo.Chemicals(['Ethanol']))
+    >>> feed = tmo.Stream('feed', Ethanol=23e3, units='kg/hr')
+    >>> effluent = tmo.Stream('effluent')
+    >>> T1 = units.StorageTank('T1', ins=feed, outs=effluent,
+    ...                        tau=7*24, # In hours
+    ...                        vessel_type='Floating roof',
+    ...                        material='Carbon steel')
+    >>> T1.simulate()
+    >>> T1.show(flow='kg/hr')
+    StorageTank: T1
+    ins...
+    [0] feed
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kg/hr): Ethanol  2.3e+04
+    outs...
+    [0] effluent
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kg/hr): Ethanol  2.3e+04
+    
+    >>> T1.results()
+    Tank                                  Units       T1
+    Design              Residence time               168
+                        Total volume        m^3 4.92e+03
+                        Number of tanks                2
+    Purchase cost       Tanks               USD 8.42e+05
+    Total purchase cost                     USD 8.42e+05
+    Utility cost                         USD/hr        0
+    
     
     References
     ----------
@@ -327,12 +364,12 @@ class StorageTank(Tank):
         V_min=0, V_max=50e3, V_units='m^3', CE=525.4,
         material='Stainless steel'),
     "Floating roof": VesselCostAlgorithm(
-        ExponentialFunction(base=475, n=0.507), kW=0,
-        V_min=3e4, V_max=1e5, V_units='gal', CE=567,
+        ExponentialFunction(A=475, n=0.507), kW=0,
+        V_min=3e4, V_max=1e6, V_units='gal', CE=567,
         material='Carbon steel'),
     "Cone roof": VesselCostAlgorithm(
-        ExponentialFunction(base=265, n=0.513), kW=0,
-        V_min=1e4, V_max=1e5, V_units='gal', CE=567,
+        ExponentialFunction(A=265, n=0.513), kW=0,
+        V_min=1e4, V_max=1e6, V_units='gal', CE=567,
         material='Carbon steel'),
     }
 
@@ -362,7 +399,7 @@ class MixTank(Tank):
     For a detailed discussion on the design and cost algorithm,
     please read the :doc:`Tank` documentation.
     
-    The purchase cost algorithms are based on [1]_.
+    The purchase cost algorithm is based on [1]_.
 
     References
     ----------
@@ -378,7 +415,7 @@ class MixTank(Tank):
     #: dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.
     cost_algorithms = {
     "Conventional": VesselCostAlgorithm(
-        ExponentialFunction(base=12080, n=0.525),
+        ExponentialFunction(A=12080, n=0.525),
         V_min=0.1, V_max=30, V_units='m^3',
         CE=525.4, kW=0.0985, 
         material='Stainless steel')
