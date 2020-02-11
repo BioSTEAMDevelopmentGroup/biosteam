@@ -278,10 +278,10 @@
 </li>
       <li><a href="TEA.html#biosteam.TEA.construction_schedule">construction_schedule() (biosteam.TEA property)</a>
 </li>
-      <li><a href="units/facilities.html#biosteam.units.facilities.CoolingTower">CoolingTower (class in biosteam.units.facilities)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="units/facilities.html#biosteam.units.facilities.CoolingTower">CoolingTower (class in biosteam.units.facilities)</a>
+</li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.copy">copy() (biosteam.evaluation.Model method)</a>
 
       <ul>
@@ -292,12 +292,6 @@
 </li>
       <li><a href="units/decorators.html#biosteam.units.decorators.cost">cost() (in module biosteam.units.decorators)</a>
 </li>
-      <li><a href="units/MixTank.html#biosteam.units.MixTank.cost_algorithms">cost_algorithms (biosteam.units.MixTank attribute)</a>
-
-      <ul>
-        <li><a href="units/StorageTank.html#biosteam.units.StorageTank.cost_algorithms">(biosteam.units.StorageTank attribute)</a>
-</li>
-      </ul></li>
       <li><a href="units/decorators.html#biosteam.units.decorators.CostItem">CostItem (class in biosteam.units.decorators)</a>
 </li>
   </ul></td>
@@ -308,12 +302,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="System.html#biosteam.System.debug">debug() (biosteam.System method)</a>
 </li>
-      <li><a href="units/MixTank.html#biosteam.units.MixTank.defaults">defaults (biosteam.units.MixTank attribute)</a>
-
-      <ul>
-        <li><a href="units/StorageTank.html#biosteam.units.StorageTank.defaults">(biosteam.units.StorageTank attribute)</a>
-</li>
-      </ul></li>
       <li><a href="TEA.html#biosteam.TEA.depreciation">depreciation() (biosteam.TEA property)</a>
 </li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable.describe">describe() (biosteam.evaluation.Variable method)</a>
@@ -704,8 +692,12 @@
       </ul></li>
       <li><a href="units/MassBalance.html#biosteam.units.MassBalance">MassBalance (class in biosteam.units)</a>
 </li>
-      <li><a href="units/Tank.html#biosteam.units.Tank.material">material (biosteam.units.Tank attribute)</a>
+      <li><a href="units/MixTank.html#biosteam.units.MixTank.material">material (biosteam.units.MixTank attribute)</a>
+
+      <ul>
+        <li><a href="units/StorageTank.html#biosteam.units.StorageTank.material">(biosteam.units.StorageTank attribute)</a>
 </li>
+      </ul></li>
       <li><a href="units/Flash.html#biosteam.units.Flash.material">material() (biosteam.units.Flash property)</a>
 
       <ul>
@@ -844,10 +836,10 @@
 </li>
       <li><a href="PowerUtility.html#biosteam.PowerUtility.price">price (biosteam.PowerUtility attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/facilities.html#biosteam.units.facilities.ProcessWaterCenter">ProcessWaterCenter (class in biosteam.units.facilities)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.production_cost">production_cost() (biosteam.CombinedTEA method)</a>
 
       <ul>
@@ -870,6 +862,12 @@
         <li><a href="units/MixTank.html#biosteam.units.MixTank.purchase_cost">(biosteam.units.MixTank property)</a>
 </li>
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.purchase_cost">(biosteam.units.StorageTank property)</a>
+</li>
+      </ul></li>
+      <li><a href="units/MixTank.html#biosteam.units.MixTank.purchase_cost_algorithms">purchase_cost_algorithms (biosteam.units.MixTank attribute)</a>
+
+      <ul>
+        <li><a href="units/StorageTank.html#biosteam.units.StorageTank.purchase_cost_algorithms">(biosteam.units.StorageTank attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1044,10 +1042,12 @@
 </li>
       <li><a href="units/Tank.html#biosteam.units.Tank">Tank (class in biosteam.units)</a>
 </li>
-      <li><a href="units/MultiEffectEvaporator.html#biosteam.units.MultiEffectEvaporator.tau">tau (biosteam.units.MultiEffectEvaporator attribute)</a>
+      <li><a href="units/MixTank.html#biosteam.units.MixTank.tau">tau (biosteam.units.MixTank attribute)</a>
 
       <ul>
-        <li><a href="units/Tank.html#biosteam.units.Tank.tau">(biosteam.units.Tank attribute)</a>
+        <li><a href="units/MultiEffectEvaporator.html#biosteam.units.MultiEffectEvaporator.tau">(biosteam.units.MultiEffectEvaporator attribute)</a>
+</li>
+        <li><a href="units/StorageTank.html#biosteam.units.StorageTank.tau">(biosteam.units.StorageTank attribute)</a>
 </li>
       </ul></li>
       <li><a href="units/Transesterification.html#biosteam.units.Transesterification.tau">tau() (biosteam.units.Transesterification property)</a>
@@ -1139,7 +1139,9 @@
       <li><a href="units/Fermentation.html#biosteam.units.Fermentation.V_wf">V_wf (biosteam.units.Fermentation attribute)</a>
 
       <ul>
-        <li><a href="units/Tank.html#biosteam.units.Tank.V_wf">(biosteam.units.Tank attribute)</a>
+        <li><a href="units/MixTank.html#biosteam.units.MixTank.V_wf">(biosteam.units.MixTank attribute)</a>
+</li>
+        <li><a href="units/StorageTank.html#biosteam.units.StorageTank.V_wf">(biosteam.units.StorageTank attribute)</a>
 </li>
       </ul></li>
       <li><a href="units/Flash.html#biosteam.units.Flash.vacuum_system_preference">vacuum_system_preference (biosteam.units.Flash attribute)</a>
@@ -1150,10 +1152,10 @@
 </li>
       <li><a href="units/Distillation.html#biosteam.units.Distillation.vessel_material">vessel_material() (biosteam.units.Distillation property)</a>
 </li>
-      <li><a href="units/designtools.html#biosteam.units.designtools.VesselWeightAndWallThickness">VesselWeightAndWallThickness() (in module biosteam.units.designtools)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="units/designtools.html#biosteam.units.designtools.VesselWeightAndWallThickness">VesselWeightAndWallThickness() (in module biosteam.units.designtools)</a>
+</li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.VOC">VOC() (biosteam.CombinedTEA property)</a>
 
       <ul>

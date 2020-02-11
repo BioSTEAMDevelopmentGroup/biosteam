@@ -6,11 +6,8 @@ Created on Thu Aug 23 15:47:26 2018
 """
 from .designtools import vessel_material_factors
 from .._unit import Unit
-from .._exceptions import DesignError
 from ._mixer import Mixer
-from .decorators import cost
 from math import ceil
-import numpy as np
 import biosteam as bst
 from thermosteam import settings
 from thermosteam.base import UnitsOfMeasure
@@ -207,10 +204,10 @@ class Tank(Unit, isabstract=True):
     -----
     The total volume [m^3] is given by:
 
-    :math:`V_{total} = \frac{\tau \cdot Q }{V_f}`
+    :math:`V_{total} = \frac{\tau \cdot Q }{V_{wf}}`
 
     Where :math:`\tau` is the residence time [hr], :math:`Q` is the flow rate [m^3/hr],
-    and :math:`V_f` is the fraction of working volume over total volume.
+    and :math:`V_{wf}` is the fraction of working volume over total volume.
 
     The number of tanks is given by:
 
@@ -226,9 +223,6 @@ class Tank(Unit, isabstract=True):
     The purchase cost will depend on the cost algorithm of the vessel type. 
 
     Child classes should implement the following class attributes and methods:
-
-    defaults : dict[str: value]
-        Default values for `tau`, `V_wf`, and `material`.
     
     purchase_cost_algorithms : dict[str: VesselPurchaseCostAlgorithm]
         All purchase cost algorithms available for vessel types.
@@ -358,28 +352,28 @@ class StorageTank(Tank):
     purchase_cost_algorithms = {
     "Field erected": VesselPurchaseCostAlgorithm(
         field_erected_vessel_purchase_cost,
-        V_min=0, V_max=50e3, V_units='m^3', CE=525.4,
-        material='Stainless steel'),
+        V_min=0, V_max=50e3, V_units='m^3',
+        CE=525.4, material='Stainless steel'),
     "Floating roof": VesselPurchaseCostAlgorithm(
         ExponentialFunction(A=475, n=0.507),
-        V_min=3e4, V_max=1e6, V_units='gal', CE=567,
-        material='Carbon steel'),
+        V_min=3e4, V_max=1e6, V_units='gal',
+        CE=567, material='Carbon steel'),
     "Cone roof": VesselPurchaseCostAlgorithm(
         ExponentialFunction(A=265, n=0.513),
-        V_min=1e4, V_max=1e6, V_units='gal', CE=567,
-        material='Carbon steel'),
+        V_min=1e4, V_max=1e6, V_units='gal',
+        CE=567, material='Carbon steel'),
     "Spherical; 0-30 psig": VesselPurchaseCostAlgorithm(
         ExponentialFunction(68, 0.72 ),
         V_min=1e4, V_max=1e6, V_units='gal',
-        material='Carbon steel'),
+        CE=567, material='Carbon steel'),
     "Spherical; 30–200 psig": VesselPurchaseCostAlgorithm(
         ExponentialFunction(53, 0.78),
         V_min=1e4, V_max=7.5e5, V_units='gal',
-        material='Carbon steel'),
+        CE=567, material='Carbon steel'),
     "Gas holder": VesselPurchaseCostAlgorithm(
         ExponentialFunction(3595, 0.43),
         V_min=4e3, V_max=4e5, V_units='ft^3',
-        material='Carbon steel')
+        CE=567, material='Carbon steel')
     }
 
 

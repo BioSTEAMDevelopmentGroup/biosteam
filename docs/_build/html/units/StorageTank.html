@@ -221,7 +221,7 @@
 <h1>StorageTank<a class="headerlink" href="#storagetank" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.StorageTank">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">StorageTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type=None</em>, <em class="sig-param">tau=None</em>, <em class="sig-param">V_wf=None</em>, <em class="sig-param">material=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">StorageTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type='Field erected'</em>, <em class="sig-param">tau=672</em>, <em class="sig-param">V_wf=1.0</em>, <em class="sig-param">material='Stainless steel'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a storage tank with a purchase cost based on volume as given by residence time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -230,22 +230,97 @@
 </dd>
 <dt><strong>outs :</strong></dt><dd><p>[0] Effluent stream.</p>
 </dd>
+<dt><strong>vessel_type</strong><span class="classifier">str</span></dt><dd><p>Vessel type.</p>
+</dd>
+<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
+</dd>
+<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working volume over total volume.</p>
+</dd>
+<dt><strong>material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
+</dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>For a detailed discussion on the design and cost algorithm,
 please read the <a class="reference internal" href="Tank.html"><span class="doc">Tank</span></a> documentation.</p>
+<p>References to the purchase cost algorithms for each available
+vessel type are as follows:</p>
+<ul class="simple">
+<li><p>Field erected: <a class="reference internal" href="#r0b0114e6e022-1" id="id1"><span>[R0b0114e6e022-1]</span></a></p></li>
+<li><p>Floating roof: <a class="reference internal" href="#r0b0114e6e022-2" id="id2"><span>[R0b0114e6e022-2]</span></a></p></li>
+<li><p>Cone roof: <a class="reference internal" href="#r0b0114e6e022-2" id="id3"><span>[R0b0114e6e022-2]</span></a></p></li>
+</ul>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r0b0114e6e022-1"><span class="brackets"><a class="fn-backref" href="#id1">R0b0114e6e022-1</a></span></dt>
+<dd><p>Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
+(2009). Techno-economic analysis of a biodiesel production process from
+vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
+<a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></p>
+</dd>
+<dt class="label" id="r0b0114e6e022-2"><span class="brackets">R0b0114e6e022-2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id3">2</a>)</span></dt>
+<dd><p>Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
+Ng, M. K. Cost Accounting and Capital Cost Estimation.
+In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Create a carbon steel, floating roof storage tank for the storage of bioethanol:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mf">23e3</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">effluent</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;effluent&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">StorageTank</span><span class="p">(</span><span class="s1">&#39;T1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">effluent</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">tau</span><span class="o">=</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span><span class="p">,</span> <span class="c1"># In hours</span>
+<span class="gp">... </span>                       <span class="n">vessel_type</span><span class="o">=</span><span class="s1">&#39;Floating roof&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">StorageTank: T1</span>
+<span class="go">ins...</span>
+<span class="go">[0] feed</span>
+<span class="go">    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kg/hr): Ethanol  2.3e+04</span>
+<span class="go">outs...</span>
+<span class="go">[0] effluent</span>
+<span class="go">    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kg/hr): Ethanol  2.3e+04</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="go">Tank                                  Units       T1</span>
+<span class="go">Design              Residence time               168</span>
+<span class="go">                    Total volume        m^3 4.92e+03</span>
+<span class="go">                    Number of tanks                2</span>
+<span class="go">Purchase cost       Tanks               USD 8.42e+05</span>
+<span class="go">Total purchase cost                     USD 8.42e+05</span>
+<span class="go">Utility cost                         USD/hr        0</span>
+</pre></div>
+</div>
 <dl class="attribute">
-<dt id="biosteam.units.StorageTank.cost_algorithms">
-<code class="sig-name descname">cost_algorithms</code><em class="property"> = {'Field erected': VesselCostAlgorithm(f_Cp=&lt;function compute_field_erected_vessel_purchase_cost&gt;, kW=0, V_min=0, V_max=50000.0, CE=525.4, material=Stainless steel, V_units=m^3)}</em><a class="headerlink" href="#biosteam.units.StorageTank.cost_algorithms" title="Permalink to this definition">¶</a></dt>
-<dd><p>dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.</p>
+<dt id="biosteam.units.StorageTank.tau">
+<code class="sig-name descname">tau</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.StorageTank.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Residence time in hours.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.units.StorageTank.defaults">
-<code class="sig-name descname">defaults</code><em class="property"> = {'V_wf': 1.0, 'material': 'Stainless steel', 'tau': 672, 'vessel_type': 'Field erected'}</em><a class="headerlink" href="#biosteam.units.StorageTank.defaults" title="Permalink to this definition">¶</a></dt>
-<dd><p>[dict] All default values.</p>
+<dt id="biosteam.units.StorageTank.V_wf">
+<code class="sig-name descname">V_wf</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.StorageTank.V_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of working volume to total volume.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.StorageTank.material">
+<code class="sig-name descname">material</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.StorageTank.material" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] Vessel construction material.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.StorageTank.purchase_cost_algorithms">
+<code class="sig-name descname">purchase_cost_algorithms</code><em class="property"> = {'Cone roof': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=265, n=0.513), V_min=10000.0, V_max=1000000.0, CE=567, material=Carbon steel, V_units=gal), 'Field erected': VesselPurchaseCostAlgorithm(f_Cp=&lt;function field_erected_vessel_purchase_cost&gt;, V_min=0, V_max=50000.0, CE=525.4, material=Stainless steel, V_units=m^3), 'Floating roof': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=475, n=0.507), V_min=30000.0, V_max=1000000.0, CE=567, material=Carbon steel, V_units=gal), 'Gas holder': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=3595, n=0.43), V_min=4000.0, V_max=400000.0, CE=567, material=Carbon steel, V_units=ft^3), 'Spherical; 0-30 psig': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=68, n=0.72), V_min=10000.0, V_max=1000000.0, CE=567, material=Carbon steel, V_units=gal), 'Spherical; 30–200 psig': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=53, n=0.78), V_min=10000.0, V_max=750000.0, CE=567, material=Carbon steel, V_units=gal)}</em><a class="headerlink" href="#biosteam.units.StorageTank.purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
 </dd></dl>
 
 <dl class="method">

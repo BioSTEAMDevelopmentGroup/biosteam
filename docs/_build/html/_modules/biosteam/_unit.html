@@ -456,23 +456,25 @@
                 <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
         <span class="c1"># TODO: Divide this into functions</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addkey</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">append</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">append</span>
         <span class="k">if</span> <span class="n">with_units</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">include_utilities</span><span class="p">:</span>
-                <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
-                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">rate</span><span class="p">))</span>
-                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+                <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
+                <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">power_utility</span><span class="o">.</span><span class="n">rate</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">power_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">heat_utility</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">heat_utility</span><span class="p">:</span>
+                        <span class="n">ID</span> <span class="o">=</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">ID</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">duty</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
             <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span>
             <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -505,23 +507,27 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span>
                               <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">),</span>
-                              <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">))</span>
+                              <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">))</span>
             <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span>
             <span class="k">return</span> <span class="n">df</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">include_utilities</span><span class="p">:</span>
-                <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
-                <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">rate</span><span class="p">)</span>
-                <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
-                    <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
-                    <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+                <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
+                <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
+                    <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">(</span><span class="n">power_utility</span><span class="o">.</span><span class="n">rate</span><span class="p">)</span>
+                    <span class="n">addval</span><span class="p">(</span><span class="n">power_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">heat_utility</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">heat_utility</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">heat_utility</span><span class="p">:</span>
+                            <span class="n">ID</span> <span class="o">=</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">ID</span>
+                            <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
+                            <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
+                            <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
+                            <span class="n">addval</span><span class="p">(</span><span class="n">heat_utility</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
+                            <span class="n">addval</span><span class="p">(</span><span class="n">heat_utility</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
+                            <span class="n">addval</span><span class="p">(</span><span class="n">heat_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
@@ -550,7 +556,7 @@
                 <span class="n">addval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">utility_cost</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
             <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
-            <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
             <span class="k">return</span> <span class="n">series</span></div>
 
     <span class="nd">@property</span>

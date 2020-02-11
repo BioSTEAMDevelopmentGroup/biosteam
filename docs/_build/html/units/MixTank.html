@@ -221,7 +221,7 @@
 <h1>MixTank<a class="headerlink" href="#mixtank" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.MixTank">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MixTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type=None</em>, <em class="sig-param">tau=None</em>, <em class="sig-param">V_wf=None</em>, <em class="sig-param">material=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MixTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type='Conventional'</em>, <em class="sig-param">tau=672</em>, <em class="sig-param">V_wf=1.0</em>, <em class="sig-param">material='Stainless steel'</em>, <em class="sig-param">kW_per_m3=0.0985</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a mixing tank with volume based on residence time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -230,30 +230,54 @@
 </dd>
 <dt><strong>outs :</strong></dt><dd><p>[0] Effluent stream.</p>
 </dd>
+<dt><strong>vessel_type</strong><span class="classifier">str</span></dt><dd><p>Vessel type.</p>
+</dd>
+<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
+</dd>
+<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working volume over total volume.</p>
+</dd>
+<dt><strong>material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
+</dd>
+<dt><strong>kW_per_m3</strong><span class="classifier">float</span></dt><dd><p>Electricity requirement per unit volume [kW/m^3].</p>
+</dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>For a detailed discussion on the design and cost algorithm,
 please read the <a class="reference internal" href="Tank.html"><span class="doc">Tank</span></a> documentation.</p>
-<p>The purchase cost al</p>
+<p>The purchase cost algorithm is based on <a class="reference internal" href="#rc6611c4afec0-1" id="id1"><span>[Rc6611c4afec0-1]</span></a>.</p>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="rc6611c4afec0-1"><span class="brackets">Rc6611c4afec0-1</span></dt>
-<dd><p>I.K. Kookos, Preliminary Chemical Process Synthesis and Design,
-Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</p>
+<dt class="label" id="rc6611c4afec0-1"><span class="brackets"><a class="fn-backref" href="#id1">Rc6611c4afec0-1</a></span></dt>
+<dd><p>Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
+(2009). Techno-economic analysis of a biodiesel production process from
+vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
+<a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></p>
 </dd>
 </dl>
 <dl class="attribute">
-<dt id="biosteam.units.MixTank.cost_algorithms">
-<code class="sig-name descname">cost_algorithms</code><em class="property"> = {'Mixing tank': VesselCostAlgorithm(f_Cp=ExponentialFunction(base=12080, n=0.525), kW=0.0985, V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)}</em><a class="headerlink" href="#biosteam.units.MixTank.cost_algorithms" title="Permalink to this definition">¶</a></dt>
-<dd><p>dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.</p>
+<dt id="biosteam.units.MixTank.tau">
+<code class="sig-name descname">tau</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.MixTank.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Residence time in hours.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.units.MixTank.defaults">
-<code class="sig-name descname">defaults</code><em class="property"> = {'V_wf': 0.8, 'material': 'Stainless steel', 'tau': 1, 'vessel_type': 'Mixing tank'}</em><a class="headerlink" href="#biosteam.units.MixTank.defaults" title="Permalink to this definition">¶</a></dt>
-<dd><p>[dict] All default values.</p>
+<dt id="biosteam.units.MixTank.V_wf">
+<code class="sig-name descname">V_wf</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.MixTank.V_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of working volume to total volume.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.MixTank.material">
+<code class="sig-name descname">material</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.MixTank.material" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] Vessel construction material.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.MixTank.purchase_cost_algorithms">
+<code class="sig-name descname">purchase_cost_algorithms</code><em class="property"> = {'Conventional': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=12080, n=0.525), V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)}</em><a class="headerlink" href="#biosteam.units.MixTank.purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
 </dd></dl>
 
 <dl class="method">

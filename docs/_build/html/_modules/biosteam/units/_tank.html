@@ -180,62 +180,116 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.designtools</span> <span class="kn">import</span> <span class="n">vessel_material_factors</span>
 <span class="kn">from</span> <span class="nn">.._unit</span> <span class="kn">import</span> <span class="n">Unit</span>
-<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="kn">import</span> <span class="n">DesignError</span>
 <span class="kn">from</span> <span class="nn">._mixer</span> <span class="kn">import</span> <span class="n">Mixer</span>
-<span class="kn">from</span> <span class="nn">.decorators</span> <span class="kn">import</span> <span class="n">cost</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">thermosteam.base</span> <span class="kn">import</span> <span class="n">UnitsOfMeasure</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 
 <span class="c1"># %% Cost classes for tanks</span>
 
 <span class="k">class</span> <span class="nc">ExponentialFunction</span><span class="p">:</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;base&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">*</span> <span class="n">S</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">*</span> <span class="n">S</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(base=</span><span class="si">{self.base}</span><span class="s2">, n=</span><span class="si">{self.n}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(A=</span><span class="si">{self.A}</span><span class="s2">, n=</span><span class="si">{self.n}</span><span class="s2">)&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">VesselCostResults</span><span class="p">:</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;Cp&#39;</span><span class="p">,</span> <span class="s1">&#39;kW&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">Cp</span><span class="p">,</span> <span class="n">kW</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">VesselPurchaseCostResults</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a VesselPurchaseCostResults object with purchase cost data on vessels.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    N : int</span>
+<span class="sd">        Number of vessels</span>
+<span class="sd">    Cp : float</span>
+<span class="sd">        Purchase cost of all vessels [USD].</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    N : int</span>
+<span class="sd">        Number of vessels</span>
+<span class="sd">    Cp : float</span>
+<span class="sd">        Purchase cost of all vessels [USD].</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;Cp&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">Cp</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Cp</span> <span class="o">=</span> <span class="n">Cp</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kW</span> <span class="o">=</span> <span class="n">kW</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(N=</span><span class="si">{self.N}</span><span class="s2">, Cp=</span><span class="si">{self.Cp}</span><span class="s2">, kW=</span><span class="si">{self.kW}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(N=</span><span class="si">{self.N}</span><span class="s2">, Cp=</span><span class="si">{self.Cp}</span><span class="s2">)&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">VesselCostAlgorithm</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Class for vessel design and costing.&quot;&quot;&quot;</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;f_Cp&#39;</span><span class="p">,</span> <span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="s1">&#39;V_min&#39;</span><span class="p">,</span> <span class="s1">&#39;V_max&#39;</span><span class="p">,</span>
+<span class="k">class</span> <span class="nc">VesselPurchaseCostAlgorithm</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a VesselPurchaseCostAlgorithm for vessel costing.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_Cp : function</span>
+<span class="sd">        Should return the purchase cost given the volume.</span>
+<span class="sd">    V_min : float</span>
+<span class="sd">        Minimum volume at which cost is considered accurate.</span>
+<span class="sd">    V_max : float</span>
+<span class="sd">        Maximum volume of a vessel.</span>
+<span class="sd">    V_units : str</span>
+<span class="sd">        Units of measure for volume.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_Cp : function</span>
+<span class="sd">        Returns the purchase cost given the volume.</span>
+<span class="sd">    V_min : float</span>
+<span class="sd">        Minimum volume at which cost is considered accurate.</span>
+<span class="sd">    V_max : float</span>
+<span class="sd">        Maximum volume of a vessel.</span>
+<span class="sd">    V_units : UnitsOfMeasure</span>
+<span class="sd">        Units of measure for volume.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find the number of mixing tanks and the total purchase cost </span>
+<span class="sd">    at a volume of 1 m^3 using the purchase cost equation from [1]_:</span>
+<span class="sd">        </span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units._tank import VesselPurchaseCostAlgorithm</span>
+<span class="sd">    &gt;&gt;&gt; cost_algorithm = VesselPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,</span>
+<span class="sd">    ...                                      V_min=0.1, V_max=30, V_units=&#39;m^3&#39;,</span>
+<span class="sd">    ...                                      CE=525.4, material=&#39;Stainless steel&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; results = cost_algorithm(V_total=1., units=&#39;m^3&#39;, material=&#39;Stainless steel&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; results</span>
+<span class="sd">    VesselPurchaseCostResults(N=1, Cp=13047.963456414163)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;f_Cp&#39;</span><span class="p">,</span> <span class="s1">&#39;V_min&#39;</span><span class="p">,</span> <span class="s1">&#39;V_max&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;CE&#39;</span><span class="p">,</span> <span class="s1">&#39;material&#39;</span><span class="p">,</span> <span class="s1">&#39;V_units&#39;</span><span class="p">)</span>
     <span class="n">vessel_material_factors</span> <span class="o">=</span> <span class="n">vessel_material_factors</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_Cp</span><span class="p">,</span> <span class="n">kW</span><span class="p">,</span> <span class="n">V_min</span><span class="p">,</span> <span class="n">V_max</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">V_units</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_Cp</span><span class="p">,</span>  <span class="n">V_min</span><span class="p">,</span> <span class="n">V_max</span><span class="p">,</span> <span class="n">V_units</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f_Cp</span> <span class="o">=</span> <span class="n">f_Cp</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kW</span> <span class="o">=</span> <span class="n">kW</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V_min</span> <span class="o">=</span> <span class="n">V_min</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V_max</span> <span class="o">=</span> <span class="n">V_max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_units</span> <span class="o">=</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="n">V_units</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CE</span> <span class="o">=</span> <span class="n">CE</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V_units</span> <span class="o">=</span> <span class="n">V_units</span>
-
+        
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">V_total</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
-        <span class="n">V_total</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_units</span><span class="o">.</span><span class="n">conversion_factor</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">V_total</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_min</span><span class="p">:</span>
-            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;volume is below the lower bound (</span><span class="si">{self.V_min}</span><span class="s2"> </span><span class="si">{self.V_units}</span><span class="s2">)&quot;</span><span class="p">)</span>
-        <span class="n">kW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kW</span> <span class="o">*</span> <span class="n">V_total</span>
+        <span class="n">V_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_units</span>
+        <span class="n">V_total</span> <span class="o">/=</span> <span class="n">V_units</span><span class="o">.</span><span class="n">conversion_factor</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">debug</span> <span class="ow">and</span> <span class="n">V_total</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_min</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tank volume (</span><span class="si">{V_total:.5g}</span><span class="s2"> </span><span class="si">{V_units}</span><span class="s2">) is below &quot;</span>
+                 <span class="sa">f</span><span class="s2">&quot;the lower bound (</span><span class="si">{self.V_min:.5g}</span><span class="s2"> </span><span class="si">{V_units}</span><span class="s2">) for purchase &quot;</span>
+                  <span class="s2">&quot;cost estimation&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">V_total</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_max</span><span class="p">)</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">V_total</span> <span class="o">/</span> <span class="n">N</span>
         <span class="n">Cp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_Cp</span><span class="p">(</span><span class="n">V</span><span class="p">)</span>
@@ -246,14 +300,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">F_M</span> <span class="o">=</span> <span class="n">material_factors</span><span class="p">[</span><span class="n">material</span><span class="p">]</span> <span class="o">/</span> <span class="n">material_factors</span><span class="p">[</span><span class="n">default_material</span><span class="p">]</span>
         <span class="n">F_CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">CE</span>
-        <span class="k">return</span> <span class="n">VesselCostResults</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_M</span> <span class="o">*</span> <span class="n">F_CE</span> <span class="o">*</span> <span class="n">Cp</span><span class="p">,</span> <span class="n">kW</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">VesselPurchaseCostResults</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_M</span> <span class="o">*</span> <span class="n">F_CE</span> <span class="o">*</span> <span class="n">Cp</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(f_Cp=</span><span class="si">{self.f_Cp}</span><span class="s2">, kW=</span><span class="si">{self.kW}</span><span class="s2">, V_min=</span><span class="si">{self.V_min}</span><span class="s2">, V_max=</span><span class="si">{self.V_max}</span><span class="s2">, CE=</span><span class="si">{self.CE}</span><span class="s2">, material=</span><span class="si">{self.material}</span><span class="s2">, V_units=</span><span class="si">{self.V_units}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(f_Cp=</span><span class="si">{self.f_Cp}</span><span class="s2">, V_min=</span><span class="si">{self.V_min}</span><span class="s2">, V_max=</span><span class="si">{self.V_max}</span><span class="s2">, CE=</span><span class="si">{self.CE}</span><span class="s2">, material=</span><span class="si">{self.material}</span><span class="s2">, V_units=</span><span class="si">{self.V_units}</span><span class="s2">)&quot;</span>
 
 
-<span class="k">def</span> <span class="nf">compute_field_erected_vessel_purchase_cost</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">field_erected_vessel_purchase_cost</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the purchase cost [USD] of a single, field-erected vessel assuming</span>
 <span class="sd">    stainless steel construction material.</span>
 
@@ -269,7 +323,7 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    The purchase cost is given by [1]_</span>
+<span class="sd">    The purchase cost is given by [1]_.</span>
 
 <span class="sd">    .. math::</span>
 
@@ -281,12 +335,18 @@
 <span class="sd">    </span>
 <span class="sd">            C_p^{2007} &amp;= 125000.0 + 47.1 V</span>
 
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units._tank import field_erected_vessel_purchase_cost</span>
+<span class="sd">    &gt;&gt;&gt; field_erected_vessel_purchase_cost(300)</span>
+<span class="sd">    112610.0</span>
+
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.</span>
-<span class="sd">    (2009). Techno-economic analysis of a biodiesel production process from</span>
-<span class="sd">    vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.</span>
-<span class="sd">    https://doi.org/10.1016/j.fuproc.2009.04.017</span>
+<span class="sd">    .. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.</span>
+<span class="sd">        (2009). Techno-economic analysis of a biodiesel production process from</span>
+<span class="sd">        vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.</span>
+<span class="sd">        https://doi.org/10.1016/j.fuproc.2009.04.017</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">2e3</span><span class="p">:</span>
@@ -301,14 +361,16 @@
 
 <div class="viewcode-block" id="Tank"><a class="viewcode-back" href="../../../units/Tank.html#biosteam.units.Tank">[docs]</a><span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Abstract Tank class.</span>
+<span class="sd">    Abstract class for tanks.</span>
 
-<span class="sd">    Parameters</span>
+<span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    vessel_type : str</span>
+<span class="sd">        Vessel type.</span>
 <span class="sd">    tau : float</span>
 <span class="sd">        Residence time [hr].</span>
 <span class="sd">    V_wf : float</span>
-<span class="sd">        Fraction of working value over total volume.</span>
+<span class="sd">        Fraction of working volume over total volume.</span>
 <span class="sd">    material : str</span>
 <span class="sd">        Vessel material.</span>
 
@@ -319,7 +381,7 @@
 <span class="sd">    :math:`V_{total} = \frac{\tau \cdot Q }{V_f}`</span>
 
 <span class="sd">    Where :math:`\tau` is the residence time [hr], :math:`Q` is the flow rate [m^3/hr],</span>
-<span class="sd">    and :math:`V_f` is the fraction of working value over total volume.</span>
+<span class="sd">    and :math:`V_f` is the fraction of working volume over total volume.</span>
 
 <span class="sd">    The number of tanks is given by:</span>
 
@@ -339,17 +401,8 @@
 <span class="sd">    defaults : dict[str: value]</span>
 <span class="sd">        Default values for `tau`, `V_wf`, and `material`.</span>
 <span class="sd">    </span>
-<span class="sd">    cost_algorithms : dict[str: VesselCostAlgorithm]</span>
-<span class="sd">        All cost algorithms available for vessel types.</span>
-
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    V_wf : float</span>
-<span class="sd">        Fraction of working value over total volume [m^3].</span>
-<span class="sd">    tau : float</span>
-<span class="sd">        Residence time [hr].</span>
-<span class="sd">    material : str</span>
-<span class="sd">        Vessel material.</span>
+<span class="sd">    purchase_cost_algorithms : dict[str: VesselPurchaseCostAlgorithm]</span>
+<span class="sd">        All purchase cost algorithms available for vessel types.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Total volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
@@ -357,39 +410,10 @@
 
     <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">isabstract</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">defaults</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">defaults</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Tank subclass must implement a &quot;</span>
-                                          <span class="s2">&quot;&#39;defaults&#39; dictionary&quot;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;vessel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;tau&#39;</span><span class="p">,</span> <span class="s1">&#39;V_wf&#39;</span><span class="p">,</span> <span class="s1">&#39;material&#39;</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&#39;defaults&#39; dictionary must &quot;</span>
-                                             <span class="sa">f</span><span class="s2">&quot;include a &#39;</span><span class="si">{key}</span><span class="s2">&#39; item&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;cost_algorithms&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;purchase_cost_algorithms&#39;</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Tank subclass must implement &quot;</span>
-                                          <span class="s2">&quot;a &#39;cost_algorithms&#39; dictionary&quot;</span><span class="p">)</span>
+                                          <span class="s2">&quot;a &#39;purchase_cost_algorithms&#39; dictionary&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="n">isabstract</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                  <span class="n">vessel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V_wf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
-
-        <span class="n">defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span> <span class="ow">or</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;vessel_type&#39;</span><span class="p">]</span>
-
-        <span class="c1">#: [float] Residence time in hours.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span> <span class="ow">or</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">]</span>
-
-        <span class="c1">#: [float] Fraction of working volume to total volume.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span> <span class="o">=</span> <span class="n">V_wf</span> <span class="ow">or</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;V_wf&#39;</span><span class="p">]</span>
-
-        <span class="c1">#: [str] Vessel construction material.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span> <span class="ow">or</span> <span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;material&#39;</span><span class="p">]</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cost_algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_algorithms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">design_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
@@ -398,17 +422,18 @@
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">V_total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_algorithm</span><span class="p">(</span><span class="n">V_total</span><span class="p">,</span> <span class="s1">&#39;m^3&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">)</span>
+        <span class="n">Cp_algorithm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span><span class="p">]</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">Cp_algorithm</span><span class="p">(</span><span class="n">V_total</span><span class="p">,</span> <span class="s1">&#39;m^3&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">N</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Tanks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">Cp</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">kW</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Tanks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">Cp</span></div>
 
 
 <span class="c1"># %% Storage tank purchase costs    </span>
 
 
 <div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../units/StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a storage tank with a purchase cost based on volume as given by residence time.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a storage tank with a purchase cost based on volume as given by residence time.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -416,33 +441,122 @@
 <span class="sd">        [0] Feed stream.</span>
 <span class="sd">    outs : </span>
 <span class="sd">        [0] Effluent stream.</span>
+<span class="sd">    vessel_type : str</span>
+<span class="sd">        Vessel type.</span>
+<span class="sd">    tau : float</span>
+<span class="sd">        Residence time [hr].</span>
+<span class="sd">    V_wf : float</span>
+<span class="sd">        Fraction of working volume over total volume.</span>
+<span class="sd">    material : str</span>
+<span class="sd">        Vessel material.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    For a detailed discussion on the design and cost algorithm,</span>
 <span class="sd">    please read the :doc:`Tank` documentation.</span>
+<span class="sd">    </span>
+<span class="sd">    References to the purchase cost algorithms for each available</span>
+<span class="sd">    vessel type are as follows:</span>
+<span class="sd">        </span>
+<span class="sd">    * Field erected: [1]_</span>
+<span class="sd">    * Floating roof: [2]_</span>
+<span class="sd">    * Cone roof: [2]_</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create a carbon steel, floating roof storage tank for the storage of bioethanol:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import thermosteam as tmo</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import units</span>
+<span class="sd">    &gt;&gt;&gt; tmo.settings.set_thermo(tmo.Chemicals([&#39;Ethanol&#39;]))</span>
+<span class="sd">    &gt;&gt;&gt; feed = tmo.Stream(&#39;feed&#39;, Ethanol=23e3, units=&#39;kg/hr&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; effluent = tmo.Stream(&#39;effluent&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; T1 = units.StorageTank(&#39;T1&#39;, ins=feed, outs=effluent,</span>
+<span class="sd">    ...                        tau=7*24, # In hours</span>
+<span class="sd">    ...                        vessel_type=&#39;Floating roof&#39;,</span>
+<span class="sd">    ...                        material=&#39;Carbon steel&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; T1.simulate()</span>
+<span class="sd">    &gt;&gt;&gt; T1.show(flow=&#39;kg/hr&#39;)</span>
+<span class="sd">    StorageTank: T1</span>
+<span class="sd">    ins...</span>
+<span class="sd">    [0] feed</span>
+<span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="sd">        flow (kg/hr): Ethanol  2.3e+04</span>
+<span class="sd">    outs...</span>
+<span class="sd">    [0] effluent</span>
+<span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="sd">        flow (kg/hr): Ethanol  2.3e+04</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; T1.results()</span>
+<span class="sd">    Tank                                  Units       T1</span>
+<span class="sd">    Design              Residence time               168</span>
+<span class="sd">                        Total volume        m^3 4.92e+03</span>
+<span class="sd">                        Number of tanks                2</span>
+<span class="sd">    Purchase cost       Tanks               USD 8.42e+05</span>
+<span class="sd">    Total purchase cost                     USD 8.42e+05</span>
+<span class="sd">    Utility cost                         USD/hr        0</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.</span>
+<span class="sd">        (2009). Techno-economic analysis of a biodiesel production process from</span>
+<span class="sd">        vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.</span>
+<span class="sd">        https://doi.org/10.1016/j.fuproc.2009.04.017</span>
+<span class="sd">    .. [2] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; </span>
+<span class="sd">        Ng, M. K. Cost Accounting and Capital Cost Estimation.</span>
+<span class="sd">        In Product and Process Design Principles; Wiley, 2017; pp 426–485.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#: dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.</span>
-    <span class="n">cost_algorithms</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;Field erected&quot;</span><span class="p">:</span> <span class="n">VesselCostAlgorithm</span><span class="p">(</span>
-        <span class="n">compute_field_erected_vessel_purchase_cost</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="n">V_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">50e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">,</span>
-        <span class="n">V_units</span><span class="o">=</span><span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^3&#39;</span><span class="p">)),</span>
-    <span class="p">}</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                  <span class="n">vessel_type</span><span class="o">=</span><span class="s1">&#39;Field erected&#39;</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span><span class="p">,</span>
+                  <span class="n">V_wf</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
 
-    <span class="c1">#: [dict] All default values.</span>
-    <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">vessel_type</span><span class="o">=</span><span class="s2">&quot;Field erected&quot;</span><span class="p">,</span> 
-        <span class="n">tau</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span><span class="p">,</span> 
-        <span class="n">V_wf</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
-        <span class="n">material</span> <span class="o">=</span> <span class="s1">&#39;Stainless steel&#39;</span>
-    <span class="p">)</span></div>
+        <span class="c1"># [str] Vessel type.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span>
 
+        <span class="c1">#: [float] Residence time in hours.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span>
+
+        <span class="c1">#: [float] Fraction of working volume to total volume.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span> <span class="o">=</span> <span class="n">V_wf</span>
+
+        <span class="c1">#: [str] Vessel construction material.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
+    
+    <span class="c1">#: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</span>
+    <span class="n">purchase_cost_algorithms</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Field erected&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">field_erected_vessel_purchase_cost</span><span class="p">,</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">50e3</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;m^3&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">),</span>
+    <span class="s2">&quot;Floating roof&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">ExponentialFunction</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mi">475</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.507</span><span class="p">),</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mf">3e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+    <span class="s2">&quot;Cone roof&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">ExponentialFunction</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mi">265</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.513</span><span class="p">),</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+    <span class="s2">&quot;Spherical; 0-30 psig&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">ExponentialFunction</span><span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mf">0.72</span> <span class="p">),</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+    <span class="s2">&quot;Spherical; 30–200 psig&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">ExponentialFunction</span><span class="p">(</span><span class="mi">53</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">),</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">7.5e5</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+    <span class="s2">&quot;Gas holder&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">ExponentialFunction</span><span class="p">(</span><span class="mi">3595</span><span class="p">,</span> <span class="mf">0.43</span><span class="p">),</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mf">4e3</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">4e5</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;ft^3&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">)</span>
+    <span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units/MixTank.html#biosteam.units.MixTank">[docs]</a><span class="k">class</span> <span class="nc">MixTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a mixing tank with volume based on residence time.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a mixing tank with volume based on residence time.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -450,40 +564,67 @@
 <span class="sd">        [:] Feed streams.</span>
 <span class="sd">    outs : </span>
 <span class="sd">        [0] Effluent stream.</span>
-
+<span class="sd">    vessel_type : str</span>
+<span class="sd">        Vessel type.</span>
+<span class="sd">    tau : float</span>
+<span class="sd">        Residence time [hr].</span>
+<span class="sd">    V_wf : float</span>
+<span class="sd">        Fraction of working volume over total volume.</span>
+<span class="sd">    material : str</span>
+<span class="sd">        Vessel material.</span>
+<span class="sd">    kW_per_m3 : float</span>
+<span class="sd">        Electricity requirement per unit volume [kW/m^3].</span>
+<span class="sd">    </span>
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    For a detailed discussion on the design and cost algorithm,</span>
 <span class="sd">    please read the :doc:`Tank` documentation.</span>
 <span class="sd">    </span>
-<span class="sd">    The purchase cost al</span>
+<span class="sd">    The purchase cost algorithm is based on [1]_.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    .. [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design,</span>
-<span class="sd">        Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</span>
+<span class="sd">    .. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.</span>
+<span class="sd">        (2009). Techno-economic analysis of a biodiesel production process from</span>
+<span class="sd">        vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.</span>
+<span class="sd">        https://doi.org/10.1016/j.fuproc.2009.04.017</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_run</span> <span class="o">=</span> <span class="n">Mixer</span><span class="o">.</span><span class="n">_run</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                  <span class="n">vessel_type</span><span class="o">=</span><span class="s2">&quot;Conventional&quot;</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span><span class="p">,</span>
+                  <span class="n">V_wf</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">,</span>
+                  <span class="n">kW_per_m3</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
+        
+        <span class="c1"># [float] Electricity requirement per unit volume [kW/m^3].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kW_per_m3</span> <span class="o">=</span> <span class="n">kW_per_m3</span>
+        
+        <span class="c1"># [str] Vessel type.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span>
 
-    <span class="c1">#: dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.</span>
-    <span class="n">cost_algorithms</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;Mixing tank&quot;</span><span class="p">:</span> <span class="n">VesselCostAlgorithm</span><span class="p">(</span><span class="n">ExponentialFunction</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">),</span>
-                                        <span class="n">V_min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span>
-                                        <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">,</span>
-                                        <span class="n">V_units</span><span class="o">=</span><span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^3&#39;</span><span class="p">))</span>
+        <span class="c1">#: [float] Residence time in hours.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span>
+
+        <span class="c1">#: [float] Fraction of working volume to total volume.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span> <span class="o">=</span> <span class="n">V_wf</span>
+
+        <span class="c1">#: [str] Vessel construction material.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
+    
+    <span class="c1">#: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</span>
+    <span class="n">purchase_cost_algorithms</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Conventional&quot;</span><span class="p">:</span> <span class="n">VesselPurchaseCostAlgorithm</span><span class="p">(</span>
+        <span class="n">ExponentialFunction</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">),</span>
+        <span class="n">V_min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;m^3&#39;</span><span class="p">,</span>
+        <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">)</span>
     <span class="p">}</span>
 
-    <span class="c1">#: [dict] All default values.</span>
-    <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">vessel_type</span><span class="o">=</span><span class="s2">&quot;Mixing tank&quot;</span><span class="p">,</span> 
-        <span class="n">tau</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
-        <span class="n">V_wf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> 
-        <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span>
-    <span class="p">)</span></div>
-
-
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kW_per_m3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">])</span></div>
 </pre></div>
 
            </div>
