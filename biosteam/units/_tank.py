@@ -32,27 +32,42 @@ class ExponentialFunction:
         return f"{type(self).__name__}(A={self.A}, n={self.n})"
 
 
-class VesselCostResults:
-    __slots__ = ('N', 'Cp', 'kW')
-    def __init__(self, N, Cp, kW):
+class VesselPurchaseCostResults:
+    r"""
+    Create a VesselPurchaseCostResults object with purchase cost data on vessels.
+    
+    Parameters
+    ----------
+    N : int
+        Number of vessels
+    Cp : float
+        Purchase cost of all vessels [USD].
+    
+    Attributes
+    ----------
+    N : int
+        Number of vessels
+    Cp : float
+        Purchase cost of all vessels [USD].
+    
+    """
+    __slots__ = ('N', 'Cp')
+    def __init__(self, N, Cp):
         self.N = N
         self.Cp = Cp
-        self.kW = kW
 
     def __repr__(self):
-        return f"{type(self).__name__}(N={self.N}, Cp={self.Cp}, kW={self.kW})"
+        return f"{type(self).__name__}(N={self.N}, Cp={self.Cp})"
 
 
-class VesselCostAlgorithm:
+class VesselPurchaseCostAlgorithm:
     r"""
-    Create a VesselCostAlgorithm for vessel costing.
+    Create a VesselPurchaseCostAlgorithm for vessel costing.
     
     Parameters
     ----------
     f_Cp : function
         Should return the purchase cost given the volume.
-    kW : float
-        Electricity rate [kW] per unit volume.
     V_min : float
         Minimum volume at which cost is considered accurate.
     V_max : float
@@ -64,8 +79,6 @@ class VesselCostAlgorithm:
     ----------
     f_Cp : function
         Returns the purchase cost given the volume.
-    kW : float
-        Electricity rate [kW] per unit volume.
     V_min : float
         Minimum volume at which cost is considered accurate.
     V_max : float
@@ -75,41 +88,37 @@ class VesselCostAlgorithm:
     
     Examples
     --------
-    Find the number of mixing tanks, the total purchase cost, and the total
-    electricity rate given a volume of 1 m^3 according to [1]_:
+    Find the number of mixing tanks and the total purchase cost 
+    at a volume of 1 m^3 using the purchase cost equation from [1]_:
         
-    >>> from biosteam.units._tank import VesselCostAlgorithm
-    >>> cost_algorithm = VesselCostAlgorithm(lambda V: 12080 * V **0.525,
+    >>> from biosteam.units._tank import VesselPurchaseCostAlgorithm
+    >>> cost_algorithm = VesselPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,
     ...                                      V_min=0.1, V_max=30, V_units='m^3',
-    ...                                      CE=525.4, kW=0.0985, 
-    ...                                      material='Stainless steel')
+    ...                                      CE=525.4, material='Stainless steel')
     >>> results = cost_algorithm(V_total=1., units='m^3', material='Stainless steel')
     >>> results
-    VesselCostResults(N=1, Cp=13047.963456414163, kW=0.0985)
+    VesselPurchaseCostResults(N=1, Cp=13047.963456414163)
     
     """
-    __slots__ = ('f_Cp', 'kW', 'V_min', 'V_max',
+    __slots__ = ('f_Cp', 'V_min', 'V_max',
                  'CE', 'material', 'V_units')
     vessel_material_factors = vessel_material_factors
 
-    def __init__(self, f_Cp, kW, V_min, V_max, V_units, CE, material):
+    def __init__(self, f_Cp,  V_min, V_max, V_units, CE, material):
         self.f_Cp = f_Cp
-        self.kW = kW
         self.V_min = V_min
         self.V_max = V_max
         self.V_units = UnitsOfMeasure(V_units)
         self.CE = CE
         self.material = material
         
-
-    def __call__(self, V_total, units, material, source="tank"):
+    def __call__(self, V_total, units, material):
         V_units = self.V_units
         V_total /= V_units.conversion_factor(units)
         if settings.debug and V_total < self.V_min:
-            raise ValueError(f"volume of {repr(source)} ({V_total:.5g} {V_units}) is below "
-                             f"the lower bound ({self.V_min:.5g} {V_units}) for purchase "
-                             "cost estimation")
-        kW = self.kW * V_total
+            warn(f"tank volume ({V_total:.5g} {V_units}) is below "
+                 f"the lower bound ({self.V_min:.5g} {V_units}) for purchase "
+                  "cost estimation", RuntimeWarning)
         N = ceil(V_total / self.V_max)
         V = V_total / N
         Cp = self.f_Cp(V)
@@ -120,10 +129,10 @@ class VesselCostAlgorithm:
         else:
             F_M = material_factors[material] / material_factors[default_material]
         F_CE = bst.CE / self.CE
-        return VesselCostResults(N, N * F_M * F_CE * Cp, kW)
+        return VesselPurchaseCostResults(N, N * F_M * F_CE * Cp)
 
     def __repr__(self):
-        return f"{type(self).__name__}(f_Cp={self.f_Cp}, kW={self.kW}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
+        return f"{type(self).__name__}(f_Cp={self.f_Cp}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
 
 
 def field_erected_vessel_purchase_cost(V):
@@ -183,8 +192,10 @@ class Tank(Unit, isabstract=True):
     r"""
     Abstract class for tanks.
 
-    Parameters
+    Attributes
     ----------
+    vessel_type : str
+        Vessel type.
     tau : float
         Residence time [hr].
     V_wf : float
@@ -219,17 +230,8 @@ class Tank(Unit, isabstract=True):
     defaults : dict[str: value]
         Default values for `tau`, `V_wf`, and `material`.
     
-    cost_algorithms : dict[str: VesselCostAlgorithm]
-        All cost algorithms available for vessel types.
-
-    Attributes
-    ----------
-    V_wf : float
-        Fraction of working volume over total volume [m^3].
-    tau : float
-        Residence time [hr].
-    material : str
-        Vessel material.
+    purchase_cost_algorithms : dict[str: VesselPurchaseCostAlgorithm]
+        All purchase cost algorithms available for vessel types.
 
     """
     _units = {'Total volume': 'm^3'}
@@ -237,41 +239,10 @@ class Tank(Unit, isabstract=True):
 
     def __init_subclass__(cls, isabstract=False):
         if not isabstract:
-            try:
-                defaults = cls.defaults
-            except:
-                raise NotImplementedError("Tank subclass must implement a "
-                                          "'defaults' dictionary")
-            for key in ('vessel_type', 'tau', 'V_wf', 'material'):
-                if key not in defaults:
-                    raise NotImplementedError("'defaults' dictionary must "
-                                             f"include a '{key}' item")
-            if not hasattr(cls, 'cost_algorithms'):
+            if not hasattr(cls, 'purchase_cost_algorithms'):
                 raise NotImplementedError("Tank subclass must implement "
-                                          "a 'cost_algorithms' dictionary")
+                                          "a 'purchase_cost_algorithms' dictionary")
         super().__init_subclass__(isabstract)
-
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                  vessel_type=None, tau=None, V_wf=None, material=None):
-        Unit.__init__(self, ID, ins, outs, thermo)
-
-        defaults = self.defaults
-        self.vessel_type = vessel_type or defaults['vessel_type']
-
-        #: [float] Residence time in hours.
-        self.tau = tau or defaults['tau']
-
-        #: [float] Fraction of working volume to total volume.
-        self.V_wf = V_wf or defaults['V_wf']
-
-        #: [str] Vessel construction material.
-        self.material = material or defaults['material']
-
-    @property
-    def cost_algorithm(self):
-        """[VesselCostAlgorithm] The algorithm and parameters being used to
-        calculate the purchase cost."""
-        return self.cost_algorithms[self.vessel_type]
 
     def _design(self):
         design_results = self.design_results
@@ -280,10 +251,10 @@ class Tank(Unit, isabstract=True):
 
     def _cost(self):
         V_total = self.design_results['Total volume']
-        results = self.cost_algorithm(V_total, 'm^3', self.material, self)
+        Cp_algorithm = self.purchase_cost_algorithms[self.vessel_type]
+        results = Cp_algorithm(V_total, 'm^3', self.material)
         self.design_results['Number of tanks'] = results.N
         self.purchase_costs['Tanks'] = results.Cp
-        self.power_utility(results.kW)
 
 
 # %% Storage tank purchase costs    
@@ -299,13 +270,22 @@ class StorageTank(Tank):
         [0] Feed stream.
     outs : 
         [0] Effluent stream.
+    vessel_type : str
+        Vessel type.
+    tau : float
+        Residence time [hr].
+    V_wf : float
+        Fraction of working volume over total volume.
+    material : str
+        Vessel material.
 
     Notes
     -----
     For a detailed discussion on the design and cost algorithm,
     please read the :doc:`Tank` documentation.
     
-    References to the purchase cost algorithms at a given vessel type are as follows:
+    References to the purchase cost algorithms for each available
+    vessel type are as follows:
         
     * Field erected: [1]_
     * Floating roof: [2]_
@@ -357,30 +337,50 @@ class StorageTank(Tank):
         In Product and Process Design Principles; Wiley, 2017; pp 426–485.
 
     """
-    #: dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.
-    cost_algorithms = {
-    "Field erected": VesselCostAlgorithm(
-        field_erected_vessel_purchase_cost, kW=0,
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                  vessel_type='Field erected', tau=4*7*24,
+                  V_wf=1.0, material='Stainless steel'):
+        Unit.__init__(self, ID, ins, outs, thermo)
+
+        # [str] Vessel type.
+        self.vessel_type = vessel_type
+
+        #: [float] Residence time in hours.
+        self.tau = tau
+
+        #: [float] Fraction of working volume to total volume.
+        self.V_wf = V_wf
+
+        #: [str] Vessel construction material.
+        self.material = material
+    
+    #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
+    purchase_cost_algorithms = {
+    "Field erected": VesselPurchaseCostAlgorithm(
+        field_erected_vessel_purchase_cost,
         V_min=0, V_max=50e3, V_units='m^3', CE=525.4,
         material='Stainless steel'),
-    "Floating roof": VesselCostAlgorithm(
-        ExponentialFunction(A=475, n=0.507), kW=0,
+    "Floating roof": VesselPurchaseCostAlgorithm(
+        ExponentialFunction(A=475, n=0.507),
         V_min=3e4, V_max=1e6, V_units='gal', CE=567,
         material='Carbon steel'),
-    "Cone roof": VesselCostAlgorithm(
-        ExponentialFunction(A=265, n=0.513), kW=0,
+    "Cone roof": VesselPurchaseCostAlgorithm(
+        ExponentialFunction(A=265, n=0.513),
         V_min=1e4, V_max=1e6, V_units='gal', CE=567,
         material='Carbon steel'),
+    "Spherical; 0-30 psig": VesselPurchaseCostAlgorithm(
+        ExponentialFunction(68, 0.72 ),
+        V_min=1e4, V_max=1e6, V_units='gal',
+        material='Carbon steel'),
+    "Spherical; 30–200 psig": VesselPurchaseCostAlgorithm(
+        ExponentialFunction(53, 0.78),
+        V_min=1e4, V_max=7.5e5, V_units='gal',
+        material='Carbon steel'),
+    "Gas holder": VesselPurchaseCostAlgorithm(
+        ExponentialFunction(3595, 0.43),
+        V_min=4e3, V_max=4e5, V_units='ft^3',
+        material='Carbon steel')
     }
-
-    #: [dict] All default values.
-    defaults = dict(
-        vessel_type="Field erected", 
-        tau=4*7*24, 
-        V_wf=1.0, 
-        material = 'Stainless steel'
-    )
-
 
 
 class MixTank(Tank):
@@ -393,7 +393,17 @@ class MixTank(Tank):
         [:] Feed streams.
     outs : 
         [0] Effluent stream.
-
+    vessel_type : str
+        Vessel type.
+    tau : float
+        Residence time [hr].
+    V_wf : float
+        Fraction of working volume over total volume.
+    material : str
+        Vessel material.
+    kW_per_m3 : float
+        Electricity requirement per unit volume [kW/m^3].
+    
     Notes
     -----
     For a detailed discussion on the design and cost algorithm,
@@ -411,22 +421,36 @@ class MixTank(Tank):
     """
     _N_ins = 2
     _run = Mixer._run
+    
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                  vessel_type="Conventional", tau=4*7*24,
+                  V_wf=1.0, material='Stainless steel',
+                  kW_per_m3=0.0985):
+        Unit.__init__(self, ID, ins, outs, thermo)
+        
+        # [float] Electricity requirement per unit volume [kW/m^3].
+        self.kW_per_m3 = kW_per_m3
+        
+        # [str] Vessel type.
+        self.vessel_type = vessel_type
 
-    #: dict[str: VesselCostAlgorithm] All cost algorithms available for vessel types.
-    cost_algorithms = {
-    "Conventional": VesselCostAlgorithm(
+        #: [float] Residence time in hours.
+        self.tau = tau
+
+        #: [float] Fraction of working volume to total volume.
+        self.V_wf = V_wf
+
+        #: [str] Vessel construction material.
+        self.material = material
+    
+    #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
+    purchase_cost_algorithms = {
+    "Conventional": VesselPurchaseCostAlgorithm(
         ExponentialFunction(A=12080, n=0.525),
         V_min=0.1, V_max=30, V_units='m^3',
-        CE=525.4, kW=0.0985, 
-        material='Stainless steel')
+        CE=525.4, material='Stainless steel')
     }
 
-    #: [dict] All default values.
-    defaults = dict(
-        vessel_type="Conventional", 
-        tau=1, 
-        V_wf=0.8, 
-        material='Stainless steel'
-    )
-
-
+    def _cost(self):
+        super()._cost()
+        self.power_utility(self.kW_per_m3 * self.design_results['Total volume'])
