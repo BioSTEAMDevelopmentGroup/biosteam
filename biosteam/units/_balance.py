@@ -17,8 +17,9 @@ class MassBalance(Unit):
 
     Parameters
     ----------
-    IDs : tuple[str]
-        Chemicals that will be used to solve mass balance linear equations. The number of chemicals must be same as the number of input streams varied.
+    chemical_IDs : tuple[str]
+        Chemicals that will be used to solve mass balance linear equations.
+        The number of chemicals must be same as the number of input streams varied.
     streams : tuple[int]
         Indices of input streams that can vary in net flow rate
     is_exact=True : bool, optional
@@ -37,6 +38,7 @@ class MassBalance(Unit):
     _has_cost = False
     _N_ins = 2
     heat_utilities = ()
+    power_utility = None
 
     def __init__(self, ID='', outs=(), ins=None,
                  chemical_IDs=None, streams=None,

@@ -12,7 +12,8 @@ class EnzymeTreatment(MixTank):
     _N_outs = 1
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 vessel_type=None, tau=None, V_wf=None, material=None, T):
+                 vessel_type='Conventional', tau=1.0, V_wf=0.9,
+                 material='Stainless steel', T):
         MixTank.__init__(self, ID, ins, outs, thermo, vessel_type=vessel_type,
                          tau=tau, V_wf=V_wf, material=material)
         self.T = T #: Operating temperature

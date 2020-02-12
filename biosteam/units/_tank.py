@@ -15,19 +15,7 @@ from warnings import warn
 
 # %% Cost classes for tanks
 
-class ExponentialFunction:
-    __slots__ = ('A', 'n')
-
-    def __init__(self, A, n):
-        self.A = A
-        self.n = n
-
-    def __call__(self, S):
-        return self.A * S ** self.n
-
-    def __repr__(self):
-        return f"{type(self).__name__}(A={self.A}, n={self.n})"
-
+ExponentialFunctor = bst.utils.ExponentialFunctor
 
 class VesselPurchaseCostResults:
     r"""
@@ -355,23 +343,23 @@ class StorageTank(Tank):
         V_min=0, V_max=50e3, V_units='m^3',
         CE=525.4, material='Stainless steel'),
     "Floating roof": VesselPurchaseCostAlgorithm(
-        ExponentialFunction(A=475, n=0.507),
+        ExponentialFunctor(A=475, n=0.507),
         V_min=3e4, V_max=1e6, V_units='gal',
         CE=567, material='Carbon steel'),
     "Cone roof": VesselPurchaseCostAlgorithm(
-        ExponentialFunction(A=265, n=0.513),
+        ExponentialFunctor(A=265, n=0.513),
         V_min=1e4, V_max=1e6, V_units='gal',
         CE=567, material='Carbon steel'),
     "Spherical; 0-30 psig": VesselPurchaseCostAlgorithm(
-        ExponentialFunction(68, 0.72 ),
+        ExponentialFunctor(68, 0.72 ),
         V_min=1e4, V_max=1e6, V_units='gal',
         CE=567, material='Carbon steel'),
     "Spherical; 30–200 psig": VesselPurchaseCostAlgorithm(
-        ExponentialFunction(53, 0.78),
+        ExponentialFunctor(53, 0.78),
         V_min=1e4, V_max=7.5e5, V_units='gal',
         CE=567, material='Carbon steel'),
     "Gas holder": VesselPurchaseCostAlgorithm(
-        ExponentialFunction(3595, 0.43),
+        ExponentialFunctor(3595, 0.43),
         V_min=4e3, V_max=4e5, V_units='ft^3',
         CE=567, material='Carbon steel')
     }
@@ -417,8 +405,8 @@ class MixTank(Tank):
     _run = Mixer._run
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                  vessel_type="Conventional", tau=4*7*24,
-                  V_wf=1.0, material='Stainless steel',
+                  vessel_type="Conventional", tau=1,
+                  V_wf=0.8, material='Stainless steel',
                   kW_per_m3=0.0985):
         Unit.__init__(self, ID, ins, outs, thermo)
         
@@ -440,7 +428,7 @@ class MixTank(Tank):
     #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
     purchase_cost_algorithms = {
     "Conventional": VesselPurchaseCostAlgorithm(
-        ExponentialFunction(A=12080, n=0.525),
+        ExponentialFunctor(A=12080, n=0.525),
         V_min=0.1, V_max=30, V_units='m^3',
         CE=525.4, material='Stainless steel')
     }
@@ -448,3 +436,6 @@ class MixTank(Tank):
     def _cost(self):
         super()._cost()
         self.power_utility(self.kW_per_m3 * self.design_results['Total volume'])
+
+
+del ExponentialFunctor

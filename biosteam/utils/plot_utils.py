@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from .color_utils import colors
+from .biosteam_colors import colors
 import numpy as np
 
 __all__ = ('DoubleColorCircle', 'DoubleColorLegend')

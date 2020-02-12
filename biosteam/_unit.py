@@ -112,15 +112,16 @@ class Unit:
     
     """ 
     
-    def __init_subclass__(cls, isabstract=False):
+    def __init_subclass__(cls, isabstract=False, new_graphics=True):
         dct = cls.__dict__
-        if 'line' not in dct and cls.line in lines_with_new_graphics:
-            # Set new graphics for default line
-            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-            cls.line = format_unit_line(cls.__name__)
-        elif '_graphics' not in dct:
-            # Set new graphics for specified line
-            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+        if new_graphics:
+            if 'line' not in dct and cls.line in lines_with_new_graphics:
+                # Set new graphics for default line
+                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+                cls.line = format_unit_line(cls.__name__)
+            elif '_graphics' not in dct:
+                # Set new graphics for specified line
+                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         
         if not isabstract and not hasattr(cls, '_run'): static(cls)
             
@@ -640,9 +641,9 @@ class Unit:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        info+= f'ins...\n'
+        info += f'ins...\n'
         i = 0
-        for stream in self._ins:
+        for stream in self.ins:
             if not stream:
                 info += f'[{i}] {stream}\n'
                 i += 1
@@ -655,7 +656,7 @@ class Unit:
             i += 1
         info += f'outs...\n'
         i = 0
-        for stream in self._outs:
+        for stream in self.outs:
             if not stream:
                 info += f'[{i}] {stream}\n'
                 i += 1
@@ -677,9 +678,6 @@ class Unit:
         try: self.diagram()
         except: pass
         self.show()
-    
-    def __str__(self):
-        return self.ID or type(self).__name__
 
     def __repr__(self):
         if self.ID:

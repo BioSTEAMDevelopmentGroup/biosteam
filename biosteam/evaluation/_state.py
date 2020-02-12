@@ -115,6 +115,9 @@ class State:
         copy._skip = self._skip
         return copy
     
+    def get_baseline_sample(self):
+        return np.array([i.baseline for i in self.get_parameters()])
+    
     def get_parameters(self):
         """Return parameters."""
         if not self._update: self._loadparams()

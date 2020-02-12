@@ -961,7 +961,7 @@ class Distillation(Dist):
             # Calculate actual number of stages
             mid_stage = feed_stage - 0.5
             N_rectifier = np.ceil(mid_stage/E_rectifier)
-            N_stripper = np.ceil( (N_stages-mid_stage)/E_stripper )
+            N_stripper = np.ceil((N_stages-mid_stage)/E_stripper)
         return N_rectifier, N_stripper
 
     def _McCabeThiele(self):

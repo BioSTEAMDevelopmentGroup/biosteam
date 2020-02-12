@@ -5,14 +5,12 @@ Created on Mon Apr 29 18:28:55 2019
 @author: yoelr
 """
 from . import Facility
-from ...utils.stream_link_options import static
 from ..decorators import cost
 from ... import HeatUtility
 import numpy as np
 
 __all__ = ('ChilledWaterPackage',)
 
-@static
 @cost('Duty', S=-14*4184000, kW=3400*0.7457, cost=1375e3, CE=551, n=0.7, BM=1.5)
 class ChilledWaterPackage(Facility):
     """Create a chilled water package that is cost based on flow rate of chilled water.

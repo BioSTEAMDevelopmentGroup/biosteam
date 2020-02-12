@@ -229,7 +229,7 @@ class System(metaclass=system):
         self.units = units = set(units)
         
         #: set[Unit] All units in the network that have costs
-        self._network_costunits = costunits = {i for i in units if i._cost}
+        self._network_costunits = costunits = {i for i in units if i._design or i._cost}
         
         #: set[Unit] All units that have costs.
         self._costunits = costunits = costunits.copy()

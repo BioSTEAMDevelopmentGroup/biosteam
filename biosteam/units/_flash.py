@@ -547,58 +547,6 @@ class SplitFlash(Flash):
             self._heat_exchanger.outs[0] = ms = self._multistream
             ms.mix_from(self.outs)
         super()._design()
-
-
-# class PartitionFlash(Flash):
-#     """Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients."""
-    
-#     _kwargs = {'species_IDs': None,  # Partition species
-#                'Ks': None,           # Partition coefficients
-#                'LNK': None,          # light non-keys
-#                'HNK': None,          # heavy non-keys
-#                'P': None,            # Operating Pressure
-#                'T': None}            # Operating temperature
-    
-#     def _init(self):
-#         top, bot = self.outs
-#         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
-#         index = top._species._IDs.index
-#         if P < 101325 and not self.power_utility:
-#             self.power_utility = PowerUtility()
-#         self._args = ([index(i) for i in species_IDs],
-#                       [index(i) for i in LNK],
-#                       [index(i) for i in HNK],
-#                        np.asarray(Ks), P, T)
-    
-#     def _run(self):
-#         feed = self.ins[0]
-#         ph1, ph2 = self.outs
-#         pos, LNK, HNK, Ks, P, T = self._args
-#         mol_in = feed.mol[pos]
-#         ph1.T = ph2.T = (T if T else feed.T)
-#         ph1.P = ph2.P = (P if P else feed.P)
-#         ph1.mol[LNK] = feed.mol[LNK]
-#         ph1.mol[HNK] = feed.mol[HNK]
-        
-#         # Get zs and Ks to solve rashford rice equation
-#         molnet = sum(mol_in)
-#         zs = mol_in/molnet
-#         lenzs = len(zs)
-#         if hasattr(self, '_V'):
-#             self._V = V = newton(V_error, self._V, args=(zs, Ks))
-#         elif lenzs > 3:
-#             self._V = V = brentq(V_error, 0, 1, (zs, Ks))
-#         elif lenzs == 2:
-#             self._V = V = V_2N(V, zs, Ks)
-#         elif lenzs == 3:
-#             self._V = V = V_3N(V, zs, Ks)
-            
-#         x = zs/(1 + V*(Ks-1))
-#         y = x*Ks
-#         ph1.mol[pos] = molnet*V*y
-#         ph2.mol[pos] = mol_in - ph1.mol[pos]
-    
-#     _design = SplitFlash._design
     
 
 class RatioFlash(Flash):
@@ -659,11 +607,15 @@ class Evaporator_PQ(Unit):
         self._P = water.Psat(T)
         self._Hvap = water.Hvap(T)
         self._T = T
+    @property
+    def V(self):
+        return self._V
     
     def __init__(self, ID='', ins=None, outs=(), *, Q=0, P=101325):
         super().__init__(ID, ins, outs)
         self.Q = Q
         self.P = P
+        self._V = None
     
     def _run(self):
         feed, utility_vapor = self.ins
@@ -674,7 +626,7 @@ class Evaporator_PQ(Unit):
         if utility_liquid:
             utility_liquid.copy_like(utility_vapor)
             utility_liquid.phase = 'l'
-            Q += utility_vapor.H - utility_liquid.H
+            Q += utility_vapor.Hvap
         feed_H = feed.H
     
         # Set exit conditions
@@ -687,7 +639,7 @@ class Evaporator_PQ(Unit):
         # Energy balance to find vapor fraction
         f = feed.imol[H2O_CAS]
         H = feed_H + Q - liquid.H
-        V = (H/f)/(self._Hvap)
+        V = H/(f * self._Hvap)
         if V < 0:
             V = 0
         elif V > 1:
@@ -719,10 +671,6 @@ class Evaporator_PV(Unit):
         self._P = water.Psat(T)
         self._T = T
     
-    @property
-    def component(self):
-        return self._component
-
     def __init__(self, ID='', ins=None, outs=(), *, V=0.5, P=101325):
         super().__init__(ID, ins, outs)
         self.V = V
@@ -731,6 +679,7 @@ class Evaporator_PV(Unit):
     def _run(self):
         feed = self.ins[0]
         vapor, liquid = self.outs
+        vapor.T = liquid.T = self.T
         H2O_index = self.chemicals.index(H2O_CAS)
         water_mol = feed.mol[H2O_index]
         vapor.mol[H2O_index] = self.V * water_mol

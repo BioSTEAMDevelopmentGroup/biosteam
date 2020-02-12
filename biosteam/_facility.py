@@ -5,13 +5,10 @@ Created on Sat Jul 13 02:24:35 2019
 @author: yoelr
 """
 from ._unit import Unit
-from .utils import NotImplementedMethod
 
 __all__ = ('Facility',)
 
-class Facility(Unit):
-    
-    _run = NotImplementedMethod
+class Facility(Unit, isabstract=True, new_graphics=False):
     
     @property
     def system(self):

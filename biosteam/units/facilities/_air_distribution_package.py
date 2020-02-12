@@ -5,12 +5,10 @@ Created on Mon Jul 29 21:35:10 2019
 @author: yoelr
 """
 from ..._unit import Unit
-from ...utils.stream_link_options import static
 from ..decorators import cost
 
 __all__ = ('AirDistributionPackage',)
 
-@static
 @cost('Flow rate', 'Plant air reciever',
       cost=16e3, CE=522, S=83333, n=0.6, BM=3.1)
 @cost('Flow rate', 'Instrument air dryer',
