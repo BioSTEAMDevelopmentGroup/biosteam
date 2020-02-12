@@ -220,7 +220,6 @@ class System(metaclass=system):
                 units.extend(i._unit_network)
                 subsystems.add(i)
                 streams.update(i.streams)
-        streams.discard(MissingStream) 
         
         # link all unit operations with linked streams
         for u in units: u._load_stream_links()
@@ -247,6 +246,8 @@ class System(metaclass=system):
                 streams.update(i.streams)
                 subsystems.add(i)
                 costunits.update(i._costunits)
+        
+        streams.discard(MissingStream)
         
         #: set[Stream] All feed streams in the system.
         self.feeds = set(filter(_isfeed, streams))

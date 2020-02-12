@@ -88,7 +88,7 @@ class Fermentation(Unit):
     
     def _get_design_specs(self):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
-                ('Working volume fraction', self.working_volume_fraction, ''),
+                ('Working volume fraction', self.V_wf, ''),
                 ('Number of reactors', self.N, ''))
     
     def __init__(self, ID='', ins=None, outs=(), *, 

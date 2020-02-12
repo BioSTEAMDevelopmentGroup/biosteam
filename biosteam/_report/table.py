@@ -7,6 +7,7 @@ Created on Sat Nov 17 09:48:34 2018
 import numpy as np
 import pandas as pd
 from warnings import warn
+import openpyxl
 from .._tea import TEA, CombinedTEA
 from thermosteam import Stream
 from thermosteam.base import get_dimensionality, convert, stream_units_of_measure
@@ -46,7 +47,7 @@ def _save(tables, writer, sheet_name='Sheet1', n_row=1):
 
 # %% Units
 
-def save_report(system, file='report.xlsx', **stream_properties):
+def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
     """Save a system report as an xlsx file.
     
     Parameters
@@ -61,13 +62,20 @@ def save_report(system, file='report.xlsx', **stream_properties):
     writer = ExcelWriter(file)
     units = list(system._costunits)
     try:
-        system.diagram('thorough', file='diagram', format='png')
+        system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
     except:
         diagram_completed = False
         warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
     else:
-        flowsheet = writer.book.add_worksheet('Flowsheet')
-        flowsheet.insert_image('A1', 'diagram.png')
+        try:
+            # Assume openpyxl is used
+            worksheet = writer.book.create_sheet('Flowsheet')
+            flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
+            worksheet.add_image(flowsheet, anchor='A1')
+        except:
+            # Assume xlsx writer is used
+            worksheet = writer.book.add_worksheet('Flowsheet')
+            flowsheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     
     if system._TEA:
@@ -81,22 +89,24 @@ def save_report(system, file='report.xlsx', **stream_properties):
             cost.to_excel(writer, 'Itemized costs')
         
         # Cash flow
-        tea.get_cashflow().to_excel(writer, 'Cash flow')
+        tea.get_cashflow_table().to_excel(writer, 'Cash flow')
     else:
         warn(RuntimeWarning(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.'), stacklevel=2)
     
     
     # Stream tables
-    # Organize streams by species first
-    streams_by_species = {}
+    # Organize streams by chemicals first
+    streams_by_chemicals = {}
     for i in system.streams:
-        s = i.species
-        if s in streams_by_species: streams_by_species[s].append(i)
-        else: streams_by_species[s] = [i]
-    streamtables = []
-    for streams in streams_by_species.values():
-        streamtables.append(stream_table(streams, **stream_properties))
-    _save(streamtables, writer, 'Stream table')
+        chemicals = i.chemicals
+        if chemicals in streams_by_chemicals:
+            streams_by_chemicals[chemicals].append(i)
+        else:
+            streams_by_chemicals[chemicals] = [i]
+    stream_tables = []
+    for streams in streams_by_chemicals.values():
+        stream_tables.append(stream_table(streams, **stream_properties))
+    _save(stream_tables, writer, 'Stream table')
     
     # Heat utility tables
     heat_utilities = heat_utilities_table(units)
@@ -112,7 +122,7 @@ def save_report(system, file='report.xlsx', **stream_properties):
     results = results_table(units)
     _save(results, writer, 'Design requirements')
     writer.save()
-    if diagram_completed: os.remove("diagram.png")
+    if diagram_completed: os.remove("flowsheet.png")
 
 save_system_results = save_report
 
@@ -210,7 +220,7 @@ def heat_utilities_table(units):
     source = {}
     heat_utils = []
     for u in units:
-        hus = u._heat_utilities
+        hus = u.heat_utilities
         if not hus: continue
         for i in hus: source[i] = u
         heat_utils.extend(hus)
@@ -246,13 +256,13 @@ def heat_utilities_table(units):
 def power_utilities_table(units):
     # Sort power utilities by unit type
     units = sorted(units, key=(lambda u: type(u).__name__))
-    units = [u for u in units if u._power_utility]
-    power_utilities = [u._power_utility for u in units]
+    units = [u for u in units if u.power_utility]
+    power_utilities = [u.power_utility for u in units]
     lenght = len(power_utilities)
     data = []
     for i, u, pu in zip(range(lenght), units, power_utilities):
         data.append((u.line, pu.rate, pu.cost))
-    return DataFrame(data, index=[u.ID for u in units if u._power_utility],
+    return DataFrame(data, index=[u.ID for u in units if u.power_utility],
                      columns=('Unit Operation', 'Rate (kW)', 'Cost (USD/hr)'))
 
 
@@ -272,22 +282,12 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
         Additional stream properties and units as key-value pairs
     
     """
-    # Get correct flow attributes
-    flow_dim = get_dimensionality(flow)
-    if flow_dim == stream_units_of_measure['mol'].dimensionality:
-        flow_attr = 'mol'
-    elif flow_dim == stream_units_of_measure['mass'].dimensionality:
-        flow_attr = 'mass'
-    elif flow_dim == stream_units_of_measure['vol'].dimensionality:
-        flow_attr = 'vol'
-    else:
-        raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'.")
     
     # Prepare rows and columns
     ss = sorted([i for i in streams if i.ID], key=_stream_key)
-    species = ss[0]._species._IDs
+    chemical_IDs = ss[0].chemicals.IDs
     n = len(ss)
-    m = len(species)
+    m = len(chemical_IDs)
     p = len(props)
     array = np.empty((m+p+5, n), dtype=object)
     IDs = n*[None]
@@ -315,27 +315,20 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
                 phase += 'solid|'
         phase = phase.rstrip('|')
         phases[j] = phase
-        flow_j = getattr(s, flow_attr)
+        flow_j = s.get_flow(flow)
         flows[j] = net_j = sum(flow_j)
         fracs[:,j] = flow_j/net_j if net_j > 0 else 0
         i = 0
-        for attr, unit in props.items():
-            prop_molar_data[i, j] = getattr(s, attr)
+        for attr, units in props.items():
+            prop_molar_data[i, j] = s.get_property(attr, units)
             i += 1
     
     # Set the right units
-    units = Stream.units
-    flows = convert(flows, units[flow_attr], flow)
     i = 0
-    prop_molar_keys = p*[None]
-    for attr, unit in props.items():
-        p = prop_molar_data[i]
-        p = convert(p, units[attr], unit)
-        prop_molar_keys[i] = f'{attr} ({unit})'
-        i += 1
+    prop_molar_keys = [f'{attr} ({unit})' for attr, unit in props.items()]
     
     # Make data frame object
-    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', 'Composition:') + tuple(species)
+    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', 'Composition:') + tuple(chemical_IDs)
     return DataFrame(array, columns=IDs, index=index)
 
 
