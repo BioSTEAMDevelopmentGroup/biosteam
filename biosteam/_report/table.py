@@ -274,10 +274,8 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
     Parameters
 
     streams : array_like[Stream]
-        
     flow : str
-        Units for flow rate
-
+        Units for flow rate.
     props : str
         Additional stream properties and units as key-value pairs
     
