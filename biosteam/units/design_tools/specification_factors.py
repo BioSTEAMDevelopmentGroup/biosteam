@@ -138,26 +138,25 @@ distillation_column_material_factors = {
 
 # Materials of Construction Shell/Tube (a and b in Eq. (16.44))
 shell_and_tube_material_factor_coefficients =  {
-    'Carbon steel/carbon steel':       (0, 0),
+    'Carbon steel/carbon steel':        (0,    0),
     'Carbon steel/brass':	            (1.08, 0.05),
-    'Carbon steel/stainles steel':	  (1.75, 0.13),
-    'Carbon steel/Monel':	            (2.1, 0.13),
-    'Carbon steel/titanium':	       (5.2, 0.16),
-    'Carbon steel/Cr-Mo steel':        (1.55, 0.05),
-    'Cr-Mo steel/Cr-Mo steel':	       (1.7, 0.07),
-    'Stainless steel/stainless steel': (2.7, 0.07),
-    'Monel/Monel':	                 (3.3, 0.08),
-    'Titanium/titanium':	            (9.6, 0.06)}
+    'Carbon steel/stainles steel':	    (1.75, 0.13),
+    'Carbon steel/Monel':	            (2.1,  0.13),
+    'Carbon steel/titanium':	        (5.2,  0.16),
+    'Carbon steel/Cr-Mo steel':         (1.55, 0.05),
+    'Cr-Mo steel/Cr-Mo steel':	        (1.7,  0.07),
+    'Stainless steel/stainless steel':  (2.7,  0.07),
+    'Monel/Monel':	                    (3.3,  0.08),
+    'Titanium/titanium':	            (9.6,  0.06)}
 
-def compute_shell_and_tube_material_factor(A, shell_and_tube_material):
+def compute_shell_and_tube_material_factor(A, a, b):
     r"""
     Return the material factor for shell and tubes given the area [A; ft^3]
-    and the shell and tube material. 
+    and material-dependent coefficients `a` and `b`. 
     
     Notes
     -----
-    Material factors are computed using Eq. 16.44 in [1]_, which relies on 
-    material-dependent coefficients `a` and `b`:
+    Material factors are computed using Eq. 16.44 in [1]_:
     
     :math:`F_M = a + \left(\frac{A}{100.0}\right)^b`
     
@@ -167,6 +166,5 @@ def compute_shell_and_tube_material_factor(A, shell_and_tube_material):
     .. [1] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
         Ng, M. K. Cost Accounting and Capital Cost Estimation.
         In Product and Process Design Principles; Wiley, 2017; pp 426–485.
-    """   
-    a, b = shell_and_tube_material_factor_coefficients[shell_and_tube_material]
+    """
     return a + (A/100.0)**b

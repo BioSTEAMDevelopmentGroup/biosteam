@@ -5,7 +5,7 @@ units
    :maxdepth: 3
 
    decorators
-   designtools
+   design_tools
    facilities
    Distillation
    Fermentation
@@ -13,6 +13,7 @@ units
    HXprocess
    HXutility
    Junction
+   LiquidsSplitCentrifuge
    MassBalance
    MixTank
    Mixer

@@ -33,7 +33,7 @@ __all__ = ('Flash', 'SplitFlash', 'RatioFlash')
 # %% Flash
 
 class Flash(Unit):
-    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]. Purchase costs are based on correlations by Mulet et al. [2, 3] as compiled by Warren et. al. [4].
+    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]_. Purchase costs are based on correlations by Mulet et al. [2, 3]_ as compiled by Warren et. al. [4]_.
 
     Parameters
     ----------
@@ -68,20 +68,64 @@ class Flash(Unit):
     has_mist_eliminator : bool
         True if using a mist eliminator pad.
 
+    Examples
+    --------
+    >>> from biosteam.units import Flash
+    >>> from thermosteam import Chemicals, Stream, settings
+    >>> chemicals = Chemicals(['Water', 'Glycerol'])
+    >>> settings.set_thermo(chemicals)
+    >>> feed = Stream('feed', Glycerol=300, Water=1000)
+    >>> bp = feed.bubble_point_at_P() # Feed at bubble point T
+    >>> feed.T = bp.T
+    >>> F1 = Flash('F1',
+    ...            ins=feed,
+    ...            outs=('vapor', 'crude_glycerin'),
+    ...            P=101325, # Pa
+    ...            T=410.15) # K
+    >>> F1.simulate()
+    >>> F1.show(T='degC', P='atm')
+    Flash: F1
+    ins...
+    [0] feed
+        phase: 'l', T: 100.7 degC, P: 1 atm
+        flow (kmol/hr): Water     1e+03
+                        Glycerol  300
+    outs...
+    [0] vapor
+        phase: 'g', T: 137 degC, P: 1 atm
+        flow (kmol/hr): Water     958
+                        Glycerol  2.32
+    [1] crude_glycerin
+        phase: 'l', T: 137 degC, P: 1 atm
+        flow (kmol/hr): Water     42.4
+                        Glycerol  298
+    
+    >>> F1.results()
+    Flash                                   Units            F1
+    Medium pressure steam Duty              kJ/hr      5.06e+07
+                          Flow            kmol/hr       1.4e+03
+                          Cost             USD/hr           385
+    Design                Vessel type                  Vertical
+                          Length               ft          23.5
+                          Diameter             ft           6.5
+                          Weight               lb      8.44e+03
+                          Wall thickness       in         0.375
+                          Material                 Carbon steel
+    Purchase cost         Flash               USD      5.82e+04
+                          Heat exchanger      USD      4.36e+04
+    Total purchase cost                       USD      1.02e+05
+    Utility cost                           USD/hr           385
+
 
     References
     ----------
-    [1] "Design Two-Phase Separators Within the Right Limits", Chemical Engineering Progress Oct, 1993.
+    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical Engineering Progress Oct, 1993.
 
-    [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
+    .. [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
 
-    [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
+    .. [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
 
-    [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    
-    
-    Examples
-    --------
-    :doc:`notebooks/Flash Example`
+    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     _units = {'Vertical vessel weight': 'lb',

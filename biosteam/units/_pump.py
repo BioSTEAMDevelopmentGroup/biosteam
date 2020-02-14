@@ -57,7 +57,25 @@ class Pump(Unit):
     
     Examples
     --------
-    :doc:`notebooks/Pump Example`
+    Simulate Pump for pressure increase:
+    
+    >>> from thermosteam import Chemicals, Stream, settings
+    >>> from biosteam.units import Pump
+    >>> chemicals = Chemicals(['Water', 'Ethanol'])
+    >>> settings.set_thermo(chemicals)
+    >>> feed = Stream('feed', Water=200, T=350)
+    >>> P1 = Pump('P1', ins=feed, outs='out', P=2e5)
+    >>> P1.simulate()
+    >>> P1.show()
+    Pump: P1
+    ins...
+    [0] feed
+        phase: 'l', T: 350 K, P: 101325 Pa
+        flow (kmol/hr): Water  200
+    outs...
+    [0] out
+        phase: 'l', T: 350 K, P: 200000 Pa
+        flow (kmol/hr): Water  200
     
     References
     ----------
@@ -102,7 +120,7 @@ class Pump(Unit):
                  P_design=405300,
                  ignore_NPSH=True):
         Unit.__init__(self, ID, ins, outs)
-        self.P = 101325
+        self.P = P
         self.pump_type = pump_type
         self.material = material
         self.P_design = P_design

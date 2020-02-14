@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam.units.design_tools.vacuum &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam.units.design_tools.vacuum</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam.units.design_tools.vacuum</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Feb 22 17:31:50 2019</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">ln</span>
+<span class="kn">from</span> <span class="nn">.mechanical</span> <span class="kn">import</span> <span class="n">motor_efficiency</span>
+<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="kn">import</span> <span class="n">checkbounds</span>
+<span class="kn">from</span> <span class="nn">biosteam._exceptions</span> <span class="kn">import</span> <span class="n">DesignError</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;calculate_vacuum_system_power_and_cost&#39;</span><span class="p">,)</span>
+
+
+<span class="c1"># %% Data</span>
+
+<span class="c1"># System types of vacuum systems</span>
+<span class="c1"># Volumetric flowrate ranges, (cfm) and lower limit of suction (torr)</span>
+<span class="n">_steamjet_ejectors</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;One stage&#39;</span><span class="p">:</span>               <span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">),</span> <span class="mi">100</span><span class="p">),</span>
+    <span class="s1">&#39;Two stage&#39;</span><span class="p">:</span>               <span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">),</span>  <span class="mi">15</span><span class="p">),</span>
+    <span class="s1">&#39;Three stage&#39;</span><span class="p">:</span>             <span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">),</span>   <span class="mi">2</span><span class="p">)}</span>
+<span class="n">_liquid_ring</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;One stage water seal&#39;</span><span class="p">:</span>    <span class="p">((</span> <span class="mi">3</span><span class="p">,</span>   <span class="mi">18000</span><span class="p">),</span>  <span class="mi">50</span><span class="p">),</span>
+    <span class="s1">&#39;Two stage water seal&#39;</span><span class="p">:</span>    <span class="p">((</span> <span class="mi">3</span><span class="p">,</span>   <span class="mi">18000</span><span class="p">),</span>  <span class="mi">25</span><span class="p">),</span>
+    <span class="s1">&#39;Oil seal&#39;</span><span class="p">:</span>                <span class="p">((</span> <span class="mi">3</span><span class="p">,</span>   <span class="mi">18000</span><span class="p">),</span>  <span class="mi">10</span><span class="p">)}</span>
+<span class="n">_dry_vacuum</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Three-stage rotary lobe&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mi">60</span><span class="p">,</span>     <span class="mi">240</span><span class="p">),</span> <span class="mf">1.5</span><span class="p">),</span>
+    <span class="s1">&#39;Three-stage claw&#39;</span><span class="p">:</span>        <span class="p">((</span><span class="mi">60</span><span class="p">,</span>     <span class="mi">270</span><span class="p">),</span> <span class="mf">0.3</span><span class="p">),</span>
+    <span class="s1">&#39;Screw compressor&#39;</span><span class="p">:</span>        <span class="p">((</span><span class="mi">50</span><span class="p">,</span>    <span class="mi">1400</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">)}</span>
+
+<span class="n">_default_vacuum_systems</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">:</span> <span class="n">_liquid_ring</span><span class="p">,</span>
+                           <span class="s1">&#39;Steam-jet ejector&#39;</span><span class="p">:</span> <span class="n">_steamjet_ejectors</span><span class="p">,</span>
+                           <span class="s1">&#39;Dry-vacuum pump&#39;</span><span class="p">:</span> <span class="n">_dry_vacuum</span><span class="p">}</span>
+            
+<span class="n">_air_density</span> <span class="o">=</span> <span class="mf">1.2041</span> <span class="c1"># kg/m3 dry air</span>
+
+<span class="c1"># %% Calculate vacuum system requirements</span>
+
+<div class="viewcode-block" id="calculate_vacuum_system_power_and_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.calculate_vacuum_system_power_and_cost">[docs]</a><span class="k">def</span> <span class="nf">calculate_vacuum_system_power_and_cost</span><span class="p">(</span>
+        <span class="n">F_mass</span><span class="p">,</span> <span class="n">F_vol</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">,</span> <span class="n">vessel_volume</span><span class="p">,</span>
+        <span class="n">vacuum_system_preference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return power (kW) and cost (USD) of vacuum system.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    F_mass : float</span>
+<span class="sd">        Vapor mass flow rate entering vacuum system from vessel in kg/hr (not including inleakage).</span>
+<span class="sd">    F_vol : float</span>
+<span class="sd">        Vapor volumetric flow rate entering vacuum system from vessel in m3/hr (not including inleakage).</span>
+<span class="sd">    P_suction : float</span>
+<span class="sd">        Suction pressure in Pa</span>
+<span class="sd">    vessel_volume : float</span>
+<span class="sd">        Vacuum volume in m3</span>
+<span class="sd">    vacuum_system_preference : tuple[str] or str</span>
+<span class="sd">        Name(s) of preferred vacuum systems</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">P_suction</span> <span class="o">*=</span> <span class="mf">7.5006e-3</span> <span class="c1"># to torr</span>
+    <span class="k">if</span> <span class="n">vessel_volume</span><span class="p">:</span>
+        <span class="n">vessel_volume</span> <span class="o">*=</span> <span class="mf">35.315</span> <span class="c1"># to ft3</span>
+        <span class="n">F_mass_air</span> <span class="o">=</span> <span class="n">calculate_air_inleakage</span><span class="p">(</span><span class="n">vessel_volume</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">)</span> <span class="c1"># lb/hr</span>
+        <span class="n">F_vol_air</span> <span class="o">=</span> <span class="mf">0.26697</span><span class="o">*</span><span class="n">F_mass_air</span><span class="o">/</span><span class="n">_air_density</span> <span class="c1"># cfm</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">F_vol_air</span> <span class="o">=</span> <span class="n">F_mass_air</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">F_vol_cfm</span> <span class="o">=</span> <span class="mf">0.5886</span><span class="o">*</span><span class="n">F_vol</span> <span class="o">+</span> <span class="n">F_vol_air</span>
+    <span class="k">if</span> <span class="n">F_vol_cfm</span> <span class="o">&lt;</span> <span class="mf">3.01</span><span class="p">:</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="mf">3.01</span><span class="o">/</span><span class="n">F_vol_cfm</span>
+        <span class="n">F_vol_cfm</span> <span class="o">=</span> <span class="mf">3.01</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">F_mass_kgph</span> <span class="o">=</span> <span class="p">(</span><span class="n">F_mass</span> <span class="o">+</span> <span class="mf">0.4536</span><span class="o">*</span><span class="n">F_mass_air</span><span class="p">)</span><span class="o">*</span><span class="n">factor</span> <span class="c1"># kg/hr</span>
+    <span class="n">F_mass_lbph</span> <span class="o">=</span> <span class="mf">2.205</span> <span class="o">*</span> <span class="n">F_mass_kgph</span>
+    <span class="n">power</span> <span class="o">=</span> <span class="n">calculate_vacuum_power</span><span class="p">(</span><span class="n">F_mass_kgph</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">)</span>
+    <span class="n">vacuum_systems</span> <span class="o">=</span> <span class="n">get_prefered_vacuum_systems</span><span class="p">(</span><span class="n">vacuum_system_preference</span><span class="p">)</span>
+    <span class="n">vacuum_sys</span><span class="p">,</span> <span class="n">grade</span> <span class="o">=</span> <span class="n">select_vacuum_system</span><span class="p">(</span><span class="n">vacuum_systems</span><span class="p">,</span> <span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">)</span>
+    <span class="n">base_cost</span> <span class="o">=</span> <span class="n">calculate_vacuum_cost</span><span class="p">(</span><span class="n">vacuum_sys</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">F_mass_lbph</span><span class="p">,</span> <span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">)</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="o">/</span> <span class="mi">567</span>  <span class="o">*</span> <span class="n">base_cost</span>
+    <span class="k">return</span> <span class="n">power</span><span class="p">,</span> <span class="n">cost</span></div>
+
+
+<span class="c1"># %% Supporting functions</span>
+
+<span class="k">def</span> <span class="nf">get_prefered_vacuum_systems</span><span class="p">(</span><span class="n">preference</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">preference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vacuum_systems</span> <span class="o">=</span> <span class="n">_default_vacuum_systems</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="n">_default_vacuum_systems</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">preference</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">preference</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preference have at least one of the following: </span><span class="si">{defaults}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">preference</span> <span class="o">=</span> <span class="p">(</span><span class="n">preference</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">preference</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preference have at least one of the following: </span><span class="si">{defaults}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">vacuum_systems</span> <span class="o">=</span> <span class="p">[</span><span class="n">_default_vacuum_systems</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">preference</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">vacuum_systems</span>
+
+
+<span class="k">def</span> <span class="nf">get_available_vacuum_systems</span><span class="p">(</span><span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return available vacuum type and grade</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    F_vol_cfm : float</span>
+<span class="sd">        Vapor volumetric flow rate entering vacuum system from vessel in cfm (including inleakage).</span>
+<span class="sd">    P_suction : float</span>
+<span class="sd">        Suction pressure in Torr</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">types</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">vacuumtype</span><span class="p">,</span> <span class="n">vacuum_sys</span> <span class="ow">in</span> <span class="n">_default_vacuum_systems</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">grade</span><span class="p">,</span> <span class="n">flowrange_minsuction</span> <span class="ow">in</span> <span class="n">vacuum_sys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">flowrange</span><span class="p">,</span> <span class="n">minsuction</span> <span class="o">=</span> <span class="n">flowrange_minsuction</span>
+            <span class="k">if</span> <span class="n">checkbounds</span><span class="p">(</span><span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">flowrange</span><span class="p">)</span> <span class="ow">and</span> <span class="n">P_suction</span> <span class="o">&gt;</span> <span class="n">minsuction</span><span class="p">:</span>
+                <span class="n">types</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">vacuumtype</span><span class="p">,</span> <span class="n">grade</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">types</span>
+
+<span class="k">def</span> <span class="nf">select_vacuum_system</span><span class="p">(</span><span class="n">vacuum_systems</span><span class="p">,</span> <span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a heuristic vacuum type and grade</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    F_vol_cfm : float</span>
+<span class="sd">        Vapor volumetric flow rate entering vacuum system from vessel in cfm (including inleakage).</span>
+<span class="sd">    P_suction : float</span>
+<span class="sd">        Suction pressure in Torr</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">vacuum_sys</span> <span class="ow">in</span> <span class="n">vacuum_systems</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">grade</span><span class="p">,</span> <span class="n">flowrange_minsuction</span> <span class="ow">in</span> <span class="n">vacuum_sys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">flowrange</span><span class="p">,</span> <span class="n">minsuction</span> <span class="o">=</span> <span class="n">flowrange_minsuction</span>
+            <span class="k">if</span> <span class="n">checkbounds</span><span class="p">(</span><span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">flowrange</span><span class="p">)</span> <span class="ow">and</span> <span class="n">P_suction</span> <span class="o">&gt;</span> <span class="n">minsuction</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">vacuum_sys</span><span class="p">,</span> <span class="n">grade</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="s1">&#39;no vacuum system available at current flow and suction pressure&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">calculate_heuristic_air_inleakage</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return air in-leakage in kg/hr through a heuristic calculation.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    V : float</span>
+<span class="sd">        Vacuum volume in m3</span>
+<span class="sd">    P : float</span>
+<span class="sd">        Suction pressure in Pa</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mf">11999.013</span><span class="p">:</span> <span class="n">k</span> <span class="o">=</span> <span class="mf">0.2</span>
+    <span class="k">elif</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mf">4132.993</span><span class="p">:</span> <span class="n">k</span> <span class="o">=</span> <span class="mf">0.15</span>
+    <span class="k">elif</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mf">2799.77</span><span class="p">:</span> <span class="n">k</span> <span class="o">=</span> <span class="mf">0.10</span>
+    <span class="k">elif</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mf">133.322</span><span class="p">:</span> <span class="n">k</span> <span class="o">=</span> <span class="mf">0.051</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot calculate air inleakage at pressures lower than 133.32 Pascal&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">k</span><span class="o">*</span><span class="n">V</span><span class="o">**</span><span class="mf">0.667</span>
+
+<span class="k">def</span> <span class="nf">calculate_air_inleakage</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return air in-leakage in kg/hr.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    V : float</span>
+<span class="sd">        Vacuum volume in m3</span>
+<span class="sd">    P : float</span>
+<span class="sd">        Suction pressure in Torr</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">5</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.0298</span> <span class="o">+</span> <span class="mf">0.03088</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="o">-</span> <span class="mf">5.733e-4</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">V</span><span class="o">**</span><span class="mf">0.66</span>
+    
+<span class="k">def</span> <span class="nf">calculate_vacuum_power</span><span class="p">(</span><span class="n">F_mass</span><span class="p">,</span>  <span class="n">P_suction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return vacuum power (after accounting for motor efficiency) in kW.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    F_mass : float</span>
+<span class="sd">        Total mass flow rate entering vacuum system in kg/hr (including inleakage).</span>
+<span class="sd">    P_suction : float</span>
+<span class="sd">        Suction pressure in Torr</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">SF</span> <span class="o">=</span> <span class="n">F_mass</span><span class="o">/</span><span class="n">P_suction</span> <span class="c1"># Size factor</span>
+    <span class="k">if</span> <span class="n">SF</span> <span class="o">&lt;</span> <span class="mf">0.2</span><span class="p">:</span> <span class="n">SF</span> <span class="o">=</span> <span class="mf">0.2</span>
+    <span class="k">elif</span> <span class="n">SF</span> <span class="o">&gt;</span> <span class="mi">16</span><span class="p">:</span> <span class="n">SF</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">Pb</span> <span class="o">=</span> <span class="mf">21.4</span><span class="o">*</span><span class="n">SF</span><span class="o">**</span><span class="mf">0.924</span> <span class="c1"># Break power assuming Liquid-ring (NASH)</span>
+    <span class="n">mu_m</span> <span class="o">=</span> <span class="n">motor_efficiency</span><span class="p">(</span><span class="n">Pb</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Pb</span><span class="o">/</span><span class="n">mu_m</span>
+
+<span class="k">def</span> <span class="nf">calculate_vacuum_cost</span><span class="p">(</span><span class="n">vacuum_sys</span><span class="p">,</span> <span class="n">grade</span><span class="p">,</span> <span class="n">F_mass_lbph</span><span class="p">,</span> <span class="n">F_vol_cfm</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">):</span>
+    <span class="c1"># Costing for different vacuums ASSUMING THAT ALL ARE CARBON STEEL!!!!</span>
+    <span class="k">if</span> <span class="n">vacuum_sys</span> <span class="ow">is</span> <span class="n">_steamjet_ejectors</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">F_mass_lbph</span><span class="o">/</span><span class="n">P_suction</span>
+        <span class="n">Cp</span> <span class="o">=</span> <span class="mi">1915</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">**</span><span class="p">(</span><span class="mf">0.41</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;One stage&#39;</span><span class="p">:</span>
+            <span class="n">Cs</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Two stage&#39;</span><span class="p">:</span>
+            <span class="n">Cs</span> <span class="o">=</span> <span class="mf">1.8</span>
+        <span class="k">elif</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Three stage&#39;</span><span class="p">:</span>
+            <span class="n">Cs</span> <span class="o">=</span> <span class="mf">2.1</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="n">Cp</span><span class="o">*</span><span class="n">Cs</span>
+    <span class="k">elif</span> <span class="n">vacuum_sys</span> <span class="ow">is</span> <span class="n">_liquid_ring</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">F_vol_cfm</span>
+        <span class="n">Cp</span> <span class="o">=</span> <span class="mi">8250</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">**</span><span class="p">(</span><span class="mf">0.37</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;One stage water seal&#39;</span><span class="p">:</span>
+            <span class="n">Cs</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Two stage water seal&#39;</span><span class="p">:</span>
+            <span class="n">Cs</span> <span class="o">=</span> <span class="mf">1.8</span>
+        <span class="k">elif</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Oil seal&#39;</span><span class="p">:</span>
+            <span class="n">Cs</span> <span class="o">=</span> <span class="mf">2.1</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="n">Cp</span><span class="o">*</span><span class="n">Cs</span>
+    <span class="k">elif</span> <span class="n">vacuum_sys</span> <span class="ow">is</span> <span class="n">_dry_vacuum</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">F_vol_cfm</span>
+        <span class="k">if</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Three-stage rotary lobe&#39;</span><span class="p">:</span>
+            <span class="n">Cp</span> <span class="o">=</span> <span class="mi">8075</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">**</span><span class="p">(</span><span class="mf">0.41</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Three-stage claw&#39;</span><span class="p">:</span>
+            <span class="n">Cp</span> <span class="o">=</span> <span class="mi">9785</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">**</span><span class="p">(</span><span class="mf">0.36</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">grade</span> <span class="o">==</span> <span class="s1">&#39;Screw compressor&#39;</span><span class="p">:</span>
+            <span class="n">Cp</span> <span class="o">=</span> <span class="mi">10875</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">**</span><span class="p">(</span><span class="mf">0.38</span><span class="p">))</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="n">Cp</span>
+    <span class="k">return</span> <span class="n">Cost</span>
+    
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

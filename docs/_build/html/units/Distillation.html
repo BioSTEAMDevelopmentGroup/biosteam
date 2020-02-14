@@ -86,14 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -106,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -114,6 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
@@ -221,7 +221,7 @@
 <h1>Distillation<a class="headerlink" href="#distillation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Distillation">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">y_top</em>, <em class="sig-param">x_bot</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">y_top</em>, <em class="sig-param">x_bot</em>, <em class="sig-param">k</em>, <em class="sig-param">vessel_material='Carbon steel'</em>, <em class="sig-param">tray_material='Carbon steel'</em>, <em class="sig-param">tray_type='Sieve'</em>, <em class="sig-param">tray_spacing=450</em>, <em class="sig-param">stage_efficiency=None</em>, <em class="sig-param">velocity_fraction=0.8</em>, <em class="sig-param">foaming_factor=1.0</em>, <em class="sig-param">open_tray_area_fraction=0.1</em>, <em class="sig-param">downcomer_area_fraction=None</em>, <em class="sig-param">is_divided=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Distillation column that assumes all light and heavy non keys
 separate to the top and bottoms product respectively. McCabe-Thiele
 analysis is used to find both the number of stages and the reflux ratio
@@ -254,16 +254,37 @@ by Mulet et al. [3, 4]_ as compiled by Warren et. al. <a class="reference intern
 </dd>
 <dt><strong>k</strong><span class="classifier">float</span></dt><dd><p>Ratio of reflux to minimum reflux.</p>
 </dd>
+<dt><strong>vessel_material=’Carbon steel’</strong><span class="classifier">str</span></dt><dd><p>Vessel construction material.</p>
+</dd>
+<dt><strong>tray_material=’Carbon steel’</strong><span class="classifier">str</span></dt><dd><p>Tray construction material.</p>
+</dd>
+<dt><strong>tray_type=’Sieve’</strong><span class="classifier">{‘Sieve’, ‘Valve’, ‘Bubble cap’}</span></dt><dd></dd>
+<dt><strong>tray_spacing=450</strong><span class="classifier">float</span></dt><dd><p>Typically between 152 to 915 mm.</p>
+</dd>
+<dt><strong>stage_efficiency=None :</strong></dt><dd><p>User enforced stage efficiency. If None, stage efficiency is
+calculated by the O’Connell correlation <a class="reference internal" href="#r15b31faf3a75-2" id="id5"><span>[R15b31faf3a75-2]</span></a>.</p>
+</dd>
+<dt><strong>velocity_fraction=0.8</strong><span class="classifier">float</span></dt><dd><p>Fraction of actual velocity to maximum velocity allowable before flooding.</p>
+</dd>
+<dt><strong>foaming_factor=1.0</strong><span class="classifier">float</span></dt><dd><p>Must be between 0 to 1.</p>
+</dd>
+<dt><strong>open_tray_area_fraction=0.1</strong><span class="classifier">float</span></dt><dd><p>Fraction of open area to active area of a tray.</p>
+</dd>
+<dt><strong>downcomer_area_fraction=None</strong><span class="classifier">float</span></dt><dd><p>Enforced fraction of downcomer area to net (total) area of a tray.
+If None, estimate ratio based on Oliver’s estimation <a class="reference internal" href="#r15b31faf3a75-1" id="id6"><span>[R15b31faf3a75-1]</span></a>.</p>
+</dd>
+<dt><strong>is_divided=False</strong><span class="classifier">bool</span></dt><dd><p>True if the stripper and rectifier are two separate columns.</p>
+</dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="r15b31faf3a75-1"><span class="brackets">R15b31faf3a75-1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id3">2</a>)</span></dt>
+<dt class="label" id="r15b31faf3a75-1"><span class="brackets">R15b31faf3a75-1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id3">2</a>,<a href="#id6">3</a>)</span></dt>
 <dd><p>J.D. Seader, E.J. Henley, D.K. Roper. (2011)
 Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc.</p>
 </dd>
-<dt class="label" id="r15b31faf3a75-2"><span class="brackets"><a class="fn-backref" href="#id2">R15b31faf3a75-2</a></span></dt>
+<dt class="label" id="r15b31faf3a75-2"><span class="brackets">R15b31faf3a75-2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id5">2</a>)</span></dt>
 <dd><p>M. Duss, R. Taylor. (2018)
 Predict Distillation Tray Efficiency. AICHE</p>
 </dd>
@@ -293,6 +314,7 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span> <span class="c1"># Feed at bubble point T</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">D1</span> <span class="o">=</span> <span class="n">Distillation</span><span class="p">(</span><span class="s1">&#39;D1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span>
+<span class="gp">... </span>                  <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;distillate&#39;</span><span class="p">,</span> <span class="s1">&#39;bottoms_product&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                  <span class="n">LHK</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                  <span class="n">y_top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">x_bot</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">D1</span><span class="o">.</span><span class="n">is_divided</span> <span class="o">=</span> <span class="kc">True</span>
@@ -308,12 +330,12 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <span class="go">                 Glycerol  0.122</span>
 <span class="go">                 --------  205 kmol/hr</span>
 <span class="go">outs...</span>
-<span class="go">[0] s1</span>
+<span class="go">[0] distillate</span>
 <span class="go">    phase: &#39;g&#39;, T: 64.91 degC, P: 1 atm</span>
 <span class="go">    composition: Water     0.01</span>
 <span class="go">                 Methanol  0.99</span>
 <span class="go">                 --------  100 kmol/hr</span>
-<span class="go">[1] s2</span>
+<span class="go">[1] bottoms_product</span>
 <span class="go">    phase: &#39;l&#39;, T: 100.06 degC, P: 1 atm</span>
 <span class="go">    composition: Water     0.754</span>
 <span class="go">                 Methanol  0.00761</span>
@@ -331,207 +353,44 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <span class="go">                    Cost                       USD/hr      58.1</span>
 <span class="go">Design              Theoretical feed stage                    9</span>
 <span class="go">                    Theoretical stages                       13</span>
-<span class="go">                    Minimum reflux              Ratio     0.687</span>
-<span class="go">                    Reflux                      Ratio      1.37</span>
-<span class="go">                    Rectifier stages                         14</span>
+<span class="go">                    Minimum reflux                        0.687</span>
+<span class="go">                    Reflux                                 1.37</span>
+<span class="go">                    Rectifier stages                         15</span>
 <span class="go">                    Stripper stages                          13</span>
-<span class="go">                    Rectifier height               ft      33.2</span>
-<span class="go">                    Stripper height                ft      31.7</span>
-<span class="go">                    Rectifier diameter             ft      3.93</span>
-<span class="go">                    Stripper diameter              ft      3.01</span>
-<span class="go">                    Rectifier wall thickness       in      0.25</span>
-<span class="go">                    Stripper wall thickness        in      0.25</span>
-<span class="go">                    Rectifier weight               lb  4.61e+03</span>
-<span class="go">                    Stripper weight                lb  3.32e+03</span>
-<span class="go">Purchase cost       Rectifier trays               USD  1.45e+04</span>
-<span class="go">                    Stripper trays                USD  1.21e+04</span>
-<span class="go">                    Rectifier tower               USD  7.41e+04</span>
-<span class="go">                    Stripper tower                USD   6.1e+04</span>
+<span class="go">                    Rectifier height                       34.7</span>
+<span class="go">                    Stripper height                        31.7</span>
+<span class="go">                    Rectifier diameter                     3.93</span>
+<span class="go">                    Stripper diameter                      3.36</span>
+<span class="go">                    Rectifier wall thickness               0.25</span>
+<span class="go">                    Stripper wall thickness                0.25</span>
+<span class="go">                    Rectifier weight                   4.79e+03</span>
+<span class="go">                    Stripper weight                    3.74e+03</span>
+<span class="go">Purchase cost       Rectifier trays               USD   1.5e+04</span>
+<span class="go">                    Stripper trays                USD  1.28e+04</span>
+<span class="go">                    Rectifier tower               USD  7.62e+04</span>
+<span class="go">                    Stripper tower                USD  6.53e+04</span>
 <span class="go">                    Condenser                     USD  3.41e+04</span>
 <span class="go">                    Boiler                        USD  2.64e+04</span>
-<span class="go">Total purchase cost                               USD  2.22e+05</span>
+<span class="go">Total purchase cost                               USD   2.3e+05</span>
 <span class="go">Utility cost                                   USD/hr      59.8</span>
 </pre></div>
 </div>
 <dl class="method">
-<dt id="biosteam.units.Distillation.F_mass_in">
-<em class="property">property </em><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.Distillation.F_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going in (kg/hr).</p>
+<dt id="biosteam.units.Distillation.LHK">
+<em class="property">property </em><code class="sig-name descname">LHK</code><a class="headerlink" href="#biosteam.units.Distillation.LHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[str, str] Light and heavy keys.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.units.Distillation.F_mass_out">
-<em class="property">property </em><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.units.Distillation.F_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going out (kg/hr).</p>
+<dt id="biosteam.units.Distillation.y_top">
+<em class="property">property </em><code class="sig-name descname">y_top</code><a class="headerlink" href="#biosteam.units.Distillation.y_top" title="Permalink to this definition">¶</a></dt>
+<dd><p>Light key composition of at the distillate.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.units.Distillation.F_mol_in">
-<em class="property">property </em><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.units.Distillation.F_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going in (kmol/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.F_mol_out">
-<em class="property">property </em><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.units.Distillation.F_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going out (kmol/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.F_vol_in">
-<em class="property">property </em><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.units.Distillation.F_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going in (m3/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.F_vol_out">
-<em class="property">property </em><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.units.Distillation.F_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going out (m3/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.H_in">
-<em class="property">property </em><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.units.Distillation.H_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going in (kJ/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.H_out">
-<em class="property">property </em><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.units.Distillation.H_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going out (kJ/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.Hf_in">
-<em class="property">property </em><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.units.Distillation.Hf_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going in (kJ/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.Hf_out">
-<em class="property">property </em><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.units.Distillation.Hf_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going out (kJ/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.Hnet">
-<em class="property">property </em><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.units.Distillation.Hnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.ID">
-<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.diagram">
-<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
-<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>Maxium number streams between neighbors.</p>
-</dd>
-<dt><strong>downstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show downstream operations</p>
-</dd>
-<dt><strong>upstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show upstream operations</p>
-</dd>
-<dt><strong>file</strong><span class="classifier">Must be one of the following:</span></dt><dd><ul class="simple">
-<li><p>[str] File name to save diagram.</p></li>
-<li><p>[None] Display diagram in console.</p></li>
-</ul>
-</dd>
-<dt><strong>format</strong><span class="classifier">str</span></dt><dd><p>Format of file.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.downcomer_area_factor">
-<em class="property">property </em><code class="sig-name descname">downcomer_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.downcomer_area_factor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver’s estimation [1].</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.foaming_factor">
-<em class="property">property </em><code class="sig-name descname">foaming_factor</code><a class="headerlink" href="#biosteam.units.Distillation.foaming_factor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Foaming factor (0 to 1).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.ins">
-<em class="property">property </em><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.Distillation.ins" title="Permalink to this definition">¶</a></dt>
-<dd><p>All input streams.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.installation_cost">
-<em class="property">property </em><code class="sig-name descname">installation_cost</code><a class="headerlink" href="#biosteam.units.Distillation.installation_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Installation cost (USD).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.mass_in">
-<em class="property">property </em><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.units.Distillation.mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going in (kg/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.mass_out">
-<em class="property">property </em><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.units.Distillation.mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going out (kg/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.mol_in">
-<em class="property">property </em><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.units.Distillation.mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going in (kmol/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.mol_out">
-<em class="property">property </em><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.units.Distillation.mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going out (kmol/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.open_area_factor">
-<em class="property">property </em><code class="sig-name descname">open_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.open_area_factor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ratio of open area, A_h, to active area, A_a.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.outs">
-<em class="property">property </em><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.Distillation.outs" title="Permalink to this definition">¶</a></dt>
-<dd><p>All output streams.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.purchase_cost">
-<em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.Distillation.purchase_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total purchase cost (USD).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.results">
-<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints information on unit.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.simulate">
-<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run rigourous simulation and determine all design requirements.</p>
+<dt id="biosteam.units.Distillation.x_bot">
+<em class="property">property </em><code class="sig-name descname">x_bot</code><a class="headerlink" href="#biosteam.units.Distillation.x_bot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Light key composition at the bottoms product.</p>
 </dd></dl>
 
 <dl class="method">
@@ -541,9 +400,28 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.units.Distillation.tray_material">
-<em class="property">property </em><code class="sig-name descname">tray_material</code><a class="headerlink" href="#biosteam.units.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default ‘Carbon steel’</p>
+<dt id="biosteam.units.Distillation.velocity_fraction">
+<em class="property">property </em><code class="sig-name descname">velocity_fraction</code><a class="headerlink" href="#biosteam.units.Distillation.velocity_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fraction of actual velocity to maximum velocity allowable before flooding.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.foaming_factor">
+<em class="property">property </em><code class="sig-name descname">foaming_factor</code><a class="headerlink" href="#biosteam.units.Distillation.foaming_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Foaming factor (0 to 1).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.open_tray_area_fraction">
+<em class="property">property </em><code class="sig-name descname">open_tray_area_fraction</code><a class="headerlink" href="#biosteam.units.Distillation.open_tray_area_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fraction of open area, A_h, to active area, A_a.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.downcomer_area_fraction">
+<em class="property">property </em><code class="sig-name descname">downcomer_area_fraction</code><a class="headerlink" href="#biosteam.units.Distillation.downcomer_area_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced fraction of downcomer area to net (total) area.
+If None, the fraction is estimated based on heuristics.</p>
 </dd></dl>
 
 <dl class="method">
@@ -553,15 +431,9 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.units.Distillation.utility_cost">
-<em class="property">property </em><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.units.Distillation.utility_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total utility cost (USD/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.velocity_factor">
-<em class="property">property </em><code class="sig-name descname">velocity_factor</code><a class="headerlink" href="#biosteam.units.Distillation.velocity_factor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ratio of actual velocity to maximum velocity allowable before flooding.</p>
+<dt id="biosteam.units.Distillation.tray_material">
+<em class="property">property </em><code class="sig-name descname">tray_material</code><a class="headerlink" href="#biosteam.units.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default ‘Carbon steel’</p>
 </dd></dl>
 
 <dl class="method">
@@ -571,57 +443,15 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.units.Distillation.vol_in">
-<em class="property">property </em><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.units.Distillation.vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going in (m3/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.vol_out">
-<em class="property">property </em><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.units.Distillation.vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going out (m3/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.z_mass_in">
-<em class="property">property </em><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.units.Distillation.z_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass fractions going in.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.z_mass_out">
-<em class="property">property </em><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.units.Distillation.z_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass fractions going out.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.z_mol_in">
-<em class="property">property </em><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.units.Distillation.z_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in (kmol/hr).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.z_mol_out">
-<em class="property">property </em><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.units.Distillation.z_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.z_vol_in">
-<em class="property">property </em><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.units.Distillation.z_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric fractions going in.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.z_vol_out">
-<em class="property">property </em><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.units.Distillation.z_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric fractions going out.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="biosteam.units.Distillation.is_divided">
 <em class="property">property </em><code class="sig-name descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.compute_N_stages">
+<code class="sig-name descname">compute_N_stages</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.compute_N_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.compute_N_stages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a tuple with the actual number of stages for the rectifier and the stripper.</p>
 </dd></dl>
 
 <dl class="method">

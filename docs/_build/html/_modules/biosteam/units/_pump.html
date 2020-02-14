@@ -84,14 +84,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -180,7 +179,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">fluids.pump</span> <span class="kn">import</span> <span class="n">nema_sizes_hp</span>
-<span class="kn">from</span> <span class="nn">.designtools.mechanical</span> <span class="kn">import</span> <span class="n">calculate_NPSH</span><span class="p">,</span> <span class="n">pump_efficiency</span><span class="p">,</span> <span class="n">nearest_NEMA_motor_size</span>
+<span class="kn">from</span> <span class="nn">.design_tools.mechanical</span> <span class="kn">import</span> <span class="n">calculate_NPSH</span><span class="p">,</span> <span class="n">pump_efficiency</span><span class="p">,</span> <span class="n">nearest_NEMA_motor_size</span>
+<span class="kn">from</span> <span class="nn">.design_tools.specification_factors</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">pump_material_factors</span><span class="p">,</span>
+    <span class="n">pump_centrifugal_factors</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.._unit</span> <span class="kn">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">static_flow_and_phase</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
@@ -191,33 +193,7 @@
 <span class="c1"># %% Data</span>
 
 <span class="n">max_hp</span> <span class="o">=</span> <span class="n">nema_sizes_hp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-<span class="c1"># Material factors</span>
-<span class="n">F_Mdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Cast iron&#39;</span><span class="p">:</span>       <span class="mi">1</span><span class="p">,</span>
-           <span class="s1">&#39;Ductile iron&#39;</span><span class="p">:</span>    <span class="mf">1.15</span><span class="p">,</span>
-           <span class="s1">&#39;Cast steel&#39;</span><span class="p">:</span>      <span class="mf">1.35</span><span class="p">,</span>
-           <span class="s1">&#39;Bronze&#39;</span><span class="p">:</span>          <span class="mf">1.9</span><span class="p">,</span>
-           <span class="s1">&#39;Stainless steel&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-           <span class="s1">&#39;Hastelloy C&#39;</span><span class="p">:</span>     <span class="mf">2.95</span><span class="p">,</span>
-           <span class="s1">&#39;Monel&#39;</span><span class="p">:</span>           <span class="mf">3.3</span><span class="p">,</span>
-           <span class="s1">&#39;Nickel&#39;</span><span class="p">:</span>          <span class="mf">3.5</span><span class="p">,</span>
-           <span class="s1">&#39;Titanium&#39;</span><span class="p">:</span>        <span class="mf">9.7</span><span class="p">}</span>
-
-<span class="c1"># Gear factor </span>
-<span class="n">F_Tgear</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;OpenDripProof&#39;</span><span class="p">:</span>           <span class="mi">1</span><span class="p">,</span>
-           <span class="s1">&#39;EnclosedFanCooled&#39;</span><span class="p">:</span>       <span class="mf">1.4</span><span class="p">,</span>
-           <span class="s1">&#39;ExplosionProofEnclosure&#39;</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">}</span>
-
-<span class="c1"># Centrifugal factor</span>
-<span class="n">F_Tcentrifugal</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;VSC3600&#39;</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
-                  <span class="s1">&#39;VSC1800&#39;</span><span class="p">:</span>   <span class="mf">1.5</span><span class="p">,</span>
-                  <span class="s1">&#39;HSC3600&#39;</span><span class="p">:</span>   <span class="mf">1.7</span><span class="p">,</span>
-                  <span class="s1">&#39;HSC1800&#39;</span><span class="p">:</span>   <span class="mi">2</span><span class="p">,</span>
-                  <span class="s1">&#39;2HSC3600&#39;</span><span class="p">:</span>  <span class="mf">2.7</span><span class="p">,</span>
-                  <span class="s1">&#39;2+HSC3600&#39;</span><span class="p">:</span> <span class="mf">8.9</span><span class="p">}</span>
-
-<span class="c1"># Pump types</span>
-<span class="n">Types</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;CentrifugalSingle&#39;</span><span class="p">,</span> <span class="s1">&#39;CentrifugalDouble&#39;</span><span class="p">,</span> <span class="s1">&#39;Gear&#39;</span><span class="p">)</span>
+<span class="n">pump_types</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span> <span class="s1">&#39;CentrifugalSingle&#39;</span><span class="p">,</span> <span class="s1">&#39;CentrifugalDouble&#39;</span><span class="p">,</span> <span class="s1">&#39;Gear&#39;</span><span class="p">)</span>
     
 
 <span class="c1"># %% Classes</span>
@@ -225,26 +201,60 @@
 <span class="c1"># TODO: Fix pump selection to include NPSH available and required.</span>
 <div class="viewcode-block" id="Pump"><a class="viewcode-back" href="../../../units/Pump.html#biosteam.units.Pump">[docs]</a><span class="nd">@static_flow_and_phase</span>
 <span class="k">class</span> <span class="nc">Pump</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a pump that sets the pressure of the 0th output stream.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a pump that sets the pressure of the outlet.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">        P=None : float, optional</span>
-<span class="sd">            Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.</span>
-<span class="sd">    </span>
-<span class="sd">    ins</span>
+<span class="sd">    ins :</span>
 <span class="sd">        [0] Input stream</span>
-<span class="sd">        </span>
-<span class="sd">    outs</span>
+<span class="sd">    outs :</span>
 <span class="sd">        [1] Output stream</span>
+<span class="sd">    P=101325 : float, optional</span>
+<span class="sd">        Pressure of output stream (Pa). If the pressure of the outlet is </span>
+<span class="sd">        the same as the inlet, pump is design to increase of pressure</span>
+<span class="sd">        to `P_design`.</span>
+<span class="sd">    pump_type=&#39;Default&#39; : str</span>
+<span class="sd">        If &#39;Default&#39;, a pump type is selected based on heuristics.</span>
+<span class="sd">    material=&#39;Cast iron&#39; : str</span>
+<span class="sd">        Contruction material of pump.</span>
+<span class="sd">    P_design=405300 : float</span>
+<span class="sd">        Design pressure for pump.</span>
+<span class="sd">    ignore_NPSH=True : bool</span>
+<span class="sd">        Whether to take into consideration NPSH in the selection of a</span>
+<span class="sd">        pump type.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Default pump selection and design and cost algorithms are based on [0]_.</span>
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    :doc:`notebooks/Pump Example`</span>
+<span class="sd">    Simulate Pump for pressure increase:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units import Pump</span>
+<span class="sd">    &gt;&gt;&gt; chemicals = Chemicals([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; settings.set_thermo(chemicals)</span>
+<span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=200, T=350)</span>
+<span class="sd">    &gt;&gt;&gt; P1 = Pump(&#39;P1&#39;, ins=feed, outs=&#39;out&#39;, P=2e5)</span>
+<span class="sd">    &gt;&gt;&gt; P1.simulate()</span>
+<span class="sd">    &gt;&gt;&gt; P1.show()</span>
+<span class="sd">    Pump: P1</span>
+<span class="sd">    ins...</span>
+<span class="sd">    [0] feed</span>
+<span class="sd">        phase: &#39;l&#39;, T: 350 K, P: 101325 Pa</span>
+<span class="sd">        flow (kmol/hr): Water  200</span>
+<span class="sd">    outs...</span>
+<span class="sd">    [0] out</span>
+<span class="sd">        phase: &#39;l&#39;, T: 350 K, P: 200000 Pa</span>
+<span class="sd">        flow (kmol/hr): Water  200</span>
 <span class="sd">    </span>
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    [0] Seider, Warren D., et al. (2017). &quot;Cost Accounting and Capital Cost Estimation&quot;. In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.</span>
+<span class="sd">    .. [0] Seider, Warren D., et al. (2017). &quot;Cost Accounting and Capital Cost</span>
+<span class="sd">        Estimation&quot;. In Product and Process Design Principles: Synthesis,</span>
+<span class="sd">        Analysis, and Evaluation (pp. 450-455). New York: Wiley.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">:</span> <span class="s1">&#39;hp&#39;</span><span class="p">,</span>
@@ -252,36 +262,17 @@
               <span class="s1">&#39;Head&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
               <span class="s1">&#39;NPSH&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;gpm&#39;</span><span class="p">}</span>
-    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">BM</span> <span class="o">=</span> <span class="mf">3.3</span>
-    
-    <span class="c1"># Pump type</span>
-    <span class="n">_Type</span> <span class="o">=</span> <span class="s1">&#39;Default&#39;</span>
-    
-    <span class="c1"># Material factor</span>
-    <span class="n">_F_Mstr</span> <span class="o">=</span> <span class="s1">&#39;Cast iron&#39;</span>
-    <span class="n">_F_M</span> <span class="o">=</span> <span class="mi">1</span>
-    
-    <span class="c1"># Gear factor </span>
-    <span class="n">_F_Tstr</span> <span class="o">=</span> <span class="s1">&#39;VSC3600&#39;</span>
-    <span class="n">_F_T</span> <span class="o">=</span> <span class="mi">1</span>
-    
-    <span class="c1">#: Pressure for costing purposes (Pa).</span>
-    <span class="n">P_startup</span> <span class="o">=</span> <span class="mi">405300</span> 
-    
-    <span class="c1">#: [bool] Ignore minimum NPSH requirement if True.</span>
-    <span class="n">ignore_NPSH</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">Type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">pump_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Pump type&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Type</span>
-    <span class="nd">@Type</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">Type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Type</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">Type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Types</span><span class="p">:</span>
-            <span class="n">Types_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Types</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Type must be one of the following: &#39;</span> <span class="o">+</span> <span class="n">Types_str</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Type</span> <span class="o">=</span> <span class="n">Type</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pump_type</span>
+    <span class="nd">@pump_type</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">pump_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pump_type</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pump_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pump_types</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Type must be one of the following: {&quot;, &quot;.join(pump_types)}&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pump_type</span> <span class="o">=</span> <span class="n">pump_type</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -290,15 +281,23 @@
     <span class="nd">@material</span><span class="o">.</span><span class="n">setter</span>    
     <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">F_Mdict</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">pump_material_factors</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;material must be one of the following: &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(pump_material_factors)}&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
         
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="mi">101325</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span>
+                 <span class="n">pump_type</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
+                 <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Cast iron&#39;</span><span class="p">,</span>
+                 <span class="n">P_design</span><span class="o">=</span><span class="mi">405300</span><span class="p">,</span>
+                 <span class="n">ignore_NPSH</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pump_type</span> <span class="o">=</span> <span class="n">pump_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_design</span> <span class="o">=</span> <span class="n">P_design</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_NPSH</span> <span class="o">=</span> <span class="n">ignore_NPSH</span>
     
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s_in</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
@@ -320,7 +319,7 @@
         <span class="n">mass</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">F_mass</span>
         <span class="n">nu</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">nu</span>
         <span class="n">dP</span> <span class="o">=</span> <span class="n">Po</span> <span class="o">-</span> <span class="n">Pi</span>
-        <span class="k">if</span> <span class="n">dP</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">dP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_startup</span> <span class="o">-</span> <span class="n">Pi</span>
+        <span class="k">if</span> <span class="n">dP</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">dP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_design</span> <span class="o">-</span> <span class="n">Pi</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_ideal</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="n">dP</span><span class="o">*</span><span class="mf">3.725e-7</span> <span class="c1"># hp</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="mf">4.403</span> <span class="c1"># gpm</span>
         <span class="k">if</span> <span class="n">power_ideal</span> <span class="o">&lt;=</span> <span class="n">max_hp</span><span class="p">:</span>
@@ -352,34 +351,34 @@
             <span class="n">NPSH_satisfied</span> <span class="o">=</span> <span class="n">NPSH</span> <span class="o">&gt;</span> <span class="mf">1.52</span>
         
         <span class="c1"># Get type</span>
-        <span class="n">Type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Type</span>
-        <span class="k">if</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
+        <span class="n">pump_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pump_type</span>
+        <span class="k">if</span> <span class="n">pump_type</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span><span class="mf">0.00278</span> <span class="o">&lt;</span> <span class="n">q</span> <span class="o">&lt;</span> <span class="mi">5000</span>
                 <span class="ow">and</span> <span class="mf">15.24</span> <span class="o">&lt;</span> <span class="n">head</span> <span class="o">&lt;</span> <span class="mi">3200</span>
                 <span class="ow">and</span> <span class="n">nu</span> <span class="o">&lt;</span> <span class="mf">0.00002</span>
                 <span class="ow">and</span> <span class="n">NPSH_satisfied</span><span class="p">):</span>
-                <span class="n">Type</span> <span class="o">=</span> <span class="s1">&#39;Centrifugal&#39;</span>
+                <span class="n">pump_type</span> <span class="o">=</span> <span class="s1">&#39;Centrifugal&#39;</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">q</span> <span class="o">&lt;</span> <span class="mi">1500</span>
                   <span class="ow">and</span> <span class="n">head</span> <span class="o">&lt;</span> <span class="mf">914.4</span>
                   <span class="ow">and</span> <span class="mf">0.00001</span> <span class="o">&lt;</span> <span class="n">nu</span> <span class="o">&lt;</span> <span class="mf">0.252</span><span class="p">):</span>
-                <span class="n">Type</span> <span class="o">=</span> <span class="s1">&#39;Gear&#39;</span>
+                <span class="n">pump_type</span> <span class="o">=</span> <span class="s1">&#39;Gear&#39;</span>
             <span class="k">elif</span> <span class="p">(</span><span class="n">head</span> <span class="o">&lt;</span> <span class="mi">20000</span>
                   <span class="ow">and</span> <span class="n">q</span> <span class="o">&lt;</span> <span class="mi">500</span>
                   <span class="ow">and</span> <span class="n">power</span> <span class="o">&lt;</span> <span class="mi">200</span>
                   <span class="ow">and</span> <span class="n">nu</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">):</span>
-                <span class="n">Type</span> <span class="o">=</span> <span class="s1">&#39;MeteringPlunger&#39;</span>
+                <span class="n">pump_type</span> <span class="o">=</span> <span class="s1">&#39;MeteringPlunger&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">NPSH</span> <span class="o">=</span> <span class="n">calculate_NPSH</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">P_vapor</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no pump type available at current power (</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
                 
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Type</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pump_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="n">N</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span> <span class="c1"># Set power in kW</span>
     
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Parameters</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span>
-        <span class="n">Type</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
+        <span class="n">pump_type</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Head&#39;</span><span class="p">]</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Pump power&#39;</span><span class="p">]</span>
@@ -393,9 +392,9 @@
         <span class="k">if</span> <span class="n">h</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">50</span>
         
         <span class="c1"># Cost pump</span>
-        <span class="k">if</span> <span class="s1">&#39;Centrifugal&#39;</span> <span class="ow">in</span> <span class="n">Type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;Centrifugal&#39;</span> <span class="ow">in</span> <span class="n">pump_type</span><span class="p">:</span>
             <span class="c1"># Find pump factor</span>
-            <span class="n">F_Tdict</span> <span class="o">=</span> <span class="n">F_Tcentrifugal</span>
+            <span class="n">F_Tdict</span> <span class="o">=</span> <span class="n">pump_centrifugal_factors</span>
             <span class="n">F_T</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Assumption</span>
             <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">75</span> <span class="ow">and</span> <span class="mi">50</span> <span class="o">&lt;=</span> <span class="n">q</span> <span class="o">&lt;=</span> <span class="mi">900</span> <span class="ow">and</span> <span class="mi">50</span> <span class="o">&lt;=</span> <span class="n">h</span> <span class="o">&lt;=</span> <span class="mi">400</span><span class="p">:</span>
                 <span class="n">F_T</span> <span class="o">=</span> <span class="n">F_Tdict</span><span class="p">[</span><span class="s1">&#39;VSC3600&#39;</span><span class="p">]</span>
@@ -417,13 +416,13 @@
             <span class="n">Cb</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.1656</span><span class="o">-</span><span class="mf">1.1448</span><span class="o">*</span><span class="n">lnS</span><span class="o">+</span><span class="mf">0.0862</span><span class="o">*</span><span class="n">lnS</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">Cb</span> <span class="o">*=</span> <span class="n">S</span><span class="o">/</span><span class="n">S_new</span>
             <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_M</span><span class="o">*</span><span class="n">F_T</span><span class="o">*</span><span class="n">Cb</span><span class="o">*</span><span class="n">I</span>
-        <span class="k">elif</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;Gear&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">pump_type</span> <span class="o">==</span> <span class="s1">&#39;Gear&#39;</span><span class="p">:</span>
             <span class="n">q_new</span> <span class="o">=</span> <span class="n">q</span> <span class="k">if</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="mi">50</span> <span class="k">else</span> <span class="mi">50</span>
             <span class="n">lnq</span> <span class="o">=</span> <span class="n">ln</span><span class="p">(</span><span class="n">q_new</span><span class="p">)</span>
             <span class="n">Cb</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">8.2816</span> <span class="o">-</span> <span class="mf">0.2918</span><span class="o">*</span><span class="n">lnq</span> <span class="o">+</span> <span class="mf">0.0743</span><span class="o">*</span><span class="n">lnq</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">Cb</span> <span class="o">*=</span> <span class="n">q</span><span class="o">/</span><span class="n">q_new</span>
             <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_M</span><span class="o">*</span><span class="n">Cb</span><span class="o">*</span><span class="n">I</span>
-        <span class="k">elif</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;MeteringPlunger&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">pump_type</span> <span class="o">==</span> <span class="s1">&#39;MeteringPlunger&#39;</span><span class="p">:</span>
             <span class="n">Cb</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">7.9361</span> <span class="o">+</span> <span class="mf">0.26986</span><span class="o">*</span><span class="n">lnp</span> <span class="o">+</span> <span class="mf">0.06718</span><span class="o">*</span><span class="n">lnp</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_M</span><span class="o">*</span><span class="n">Cb</span><span class="o">*</span><span class="n">I</span>
         

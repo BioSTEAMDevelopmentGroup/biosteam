@@ -86,14 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -106,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -114,6 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
@@ -221,7 +221,7 @@
 <h1>StorageTank<a class="headerlink" href="#storagetank" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.StorageTank">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">StorageTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type='Field erected'</em>, <em class="sig-param">tau=672</em>, <em class="sig-param">V_wf=1.0</em>, <em class="sig-param">material='Stainless steel'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">StorageTank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">vessel_type='Field erected'</em>, <em class="sig-param">tau=672</em>, <em class="sig-param">V_wf=1.0</em>, <em class="sig-param">vessel_material='Stainless steel'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a storage tank with a purchase cost based on volume as given by residence time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -236,7 +236,7 @@
 </dd>
 <dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working volume over total volume.</p>
 </dd>
-<dt><strong>material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
+<dt><strong>vessel_material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
 </dd>
 </dl>
 </dd>
@@ -275,7 +275,7 @@ In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">StorageTank</span><span class="p">(</span><span class="s1">&#39;T1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">effluent</span><span class="p">,</span>
 <span class="gp">... </span>                       <span class="n">tau</span><span class="o">=</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span><span class="p">,</span> <span class="c1"># In hours</span>
 <span class="gp">... </span>                       <span class="n">vessel_type</span><span class="o">=</span><span class="s1">&#39;Floating roof&#39;</span><span class="p">,</span>
-<span class="gp">... </span>                       <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">)</span>
+<span class="gp">... </span>                       <span class="n">vessel_material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">T1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
 <span class="go">StorageTank: T1</span>
@@ -311,15 +311,15 @@ In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
 <dd><p>[float] Fraction of working volume to total volume.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="biosteam.units.StorageTank.material">
-<code class="sig-name descname">material</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.StorageTank.material" title="Permalink to this definition">¶</a></dt>
+<dl class="method">
+<dt id="biosteam.units.StorageTank.vessel_material">
+<em class="property">property </em><code class="sig-name descname">vessel_material</code><a class="headerlink" href="#biosteam.units.StorageTank.vessel_material" title="Permalink to this definition">¶</a></dt>
 <dd><p>[str] Vessel construction material.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.units.StorageTank.purchase_cost_algorithms">
-<code class="sig-name descname">purchase_cost_algorithms</code><em class="property"> = {'Cone roof': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=265, n=0.513), V_min=10000.0, V_max=1000000.0, CE=567, material=Carbon steel, V_units=gal), 'Field erected': VesselPurchaseCostAlgorithm(f_Cp=&lt;function field_erected_vessel_purchase_cost&gt;, V_min=0, V_max=50000.0, CE=525.4, material=Stainless steel, V_units=m^3), 'Floating roof': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=475, n=0.507), V_min=30000.0, V_max=1000000.0, CE=567, material=Carbon steel, V_units=gal), 'Gas holder': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=3595, n=0.43), V_min=4000.0, V_max=400000.0, CE=567, material=Carbon steel, V_units=ft^3), 'Spherical; 0-30 psig': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=68, n=0.72), V_min=10000.0, V_max=1000000.0, CE=567, material=Carbon steel, V_units=gal), 'Spherical; 30–200 psig': VesselPurchaseCostAlgorithm(f_Cp=ExponentialFunction(A=53, n=0.78), V_min=10000.0, V_max=750000.0, CE=567, material=Carbon steel, V_units=gal)}</em><a class="headerlink" href="#biosteam.units.StorageTank.purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">purchase_cost_algorithms</code><a class="headerlink" href="#biosteam.units.StorageTank.purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
 <dd><p>dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
 </dd></dl>
 

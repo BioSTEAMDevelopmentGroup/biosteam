@@ -84,14 +84,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -182,8 +181,11 @@
 <span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">MultiStream</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">ceil</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">.designtools</span> <span class="kn">import</span> <span class="n">calculate_vacuum_system_power_and_cost</span><span class="p">,</span> <span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span> \
-                          <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span>
+<span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calculate_vacuum_system_power_and_cost</span><span class="p">,</span>
+                           <span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span> <span class="n">Kvalue</span><span class="p">,</span>
+                           <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> 
+                           <span class="n">pressure_vessel_material_factors</span><span class="p">,</span>
+                           <span class="n">material_densities_lb_per_ft3</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">._splitter</span> <span class="kn">import</span> <span class="n">Splitter</span>
 <span class="kn">from</span> <span class="nn">._hx</span> <span class="kn">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">bounds_warning</span>
@@ -201,37 +203,10 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Flash&#39;</span><span class="p">,</span> <span class="s1">&#39;SplitFlash&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioFlash&#39;</span><span class="p">)</span>
 
 
-<span class="c1"># %% Data</span>
-    
-<span class="c1"># Material density (lb∕ft^3)</span>
-<span class="n">material_density</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">:</span> <span class="mi">490</span><span class="p">,</span>
-                    <span class="s1">&#39;Low-alloy steel&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s1">&#39;Stainless steel 304&#39;</span><span class="p">:</span> <span class="mf">499.4</span><span class="p">,</span>
-                    <span class="s1">&#39;Stainless steel 316&#39;</span><span class="p">:</span> <span class="mf">499.4</span><span class="p">,</span>
-                    <span class="s1">&#39;Carpenter 20CB-3&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s1">&#39;Nickel-200&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s1">&#39;Monel-400&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s1">&#39;Inconel-600&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s1">&#39;Incoloy-825&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s1">&#39;Titanium&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
-
-<span class="c1"># Vessel Material</span>
-<span class="n">material_factor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                   <span class="s1">&#39;Low-alloy steel&#39;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
-                   <span class="s1">&#39;Stainless steel 304&#39;</span><span class="p">:</span> <span class="mf">1.7</span><span class="p">,</span>
-                   <span class="s1">&#39;Stainless steel 316&#39;</span><span class="p">:</span> <span class="mf">2.1</span><span class="p">,</span>
-                   <span class="s1">&#39;Carpenter 20CB-3&#39;</span><span class="p">:</span> <span class="mf">3.2</span><span class="p">,</span>
-                   <span class="s1">&#39;Nickel-200&#39;</span><span class="p">:</span> <span class="mf">5.4</span><span class="p">,</span>
-                   <span class="s1">&#39;Monel-400&#39;</span><span class="p">:</span> <span class="mf">3.6</span><span class="p">,</span>
-                   <span class="s1">&#39;Inconel-600&#39;</span><span class="p">:</span> <span class="mf">3.9</span><span class="p">,</span>
-                   <span class="s1">&#39;Incoloy-825&#39;</span><span class="p">:</span> <span class="mf">3.7</span><span class="p">,</span>
-                   <span class="s1">&#39;Titanium&#39;</span><span class="p">:</span> <span class="mf">7.7</span><span class="p">}</span>
-
-
 <span class="c1"># %% Flash</span>
 
 <div class="viewcode-block" id="Flash"><a class="viewcode-back" href="../../../units/Flash.html#biosteam.units.Flash">[docs]</a><span class="k">class</span> <span class="nc">Flash</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. Purchase costs are based on correlations by Mulet et al. [2, 3] as compiled by Warren et. al. [4].</span>
+    <span class="sd">&quot;&quot;&quot;Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]_. Purchase costs are based on correlations by Mulet et al. [2, 3]_ as compiled by Warren et. al. [4]_.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -249,20 +224,81 @@
 <span class="sd">        * **V:** Molar vapor fraction</span>
 <span class="sd">        * **x:** Molar composition of liquid (for binary mixture)</span>
 <span class="sd">        * **y:** Molar composition of vapor (for binary mixture)</span>
+<span class="sd">    vessel_material : str</span>
+<span class="sd">        Vessel construction material.</span>
+<span class="sd">    vacuum_system_preference : str</span>
+<span class="sd">        If a vacuum system is needed, it will choose one according to this preference.  </span>
+<span class="sd">    has_glycol_groups=False : bool</span>
+<span class="sd">        True if glycol groups are present in the mixture.</span>
+<span class="sd">    has_amine_groups=False : bool</span>
+<span class="sd">        True if amine groups are present in the mixture.</span>
+<span class="sd">    vessel_type=&#39;Default&#39; : {&#39;Horizontal&#39;, &#39;Vertical&#39;, &#39;Default&#39;}</span>
+<span class="sd">        Vessel separation type. If &#39;Default&#39;, the vessel type will be chosen according to heuristics.</span>
+<span class="sd">    holdup_time=15.0 : float</span>
+<span class="sd">        Time it takes to raise liquid to half full [min].</span>
+<span class="sd">    surge_time=7.5 : float</span>
+<span class="sd">        Time it takes to reach from normal to maximum liquied level [min].</span>
+<span class="sd">    has_mist_eliminator : bool</span>
+<span class="sd">        True if using a mist eliminator pad.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units import Flash</span>
+<span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; chemicals = Chemicals([&#39;Water&#39;, &#39;Glycerol&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; settings.set_thermo(chemicals)</span>
+<span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Glycerol=300, Water=1000)</span>
+<span class="sd">    &gt;&gt;&gt; bp = feed.bubble_point_at_P() # Feed at bubble point T</span>
+<span class="sd">    &gt;&gt;&gt; feed.T = bp.T</span>
+<span class="sd">    &gt;&gt;&gt; F1 = Flash(&#39;F1&#39;,</span>
+<span class="sd">    ...            ins=feed,</span>
+<span class="sd">    ...            outs=(&#39;vapor&#39;, &#39;crude_glycerin&#39;),</span>
+<span class="sd">    ...            P=101325, # Pa</span>
+<span class="sd">    ...            T=410.15) # K</span>
+<span class="sd">    &gt;&gt;&gt; F1.simulate()</span>
+<span class="sd">    &gt;&gt;&gt; F1.show(T=&#39;degC&#39;, P=&#39;atm&#39;)</span>
+<span class="sd">    Flash: F1</span>
+<span class="sd">    ins...</span>
+<span class="sd">    [0] feed</span>
+<span class="sd">        phase: &#39;l&#39;, T: 100.7 degC, P: 1 atm</span>
+<span class="sd">        flow (kmol/hr): Water     1e+03</span>
+<span class="sd">                        Glycerol  300</span>
+<span class="sd">    outs...</span>
+<span class="sd">    [0] vapor</span>
+<span class="sd">        phase: &#39;g&#39;, T: 137 degC, P: 1 atm</span>
+<span class="sd">        flow (kmol/hr): Water     958</span>
+<span class="sd">                        Glycerol  2.32</span>
+<span class="sd">    [1] crude_glycerin</span>
+<span class="sd">        phase: &#39;l&#39;, T: 137 degC, P: 1 atm</span>
+<span class="sd">        flow (kmol/hr): Water     42.4</span>
+<span class="sd">                        Glycerol  298</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; F1.results()</span>
+<span class="sd">    Flash                                   Units            F1</span>
+<span class="sd">    Medium pressure steam Duty              kJ/hr      5.06e+07</span>
+<span class="sd">                          Flow            kmol/hr       1.4e+03</span>
+<span class="sd">                          Cost             USD/hr           385</span>
+<span class="sd">    Design                Vessel type                  Vertical</span>
+<span class="sd">                          Length               ft          23.5</span>
+<span class="sd">                          Diameter             ft           6.5</span>
+<span class="sd">                          Weight               lb      8.44e+03</span>
+<span class="sd">                          Wall thickness       in         0.375</span>
+<span class="sd">                          Material                 Carbon steel</span>
+<span class="sd">    Purchase cost         Flash               USD      5.82e+04</span>
+<span class="sd">                          Heat exchanger      USD      4.36e+04</span>
+<span class="sd">    Total purchase cost                       USD      1.02e+05</span>
+<span class="sd">    Utility cost                           USD/hr           385</span>
+
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    [1] &quot;Design Two-Phase Separators Within the Right Limits&quot;, Chemical Engineering Progress Oct, 1993.</span>
+<span class="sd">    .. [1] &quot;Design Two-Phase Separators Within the Right Limits&quot;, Chemical Engineering Progress Oct, 1993.</span>
 
-<span class="sd">    [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</span>
+<span class="sd">    .. [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</span>
 
-<span class="sd">    [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</span>
+<span class="sd">    .. [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</span>
 
-<span class="sd">    [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    </span>
-<span class="sd">    </span>
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    :doc:`notebooks/Flash Example`</span>
+<span class="sd">    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
@@ -279,38 +315,13 @@
     <span class="n">BM_vertical</span> <span class="o">=</span> <span class="mf">4.16</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">BM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">SepType</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SetType</span>
-        <span class="k">if</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
+        <span class="n">vessel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SetType</span>
+        <span class="k">if</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BM_vertical</span>
-        <span class="k">elif</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BM_horizontal</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;SepType not defined&#39;</span><span class="p">)</span>
-    
-    <span class="c1"># Column material factor</span>
-    <span class="n">_material</span> <span class="o">=</span> <span class="s1">&#39;Carbon steel&#39;</span>
-    <span class="n">_F_material</span> <span class="o">=</span> <span class="mi">1</span> 
-    
-    <span class="c1">#: If a vacuum system is needed, it will choose one according to this preference.</span>
-    <span class="n">vacuum_system_preference</span> <span class="o">=</span> <span class="s1">&#39;Liquid-ring pump&#39;</span>
-    
-    <span class="c1">#: True if glycol groups are present in the mixture</span>
-    <span class="n">HasGlycolGroups</span> <span class="o">=</span> <span class="kc">False</span>
-    
-    <span class="c1">#: True if amine groups are present in the mixture</span>
-    <span class="n">HasAmineGroups</span> <span class="o">=</span> <span class="kc">False</span>
-    
-    <span class="c1">#: [str] &#39;Horizontal&#39;, &#39;Vertical&#39;, or &#39;Default&#39;</span>
-    <span class="n">SepType</span> <span class="o">=</span> <span class="s1">&#39;Default&#39;</span>
-    
-    <span class="c1">#: [float] Time it takes to raise liquid to half full (min)</span>
-    <span class="n">HoldupTime</span> <span class="o">=</span> <span class="mi">15</span>  
-    
-    <span class="c1">#: [float] Time it takes to reach from normal to maximum liquied level (min)</span>
-    <span class="n">SurgeTime</span> <span class="o">=</span> <span class="mf">7.5</span>
-    
-    <span class="c1">#: [bool] True if using a mist eliminator pad</span>
-    <span class="n">Mist</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;vessel_type not defined&#39;</span><span class="p">)</span>
     
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4200</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
                <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">9.2e5</span><span class="p">),</span>
@@ -318,20 +329,28 @@
                <span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">40</span><span class="p">)}</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">vessel_material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Vessel construction material.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span>
-    <span class="nd">@material</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_material</span> <span class="o">=</span> <span class="n">material_factor</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span>
+    <span class="nd">@vessel_material</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">vessel_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">pressure_vessel_material_factors</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">material_factor</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span>  
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no material factor available for &#39;</span><span class="si">{material}</span><span class="s2">&#39;; &quot;</span>
+                              <span class="s2">&quot;only the following materials are available: &quot;</span>
+                             <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(pressure_vessel_material_factors)}&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span> <span class="o">=</span> <span class="n">material</span>  
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
-                 <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">vessel_material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">,</span>
+                 <span class="n">vacuum_system_preference</span><span class="o">=</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">,</span>
+                 <span class="n">has_glycol_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">has_amine_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">vessel_type</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
+                 <span class="n">holdup_time</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                 <span class="n">surge_time</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span>
+                 <span class="n">has_mist_eliminator</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
@@ -353,6 +372,30 @@
         
         <span class="c1">#: Operating pressure (Pa)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+        
+        <span class="c1">#: [str] Vessel construction material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_material</span> <span class="o">=</span> <span class="n">vessel_material</span>
+
+        <span class="c1">#: [str] If a vacuum system is needed, it will choose one according to this preference.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vacuum_system_preference</span> <span class="o">=</span> <span class="n">vacuum_system_preference</span>
+        
+        <span class="c1">#: [bool] True if glycol groups are present in the mixture</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_glycol_groups</span> <span class="o">=</span> <span class="n">has_glycol_groups</span>
+        
+        <span class="c1">#: [bool] True if amine groups are present in the mixture</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_amine_groups</span> <span class="o">=</span> <span class="n">has_amine_groups</span>
+        
+        <span class="c1">#: [str] &#39;Horizontal&#39;, &#39;Vertical&#39;, or &#39;Default&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span>
+        
+        <span class="c1">#: [float] Time it takes to raise liquid to half full (min)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holdup_time</span> <span class="o">=</span> <span class="n">holdup_time</span>
+        
+        <span class="c1">#: [float] Time it takes to reach from normal to maximum liquied level (min)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surge_time</span> <span class="o">=</span> <span class="n">surge_time</span>
+        
+        <span class="c1">#: [bool] True if using a mist eliminator pad</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_mist_eliminator</span> <span class="o">=</span> <span class="n">has_mist_eliminator</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">P</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -403,23 +446,23 @@
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Set horizontal or vertical vessel</span>
-        <span class="n">SepType</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SepType</span>
-        <span class="k">if</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
+        <span class="n">vessel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span>
+        <span class="k">if</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
             <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
             <span class="n">isVertical</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">F_mass</span><span class="o">/</span><span class="n">liq</span><span class="o">.</span><span class="n">F_mass</span> <span class="o">&gt;</span> <span class="mf">0.2</span>
-        <span class="k">elif</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
             <span class="n">isVertical</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
             <span class="n">isVertical</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="sa">f</span><span class="s2">&quot;SepType must be either &#39;Default&#39;, &#39;Horizontal&#39;, &#39;Vertical&#39;, not &#39;</span><span class="si">{self.SepType}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="sa">f</span><span class="s2">&quot;vessel_type must be either &#39;Default&#39;, &#39;Horizontal&#39;, &#39;Vertical&#39;, not &#39;</span><span class="si">{self.vessel_type}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_isVertical</span> <span class="o">=</span> <span class="n">isVertical</span>
 
         <span class="c1"># Run vertical or horizontal design</span>
         <span class="k">if</span> <span class="n">isVertical</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertical</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
@@ -437,7 +480,7 @@
             <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">5.6336</span> <span class="o">-</span> <span class="mf">0.4599</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.00582</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">C_pl</span> <span class="o">=</span> <span class="mi">2275</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mf">0.20294</span>
             
-        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_material</span><span class="o">*</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span><span class="o">*</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="p">:</span>
             <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span>
             <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
@@ -484,11 +527,10 @@
         <span class="n">rhol</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;lb/ft3&#39;</span><span class="p">)</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span><span class="o">*</span><span class="mf">0.000145</span>  <span class="c1"># Pressure (psi)</span>
 
-        <span class="c1"># SepType (str), HoldupTime (min), SurgeTime (min), Mist (bool)</span>
-        <span class="n">SepType</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SepType</span>
-        <span class="n">Th</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">HoldupTime</span>
-        <span class="n">Ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SurgeTime</span>
-        <span class="n">Mist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mist</span>
+        <span class="n">vessel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span>
+        <span class="n">Th</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">holdup_time</span>
+        <span class="n">Ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">surge_time</span>
+        <span class="n">has_mist_eliminator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_mist_eliminator</span>
 
         <span class="c1"># Calculate the volumetric flowrate</span>
         <span class="n">Qv</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">get_total_flow</span><span class="p">(</span><span class="s1">&#39;ft^3 / s&#39;</span><span class="p">)</span>
@@ -498,11 +540,11 @@
         <span class="n">K</span> <span class="o">=</span> <span class="n">Kvalue</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
 
         <span class="c1"># Adjust K value</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span> <span class="n">K</span> <span class="o">/=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_mist_eliminator</span> <span class="ow">and</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span> <span class="n">K</span> <span class="o">/=</span> <span class="mi">2</span>
 
         <span class="c1"># Adjust for amine or glycol groups:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">HasGlycolGroups</span><span class="p">:</span> <span class="n">K</span> <span class="o">*=</span> <span class="mf">0.6</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">HasAmineGroups</span><span class="p">:</span> <span class="n">K</span> <span class="o">*=</span> <span class="mf">0.8</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glycol_groups</span><span class="p">:</span> <span class="n">K</span> <span class="o">*=</span> <span class="mf">0.6</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_amine_groups</span><span class="p">:</span> <span class="n">K</span> <span class="o">*=</span> <span class="mf">0.8</span>
 
         <span class="n">Ut</span> <span class="o">=</span> <span class="n">K</span><span class="o">*</span><span class="p">((</span><span class="n">rhol</span> <span class="o">-</span> <span class="n">rhov</span><span class="p">)</span> <span class="o">/</span> <span class="n">rhov</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
         <span class="n">Uv</span> <span class="o">=</span> <span class="mf">0.75</span><span class="o">*</span><span class="n">Ut</span>
@@ -510,14 +552,14 @@
         <span class="c1"># Calculate Holdup and Surge volume</span>
         <span class="n">Vh</span> <span class="o">=</span> <span class="n">Th</span><span class="o">*</span><span class="n">Qll</span>
         <span class="n">Vs</span> <span class="o">=</span> <span class="n">Ts</span><span class="o">*</span><span class="n">Qll</span>
-        <span class="k">return</span> <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">Mist</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span>
+        <span class="k">return</span> <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">has_mist_eliminator</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span>
 
     <span class="k">def</span> <span class="nf">_vertical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">Mist</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
+        <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">has_mist_eliminator</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
 
         <span class="c1"># Calculate internal diameter, Dvd</span>
         <span class="n">Dvd</span> <span class="o">=</span> <span class="p">(</span><span class="mf">4.0</span><span class="o">*</span><span class="n">Qv</span><span class="o">/</span><span class="p">(</span><span class="n">pi</span><span class="o">*</span><span class="n">Uv</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
-        <span class="k">if</span> <span class="n">Mist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">has_mist_eliminator</span><span class="p">:</span>
             <span class="n">D</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Dvd</span> <span class="o">+</span> <span class="mf">0.4</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">D</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Dvd</span><span class="p">)</span>
@@ -547,12 +589,12 @@
 
         <span class="c1"># Calculate the vapor disengagement height</span>
         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">Dvd</span>
-        <span class="n">Hv2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="k">if</span> <span class="n">Mist</span> <span class="k">else</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">dN</span><span class="o">/</span><span class="mf">2.0</span>
+        <span class="n">Hv2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="k">if</span> <span class="n">has_mist_eliminator</span> <span class="k">else</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">dN</span><span class="o">/</span><span class="mf">2.0</span>
         <span class="k">if</span> <span class="n">Hv2</span> <span class="o">&lt;</span> <span class="n">Hv</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="n">Hv2</span>
         <span class="n">Hv</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">Hv</span><span class="p">)</span>
 
         <span class="c1"># Calculate total height, Ht</span>
-        <span class="n">Hme</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="k">if</span> <span class="n">Mist</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">Hme</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="k">if</span> <span class="n">has_mist_eliminator</span> <span class="k">else</span> <span class="mf">0.0</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">Hlll</span> <span class="o">+</span> <span class="n">Hh</span> <span class="o">+</span> <span class="n">Hs</span> <span class="o">+</span> <span class="n">Hlin</span> <span class="o">+</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">Hme</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Ht</span><span class="p">)</span>
 
@@ -564,7 +606,7 @@
             <span class="k">else</span><span class="p">:</span> <span class="k">break</span>
 
         <span class="c1"># Calculate Vessel weight and wall thickness</span>
-        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_density</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_material</span><span class="p">]</span>
+        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_densities_lb_per_ft3</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span><span class="p">]</span>
         <span class="n">VW</span><span class="p">,</span> <span class="n">VWT</span> <span class="o">=</span> <span class="n">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
 
         <span class="c1"># Find maximum and normal liquid level</span>
@@ -574,14 +616,14 @@
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">])</span>
         <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">])</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Vessel type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>     <span class="c1"># lb</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in</span>
         
     <span class="k">def</span> <span class="nf">_horizontal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">Mist</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
+        <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">has_mist_eliminator</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
 
         <span class="c1"># Initialize LD</span>
         <span class="k">if</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">P</span> <span class="o">&lt;=</span> <span class="mf">264.7</span><span class="p">:</span>
@@ -609,7 +651,7 @@
 
             <span class="c1"># Calculate the Vapor disengagement area, Av</span>
             <span class="n">Hv</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="n">D</span>
-            <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
+            <span class="k">if</span> <span class="n">has_mist_eliminator</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
             <span class="k">elif</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">1.0</span>
             <span class="k">else</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Hv</span><span class="p">)</span>
             <span class="n">Av</span> <span class="o">=</span> <span class="n">HNATable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Hv</span><span class="o">/</span><span class="n">D</span><span class="p">)</span><span class="o">*</span><span class="n">At</span>
@@ -627,8 +669,8 @@
             <span class="k">for</span> <span class="n">innerIter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">L</span> <span class="o">&lt;</span> <span class="mf">0.8</span><span class="o">*</span><span class="n">Lmin</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">+=</span> <span class="mf">0.5</span>
                 <span class="k">elif</span> <span class="n">L</span> <span class="o">&gt;</span> <span class="mf">1.2</span><span class="o">*</span><span class="n">Lmin</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
-                    <span class="k">elif</span> <span class="ow">not</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="k">if</span> <span class="n">has_mist_eliminator</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
+                    <span class="k">elif</span> <span class="ow">not</span> <span class="n">has_mist_eliminator</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">1.0</span>
                     <span class="k">else</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">-=</span> <span class="mf">0.5</span>
                 <span class="k">else</span><span class="p">:</span> <span class="k">break</span>
                 <span class="n">Av</span> <span class="o">=</span> <span class="n">HNATable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Hv</span><span class="o">/</span><span class="n">D</span><span class="p">)</span><span class="o">*</span><span class="n">At</span>
@@ -658,13 +700,13 @@
             <span class="k">else</span><span class="p">:</span> <span class="k">break</span>
 
         <span class="c1"># Calculate vessel weight and wall thickness</span>
-        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_density</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_material</span><span class="p">]</span>
+        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_densities_lb_per_ft3</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span><span class="p">]</span>
         <span class="n">VW</span><span class="p">,</span> <span class="n">VWT</span> <span class="o">=</span> <span class="n">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
 
         <span class="c1"># # To check minimum Hv value</span>
-        <span class="c1"># if int(Mist) == 1 and Hv &lt;= 2.0:</span>
+        <span class="c1"># if int(has_mist_eliminator) == 1 and Hv &lt;= 2.0:</span>
         <span class="c1">#     Hv = 2.0</span>
-        <span class="c1"># if int(Mist) == 0 and Hv &lt;= 1.0:</span>
+        <span class="c1"># if int(has_mist_eliminator) == 0 and Hv &lt;= 1.0:</span>
         <span class="c1">#     Hv = 1.0</span>
 
         <span class="c1"># Calculate normal liquid level and High liquid level</span>
@@ -678,7 +720,7 @@
         
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">])</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Vessel type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>  <span class="c1"># lb</span>
@@ -694,13 +736,45 @@
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Flash&#39;</span> 
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span>
-                 <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">vessel_material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">,</span>
+                 <span class="n">vacuum_system_preference</span><span class="o">=</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">,</span>
+                 <span class="n">has_glycol_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">has_amine_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">vessel_type</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
+                 <span class="n">holdup_time</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                 <span class="n">surge_time</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span>
+                 <span class="n">has_mist_eliminator</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">Splitter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Operating temperature (K)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="c1">#: Operating pressure (Pa)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span> <span class="c1">#: Duty (kJ/hr)</span>
+        
+        <span class="c1">#: [str] Vessel construction material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_material</span> <span class="o">=</span> <span class="n">vessel_material</span>
+
+        <span class="c1">#: [str] If a vacuum system is needed, it will choose one according to this preference.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vacuum_system_preference</span> <span class="o">=</span> <span class="n">vacuum_system_preference</span>
+        
+        <span class="c1">#: [bool] True if glycol groups are present in the mixture</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_glycol_groups</span> <span class="o">=</span> <span class="n">has_glycol_groups</span>
+        
+        <span class="c1">#: [bool] True if amine groups are present in the mixture</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_amine_groups</span> <span class="o">=</span> <span class="n">has_amine_groups</span>
+        
+        <span class="c1">#: [str] &#39;Horizontal&#39;, &#39;Vertical&#39;, or &#39;Default&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span>
+        
+        <span class="c1">#: [float] Time it takes to raise liquid to half full (min)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holdup_time</span> <span class="o">=</span> <span class="n">holdup_time</span>
+        
+        <span class="c1">#: [float] Time it takes to reach from normal to maximum liquied level (min)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surge_time</span> <span class="o">=</span> <span class="n">surge_time</span>
+        
+        <span class="c1">#: [bool] True if using a mist eliminator pad</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_mist_eliminator</span> <span class="o">=</span> <span class="n">has_mist_eliminator</span>
     
     <span class="n">split</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">split</span>
     <span class="n">V</span> <span class="o">=</span> <span class="kc">None</span>
@@ -721,58 +795,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span>
             <span class="n">ms</span><span class="o">.</span><span class="n">mix_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-
-
-<span class="c1"># class PartitionFlash(Flash):</span>
-<span class="c1">#     &quot;&quot;&quot;Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients.&quot;&quot;&quot;</span>
-    
-<span class="c1">#     _kwargs = {&#39;species_IDs&#39;: None,  # Partition species</span>
-<span class="c1">#                &#39;Ks&#39;: None,           # Partition coefficients</span>
-<span class="c1">#                &#39;LNK&#39;: None,          # light non-keys</span>
-<span class="c1">#                &#39;HNK&#39;: None,          # heavy non-keys</span>
-<span class="c1">#                &#39;P&#39;: None,            # Operating Pressure</span>
-<span class="c1">#                &#39;T&#39;: None}            # Operating temperature</span>
-    
-<span class="c1">#     def _init(self):</span>
-<span class="c1">#         top, bot = self.outs</span>
-<span class="c1">#         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()</span>
-<span class="c1">#         index = top._species._IDs.index</span>
-<span class="c1">#         if P &lt; 101325 and not self.power_utility:</span>
-<span class="c1">#             self.power_utility = PowerUtility()</span>
-<span class="c1">#         self._args = ([index(i) for i in species_IDs],</span>
-<span class="c1">#                       [index(i) for i in LNK],</span>
-<span class="c1">#                       [index(i) for i in HNK],</span>
-<span class="c1">#                        np.asarray(Ks), P, T)</span>
-    
-<span class="c1">#     def _run(self):</span>
-<span class="c1">#         feed = self.ins[0]</span>
-<span class="c1">#         ph1, ph2 = self.outs</span>
-<span class="c1">#         pos, LNK, HNK, Ks, P, T = self._args</span>
-<span class="c1">#         mol_in = feed.mol[pos]</span>
-<span class="c1">#         ph1.T = ph2.T = (T if T else feed.T)</span>
-<span class="c1">#         ph1.P = ph2.P = (P if P else feed.P)</span>
-<span class="c1">#         ph1.mol[LNK] = feed.mol[LNK]</span>
-<span class="c1">#         ph1.mol[HNK] = feed.mol[HNK]</span>
-        
-<span class="c1">#         # Get zs and Ks to solve rashford rice equation</span>
-<span class="c1">#         molnet = sum(mol_in)</span>
-<span class="c1">#         zs = mol_in/molnet</span>
-<span class="c1">#         lenzs = len(zs)</span>
-<span class="c1">#         if hasattr(self, &#39;_V&#39;):</span>
-<span class="c1">#             self._V = V = newton(V_error, self._V, args=(zs, Ks))</span>
-<span class="c1">#         elif lenzs &gt; 3:</span>
-<span class="c1">#             self._V = V = brentq(V_error, 0, 1, (zs, Ks))</span>
-<span class="c1">#         elif lenzs == 2:</span>
-<span class="c1">#             self._V = V = V_2N(V, zs, Ks)</span>
-<span class="c1">#         elif lenzs == 3:</span>
-<span class="c1">#             self._V = V = V_3N(V, zs, Ks)</span>
-            
-<span class="c1">#         x = zs/(1 + V*(Ks-1))</span>
-<span class="c1">#         y = x*Ks</span>
-<span class="c1">#         ph1.mol[pos] = molnet*V*y</span>
-<span class="c1">#         ph2.mol[pos] = mol_in - ph1.mol[pos]</span>
-    
-<span class="c1">#     _design = SplitFlash._design</span>
     
 
 <span class="k">class</span> <span class="nc">RatioFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
@@ -833,11 +855,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_P</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">Psat</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Hvap</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">Hvap</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_T</span> <span class="o">=</span> <span class="n">T</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">V</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span><span class="p">,</span> <span class="n">utility_vapor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
@@ -848,7 +874,7 @@
         <span class="k">if</span> <span class="n">utility_liquid</span><span class="p">:</span>
             <span class="n">utility_liquid</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">utility_vapor</span><span class="p">)</span>
             <span class="n">utility_liquid</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-            <span class="n">Q</span> <span class="o">+=</span> <span class="n">utility_vapor</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">utility_liquid</span><span class="o">.</span><span class="n">H</span>
+            <span class="n">Q</span> <span class="o">+=</span> <span class="n">utility_vapor</span><span class="o">.</span><span class="n">Hvap</span>
         <span class="n">feed_H</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">H</span>
     
         <span class="c1"># Set exit conditions</span>
@@ -861,7 +887,7 @@
         <span class="c1"># Energy balance to find vapor fraction</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">H2O_CAS</span><span class="p">]</span>
         <span class="n">H</span> <span class="o">=</span> <span class="n">feed_H</span> <span class="o">+</span> <span class="n">Q</span> <span class="o">-</span> <span class="n">liquid</span><span class="o">.</span><span class="n">H</span>
-        <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="n">H</span><span class="o">/</span><span class="n">f</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Hvap</span><span class="p">)</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">H</span><span class="o">/</span><span class="p">(</span><span class="n">f</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hvap</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">V</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">elif</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -893,10 +919,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_P</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">Psat</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_T</span> <span class="o">=</span> <span class="n">T</span>
     
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">component</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span>
@@ -905,6 +927,7 @@
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">vapor</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liquid</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         <span class="n">H2O_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">H2O_CAS</span><span class="p">)</span>
         <span class="n">water_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">H2O_index</span><span class="p">]</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">H2O_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">*</span> <span class="n">water_mol</span>

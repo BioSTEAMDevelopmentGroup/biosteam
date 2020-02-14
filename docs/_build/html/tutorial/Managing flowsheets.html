@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. Managing flowsheets &mdash; BioSTEAM 0.1 documentation</title>
+  <title>5. Managing flowsheets &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="7. Using -pipe- notation" href="Using -pipe- notation.html" />
-    <link rel="prev" title="5.8. Pump" href="../units/notebooks/Pump Example.html" /> 
+    <link rel="next" title="6. Using -pipe- notation" href="Using -pipe- notation.html" />
+    <link rel="prev" title="4. Creating a Unit" href="Creating a Unit.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,18 +86,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Managing flowsheets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Retrieve-any-Unit,-Stream-or-System-object-by-ID">6.1. Retrieve any Unit, Stream or System object by ID</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Switch-between-flowsheets">6.2. Switch between flowsheets</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Managing flowsheets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Retrieve-any-Unit,-Stream-or-System-object-by-ID">5.1. Retrieve any Unit, Stream or System object by ID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Switch-between-flowsheets">5.2. Switch between flowsheets</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -160,7 +159,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li><span class="section-number">6. </span>Managing flowsheets</li>
+      <li><span class="section-number">5. </span>Managing flowsheets</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -363,9 +362,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Managing-flowsheets">
-<h1><span class="section-number">6. </span>Managing flowsheets<a class="headerlink" href="#Managing-flowsheets" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">5. </span>Managing flowsheets<a class="headerlink" href="#Managing-flowsheets" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Retrieve-any-Unit,-Stream-or-System-object-by-ID">
-<h2><span class="section-number">6.1. </span>Retrieve any Unit, Stream or System object by ID<a class="headerlink" href="#Retrieve-any-Unit,-Stream-or-System-object-by-ID" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">5.1. </span>Retrieve any Unit, Stream or System object by ID<a class="headerlink" href="#Retrieve-any-Unit,-Stream-or-System-object-by-ID" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">find</span></code> has access to Flowsheet objects where all BioSTEAM objects are
 registered. The main flowsheet defaults to the ‘Default’ flowsheet:</p>
 <div class="nbinput docutils container">
@@ -572,7 +571,7 @@ outs...
 </div>
 </div>
 <div class="section" id="Switch-between-flowsheets">
-<h2><span class="section-number">6.2. </span>Switch between flowsheets<a class="headerlink" href="#Switch-between-flowsheets" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">5.2. </span>Switch between flowsheets<a class="headerlink" href="#Switch-between-flowsheets" title="Permalink to this headline">¶</a></h2>
 <p>A new flowsheet may be created and set as the main flowsheet:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -719,10 +718,10 @@ and leaves it as the main flowsheet when you import it:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Using -pipe- notation.html" class="btn btn-neutral float-right" title="7. Using -pipe- notation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Using -pipe- notation.html" class="btn btn-neutral float-right" title="6. Using -pipe- notation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../units/notebooks/Pump Example.html" class="btn btn-neutral float-left" title="5.8. Pump" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Creating a Unit.html" class="btn btn-neutral float-left" title="4. Creating a Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

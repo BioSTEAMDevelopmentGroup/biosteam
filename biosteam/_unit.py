@@ -307,12 +307,12 @@ class Unit:
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval((units.get(ki, ''), vi))
-            for ki, vi in Cost.items():
-                addkey(('Purchase cost', ki))
-                addval(('USD', vi))
             for ki, vi, ui in self._get_design_specs():
                 addkey(('Design', ki))
                 addval((ui, vi))
+            for ki, vi in Cost.items():
+                addkey(('Purchase cost', ki))
+                addval(('USD', vi))
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(('USD', self.purchase_cost))

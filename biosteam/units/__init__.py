@@ -6,7 +6,7 @@ Created on Sun Apr 15 20:39:46 2018
 @author: Yoel Rene Cortes-Pena
 """
 from . import _flash
-from . import _centrifuge_LLE
+from . import _liquids_centrifuge
 from .._graphics import Graphics
 from ._mixer import Mixer
 from ._splitter import Splitter, InvSplitter
@@ -15,7 +15,7 @@ from ._hx import HXutility, HXprocess
 from ._flash import *
 from ._flash import Flash
 from ._multi_effect_evaporator import MultiEffectEvaporator
-from ._centrifuge_LLE import *
+from ._liquids_centrifuge import *
 from ._distillation import Distillation
 from ._tank import Tank, StorageTank, MixTank
 from ._transesterification import Transesterification
@@ -40,7 +40,7 @@ from ._vent_scrubber import VentScrubber
 
 __all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Transesterification', 'Fermentation', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'MassBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'SolidsSeparator', 'VentScrubber']
 __all__.extend(_flash.__all__)
-__all__.extend(_centrifuge_LLE.__all__)
+__all__.extend(_liquids_centrifuge.__all__)
 
 from lazypkg import LazyPkg
 LazyPkg(__name__, ['decorators', 'design_tools', 'facilities'])

@@ -169,6 +169,7 @@ class Distillation(Unit):
     >>> bp = feed.bubble_point_at_P()
     >>> feed.T = bp.T # Feed at bubble point T
     >>> D1 = Distillation('D1', ins=feed,
+    ...                   outs=('distillate', 'bottoms_product'),
     ...                   LHK=('Methanol', 'Water'),
     ...                   y_top=0.99, x_bot=0.01, k=2)
     >>> D1.is_divided = True
@@ -184,12 +185,12 @@ class Distillation(Unit):
                      Glycerol  0.122
                      --------  205 kmol/hr
     outs...
-    [0] s1
+    [0] distillate
         phase: 'g', T: 64.91 degC, P: 1 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
-    [1] s2
+    [1] bottoms_product
         phase: 'l', T: 100.06 degC, P: 1 atm
         composition: Water     0.754
                      Methanol  0.00761
@@ -206,25 +207,25 @@ class Distillation(Unit):
                         Cost                       USD/hr      58.1
     Design              Theoretical feed stage                    9
                         Theoretical stages                       13
-                        Minimum reflux              Ratio     0.687
-                        Reflux                      Ratio      1.37
-                        Rectifier stages                         14
+                        Minimum reflux                        0.687
+                        Reflux                                 1.37
+                        Rectifier stages                         15
                         Stripper stages                          13
-                        Rectifier height               ft      33.2
-                        Stripper height                ft      31.7
-                        Rectifier diameter             ft      3.93
-                        Stripper diameter              ft      3.01
-                        Rectifier wall thickness       in      0.25
-                        Stripper wall thickness        in      0.25
-                        Rectifier weight               lb  4.61e+03
-                        Stripper weight                lb  3.32e+03
-    Purchase cost       Rectifier trays               USD  1.45e+04
-                        Stripper trays                USD  1.21e+04
-                        Rectifier tower               USD  7.41e+04
-                        Stripper tower                USD   6.1e+04
+                        Rectifier height                       34.7
+                        Stripper height                        31.7
+                        Rectifier diameter                     3.93
+                        Stripper diameter                      3.36
+                        Rectifier wall thickness               0.25
+                        Stripper wall thickness                0.25
+                        Rectifier weight                   4.79e+03
+                        Stripper weight                    3.74e+03
+    Purchase cost       Rectifier trays               USD   1.5e+04
+                        Stripper trays                USD  1.28e+04
+                        Rectifier tower               USD  7.62e+04
+                        Stripper tower                USD  6.53e+04
                         Condenser                     USD  3.41e+04
                         Boiler                        USD  2.64e+04
-    Total purchase cost                               USD  2.22e+05
+    Total purchase cost                               USD   2.3e+05
     Utility cost                                   USD/hr      59.8
     
     """
@@ -303,6 +304,7 @@ class Distillation(Unit):
     
     @property
     def LHK(self):
+        """tuple[str, str] Light and heavy keys."""
         return self._LHK
     @LHK.setter
     def LHK(self, LHK):
@@ -331,6 +333,7 @@ class Distillation(Unit):
     
     @property
     def y_top(self):
+        """Light key composition of at the distillate."""
         return self._y_top
     @y_top.setter
     def y_top(self, y_top):
@@ -339,6 +342,7 @@ class Distillation(Unit):
     
     @property
     def x_bot(self):
+        """Light key composition at the bottoms product."""
         return self._x_bot
     @x_bot.setter
     def x_bot(self, x_bot):
@@ -390,7 +394,7 @@ class Distillation(Unit):
     @property
     def downcomer_area_fraction(self):
         """Enforced fraction of downcomer area to net (total) area.
-        If None, estimate ratio based on Oliver's estimation [1]_."""
+        If None, the fraction is estimated based on heuristics."""
         return self._A_dn
     @downcomer_area_fraction.setter
     def downcomer_area_fraction(self, A_dn):

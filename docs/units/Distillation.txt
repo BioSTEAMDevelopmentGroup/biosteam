@@ -2,5 +2,4 @@ Distillation
 ============
 
 .. autoclass:: biosteam.units.Distillation
-   :inherited-members: Dist
    :members:

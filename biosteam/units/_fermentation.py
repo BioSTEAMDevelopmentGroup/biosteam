@@ -20,7 +20,8 @@ from thermosteam.reaction import Reaction
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5, N='N')
 class Fermentation(Unit):
-    """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]. 
+    """
+    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]_. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]_. 
     
     Parameters
     ----------
@@ -40,22 +41,79 @@ class Fermentation(Unit):
     N : int
         Number of batch reactors
     
-    References
-    ----------
-    [1] Oliveira, Samuel C., et al. "Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
-    
-    [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions." Bioprocess Engineering 20.6 (1999): 525-530.
-    
-    [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle." Bioprocess and biosystems engineering 38.3 (2015): 469-479.
-    
-    [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol Fermentations." Fermentation Processes. InTech, 2017.
-    
-    [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
-        
     Examples
     --------
-    :doc:`notebooks/Fermentation Example`
-        
+    Simulate a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast.
+    
+    >>> from biorefineries.lipidcane.chemicals import ethanol_chemicals 
+    >>> from biosteam.units import Fermentation
+    >>> from thermosteam import Stream, settings
+    >>> settings.set_thermo(ethanol_chemicals)
+    >>> feed = Stream('feed',
+    ...              Water=1.20e+05,
+    ...              Glucose=1.89e+03,
+    ...              Sucrose=2.14e+04,
+    ...              DryYeast=1.03e+04,
+    ...              units='kg/hr',
+    ...              T=32+273.15)
+    >>> F1 = Fermentation('F1', ins=feed, outs=('CO2', 'product'), tau=8, efficiency=0.90, N=8)
+    >>> F1.simulate()
+    >>> F1.show()
+    Fermentation: F1
+    ins...
+    [0] feed
+        phase: 'l', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water     6.66e+03
+                        Glucose   10.5
+                        Sucrose   62.5
+                        DryYeast  1.03e+04
+    [1] missing stream
+    outs...
+    [0] CO2
+        phase: 'g', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    2.5
+                        CO2      244
+                        Ethanol  0.582
+    [1] product
+        phase: 'l', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water     6.6e+03
+                        Ethanol   243
+                        Glucose   13.6
+                        DryYeast  1.03e+04
+    
+    >>> F1.results()
+    Fermentation                                       Units        F1
+    Power               Rate                              kW      11.5
+                        Cost                          USD/hr     0.899
+    Chilled water       Duty                           kJ/hr -1.35e+07
+                        Flow                         kmol/hr  9.02e+03
+                        Cost                          USD/hr      67.3
+    Design              Reactor volume                    m3       243
+                        Cycle time                        hr      12.6
+                        Loading time                      hr      1.57
+                        Cleaning and unloading time       hr         3
+                        Working volume fraction                    0.9
+                        Number of reactors                           8
+    Purchase cost       Coolers                          USD   2.2e+05
+                        Reactors                         USD  1.86e+06
+                        Agitators                        USD  1.16e+05
+                        Cleaning in place                USD  7.05e+05
+    Total purchase cost                                  USD   2.9e+06
+    Utility cost                                      USD/hr      68.2
+    
+    
+    References
+    ----------
+    .. [1] Oliveira, Samuel C., et al. "Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
+    
+    .. [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions." Bioprocess Engineering 20.6 (1999): 525-530.
+    
+    .. [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle." Bioprocess and biosystems engineering 38.3 (2015): 469-479.
+    
+    .. [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol Fermentations." Fermentation Processes. InTech, 2017.
+    
+    .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+    
     """
     _units = {'Reactor volume': 'm3',
               'Cycle time': 'hr',

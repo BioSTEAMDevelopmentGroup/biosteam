@@ -52,7 +52,7 @@ class VesselPurchaseCostAlgorithm:
     >>> VesselPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,
     ...                             V_min=0.1, V_max=30, V_units='m^3',
     ...                             CE=525.4, material='Stainless steel')
-    VesselPurchaseCostAlgorithm(f_Cp=<function <lambda> at 0x0000026C23F1BB70>, V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)
+    VesselPurchaseCostAlgorithm(f_Cp=<lambda>, V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)
     
     
     """
@@ -68,7 +68,7 @@ class VesselPurchaseCostAlgorithm:
         self.material = material
 
     def __repr__(self):
-        return f"{type(self).__name__}(f_Cp={self.f_Cp}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
+        return f"{type(self).__name__}(f_Cp={self.f_Cp.__name__}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
 
 
 def field_erected_vessel_purchase_cost(V):

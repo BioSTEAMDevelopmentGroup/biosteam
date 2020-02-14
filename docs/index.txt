@@ -24,7 +24,6 @@ Key Features & Capabilities
    Installation
    tutorial/Getting started
    tutorial/Creating a Unit
-   units/notebooks/examples
    tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
    tutorial/Biorefineries
