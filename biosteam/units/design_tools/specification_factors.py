@@ -16,6 +16,8 @@ __all__ = ('vessel_material_factors',
            'material_densities_lb_per_in3',
            'distillation_tray_type_factor')
 
+# %% Vessels
+
 pressure_vessel_material_factors = {
     'Carbon steel': 1.0,
     'Low-alloy steel': 1.2,
@@ -60,11 +62,79 @@ material_densities_lb_per_in3 = {
     'Incoloy-825': None,
     'Titanium': None}
 
-# Tray Type
+# %% Pumps
+
+# Material factors
+pump_material_factors = {
+    'Cast iron':       1,
+    'Ductile iron':    1.15,
+    'Cast steel':      1.35,
+    'Bronze':          1.9,
+    'Stainless steel': 2,
+    'Hastelloy C':     2.95,
+    'Monel':           3.3,
+    'Nickel':          3.5,
+    'Titanium':        9.7}
+
+# Gear factors
+pump_gear_factors = {
+    'OpenDripProof':           1,
+    'EnclosedFanCooled':       1.4,
+    'ExplosionProofEnclosure': 1.8}
+
+pump_centrifugal_factors = {
+    'VSC3600':   1,
+    'VSC1800':   1.5,
+    'HSC3600':   1.7,
+    'HSC1800':   2,
+    '2HSC3600':  2.7,
+    '2+HSC3600': 8.9}
+
+
+# %% Distillation
+
 distillation_tray_type_factor = {
     'Sieve': 1,
     'Valve': 1.18,
     'Bubble cap': 1.87}
+
+# Tray material factors (inner diameter, Di, in ft)
+def compute_carbon_steel_material_factor(Di):
+    return 1
+
+def compute_stainless_steel_304_material_factor(Di):
+    return 1.189 + 0.058*Di
+
+def compute_stainless_steel_316_material_factor(Di):
+    return 1.401 + 0.073*Di
+
+def compute_carpenter_20CB3_material_factor(Di):
+    return 1.525 + 0.079*Di
+
+def compute_monel_material_factor(Di):
+    return 2.306 + 0.112*Di
+
+tray_material_factor_functions = {
+    'Carbon steel': compute_carbon_steel_material_factor,
+    'Stainless steel 304': compute_stainless_steel_304_material_factor,
+    'Stainless steel 316': compute_stainless_steel_316_material_factor,
+    'Carpenter 20CB-3': compute_carpenter_20CB3_material_factor,
+    'Monel': compute_monel_material_factor}
+
+# Column Material
+distillation_column_material_factors = {
+    'Carbon steel': 1.0,
+    'Low-alloy steel': 1.2,
+    'Stainless steel 304': 1.7,
+    'Stainless steel 316': 2.1,
+    'Carpenter 20CB-3': 3.2,
+    'Nickel-200': 5.4,
+    'Monel-400': 3.6,
+    'Inconel-600': 3.9,
+    'Incoloy-825': 3.7,
+    'Titanium': 7.7}
+
+# %% Shell & tube heat exchangers
 
 # Materials of Construction Shell/Tube (a and b in Eq. (16.44))
 shell_and_tube_material_factor_coefficients =  {

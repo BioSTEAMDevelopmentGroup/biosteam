@@ -10,7 +10,7 @@ from .. import Unit
 from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
-from .designtools import size_batch
+from .design_tools import size_batch
 from thermosteam.reaction import Reaction
 
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,

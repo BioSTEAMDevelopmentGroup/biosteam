@@ -16,7 +16,7 @@ from ._flash import *
 from ._flash import Flash
 from ._multi_effect_evaporator import MultiEffectEvaporator
 from ._centrifuge_LLE import *
-from ._distillation import Dist, Distillation
+from ._distillation import Distillation
 from ._tank import Tank, StorageTank, MixTank
 from ._transesterification import Transesterification
 from ._fermentation import Fermentation
@@ -43,7 +43,7 @@ __all__.extend(_flash.__all__)
 __all__.extend(_centrifuge_LLE.__all__)
 
 from lazypkg import LazyPkg
-LazyPkg(__name__, ['decorators', 'designtools', 'facilities'])
+LazyPkg(__name__, ['decorators', 'design_tools', 'facilities'])
 
 
 # %% Enhance Graphics
@@ -67,10 +67,10 @@ node['width'] = '1'
 node['height'] = '1.1'
 
 # Distillation
-edge_out = Dist._graphics.edge_out
+edge_out = Distillation._graphics.edge_out
 edge_out[0]['tailport'] = 'n'
 edge_out[1]['tailport'] = 's'
-node = Dist._graphics.node
+node = Distillation._graphics.node
 node['width'] = '1'
 node['height'] = '1.2'
 
@@ -133,4 +133,4 @@ graphics.node['shape'] = 'note'
 graphics.node['fillcolor'] = '#F0F0F0'
 graphics.in_system = False
 
-del HXutility_node, graphics, edge_out, node, Dist, Graphics
+del HXutility_node, graphics, edge_out, node, Graphics

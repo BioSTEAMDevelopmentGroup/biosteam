@@ -9,7 +9,7 @@ import biosteam as bst
 from .. import Unit
 from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
-from .designtools import calculate_vacuum_system_power_and_cost
+from .design_tools import calculate_vacuum_system_power_and_cost
 from thermosteam import Stream, settings
 from flexsolve import IQ_interpolation
 from warnings import warn

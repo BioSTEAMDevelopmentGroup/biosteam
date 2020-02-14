@@ -8,8 +8,11 @@ from .. import Unit, PowerUtility
 from thermosteam import MultiStream
 from math import pi, ceil
 import numpy as np
-from .designtools import calculate_vacuum_system_power_and_cost, HNATable, FinalValue, \
-                          VesselWeightAndWallThickness, Kvalue
+from .design_tools import (calculate_vacuum_system_power_and_cost,
+                           HNATable, FinalValue, Kvalue,
+                           VesselWeightAndWallThickness, 
+                           pressure_vessel_material_factors,
+                           material_densities_lb_per_ft3,)
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from ..utils import bounds_warning
@@ -25,33 +28,6 @@ ln = np.log
 #    raise DesignError(f"Volume is out of bounds for costing")
 #lambda V, CE: CE*13*V**0.62 # V (m3)
 __all__ = ('Flash', 'SplitFlash', 'RatioFlash')
-
-
-# %% Data
-    
-# Material density (lb∕ft^3)
-material_density = {'Carbon steel': 490,
-                    'Low-alloy steel': None,
-                    'Stainless steel 304': 499.4,
-                    'Stainless steel 316': 499.4,
-                    'Carpenter 20CB-3': None,
-                    'Nickel-200': None,
-                    'Monel-400': None,
-                    'Inconel-600': None,
-                    'Incoloy-825': None,
-                    'Titanium': None}
-
-# Vessel Material
-material_factor = {'Carbon steel': 1.0,
-                   'Low-alloy steel': 1.2,
-                   'Stainless steel 304': 1.7,
-                   'Stainless steel 316': 2.1,
-                   'Carpenter 20CB-3': 3.2,
-                   'Nickel-200': 5.4,
-                   'Monel-400': 3.6,
-                   'Inconel-600': 3.9,
-                   'Incoloy-825': 3.7,
-                   'Titanium': 7.7}
 
 
 # %% Flash
@@ -75,6 +51,23 @@ class Flash(Unit):
         * **V:** Molar vapor fraction
         * **x:** Molar composition of liquid (for binary mixture)
         * **y:** Molar composition of vapor (for binary mixture)
+    vessel_material : str
+        Vessel construction material.
+    vacuum_system_preference : str
+        If a vacuum system is needed, it will choose one according to this preference.  
+    has_glycol_groups=False : bool
+        True if glycol groups are present in the mixture.
+    has_amine_groups=False : bool
+        True if amine groups are present in the mixture.
+    vessel_type='Default' : {'Horizontal', 'Vertical', 'Default'}
+        Vessel separation type. If 'Default', the vessel type will be chosen according to heuristics.
+    holdup_time=15.0 : float
+        Time it takes to raise liquid to half full [min].
+    surge_time=7.5 : float
+        Time it takes to reach from normal to maximum liquied level [min].
+    has_mist_eliminator : bool
+        True if using a mist eliminator pad.
+
 
     References
     ----------
@@ -105,38 +98,13 @@ class Flash(Unit):
     BM_vertical = 4.16
     @property
     def BM(self):
-        SepType = self.SetType
-        if SepType == 'Vertical':
+        vessel_type = self.SetType
+        if vessel_type == 'Vertical':
             return self._BM_vertical
-        elif SepType == 'Horizontal':
+        elif vessel_type == 'Horizontal':
             return self._BM_horizontal
         else:
-            raise AttributeError('SepType not defined')
-    
-    # Column material factor
-    _material = 'Carbon steel'
-    _F_material = 1 
-    
-    #: If a vacuum system is needed, it will choose one according to this preference.
-    vacuum_system_preference = 'Liquid-ring pump'
-    
-    #: True if glycol groups are present in the mixture
-    HasGlycolGroups = False
-    
-    #: True if amine groups are present in the mixture
-    HasAmineGroups = False
-    
-    #: [str] 'Horizontal', 'Vertical', or 'Default'
-    SepType = 'Default'
-    
-    #: [float] Time it takes to raise liquid to half full (min)
-    HoldupTime = 15  
-    
-    #: [float] Time it takes to reach from normal to maximum liquied level (min)
-    SurgeTime = 7.5
-    
-    #: [bool] True if using a mist eliminator pad
-    Mist = False
+            raise AttributeError('vessel_type not defined')
     
     _bounds = {'Vertical vessel weight': (4200, 1e6),
                'Horizontal vessel weight': (1e3, 9.2e5),
@@ -144,20 +112,28 @@ class Flash(Unit):
                'Vertical vessel length': (12, 40)}
 
     @property
-    def material(self):
+    def vessel_material(self):
         """Vessel construction material."""
-        return self._material
-    @material.setter
-    def material(self, material):
-        try: self._F_material = material_factor[material]
+        return self._vessel_material
+    @vessel_material.setter
+    def vessel_material(self, material):
+        try: self._F_M = pressure_vessel_material_factors[material]
         except KeyError:
-            dummy = str(material_factor.keys())[11:-2]
-            raise ValueError(f"material must be one of the following: {dummy}")
-        self._material = material  
+            raise ValueError(f"no material factor available for '{material}'; "
+                              "only the following materials are available: "
+                             f"{', '.join(pressure_vessel_material_factors)}")
+        self._vessel_material = material  
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 V=None, T=None, Q=None, P=None,
-                 y=None, x=None):
+                 V=None, T=None, Q=None, P=None, y=None, x=None,
+                 vessel_material='Carbon steel',
+                 vacuum_system_preference='Liquid-ring pump',
+                 has_glycol_groups=False,
+                 has_amine_groups=False,
+                 vessel_type='Default',
+                 holdup_time=15,
+                 surge_time=7.5,
+                 has_mist_eliminator=False):
         Unit.__init__(self, ID, ins, outs, thermo)
         self._multistream = MultiStream(None)
         self._heat_exchanger = None
@@ -179,6 +155,30 @@ class Flash(Unit):
         
         #: Operating pressure (Pa)
         self.P = P
+        
+        #: [str] Vessel construction material
+        self.vessel_material = vessel_material
+
+        #: [str] If a vacuum system is needed, it will choose one according to this preference.
+        self.vacuum_system_preference = vacuum_system_preference
+        
+        #: [bool] True if glycol groups are present in the mixture
+        self.has_glycol_groups = has_glycol_groups
+        
+        #: [bool] True if amine groups are present in the mixture
+        self.has_amine_groups = has_amine_groups
+        
+        #: [str] 'Horizontal', 'Vertical', or 'Default'
+        self.vessel_type = vessel_type
+        
+        #: [float] Time it takes to raise liquid to half full (min)
+        self.holdup_time = holdup_time
+        
+        #: [float] Time it takes to reach from normal to maximum liquied level (min)
+        self.surge_time = surge_time
+        
+        #: [bool] True if using a mist eliminator pad
+        self.has_mist_eliminator = has_mist_eliminator
         
     @property
     def P(self):
@@ -229,23 +229,23 @@ class Flash(Unit):
 
     def _design(self):
         # Set horizontal or vertical vessel
-        SepType = self.SepType
-        if SepType == 'Default':
+        vessel_type = self.vessel_type
+        if vessel_type == 'Default':
             vap, liq = self.outs
             isVertical = vap.F_mass/liq.F_mass > 0.2
-        elif SepType == 'Vertical':
+        elif vessel_type == 'Vertical':
             isVertical = True
-        elif SepType == 'Horizontal':
+        elif vessel_type == 'Horizontal':
             isVertical = False
         else:
-            raise ValueError( f"SepType must be either 'Default', 'Horizontal', 'Vertical', not '{self.SepType}'")
+            raise ValueError( f"vessel_type must be either 'Default', 'Horizontal', 'Vertical', not '{self.vessel_type}'")
         self._isVertical = isVertical
 
         # Run vertical or horizontal design
         if isVertical: self._vertical()
         else: self._horizontal()
         if self._heat_exchanger: self._heat_exchanger._design()
-        self.design_results['Material'] = self._material
+        self.design_results['Material'] = self._vessel_material
 
     def _cost(self):
         Design = self.design_results
@@ -263,7 +263,7 @@ class Flash(Unit):
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
             C_pl = 2275*D**0.20294
             
-        self.purchase_costs['Flash'] = CE/567*(self._F_material*C_v+C_pl)
+        self.purchase_costs['Flash'] = CE/567*(self._F_M*C_v+C_pl)
         if self._heat_exchanger:
             hx = self._heat_exchanger
             hx._cost()
@@ -310,11 +310,10 @@ class Flash(Unit):
         rhol = liq.get_property('rho', 'lb/ft3')
         P = liq.P*0.000145  # Pressure (psi)
 
-        # SepType (str), HoldupTime (min), SurgeTime (min), Mist (bool)
-        SepType = self.SepType
-        Th = self.HoldupTime
-        Ts = self.SurgeTime
-        Mist = self.Mist
+        vessel_type = self.vessel_type
+        Th = self.holdup_time
+        Ts = self.surge_time
+        has_mist_eliminator = self.has_mist_eliminator
 
         # Calculate the volumetric flowrate
         Qv = vap.get_total_flow('ft^3 / s')
@@ -324,11 +323,11 @@ class Flash(Unit):
         K = Kvalue(P)
 
         # Adjust K value
-        if not Mist and SepType == 'Vertical': K /= 2
+        if not has_mist_eliminator and vessel_type == 'Vertical': K /= 2
 
         # Adjust for amine or glycol groups:
-        if self.HasGlycolGroups: K *= 0.6
-        elif self.HasAmineGroups: K *= 0.8
+        if self.has_glycol_groups: K *= 0.6
+        elif self.has_amine_groups: K *= 0.8
 
         Ut = K*((rhol - rhov) / rhov)**0.5
         Uv = 0.75*Ut
@@ -336,14 +335,14 @@ class Flash(Unit):
         # Calculate Holdup and Surge volume
         Vh = Th*Qll
         Vs = Ts*Qll
-        return rhov, rhol, P, Th, Ts, Mist, Qv, Qll, Ut, Uv, Vh, Vs
+        return rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs
 
     def _vertical(self):
-        rhov, rhol, P, Th, Ts, Mist, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
+        rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Calculate internal diameter, Dvd
         Dvd = (4.0*Qv/(pi*Uv))**0.5
-        if Mist:
+        if has_mist_eliminator:
             D = FinalValue(Dvd + 0.4)
         else:
             D = FinalValue(Dvd)
@@ -373,12 +372,12 @@ class Flash(Unit):
 
         # Calculate the vapor disengagement height
         Hv = 0.5*Dvd
-        Hv2 = (2.0 if Mist else 3.0) + dN/2.0
+        Hv2 = (2.0 if has_mist_eliminator else 3.0) + dN/2.0
         if Hv2 < Hv: Hv = Hv2
         Hv = ceil(Hv)
 
         # Calculate total height, Ht
-        Hme = 1.5 if Mist else 0.0
+        Hme = 1.5 if has_mist_eliminator else 0.0
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = FinalValue(Ht)
 
@@ -390,7 +389,7 @@ class Flash(Unit):
             else: break
 
         # Calculate Vessel weight and wall thickness
-        rho_M = material_density[self._material]
+        rho_M = material_densities_lb_per_ft3[self._vessel_material]
         VW, VWT = VesselWeightAndWallThickness(P, D, Ht, rho_M)
 
         # Find maximum and normal liquid level
@@ -400,14 +399,14 @@ class Flash(Unit):
         Design = self.design_results
         bounds_warning(self, 'Vertical vessel weight', VW, 'lb', self._bounds['Vertical vessel weight'])
         bounds_warning(self, 'Vertical vessel length', Ht, 'ft', self._bounds['Vertical vessel length'])
-        Design['SepType'] = 'Vertical'
+        Design['Vessel type'] = 'Vertical'
         Design['Length'] = Ht     # ft
         Design['Diameter'] = D    # ft
         Design['Weight'] = VW     # lb
         Design['Wall thickness'] = VWT  # in
         
     def _horizontal(self):
-        rhov, rhol, P, Th, Ts, Mist, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
+        rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Initialize LD
         if P > 0 and P <= 264.7:
@@ -435,7 +434,7 @@ class Flash(Unit):
 
             # Calculate the Vapor disengagement area, Av
             Hv = 0.2*D
-            if Mist and Hv <= 2.0: Hv = 2.0
+            if has_mist_eliminator and Hv <= 2.0: Hv = 2.0
             elif Hv <= 1.0: Hv = 1.0
             else: Hv = FinalValue(Hv)
             Av = HNATable(1, Hv/D)*At
@@ -453,8 +452,8 @@ class Flash(Unit):
             for innerIter in range(50):
                 if L < 0.8*Lmin: Hv += 0.5
                 elif L > 1.2*Lmin:
-                    if Mist and Hv <= 2.0: Hv = 2.0
-                    elif not Mist and Hv <= 1.0: Hv = 1.0
+                    if has_mist_eliminator and Hv <= 2.0: Hv = 2.0
+                    elif not has_mist_eliminator and Hv <= 1.0: Hv = 1.0
                     else: Hv -= 0.5
                 else: break
                 Av = HNATable(1, Hv/D)*At
@@ -484,13 +483,13 @@ class Flash(Unit):
             else: break
 
         # Calculate vessel weight and wall thickness
-        rho_M = material_density[self._material]
+        rho_M = material_densities_lb_per_ft3[self._vessel_material]
         VW, VWT = VesselWeightAndWallThickness(P, D, L, rho_M)
 
         # # To check minimum Hv value
-        # if int(Mist) == 1 and Hv <= 2.0:
+        # if int(has_mist_eliminator) == 1 and Hv <= 2.0:
         #     Hv = 2.0
-        # if int(Mist) == 0 and Hv <= 1.0:
+        # if int(has_mist_eliminator) == 0 and Hv <= 1.0:
         #     Hv = 1.0
 
         # Calculate normal liquid level and High liquid level
@@ -504,7 +503,7 @@ class Flash(Unit):
         
         Design = self.design_results
         bounds_warning(self, 'Horizontal vessel weight', VW, 'lb', self._bounds['Horizontal vessel weight'])
-        Design['SepType'] = 'Horizontal'
+        Design['Vessel type'] = 'Horizontal'
         Design['Length'] = L  # ft
         Design['Diameter'] = D  # ft
         Design['Weight'] = VW  # lb
@@ -520,13 +519,45 @@ class SplitFlash(Flash):
     line = 'Flash' 
     
     def __init__(self, ID='', ins=None, outs=(), *, split,
-                 order=None, T=None, P=None, Q=None):
+                 order=None, T=None, P=None, Q=None,
+                 vessel_material='Carbon steel',
+                 vacuum_system_preference='Liquid-ring pump',
+                 has_glycol_groups=False,
+                 has_amine_groups=False,
+                 vessel_type='Default',
+                 holdup_time=15,
+                 surge_time=7.5,
+                 has_mist_eliminator=False):
         Splitter.__init__(self, ID, ins, outs, split=split, order=order)
         self._multistream = MultiStream(None)
         self._heat_exchanger = None
         self.T = T #: Operating temperature (K)
         self.P = P #: Operating pressure (Pa)
         self.Q = Q #: Duty (kJ/hr)
+        
+        #: [str] Vessel construction material
+        self.vessel_material = vessel_material
+
+        #: [str] If a vacuum system is needed, it will choose one according to this preference.
+        self.vacuum_system_preference = vacuum_system_preference
+        
+        #: [bool] True if glycol groups are present in the mixture
+        self.has_glycol_groups = has_glycol_groups
+        
+        #: [bool] True if amine groups are present in the mixture
+        self.has_amine_groups = has_amine_groups
+        
+        #: [str] 'Horizontal', 'Vertical', or 'Default'
+        self.vessel_type = vessel_type
+        
+        #: [float] Time it takes to raise liquid to half full (min)
+        self.holdup_time = holdup_time
+        
+        #: [float] Time it takes to reach from normal to maximum liquied level (min)
+        self.surge_time = surge_time
+        
+        #: [bool] True if using a mist eliminator pad
+        self.has_mist_eliminator = has_mist_eliminator
     
     split = Splitter.split
     V = None

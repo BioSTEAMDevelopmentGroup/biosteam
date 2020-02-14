@@ -6,7 +6,10 @@ Created on Thu Aug 23 15:53:14 2018
 """
 import numpy as np
 from fluids.pump import nema_sizes_hp
-from .designtools.mechanical import calculate_NPSH, pump_efficiency, nearest_NEMA_motor_size
+from .design_tools.mechanical import calculate_NPSH, pump_efficiency, nearest_NEMA_motor_size
+from .design_tools.specification_factors import (
+    pump_material_factors,
+    pump_centrifugal_factors)
 from .._unit import Unit
 from ..utils import static_flow_and_phase
 import biosteam as bst
@@ -17,33 +20,7 @@ exp = np.exp
 # %% Data
 
 max_hp = nema_sizes_hp[-1]
-
-# Material factors
-F_Mdict = {'Cast iron':       1,
-           'Ductile iron':    1.15,
-           'Cast steel':      1.35,
-           'Bronze':          1.9,
-           'Stainless steel': 2,
-           'Hastelloy C':     2.95,
-           'Monel':           3.3,
-           'Nickel':          3.5,
-           'Titanium':        9.7}
-
-# Gear factor 
-F_Tgear = {'OpenDripProof':           1,
-           'EnclosedFanCooled':       1.4,
-           'ExplosionProofEnclosure': 1.8}
-
-# Centrifugal factor
-F_Tcentrifugal = {'VSC3600':   1,
-                  'VSC1800':   1.5,
-                  'HSC3600':   1.7,
-                  'HSC1800':   2,
-                  '2HSC3600':  2.7,
-                  '2+HSC3600': 8.9}
-
-# Pump types
-Types = ('CentrifugalSingle', 'CentrifugalDouble', 'Gear')
+pump_types = ('Default', 'CentrifugalSingle', 'CentrifugalDouble', 'Gear')
     
 
 # %% Classes
@@ -51,18 +28,32 @@ Types = ('CentrifugalSingle', 'CentrifugalDouble', 'Gear')
 # TODO: Fix pump selection to include NPSH available and required.
 @static_flow_and_phase
 class Pump(Unit):
-    """Create a pump that sets the pressure of the 0th output stream.
+    """
+    Create a pump that sets the pressure of the outlet.
 
     Parameters
     ----------
-        P=None : float, optional
-            Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.
-    
-    ins
+    ins :
         [0] Input stream
-        
-    outs
+    outs :
         [1] Output stream
+    P=101325 : float, optional
+        Pressure of output stream (Pa). If the pressure of the outlet is 
+        the same as the inlet, pump is design to increase of pressure
+        to `P_design`.
+    pump_type='Default' : str
+        If 'Default', a pump type is selected based on heuristics.
+    material='Cast iron' : str
+        Contruction material of pump.
+    P_design=405300 : float
+        Design pressure for pump.
+    ignore_NPSH=True : bool
+        Whether to take into consideration NPSH in the selection of a
+        pump type.
+    
+    Notes
+    -----
+    Default pump selection and design and cost algorithms are based on [0]_.
     
     Examples
     --------
@@ -70,7 +61,9 @@ class Pump(Unit):
     
     References
     ----------
-    [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.
+    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost
+        Estimation". In Product and Process Design Principles: Synthesis,
+        Analysis, and Evaluation (pp. 450-455). New York: Wiley.
     
     """
     _units = {'Ideal power': 'hp',
@@ -78,36 +71,17 @@ class Pump(Unit):
               'Head': 'ft',
               'NPSH': 'ft',
               'Flow rate': 'gpm'}
-    _has_power_utility = True
     BM = 3.3
-    
-    # Pump type
-    _Type = 'Default'
-    
-    # Material factor
-    _F_Mstr = 'Cast iron'
-    _F_M = 1
-    
-    # Gear factor 
-    _F_Tstr = 'VSC3600'
-    _F_T = 1
-    
-    #: Pressure for costing purposes (Pa).
-    P_startup = 405300 
-    
-    #: [bool] Ignore minimum NPSH requirement if True.
-    ignore_NPSH = True
 
     @property
-    def Type(self):
+    def pump_type(self):
         """Pump type"""
-        return self._Type
-    @Type.setter
-    def Type(self, Type):
-        if Type not in Types:
-            Types_str = str(Types)[1:-1]
-            raise ValueError('Type must be one of the following: ' + Types_str)
-        self._Type = Type
+        return self._pump_type
+    @pump_type.setter
+    def pump_type(self, pump_type):
+        if pump_type not in pump_types:
+            raise ValueError('Type must be one of the following: {", ".join(pump_types)}')
+        self._pump_type = pump_type
     
     @property
     def material(self):
@@ -116,15 +90,23 @@ class Pump(Unit):
     @material.setter    
     def material(self, material):
         try:
-            self._F_M = F_Mdict[material]
+            self._F_M = pump_material_factors[material]
         except KeyError:
-            dummy = str(F_Mdict.keys())[11:-2]
-            raise ValueError(f"material must be one of the following: {dummy}")
+            raise ValueError("material must be one of the following: "
+                            f"{', '.join(pump_material_factors)}")
         self._F_Mstr = material  
         
-    def __init__(self, ID='', ins=None, outs=(), P=101325):
-        super().__init__(ID, ins, outs)
+    def __init__(self, ID='', ins=None, outs=(), P=101325,
+                 pump_type='Default',
+                 material='Cast iron',
+                 P_design=405300,
+                 ignore_NPSH=True):
+        Unit.__init__(self, ID, ins, outs)
         self.P = 101325
+        self.pump_type = pump_type
+        self.material = material
+        self.P_design = P_design
+        self.ignore_NPSH = ignore_NPSH
     
     def _setup(self):
         s_in, = self.ins
@@ -146,7 +128,7 @@ class Pump(Unit):
         mass = si.F_mass
         nu = si.nu
         dP = Po - Pi
-        if dP < 1: dP = self.P_startup - Pi
+        if dP < 1: dP = self.P_design - Pi
         Design['Ideal power'] = power_ideal = Qi*dP*3.725e-7 # hp
         Design['Flow rate'] = q = Qi*4.403 # gpm
         if power_ideal <= max_hp:
@@ -178,34 +160,34 @@ class Pump(Unit):
             NPSH_satisfied = NPSH > 1.52
         
         # Get type
-        Type = self.Type
-        if Type == 'Default':
+        pump_type = self.pump_type
+        if pump_type == 'Default':
             if (0.00278 < q < 5000
                 and 15.24 < head < 3200
                 and nu < 0.00002
                 and NPSH_satisfied):
-                Type = 'Centrifugal'
+                pump_type = 'Centrifugal'
             elif (q < 1500
                   and head < 914.4
                   and 0.00001 < nu < 0.252):
-                Type = 'Gear'
+                pump_type = 'Gear'
             elif (head < 20000
                   and q < 500
                   and power < 200
                   and nu < 0.01):
-                Type = 'MeteringPlunger'
+                pump_type = 'MeteringPlunger'
             else:
                 NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
                 raise NotImplementedError(f'no pump type available at current power ({power:.3g} hp), flow rate ({q:.3g} gpm), and head ({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft)')
                 
-        Design['Type'] = Type
+        Design['Type'] = pump_type
         self.power_utility(power/N/1.341) # Set power in kW
     
     def _cost(self):
         # Parameters
         Design = self.design_results
         Cost = self.purchase_costs
-        Type = Design['Type']
+        pump_type = Design['Type']
         q = Design['Flow rate']
         h = Design['Head']
         p = Design['Pump power']
@@ -219,9 +201,9 @@ class Pump(Unit):
         if h < 50: h = 50
         
         # Cost pump
-        if 'Centrifugal' in Type:
+        if 'Centrifugal' in pump_type:
             # Find pump factor
-            F_Tdict = F_Tcentrifugal
+            F_Tdict = pump_centrifugal_factors
             F_T = 1 # Assumption
             if p < 75 and 50 <= q <= 900 and 50 <= h <= 400:
                 F_T = F_Tdict['VSC3600']
@@ -243,13 +225,13 @@ class Pump(Unit):
             Cb = exp(12.1656-1.1448*lnS+0.0862*lnS**2)
             Cb *= S/S_new
             Cost['Pump'] = F_M*F_T*Cb*I
-        elif Type == 'Gear':
+        elif pump_type == 'Gear':
             q_new = q if q > 50 else 50
             lnq = ln(q_new)
             Cb = exp(8.2816 - 0.2918*lnq + 0.0743*lnq**2)
             Cb *= q/q_new
             Cost['Pump'] = F_M*Cb*I
-        elif Type == 'MeteringPlunger':
+        elif pump_type == 'MeteringPlunger':
             Cb = exp(7.9361 + 0.26986*lnp + 0.06718*lnp**2)
             Cost['Pump'] = F_M*Cb*I
         
