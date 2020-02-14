@@ -19,7 +19,7 @@ setup(
     #include_dirs=[numpy.get_include()],
     author='Yoel Cortes-Pena',
     install_requires=['IPython==7.9.0',
-                      'thermosteam>=0.2.1', 'graphviz==0.8.3',
+                      'thermosteam>=0.2.4', 'graphviz==0.8.3',
                       'lazypkg>=1.4', 'chaospy==3.0.11'],
     python_requires=">=3.6",
     package_data=
