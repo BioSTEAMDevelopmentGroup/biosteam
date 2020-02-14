@@ -26,14 +26,22 @@ lps = HeatUtility.heating_agents['Low pressure steam']
 @cost('Flow rate', 'Boiler',
       CE=551, cost=28550e3, kW=1000, S=238686, n=0.6, BM=1.8)
 class BoilerTurbogenerator(Facility):
-    """Create a BoilerTurbogenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.
+    """
+    Create a BoilerTurbogenerator object that will calculate electricity
+    generation from burning the feed. It also takes into account how much
+    steam is being produced, and the required cooling utility of the turbo
+    generator. No emissions or mass balances are taken into account.
     
     Parameters
     ----------
-    ins
-        [0] Feed that will be burned.
-    outs
-        [0] Emission (burned feed)
+    ins :
+        [0] Liquid/solid feed that will be burned.
+        
+        [1] Gas that will be burned.
+    outs :
+        [0] Emission from burned liquid/solid feed.
+        
+        [1] Emission from burned gas feed.
     boiler_efficiency : float
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
@@ -45,7 +53,6 @@ class BoilerTurbogenerator(Facility):
     RO_rejection = 0
     _N_outs = _N_ins = 3
     _N_heat_utilities = 2
-    _has_power_utility = True
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
@@ -58,7 +65,7 @@ class BoilerTurbogenerator(Facility):
         loss = makeup_water.flow_proxy()
         loss.ID = 'rejected_water_and_blowdown'
         self.ins[-1] = makeup_water
-        self.outs[1] = loss
+        self.outs[-1] = loss
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
@@ -81,23 +88,24 @@ class BoilerTurbogenerator(Facility):
                         steam_utilities.add(hu)
         steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
         duty_over_mol = self.duty_over_mol
-        feed = self._ins[0]
-        feed2 = self._ins[1]
-        emission = self._outs[0]
+        feed_1, feed_2, _ = self.ins
+        emission_1, emission_2, _ = self.outs
         hu_cooling, hu_steam = self.heat_utilities
         H_steam = steam_mol * duty_over_mol
         if self.side_steam: 
             H_steam += self.side_steam.H
-        feed_Hc = feed.Hc
-        if feed2:
-            feed_Hc += feed2.Hc
+        feed_Hc = feed_1.Hc
+        if feed_2:
+            feed_Hc += feed_2.Hc
         
         # This is simply for the mass balance (no special purpose)
-        emission.mol[:] = feed.mol # TODO: In reality, this should be CO2
+        # TODO: In reality, this should be CO2
+        emission_1.mol[:] = feed_1.mol
+        emission_2.mol[:] = feed_2.mol
         
-        # A percent of bagasse is water, so remove latent heat of vaporization
-        F_mass_feed = feed.F_mass
-        moisture_content = feed.imass['7732-18-5']/F_mass_feed
+        # A percent of solids is water, so remove latent heat of vaporization
+        F_mass_feed = feed_1.F_mass
+        moisture_content = feed_1.imass['7732-18-5']/F_mass_feed
         H_content = feed_Hc*B_eff - F_mass_feed*2300*moisture_content
         
         #: [float] Total steam produced by the boiler (kmol/hr)
@@ -107,8 +115,9 @@ class BoilerTurbogenerator(Facility):
         #       This is a really vague approximation, a more rigorous 
         #       model is needed (i.e. simulate whole system).
         
-        self.makeup_water.mol[0] = makeup_mol = self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
-        
+        self.makeup_water.imol['7732-18-5'] = makeup_mol = (
+            self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
+        )
         # Heat available for the turbogenerator
         H_electricity = H_content - H_steam - makeup_mol * 18000
         
