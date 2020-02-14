@@ -8,7 +8,8 @@ Created on Thu Aug 23 22:56:55 2018
 __all__ = ('size_batch',)
 
 def size_batch(v_0, tau, tau_0, N_reactors, V_wf) -> dict:
-    """Solve for batch reactor volume, cycle time, and loading time
+    """
+    Solve for batch reactor volume, cycle time, and loading time
     
     Parameters
     ----------
