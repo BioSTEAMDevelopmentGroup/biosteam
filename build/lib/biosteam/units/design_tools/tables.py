@@ -2,19 +2,21 @@
 """
 from math import log, pi
 
-__all__ = ('GTable', 'HNATable', 'FinalValue',
-           'VesselWeightAndWallThickness', 'Kvalue')
+__all__ = ('GTable', 'HNATable', 'ceil_half_step',
+           'compute_vessel_weight_and_wall_thickness',
+           'compute_Stokes_law_York_Demister_K_value')
 
 def GTable(DRho, Hlr):
-    """Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.
+    """
+    Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.
     
     Parameters
     ----------
     DRho : float
-        Density difference between light liquid and vapor (lb/ft^3 ?)
+        Density difference between light liquid and vapor [lb/ft^3 ?]
         
     Hlr : float
-        Height of liquid level above the interphase of light liquid and heavy liquid (ft)
+        Height of liquid level above the interphase of light liquid and heavy liquid [ft]
     
     """
 
@@ -25,16 +27,16 @@ def GTable(DRho, Hlr):
 
     # TODO: Add errors when outside the range!
     if Hlr > 30.0:
-        Hlr = 30.0
+        Hlr = 30
 
     if Hlr < 18.0:
-        Hlr = 18.0
+        Hlr = 18
 
     if DRho > 50.0:
-        DRho = 50.0
+        DRho = 50
 
     if DRho < 10.0:
-        DRho = 10.0
+        DRho = 10
     
     Hlr = round(Hlr, 0)
 
@@ -109,13 +111,15 @@ def GTable(DRho, Hlr):
 
 
 def HNATable(Type, X):
-    """Table for cylindrical height and area conversions.
+    """
+    Table for cylindrical height and area conversions.
         
-    **Parameters**
-    
-        Type: [int] 1 if given H/D and find A/At, 2 if given A/At and find H/D
-        
-        X: [float] H/D or A/At
+    Parameters
+    ----------
+    Type: int
+        1 if given H/D and find A/At, 2 if given A/At and find H/D.
+    X: float
+        H/D or A/At.
         
     """
     # Type = 1 is where H/D is known, find A/At, Type = 2 is where A/At is known, find H/D
@@ -147,26 +151,27 @@ def HNATable(Type, X):
     return Y
 
 
-def VesselWeightAndWallThickness(Pressure, Diameter, VesselLength, rho_M, Je=0.85):
+def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     """Return vessel weight and wall thickness.
     
-    **Parameters**
-    
-        Pressure: [float] (psia)
-        
-        Diameter: [float] (ft)
-        
-        VesselLength: [float] (ft)
-        
-        rho_M: [float] Density of Material (lb/ft^3)
-        
-        Je: [float] Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel)
+    Parameters
+    ----------
+    P : float 
+     Pressure [psia].
+    D : float
+        Diameter [ft].
+    L: float
+        Vessel length [ft].
+    rho_M: float
+        Density of Material [lb/ft^3].
+    Je: float
+        Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel),
     
     """
     S = 15000.0     # Vessel material stress value (assume carbon-steel)
     Ca = 1.0/8.0    # Corrosion Allowance in inches
     
-    P_gauge = abs(Pressure - 14.7)
+    P_gauge = abs(P - 14.7)
     P1 = P_gauge + 30.0
     P2 = 1.1 * P_gauge
     if P1 > P2:
@@ -176,20 +181,20 @@ def VesselWeightAndWallThickness(Pressure, Diameter, VesselLength, rho_M, Je=0.8
 
     # Calculate the wall thickness and surface area
     # Shell
-    SWT = (PT * Diameter*12.0) / (2.0 * S * Je - 1.2 * PT) + Ca
-    SSA = pi * Diameter * VesselLength
-    if Diameter < 15.0 and PT > (100 - 14.7):
+    SWT = (PT * D*12.0) / (2.0 * S * Je - 1.2 * PT) + Ca
+    SSA = pi * D * L
+    if D < 15.0 and PT > (100 - 14.7):
         # Elliptical Heads
-        HWT = (PT * Diameter*12.0) / (2.0 * S * Je - 0.2 * PT) + Ca
-        HSA = 1.09 * Diameter ** 2
-    elif Diameter > 15.0:
+        HWT = (PT * D*12.0) / (2.0 * S * Je - 0.2 * PT) + Ca
+        HSA = 1.09 * D ** 2
+    elif D > 15.0:
         # Hemispherical Heads
-        HWT = (PT * Diameter*12.0) / (4.0 * S * Je - 0.4 * PT) + Ca
-        HSA = 1.571 * Diameter ** 2
+        HWT = (PT * D*12.0) / (4.0 * S * Je - 0.4 * PT) + Ca
+        HSA = 1.571 * D ** 2
     else:
         # Dished Heads
-        HWT = 0.885 * (PT * Diameter*12.0) / (S * Je - 0.1 * PT) + Ca
-        HSA = 0.842 * Diameter ** 2
+        HWT = 0.885 * (PT * D*12.0) / (S * Je - 0.1 * PT) + Ca
+        HSA = 0.842 * D ** 2
 
     # Approximate the vessel wall thickness, whichever is larger
     if SWT > HWT:
@@ -198,15 +203,15 @@ def VesselWeightAndWallThickness(Pressure, Diameter, VesselLength, rho_M, Je=0.8
         ts = HWT
 
     # Minimum thickness for vessel rigidity may be larger
-    if Diameter < 4:
+    if D < 4:
         ts_min = 1/4
-    elif Diameter < 6:
+    elif D < 6:
         ts_min = 5/16
-    elif Diameter < 8:
+    elif D < 8:
         ts_min = 3/8
-    elif Diameter < 10:
+    elif D < 10:
         ts_min = 7/16
-    elif Diameter < 12:
+    elif D < 12:
         ts_min = 1/2
     else:
         ts_min = ts
@@ -217,16 +222,17 @@ def VesselWeightAndWallThickness(Pressure, Diameter, VesselLength, rho_M, Je=0.8
     return VW, ts
 
 
-def LowLiqLevelHeight(Type, P, D):
+def compute_low_liq_level_height(Type, P, D):
     """Table to obtain Hlll for two-phase separators.
     
-    **Parameters**
-    
-        Type: [int] 1 for vertical, 2 for horizontal
-        
-        P: [float] Pressure (psia)
-        
-        D: [float] Diameter (ft)
+    Parameters
+    ----------
+    Type : int
+        1 for vertical, 2 for horizontal.    
+    P : float
+        Pressure [psia].
+    D: float 
+        Diameter [ft].
     
     """
     if Type == 1:
@@ -251,12 +257,14 @@ def LowLiqLevelHeight(Type, P, D):
     return Hlll  # in ft
 
 
-def Kvalue(P):
-    """Return K-constant in Stoke's Law using the York-Demister equation.
+def compute_Stokes_law_York_Demister_K_value(P):
+    """
+    Return K-constant in Stoke's Law using the York-Demister equation.
     
-    **Parameters**
-    
-        P: [float] Pressure (psia)
+    Parameters
+    ----------
+    P : float
+        Pressure [psia].
         
     """
     if P >= 0 and P <= 15.0:
@@ -270,7 +278,7 @@ def Kvalue(P):
     return K
 
 
-def FinalValue(value):
+def ceil_half_step(value):
     """Return value to the next/highest 0.5 units"""
     intval = round(value)
     if value > intval:

@@ -38,10 +38,14 @@ class BoilerTurbogenerator(Facility):
         [0] Liquid/solid feed that will be burned.
         
         [1] Gas that will be burned.
+        
+        [2] Make-up water. 
     outs :
         [0] Emission from burned liquid/solid feed.
         
         [1] Emission from burned gas feed.
+        
+        [2] Blowdown water.
     boiler_efficiency : float
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
@@ -101,7 +105,7 @@ class BoilerTurbogenerator(Facility):
         # This is simply for the mass balance (no special purpose)
         # TODO: In reality, this should be CO2
         emission_1.mol[:] = feed_1.mol
-        emission_2.mol[:] = feed_2.mol
+        if feed_2: emission_2.mol[:] = feed_2.mol
         
         # A percent of solids is water, so remove latent heat of vaporization
         F_mass_feed = feed_1.F_mass

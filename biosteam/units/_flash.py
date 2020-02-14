@@ -9,8 +9,9 @@ from thermosteam import MultiStream
 from math import pi, ceil
 import numpy as np
 from .design_tools import (calculate_vacuum_system_power_and_cost,
-                           HNATable, FinalValue, Kvalue,
-                           VesselWeightAndWallThickness, 
+                           HNATable, ceil_half_step,
+                           compute_vessel_weight_and_wall_thickness,
+                           compute_Stokes_law_York_Demister_K_value,
                            pressure_vessel_material_factors,
                            material_densities_lb_per_ft3,)
 from ._splitter import Splitter
@@ -33,7 +34,12 @@ __all__ = ('Flash', 'SplitFlash', 'RatioFlash')
 # %% Flash
 
 class Flash(Unit):
-    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]_. Purchase costs are based on correlations by Mulet et al. [2, 3]_ as compiled by Warren et. al. [4]_.
+    """
+    Create an equlibrium based flash drum with the option of having light
+    non-keys and heavy non-keys completly separate into their respective
+    phases. Design procedure is based on heuristics by Wayne D. Monnery & 
+    William Y. Svrcek [1]_. Purchase costs are based on correlations by
+    Mulet et al. [2, 3]_ as compiled by Warren et. al. [4]_.
 
     Parameters
     ----------
@@ -54,13 +60,15 @@ class Flash(Unit):
     vessel_material : str
         Vessel construction material.
     vacuum_system_preference : str
-        If a vacuum system is needed, it will choose one according to this preference.  
+        If a vacuum system is needed, it will choose one according to this
+        preference.  
     has_glycol_groups=False : bool
         True if glycol groups are present in the mixture.
     has_amine_groups=False : bool
         True if amine groups are present in the mixture.
     vessel_type='Default' : {'Horizontal', 'Vertical', 'Default'}
-        Vessel separation type. If 'Default', the vessel type will be chosen according to heuristics.
+        Vessel separation type. If 'Default', the vessel type will be chosen
+        according to heuristics.
     holdup_time=15.0 : float
         Time it takes to raise liquid to half full [min].
     surge_time=7.5 : float
@@ -119,13 +127,18 @@ class Flash(Unit):
 
     References
     ----------
-    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical Engineering Progress Oct, 1993.
+    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
+        Engineering Progress Oct, 1993.
 
-    .. [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
+    .. [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of
+        Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
 
-    .. [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
+    .. [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of
+        Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
 
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
+    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani,
+        R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     _units = {'Vertical vessel weight': 'lb',
@@ -296,7 +309,6 @@ class Flash(Unit):
         W = Design['Weight']
         D = Design['Diameter']
         L = Design['Length']
-        CE = bst.CE
         
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
@@ -307,7 +319,7 @@ class Flash(Unit):
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
             C_pl = 2275*D**0.20294
             
-        self.purchase_costs['Flash'] = CE/567*(self._F_M*C_v+C_pl)
+        self.purchase_costs['Flash'] = bst.CE/567*(self._F_M * C_v + C_pl)
         if self._heat_exchanger:
             hx = self._heat_exchanger
             hx._cost()
@@ -364,7 +376,7 @@ class Flash(Unit):
         Qll = liq.get_total_flow('ft^3 / min')
 
         # Calculate Ut and set Uv
-        K = Kvalue(P)
+        K = compute_Stokes_law_York_Demister_K_value(P)
 
         # Adjust K value
         if not has_mist_eliminator and vessel_type == 'Vertical': K /= 2
@@ -387,9 +399,9 @@ class Flash(Unit):
         # Calculate internal diameter, Dvd
         Dvd = (4.0*Qv/(pi*Uv))**0.5
         if has_mist_eliminator:
-            D = FinalValue(Dvd + 0.4)
+            D = ceil_half_step(Dvd + 0.4)
         else:
-            D = FinalValue(Dvd)
+            D = ceil_half_step(Dvd)
 
         # Obtaining low liquid level height, Hlll
         Hlll = 0.5
@@ -398,18 +410,18 @@ class Flash(Unit):
 
         # Calculate the height from Hlll to  Normal liq level, Hnll
         Hh = Vh/(pi/4.0*Dvd**2)
-        Hh = 1.0 if Hh < 1.0 else FinalValue(Hh)
+        Hh = 1.0 if Hh < 1.0 else ceil_half_step(Hh)
 
         # Calculate the height from Hnll to  High liq level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
-        Hs = 0.5 if Hs < 0.5 else FinalValue(Hs)
+        Hs = 0.5 if Hs < 0.5 else ceil_half_step(Hs)
 
         # Calculate dN
         Qm = Qll + Qv
         lamda = Qll/Qm
         rhoM = rhol*lamda + rhov*(1-lamda)
         dN = (4*Qm/(pi*60.0/(rhoM**0.5)))**0.5
-        dN = FinalValue(dN)
+        dN = ceil_half_step(dN)
 
         # Calculate Hlin, assume with inlet diverter
         Hlin = 1.0 + dN
@@ -423,7 +435,7 @@ class Flash(Unit):
         # Calculate total height, Ht
         Hme = 1.5 if has_mist_eliminator else 0.0
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
-        Ht = FinalValue(Ht)
+        Ht = ceil_half_step(Ht)
 
         # Check if LD is between 1.5 and 6.0
         while True:
@@ -434,7 +446,7 @@ class Flash(Unit):
 
         # Calculate Vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
-        VW, VWT = VesselWeightAndWallThickness(P, D, Ht, rho_M)
+        VW, VWT = compute_vessel_weight_and_wall_thickness(P, D, Ht, rho_M)
 
         # Find maximum and normal liquid level
         # Hhll = Hs + Hh + Hlll
@@ -464,7 +476,7 @@ class Flash(Unit):
         if D <= 4.0:
             D = 4.0
         else:
-            D = FinalValue(D)
+            D = ceil_half_step(D)
 
         for outerIter in range(50):
             At = pi*(D**2)/4.0 # Total area
@@ -480,7 +492,7 @@ class Flash(Unit):
             Hv = 0.2*D
             if has_mist_eliminator and Hv <= 2.0: Hv = 2.0
             elif Hv <= 1.0: Hv = 1.0
-            else: Hv = FinalValue(Hv)
+            else: Hv = ceil_half_step(Hv)
             Av = HNATable(1, Hv/D)*At
             
             # Calculate minimum length for surge and holdup
@@ -528,7 +540,7 @@ class Flash(Unit):
 
         # Calculate vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
-        VW, VWT = VesselWeightAndWallThickness(P, D, L, rho_M)
+        VW, VWT = compute_vessel_weight_and_wall_thickness(P, D, L, rho_M)
 
         # # To check minimum Hv value
         # if int(has_mist_eliminator) == 1 and Hv <= 2.0:
