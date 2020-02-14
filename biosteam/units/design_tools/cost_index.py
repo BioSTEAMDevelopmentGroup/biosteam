@@ -7,6 +7,7 @@ Created on Thu Jun  6 01:25:26 2019
 
 __all__ = ('CEPCI_by_year',)
 
+#: dict[int: int] 
 CEPCI_by_year = {1980: 261,
                  1981: 297,
                  1982: 314,
