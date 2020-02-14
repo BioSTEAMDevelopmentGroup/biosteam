@@ -73,12 +73,32 @@ class Unit:
 
     **Abstract class methods**
     
+    _setup()
+        Set stream conditions and constant data.
     _run()
         Run simulation and update output streams.
     _design()
         Add design requirements to the `design_results` dictionary.
     _cost()
         Add itemized purchse costs to the "purchase_costs" dictionary.
+    
+    Attributes
+    ----------
+    ins : Ins[Stream]
+        Input streams.
+    outs : Outs[Stream]
+        Output streams.
+    power_utility : PowerUtility
+        Electricity rate requirements are stored here.
+    heat_utilities : tuple[HeatUtility]
+        Cooling and heating requirements are stored here.
+    design_results : dict
+        All design requirements.
+    purchase_costs : dict
+        Itemized purchase costs.
+    thermo : Thermo
+        The thermodynamic property package used by the unit.
+    
     
     Examples
     --------
@@ -92,15 +112,16 @@ class Unit:
     
     """ 
     
-    def __init_subclass__(cls, isabstract=False):
+    def __init_subclass__(cls, isabstract=False, new_graphics=True):
         dct = cls.__dict__
-        if 'line' not in dct and cls.line in lines_with_new_graphics:
-            # Set new graphics for default line
-            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-            cls.line = format_unit_line(cls.__name__)
-        elif '_graphics' not in dct:
-            # Set new graphics for specified line
-            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+        if new_graphics:
+            if 'line' not in dct and cls.line in lines_with_new_graphics:
+                # Set new graphics for default line
+                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+                cls.line = format_unit_line(cls.__name__)
+            elif '_graphics' not in dct:
+                # Set new graphics for specified line
+                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         
         if not isabstract and not hasattr(cls, '_run'): static(cls)
             
@@ -262,34 +283,36 @@ class Unit:
                 include_total_cost=True):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
         # TODO: Divide this into functions
-        ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
         if with_units:
             if include_utilities:
-                i = self.power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(('kW', i.rate))
-                addval(('USD/hr', i.cost))
-                for i in self.heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(('kJ/hr', i.duty))
-                    addval(('kmol/hr', i.flow))
-                    addval(('USD/hr', i.cost))
+                power_utility = self.power_utility
+                if power_utility:
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(('kW', power_utility.rate))
+                    addval(('USD/hr', power_utility.cost))
+                for heat_utility in self.heat_utilities:
+                    if heat_utility:
+                        ID = heat_utility.ID
+                        addkey((ID, 'Duty'))
+                        addkey((ID, 'Flow'))
+                        addkey((ID, 'Cost'))
+                        addval(('kJ/hr', heat_utility.duty))
+                        addval(('kmol/hr', heat_utility.flow))
+                        addval(('USD/hr', heat_utility.cost))
             units = self._units
             Cost = self.purchase_costs
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval((units.get(ki, ''), vi))
-            for ki, vi in Cost.items():
-                addkey(('Purchase cost', ki))
-                addval(('USD', vi))
             for ki, vi, ui in self._get_design_specs():
                 addkey(('Design', ki))
                 addval((ui, vi))
+            for ki, vi in Cost.items():
+                addkey(('Purchase cost', ki))
+                addval(('USD', vi))
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(('USD', self.purchase_cost))
@@ -311,23 +334,27 @@ class Unit:
             if not keys: return None
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
-                              ('Units', ID))
+                              ('Units', self.ID))
             df.columns.name = self.line
             return df
         else:
             if include_utilities:
-                i = self.power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(i.rate)
-                addval(i.cost)
-                for i in self.heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(i.duty)
-                    addval(i.flow)
-                    addval(i.cost)
+                power_utility = self.power_utility
+                if power_utility:
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(power_utility.rate)
+                    addval(power_utility.cost)
+                for heat_utility in self.heat_utilities:
+                    if heat_utility:
+                        if heat_utility:
+                            ID = heat_utility.ID
+                            addkey((ID, 'Duty'))
+                            addkey((ID, 'Flow'))
+                            addkey((ID, 'Cost'))
+                            addval(heat_utility.duty)
+                            addval(heat_utility.flow)
+                            addval(heat_utility.cost)
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval(vi)
@@ -356,7 +383,7 @@ class Unit:
                 addval(self.utility_cost)
             if not keys: return None
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
-            series.name = ID
+            series.name = self.ID
             return series
 
     @property
@@ -614,9 +641,9 @@ class Unit:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        info+= f'ins...\n'
+        info += f'ins...\n'
         i = 0
-        for stream in self._ins:
+        for stream in self.ins:
             if not stream:
                 info += f'[{i}] {stream}\n'
                 i += 1
@@ -629,7 +656,7 @@ class Unit:
             i += 1
         info += f'outs...\n'
         i = 0
-        for stream in self._outs:
+        for stream in self.outs:
             if not stream:
                 info += f'[{i}] {stream}\n'
                 i += 1
@@ -651,9 +678,6 @@ class Unit:
         try: self.diagram()
         except: pass
         self.show()
-    
-    def __str__(self):
-        return self.ID or type(self).__name__
 
     def __repr__(self):
         if self.ID:

@@ -126,11 +126,13 @@ class Flowsheet:
                     if source in i.units and sink not in i.units:
                         if sink: outs.append(s)
                         else: products.append(s)
-                        refresh_units.add(source)
+                        u_io = (source, tuple(source.ins), tuple(source.outs))
+                        refresh_units.add(u_io)
                     elif sink in i.units and source not in i.units:
                         if source: ins.append(s)
                         else: feeds.append(s)
-                        refresh_units.add(sink)
+                        u_io = (sink, tuple(sink.ins), tuple(sink.outs))
+                        refresh_units.add(u_io)
                 
                 if len(feeds) > 1:
                     feed = Stream(None)
@@ -154,9 +156,9 @@ class Flowsheet:
         
         sys = _system.System(None, units)
         sys._thorough_diagram(file, format, **graph_attrs)
-        for i in refresh_units:
-            i._ins[:] = i._ins
-            i._outs[:] = i._outs
+        for u, ins, outs in refresh_units:
+            u._ins[:] = ins
+            u._outs[:] = outs
     
     def __call__(self, ID):
         """Return requested biosteam item.

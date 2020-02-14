@@ -71,7 +71,7 @@ def calculate_vacuum_system_power_and_cost(
     else:
         factor = 1
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
-    F_mass_lbph = 2.205*F_mass_kgph
+    F_mass_lbph = 2.205 * F_mass_kgph
     power = calculate_vacuum_power(F_mass_kgph, P_suction)
     vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
     vacuum_sys, grade = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)

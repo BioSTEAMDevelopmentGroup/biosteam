@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from ._solids_separator import SolidsSeparator
-from .designtools import calculate_vacuum_system_power_and_cost
+from .design_tools import calculate_vacuum_system_power_and_cost
 import numpy as np
 import biosteam as bst
 

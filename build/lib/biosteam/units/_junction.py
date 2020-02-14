@@ -5,6 +5,7 @@ Created on Sat Jun  8 23:29:37 2019
 @author: yoelr
 """
 from .._unit import Unit
+from .._power_utility import PowerUtility
 from thermosteam import MultiStream
 from ..utils.piping import Ins, Outs
 
@@ -59,6 +60,7 @@ class Junction(Unit):
     _has_cost = False
     _N_ins = _N_outs = 1
     heat_utilities = ()
+    power_utility = PowerUtility()
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         thermo = self._load_thermo(thermo)
         self._chemicals_in_common = self._past_streams = ()

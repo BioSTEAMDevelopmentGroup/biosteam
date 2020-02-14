@@ -52,6 +52,9 @@ class PowerUtility:
         #: Cost (USD/hr)
         self.cost = 0
     
+    def __bool__(self):
+        return bool(self.rate)
+    
     def __call__(self, rate):
         """Calculate cost and save results. 
         

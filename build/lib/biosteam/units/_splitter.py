@@ -13,7 +13,7 @@ __all__ = ('run_split', 'run_split_with_mixing')
 def run_split(self):
     """Splitter mass and energy balance function based on one input stream."""
     top, bot = self.outs
-    feed = self._ins[0]
+    feed = self.ins[0]
     top_mol = top.mol
     feed_mol = feed.mol
     top_mol[:] = feed_mol * self.split

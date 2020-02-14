@@ -17,8 +17,9 @@ class MassBalance(Unit):
 
     Parameters
     ----------
-    IDs : tuple[str]
-        Chemicals that will be used to solve mass balance linear equations. The number of chemicals must be same as the number of input streams varied.
+    chemical_IDs : tuple[str]
+        Chemicals that will be used to solve mass balance linear equations.
+        The number of chemicals must be same as the number of input streams varied.
     streams : tuple[int]
         Indices of input streams that can vary in net flow rate
     is_exact=True : bool, optional
@@ -29,7 +30,64 @@ class MassBalance(Unit):
 
     Examples
     --------
-    :doc:`notebooks/MassBalance Example`
+    MassBalance are Unit objects that serve to alter flow rates of selected species and input streams to satisfy the mass balance. The example below uses the MassBalance object to satisfy the target flow rate feeding the mixer M1:
+    
+    >>> from biosteam import System
+    >>> from biosteam.units import Mixer, Splitter, StorageTank, Pump, Flash, MassBalance
+    >>> from thermosteam import Chemicals, Stream, settings
+    >>> chemicals = Chemicals(['Water', 'Ethanol'])
+    >>> settings.set_thermo(chemicals)
+    >>> water = Stream('water',
+    ...                Water=40,
+    ...                units='lb/s',
+    ...                T=350, P=101325)
+    >>> ethanol = Stream('ethanol',
+    ...                  Ethanol=190, Water=30,
+    ...                  T=300, P=101325)
+    >>> target = Stream('target', flow=[50, 50])
+    >>> T1 = StorageTank('T1')
+    >>> T2 = StorageTank('T2')
+    >>> P1 = Pump('P1', P=101325)
+    >>> P2 = Pump('P2', P=101325)
+    >>> M1 = Mixer('M1', outs='s1')
+    >>> S1 = Splitter('S1', outs=('s2', 's3'), split=0.5)
+    >>> F1 = Flash('F1', outs=('s4', 's5'), V=0.5, P =101325)
+    >>> # Connect units
+    >>> water-T1-P1
+    <Pump: P1>
+    >>> ethanol-T2-P2
+    <Pump: P2>
+    >>> [P1-0, P2-0, S1-0]-M1-F1-1-S1
+    <Splitter: S1>
+    >>> MB1 = MassBalance('MB1', streams=[0,1],
+    ...                   chemical_IDs=['Ethanol', 'Water'],
+    ...                   outs=target,
+    ...                   ins=(water, ethanol, S1-0))
+    >>> mixSys = System('mixSys',
+    ...                  recycle=S1-0,
+    ...                  network=(MB1, T1, P1, T2, P2, M1, F1, S1))
+    >>> # Make diagram to view system
+    >>> # mixSys.diagram()
+    >>> mixSys.simulate();
+    >>> MB1.show()
+    MassBalance: MB1
+    ins...
+    [0] water
+        phase: 'l', T: 350 K, P: 101325 Pa
+        flow (kmol/hr): Water  28.3
+    [1] ethanol
+        phase: 'l', T: 300 K, P: 101325 Pa
+        flow (kmol/hr): Water    6.37
+                        Ethanol  40.3
+    [2] s2  from  Splitter-S1
+        phase: 'l', T: 353.88 K, P: 101325 Pa
+        flow (kmol/hr): Water    15.3
+                        Ethanol  9.65
+    outs...
+    [0] target
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    50
+                        Ethanol  50
     
     """
     line = 'Balance'
@@ -37,6 +95,7 @@ class MassBalance(Unit):
     _has_cost = False
     _N_ins = 2
     heat_utilities = ()
+    power_utility = None
 
     def __init__(self, ID='', outs=(), ins=None,
                  chemical_IDs=None, streams=None,

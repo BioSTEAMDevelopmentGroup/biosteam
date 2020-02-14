@@ -100,8 +100,10 @@ def set_price(price):
         
 def add_power_utility_price_param(model, shape):
     if bst.PowerUtility.price:
+        baseline = bst.PowerUtility.price
         model.parameter(set_price, element='Electricity', units='USD/kWhr',
-                        distribution=shape(bst.PowerUtility.price))
+                        distribution=shape(baseline),
+                        baseline=baseline)
         
 def add_heat_utility_price_params(model, shape):
     named_agents = (*bst.HeatUtility.cooling_agents,
@@ -119,34 +121,44 @@ class Setter:
         
 def add_agent_price_params(model, name, agent, shape):
     if agent.price_kJ:
+        baseline = agent.price_kJ
         model.parameter(Setter(agent, 'price_kJ'), element=name, units='USD/kJ',
-                        name='Price', distribution=shape(agent.price_kJ))
+                        name='Price', distribution=shape(baseline), baseline=baseline)
     elif agent.price_kmol:
+        baseline = agent.price_kmol
         model.parameter(Setter(agent, 'price_kmol'), element=name, units='USD/kmol',
-                        name='Price', distribution=shape(agent.price_kmol))
+                        name='Price', distribution=shape(baseline),
+                        baseline=baseline)
         
 def add_flow_rate_param(model, feed, shape):
+    baseline = feed.F_mass
     model.parameter(Setter(feed, 'F_mass'), element=feed, units='kg/hr',
-                    distribution=shape(feed.F_mass), kind='coupled',
-                    name='Flow rate')
+                    distribution=shape(baseline), kind='coupled',
+                    name='Flow rate', baseline=baseline)
     
 def add_basic_TEA_params(model, shape, operating_days):
     param = model.parameter
     TEA = model._system.TEA
     
     if operating_days:
+        baseline = TEA.operating_days
         param(Setter(TEA, 'operating_days'), element='TEA', 
-              distribution=shape(TEA.operating_days),
+              distribution=shape(baseline),
+              baseline=baseline,
               name='Operating days')
-        
+    
+    baseline = TEA.income_tax
     param(Setter(TEA, 'income_tax'),
                  element='TEA',
-                 distribution=shape(TEA.income_tax),
+                 distribution=shape(baseline),
+                 baseline=baseline,
                  name='Income tax')
         
     if TEA.startup_months:
+        baseline = TEA.startup_months
         param(Setter(TEA, 'startup_months'), element='TEA', 
-              distribution=shape(TEA.startup_months), name='startup_months')
+              baseline=baseline,
+              distribution=shape(baseline), name='startup_months')
             
     
 
@@ -158,6 +170,7 @@ def add_stream_price_param(model, stream, shape):
     model.parameter(Setter(stream, 'price'),
                     element=stream, units='USD/kg',
                     distribution=shape(mid),
+                    baseline=mid,
                     name='price')
 
 def _cost(model, ID, item, line, shape):
@@ -168,7 +181,7 @@ def _cost(model, ID, item, line, shape):
     name = 'base cost'
     if ID!=line: ID = ID + ' ' + name
     else: ID = name
-    _cost_option(model, ID, item, key, line, distribution, 'USD')
+    _cost_option(model, ID, item, key, line, distribution, 'USD', mid)
     
 def _exp(model, ID, item, line, shape):
     key = 'n'
@@ -178,7 +191,7 @@ def _exp(model, ID, item, line, shape):
     name = 'exponent'
     if ID!=line: ID = ID + ' ' + name
     else: ID = name
-    _cost_option(model, ID, item, key, line, distribution, None)
+    _cost_option(model, ID, item, key, line, distribution, None, mid)
 
 class CostItemSetter:
     __slots__ = ('item', 'key', 'size')
@@ -202,9 +215,11 @@ def _kW(model, ID, item, line, shape):
     if ID!=line: ID = ID + ' ' + name
     else: ID = name
     model.parameter(CostItemSetter(item, key, size), element=line,
+                    baseline=mid,
                     units=units, distribution=distribution, name=ID)
 
-def _cost_option(model, ID, item, key, line, distribution, units):
+def _cost_option(model, ID, item, key, line, distribution, units, mid):
     model.parameter(CostItemSetter(item, key), element=line, units=units, 
+                    baseline=mid,
                     distribution=distribution, name=ID)
  

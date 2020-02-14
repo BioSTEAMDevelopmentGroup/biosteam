@@ -72,7 +72,7 @@ def n_missing(ub, N):
     assert ub >= N, f"size of streams exceeds {ub}"
     return ub - N
 
-missing_stream = MissingStream()
+MissingStream = MissingStream()
 
 # %% List objects for input and output streams
 
@@ -97,7 +97,7 @@ class StreamSequence:
                 self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
             if fixed_size:
-                self._streams = [missing_stream] * size #: All input streams
+                self._streams = [MissingStream] * size #: All input streams
                 if streams:
                     if isa(streams, str):
                         self._streams[0] = dock(Stream(streams, thermo=thermo))
@@ -118,7 +118,7 @@ class StreamSequence:
                         self._streams = [redock(i) if isa(i, Stream)
                                          else dock(Stream(i, thermo=thermo)) for i in streams]
                 else:
-                    self._streams = size * [missing_stream]
+                    self._streams = size * [MissingStream]
         
     def __add__(self, other):
         return self._streams + other
@@ -140,7 +140,7 @@ class StreamSequence:
             if N_streams < size:
                 N_missing = n_missing(size, N_streams)
                 if N_missing:
-                    all_streams[N_streams: size] = (missing_stream,) * N_missing   
+                    all_streams[N_streams: size] = (MissingStream,) * N_missing   
             
     @property
     def size(self):
@@ -161,7 +161,7 @@ class StreamSequence:
         streams = self._streams
         if self._fixed_size:
             stream = streams[index]
-            streams[index] = missing_stream
+            streams[index] = MissingStream
         else:
             stream = streams.pop(index)
         return stream
@@ -171,13 +171,13 @@ class StreamSequence:
         self._undock(stream)
         if self._fixed_size:
             index = streams.index(stream)
-            streams[index] = missing_stream
+            streams[index] = MissingStream
         else:
             streams.remove(stream)
         
     def clear(self):
         if self._fixed_size:
-            self._streams = [missing_stream] * self.size
+            self._streams = [MissingStream] * self.size
         else:
             self._streams.clear()
     

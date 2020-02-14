@@ -220,7 +220,6 @@ class System(metaclass=system):
                 units.extend(i._unit_network)
                 subsystems.add(i)
                 streams.update(i.streams)
-        streams.discard(MissingStream) 
         
         # link all unit operations with linked streams
         for u in units: u._load_stream_links()
@@ -229,7 +228,7 @@ class System(metaclass=system):
         self.units = units = set(units)
         
         #: set[Unit] All units in the network that have costs
-        self._network_costunits = costunits = {i for i in units if i._cost}
+        self._network_costunits = costunits = {i for i in units if i._design or i._cost}
         
         #: set[Unit] All units that have costs.
         self._costunits = costunits = costunits.copy()
@@ -247,6 +246,8 @@ class System(metaclass=system):
                 streams.update(i.streams)
                 subsystems.add(i)
                 costunits.update(i._costunits)
+        
+        streams.discard(MissingStream)
         
         #: set[Stream] All feed streams in the system.
         self.feeds = set(filter(_isfeed, streams))
@@ -391,16 +392,19 @@ class System(metaclass=system):
                     if source in i.units and sink not in i.units:
                         if sink: outs.append(s)
                         else: products.append(s)
-                        refresh_units.add(source)
+                        u_io = (source, tuple(source.ins), tuple(source.outs))
+                        refresh_units.add(u_io)
                     elif sink in i.units and source not in i.units:
                         if source: ins.append(s)
                         else: feeds.append(s)
-                        refresh_units.add(sink)
+                        u_io = (sink, tuple(sink.ins), tuple(sink.outs))
+                        refresh_units.add(u_io)
                 
                 if len(feeds) > 1:
                     feed = Stream(None)
                     feed._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]), None, feed))
+                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]),
+                                          None, feed))
                     ins.append(feed)
                 else: ins += feeds
                 
@@ -417,9 +421,9 @@ class System(metaclass=system):
                 
         System(None, units)._thorough_diagram(file, format, **graph_attrs)
         # Reconnect how it was
-        for u in refresh_units:
-            u._ins[:] = u._ins
-            u._outs[:] = u._outs
+        for u, ins, outs in refresh_units:
+            u._ins[:] = ins
+            u._outs[:] = outs
       
     def _thorough_diagram(self, file, format, **graph_attrs):
         """Thoroughly display every unit within the network."""

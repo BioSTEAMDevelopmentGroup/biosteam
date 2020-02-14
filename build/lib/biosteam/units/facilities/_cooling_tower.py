@@ -9,12 +9,10 @@ from ..decorators import cost
 from thermosteam import Stream
 import numpy as np
 from ... import HeatUtility
-from ...utils.stream_link_options import static
 # from copy import copy
 
 __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
 
-@static
 @cost('Flow rate', 'Cooling water pump',
       S=557183, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
 @cost('Flow rate', 'Cooling tower',
