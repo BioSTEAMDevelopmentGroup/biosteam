@@ -13,10 +13,10 @@ from .design_tools.specification_factors import  (
     distillation_tray_type_factor,
     material_densities_lb_per_in3)
 from .design_tools.column_design import (
-    compute_height,
-    compute_diameter,
-    compute_weight,
-    compute_wall_thickness,
+    compute_tower_height,
+    compute_tower_diameter,
+    compute_tower_weight,
+    compute_tower_wall_thickness,
     compute_flow_parameter,
     compute_max_vapor_velocity,
     compute_max_capacity_parameter,
@@ -81,7 +81,7 @@ def compute_stages_McCabeThiele(P, operating_line,
 # %% Distillation
 
 class Distillation(Unit):
-    """
+    r"""
     Create a Distillation column that assumes all light and heavy non keys
     separate to the top and bottoms product respectively. McCabe-Thiele
     analysis is used to find both the number of stages and the reflux ratio
@@ -95,31 +95,31 @@ class Distillation(Unit):
     for hydrocarbons. The Murphree efficiency is based on the modified
     O'Connell correlation [2]_. The diameter is based on tray separation
     and flooding velocity [1]_. Purchase costs are based on correlations
-    by Mulet et al. [3, 4]_ as compiled by Warren et. al. [5]_.
+    by Mulet et al. [3]_ [4]_ as compiled by Warren et. al. [5]_.
 
     Parameters
     ----------
-    ins
-        [:] All input streams
-    outs
-        [0] Distillate product
-        
-        [1] Bottoms product
+    ins : streams
+        Inlet fluids to be mixed into the feed stage.
+    outs : stream sequence
+        * [0] Distillate
+        * [1] Bottoms product
     LHK : tuple[str]
-          Light and heavy keys.
-    P=101325 : float
-        Operating pressure (Pa).
+        Light and heavy keys.
     y_top : float
-            Molar fraction of light key in the distillate.
+        Molar fraction of light key in the distillate.
     x_bot : float
-            Molar fraction of light key in the bottoms.
+        Molar fraction of light key in the bottoms.
     k : float
         Ratio of reflux to minimum reflux.
-    vessel_material='Carbon steel' : str
-        Vessel construction material.
-    tray_material='Carbon steel' : str
-        Tray construction material.
-    tray_type='Sieve' : {'Sieve', 'Valve', 'Bubble cap'}
+    P=101325 : float
+        Operating pressure [Pa].
+    vessel_material : str, optional
+        Vessel construction material. Defaults to 'Carbon steel'.
+    tray_material : str, optional
+        Tray construction material. Defaults to 'Carbon steel'.
+    tray_type='Sieve' : 'Sieve', 'Valve', or 'Bubble cap'
+        Tray type.
     tray_spacing=450 : float
         Typically between 152 to 915 mm.
     stage_efficiency=None : 
@@ -196,7 +196,6 @@ class Distillation(Unit):
                      Methanol  0.00761
                      Glycerol  0.239
                      --------  105 kmol/hr
-    
     >>> D1.results()
     Distillation                                    Units        D1
     Cooling water       Duty                        kJ/hr -5.11e+06
@@ -489,7 +488,7 @@ class Distillation(Unit):
         condensate = self.condensate # Abstract attribute
         condenser = self.condenser
         s_in = condenser.ins[0]
-        s_in.mol[:] = distillate.mol+condensate.mol
+        s_in.mol[:] = distillate.mol + condensate.mol
         s_in.T = distillate.T
         s_in.P = distillate.P
         ms1 = condenser.outs[0]
@@ -701,7 +700,7 @@ class Distillation(Unit):
         if A_dn is None:
            self._A_dn = A_dn = compute_downcomer_area_fraction(F_LV)
         f = self._f
-        R_diameter = compute_diameter(V_vol, U_f, f, A_dn)
+        R_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn)
         
         ### Get diameter of stripping section based on feed plate ###
         
@@ -724,27 +723,27 @@ class Distillation(Unit):
         A_dn = self._A_dn
         if A_dn is None:
             A_dn = compute_downcomer_area_fraction(F_LV)
-        S_diameter = compute_diameter(V_vol, U_f, f, A_dn)
-        Po = self.P*0.000145078 # to psi
+        S_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn)
+        Po = self.P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         
         if is_divided:
             Design['Rectifier stages'] = Rstages
             Design['Stripper stages'] =  Sstages
-            Design['Rectifier height'] = H_R = compute_height(TS, Rstages-1)
-            Design['Stripper height'] = H_S = compute_height(TS, Sstages-1)
+            Design['Rectifier height'] = H_R = compute_tower_height(TS, Rstages-1)
+            Design['Stripper height'] = H_S = compute_tower_height(TS, Sstages-1)
             Design['Rectifier diameter'] = R_diameter
             Design['Stripper diameter'] = S_diameter
-            Design['Rectifier wall thickness'] = tv = compute_wall_thickness(Po, R_diameter, H_R)
-            Design['Stripper wall thickness'] = tv = compute_wall_thickness(Po, S_diameter, H_S)
-            Design['Rectifier weight'] = compute_weight(R_diameter, H_R, tv, rho_M)
-            Design['Stripper weight'] = compute_weight(S_diameter, H_S, tv, rho_M)
+            Design['Rectifier wall thickness'] = tv = compute_tower_wall_thickness(Po, R_diameter, H_R)
+            Design['Stripper wall thickness'] = tv = compute_tower_wall_thickness(Po, S_diameter, H_S)
+            Design['Rectifier weight'] = compute_tower_weight(R_diameter, H_R, tv, rho_M)
+            Design['Stripper weight'] = compute_tower_weight(S_diameter, H_S, tv, rho_M)
         else:
             Design['Actual stages'] = Rstages + Sstages
-            Design['Height'] = H = compute_height(TS, Rstages+Sstages-2)
+            Design['Height'] = H = compute_tower_height(TS, Rstages+Sstages-2)
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
-            Design['Wall thickness'] = tv = compute_wall_thickness(Po, Di, H)
-            Design['Weight'] = compute_weight(Di, H, tv, rho_M)
+            Design['Wall thickness'] = tv = compute_tower_wall_thickness(Po, Di, H)
+            Design['Weight'] = compute_tower_weight(Di, H, tv, rho_M)
         
     def _cost(self):
         Design = self.design_results

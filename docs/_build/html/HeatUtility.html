@@ -202,13 +202,32 @@
 <dd><p>Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature change, or phase change of utility. Calculations assume counter current flow rate.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>efficiency=None</strong><span class="classifier">float, optional</span></dt><dd><p>Enforced fraction of heat transfered from utility (due
+<dd class="field-odd"><p><strong>efficiency=None</strong> (<em>float</em><em>, </em><em>optional</em>) – Enforced fraction of heat transfered from utility (due
 to losses to environment).</p>
 </dd>
 </dl>
+<dl class="attribute">
+<dt id="biosteam.HeatUtility.cooling_agents">
+<code class="sig-name descname">cooling_agents</code><a class="headerlink" href="#biosteam.HeatUtility.cooling_agents" title="Permalink to this definition">¶</a></dt>
+<dd><p>All cooling utilities available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict[str: UtilityAgent]</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.HeatUtility.heating_agents">
+<code class="sig-name descname">heating_agents</code><a class="headerlink" href="#biosteam.HeatUtility.heating_agents" title="Permalink to this definition">¶</a></dt>
+<dd><p>All heating utilities available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict[str: UtilityAgent]</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p class="rubric">Examples</p>
 <p>Create a heat utility:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
@@ -234,16 +253,6 @@ to losses to environment).</p>
 <span class="go">(&#39;Low pressure steam&#39;, 1052.6315789473686, 0.027090580063500323, 0.006442139939100377)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>cooling_agents</strong><span class="classifier">dict[str: UtilityAgent]</span></dt><dd><p>All cooling utilities available</p>
-</dd>
-<dt><strong>heating_agents</strong><span class="classifier">dict[str: UtilityAgent]</span></dt><dd><p>All heating utilities available</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <dl class="attribute">
 <dt id="biosteam.HeatUtility.dT">
 <code class="sig-name descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>
@@ -258,25 +267,22 @@ to losses to environment).</p>
 
 <dl class="method">
 <dt id="biosteam.HeatUtility.__call__">
-<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">duty</em>, <em class="sig-param">T_in</em>, <em class="sig-param">T_out=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">duty</em>, <em class="sig-param">T_in</em>, <em class="sig-param">T_out=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate utility requirements given the essential parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>duty</strong><span class="classifier">float</span></dt><dd><p>Unit duty requirement (kJ/hr)</p>
-</dd>
-<dt><strong>T_in</strong><span class="classifier">float</span></dt><dd><p>Entering process stream temperature (K)</p>
-</dd>
-<dt><strong>T_out</strong><span class="classifier">float, optional</span></dt><dd><p>Exit process stream temperature (K)</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duty</strong> (<em>float</em>) – Unit duty requirement (kJ/hr)</p></li>
+<li><p><strong>T_in</strong> (<em>float</em>) – Entering process stream temperature (K)</p></li>
+<li><p><strong>T_out</strong> (<em>float</em><em>, </em><em>optional</em>) – Exit process stream temperature (K)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.HeatUtility.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">duty=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">cost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">duty=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">cost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print all specifications</p>
 </dd></dl>
 

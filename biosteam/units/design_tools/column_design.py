@@ -12,8 +12,8 @@ __all__ = ('compute_purchase_cost_of_trays',
            'compute_purchase_cost_of_tower',
            'compute_empty_tower_cost',
            'compute_plaform_ladder_cost',
-           'compute_weight',
-           'compute_wall_thickness',
+           'compute_tower_weight',
+           'compute_tower_wall_thickness',
            'compute_tray_base_purchase_cost',
            'compute_n_trays_factor',
            'compute_murphree_stage_efficiency',
@@ -21,8 +21,8 @@ __all__ = ('compute_purchase_cost_of_trays',
            'compute_max_capacity_parameter',
            'compute_max_vapor_velocity',
            'compute_downcomer_area_fraction',
-           'compute_diameter',
-           'compute_height')
+           'compute_tower_diameter',
+           'compute_tower_height')
 
 # Minimum thickness data
 x = np.array((4, 6, 8, 10, 12)) 
@@ -82,7 +82,7 @@ def compute_empty_tower_cost(W):
     return np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
 
 def compute_plaform_ladder_cost(Di, L):
-    """Return C_PL, the cost (USD) of platforms and ladders assuming a CE of 500.
+    """Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.
     
     Parameters
     ----------
@@ -94,8 +94,8 @@ def compute_plaform_ladder_cost(Di, L):
     """
     return 300.9*Di**0.63316*L**0.80161
 
-def compute_weight(Di, L, tv, rho_M):
-    """Return W, the weight (lb) of the tower assuming 2:1 elliptical head.
+def compute_tower_weight(Di, L, tv, rho_M):
+    """Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.
     
     Parameters
     ----------
@@ -113,8 +113,10 @@ def compute_weight(Di, L, tv, rho_M):
     L = L*12
     return np.pi*(Di+tv)*(L+0.8*Di)*tv*rho_M
 
-def compute_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
-    """Return tv, the wall thinkness (in) designed to withstand the internal pressure and the wind/earthquake load at the bottom.
+def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
+    """
+    Return the wall thinkness [tv; in inches] designed to withstand the
+    internal pressure and the wind/earthquake load at the bottom.
     
     Parameters
     ----------
@@ -190,7 +192,7 @@ def compute_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     return tv
 
 def compute_tray_base_purchase_cost(Di):
-    """Return C_BT, the base cost of a tray (USD) at a CE of 500.
+    """Return the base cost of a tray [C_BT; USD] at a CE of 500.
     
     Parameters
     ----------
@@ -318,7 +320,7 @@ def compute_downcomer_area_fraction(F_LV):
         A_dn = 0.2
     return A_dn
 
-def compute_diameter(V_vol, U_f, f, A_dn):
+def compute_tower_diameter(V_vol, U_f, f, A_dn):
     """Return column diameter [D_T; in ft].
     
     Parameters
@@ -340,9 +342,9 @@ def compute_diameter(V_vol, U_f, f, A_dn):
     Di *= 3.28
     return Di
 
-def compute_height(TS, N_stages: int, top=True, bot=True):
+def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     """
-    Return the height of the column [H; ft].
+    Return the height of a column [H; ft].
     
     Parameters
     ----------

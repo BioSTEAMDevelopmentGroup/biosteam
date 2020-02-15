@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>designtools &mdash; BioSTEAM 0.1 documentation</title>
+  <title>design_tools &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">designtools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -179,7 +179,7 @@
         
           <li><a href="units.html">units</a> &raquo;</li>
         
-      <li>designtools</li>
+      <li>design_tools</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -218,7 +218,7 @@
 }
 </style>
 <div class="section" id="module-biosteam.units.design_tools">
-<span id="designtools"></span><h1>designtools<a class="headerlink" href="#module-biosteam.units.design_tools" title="Permalink to this headline">¶</a></h1>
+<span id="design-tools"></span><h1>design_tools<a class="headerlink" href="#module-biosteam.units.design_tools" title="Permalink to this headline">¶</a></h1>
 <p>Created on Wed Mar  6 16:46:04 2019</p>
 <p>&#64;author: yoelr</p>
 <dl class="function">
@@ -227,18 +227,13 @@
 <dd><p>Return power (kW) and cost (USD) of vacuum system.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>F_mass</strong><span class="classifier">float</span></dt><dd><p>Vapor mass flow rate entering vacuum system from vessel in kg/hr (not including inleakage).</p>
-</dd>
-<dt><strong>F_vol</strong><span class="classifier">float</span></dt><dd><p>Vapor volumetric flow rate entering vacuum system from vessel in m3/hr (not including inleakage).</p>
-</dd>
-<dt><strong>P_suction</strong><span class="classifier">float</span></dt><dd><p>Suction pressure in Pa</p>
-</dd>
-<dt><strong>vessel_volume</strong><span class="classifier">float</span></dt><dd><p>Vacuum volume in m3</p>
-</dd>
-<dt><strong>vacuum_system_preference</strong><span class="classifier">tuple[str] or str</span></dt><dd><p>Name(s) of preferred vacuum systems</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>F_mass</strong> (<em>float</em>) – Vapor mass flow rate entering vacuum system from vessel in kg/hr (not including inleakage).</p></li>
+<li><p><strong>F_vol</strong> (<em>float</em>) – Vapor volumetric flow rate entering vacuum system from vessel in m3/hr (not including inleakage).</p></li>
+<li><p><strong>P_suction</strong> (<em>float</em>) – Suction pressure in Pa</p></li>
+<li><p><strong>vessel_volume</strong> (<em>float</em>) – Vacuum volume in m3</p></li>
+<li><p><strong>vacuum_system_preference</strong> (<em>tuple</em><em>[</em><em>str</em><em>] or </em><em>str</em>) – Name(s) of preferred vacuum systems</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -249,12 +244,10 @@
 <dd><p>Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>DRho</strong><span class="classifier">float</span></dt><dd><p>Density difference between light liquid and vapor (lb/ft^3 ?)</p>
-</dd>
-<dt><strong>Hlr</strong><span class="classifier">float</span></dt><dd><p>Height of liquid level above the interphase of light liquid and heavy liquid (ft)</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DRho</strong> (<em>float</em>) – Density difference between light liquid and vapor [lb/ft^3 ?]</p></li>
+<li><p><strong>Hlr</strong> (<em>float</em>) – Height of liquid level above the interphase of light liquid and heavy liquid [ft]</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -263,41 +256,48 @@
 <dt id="biosteam.units.design_tools.HNATable">
 <code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">HNATable</code><span class="sig-paren">(</span><em class="sig-param">Type</em>, <em class="sig-param">X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#HNATable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.HNATable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table for cylindrical height and area conversions.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p>Type: [int] 1 if given H/D and find A/At, 2 if given A/At and find H/D</p>
-<p>X: [float] H/D or A/At</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Type</strong> (<em>int</em>) – 1 if given H/D and find A/At, 2 if given A/At and find H/D.</p></li>
+<li><p><strong>X</strong> (<em>float</em>) – H/D or A/At.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.FinalValue">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">FinalValue</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#FinalValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.FinalValue" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.design_tools.ceil_half_step">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">ceil_half_step</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#ceil_half_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.ceil_half_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return value to the next/highest 0.5 units</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.VesselWeightAndWallThickness">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">VesselWeightAndWallThickness</code><span class="sig-paren">(</span><em class="sig-param">Pressure</em>, <em class="sig-param">Diameter</em>, <em class="sig-param">VesselLength</em>, <em class="sig-param">rho_M</em>, <em class="sig-param">Je=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#VesselWeightAndWallThickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.VesselWeightAndWallThickness" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.design_tools.compute_vessel_weight_and_wall_thickness">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_vessel_weight_and_wall_thickness</code><span class="sig-paren">(</span><em class="sig-param">P</em>, <em class="sig-param">D</em>, <em class="sig-param">L</em>, <em class="sig-param">rho_M</em>, <em class="sig-param">Je=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#compute_vessel_weight_and_wall_thickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_vessel_weight_and_wall_thickness" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return vessel weight and wall thickness.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p>Pressure: [float] (psia)</p>
-<p>Diameter: [float] (ft)</p>
-<p>VesselLength: [float] (ft)</p>
-<p>rho_M: [float] Density of Material (lb/ft^3)</p>
-<p>Je: [float] Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel)</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>P</strong> (<em>float</em>) – Pressure [psia].</p></li>
+<li><p><strong>D</strong> (<em>float</em>) – Diameter [ft].</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Vessel length [ft].</p></li>
+<li><p><strong>rho_M</strong> (<em>float</em>) – Density of Material [lb/ft^3].</p></li>
+<li><p><strong>Je</strong> (<em>float</em>) – Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel),</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.Kvalue">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">Kvalue</code><span class="sig-paren">(</span><em class="sig-param">P</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#Kvalue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.Kvalue" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.design_tools.compute_Stokes_law_York_Demister_K_value">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_Stokes_law_York_Demister_K_value</code><span class="sig-paren">(</span><em class="sig-param">P</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/tables.html#compute_Stokes_law_York_Demister_K_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_Stokes_law_York_Demister_K_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return K-constant in Stoke’s Law using the York-Demister equation.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p>P: [float] Pressure (psia)</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>P</strong> (<em>float</em>) – Pressure [psia].</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -306,28 +306,244 @@
 <dd><p>Solve for batch reactor volume, cycle time, and loading time</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>v_0</strong></dt><dd><p>Flow rate</p>
-</dd>
-<dt><strong>tau</strong></dt><dd><p>Reaction time</p>
-</dd>
-<dt><strong>tau_0</strong></dt><dd><p>Turnaround time</p>
-</dd>
-<dt><strong>N_reactors</strong></dt><dd><p>Number of reactors</p>
-</dd>
-<dt><strong>V_wf</strong></dt><dd><p>Fraction of working volume</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v_0</strong> – Flow rate</p></li>
+<li><p><strong>tau</strong> – Reaction time</p></li>
+<li><p><strong>tau_0</strong> – Turnaround time</p></li>
+<li><p><strong>N_reactors</strong> – Number of reactors</p></li>
+<li><p><strong>V_wf</strong> – Fraction of working volume</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt>dict[str: float]</dt><dd><ul class="simple">
+<dd class="field-even"><p><p><strong>dict[str</strong> –</p>
+<ul class="simple">
 <li><p>‘Reactor volume’</p></li>
-<li><p>‘Cycle time’</p></li>
-<li><p>‘Loading time’</p></li>
+<li><p>’Cycle time’</p></li>
+<li><p>’Loading time’</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_purchase_cost_of_trays">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_purchase_cost_of_trays</code><span class="sig-paren">(</span><em class="sig-param">N_T</em>, <em class="sig-param">Di</em>, <em class="sig-param">F_TT</em>, <em class="sig-param">F_TM</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_purchase_cost_of_trays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_purchase_cost_of_trays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return total cost of all trays at BioSTEAM’s CEPCI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N_T</strong> (<em>int</em>) – Number of trays.</p></li>
+<li><p><strong>Di</strong> (<em>float</em>) – Inner diameter [ft].</p></li>
+<li><p><strong>F_TT</strong> (<em>float</em>) – Tray type factor.</p></li>
+<li><p><strong>F_TM</strong> (<em>float</em>) – Tray material factor.</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_purchase_cost_of_tower">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_purchase_cost_of_tower</code><span class="sig-paren">(</span><em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">W</em>, <em class="sig-param">F_VM</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_purchase_cost_of_tower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_purchase_cost_of_tower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cost of tower at BioSTEAM’s CEPCI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Di</strong> (<em>float</em>) – Inner diameter [ft]</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – length [ft]</p></li>
+<li><p><strong>W</strong> (<em>float</em>) – weight [lb].</p></li>
+<li><p><strong>F_VM</strong> (<em>float</em>) – Column material factor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_empty_tower_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_empty_tower_cost</code><span class="sig-paren">(</span><em class="sig-param">W</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_empty_tower_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_empty_tower_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>W</strong> (<em>float</em>) – Weight [lb].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_plaform_ladder_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_plaform_ladder_cost</code><span class="sig-paren">(</span><em class="sig-param">Di</em>, <em class="sig-param">L</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_plaform_ladder_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_plaform_ladder_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return C_PL, the cost (USD) of platforms and ladders assuming a CE of 500.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Di</strong> (<em>float</em>) – Inner diameter [ft].</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Legnth [ft].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_weight">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_weight</code><span class="sig-paren">(</span><em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">tv</em>, <em class="sig-param">rho_M</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return W, the weight (lb) of the tower assuming 2:1 elliptical head.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Di</strong> (<em>float</em>) – Inner diameter ([ft].</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Legnth [ft].</p></li>
+<li><p><strong>tv</strong> (<em>float</em>) – Shell thickness [in].</p></li>
+<li><p><strong>rho_M</strong> (<em>floa</em>) – Density of material [lb/in^3].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_wall_thickness">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_wall_thickness</code><span class="sig-paren">(</span><em class="sig-param">Po</em>, <em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">S=15000</em>, <em class="sig-param">E=None</em>, <em class="sig-param">M=29.5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_wall_thickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_wall_thickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tv, the wall thinkness (in) designed to withstand the internal pressure and the wind/earthquake load at the bottom.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Po</strong> (<em>float</em>) – Operating internal pressure (psi)</p></li>
+<li><p><strong>Di</strong> (<em>float</em>) – Internal diameter (ft)</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Height (ft)</p></li>
+<li><p><strong>S</strong> (<em>float</em>) – Maximum stress (psi)</p></li>
+<li><p><strong>E</strong> (<em>float</em>) – Fractional weld efficiency</p></li>
+<li><p><strong>M</strong> (<em>float</em>) – Elasticity (psi)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_tray_base_purchase_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_tray_base_purchase_cost</code><span class="sig-paren">(</span><em class="sig-param">Di</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_tray_base_purchase_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_tray_base_purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return C_BT, the base cost of a tray (USD) at a CE of 500.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Di</strong> (<em>float</em>) – Inner diameter [ft].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_n_trays_factor">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_n_trays_factor</code><span class="sig-paren">(</span><em class="sig-param">N_T</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_n_trays_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_n_trays_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cost factor for number of trays, F_NT.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>N_T</strong> (<em>Number of trays</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_murphree_stage_efficiency">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_murphree_stage_efficiency</code><span class="sig-paren">(</span><em class="sig-param">mu</em>, <em class="sig-param">alpha</em>, <em class="sig-param">L</em>, <em class="sig-param">V</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_murphree_stage_efficiency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_murphree_stage_efficiency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the sectional murphree efficiency, E_mv.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> (<em>float</em>) – Viscosity (mPa*s)</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Relative volatility.</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Liquid flow rate by mol.</p></li>
+<li><p><strong>V</strong> (<em>float</em>) – Vapor flow rate by mol/</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_flow_parameter">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_flow_parameter</code><span class="sig-paren">(</span><em class="sig-param">L</em>, <em class="sig-param">V</em>, <em class="sig-param">rho_V</em>, <em class="sig-param">rho_L</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_flow_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_flow_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the flow parameter, F_LV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>float</em>) – Liquid flow rate by mass.</p></li>
+<li><p><strong>V</strong> (<em>float</em>) – Vapor flow rate by mass.</p></li>
+<li><p><strong>rho_V</strong> (<em>float</em>) – Vapor density.</p></li>
+<li><p><strong>rho_L</strong> (<em>float</em>) – Liquid density.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_max_capacity_parameter">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_max_capacity_parameter</code><span class="sig-paren">(</span><em class="sig-param">TS</em>, <em class="sig-param">F_LV</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_max_capacity_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_max_capacity_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum capacity parameter before flooding [C_sbf; in m/s].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TS</strong> (<em>float</em>) – Tray spacing [mm].</p></li>
+<li><p><strong>F_LV</strong> (<em>float</em>) – Flow parameter.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_max_vapor_velocity">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_max_vapor_velocity</code><span class="sig-paren">(</span><em class="sig-param">C_sbf</em>, <em class="sig-param">sigma</em>, <em class="sig-param">rho_L</em>, <em class="sig-param">rho_V</em>, <em class="sig-param">F_F</em>, <em class="sig-param">A_ha</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_max_vapor_velocity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_max_vapor_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximum allowable vapor velocity
+through the net area of flow before flooding [U_f; in m/s].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>C_sbf</strong> – Maximum Capacity Parameter (m/s)</p></li>
+<li><p><strong>sigma</strong> – Liquid surface tension (dyn/cm)</p></li>
+<li><p><strong>rho_L</strong> – Liquid density</p></li>
+<li><p><strong>rho_V</strong> – Vapor density</p></li>
+<li><p><strong>F_F</strong> – Foaming factor</p></li>
+<li><p><strong>A_ha</strong> – Ratio of open area, A_h, to active area, A_a</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_downcomer_area_fraction">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_downcomer_area_fraction</code><span class="sig-paren">(</span><em class="sig-param">F_LV</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_downcomer_area_fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_downcomer_area_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the ratio of downcomer area to net (total) area, <cite>A_dn</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>F_LV</strong> (<em>float</em>) – Flow parameter.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_diameter">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_diameter</code><span class="sig-paren">(</span><em class="sig-param">V_vol</em>, <em class="sig-param">U_f</em>, <em class="sig-param">f</em>, <em class="sig-param">A_dn</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_diameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_diameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return column diameter [D_T; in ft].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>V_vol</strong> (<em>float</em>) – Vapor volumetric flow rate [m^3/s].</p></li>
+<li><p><strong>U_f</strong> (<em>float</em>) – Maximum vapor velocity before flooding [m/s].</p></li>
+<li><p><strong>f</strong> (<em>float</em>) – Ratio of actual velocity to <cite>U_f</cite>.</p></li>
+<li><p><strong>A_dn</strong> (<em>float</em>) – Ratio of downcomer area to net (total) area.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_height">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_height</code><span class="sig-paren">(</span><em class="sig-param">TS</em>, <em class="sig-param">N_stages: int</em>, <em class="sig-param">top=True</em>, <em class="sig-param">bot=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the height of the column [H; ft].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TS</strong> (<em>float</em>) – Tray spacing [mm].</p></li>
+<li><p><strong>N_stages</strong> (<em>float</em>) – Number of stages.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

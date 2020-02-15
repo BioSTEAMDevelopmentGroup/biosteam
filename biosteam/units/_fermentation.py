@@ -21,17 +21,15 @@ from thermosteam.reaction import Reaction
       S=3785, n=0.5, BM=1.5, N='N')
 class Fermentation(Unit):
     """
-    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]_. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]_. 
+    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1]_ [2]_ [3]_ [4]_. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [5]_. 
     
     Parameters
     ----------
-    ins 
-        [:] Inffluent streams
-        
-    outs
-        [0] Effluent
-        
-        [1] CO2
+    ins : streams
+        Inlet fluids to be mixed into the fermentor.
+    outs : stream sequence
+        * [0] Vent
+        * [1] Effluent
     tau : float
         Reaction time.
     efficiency=0.9 : float, optional

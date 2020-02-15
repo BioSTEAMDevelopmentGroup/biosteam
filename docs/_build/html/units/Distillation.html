@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,7 +225,7 @@
 <dd><p>Create a Distillation column that assumes all light and heavy non keys
 separate to the top and bottoms product respectively. McCabe-Thiele
 analysis is used to find both the number of stages and the reflux ratio
-given a ratio of actual reflux to minimum reflux <a class="reference internal" href="#r15b31faf3a75-1" id="id1"><span>[R15b31faf3a75-1]</span></a>. This assumption
+given a ratio of actual reflux to minimum reflux <a class="footnote-reference brackets" href="#id9" id="id1">1</a>. This assumption
 is good for both binary distillation of highly polar compounds and
 ternary distillation assuming complete separation of light non-keys
 and heavy non-keys with large differences in boiling points. Preliminary
@@ -233,72 +233,59 @@ analysis showed that the theoretical number of stages using this method
 on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other
 methods, such as the Fenske-Underwood-Gilliland method, are more suitable
 for hydrocarbons. The Murphree efficiency is based on the modified
-O’Connell correlation <a class="reference internal" href="#r15b31faf3a75-2" id="id2"><span>[R15b31faf3a75-2]</span></a>. The diameter is based on tray separation
-and flooding velocity <a class="reference internal" href="#r15b31faf3a75-1" id="id3"><span>[R15b31faf3a75-1]</span></a>. Purchase costs are based on correlations
-by Mulet et al. [3, 4]_ as compiled by Warren et. al. <a class="reference internal" href="#r15b31faf3a75-5" id="id4"><span>[R15b31faf3a75-5]</span></a>.</p>
-<dl class="field-list">
+O’Connell correlation <a class="footnote-reference brackets" href="#id10" id="id2">2</a>. The diameter is based on tray separation
+and flooding velocity <a class="footnote-reference brackets" href="#id9" id="id3">1</a>. Purchase costs are based on correlations
+by Mulet et al. <a class="footnote-reference brackets" href="#id11" id="id4">3</a> <a class="footnote-reference brackets" href="#id12" id="id5">4</a> as compiled by Warren et. al. <a class="footnote-reference brackets" href="#id13" id="id6">5</a>.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl>
-<dt><strong>ins</strong></dt><dd><p>[:] All input streams</p>
-</dd>
-<dt><strong>outs</strong></dt><dd><p>[0] Distillate product</p>
-<p>[1] Bottoms product</p>
-</dd>
-<dt><strong>LHK</strong><span class="classifier">tuple[str]</span></dt><dd><p>Light and heavy keys.</p>
-</dd>
-<dt><strong>P=101325</strong><span class="classifier">float</span></dt><dd><p>Operating pressure (Pa).</p>
-</dd>
-<dt><strong>y_top</strong><span class="classifier">float</span></dt><dd><p>Molar fraction of light key in the distillate.</p>
-</dd>
-<dt><strong>x_bot</strong><span class="classifier">float</span></dt><dd><p>Molar fraction of light key in the bottoms.</p>
-</dd>
-<dt><strong>k</strong><span class="classifier">float</span></dt><dd><p>Ratio of reflux to minimum reflux.</p>
-</dd>
-<dt><strong>vessel_material=’Carbon steel’</strong><span class="classifier">str</span></dt><dd><p>Vessel construction material.</p>
-</dd>
-<dt><strong>tray_material=’Carbon steel’</strong><span class="classifier">str</span></dt><dd><p>Tray construction material.</p>
-</dd>
-<dt><strong>tray_type=’Sieve’</strong><span class="classifier">{‘Sieve’, ‘Valve’, ‘Bubble cap’}</span></dt><dd></dd>
-<dt><strong>tray_spacing=450</strong><span class="classifier">float</span></dt><dd><p>Typically between 152 to 915 mm.</p>
-</dd>
-<dt><strong>stage_efficiency=None :</strong></dt><dd><p>User enforced stage efficiency. If None, stage efficiency is
-calculated by the O’Connell correlation <a class="reference internal" href="#r15b31faf3a75-2" id="id5"><span>[R15b31faf3a75-2]</span></a>.</p>
-</dd>
-<dt><strong>velocity_fraction=0.8</strong><span class="classifier">float</span></dt><dd><p>Fraction of actual velocity to maximum velocity allowable before flooding.</p>
-</dd>
-<dt><strong>foaming_factor=1.0</strong><span class="classifier">float</span></dt><dd><p>Must be between 0 to 1.</p>
-</dd>
-<dt><strong>open_tray_area_fraction=0.1</strong><span class="classifier">float</span></dt><dd><p>Fraction of open area to active area of a tray.</p>
-</dd>
-<dt><strong>downcomer_area_fraction=None</strong><span class="classifier">float</span></dt><dd><p>Enforced fraction of downcomer area to net (total) area of a tray.
-If None, estimate ratio based on Oliver’s estimation <a class="reference internal" href="#r15b31faf3a75-1" id="id6"><span>[R15b31faf3a75-1]</span></a>.</p>
-</dd>
-<dt><strong>is_divided=False</strong><span class="classifier">bool</span></dt><dd><p>True if the stripper and rectifier are two separate columns.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>streams</em>) – Inlet fluids to be mixed into the feed stage.</p></li>
+<li><p><strong>outs</strong> (<em>stream sequence</em>) – <ul>
+<li><p>[0] Distillate</p></li>
+<li><p>[1] Bottoms product</p></li>
+</ul>
+</p></li>
+<li><p><strong>LHK</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – Light and heavy keys.</p></li>
+<li><p><strong>y_top</strong> (<em>float</em>) – Molar fraction of light key in the distillate.</p></li>
+<li><p><strong>x_bot</strong> (<em>float</em>) – Molar fraction of light key in the bottoms.</p></li>
+<li><p><strong>k</strong> (<em>float</em>) – Ratio of reflux to minimum reflux.</p></li>
+<li><p><strong>P=101325</strong> (<em>float</em>) – Operating pressure [Pa].</p></li>
+<li><p><strong>vessel_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Vessel construction material. Defaults to ‘Carbon steel’.</p></li>
+<li><p><strong>tray_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Tray construction material. Defaults to ‘Carbon steel’.</p></li>
+<li><p><strong>tray_type='Sieve'</strong> (<em>'Sieve'</em><em>, </em><em>'Valve'</em><em>, or </em><em>'Bubble cap'</em>) – Tray type.</p></li>
+<li><p><strong>tray_spacing=450</strong> (<em>float</em>) – Typically between 152 to 915 mm.</p></li>
+<li><p><strong>stage_efficiency=None</strong> – User enforced stage efficiency. If None, stage efficiency is
+calculated by the O’Connell correlation <a class="footnote-reference brackets" href="#id10" id="id7">2</a>.</p></li>
+<li><p><strong>velocity_fraction=0.8</strong> (<em>float</em>) – Fraction of actual velocity to maximum velocity allowable before flooding.</p></li>
+<li><p><strong>foaming_factor=1.0</strong> (<em>float</em>) – Must be between 0 to 1.</p></li>
+<li><p><strong>open_tray_area_fraction=0.1</strong> (<em>float</em>) – Fraction of open area to active area of a tray.</p></li>
+<li><p><strong>downcomer_area_fraction=None</strong> (<em>float</em>) – Enforced fraction of downcomer area to net (total) area of a tray.
+If None, estimate ratio based on Oliver’s estimation <a class="footnote-reference brackets" href="#id9" id="id8">1</a>.</p></li>
+<li><p><strong>is_divided=False</strong> (<em>bool</em>) – True if the stripper and rectifier are two separate columns.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<dl class="citation">
-<dt class="label" id="r15b31faf3a75-1"><span class="brackets">R15b31faf3a75-1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id3">2</a>,<a href="#id6">3</a>)</span></dt>
+<dl class="footnote brackets">
+<dt class="label" id="id9"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id3">2</a>,<a href="#id8">3</a>)</span></dt>
 <dd><p>J.D. Seader, E.J. Henley, D.K. Roper. (2011)
 Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc.</p>
 </dd>
-<dt class="label" id="r15b31faf3a75-2"><span class="brackets">R15b31faf3a75-2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id5">2</a>)</span></dt>
+<dt class="label" id="id10"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id7">2</a>)</span></dt>
 <dd><p>M. Duss, R. Taylor. (2018)
 Predict Distillation Tray Efficiency. AICHE</p>
 </dd>
-<dt class="label" id="r15b31faf3a75-3"><span class="brackets">R15b31faf3a75-3</span></dt>
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
 <dd><p>Mulet, A., A. B. Corripio, and L. B. Evans. (1981a).
 Estimate Costs of Pressure Vessels via Correlations.
 Chem. Eng., 88(20), 145–150.</p>
 </dd>
-<dt class="label" id="r15b31faf3a75-4"><span class="brackets">R15b31faf3a75-4</span></dt>
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
 <dd><p>Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).
 Estimate Costs of Distillation and Absorption Towers via Correlations.
 Chem. Eng., 88(26), 77–82.</p>
 </dd>
-<dt class="label" id="r15b31faf3a75-5"><span class="brackets"><a class="fn-backref" href="#id4">R15b31faf3a75-5</a></span></dt>
+<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id6">5</a></span></dt>
 <dd><p>Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
 &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.
 Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
@@ -341,9 +328,7 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <span class="go">                 Methanol  0.00761</span>
 <span class="go">                 Glycerol  0.239</span>
 <span class="go">                 --------  105 kmol/hr</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">D1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">D1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 <span class="go">Distillation                                    Units        D1</span>
 <span class="go">Cooling water       Duty                        kJ/hr -5.11e+06</span>
 <span class="go">                    Flow                      kmol/hr  3.49e+03</span>
@@ -450,13 +435,13 @@ If None, the fraction is estimated based on heuristics.</p>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.compute_N_stages">
-<code class="sig-name descname">compute_N_stages</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.compute_N_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.compute_N_stages" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compute_N_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.compute_N_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.compute_N_stages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a tuple with the actual number of stages for the rectifier and the stripper.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.plot_stages">
-<code class="sig-name descname">plot_stages</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the McCabe Thiele Diagram.</p>
 </dd></dl>
 

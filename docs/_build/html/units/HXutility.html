@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,27 +225,20 @@
 <dd><p>Create a heat exchanger that changes temperature of the output stream using a heat utility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ins</strong></dt><dd><p>[0] Input stream</p>
-</dd>
-<dt><strong>outs</strong></dt><dd><p>[0] Output stream</p>
-</dd>
-<dt><strong>Define at least one:</strong></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>stream</em>) – Inlet fluid.</p></li>
+<li><p><strong>outs</strong> – Outlet fluid.</p></li>
+<li><p><strong>at least one</strong> (<em>Define</em>) – <ul>
 <li><p>T: [float] Temperature of output stream (K).</p></li>
 <li><p>V: [float] Vapor fraction of output stream.</p></li>
 </ul>
-</dd>
-<dt><strong>rigorous=False</strong><span class="classifier">bool</span></dt><dd><p>If true, calculate vapor liquid equilibrium</p>
-</dd>
-<dt><strong>U=None</strong><span class="classifier">float, optional</span></dt><dd><p>Enforced overall heat transfer coefficent (kW/m^2/K)</p>
-</dd>
-<dt><strong>shell_and_tube_type=”Floating head”</strong><span class="classifier">str</span></dt><dd><p>Heat exchanger type.</p>
-</dd>
-<dt><strong>N_shells=2</strong><span class="classifier">int</span></dt><dd><p>Number of shells.</p>
-</dd>
-<dt><strong>ft=None</strong><span class="classifier">float</span></dt><dd><p>User imposed correction factor.</p>
-</dd>
-</dl>
+</p></li>
+<li><p><strong>rigorous=False</strong> (<em>bool</em>) – If true, calculate vapor liquid equilibrium</p></li>
+<li><p><strong>U=None</strong> (<em>float</em><em>, </em><em>optional</em>) – Enforced overall heat transfer coefficent [kW/m^2/K].</p></li>
+<li><p><strong>shell_and_tube_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Heat exchanger type. Defaults to “Floating head”.</p></li>
+<li><p><strong>N_shells=2</strong> (<em>int</em>) – Number of shells.</p></li>
+<li><p><strong>ft=None</strong> (<em>float</em>) – User imposed correction factor.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

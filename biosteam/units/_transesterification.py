@@ -15,21 +15,17 @@ class Transesterification(Unit):
     
     Parameters
     ----------
-    ins
-        [0] Lipid feed
-        
-        [1] Methanol feed (includes catalyst)
-    outs
-        [0] Product
+    ins : stream sequence
+        * [0] Lipid feed
+        * [1] Methanol feed (includes catalyst)
+    outs : stream
+        Reactor effluent.
     efficiency : float
-                 Efficiency of conversion (on a 'Lipid' basis)
-        
+        Efficiency of conversion (on a 'Lipid' basis)
     methanol2lipid : float
-                     Methanol feed to lipid molar ratio
-        
+        Methanol feed to lipid molar ratio
     catalyst_molfrac : float
-                       Catalyst to methanol molar ratio
-        
+        Catalyst to methanol molar ratio
     T : float
         Operating temperature (K)
     

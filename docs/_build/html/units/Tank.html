@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -223,6 +223,50 @@
 <dt id="biosteam.units.Tank">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Tank</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#Tank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Tank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for tanks.</p>
+<dl class="attribute">
+<dt id="biosteam.units.Tank.vessel_type">
+<code class="sig-name descname">vessel_type</code><a class="headerlink" href="#biosteam.units.Tank.vessel_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vessel type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Tank.tau">
+<code class="sig-name descname">tau</code><a class="headerlink" href="#biosteam.units.Tank.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>Residence time [hr].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Tank.V_wf">
+<code class="sig-name descname">V_wf</code><a class="headerlink" href="#biosteam.units.Tank.V_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fraction of working volume over total volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Tank.vessel_material">
+<code class="sig-name descname">vessel_material</code><a class="headerlink" href="#biosteam.units.Tank.vessel_material" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vessel material.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p class="rubric">Notes</p>
 <p>The total volume [m^3] is given by:</p>
 <p><img class="math" src="../_images/math/a3ad7a8e6e678af2da94d53128c8b58be4c87f4f.png" alt="V_{total} = \frac{\tau \cdot Q }{V_{wf}}"/></p>
@@ -238,20 +282,6 @@ algorithm of the vessel type.</p>
 <p>Child classes should implement the following class attributes and methods:</p>
 <dl class="simple">
 <dt>purchase_cost_algorithms<span class="classifier">dict[str: VesselPurchaseCostAlgorithm]</span></dt><dd><p>All purchase cost algorithms available for vessel types.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>vessel_type</strong><span class="classifier">str</span></dt><dd><p>Vessel type.</p>
-</dd>
-<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
-</dd>
-<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working volume over total volume.</p>
-</dd>
-<dt><strong>vessel_material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
-</dd>
-</dl>
 </dd>
 </dl>
 </dd></dl>

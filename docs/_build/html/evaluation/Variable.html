@@ -209,23 +209,53 @@
 <dt id="biosteam.evaluation.Variable">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.evaluation.</code><code class="sig-name descname">Variable</code><a class="reference internal" href="../_modules/biosteam/evaluation/_variable.html#Variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for a variable in BioSTEAM.</p>
+<dl class="attribute">
+<dt id="biosteam.evaluation.Variable.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#biosteam.evaluation.Variable.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of variable</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Name of variable</p>
-</dd>
-<dt><strong>element</strong><span class="classifier">object</span></dt><dd><p>Element corresponding to variable</p>
-</dd>
-<dt><strong>units</strong><span class="classifier">str</span></dt><dd><p>Units of measure</p>
-</dd>
-<dt><strong>distribution</strong><span class="classifier">chaospy.Dist, optional</span></dt><dd><p>Distribution of variable</p>
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.evaluation.Variable.element">
+<code class="sig-name descname">element</code><a class="headerlink" href="#biosteam.evaluation.Variable.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Element corresponding to variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>object</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.evaluation.Variable.units">
+<code class="sig-name descname">units</code><a class="headerlink" href="#biosteam.evaluation.Variable.units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Units of measure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.evaluation.Variable.distribution">
+<code class="sig-name descname">distribution</code><a class="headerlink" href="#biosteam.evaluation.Variable.distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distribution of variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>chaospy.Dist, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="biosteam.evaluation.Variable.describe">
-<code class="sig-name descname">describe</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">number_format='.3g'</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/biosteam/evaluation/_variable.html#Variable.describe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Variable.describe" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">describe</code><span class="sig-paren">(</span><em class="sig-param">number_format='.3g'</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/biosteam/evaluation/_variable.html#Variable.describe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Variable.describe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return description of variable.</p>
 </dd></dl>
 

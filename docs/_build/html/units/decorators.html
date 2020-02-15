@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="designtools" href="design_tools.html" />
+    <link rel="next" title="design_tools" href="design_tools.html" />
     <link rel="prev" title="units" href="units.html" /> 
 </head>
 
@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -227,32 +227,20 @@
 <dd><p>Add item (free-on-board) purchase cost based on exponential scale up:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>basis</strong><span class="classifier">str</span></dt><dd><p>Name of size parameter used for scaling.</p>
-</dd>
-<dt><strong>ID</strong><span class="classifier">str</span></dt><dd><p>Name of purchase item.</p>
-</dd>
-<dt><strong>CE</strong><span class="classifier">float</span></dt><dd><p>Chemical engineering plant cost index.</p>
-</dd>
-<dt><strong>cost</strong><span class="classifier">float</span></dt><dd><p>Purchase cost of item.</p>
-</dd>
-<dt><strong>n</strong><span class="classifier">float</span></dt><dd><p>Exponential factor.</p>
-</dd>
-<dt><strong>S = 1</strong><span class="classifier">float</span></dt><dd><p>Size.</p>
-</dd>
-<dt><strong>ub</strong><span class="classifier">float</span></dt><dd><p>Size limit.</p>
-</dd>
-<dt><strong>kW</strong><span class="classifier">float</span></dt><dd><p>Electricity rate.</p>
-</dd>
-<dt><strong>BM = 1: float</strong></dt><dd><p>Bare module factor (installation factor).</p>
-</dd>
-<dt><strong>units = None</strong><span class="classifier">str, optional</span></dt><dd><p>Units of measure.</p>
-</dd>
-<dt><strong>fsize = None</strong><span class="classifier">function, optional</span></dt><dd><p>Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.</p>
-</dd>
-<dt><strong>N</strong><span class="classifier">str</span></dt><dd><p>Attribute name for number of parallel units.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basis</strong> (<em>str</em>) – Name of size parameter used for scaling.</p></li>
+<li><p><strong>ID</strong> (<em>str</em>) – Name of purchase item.</p></li>
+<li><p><strong>CE</strong> (<em>float</em>) – Chemical engineering plant cost index.</p></li>
+<li><p><strong>cost</strong> (<em>float</em>) – Purchase cost of item.</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Exponential factor.</p></li>
+<li><p><strong>= 1</strong> (<em>BM</em>) – Size.</p></li>
+<li><p><strong>ub</strong> (<em>float</em>) – Size limit.</p></li>
+<li><p><strong>kW</strong> (<em>float</em>) – Electricity rate.</p></li>
+<li><p><strong>= 1</strong> – Bare module factor (installation factor).</p></li>
+<li><p><strong>= None</strong> (<em>fsize</em>) – Units of measure.</p></li>
+<li><p><strong>= None</strong> – Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.</p></li>
+<li><p><strong>N</strong> (<em>str</em>) – Attribute name for number of parallel units.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -265,28 +253,18 @@
 <dd><p>Create a CostItem object which defines exponential scaling factors for an item’s purchase cost.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>basis</strong><span class="classifier">str</span></dt><dd><p>Name of size parameter used for scaling.</p>
-</dd>
-<dt><strong>units</strong><span class="classifier">str</span></dt><dd><p>Units of measure.</p>
-</dd>
-<dt><strong>S</strong><span class="classifier">float</span></dt><dd><p>Size.</p>
-</dd>
-<dt><strong>ub</strong><span class="classifier">float</span></dt><dd><p>Size limit.</p>
-</dd>
-<dt><strong>CE</strong><span class="classifier">float</span></dt><dd><p>Chemical engineering plant cost index.</p>
-</dd>
-<dt><strong>cost</strong><span class="classifier">float</span></dt><dd><p>Purchase cost of item.</p>
-</dd>
-<dt><strong>n</strong><span class="classifier">float</span></dt><dd><p>Exponential factor.</p>
-</dd>
-<dt><strong>kW</strong><span class="classifier">float</span></dt><dd><p>Electricity rate.</p>
-</dd>
-<dt><strong>BM</strong><span class="classifier">float</span></dt><dd><p>Bare module factor (installation factor).</p>
-</dd>
-<dt><strong>N</strong><span class="classifier">str</span></dt><dd><p>Attribute name for number of parallel units.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basis</strong> (<em>str</em>) – Name of size parameter used for scaling.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
+<li><p><strong>S</strong> (<em>float</em>) – Size.</p></li>
+<li><p><strong>ub</strong> (<em>float</em>) – Size limit.</p></li>
+<li><p><strong>CE</strong> (<em>float</em>) – Chemical engineering plant cost index.</p></li>
+<li><p><strong>cost</strong> (<em>float</em>) – Purchase cost of item.</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Exponential factor.</p></li>
+<li><p><strong>kW</strong> (<em>float</em>) – Electricity rate.</p></li>
+<li><p><strong>BM</strong> (<em>float</em>) – Bare module factor (installation factor).</p></li>
+<li><p><strong>N</strong> (<em>str</em>) – Attribute name for number of parallel units.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -301,7 +279,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="design_tools.html" class="btn btn-neutral float-right" title="designtools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="design_tools.html" class="btn btn-neutral float-right" title="design_tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="units.html" class="btn btn-neutral float-left" title="units" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,20 +225,19 @@
 <dd><p>Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified IDs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>chemical_IDs</strong><span class="classifier">tuple[str]</span></dt><dd><p>Chemicals that will be used to solve mass balance linear equations.
-The number of chemicals must be same as the number of input streams varied.</p>
-</dd>
-<dt><strong>streams</strong><span class="classifier">tuple[int]</span></dt><dd><p>Indices of input streams that can vary in net flow rate</p>
-</dd>
-<dt><strong>is_exact=True</strong><span class="classifier">bool, optional</span></dt><dd><p>True if exact flow rate solution is required for the specified IDs.</p>
-</dd>
-<dt><strong>balance=’flow’</strong><span class="classifier">{‘flow’, ‘composition’}, optional</span></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> – Inlet streams.</p></li>
+<li><p><strong>outs</strong> – Outlet streams</p></li>
+<li><p><strong>chemical_IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – Chemicals that will be used to solve mass balance linear equations.
+The number of chemicals must be same as the number of input streams varied.</p></li>
+<li><p><strong>streams</strong> (<em>tuple</em><em>[</em><em>int</em><em>]</em>) – Indices of input streams that can vary in net flow rate</p></li>
+<li><p><strong>is_exact=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – True if exact flow rate solution is required for the specified IDs.</p></li>
+<li><p><strong>balance='flow'</strong> (<em>{'flow'</em><em>, </em><em>'composition'}</em><em>, </em><em>optional</em>) – <ul>
 <li><p>‘flow’: Satisfy output flow rates</p></li>
-<li><p>‘composition’: Satisfy net output molar composition</p></li>
+<li><p>’composition’: Satisfy net output molar composition</p></li>
 </ul>
-</dd>
-</dl>
+</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

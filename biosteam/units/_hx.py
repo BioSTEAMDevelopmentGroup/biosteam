@@ -56,9 +56,9 @@ class HX(Unit, isabstract=True):
     **Abstract attributes**
     
     _duty : float
-        The heat transfer requirement (kJ/hr)
+        The heat transfer requirement [kJ/hr].
     U : float
-        Enforced overall heat transfer coefficent (kW/m^2/K)
+        Enforced overall heat transfer coefficent [kW/m^2/K].
 
     """
     line = 'Heat Exchanger'
@@ -214,13 +214,13 @@ class HX(Unit, isabstract=True):
         Parameters
         ----------
         in1 : Stream
-            Inlet 1.
+            Inlet a.
         in2 : Stream
-            Inlet 2.
+            Inlet b.
         out1 : Stream
-            Outlet 1.
+            Outlet a.
         out2 : Stream
-            Outlet 2.
+            Outlet b.
         
         Returns
         -------
@@ -347,19 +347,19 @@ class HXutility(HX):
 
     Parameters
     ----------
-    ins
-        [0] Input stream
-    outs
-        [0] Output stream
+    ins : stream
+        Inlet fluid.
+    outs :
+        Outlet fluid.
     Define at least one:
         * T: [float] Temperature of output stream (K).
         * V: [float] Vapor fraction of output stream.
     rigorous=False : bool
         If true, calculate vapor liquid equilibrium
     U=None : float, optional
-        Enforced overall heat transfer coefficent (kW/m^2/K)
-    shell_and_tube_type="Floating head" : str
-        Heat exchanger type.
+        Enforced overall heat transfer coefficent [kW/m^2/K].
+    shell_and_tube_type : str, optional
+        Heat exchanger type. Defaults to "Floating head".
     N_shells=2 : int
         Number of shells.
     ft=None : float
@@ -532,23 +532,26 @@ class HXprocess(HX):
     
     Parameters
     ----------
-    ins  
-        [0] Input process fluid 1
-        
-        [1] Input process fluid 2  
-    outs
-        [0] Output process fluid 1
-        
-        [1] Output process fluid 2
+    ins : stream sequence
+        * [0] Inlet process fluid a
+        * [1] Inlet process fluid b  
+    outs : stream sequence
+        * [0] Outlet process fluid a        
+        * [1] Outlet process fluid b
     U=None : float, optional
-        Enforced overall heat transfer coefficent (kW/m^2/K)
-    fluid_type : {None, 'ss', 'll', 'ls'}
-        * **None:** Rigorously transfers heat until pinch temperature -not implemented yet-
-        * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
-        * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
-        * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
-    shell_and_tube_type="Floating head" : str
-        Heat exchanger type.
+        Enforced overall heat transfer coefficent [kW/m^2/K].
+    fluid_type : None, 'ss', 'll', 'ls'
+        * **None** - Rigorously transfers heat until pinch temperature
+                     (not implemented yet).
+        * **'ss'** - Sensible-sensible fluids. Heat is exchanged until the
+                     pinch temperature is reached.
+        * **'ll'** - Latent-latent fluids. Heat is exchanged until one fluid
+                     completely changes phase.
+        * **'ls'** - Latent-sensible fluids. Heat is exchanged until either the
+                     pinch temperature is reached or the latent fluid
+                     completely changes phase.
+    shell_and_tube_type : str, optional
+        Heat exchanger type. Defaults to 'Floating head'.
     N_shells=2 : int
         Number of shells.
     ft=None : float

@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,16 +225,18 @@
 <dd><p>Creates evaporatorators with pressures given by P (a list of pressures). Adjusts first evaporator vapor fraction to satisfy an overall fraction evaporated. All evaporators after the first have zero duty. Condenses the vapor coming out of the last evaporator. Pumps all liquid streams to prevent back flow in later parts. All liquid evaporated is ultimately recondensed. Cost is based on required heat transfer area. Vacuum system is based on air leakage. Air leakage is based on volume, as given by residence time <cite>tau</cite> and flow rate to each evaporator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>component</strong><span class="classifier">str</span></dt><dd><p>Component being evaporated.</p>
-</dd>
-<dt><strong>P</strong><span class="classifier">tuple[float]</span></dt><dd><p>Pressures describing each evaporator (Pa).</p>
-</dd>
-<dt><strong>V</strong><span class="classifier">float</span></dt><dd><p>Overall molar fraction of component evaporated.</p>
-</dd>
-<dt><strong>P_liq</strong><span class="classifier">tuple</span></dt><dd><p>Liquid pressure after pumping (Pa).</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>stream</em>) – Inlet stream.</p></li>
+<li><p><strong>outs</strong> (<em>stream sequence</em>) – <ul>
+<li><p>[0] Solid-rich stream.</p></li>
+<li><p>[1] Condensate stream.</p></li>
+</ul>
+</p></li>
+<li><p><strong>component</strong> (<em>str</em>) – Component being evaporated.</p></li>
+<li><p><strong>P</strong> (<em>tuple</em><em>[</em><em>float</em><em>]</em>) – Pressures describing each evaporator (Pa).</p></li>
+<li><p><strong>V</strong> (<em>float</em>) – Overall molar fraction of component evaporated.</p></li>
+<li><p><strong>P_liq</strong> (<em>tuple</em>) – Liquid pressure after pumping (Pa).</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="attribute">

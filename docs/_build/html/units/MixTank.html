@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,31 +225,24 @@
 <dd><p>Create a mixing tank with volume based on residence time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ins :</strong></dt><dd><p>[:] Feed streams.</p>
-</dd>
-<dt><strong>outs :</strong></dt><dd><p>[0] Effluent stream.</p>
-</dd>
-<dt><strong>vessel_type</strong><span class="classifier">str</span></dt><dd><p>Vessel type.</p>
-</dd>
-<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
-</dd>
-<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working volume over total volume.</p>
-</dd>
-<dt><strong>vessel_material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
-</dd>
-<dt><strong>kW_per_m3</strong><span class="classifier">float</span></dt><dd><p>Electricity requirement per unit volume [kW/m^3].</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>streams</em>) – Inlet fluids to be mixed.</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Outlet.</p></li>
+<li><p><strong>vessel_type</strong> (<em>str</em>) – Vessel type.</p></li>
+<li><p><strong>tau=1</strong> (<em>float</em>) – Residence time [hr].</p></li>
+<li><p><strong>V_wf=0.8</strong> (<em>float</em>) – Fraction of working volume over total volume.</p></li>
+<li><p><strong>vessel_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Vessel material. Defaults to ‘Stainless steel’.</p></li>
+<li><p><strong>kW_per_m3=0.0985</strong> (<em>float</em>) – Electricity requirement per unit volume [kW/m^3].</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>For a detailed discussion on the design and cost algorithm,
 please read the <a class="reference internal" href="Tank.html"><span class="doc">Tank</span></a> documentation.</p>
-<p>The purchase cost algorithm is based on <a class="reference internal" href="#rc6611c4afec0-1" id="id1"><span>[Rc6611c4afec0-1]</span></a>.</p>
+<p>The purchase cost algorithm is based on <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
 <p class="rubric">References</p>
-<dl class="citation">
-<dt class="label" id="rc6611c4afec0-1"><span class="brackets"><a class="fn-backref" href="#id1">Rc6611c4afec0-1</a></span></dt>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p>Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
 (2009). Techno-economic analysis of a biodiesel production process from
 vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
@@ -348,25 +341,21 @@ vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.diagram">
-<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>Maxium number streams between neighbors.</p>
-</dd>
-<dt><strong>downstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show downstream operations</p>
-</dd>
-<dt><strong>upstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show upstream operations</p>
-</dd>
-<dt><strong>file</strong><span class="classifier">Must be one of the following:</span></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>radius</strong> (<em>int</em>) – Maxium number streams between neighbors.</p></li>
+<li><p><strong>downstream=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show downstream operations</p></li>
+<li><p><strong>upstream=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show upstream operations</p></li>
+<li><p><strong>file</strong> (<em>Must be one of the following:</em>) – <ul>
 <li><p>[str] File name to save diagram.</p></li>
 <li><p>[None] Display diagram in console.</p></li>
 </ul>
-</dd>
-<dt><strong>format</strong><span class="classifier">str</span></dt><dd><p>Format of file.</p>
-</dd>
-</dl>
+</p></li>
+<li><p><strong>format</strong> (<em>str</em>) – Format of file.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -422,24 +411,29 @@ vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
 <dl class="attribute">
 <dt id="biosteam.units.MixTank.purchase_cost_algorithms">
 <code class="sig-name descname">purchase_cost_algorithms</code><a class="headerlink" href="#biosteam.units.MixTank.purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
-<dd><p>dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
+<dd><p>VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict[str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.results">
-<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.simulate">
-<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.simulate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 

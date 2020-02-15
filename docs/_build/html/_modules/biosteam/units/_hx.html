@@ -229,9 +229,9 @@
 <span class="sd">    **Abstract attributes**</span>
 <span class="sd">    </span>
 <span class="sd">    _duty : float</span>
-<span class="sd">        The heat transfer requirement (kJ/hr)</span>
+<span class="sd">        The heat transfer requirement [kJ/hr].</span>
 <span class="sd">    U : float</span>
-<span class="sd">        Enforced overall heat transfer coefficent (kW/m^2/K)</span>
+<span class="sd">        Enforced overall heat transfer coefficent [kW/m^2/K].</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Heat Exchanger&#39;</span>
@@ -387,13 +387,13 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        in1 : Stream</span>
-<span class="sd">            Inlet 1.</span>
+<span class="sd">            Inlet a.</span>
 <span class="sd">        in2 : Stream</span>
-<span class="sd">            Inlet 2.</span>
+<span class="sd">            Inlet b.</span>
 <span class="sd">        out1 : Stream</span>
-<span class="sd">            Outlet 1.</span>
+<span class="sd">            Outlet a.</span>
 <span class="sd">        out2 : Stream</span>
-<span class="sd">            Outlet 2.</span>
+<span class="sd">            Outlet b.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -520,19 +520,19 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins</span>
-<span class="sd">        [0] Input stream</span>
-<span class="sd">    outs</span>
-<span class="sd">        [0] Output stream</span>
+<span class="sd">    ins : stream</span>
+<span class="sd">        Inlet fluid.</span>
+<span class="sd">    outs :</span>
+<span class="sd">        Outlet fluid.</span>
 <span class="sd">    Define at least one:</span>
 <span class="sd">        * T: [float] Temperature of output stream (K).</span>
 <span class="sd">        * V: [float] Vapor fraction of output stream.</span>
 <span class="sd">    rigorous=False : bool</span>
 <span class="sd">        If true, calculate vapor liquid equilibrium</span>
 <span class="sd">    U=None : float, optional</span>
-<span class="sd">        Enforced overall heat transfer coefficent (kW/m^2/K)</span>
-<span class="sd">    shell_and_tube_type=&quot;Floating head&quot; : str</span>
-<span class="sd">        Heat exchanger type.</span>
+<span class="sd">        Enforced overall heat transfer coefficent [kW/m^2/K].</span>
+<span class="sd">    shell_and_tube_type : str, optional</span>
+<span class="sd">        Heat exchanger type. Defaults to &quot;Floating head&quot;.</span>
 <span class="sd">    N_shells=2 : int</span>
 <span class="sd">        Number of shells.</span>
 <span class="sd">    ft=None : float</span>
@@ -705,23 +705,26 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins  </span>
-<span class="sd">        [0] Input process fluid 1</span>
-<span class="sd">        </span>
-<span class="sd">        [1] Input process fluid 2  </span>
-<span class="sd">    outs</span>
-<span class="sd">        [0] Output process fluid 1</span>
-<span class="sd">        </span>
-<span class="sd">        [1] Output process fluid 2</span>
+<span class="sd">    ins : stream sequence</span>
+<span class="sd">        * [0] Inlet process fluid a</span>
+<span class="sd">        * [1] Inlet process fluid b  </span>
+<span class="sd">    outs : stream sequence</span>
+<span class="sd">        * [0] Outlet process fluid a        </span>
+<span class="sd">        * [1] Outlet process fluid b</span>
 <span class="sd">    U=None : float, optional</span>
-<span class="sd">        Enforced overall heat transfer coefficent (kW/m^2/K)</span>
-<span class="sd">    fluid_type : {None, &#39;ss&#39;, &#39;ll&#39;, &#39;ls&#39;}</span>
-<span class="sd">        * **None:** Rigorously transfers heat until pinch temperature -not implemented yet-</span>
-<span class="sd">        * **&#39;ss&#39;:** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.</span>
-<span class="sd">        * **&#39;ll&#39;:** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.</span>
-<span class="sd">        * **&#39;ls&#39;:** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</span>
-<span class="sd">    shell_and_tube_type=&quot;Floating head&quot; : str</span>
-<span class="sd">        Heat exchanger type.</span>
+<span class="sd">        Enforced overall heat transfer coefficent [kW/m^2/K].</span>
+<span class="sd">    fluid_type : None, &#39;ss&#39;, &#39;ll&#39;, &#39;ls&#39;</span>
+<span class="sd">        * **None** - Rigorously transfers heat until pinch temperature</span>
+<span class="sd">                     (not implemented yet).</span>
+<span class="sd">        * **&#39;ss&#39;** - Sensible-sensible fluids. Heat is exchanged until the</span>
+<span class="sd">                     pinch temperature is reached.</span>
+<span class="sd">        * **&#39;ll&#39;** - Latent-latent fluids. Heat is exchanged until one fluid</span>
+<span class="sd">                     completely changes phase.</span>
+<span class="sd">        * **&#39;ls&#39;** - Latent-sensible fluids. Heat is exchanged until either the</span>
+<span class="sd">                     pinch temperature is reached or the latent fluid</span>
+<span class="sd">                     completely changes phase.</span>
+<span class="sd">    shell_and_tube_type : str, optional</span>
+<span class="sd">        Heat exchanger type. Defaults to &#39;Floating head&#39;.</span>
 <span class="sd">    N_shells=2 : int</span>
 <span class="sd">        Number of shells.</span>
 <span class="sd">    ft=None : float</span>

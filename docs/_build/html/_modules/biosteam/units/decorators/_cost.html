@@ -185,7 +185,8 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;add_cost&#39;</span><span class="p">,</span> <span class="s1">&#39;CostItem&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CostItem"><a class="viewcode-back" href="../../../../units/decorators.html#biosteam.units.decorators.CostItem">[docs]</a><span class="k">class</span> <span class="nc">CostItem</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a CostItem object which defines exponential scaling factors for an item&#39;s purchase cost.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a CostItem object which defines exponential scaling factors for an item&#39;s purchase cost.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -209,6 +210,7 @@
 <span class="sd">        Bare module factor (installation factor).</span>
 <span class="sd">    N : str</span>
 <span class="sd">        Attribute name for number of parallel units.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_basis&#39;</span><span class="p">,</span> <span class="s1">&#39;_units&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;ub&#39;</span><span class="p">,</span> <span class="s1">&#39;CE&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="s1">&#39;BM&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">)</span>
@@ -292,7 +294,8 @@
     <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">j</span><span class="o">.</span><span class="n">BM</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_items</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
 <div class="viewcode-block" id="cost"><a class="viewcode-back" href="../../../../units/decorators.html#biosteam.units.decorators.cost">[docs]</a><span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>    
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Add item (free-on-board) purchase cost based on exponential scale up:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add item (free-on-board) purchase cost based on exponential scale up:</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

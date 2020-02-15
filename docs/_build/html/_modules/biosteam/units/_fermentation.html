@@ -194,17 +194,15 @@
       <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Fermentation</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]_. A compound with CAS &#39;Yeast&#39; must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]_. </span>
+<span class="sd">    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1]_ [2]_ [3]_ [4]_. A compound with CAS &#39;Yeast&#39; must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [5]_. </span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins </span>
-<span class="sd">        [:] Inffluent streams</span>
-<span class="sd">        </span>
-<span class="sd">    outs</span>
-<span class="sd">        [0] Effluent</span>
-<span class="sd">        </span>
-<span class="sd">        [1] CO2</span>
+<span class="sd">    ins : streams</span>
+<span class="sd">        Inlet fluids to be mixed into the fermentor.</span>
+<span class="sd">    outs : stream sequence</span>
+<span class="sd">        * [0] Vent</span>
+<span class="sd">        * [1] Effluent</span>
 <span class="sd">    tau : float</span>
 <span class="sd">        Reaction time.</span>
 <span class="sd">    efficiency=0.9 : float, optional</span>

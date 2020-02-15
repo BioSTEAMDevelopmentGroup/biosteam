@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -227,16 +227,13 @@ to <cite>downstream</cite>. This serves to connect streams with different
 Species object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>upstream=None</strong><span class="classifier">Stream or str, defaults to missing stream</span></dt><dd><p>Stream that will be copied to <cite>downstream</cite>.</p>
-</dd>
-<dt><strong>downstream=””</strong><span class="classifier">Stream or str, defaults to new stream</span></dt><dd><p>Flow rate, T, P, and phase information
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>upstream=None</strong> (<em>Stream</em><em> or </em><em>str</em><em>, </em><em>defaults to missing stream</em>) – Stream that will be copied to <cite>downstream</cite>.</p></li>
+<li><p><strong>downstream=&quot;&quot;</strong> (<em>Stream</em><em> or </em><em>str</em><em>, </em><em>defaults to new stream</em>) – Flow rate, T, P, and phase information
 will be copied from <cite>upstream</cite> to this stream.
-If None, stream will be missing.</p>
-</dd>
-<dt><strong>species=None</strong><span class="classifier">list[str], defaults to all species in common</span></dt><dd><p>IDs of species to be passed down.</p>
-</dd>
-</dl>
+If None, stream will be missing.</p></li>
+<li><p><strong>species=None</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>defaults to all species in common</em>) – IDs of species to be passed down.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

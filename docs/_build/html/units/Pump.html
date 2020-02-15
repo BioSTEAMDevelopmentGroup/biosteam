@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,37 +225,22 @@
 <dd><p>Create a pump that sets the pressure of the outlet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ins :</strong></dt><dd><p>[0] Input stream</p>
-</dd>
-<dt><strong>outs :</strong></dt><dd><p>[1] Output stream</p>
-</dd>
-<dt><strong>P=101325</strong><span class="classifier">float, optional</span></dt><dd><p>Pressure of output stream (Pa). If the pressure of the outlet is 
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>stream</em>) – Inlet.</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Outlet.</p></li>
+<li><p><strong>P=101325</strong> (<em>float</em><em>, </em><em>optional</em>) – Pressure of output stream (Pa). If the pressure of the outlet is
 the same as the inlet, pump is design to increase of pressure
-to <cite>P_design</cite>.</p>
-</dd>
-<dt><strong>pump_type=’Default’</strong><span class="classifier">str</span></dt><dd><p>If ‘Default’, a pump type is selected based on heuristics.</p>
-</dd>
-<dt><strong>material=’Cast iron’</strong><span class="classifier">str</span></dt><dd><p>Contruction material of pump.</p>
-</dd>
-<dt><strong>P_design=405300</strong><span class="classifier">float</span></dt><dd><p>Design pressure for pump.</p>
-</dd>
-<dt><strong>ignore_NPSH=True</strong><span class="classifier">bool</span></dt><dd><p>Whether to take into consideration NPSH in the selection of a
-pump type.</p>
-</dd>
-</dl>
+to <cite>P_design</cite>.</p></li>
+<li><p><strong>pump_type='Default'</strong> (<em>str</em>) – If ‘Default’, a pump type is selected based on heuristics.</p></li>
+<li><p><strong>material</strong> (<em>str</em><em>, </em><em>optional</em>) – Contruction material of pump. Defaults to ‘Cast iron’.</p></li>
+<li><p><strong>P_design=405300</strong> (<em>float</em>) – Design pressure for pump.</p></li>
+<li><p><strong>ignore_NPSH=True</strong> (<em>bool</em>) – Whether to take into consideration NPSH in the selection of a
+pump type.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>Default pump selection and design and cost algorithms are based on <a class="reference internal" href="#r16eee893bed5-0" id="id1"><span>[R16eee893bed5-0]</span></a>.</p>
-<p class="rubric">References</p>
-<dl class="citation">
-<dt class="label" id="r16eee893bed5-0"><span class="brackets"><a class="fn-backref" href="#id1">R16eee893bed5-0</a></span></dt>
-<dd><p>Seider, Warren D., et al. (2017). “Cost Accounting and Capital Cost
-Estimation”. In Product and Process Design Principles: Synthesis,
-Analysis, and Evaluation (pp. 450-455). New York: Wiley.</p>
-</dd>
-</dl>
+<p>Default pump selection and design and cost algorithms are based on <a class="footnote-reference brackets" href="#id2" id="id1">0</a>.</p>
 <p class="rubric">Examples</p>
 <p>Simulate Pump for pressure increase:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
@@ -277,6 +262,14 @@ Analysis, and Evaluation (pp. 450-455). New York: Wiley.</p>
 <span class="go">    flow (kmol/hr): Water  200</span>
 </pre></div>
 </div>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">0</a></span></dt>
+<dd><p>Seider, Warren D., et al. (2017). “Cost Accounting and Capital Cost
+Estimation”. In Product and Process Design Principles: Synthesis,
+Analysis, and Evaluation (pp. 450-455). New York: Wiley.</p>
+</dd>
+</dl>
 <dl class="method">
 <dt id="biosteam.units.Pump.pump_type">
 <em class="property">property </em><code class="sig-name descname">pump_type</code><a class="headerlink" href="#biosteam.units.Pump.pump_type" title="Permalink to this definition">¶</a></dt>

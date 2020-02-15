@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Fermentation</a></li>
@@ -222,49 +222,26 @@
 <dl class="class">
 <dt id="biosteam.units.Fermentation">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Fermentation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">*</em>, <em class="sig-param">tau</em>, <em class="sig-param">N</em>, <em class="sig-param">efficiency=0.9</em>, <em class="sig-param">iskinetic=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]_. A compound with CAS ‘Yeast’ must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, <cite>tau</cite>. Cleaning and unloading time, <cite>tau_0</cite>, fraction of working volume, <cite>V_wf</cite>, and number of reactors, <cite>N_reactors</cite>, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent <a class="reference internal" href="#re460bde1e2a7-3" id="id1"><span>[Re460bde1e2a7-3]</span></a>.</p>
-<dl class="field-list">
+<dd><p>Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast <a class="footnote-reference brackets" href="#id6" id="id1">1</a> <a class="footnote-reference brackets" href="#id7" id="id2">2</a> <a class="footnote-reference brackets" href="#id8" id="id3">3</a> <a class="footnote-reference brackets" href="#id9" id="id4">4</a>. A compound with CAS ‘Yeast’ must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, <cite>tau</cite>. Cleaning and unloading time, <cite>tau_0</cite>, fraction of working volume, <cite>V_wf</cite>, and number of reactors, <cite>N_reactors</cite>, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent <a class="footnote-reference brackets" href="#id10" id="id5">5</a>.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl>
-<dt><strong>ins</strong></dt><dd><p>[:] Inffluent streams</p>
-</dd>
-<dt><strong>outs</strong></dt><dd><p>[0] Effluent</p>
-<p>[1] CO2</p>
-</dd>
-<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Reaction time.</p>
-</dd>
-<dt><strong>efficiency=0.9</strong><span class="classifier">float, optional</span></dt><dd><p>User enforced efficiency.</p>
-</dd>
-<dt><strong>iskinetic=False: bool, optional</strong></dt><dd><p>If True, <cite>Fermenation.kinetic_model</cite> will be used.</p>
-</dd>
-<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>Number of batch reactors</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">References</p>
-<dl class="citation">
-<dt class="label" id="re460bde1e2a7-1"><span class="brackets">Re460bde1e2a7-1</span></dt>
-<dd><p>Oliveira, Samuel C., et al. “Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast.” Applied biochemistry and biotechnology 74.3 (1998): 161-172.</p>
-</dd>
-<dt class="label" id="re460bde1e2a7-2"><span class="brackets">Re460bde1e2a7-2</span></dt>
-<dd><p>Oliveira, Samuel C., et al. “Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions.” Bioprocess Engineering 20.6 (1999): 525-530.</p>
-</dd>
-<dt class="label" id="re460bde1e2a7-3"><span class="brackets"><a class="fn-backref" href="#id1">Re460bde1e2a7-3</a></span></dt>
-<dd><p>Oliveira, Samuel C., et al. “Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle.” Bioprocess and biosystems engineering 38.3 (2015): 469-479.</p>
-</dd>
-<dt class="label" id="re460bde1e2a7-4"><span class="brackets">Re460bde1e2a7-4</span></dt>
-<dd><p>Oliveira, Samuel C., et al. “Kinetic Modeling of 1‐G Ethanol Fermentations.” Fermentation Processes. InTech, 2017.</p>
-</dd>
-<dt class="label" id="re460bde1e2a7-5"><span class="brackets">Re460bde1e2a7-5</span></dt>
-<dd><ol class="upperalpha simple" start="4">
-<li><p>Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764</p></li>
-</ol>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>streams</em>) – Inlet fluids to be mixed into the fermentor.</p></li>
+<li><p><strong>outs</strong> (<em>stream sequence</em>) – <ul>
+<li><p>[0] Vent</p></li>
+<li><p>[1] Effluent</p></li>
+</ul>
+</p></li>
+<li><p><strong>tau</strong> (<em>float</em>) – Reaction time.</p></li>
+<li><p><strong>efficiency=0.9</strong> (<em>float</em><em>, </em><em>optional</em>) – User enforced efficiency.</p></li>
+<li><p><strong>iskinetic=False</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, <cite>Fermenation.kinetic_model</cite> will be used.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Number of batch reactors</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <p>Simulate a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane.chemicals</span> <span class="kn">import</span> <span class="n">ethanol_chemicals</span> 
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane.chemicals</span> <span class="kn">import</span> <span class="n">ethanol_chemicals</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Fermentation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">ethanol_chemicals</span><span class="p">)</span>
@@ -322,6 +299,26 @@
 <span class="go">Utility cost                                      USD/hr      68.2</span>
 </pre></div>
 </div>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Oliveira, Samuel C., et al. “Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast.” Applied biochemistry and biotechnology 74.3 (1998): 161-172.</p>
+</dd>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Oliveira, Samuel C., et al. “Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions.” Bioprocess Engineering 20.6 (1999): 525-530.</p>
+</dd>
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><p>Oliveira, Samuel C., et al. “Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle.” Bioprocess and biosystems engineering 38.3 (2015): 469-479.</p>
+</dd>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dd><p>Oliveira, Samuel C., et al. “Kinetic Modeling of 1‐G Ethanol Fermentations.” Fermentation Processes. InTech, 2017.</p>
+</dd>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dd><ol class="upperalpha simple" start="4">
+<li><p>Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764</p></li>
+</ol>
+</dd>
+</dl>
 <dl class="attribute">
 <dt id="biosteam.units.Fermentation.autoselect_N">
 <code class="sig-name descname">autoselect_N</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Fermentation.autoselect_N" title="Permalink to this definition">¶</a></dt>
@@ -352,16 +349,15 @@
 <dd><p>Return change of yeast, ethanol, and substrate concentration in kg/m3.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>z</strong><span class="classifier">Iterable with (X, E, S) [-]:</span></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> (<em>Iterable with</em><em> (</em><em>X</em><em>, </em><em>E</em><em>, </em><em>S</em><em>) </em><em>[</em><em>-</em><em>]</em><em>:</em>) – <ul>
 <li><p>X: Yeast concentration (kg/m3)</p></li>
 <li><p>P: Ethanol concentration (kg/m3)</p></li>
 <li><p>S: Substrate concentration (kg/m3)</p></li>
 </ul>
-</dd>
-<dt><strong>t</strong><span class="classifier">float</span></dt><dd><p>Time point</p>
-</dd>
-<dt><strong>*kinetic_constants</strong></dt><dd><ul class="simple">
+</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – Time point</p></li>
+<li><p><strong>*kinetic_constants</strong> – <ul>
 <li><p>mu_m1: Maximum specific growth rate (1/hr)</p></li>
 <li><p>mu_m2: Maximum specific ethanol production rate (g-product/g-cell-hr)</p></li>
 <li><p>Ks1: Sugar saturation constant for growth (g/L)</p></li>
@@ -372,8 +368,8 @@
 <li><p>Y_PS: Ethanol yield based on sugar consumed</p></li>
 <li><p>a: Toxic power</p></li>
 </ul>
-</dd>
-</dl>
+</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

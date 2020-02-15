@@ -53,7 +53,7 @@ def calculate_vacuum_system_power_and_cost(
         Suction pressure in Pa
     vessel_volume : float
         Vacuum volume in m3
-    vacuum_system_preference : tuple[str] or str
+    vacuum_system_preference : 'Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump'
         Name(s) of preferred vacuum systems
     
     """

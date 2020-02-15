@@ -16,14 +16,12 @@ class RotaryVacuumFilter(SolidsSeparator):
     
     Parameters
     ----------
-    ins
-        [0] Feed
-        
-        [1] Wash water
-    outs
-        [0] Retentate
-        
-        [1] Permeate
+    ins : stream sequence
+        * [0] Feed
+        * [1] Wash water
+    outs : stream sequence 
+        * [0] Retentate
+        * [1] Permeate
     moisture_content : float
                        Fraction of water in retentate.
     

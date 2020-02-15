@@ -419,18 +419,18 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins : </span>
-<span class="sd">        [0] Feed stream.</span>
-<span class="sd">    outs : </span>
-<span class="sd">        [0] Effluent stream.</span>
-<span class="sd">    vessel_type : str</span>
-<span class="sd">        Vessel type.</span>
-<span class="sd">    tau : float</span>
+<span class="sd">    ins : stream</span>
+<span class="sd">        Inlet.</span>
+<span class="sd">    outs : stream</span>
+<span class="sd">        Outlet.</span>
+<span class="sd">    vessel_type : str, optional</span>
+<span class="sd">        Vessel type. Defaults to &#39;Field erected&#39;.</span>
+<span class="sd">    tau=672 : float</span>
 <span class="sd">        Residence time [hr].</span>
-<span class="sd">    V_wf : float</span>
+<span class="sd">    V_wf=1 : float</span>
 <span class="sd">        Fraction of working volume over total volume.</span>
-<span class="sd">    vessel_material : str</span>
-<span class="sd">        Vessel material.</span>
+<span class="sd">    vessel_material : str, optional</span>
+<span class="sd">        Vessel material. Defaults to &#39;Stainless steel&#39;.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -542,19 +542,19 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins : </span>
-<span class="sd">        [:] Feed streams.</span>
-<span class="sd">    outs : </span>
-<span class="sd">        [0] Effluent stream.</span>
+<span class="sd">    ins : streams</span>
+<span class="sd">        Inlet fluids to be mixed.</span>
+<span class="sd">    outs : stream</span>
+<span class="sd">        Outlet.</span>
 <span class="sd">    vessel_type : str</span>
 <span class="sd">        Vessel type.</span>
-<span class="sd">    tau : float</span>
+<span class="sd">    tau=1 : float</span>
 <span class="sd">        Residence time [hr].</span>
-<span class="sd">    V_wf : float</span>
+<span class="sd">    V_wf=0.8 : float</span>
 <span class="sd">        Fraction of working volume over total volume.</span>
-<span class="sd">    vessel_material : str</span>
-<span class="sd">        Vessel material.</span>
-<span class="sd">    kW_per_m3 : float</span>
+<span class="sd">    vessel_material : str, optional</span>
+<span class="sd">        Vessel material. Defaults to &#39;Stainless steel&#39;.</span>
+<span class="sd">    kW_per_m3=0.0985 : float</span>
 <span class="sd">        Electricity requirement per unit volume [kW/m^3].</span>
 <span class="sd">    </span>
 <span class="sd">    Notes</span>

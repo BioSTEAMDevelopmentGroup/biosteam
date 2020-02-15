@@ -77,7 +77,8 @@ MissingStream = MissingStream()
 # %% List objects for input and output streams
 
 class StreamSequence:
-    """Abstract class for a sequence of streams for a Unit object.
+    """
+    Abstract class for a sequence of streams for a Unit object.
     
     Abstract methods:
         * _dock(self, stream) -> Stream
@@ -266,7 +267,8 @@ class Outs(StreamSequence):
 # %% Sink and Source object for piping notation
 
 class Sink:
-    """Create a Sink object that connects a stream to a unit using piping notation:
+    """
+    Create a Sink object that connects a stream to a unit using piping notation:
     
     Parameters
     ----------
@@ -326,7 +328,8 @@ class Sink:
 
 
 class Source:
-    """Create a Source object that connects a stream to a unit using piping notation:
+    """
+    Create a Source object that connects a stream to a unit using piping notation:
     
     Parameters
     ----------

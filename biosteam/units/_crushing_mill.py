@@ -14,15 +14,12 @@ class CrushingMill(SolidsSeparator):
     
     Parameters
     ----------
-    ins
-        [0] Shredded sugar cane
-        
-        [1] Recycle water
-    
-    outs
-        [0] Bagasse
-        
-        [1] Juice
+    ins : stream sequence
+        * [0] Shredded sugar cane
+        * [1] Recycle water
+    outs : stream sequence 
+        * [0] Bagasse
+        * [1] Juice
     moisture_content : float
                        Fraction of water in Baggasse.
     

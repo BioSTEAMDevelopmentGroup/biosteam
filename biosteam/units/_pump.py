@@ -33,18 +33,18 @@ class Pump(Unit):
 
     Parameters
     ----------
-    ins :
-        [0] Input stream
-    outs :
-        [1] Output stream
+    ins : stream
+        Inlet.
+    outs : stream
+        Outlet.
     P=101325 : float, optional
         Pressure of output stream (Pa). If the pressure of the outlet is 
         the same as the inlet, pump is design to increase of pressure
         to `P_design`.
     pump_type='Default' : str
         If 'Default', a pump type is selected based on heuristics.
-    material='Cast iron' : str
-        Contruction material of pump.
+    material : str, optional
+        Contruction material of pump. Defaults to 'Cast iron'.
     P_design=405300 : float
         Design pressure for pump.
     ignore_NPSH=True : bool

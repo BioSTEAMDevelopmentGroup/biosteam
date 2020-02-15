@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>biosteam.units._mixer &mdash; BioSTEAM 0.1 documentation</title>
+  <title>biosteam.utils.not_implemented_method &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -155,7 +155,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>biosteam.units._mixer</li>
+      <li>biosteam.utils.not_implemented_method</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -170,64 +170,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for biosteam.units._mixer</h1><div class="highlight"><pre>
+  <h1>Source code for biosteam.utils.not_implemented_method</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Thu Aug 23 14:26:41 2018</span>
+<span class="sd">Created on Tue Jul  9 00:35:01 2019</span>
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;NotImplementedMethod&#39;</span><span class="p">,)</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Mixer&#39;</span><span class="p">,)</span>
-
-<div class="viewcode-block" id="Mixer"><a class="viewcode-back" href="../../../units/Mixer.html#biosteam.units.Mixer">[docs]</a><span class="k">class</span> <span class="nc">Mixer</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a mixer that mixes any number of streams together.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    ins :</span>
-<span class="sd">        Inlet streams to be mixed.</span>
-<span class="sd">    outs :</span>
-<span class="sd">        Mixed outlet stream.</span>
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    Mix two streams:</span>
-<span class="sd">    </span>
-<span class="sd">    &gt;&gt;&gt; from biosteam import units</span>
-<span class="sd">    &gt;&gt;&gt; import thermosteam as tmo</span>
-<span class="sd">    &gt;&gt;&gt; chemicals = tmo.Chemicals([&#39;Ethanol&#39;, &#39;Water&#39;])</span>
-<span class="sd">    &gt;&gt;&gt; tmo.settings.set_thermo(chemicals)</span>
-<span class="sd">    &gt;&gt;&gt; s1 = tmo.Stream(&#39;s1&#39;, Water=20, T=350)</span>
-<span class="sd">    &gt;&gt;&gt; s2 = tmo.Stream(&#39;s2&#39;, Ethanol=30, T=300)</span>
-<span class="sd">    &gt;&gt;&gt; M1 = units.Mixer(&#39;M1&#39;, ins=(s1, s2), outs=&#39;s3&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; M1.simulate()</span>
-<span class="sd">    &gt;&gt;&gt; M1.show()</span>
-<span class="sd">    Mixer: M1</span>
-<span class="sd">    ins...</span>
-<span class="sd">    [0] s1</span>
-<span class="sd">        phase: &#39;l&#39;, T: 350 K, P: 101325 Pa</span>
-<span class="sd">        flow (kmol/hr): Water  20</span>
-<span class="sd">    [1] s2</span>
-<span class="sd">        phase: &#39;l&#39;, T: 300 K, P: 101325 Pa</span>
-<span class="sd">        flow (kmol/hr): Ethanol  30</span>
-<span class="sd">    outs...</span>
-<span class="sd">    [0] s3</span>
-<span class="sd">        phase: &#39;l&#39;, T: 315.11 K, P: 101325 Pa</span>
-<span class="sd">        flow (kmol/hr): Ethanol  30</span>
-<span class="sd">                        Water    20</span>
-<span class="sd">    </span>
-<span class="sd">    </span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">5</span>
-    <span class="n">_ins_size_is_fixed</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">class</span> <span class="nc">NotImplementedMethodType</span><span class="p">:</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s_out</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">s_out</span><span class="o">.</span><span class="n">mix_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__name__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;NotImplementedMethod&quot;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__doc__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="n">NotImplementedMethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="s2">&quot;NotImplementedMethod&quot;</span>
+
+<span class="n">NotImplementedMethod</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">NotImplementedMethodType</span><span class="p">)</span>
 </pre></div>
 
            </div>

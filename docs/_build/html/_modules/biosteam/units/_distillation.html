@@ -254,7 +254,7 @@
 <span class="c1"># %% Distillation</span>
 
 <div class="viewcode-block" id="Distillation"><a class="viewcode-back" href="../../../units/Distillation.html#biosteam.units.Distillation">[docs]</a><span class="k">class</span> <span class="nc">Distillation</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a Distillation column that assumes all light and heavy non keys</span>
 <span class="sd">    separate to the top and bottoms product respectively. McCabe-Thiele</span>
 <span class="sd">    analysis is used to find both the number of stages and the reflux ratio</span>
@@ -268,31 +268,31 @@
 <span class="sd">    for hydrocarbons. The Murphree efficiency is based on the modified</span>
 <span class="sd">    O&#39;Connell correlation [2]_. The diameter is based on tray separation</span>
 <span class="sd">    and flooding velocity [1]_. Purchase costs are based on correlations</span>
-<span class="sd">    by Mulet et al. [3, 4]_ as compiled by Warren et. al. [5]_.</span>
+<span class="sd">    by Mulet et al. [3]_ [4]_ as compiled by Warren et. al. [5]_.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins</span>
-<span class="sd">        [:] All input streams</span>
-<span class="sd">    outs</span>
-<span class="sd">        [0] Distillate product</span>
-<span class="sd">        </span>
-<span class="sd">        [1] Bottoms product</span>
+<span class="sd">    ins : streams</span>
+<span class="sd">        Inlet fluids to be mixed into the feed stage.</span>
+<span class="sd">    outs : stream sequence</span>
+<span class="sd">        * [0] Distillate</span>
+<span class="sd">        * [1] Bottoms product</span>
 <span class="sd">    LHK : tuple[str]</span>
-<span class="sd">          Light and heavy keys.</span>
-<span class="sd">    P=101325 : float</span>
-<span class="sd">        Operating pressure (Pa).</span>
+<span class="sd">        Light and heavy keys.</span>
 <span class="sd">    y_top : float</span>
-<span class="sd">            Molar fraction of light key in the distillate.</span>
+<span class="sd">        Molar fraction of light key in the distillate.</span>
 <span class="sd">    x_bot : float</span>
-<span class="sd">            Molar fraction of light key in the bottoms.</span>
+<span class="sd">        Molar fraction of light key in the bottoms.</span>
 <span class="sd">    k : float</span>
 <span class="sd">        Ratio of reflux to minimum reflux.</span>
-<span class="sd">    vessel_material=&#39;Carbon steel&#39; : str</span>
-<span class="sd">        Vessel construction material.</span>
-<span class="sd">    tray_material=&#39;Carbon steel&#39; : str</span>
-<span class="sd">        Tray construction material.</span>
-<span class="sd">    tray_type=&#39;Sieve&#39; : {&#39;Sieve&#39;, &#39;Valve&#39;, &#39;Bubble cap&#39;}</span>
+<span class="sd">    P=101325 : float</span>
+<span class="sd">        Operating pressure [Pa].</span>
+<span class="sd">    vessel_material : str, optional</span>
+<span class="sd">        Vessel construction material. Defaults to &#39;Carbon steel&#39;.</span>
+<span class="sd">    tray_material : str, optional</span>
+<span class="sd">        Tray construction material. Defaults to &#39;Carbon steel&#39;.</span>
+<span class="sd">    tray_type=&#39;Sieve&#39; : &#39;Sieve&#39;, &#39;Valve&#39;, or &#39;Bubble cap&#39;</span>
+<span class="sd">        Tray type.</span>
 <span class="sd">    tray_spacing=450 : float</span>
 <span class="sd">        Typically between 152 to 915 mm.</span>
 <span class="sd">    stage_efficiency=None : </span>
@@ -369,7 +369,6 @@
 <span class="sd">                     Methanol  0.00761</span>
 <span class="sd">                     Glycerol  0.239</span>
 <span class="sd">                     --------  105 kmol/hr</span>
-<span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; D1.results()</span>
 <span class="sd">    Distillation                                    Units        D1</span>
 <span class="sd">    Cooling water       Duty                        kJ/hr -5.11e+06</span>
@@ -662,7 +661,7 @@
         <span class="n">condensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span> <span class="c1"># Abstract attribute</span>
         <span class="n">condenser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span>
         <span class="n">s_in</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">s_in</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="o">+</span><span class="n">condensate</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">s_in</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">condensate</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">s_in</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">T</span>
         <span class="n">s_in</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">P</span>
         <span class="n">ms1</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -898,7 +897,7 @@
         <span class="k">if</span> <span class="n">A_dn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">A_dn</span> <span class="o">=</span> <span class="n">compute_downcomer_area_fraction</span><span class="p">(</span><span class="n">F_LV</span><span class="p">)</span>
         <span class="n">S_diameter</span> <span class="o">=</span> <span class="n">compute_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span>
-        <span class="n">Po</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="o">*</span><span class="mf">0.000145078</span> <span class="c1"># to psi</span>
+        <span class="n">Po</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">*</span> <span class="mf">0.000145078</span> <span class="c1"># to psi</span>
         <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_densities_lb_per_in3</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vessel_material</span><span class="p">]</span>
         
         <span class="k">if</span> <span class="n">is_divided</span><span class="p">:</span>

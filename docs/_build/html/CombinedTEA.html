@@ -314,21 +314,20 @@
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.get_cashflow">
-<code class="sig-name descname">get_cashflow</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.get_cashflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.get_cashflow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cashflow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.get_cashflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.get_cashflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return DataFrame of the cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.production_cost">
-<code class="sig-name descname">production_cost</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.production_cost" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">production_cost</code><span class="sig-paren">(</span><em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.production_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return production cost of products [USD/yr].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>products</strong><span class="classifier">Iterable[Stream]</span></dt><dd><p>Main products of the system</p>
-</dd>
-<dt><strong>with_annual_depreciation=True</strong><span class="classifier">bool, optional</span></dt><dd></dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>products</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Main products of the system</p></li>
+<li><p><strong>with_annual_depreciation=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -340,29 +339,27 @@ determined by the annual production multiplied by its selling price.</p>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.solve_IRR">
-<code class="sig-name descname">solve_IRR</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_IRR</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the IRR at the break even point (NPV = 0) through cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.solve_price">
-<code class="sig-name descname">solve_price</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">stream</em>, <em class="sig-param">TEA=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_price" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_price</code><span class="sig-paren">(</span><em class="sig-param">stream</em>, <em class="sig-param">TEA=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>stream</strong><span class="classifier">Stream</span></dt><dd><p>Stream with variable selling price.</p>
-</dd>
-<dt><strong>TEA</strong><span class="classifier">TEA, optional</span></dt><dd><p>Stream should belong here.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream</strong> (<em>Stream</em>) – Stream with variable selling price.</p></li>
+<li><p><strong>TEA</strong> (<a class="reference internal" href="TEA.html#biosteam.TEA" title="biosteam.TEA"><em>TEA</em></a><em>, </em><em>optional</em>) – Stream should belong here.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

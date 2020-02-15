@@ -206,18 +206,18 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins :</span>
-<span class="sd">        [0] Input stream</span>
-<span class="sd">    outs :</span>
-<span class="sd">        [1] Output stream</span>
+<span class="sd">    ins : stream</span>
+<span class="sd">        Inlet.</span>
+<span class="sd">    outs : stream</span>
+<span class="sd">        Outlet.</span>
 <span class="sd">    P=101325 : float, optional</span>
 <span class="sd">        Pressure of output stream (Pa). If the pressure of the outlet is </span>
 <span class="sd">        the same as the inlet, pump is design to increase of pressure</span>
 <span class="sd">        to `P_design`.</span>
 <span class="sd">    pump_type=&#39;Default&#39; : str</span>
 <span class="sd">        If &#39;Default&#39;, a pump type is selected based on heuristics.</span>
-<span class="sd">    material=&#39;Cast iron&#39; : str</span>
-<span class="sd">        Contruction material of pump.</span>
+<span class="sd">    material : str, optional</span>
+<span class="sd">        Contruction material of pump. Defaults to &#39;Cast iron&#39;.</span>
 <span class="sd">    P_design=405300 : float</span>
 <span class="sd">        Design pressure for pump.</span>
 <span class="sd">    ignore_NPSH=True : bool</span>

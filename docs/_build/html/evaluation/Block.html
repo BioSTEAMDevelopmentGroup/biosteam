@@ -211,18 +211,16 @@
 <dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>element</strong><span class="classifier">Unit or Stream</span></dt><dd><p>Element in the system.</p>
-</dd>
-<dt><strong>system=None</strong><span class="classifier">System, optional</span></dt><dd><p>System affected by element. In other words, element should affect
-downstream operations in the system.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<a class="reference internal" href="../Unit.html#biosteam.Unit" title="biosteam.Unit"><em>Unit</em></a><em> or </em><em>Stream</em>) – Element in the system.</p></li>
+<li><p><strong>system=None</strong> (<a class="reference internal" href="../System.html#biosteam.System" title="biosteam.System"><em>System</em></a><em>, </em><em>optional</em>) – System affected by element. In other words, element should affect
+downstream operations in the system.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="method">
 <dt id="biosteam.evaluation.Block.parameter">
-<code class="sig-name descname">parameter</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">setter</em>, <em class="sig-param">simulate=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">distribution=None</em>, <em class="sig-param">units=None</em>, <em class="sig-param">baseline=None</em><span class="sig-paren">)</span> &#x2192; biosteam.evaluation._parameter.Parameter<a class="reference internal" href="../_modules/biosteam/evaluation/_block.html#Block.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block.parameter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parameter</code><span class="sig-paren">(</span><em class="sig-param">setter</em>, <em class="sig-param">simulate=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">distribution=None</em>, <em class="sig-param">units=None</em>, <em class="sig-param">baseline=None</em><span class="sig-paren">)</span> &#x2192; biosteam.evaluation._parameter.Parameter<a class="reference internal" href="../_modules/biosteam/evaluation/_block.html#Block.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block.parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Parameter object.</p>
 </dd></dl>
 

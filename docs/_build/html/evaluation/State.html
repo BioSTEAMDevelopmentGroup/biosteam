@@ -211,84 +211,73 @@
 <dd><p>Create a State object that can update the <cite>system</cite> state given a sample of parameter states.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>system</strong><span class="classifier">System</span></dt><dd></dd>
-<dt><strong>skip=False</strong><span class="classifier">bool</span></dt><dd><p>If True, skip simulation for repeated states</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="../System.html#biosteam.System" title="biosteam.System"><em>System</em></a>) – </p></li>
+<li><p><strong>skip=False</strong> (<em>bool</em>) – If True, skip simulation for repeated states</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="method">
 <dt id="biosteam.evaluation.State.load_default_parameters">
-<code class="sig-name descname">load_default_parameters</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">feedstock</em>, <em class="sig-param">shape=&lt;function triang at 0x0000027544B4DBF8&gt;</em>, <em class="sig-param">bounded_shape=&lt;function bounded_triang at 0x0000027544B4DC80&gt;</em>, <em class="sig-param">operating_days=False</em>, <em class="sig-param">include_feedstock_price=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.State.load_default_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_default_parameters</code><span class="sig-paren">(</span><em class="sig-param">feedstock</em>, <em class="sig-param">shape=&lt;function triang&gt;</em>, <em class="sig-param">bounded_shape=&lt;function bounded_triang&gt;</em>, <em class="sig-param">operating_days=False</em>, <em class="sig-param">include_feedstock_price=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.State.load_default_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>feedstock</strong><span class="classifier">Stream</span></dt><dd><p>Main feedstock of process.</p>
-</dd>
-<dt><strong>shape</strong><span class="classifier">function, optional</span></dt><dd><p>Should take in baseline value and return a chaospy.Dist object or
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feedstock</strong> (<em>Stream</em>) – Main feedstock of process.</p></li>
+<li><p><strong>shape</strong> (<em>function</em><em>, </em><em>optional</em>) – Should take in baseline value and return a chaospy.Dist object or
 None. Default function returns a chaospy.Triangle object with bounds
 at +- 10% of baseline value. The distribution is applied to all
-parameters except exponential factor “n” of cost items.</p>
-</dd>
-<dt><strong>bounded_shape</strong><span class="classifier">function, optional</span></dt><dd><p>Should take in baseline value and return a chaospy.Dist object or
+parameters except exponential factor “n” of cost items.</p></li>
+<li><p><strong>bounded_shape</strong> (<em>function</em><em>, </em><em>optional</em>) – Should take in baseline value and return a chaospy.Dist object or
 None. Default function returns a chaospy.Triangle object with bounds
-at +- 0.1 of baseline value or minimum 0 and maximum 1. The 
-distribution is applied to exponential factor “n” of cost items.</p>
-</dd>
-<dt><strong>operating_days</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, include operating days</p>
-</dd>
-</dl>
+at +- 0.1 of baseline value or minimum 0 and maximum 1. The
+distribution is applied to exponential factor “n” of cost items.</p></li>
+<li><p><strong>operating_days</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, include operating days</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.copy">
-<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return copy.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.get_parameters">
-<code class="sig-name descname">get_parameters</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return parameters.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.get_distribution_summary">
-<code class="sig-name descname">get_distribution_summary</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_distribution_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_distribution_summary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_distribution_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_distribution_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_distribution_summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return dictionary of shape name-DataFrame pairs.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.parameter">
-<code class="sig-name descname">parameter</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">setter=None</em>, <em class="sig-param">element=None</em>, <em class="sig-param">kind='isolated'</em>, <em class="sig-param">name=None</em>, <em class="sig-param">distribution=None</em>, <em class="sig-param">units=None</em>, <em class="sig-param">baseline=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.parameter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parameter</code><span class="sig-paren">(</span><em class="sig-param">setter=None</em>, <em class="sig-param">element=None</em>, <em class="sig-param">kind='isolated'</em>, <em class="sig-param">name=None</em>, <em class="sig-param">distribution=None</em>, <em class="sig-param">units=None</em>, <em class="sig-param">baseline=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define and register parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>setter</strong><span class="classifier">function</span></dt><dd><p>Should set parameter in the element.</p>
-</dd>
-<dt><strong>element</strong><span class="classifier">Unit or Stream</span></dt><dd><p>Element in the system being altered.</p>
-</dd>
-<dt><strong>kind</strong><span class="classifier">{‘coupled’, ‘isolated’, ‘design’, ‘cost’}</span></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setter</strong> (<em>function</em>) – Should set parameter in the element.</p></li>
+<li><p><strong>element</strong> (<a class="reference internal" href="../Unit.html#biosteam.Unit" title="biosteam.Unit"><em>Unit</em></a><em> or </em><em>Stream</em>) – Element in the system being altered.</p></li>
+<li><p><strong>kind</strong> (<em>{'coupled'</em><em>, </em><em>'isolated'</em><em>, </em><em>'design'</em><em>, </em><em>'cost'}</em>) – <ul>
 <li><p>‘coupled’: parameter is coupled to the system.</p></li>
-<li><p>‘isolated’: parameter does not affect the system but does affect the element (if any).</p></li>
-<li><p>‘design’: parameter only affects design and cost of the element.</p></li>
-<li><p>‘cost’: parameter only affects cost of the element.</p></li>
+<li><p>’isolated’: parameter does not affect the system but does affect the element (if any).</p></li>
+<li><p>’design’: parameter only affects design and cost of the element.</p></li>
+<li><p>’cost’: parameter only affects cost of the element.</p></li>
 </ul>
-</dd>
-<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Name of parameter. If None, default to argument name of setter.</p>
-</dd>
-<dt><strong>distribution</strong><span class="classifier">chaospy.Dist</span></dt><dd><p>Parameter distribution.</p>
-</dd>
-<dt><strong>units</strong><span class="classifier">str</span></dt><dd><p>Parameter units of measure</p>
-</dd>
-<dt><strong>baseline</strong><span class="classifier">float</span></dt><dd><p>Baseline value of parameter.</p>
-</dd>
-</dl>
+</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of parameter. If None, default to argument name of setter.</p></li>
+<li><p><strong>distribution</strong> (<em>chaospy.Dist</em>) – Parameter distribution.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Parameter units of measure</p></li>
+<li><p><strong>baseline</strong> (<em>float</em>) – Baseline value of parameter.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -297,16 +286,14 @@ distribution is applied to exponential factor “n” of cost items.</p>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.sample">
-<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">N</em>, <em class="sig-param">rule</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.sample" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">N</em>, <em class="sig-param">rule</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return N samples from parameter distribution at given rule.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>Number of samples.</p>
-</dd>
-<dt><strong>rule</strong><span class="classifier">str</span></dt><dd><p>Sampling rule.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>rule</strong> (<em>str</em>) – Sampling rule.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -358,13 +345,13 @@ distribution is applied to exponential factor “n” of cost items.</p>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.__call__">
-<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">sample</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">sample</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update state given sample of parameters.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information on metric parameters.</p>
 </dd></dl>
 

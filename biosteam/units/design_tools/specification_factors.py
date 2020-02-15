@@ -14,7 +14,14 @@ __all__ = ('vessel_material_factors',
            'pressure_vessel_material_factors',
            'material_densities_lb_per_ft3',
            'material_densities_lb_per_in3',
-           'distillation_tray_type_factor')
+           'pump_material_factors',
+           'pump_gear_factors',
+           'pump_centrifugal_factors',
+           'distillation_tray_type_factor',
+           'tray_material_factor_functions',
+           'distillation_column_material_factors',
+           'shell_and_tube_material_factor_coefficients',
+)
 
 # %% Vessels
 

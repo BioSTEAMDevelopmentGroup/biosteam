@@ -105,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -225,20 +225,14 @@
 <dd><p>Create a storage tank with a purchase cost based on volume as given by residence time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ins :</strong></dt><dd><p>[0] Feed stream.</p>
-</dd>
-<dt><strong>outs :</strong></dt><dd><p>[0] Effluent stream.</p>
-</dd>
-<dt><strong>vessel_type</strong><span class="classifier">str</span></dt><dd><p>Vessel type.</p>
-</dd>
-<dt><strong>tau</strong><span class="classifier">float</span></dt><dd><p>Residence time [hr].</p>
-</dd>
-<dt><strong>V_wf</strong><span class="classifier">float</span></dt><dd><p>Fraction of working volume over total volume.</p>
-</dd>
-<dt><strong>vessel_material</strong><span class="classifier">str</span></dt><dd><p>Vessel material.</p>
-</dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>stream</em>) – Inlet.</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Outlet.</p></li>
+<li><p><strong>vessel_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Vessel type. Defaults to ‘Field erected’.</p></li>
+<li><p><strong>tau=672</strong> (<em>float</em>) – Residence time [hr].</p></li>
+<li><p><strong>V_wf=1</strong> (<em>float</em>) – Fraction of working volume over total volume.</p></li>
+<li><p><strong>vessel_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Vessel material. Defaults to ‘Stainless steel’.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -247,24 +241,10 @@ please read the <a class="reference internal" href="Tank.html"><span class="doc"
 <p>References to the purchase cost algorithms for each available
 vessel type are as follows:</p>
 <ul class="simple">
-<li><p>Field erected: <a class="reference internal" href="#r0b0114e6e022-1" id="id1"><span>[R0b0114e6e022-1]</span></a></p></li>
-<li><p>Floating roof: <a class="reference internal" href="#r0b0114e6e022-2" id="id2"><span>[R0b0114e6e022-2]</span></a></p></li>
-<li><p>Cone roof: <a class="reference internal" href="#r0b0114e6e022-2" id="id3"><span>[R0b0114e6e022-2]</span></a></p></li>
+<li><p>Field erected: <a class="footnote-reference brackets" href="#id4" id="id1">1</a></p></li>
+<li><p>Floating roof: <a class="footnote-reference brackets" href="#id5" id="id2">2</a></p></li>
+<li><p>Cone roof: <a class="footnote-reference brackets" href="#id5" id="id3">2</a></p></li>
 </ul>
-<p class="rubric">References</p>
-<dl class="citation">
-<dt class="label" id="r0b0114e6e022-1"><span class="brackets"><a class="fn-backref" href="#id1">R0b0114e6e022-1</a></span></dt>
-<dd><p>Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
-(2009). Techno-economic analysis of a biodiesel production process from
-vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
-<a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></p>
-</dd>
-<dt class="label" id="r0b0114e6e022-2"><span class="brackets">R0b0114e6e022-2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id3">2</a>)</span></dt>
-<dd><p>Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
-Ng, M. K. Cost Accounting and Capital Cost Estimation.
-In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
-</dd>
-</dl>
 <p class="rubric">Examples</p>
 <p>Create a carbon steel, floating roof storage tank for the storage of bioethanol:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
@@ -299,6 +279,20 @@ In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
 <span class="go">Utility cost                         USD/hr        0</span>
 </pre></div>
 </div>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
+(2009). Techno-economic analysis of a biodiesel production process from
+vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
+<a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></p>
+</dd>
+<dt class="label" id="id5"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id3">2</a>)</span></dt>
+<dd><p>Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
+Ng, M. K. Cost Accounting and Capital Cost Estimation.
+In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
+</dd>
+</dl>
 <dl class="attribute">
 <dt id="biosteam.units.StorageTank.tau">
 <code class="sig-name descname">tau</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.StorageTank.tau" title="Permalink to this definition">¶</a></dt>
@@ -320,7 +314,12 @@ In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
 <dl class="attribute">
 <dt id="biosteam.units.StorageTank.purchase_cost_algorithms">
 <code class="sig-name descname">purchase_cost_algorithms</code><a class="headerlink" href="#biosteam.units.StorageTank.purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
-<dd><p>dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
+<dd><p>VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict[str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -397,25 +396,21 @@ In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.diagram">
-<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>Maxium number streams between neighbors.</p>
-</dd>
-<dt><strong>downstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show downstream operations</p>
-</dd>
-<dt><strong>upstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show upstream operations</p>
-</dd>
-<dt><strong>file</strong><span class="classifier">Must be one of the following:</span></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>radius</strong> (<em>int</em>) – Maxium number streams between neighbors.</p></li>
+<li><p><strong>downstream=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show downstream operations</p></li>
+<li><p><strong>upstream=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show upstream operations</p></li>
+<li><p><strong>file</strong> (<em>Must be one of the following:</em>) – <ul>
 <li><p>[str] File name to save diagram.</p></li>
 <li><p>[None] Display diagram in console.</p></li>
 </ul>
-</dd>
-<dt><strong>format</strong><span class="classifier">str</span></dt><dd><p>Format of file.</p>
-</dd>
-</dl>
+</p></li>
+<li><p><strong>format</strong> (<em>str</em>) – Format of file.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -470,19 +465,19 @@ In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.results">
-<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.simulate">
-<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 

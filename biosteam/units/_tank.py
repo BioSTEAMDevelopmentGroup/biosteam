@@ -246,18 +246,18 @@ class StorageTank(Tank):
 
     Parameters
     ----------
-    ins : 
-        [0] Feed stream.
-    outs : 
-        [0] Effluent stream.
-    vessel_type : str
-        Vessel type.
-    tau : float
+    ins : stream
+        Inlet.
+    outs : stream
+        Outlet.
+    vessel_type : str, optional
+        Vessel type. Defaults to 'Field erected'.
+    tau=672 : float
         Residence time [hr].
-    V_wf : float
+    V_wf=1 : float
         Fraction of working volume over total volume.
-    vessel_material : str
-        Vessel material.
+    vessel_material : str, optional
+        Vessel material. Defaults to 'Stainless steel'.
 
     Notes
     -----
@@ -369,19 +369,19 @@ class MixTank(Tank):
 
     Parameters
     ----------
-    ins : 
-        [:] Feed streams.
-    outs : 
-        [0] Effluent stream.
+    ins : streams
+        Inlet fluids to be mixed.
+    outs : stream
+        Outlet.
     vessel_type : str
         Vessel type.
-    tau : float
+    tau=1 : float
         Residence time [hr].
-    V_wf : float
+    V_wf=0.8 : float
         Fraction of working volume over total volume.
-    vessel_material : str
-        Vessel material.
-    kW_per_m3 : float
+    vessel_material : str, optional
+        Vessel material. Defaults to 'Stainless steel'.
+    kW_per_m3=0.0985 : float
         Electricity requirement per unit volume [kW/m^3].
     
     Notes

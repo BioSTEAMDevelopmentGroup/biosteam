@@ -210,12 +210,11 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins</span>
-<span class="sd">        [0] Feed stream</span>
-<span class="sd">    outs</span>
-<span class="sd">        [0] Split stream</span>
-<span class="sd">        </span>
-<span class="sd">        [1] Remainder stream    </span>
+<span class="sd">    ins : stream</span>
+<span class="sd">        Inlet fluid to be split.</span>
+<span class="sd">    outs : stream sequence</span>
+<span class="sd">        * [0] Split stream</span>
+<span class="sd">        * [1] Remainder stream    </span>
 <span class="sd">    split : Should be one of the following</span>
 <span class="sd">            * [float] The fraction of net feed in the 0th output stream</span>
 <span class="sd">            * [array_like] Componentwise split of feed to 0th output stream</span>

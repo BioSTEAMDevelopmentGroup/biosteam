@@ -199,44 +199,6 @@
 <dt id="biosteam.Unit">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">Unit</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract parent class for Unit objects. Child objects must contain <cite>_run</cite>, <cite>_design</cite> and <cite>_cost</cite> methods to estimate stream outputs of a Unit and find design and cost information.</p>
-<p><strong>Parameters</strong></p>
-<dl class="simple">
-<dt>ID=’’<span class="classifier">str, defaults to a unique ID</span></dt><dd><p>A unique identification. If ID is None, unit will not be
-registered in flowsheet.</p>
-</dd>
-<dt>ins=None<span class="classifier">tuple[str or Stream], defaults to missing streams</span></dt><dd><p>Input streams or IDs to initialize input streams.
-If empty, default IDs will be given.</p>
-</dd>
-<dt>outs=()<span class="classifier">tuple[str or Stream], defaults to new streams</span></dt><dd><p>Output streams or IDs to initialize output streams. If None, 
-leave streams missing.</p>
-</dd>
-<dt>thermo=None<span class="classifier">Thermo, defaults to settings.thermo</span></dt><dd><p>Thermo object to initialize input and output streams.</p>
-</dd>
-</dl>
-<p><strong>Abstract class attributes</strong></p>
-<dl class="simple">
-<dt>line=None<span class="classifier">str</span></dt><dd><p>Name denoting the type of Unit class. Defaults to the class
-name of the first child class.</p>
-</dd>
-<dt>BM=None<span class="classifier">float</span></dt><dd><p>Bare module factor (installation factor).</p>
-</dd>
-<dt>_units={}<span class="classifier">dict</span></dt><dd><p>Units of measure for results Operation and Design.</p>
-</dd>
-<dt>_N_ins=1<span class="classifier">int</span></dt><dd><p>Expected number of input streams.</p>
-</dd>
-<dt>_N_outs=2<span class="classifier">int</span></dt><dd><p>Expected number of output streams.</p>
-</dd>
-<dt>_ins_size_is_fixed=True<span class="classifier">bool</span></dt><dd><p>Whether the number of streams in ins is fixed.</p>
-</dd>
-<dt>_outs_size_is_fixed=True<span class="classifier">bool</span></dt><dd><p>Whether the number of streams in outs is fixed.</p>
-</dd>
-<dt>_N_heat_utilities=0: int</dt><dd><p>Number of heat utilities created with each instance</p>
-</dd>
-<dt>_has_cost=True<span class="classifier">bool</span></dt><dd><p>Should be True if it has any associated cost.</p>
-</dd>
-<dt>_graphics<span class="classifier">biosteam.Graphics, abstract, optional</span></dt><dd><p>Settings for diagram representation.</p>
-</dd>
-</dl>
 <p><strong>Abstract class methods</strong></p>
 <dl class="simple">
 <dt>_setup()</dt><dd><p>Set stream conditions and constant data.</p>
@@ -248,31 +210,127 @@ name of the first child class.</p>
 <dt>_cost()</dt><dd><p>Add itemized purchse costs to the “purchase_costs” dictionary.</p>
 </dd>
 </dl>
+<p><strong>Abstract class attributes</strong></p>
+<dl class="simple">
+<dt><strong>line=None</strong></dt><dd><p>[str] Name denoting the type of Unit class. Defaults to the class
+name of the first child class.</p>
+</dd>
+<dt><strong>BM=None</strong></dt><dd><p>[float] Bare module factor (installation factor).</p>
+</dd>
+<dt><strong>_units={}</strong></dt><dd><p>[dict] Units of measure for results Operation and Design.</p>
+</dd>
+<dt><strong>_N_ins=1</strong></dt><dd><p>[int] Expected number of input streams.</p>
+</dd>
+<dt><strong>_N_outs=2</strong></dt><dd><p>[int] Expected number of output streams.</p>
+</dd>
+<dt><strong>_ins_size_is_fixed=True</strong></dt><dd><p>[bool] Whether the number of streams in ins is fixed.</p>
+</dd>
+<dt><strong>_outs_size_is_fixed=True</strong></dt><dd><p>[bool] Whether the number of streams in outs is fixed.</p>
+</dd>
+<dt><strong>_N_heat_utilities=0</strong></dt><dd><p>[int] Number of heat utilities created with each instance</p>
+</dd>
+<dt><strong>_graphics</strong></dt><dd><p>[biosteam.Graphics, abstract, optional] Settings for diagram
+representation. Defaults to a box with the same number of input
+and output edges as <cite>_N_ins</cite> and <cite>_N_outs</cite></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ID=''</strong> (<em>str</em><em>, </em><em>defaults to a unique ID</em>) – A unique identification. If ID is None, unit will not be
+registered in flowsheet.</p></li>
+<li><p><strong>ins=None</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>, or </em><em>str</em><em>]</em><em>, </em><em>Stream</em><em>, or </em><em>str</em>) – Input streams or IDs to initialize input streams.
+If empty, default IDs will be given. If None, defaults to missing streams.</p></li>
+<li><p><strong>outs=</strong><strong>(</strong><strong>)</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>, or </em><em>str</em><em>]</em><em>, </em><em>Stream</em><em>, or </em><em>str</em>) – Output streams or IDs to initialize output streams.
+If empty, default IDs will be given.
+If None, leave streams missing.</p></li>
+<li><p><strong>thermo=None</strong> (<em>Thermo</em>) – Thermo object to initialize input and output streams. Defaults to
+<cite>thermosteam.settings.thermo</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="biosteam.Unit.ins">
+<code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.Unit.ins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input streams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Ins[Stream]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Unit.outs">
+<code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.Unit.outs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output streams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Outs[Stream]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Unit.power_utility">
+<code class="sig-name descname">power_utility</code><a class="headerlink" href="#biosteam.Unit.power_utility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Electricity rate requirements are stored here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="PowerUtility.html#biosteam.PowerUtility" title="biosteam.PowerUtility">PowerUtility</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Unit.heat_utilities">
+<code class="sig-name descname">heat_utilities</code><a class="headerlink" href="#biosteam.Unit.heat_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cooling and heating requirements are stored here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple[<a class="reference internal" href="HeatUtility.html#biosteam.HeatUtility" title="biosteam.HeatUtility">HeatUtility</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Unit.design_results">
+<code class="sig-name descname">design_results</code><a class="headerlink" href="#biosteam.Unit.design_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>All design requirements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Unit.purchase_costs">
+<code class="sig-name descname">purchase_costs</code><a class="headerlink" href="#biosteam.Unit.purchase_costs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Itemized purchase costs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Unit.thermo">
+<code class="sig-name descname">thermo</code><a class="headerlink" href="#biosteam.Unit.thermo" title="Permalink to this definition">¶</a></dt>
+<dd><p>The thermodynamic property package used by the unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Thermo</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p class="rubric">Examples</p>
 <p><a class="reference internal" href="tutorial/Creating a Unit.html"><span class="doc">Creating a Unit</span></a></p>
 <p><a class="reference internal" href="tutorial/Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
 <p><a class="reference internal" href="tutorial/Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
 <p><a class="reference internal" href="tutorial/Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><a class="reference internal" href="#biosteam.Unit.ins" title="biosteam.Unit.ins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ins</span></code></a><span class="classifier">Ins[Stream]</span></dt><dd><p>All input streams.</p>
-</dd>
-<dt><a class="reference internal" href="#biosteam.Unit.outs" title="biosteam.Unit.outs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outs</span></code></a><span class="classifier">Outs[Stream]</span></dt><dd><p>All output streams.</p>
-</dd>
-<dt><strong>power_utility</strong><span class="classifier">PowerUtility</span></dt><dd><p>Electricity rate requirements are stored here.</p>
-</dd>
-<dt><strong>heat_utilities</strong><span class="classifier">tuple[HeatUtility]</span></dt><dd><p>Cooling and heating requirements are stored here.</p>
-</dd>
-<dt><strong>design_results</strong><span class="classifier">dict</span></dt><dd><p>All design requirements.</p>
-</dd>
-<dt><strong>purchase_costs</strong><span class="classifier">dict</span></dt><dd><p>Itemized purchase costs.</p>
-</dd>
-<dt><strong>thermo</strong><span class="classifier">Thermo</span></dt><dd><p>The thermodynamic property package used by the unit.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <dl class="method">
 <dt id="biosteam.Unit.purchase_cost">
 <em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.Unit.purchase_cost" title="Permalink to this definition">¶</a></dt>
@@ -293,49 +351,45 @@ name of the first child class.</p>
 
 <dl class="method">
 <dt id="biosteam.Unit.simulate">
-<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.simulate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.results">
-<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Unit.ins">
-<em class="property">property </em><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.Unit.ins" title="Permalink to this definition">¶</a></dt>
+<dt>
+<em class="property">property </em><code class="sig-name descname">ins</code></dt>
 <dd><p>All input streams.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Unit.outs">
-<em class="property">property </em><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.Unit.outs" title="Permalink to this definition">¶</a></dt>
+<dt>
+<em class="property">property </em><code class="sig-name descname">outs</code></dt>
 <dd><p>All output streams.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.diagram">
-<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>Maxium number streams between neighbors.</p>
-</dd>
-<dt><strong>downstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show downstream operations</p>
-</dd>
-<dt><strong>upstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show upstream operations</p>
-</dd>
-<dt><strong>file</strong><span class="classifier">Must be one of the following:</span></dt><dd><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>radius</strong> (<em>int</em>) – Maxium number streams between neighbors.</p></li>
+<li><p><strong>downstream=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show downstream operations</p></li>
+<li><p><strong>upstream=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show upstream operations</p></li>
+<li><p><strong>file</strong> (<em>Must be one of the following:</em>) – <ul>
 <li><p>[str] File name to save diagram.</p></li>
 <li><p>[None] Display diagram in console.</p></li>
 </ul>
-</dd>
-<dt><strong>format</strong><span class="classifier">str</span></dt><dd><p>Format of file.</p>
-</dd>
-</dl>
+</p></li>
+<li><p><strong>format</strong> (<em>str</em>) – Format of file.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -480,7 +534,7 @@ name of the first child class.</p>
 
 <dl class="method">
 <dt id="biosteam.Unit.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

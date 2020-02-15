@@ -201,61 +201,39 @@
 <dd><p>Abstract TEA class for cash flow analysis.</p>
 <p><strong>Abstract methods</strong></p>
 <dl class="simple">
-<dt>_TDC<span class="classifier">function</span></dt><dd><p>Should take direct permanent investment as an argument
-and return total depreciable capital (e.g. _TDC(self, DPI) -&gt; TDC).</p>
+<dt>_TDC(DPI) -&gt; TDC</dt><dd><p>Should take direct permanent investment as an argument
+and return total depreciable capital.</p>
 </dd>
-<dt>_FCI<span class="classifier">function</span></dt><dd><p>Should take total depreciable capital as an argument and return
-fixed capital investment (e.g. _FCI(self, TDC) -&gt; FCI).</p>
+<dt>_FCI(TDC) -&gt; FCI</dt><dd><p>Should take total depreciable capital as an argument and return
+fixed capital investment.</p>
 </dd>
-<dt>_FOC<span class="classifier">function</span></dt><dd><p>Should take fixed capital investment as an arguments and return
-fixed operating cost without depreciation (e.g. _FOC(self, FCI) -&gt; FOC).</p>
+<dt>_FOC(FCI) -&gt; FOC</dt><dd><p>Should take fixed capital investment as an arguments and return
+fixed operating cost without depreciation.</p>
 </dd>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>system</strong><span class="classifier">System</span></dt><dd><p>Should contain feed and product streams.</p>
-</dd>
-<dt><strong>IRR</strong><span class="classifier">float</span></dt><dd><p>Internal rate of return (fraction).</p>
-</dd>
-<dt><strong>duration</strong><span class="classifier">tuple[int, int]</span></dt><dd><p>Start and end year of venture (e.g. (2018, 2038)).</p>
-</dd>
-<dt><strong>depreciation</strong><span class="classifier">str</span></dt><dd><p>‘MACRS’ + number of years (e.g. ‘MACRS7’).</p>
-</dd>
-<dt><strong>operating_days</strong><span class="classifier">float</span></dt><dd><p>Number of operating days per year.</p>
-</dd>
-<dt><strong>income_tax</strong><span class="classifier">float</span></dt><dd><p>Combined federal and state income tax rate (fraction).</p>
-</dd>
-<dt><strong>lang_factor</strong><span class="classifier">float</span></dt><dd><p>Lang factor for getting fixed capital investment
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="System.html#biosteam.System" title="biosteam.System"><em>System</em></a>) – Should contain feed and product streams.</p></li>
+<li><p><strong>IRR</strong> (<em>float</em>) – Internal rate of return (fraction).</p></li>
+<li><p><strong>duration</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Start and end year of venture (e.g. (2018, 2038)).</p></li>
+<li><p><strong>depreciation</strong> (<em>str</em>) – ‘MACRS’ + number of years (e.g. ‘MACRS7’).</p></li>
+<li><p><strong>operating_days</strong> (<em>float</em>) – Number of operating days per year.</p></li>
+<li><p><strong>income_tax</strong> (<em>float</em>) – Combined federal and state income tax rate (fraction).</p></li>
+<li><p><strong>lang_factor</strong> (<em>float</em>) – Lang factor for getting fixed capital investment
 from total purchase cost. If no lang factor, estimate
-capital investment using bare module factors.</p>
-</dd>
-<dt><strong>construction_schedule</strong><span class="classifier">tuple[float]</span></dt><dd><p>Construction investment fractions per year
-(e.g. (0.5, 0.5) for 50% capital investment
-in the first year and 50% investment in the
-second).</p>
-</dd>
-<dt><strong>startup_months</strong><span class="classifier">float</span></dt><dd><p>Startup time in months.</p>
-</dd>
-<dt><strong>startup_FOCfrac</strong><span class="classifier">float</span></dt><dd><p>Fraction of fixed operating costs incurred during
-startup.</p>
-</dd>
-<dt><strong>startup_VOCfrac</strong><span class="classifier">float</span></dt><dd><p>Fraction of variable operating costs incurred during
-startup.</p>
-</dd>
-<dt><strong>startup_salesfrac</strong><span class="classifier">float</span></dt><dd><p>Fraction of sales achieved during startup.</p>
-</dd>
-<dt><strong>WC_over_FCI</strong><span class="classifier">float</span></dt><dd><p>Working capital as a fraction of fixed capital
-investment.</p>
-</dd>
-<dt><strong>finanace_interest</strong><span class="classifier">float</span></dt><dd><p>Yearly interest of capital cost financing as a
-fraction.</p>
-</dd>
-<dt><strong>finance_years</strong><span class="classifier">int</span></dt><dd><p>Number of years the loan is paid for.</p>
-</dd>
-<dt><strong>finance_fraction</strong><span class="classifier">float</span></dt><dd><p>Fraction of capital cost that needs to be financed.</p>
-</dd>
-</dl>
+capital investment using bare module factors.</p></li>
+<li><p><strong>construction_schedule</strong> (<em>tuple</em><em>[</em><em>float</em><em>]</em>) – Construction investment fractions per year (e.g. (0.5, 0.5) for 50%
+capital investment in the first year and 50% investment in the second).</p></li>
+<li><p><strong>startup_months</strong> (<em>float</em>) – Startup time in months.</p></li>
+<li><p><strong>startup_FOCfrac</strong> (<em>float</em>) – Fraction of fixed operating costs incurred during startup.</p></li>
+<li><p><strong>startup_VOCfrac</strong> (<em>float</em>) – Fraction of variable operating costs incurred during startup.</p></li>
+<li><p><strong>startup_salesfrac</strong> (<em>float</em>) – Fraction of sales achieved during startup.</p></li>
+<li><p><strong>WC_over_FCI</strong> (<em>float</em>) – Working capital as a fraction of fixed capital investment.</p></li>
+<li><p><strong>finanace_interest</strong> (<em>float</em>) – Yearly interest of capital cost financing as a fraction.</p></li>
+<li><p><strong>finance_years</strong> (<em>int</em>) – Number of years the loan is paid for.</p></li>
+<li><p><strong>finance_fraction</strong> (<em>float</em>) – Fraction of capital cost that needs to be financed.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -359,7 +337,12 @@ fraction.</p>
 <dl class="method">
 <dt id="biosteam.TEA.construction_schedule">
 <em class="property">property </em><code class="sig-name descname">construction_schedule</code><a class="headerlink" href="#biosteam.TEA.construction_schedule" title="Permalink to this definition">¶</a></dt>
-<dd><p>tuple[float] Construction investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).</p>
+<dd><p>(0.5, 0.5).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple[float] Construction investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -460,7 +443,7 @@ fraction.</p>
 
 <dl class="method">
 <dt id="biosteam.TEA.get_cashflow_table">
-<code class="sig-name descname">get_cashflow_table</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.get_cashflow_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.get_cashflow_table" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cashflow_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.get_cashflow_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.get_cashflow_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return DataFrame of the cash flow analysis.</p>
 </dd></dl>
 
@@ -472,15 +455,14 @@ fraction.</p>
 
 <dl class="method">
 <dt id="biosteam.TEA.production_cost">
-<code class="sig-name descname">production_cost</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">production_cost</code><span class="sig-paren">(</span><em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return production cost of products [USD/yr].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>products</strong><span class="classifier">Iterable[Stream]</span></dt><dd><p>Main products of the system</p>
-</dd>
-<dt><strong>with_annual_depreciation=True</strong><span class="classifier">bool, optional</span></dt><dd></dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>products</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Main products of the system</p></li>
+<li><p><strong>with_annual_depreciation=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -492,42 +474,38 @@ determined by the annual production multiplied by its selling price.</p>
 
 <dl class="method">
 <dt id="biosteam.TEA.total_production_cost">
-<code class="sig-name descname">total_production_cost</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.total_production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.total_production_cost" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">total_production_cost</code><span class="sig-paren">(</span><em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.total_production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.total_production_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return total production cost of products [USD/yr].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>products</strong><span class="classifier">Iterable[Stream]</span></dt><dd><p>Main products of the system</p>
-</dd>
-<dt><strong>with_annual_depreciation=True</strong><span class="classifier">bool, optional</span></dt><dd></dd>
-</dl>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>products</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Main products of the system</p></li>
+<li><p><strong>with_annual_depreciation=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.TEA.solve_IRR">
-<code class="sig-name descname">solve_IRR</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_IRR</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the IRR at the break even point (NPV = 0) through cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.TEA.solve_price">
-<code class="sig-name descname">solve_price</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_price</code><span class="sig-paren">(</span><em class="sig-param">stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>stream</strong><span class="classifier">Stream</span></dt><dd><p>Stream with variable selling price.</p>
-</dd>
-</dl>
+<dd class="field-odd"><p><strong>stream</strong> (<em>Stream</em>) – Stream with variable selling price.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.TEA.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
