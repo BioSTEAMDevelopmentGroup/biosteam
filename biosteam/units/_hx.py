@@ -348,12 +348,13 @@ class HXutility(HX):
     Parameters
     ----------
     ins : stream
-        Inlet fluid.
-    outs :
-        Outlet fluid.
-    Define at least one:
-        * T: [float] Temperature of output stream (K).
-        * V: [float] Vapor fraction of output stream.
+        Inlet.
+    outs : stream
+        Outlet.
+    T : float
+        Temperature of output stream [K].
+    V : float
+        Vapor fraction of output stream.
     rigorous=False : bool
         If true, calculate vapor liquid equilibrium
     U=None : float, optional
@@ -364,15 +365,18 @@ class HXutility(HX):
         Number of shells.
     ft=None : float
         User imposed correction factor.
-        
+    
+    Notes
+    -----
+    Must specify either `T` or `V` when creating a HXutility object.
+    
     Examples
     --------
     Run heat exchanger by temperature:
     
     >>> from biosteam.units import HXutility
     >>> from thermosteam import Chemicals, Stream, settings
-    >>> chemicals = Chemicals(['Water', 'Ethanol'])
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> feed = Stream('feed', Water=200, Ethanol=200)
     >>> hx = HXutility('hx', ins=feed, outs='product', T=50+273.15,
     ...                rigorous=False) # Ignore VLE
@@ -558,8 +562,7 @@ class HXprocess(HX):
         
     >>> from biosteam.units import HXprocess
     >>> from thermosteam import Chemicals, Stream, settings
-    >>> chemicals = Chemicals(['Water', 'Ethanol'])
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> in1 = Stream('in1', Water=200, T=350)
     >>> in2 = Stream('in2', Ethanol=200)
     >>> hx = HXprocess('hx', ins=(in1, in2), outs=('out1', 'out2'),

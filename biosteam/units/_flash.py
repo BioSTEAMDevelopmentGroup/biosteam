@@ -89,8 +89,7 @@ class Flash(Unit):
     --------
     >>> from biosteam.units import Flash
     >>> from thermosteam import Chemicals, Stream, settings
-    >>> chemicals = Chemicals(['Water', 'Glycerol'])
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Water', 'Glycerol'])
     >>> feed = Stream('feed', Glycerol=300, Water=1000)
     >>> bp = feed.bubble_point_at_P() # Feed at bubble point T
     >>> feed.T = bp.T
