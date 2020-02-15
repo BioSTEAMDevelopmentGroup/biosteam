@@ -14,10 +14,10 @@ class Mixer(Unit):
     
     Parameters
     ----------
-    ins :
-        Inlet streams to be mixed.
-    outs :
-        Mixed outlet stream.
+    ins : streams
+        Inlet fluids to be mixed.
+    outs : stream
+        Mixed outlet fluid.
     Examples
     --------
     Mix two streams:
