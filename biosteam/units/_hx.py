@@ -51,7 +51,7 @@ class HX(Unit, isabstract=True):
     **Abstract methods**
     
     _get_streams()
-        Should return two input streams and two output streams that exchange heat.
+        Should return two inlet streams and two outlet streams that exchange heat.
 
     **Abstract attributes**
     
@@ -343,7 +343,7 @@ class HX(Unit, isabstract=True):
 
 
 class HXutility(HX):
-    """Create a heat exchanger that changes temperature of the output stream using a heat utility.
+    """Create a heat exchanger that changes temperature of the outlet stream using a heat utility.
 
     Parameters
     ----------
@@ -352,9 +352,9 @@ class HXutility(HX):
     outs : stream
         Outlet.
     T : float
-        Temperature of output stream [K].
+        Temperature of outlet stream [K].
     V : float
-        Vapor fraction of output stream.
+        Vapor fraction of outlet stream.
     rigorous=False : bool
         If true, calculate vapor liquid equilibrium
     U=None : float, optional
@@ -455,8 +455,8 @@ class HXutility(HX):
                  N_shells=2,
                  ft=None):
         super().__init__(ID, ins, outs, thermo)
-        self.T = T #: Temperature of output stream (K).
-        self.V = V #: Vapor fraction of output stream.
+        self.T = T #: Temperature of outlet stream (K).
+        self.V = V #: Vapor fraction of outlet stream.
         
         #: [bool] If true, calculate vapor liquid equilibrium
         self.rigorous = rigorous
