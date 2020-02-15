@@ -33,44 +33,6 @@ lines_with_new_graphics = ['Unit', 'Mixer', 'Static',
 class Unit:
     """Abstract parent class for Unit objects. Child objects must contain `_run`, `_design` and `_cost` methods to estimate stream outputs of a Unit and find design and cost information.  
 
-    **Parameters**
-    
-    ID='' : str, defaults to a unique ID
-        A unique identification. If ID is None, unit will not be
-        registered in flowsheet.
-    ins=None : tuple[str or Stream], defaults to missing streams
-        Input streams or IDs to initialize input streams.
-        If empty, default IDs will be given.
-    outs=() : tuple[str or Stream], defaults to new streams
-        Output streams or IDs to initialize output streams. If None, 
-        leave streams missing.
-    thermo=None : Thermo, defaults to settings.thermo
-        Thermo object to initialize input and output streams.
-
-    **Abstract class attributes**
-    
-    line=None : str
-        Name denoting the type of Unit class. Defaults to the class
-        name of the first child class.
-    BM=None : float
-        Bare module factor (installation factor).
-    _units={} : dict
-        Units of measure for results Operation and Design.
-    _N_ins=1 : int
-        Expected number of input streams.
-    _N_outs=2 : int
-        Expected number of output streams.
-    _ins_size_is_fixed=True : bool
-        Whether the number of streams in ins is fixed.
-    _outs_size_is_fixed=True : bool
-        Whether the number of streams in outs is fixed.
-    _N_heat_utilities=0: int
-        Number of heat utilities created with each instance
-    _has_cost=True : bool
-        Should be True if it has any associated cost.
-    _graphics : biosteam.Graphics, abstract, optional
-        Settings for diagram representation.
-
     **Abstract class methods**
     
     _setup()
@@ -81,6 +43,46 @@ class Unit:
         Add design requirements to the `design_results` dictionary.
     _cost()
         Add itemized purchse costs to the "purchase_costs" dictionary.
+
+    **Abstract class attributes**
+    
+    **line=None**
+        [str] Name denoting the type of Unit class. Defaults to the class
+        name of the first child class.
+    **BM=None** 
+        [float] Bare module factor (installation factor).
+    **_units={}**
+        [dict] Units of measure for results Operation and Design.
+    **_N_ins=1**
+        [int] Expected number of input streams.
+    **_N_outs=2**
+        [int] Expected number of output streams.
+    **_ins_size_is_fixed=True**
+        [bool] Whether the number of streams in ins is fixed.
+    **_outs_size_is_fixed=True**
+        [bool] Whether the number of streams in outs is fixed.
+    **_N_heat_utilities=0**
+        [int] Number of heat utilities created with each instance
+    **_graphics**
+        [biosteam.Graphics, abstract, optional] Settings for diagram
+        representation. Defaults to a box with the same number of input
+        and output edges as `_N_ins` and `_N_outs`
+
+    Parameters
+    ----------
+    ID='' : str, defaults to a unique ID
+        A unique identification. If ID is None, unit will not be
+        registered in flowsheet.
+    ins=None : Iterable[Stream, or str], Stream, or str
+        Input streams or IDs to initialize input streams.
+        If empty, default IDs will be given. If None, defaults to missing streams.
+    outs=() : Iterable[Stream, or str], Stream, or str
+        Output streams or IDs to initialize output streams.
+        If empty, default IDs will be given.
+        If None, leave streams missing.
+    thermo=None : Thermo
+        Thermo object to initialize input and output streams. Defaults to
+        `thermosteam.settings.thermo`.
     
     Attributes
     ----------

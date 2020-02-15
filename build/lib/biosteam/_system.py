@@ -132,7 +132,11 @@ class system(type):
 
 @registered('SYS')
 class System(metaclass=system):
-    """Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.
+    """
+    Create a System object that can iteratively run each element in a network
+    of BioSTREAM objects until the recycle stream is converged. A network can
+    have function, Unit and/or System objects. When the network contains an
+    inner System object, it converges/solves it in each loop/iteration.
 
     Parameters
     ----------
@@ -271,12 +275,12 @@ class System(metaclass=system):
     
     @property
     def TEA(self):
-        """[TEA] System object for Techno-Economic Analysis."""
+        """[TEA] Object for Techno-Economic Analysis."""
         return self._TEA
     
     @property
     def recycle(self):
-        """A tear stream for the recycle loop"""
+        """[Stream] A tear stream for the recycle loop"""
         return self._recycle
 
     @property

@@ -67,7 +67,6 @@ biosteam/units/factories.py
 biosteam/units/decorators/__init__.py
 biosteam/units/decorators/_cost.py
 biosteam/units/decorators/_design.py
-biosteam/units/decorators/_spec.py
 biosteam/units/design_tools/__init__.py
 biosteam/units/design_tools/batch.py
 biosteam/units/design_tools/column_design.py

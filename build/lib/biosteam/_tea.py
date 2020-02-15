@@ -94,63 +94,54 @@ def net_earnings(D, C, S, start,
 # %% Techno-Economic Analysis
 
 class TEA:
-    """Abstract TEA class for cash flow analysis.
+    """
+    Abstract TEA class for cash flow analysis.
     
     **Abstract methods**
     
-    _TDC : function
-           Should take direct permanent investment as an argument
-           and return total depreciable capital (e.g. _TDC(self, DPI) -> TDC).
-    _FCI : function
-           Should take total depreciable capital as an argument and return
-           fixed capital investment (e.g. _FCI(self, TDC) -> FCI).
-    _FOC : function
-           Should take fixed capital investment as an arguments and return
-           fixed operating cost without depreciation (e.g. _FOC(self, FCI) -> FOC).
+    _TDC(DPI) -> TDC
+        Should take direct permanent investment as an argument
+        and return total depreciable capital.
+    _FCI(TDC) -> FCI
+        Should take total depreciable capital as an argument and return
+        fixed capital investment.
+    _FOC(FCI) -> FOC
+        Should take fixed capital investment as an arguments and return
+        fixed operating cost without depreciation.
     
     Parameters
     ----------
     system : System
-             Should contain feed and product streams.
+        Should contain feed and product streams.
     IRR : float
-          Internal rate of return (fraction).
+        Internal rate of return (fraction).
     duration : tuple[int, int]
-               Start and end year of venture (e.g. (2018, 2038)).
+        Start and end year of venture (e.g. (2018, 2038)).
     depreciation : str
-                   'MACRS' + number of years (e.g. 'MACRS7').
+        'MACRS' + number of years (e.g. 'MACRS7').
     operating_days : float 
-                     Number of operating days per year.
+        Number of operating days per year.
     income_tax : float
-                 Combined federal and state income tax rate (fraction).
+        Combined federal and state income tax rate (fraction).
     lang_factor : float
-                  Lang factor for getting fixed capital investment
-                  from total purchase cost. If no lang factor, estimate
-                  capital investment using bare module factors.
+        Lang factor for getting fixed capital investment
+        from total purchase cost. If no lang factor, estimate
+        capital investment using bare module factors.
     construction_schedule : tuple[float]
-                            Construction investment fractions per year
-                            (e.g. (0.5, 0.5) for 50% capital investment
-                            in the first year and 50% investment in the
-                            second).
+        Construction investment fractions per year (e.g. (0.5, 0.5) for 50%
+        capital investment in the first year and 50% investment in the second).
     startup_months : float
-                     Startup time in months.
-        
+        Startup time in months.
     startup_FOCfrac : float
-                      Fraction of fixed operating costs incurred during
-                      startup.
-        
+        Fraction of fixed operating costs incurred during startup.
     startup_VOCfrac : float
-                      Fraction of variable operating costs incurred during
-                      startup.
-        
+        Fraction of variable operating costs incurred during startup.
     startup_salesfrac : float
-                        Fraction of sales achieved during startup.
-        
+        Fraction of sales achieved during startup.
     WC_over_FCI : float
-                  Working capital as a fraction of fixed capital
-                  investment.
+        Working capital as a fraction of fixed capital investment.
     finanace_interest : float
-                        Yearly interest of capital cost financing as a
-                        fraction.
+        Yearly interest of capital cost financing as a fraction.
     finance_years : int
                     Number of years the loan is paid for.
     finance_fraction : float

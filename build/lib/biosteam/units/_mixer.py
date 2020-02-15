@@ -14,11 +14,10 @@ class Mixer(Unit):
     
     Parameters
     ----------
-    ins
-        [:] Input streams
-    outs
-        [0] Mixed stream
-    
+    ins :
+        Inlet streams to be mixed.
+    outs :
+        Mixed outlet stream.
     Examples
     --------
     Mix two streams:

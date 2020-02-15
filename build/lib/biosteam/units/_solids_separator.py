@@ -12,13 +12,12 @@ class SolidsSeparator(Splitter):
     
     Parameters
     ----------
-    ins
-        [:] Input streams
-    outs
-        [0] Retentate
-        
-        [1] Permeate
-    split: array_like
+    ins : stream 
+        Inlet fluid with solids.
+    outs : stream sequnece
+        * [0] Retentate.
+        * [1] Permeate.
+    split : array_like
            Component splits to 0th output stream
     moisture_content : float
                        Fraction of water in solids

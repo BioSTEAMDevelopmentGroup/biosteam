@@ -17,6 +17,10 @@ class MassBalance(Unit):
 
     Parameters
     ----------
+    ins :
+        Inlet streams.
+    outs : 
+        Outlet streams
     chemical_IDs : tuple[str]
         Chemicals that will be used to solve mass balance linear equations.
         The number of chemicals must be same as the number of input streams varied.

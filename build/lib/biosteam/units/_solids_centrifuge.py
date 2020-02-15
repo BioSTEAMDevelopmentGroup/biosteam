@@ -16,16 +16,15 @@ class SolidsCentrifuge(Splitter):
     
     Parameters
     ----------
-    ins
-        [:] Input streams
-    outs
-        [0] Liquid stream
-        
-        [1] Solids stream
+    ins : stream
+        Inlet fluid with solids.
+    outs : stream sequence
+        * [0] Liquid-rich stream.
+        * [1] Solids-rich stream.
     split: array_like
            Component splits to 0th output stream
-    order=None : Iterable[str], defaults to Stream.species.IDs
-        Species order of split.
+    order=None : Iterable[str]
+        Species order of split. Defaults to Stream.species.IDs.
     solids : tuple[str]
              IDs of solids.
     

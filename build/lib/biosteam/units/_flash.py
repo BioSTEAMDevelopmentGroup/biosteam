@@ -39,34 +39,37 @@ class Flash(Unit):
     non-keys and heavy non-keys completly separate into their respective
     phases. Design procedure is based on heuristics by Wayne D. Monnery & 
     William Y. Svrcek [1]_. Purchase costs are based on correlations by
-    Mulet et al. [2, 3]_ as compiled by Warren et. al. [4]_.
+    Mulet et al. [2]_ [3]_ as compiled by Warren et. al. [4]_.
 
     Parameters
     ----------
-    ins
-        [0] Input stream
-        
-    outs
-        [0] Vapor product
-        
-        [1] Liquid product
-    Specify two:
-        * **P:** Operating pressure (Pa)
-        * **Q:** Energy input (kJ/hr)
-        * **T:** Operating temperature (K)
-        * **V:** Molar vapor fraction
-        * **x:** Molar composition of liquid (for binary mixture)
-        * **y:** Molar composition of vapor (for binary mixture)
-    vessel_material : str
-        Vessel construction material.
-    vacuum_system_preference : str
+    ins : stream
+        Inlet fluid.
+    outs : stream sequence
+        * [0] Vapor product
+        * [1] Liquid product
+    P : float, optional
+        Operating pressure [Pa].
+    Q : float, optional
+        Duty [kJ/hr].
+    T : float, optional
+        Operating temperature [K].
+    V : float, optional
+        Molar vapor fraction.
+    x : float, optional
+        Molar composition of liquid (for binary mixtures).
+    y : float, optional
+        Molar composition of vapor (for binary mixtures).
+    vessel_material : str, optional
+        Vessel construction material. Defaults to 'Carbon steel'.
+    vacuum_system_preference : 'Liquid-ring pump', 'Steam-jet ejector', or 'Dry-vacuum pump'
         If a vacuum system is needed, it will choose one according to this
-        preference.  
+        preference. Defaults to 'Liquid-ring pump'.
     has_glycol_groups=False : bool
         True if glycol groups are present in the mixture.
     has_amine_groups=False : bool
         True if amine groups are present in the mixture.
-    vessel_type='Default' : {'Horizontal', 'Vertical', 'Default'}
+    vessel_type='Default' : 'Horizontal', 'Vertical', or 'Default'
         Vessel separation type. If 'Default', the vessel type will be chosen
         according to heuristics.
     holdup_time=15.0 : float
@@ -75,6 +78,12 @@ class Flash(Unit):
         Time it takes to reach from normal to maximum liquied level [min].
     has_mist_eliminator : bool
         True if using a mist eliminator pad.
+
+    Notes
+    -----
+    You may only specify two of the following parameters: P, Q, T, V, x, and y.
+    Additionally, If x or y is specified, the other parameter must be either
+    P or T (e.g., x and V is invalid).
 
     Examples
     --------

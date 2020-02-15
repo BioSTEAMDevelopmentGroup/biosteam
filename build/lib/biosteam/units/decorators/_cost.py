@@ -12,7 +12,8 @@ from math import ceil
 __all__ = ('cost', 'add_cost', 'CostItem')
 
 class CostItem:
-    """Create a CostItem object which defines exponential scaling factors for an item's purchase cost.
+    """
+    Create a CostItem object which defines exponential scaling factors for an item's purchase cost.
     
     Parameters
     ----------
@@ -36,6 +37,7 @@ class CostItem:
         Bare module factor (installation factor).
     N : str
         Attribute name for number of parallel units.
+    
     """
     __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
                  'cost', 'n', 'kW', 'BM', 'N')
@@ -119,7 +121,8 @@ def installation_cost(self):
     return sum([C[i]*j.BM for i,j in self.cost_items.items()])
 
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None, N=None):    
-    r"""Add item (free-on-board) purchase cost based on exponential scale up:
+    r"""
+    Add item (free-on-board) purchase cost based on exponential scale up:
     
     Parameters
     ----------

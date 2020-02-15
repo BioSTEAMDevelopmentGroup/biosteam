@@ -24,13 +24,11 @@ class MolecularSieve(Splitter):
     
     Parameters
     ----------
-    ins
-        [0] Feed (gas)
-        
-    outs
-        [0] Split stream (gas)
-        
-        [1] Remainder stream (gas)
+    ins : stream
+        * [0] Feed (gas)
+    outs : stream sequence
+        * [0] Split stream (gas)
+        * [1] Remainder stream (gas)
     split : array_like
             Componentwise split to the 0th output stream
     

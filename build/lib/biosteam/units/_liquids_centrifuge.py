@@ -28,13 +28,11 @@ class LiquidsCentrifuge(Unit, isabstract=True):
 
     Parameters
     ----------
-    ins
-        [0] Input stream
-        
-    outs
-        [0] 'liquid' phase stream
-        
-        [1] 'LIQUID' phase stream
+    ins : stream
+        Inlet fluid.
+    outs : 
+        * [0] 'liquid' phase fluid
+        * [1] 'LIQUID' phase fluid
     
     """
     _N_outs = 2

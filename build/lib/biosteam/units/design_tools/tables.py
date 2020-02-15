@@ -14,7 +14,6 @@ def GTable(DRho, Hlr):
     ----------
     DRho : float
         Density difference between light liquid and vapor [lb/ft^3 ?]
-        
     Hlr : float
         Height of liquid level above the interphase of light liquid and heavy liquid [ft]
     

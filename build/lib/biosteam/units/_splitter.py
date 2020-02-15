@@ -37,12 +37,11 @@ class Splitter(Unit):
 
     Parameters
     ----------
-    ins
-        [0] Feed stream
-    outs
-        [0] Split stream
-        
-        [1] Remainder stream    
+    ins : stream
+        Inlet fluid to be split.
+    outs : stream sequence
+        * [0] Split stream
+        * [1] Remainder stream    
     split : Should be one of the following
             * [float] The fraction of net feed in the 0th output stream
             * [array_like] Componentwise split of feed to 0th output stream

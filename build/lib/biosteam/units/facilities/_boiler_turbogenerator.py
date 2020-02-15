@@ -34,13 +34,13 @@ class BoilerTurbogenerator(Facility):
     
     Parameters
     ----------
-    ins :
+    ins : stream sequence
         [0] Liquid/solid feed that will be burned.
         
         [1] Gas that will be burned.
         
         [2] Make-up water. 
-    outs :
+    outs : stream sequence
         [0] Emission from burned liquid/solid feed.
         
         [1] Emission from burned gas feed.
@@ -92,25 +92,29 @@ class BoilerTurbogenerator(Facility):
                         steam_utilities.add(hu)
         steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
         duty_over_mol = self.duty_over_mol
-        feed_1, feed_2, _ = self.ins
+        feed_solids, feed_gas, _ = self.ins
         emission_1, emission_2, _ = self.outs
         hu_cooling, hu_steam = self.heat_utilities
         H_steam = steam_mol * duty_over_mol
         if self.side_steam: 
             H_steam += self.side_steam.H
-        feed_Hc = feed_1.Hc
-        if feed_2:
-            feed_Hc += feed_2.Hc
+        Hc_feed = 0
+        for feed in (feed_solids, feed_gas):
+            if feed: Hc_feed += feed.Hc
         
         # This is simply for the mass balance (no special purpose)
         # TODO: In reality, this should be CO2
-        emission_1.mol[:] = feed_1.mol
-        if feed_2: emission_2.mol[:] = feed_2.mol
+        if feed_solids: emission_1.mol[:] = feed_solids.mol
+        if feed_gas: emission_2.mol[:] = feed_gas.mol
         
         # A percent of solids is water, so remove latent heat of vaporization
-        F_mass_feed = feed_1.F_mass
-        moisture_content = feed_1.imass['7732-18-5']/F_mass_feed
-        H_content = feed_Hc*B_eff - F_mass_feed*2300*moisture_content
+        if feed_solids:
+            F_mass_feed = feed_solids.F_mass
+            moisture_content = feed_solids.imass['7732-18-5']/F_mass_feed
+            H_moisture_evap = F_mass_feed*2300*moisture_content
+        else:
+            H_moisture_evap = 0
+        H_content = Hc_feed*B_eff - H_moisture_evap
         
         #: [float] Total steam produced by the boiler (kmol/hr)
         self.total_steam = H_content / 40000 

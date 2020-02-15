@@ -9,7 +9,8 @@ from thermosteam.base.units_of_measure import DisplayUnits, convert
 __all__ = ('PowerUtility',)
 
 class PowerUtility:
-    """Create an PowerUtility object that, when called, calculates the cost of power (kW) and saves the power and cost.
+    """
+    Create an PowerUtility object that, when called, calculates the cost of power (kW) and saves the power and cost.
             
     Examples
     --------
