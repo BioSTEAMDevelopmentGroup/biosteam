@@ -21,13 +21,13 @@ class Transesterification(Unit):
     outs : stream
         Reactor effluent.
     efficiency : float
-        Efficiency of conversion (on a 'Lipid' basis)
+        Efficiency of conversion (on a 'Lipid' basis).
     methanol2lipid : float
-        Methanol feed to lipid molar ratio
+        Methanol feed to lipid molar ratio.
     catalyst_molfrac : float
-        Catalyst to methanol molar ratio
+        Catalyst to methanol molar ratio.
     T : float
-        Operating temperature (K)
+        Operating temperature [K].
     
     """
     _bounds = {'Volume': (0.1, 20)}

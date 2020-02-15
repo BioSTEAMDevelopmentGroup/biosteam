@@ -541,15 +541,15 @@ class HXprocess(HX):
     U=None : float, optional
         Enforced overall heat transfer coefficent [kW/m^2/K].
     fluid_type : None, 'ss', 'll', 'ls'
-        * **None** - Rigorously transfers heat until pinch temperature
-                     (not implemented yet).
-        * **'ss'** - Sensible-sensible fluids. Heat is exchanged until the
-                     pinch temperature is reached.
-        * **'ll'** - Latent-latent fluids. Heat is exchanged until one fluid
-                     completely changes phase.
-        * **'ls'** - Latent-sensible fluids. Heat is exchanged until either the
-                     pinch temperature is reached or the latent fluid
-                     completely changes phase.
+        * **None:** Rigorously transfers heat until pinch temperature
+        (not implemented yet).
+        * **'ss':** Sensible-sensible fluids. Heat is exchanged until the
+        pinch temperature is reached.
+        * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid
+        completely changes phase.
+        * **'ls':** Latent-sensible fluids. Heat is exchanged until either the
+        pinch temperature is reached or the latent fluid
+        completely changes phase.
     shell_and_tube_type : str, optional
         Heat exchanger type. Defaults to 'Floating head'.
     N_shells=2 : int
@@ -586,7 +586,6 @@ class HXprocess(HX):
     [1] out2
         phase: 'l', T: 329.64 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  200
-    
     >>> hx.results()
     Heat Exchanger                                            Units       hx
     Design              Area                                   ft^2      207

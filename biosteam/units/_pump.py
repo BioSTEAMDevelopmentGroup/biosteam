@@ -61,8 +61,7 @@ class Pump(Unit):
     
     >>> from thermosteam import Chemicals, Stream, settings
     >>> from biosteam.units import Pump
-    >>> chemicals = Chemicals(['Water', 'Ethanol'])
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> feed = Stream('feed', Water=200, T=350)
     >>> P1 = Pump('P1', ins=feed, outs='out', P=2e5)
     >>> P1.simulate()
@@ -76,6 +75,22 @@ class Pump(Unit):
     [0] out
         phase: 'l', T: 350 K, P: 200000 Pa
         flow (kmol/hr): Water  200
+    >>> P1.results()
+    Pump                               Units           P1
+    Power               Rate              kW        0.273
+                        Cost          USD/hr       0.0213
+    Design              Ideal power       hp        0.129
+                        Flow rate        gpm         15.4
+                        Efficiency                  0.352
+                        Actual power                0.366
+                        Pump power                    0.5
+                        N                               1
+                        Head              ft         91.1
+                        Type                  Centrifugal
+    Purchase cost       Pump             USD     4.38e+03
+                        Motor            USD          311
+    Total purchase cost                  USD     4.69e+03
+    Utility cost                      USD/hr       0.0213
     
     References
     ----------

@@ -48,17 +48,17 @@ class Flash(Unit):
     outs : stream sequence
         * [0] Vapor product
         * [1] Liquid product
-    P : float, optional
+    P=None : float
         Operating pressure [Pa].
-    Q : float, optional
+    Q=None : float
         Duty [kJ/hr].
-    T : float, optional
+    T=None : float
         Operating temperature [K].
-    V : float, optional
+    V=None : float
         Molar vapor fraction.
-    x : float, optional
+    x=None : float
         Molar composition of liquid (for binary mixtures).
-    y : float, optional
+    y=None : float
         Molar composition of vapor (for binary mixtures).
     vessel_material : str, optional
         Vessel construction material. Defaults to 'Carbon steel'.
@@ -116,7 +116,6 @@ class Flash(Unit):
         phase: 'l', T: 137 degC, P: 1 atm
         flow (kmol/hr): Water     42.4
                         Glycerol  298
-    
     >>> F1.results()
     Flash                                   Units            F1
     Medium pressure steam Duty              kJ/hr      5.06e+07

@@ -78,7 +78,6 @@ class Fermentation(Unit):
                         Ethanol   243
                         Glucose   13.6
                         DryYeast  1.03e+04
-    
     >>> F1.results()
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.5
