@@ -5,14 +5,15 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from ._solids_separator import SolidsSeparator
-from .design_tools import calculate_vacuum_system_power_and_cost
+from .design_tools import compute_vacuum_system_power_and_cost
 import numpy as np
 import biosteam as bst
 
 __all__ = ('RotaryVacuumFilter', 'RVF')
 
 class RotaryVacuumFilter(SolidsSeparator):
-    """Create a RotaryVacuumFilter object.
+    """
+    Create a RotaryVacuumFilter object.
     
     Parameters
     ----------
@@ -92,7 +93,7 @@ class RotaryVacuumFilter(SolidsSeparator):
         # Assume same volume of air comes in as volume of liquid
         F_vol = s_vacuumed.F_vol
         F_mass = F_vol * 1.2041 # multiply by density of air kg/m3 
-        work_vacuum, self.purchase_costs['Liquid-ring pump'] = calculate_vacuum_system_power_and_cost(
+        work_vacuum, self.purchase_costs['Liquid-ring pump'] = compute_vacuum_system_power_and_cost(
                 F_mass, F_vol, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
         self.power_utility(work_vacuum)

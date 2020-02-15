@@ -10,7 +10,7 @@ from .design_tools.specification_factors import (
     compute_shell_and_tube_material_factor)
 from thermosteam import Stream
 from fluids import nearest_pipe
-import ht
+from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
 ln = np.log
@@ -21,6 +21,8 @@ pi = np.pi
 x = np.array((8, 13, 16, 20)) 
 y = np.array((1.25, 1.12,1.05,1))
 p2 = np.polyfit(x,y,2)
+
+# %% Purchase price
 
 def compute_floating_head_purchase_price(A, CE):
     return exp(12.0310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567
@@ -44,21 +46,15 @@ Cb_dict = {'Floating head': compute_floating_head_purchase_price,
            'Kettle vaporizer': compute_kettle_vaporizer_purchase_price,
            'Double pipe': compute_double_pipe_purchase_price}
         
-        
+# %% Classes
+
 class HX(Unit, isabstract=True):
     """Abstract class for counter current heat exchanger.
 
     **Abstract methods**
     
-    _get_streams()
+    get_streams()
         Should return two inlet streams and two outlet streams that exchange heat.
-
-    **Abstract attributes**
-    
-    _duty : float
-        The heat transfer requirement [kJ/hr].
-    U : float
-        Enforced overall heat transfer coefficent [kW/m^2/K].
 
     """
     line = 'Heat Exchanger'
@@ -71,31 +67,15 @@ class HX(Unit, isabstract=True):
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
-    
     BM_douple_pipe = 1.80
     BM_shell_and_tube = 3.17
+    
     @property
     def BM(self):
         if self._shell_and_tube_type == "Double pipe":
             return self.BM_douple_pipe
         else:
             return self.BM_shell_and_tube
-
-    @property
-    def N_shells(self):
-        """Number of shells for LMTD correction factor method."""
-        return self._N_shells
-    @N_shells.setter
-    def N_shells(self, N):
-        self._N_shells = N
-
-    @property
-    def ft(self):
-        """User imposed correction factor."""
-        return self._ft
-    @ft.setter
-    def ft(self, ft):
-        self._ft = ft
 
     @property
     def material(self):
@@ -112,6 +92,7 @@ class HX(Unit, isabstract=True):
     
     @property
     def shell_and_tube_type(self):
+        """[str] Shell and tube type. Purchase cost depends on this selection."""
         return self._shell_and_tube_type
     @shell_and_tube_type.setter
     def shell_and_tube_type(self, shell_and_tube_type):
@@ -120,192 +101,47 @@ class HX(Unit, isabstract=True):
         except KeyError:
             raise ValueError("heat exchange type must be one of the following: "
                             f"{', '.join(Cb_dict)}")
-        self._shell_and_tube_type = shell_and_tube_type
-        
-    @staticmethod
-    def _U_table(ci, hi, co, ho):
-        """Return an estimate of the overall heat transfer coefficient (kW/m^2/K)."""
-        # TODO: Base U on Table 18.5, Warren D. Seider et. al. Product and Process Design Principles. (2016)
-        cip, hip, cop, hop = ci.phase, hi.phase, co.phase, ho.phase
-        phases = cip + hip + cop + hop
-        if 'g' in phases:
-            if ('g' in hip and 'l' in hop) and ('l' in cip and 'g' in cop):
-                return 1.0
-            else:
-                return 0.5
-        else:
-            return 0.5
-
-    @staticmethod
-    def _get_dP(inlet_phase, outlet_phase):
-        """Return pressure drop (psi) based on heuristics.
-        
-        Parameters
-        ----------
-        inlet_phase: str
-        outlet_phase : str
-            
-        """
-        if ('l' in inlet_phase and 'g' in outlet_phase) or ('g' in inlet_phase and 'l' in outlet_phase):
-            # Latent fluid (boiling or condensing)
-            return 1.5
-        elif inlet_phase == 'l':
-            # Sensible liquid
-            return 5
-        elif outlet_phase == 'g':
-            # Sensible vapor
-            return 3
-        
-    @classmethod
-    def _Dp_table(cls, ci, hi, co, ho, inside_heating):
-        """Return an estimate of pressure drops.
-        
-        Returns
-        -------  
-        dP_in : float
-            Pressure drop inside (psi)
-        dP_out : float
-            Pressure drop outside (psi)
-        
-        """
-        cip, hip, cop, hop = ci.phase, hi.phase, co.phase, ho.phase
-        dP_c = cls._get_dP(cip, cop)
-        dP_h = cls._get_dP(hip, hop)
-        if inside_heating:
-            dP_in = dP_c
-            dP_out = dP_h
-        else:
-            dP_in = dP_h
-            dP_out = dP_c
-        return dP_in, dP_out
-
-    @staticmethod
-    def _inside_isheating(ci, hi, co, ho) -> bool:
-        """Return True if cold stream goes in tube side (as opposed to shell side)."""
-        return abs(298.15 - ci.T) - abs(hi.T - 298.15) > 0
-
-    @staticmethod
-    def _shellntube_streams(ci, hi, co, ho, inside_heating):
-        """Return shell and tube streams for calculating non-dimensional numbers."""
-        # Mean temperatures
-        Tci, Thi, Tco, Tho = ci.T, hi.T, co.T, ho.T
-        Tc_ave = (Tci + Tco)/2
-        Th_ave = (Thi + Tho)/2
-         
-        # Choose which fluid goes in tube side to minimize heat losses (configuration with smallest temperature difference between shell and surroundings).
-        s_shell = Stream('s_shell')
-        s_tube = Stream('s_tube')
-        
-        if inside_heating:
-            # Cold stream goes in tube side
-            s_tube.copy_like(ci); s_tube.T = Tc_ave
-            s_shell.copy_like(hi); s_shell.T = Th_ave
-        else:
-            # Hot stream goes in tube side
-            s_tube.copy_like(hi); s_tube.T = Th_ave
-            s_shell.copy_like(ci); s_shell.T = Tc_ave
-        return s_tube, s_shell    
-        
-    @staticmethod
-    def _order_streams(in1, in2, out1, out2):
-        """
-        Return cold and hot inlet and outlet streams.
-        
-        Parameters
-        ----------
-        in1 : Stream
-            Inlet a.
-        in2 : Stream
-            Inlet b.
-        out1 : Stream
-            Outlet a.
-        out2 : Stream
-            Outlet b.
-        
-        Returns
-        -------
-        ci : Stream
-            Cold inlet.
-        hi : Stream
-            Hot inlet.
-        co : Stream
-            Cold outlet.
-        ho : Stream
-            Hot outlet.
-        
-        """
-        if in1.T < in2.T:
-            return in1, in2, out1, out2
-        else:
-            return in2, in1, out2, out1
-        
-    @staticmethod
-    def _calc_ft(Tci, Thi, Tco, Tho, N_shells):
-        """Return LMTD correction factor."""
-        ft = 1
-        if abs(Tco - Tci)/Tco > 0.01 and abs(Thi-Tho)/Tho > 0.01:
-            try:
-                ft = ht.F_LMTD_Fakheri(Thi, Tho, Tci, Tco,
-                                       shells=N_shells)
-            except ValueError: pass
-            if ft > 1: ft = 0.6 # Accounts for worst case scenario
-        return ft
-    
-    @staticmethod
-    def _calc_area(LMTD, U, Q, ft):
-        """
-        Return Area by LMTD correction factor method.
-        
-        Parameters
-        ----------
-        LMTD : float
-            Log mean temperature difference
-        U : float
-            Heat transfer coefficient
-        Q : float
-            Duty
-        
-        """
-        return Q/(U*LMTD*ft)        
+        self._shell_and_tube_type = shell_and_tube_type     
 
     def _design(self):
         ###  Use LMTD correction factor method  ###
         Design = self.design_results
         
         # Get cold and hot inlet and outlet streams
-        ci, hi, co, ho = self._order_streams(*self._get_streams())
-        inside_heating = self._inside_isheating(ci, hi, co, ho)
+        ci, hi, co, ho = ht.order_streams(*self.get_streams())
        
         # Get log mean temperature difference
-        Tci, Thi, Tco, Tho = ci.T, hi.T, co.T, ho.T
-        dTF1 = Thi-Tco
-        dTF2 = Tho-Tci
-        dummy = abs(dTF2/dTF1)
-        LMTD = (dTF2 - dTF1)/ln(dummy) if dummy > 1.1 else dTF1
-        LMTD = abs(LMTD)
+        Tci = ci.T
+        Thi = hi.T
+        Tco = co.T
+        Tho = ho.T
+        LMTD = ht.compute_LMTD(Thi, Tho, Tci, Tco)
         
         # Get correction factor
-        ft = self._ft if self._ft else self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
+        ft = self.ft
+        if not ft:
+            N_shells = self.N_shells
+            ft = ht.compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells)
         
         # Get duty (kW)
-        Q = abs(self._duty) / 3600
+        Q = self.Q / 3600
         
         # Get overall heat transfer coefficient
-        U = self.U or self._U_table(ci, hi, co, ho)
-        Dp_s, Dp_t = self._Dp_table(ci, hi, co, ho, inside_heating)
+        U = self.U or ht.heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho)
+        dP_tube, dP_shell = ht.heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho)
         
         # TODO: Complete design of heat exchanger to find L
-        # For now assume 20 ft
+        # For now assume lenght is 20 ft
         L = 20
         
         # Design pressure
         P = max((ci.P, hi.P))
-        Design['Area'] = self._calc_area(LMTD, U, Q, ft) * 10.763
+        Design['Area'] = 10.763 * ht.compute_heat_transfer_area(abs(LMTD), U, abs(Q), ft)
         Design['Overall heat transfer coefficient'] = U
         Design['Fouling correction factor'] = ft
-        Design['Tube side pressure drop'] = Dp_t
-        Design['Shell side pressure drop'] = Dp_s
-        Design['Operating pressure'] = P*14.7/101325 # psi
+        Design['Tube side pressure drop'] = dP_tube
+        Design['Shell side pressure drop'] = dP_shell
+        Design['Operating pressure'] = P * 14.7/101325 # psi
         Design['Total tube length'] = L
 
     def _cost(self):
@@ -313,8 +149,6 @@ class HX(Unit, isabstract=True):
         A = Design['Area']
         L = Design['Total tube length']
         P = Design['Operating pressure']
-        #Dp_t = Design['Dp_t']
-        #Dp_s = Design['Dp_s']
         
         if A < 150: # Double pipe
             P = P/600
@@ -343,7 +177,9 @@ class HX(Unit, isabstract=True):
 
 
 class HXutility(HX):
-    """Create a heat exchanger that changes temperature of the outlet stream using a heat utility.
+    """
+    Create a heat exchanger that changes temperature of the
+    outlet stream using a heat utility.
 
     Parameters
     ----------
@@ -351,9 +187,9 @@ class HXutility(HX):
         Inlet.
     outs : stream
         Outlet.
-    T : float
+    T=None : float
         Temperature of outlet stream [K].
-    V : float
+    V=None : float
         Vapor fraction of outlet stream.
     rigorous=False : bool
         If true, calculate vapor liquid equilibrium
@@ -464,10 +300,17 @@ class HXutility(HX):
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
+        #: [float] Total heat transfered.
+        self.Q = None
+        
+        #: Number of shells for LMTD correction factor method.
+        self.N_shells = N_shells
+        
+        #: User imposed correction factor.
+        self.ft = ft
+        
         self.material = material
         self.shell_and_tube_type = shell_and_tube_type
-        self.N_shells = N_shells
-        self.ft = ft
     
         
     def _run(self):
@@ -500,19 +343,19 @@ class HXutility(HX):
             if T:
                 s.T = T
 
-    def _get_streams(self):
-        """Return cold and hot inlet and outlet streams.
+    def get_streams(self):
+        """Return inlet and outlet streams.
         
         Returns
         -------
-        ci : Stream
-            Cold inlet.
-        hi : Stream
-            Hot inlet.
-        co : Stream
-            Cold outlet.
-        ho : Stream
-            Hot outlet.
+        in_a : Stream
+            Inlet a.
+        in_b : Stream
+            Inlet b.
+        out_a : Stream
+            Outlet a.
+        out_b : Stream
+            Outlet b.
         
         """
         in1 = self.ins[0]
@@ -524,9 +367,10 @@ class HXutility(HX):
 
     def _design(self, duty=None):
         # Set duty and run heat utility
-        if duty is None: duty = self.H_out - self.H_in
-        self._duty = duty
+        if duty is None:
+            duty = self.H_out - self.H_in
         self.heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
+        self.Q = duty
         super()._design()
 
 
@@ -690,11 +534,18 @@ class HXprocess(HX):
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
+        #: [float] Total heat transfered.
+        self.Q = None
+        
+        #: Number of shells for LMTD correction factor method.
+        self.N_shells = N_shells
+        
+        #: User imposed correction factor.
+        self.ft = ft
+        
         self.fluid_type = fluid_type
         self.material = material
         self.shell_and_tube_type = shell_and_tube_type
-        self.N_shells = N_shells
-        self.ft = ft
     
     @property
     def fluid_type(self):
@@ -712,7 +563,7 @@ class HXprocess(HX):
             raise ValueError(f"fluid type must be either 'ss', 'ls', or 'll', not {fluid_type}")
         self._fluid_type = fluid_type
         
-    def _get_streams(self):
+    def get_streams(self):
         s_in1, s_in2 = self.ins
         s_out1, s_out2  = self.outs
         return s_in1, s_in2, s_out1, s_out2
@@ -744,13 +595,13 @@ class HXprocess(HX):
         s1_hot = s1.T > s2.T  # s2 energy will increase
         if s1.C < s2.C:
             s1f.T = (s2.T + dT) if s1_hot else (s2.T - dT)
-            duty = s1.H - s1f.H
-            s2f.T += duty/s2.C
+            Q = s1.H - s1f.H
+            s2f.T += Q/s2.C
         else:
             s2f.T = (s1.T - dT) if s1_hot else (s1.T + dT)
-            duty = s2.H - s2f.H
-            s1f.T += duty/s1.C
-        self._duty = duty
+            Q = s2.H - s2f.H
+            s1f.T += Q/s1.C
+        self.Q = Q
     
     def _run_ls(self):
         s1_in, s2_in = self.ins
@@ -773,8 +624,8 @@ class HXprocess(HX):
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
-        duty = s1_in.H - s1_out.H
-        T_s2_new = s2_out.T + duty/s2_out.C
+        Q = s1_in.H - s1_out.H
+        T_s2_new = s2_out.T + Q/s2_out.C
         s1_out.copy_like(s1_in)
         
         if boiling and T_s2_new < T_pinch:
@@ -795,8 +646,7 @@ class HXprocess(HX):
         elif not boiling:
             s1_out.phase = 'l'
             s2_out.T = T_s2_new
-        
-        self._duty = duty
+        self.Q = Q
     
     def _run_ll(self):
         s1_in, s2_in = self.ins
@@ -840,9 +690,9 @@ class HXprocess(HX):
             sc_out.T = bp.T
         
         # VLE
-        duty = (sc_in.H - sc_out.H)
-        sp_out.vle(P=sp_out.P, H=sp_in.H + duty)
-        self._duty = abs(duty)
+        Q = (sc_in.H - sc_out.H)
+        sp_out.vle(P=sp_out.P, H=sp_in.H + Q)
+        self.Q = abs(Q)
         
     
 # elif U == 'Concentric tubes':
