@@ -245,8 +245,7 @@ pump type.</p></li>
 <p>Simulate Pump for pressure increase:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Pump</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">P1</span> <span class="o">=</span> <span class="n">Pump</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mf">2e5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">P1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
@@ -260,6 +259,22 @@ pump type.</p></li>
 <span class="go">[0] out</span>
 <span class="go">    phase: &#39;l&#39;, T: 350 K, P: 200000 Pa</span>
 <span class="go">    flow (kmol/hr): Water  200</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="go">Pump                               Units           P1</span>
+<span class="go">Power               Rate              kW        0.273</span>
+<span class="go">                    Cost          USD/hr       0.0213</span>
+<span class="go">Design              Ideal power       hp        0.129</span>
+<span class="go">                    Flow rate        gpm         15.4</span>
+<span class="go">                    Efficiency                  0.352</span>
+<span class="go">                    Actual power                0.366</span>
+<span class="go">                    Pump power                    0.5</span>
+<span class="go">                    N                               1</span>
+<span class="go">                    Head              ft         91.1</span>
+<span class="go">                    Type                  Centrifugal</span>
+<span class="go">Purchase cost       Pump             USD     4.38e+03</span>
+<span class="go">                    Motor            USD          311</span>
+<span class="go">Total purchase cost                  USD     4.69e+03</span>
+<span class="go">Utility cost                      USD/hr       0.0213</span>
 </pre></div>
 </div>
 <p class="rubric">References</p>

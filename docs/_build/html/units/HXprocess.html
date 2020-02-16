@@ -238,27 +238,10 @@
 </p></li>
 <li><p><strong>U=None</strong> (<em>float</em><em>, </em><em>optional</em>) – Enforced overall heat transfer coefficent [kW/m^2/K].</p></li>
 <li><p><strong>fluid_type</strong> (<em>None</em><em>, </em><em>'ss'</em><em>, </em><em>'ll'</em><em>, </em><em>'ls'</em>) – <ul>
-<li><dl class="simple">
-<dt><strong>None</strong> - Rigorously transfers heat until pinch temperature</dt><dd><p>(not implemented yet).</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><strong>’ss’</strong> - Sensible-sensible fluids. Heat is exchanged until the</dt><dd><p>pinch temperature is reached.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><strong>’ll’</strong> - Latent-latent fluids. Heat is exchanged until one fluid</dt><dd><p>completely changes phase.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><strong>’ls’</strong> - Latent-sensible fluids. Heat is exchanged until either the</dt><dd><p>pinch temperature is reached or the latent fluid
-completely changes phase.</p>
-</dd>
-</dl>
-</li>
+<li><p><strong>None:</strong> Rigorously transfers heat until pinch temperature (not implemented yet).</p></li>
+<li><p><strong>’ss’:</strong> Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.</p></li>
+<li><p><strong>’ll’:</strong> Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.</p></li>
+<li><p><strong>’ls’:</strong> Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</p></li>
 </ul>
 </p></li>
 <li><p><strong>shell_and_tube_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Heat exchanger type. Defaults to ‘Floating head’.</p></li>
@@ -271,8 +254,7 @@ completely changes phase.</p>
 <p>Sensible fluids case:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">HXprocess</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">in1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">in2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in2&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span>
@@ -294,9 +276,7 @@ completely changes phase.</p>
 <span class="go">[1] out2</span>
 <span class="go">    phase: &#39;l&#39;, T: 329.64 K, P: 101325 Pa</span>
 <span class="go">    flow (kmol/hr): Ethanol  200</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 <span class="go">Heat Exchanger                                            Units       hx</span>
 <span class="go">Design              Area                                   ft^2      207</span>
 <span class="go">                    Overall heat transfer coefficient  kW/m^2/K      0.5</span>
@@ -398,6 +378,24 @@ completely changes phase.</p>
 <dt id="biosteam.units.HXprocess.U">
 <code class="sig-name descname">U</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXprocess.U" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Enforced overall heat transfer coefficent (kW/m^2/K)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXprocess.Q">
+<code class="sig-name descname">Q</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXprocess.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Total heat transfered.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXprocess.N_shells">
+<code class="sig-name descname">N_shells</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXprocess.N_shells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of shells for LMTD correction factor method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXprocess.ft">
+<code class="sig-name descname">ft</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXprocess.ft" title="Permalink to this definition">¶</a></dt>
+<dd><p>User imposed correction factor.</p>
 </dd></dl>
 
 <dl class="method">

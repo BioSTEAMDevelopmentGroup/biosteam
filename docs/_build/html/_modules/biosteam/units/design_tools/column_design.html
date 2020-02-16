@@ -185,8 +185,8 @@
            <span class="s1">&#39;compute_purchase_cost_of_tower&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_empty_tower_cost&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_plaform_ladder_cost&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;compute_weight&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;compute_wall_thickness&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;compute_tower_weight&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;compute_tower_wall_thickness&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_tray_base_purchase_cost&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_n_trays_factor&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_murphree_stage_efficiency&#39;</span><span class="p">,</span>
@@ -194,8 +194,8 @@
            <span class="s1">&#39;compute_max_capacity_parameter&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_max_vapor_velocity&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_downcomer_area_fraction&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;compute_diameter&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;compute_height&#39;</span><span class="p">)</span>
+           <span class="s1">&#39;compute_tower_diameter&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;compute_tower_height&#39;</span><span class="p">)</span>
 
 <span class="c1"># Minimum thickness data</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span> 
@@ -255,7 +255,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">7.2756</span> <span class="o">+</span> <span class="mf">0.18255</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.02297</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="compute_plaform_ladder_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_plaform_ladder_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_plaform_ladder_cost</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return C_PL, the cost (USD) of platforms and ladders assuming a CE of 500.</span>
+    <span class="sd">&quot;&quot;&quot;Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -267,8 +267,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="mf">300.9</span><span class="o">*</span><span class="n">Di</span><span class="o">**</span><span class="mf">0.63316</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mf">0.80161</span></div>
 
-<div class="viewcode-block" id="compute_weight"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_weight">[docs]</a><span class="k">def</span> <span class="nf">compute_weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return W, the weight (lb) of the tower assuming 2:1 elliptical head.</span>
+<div class="viewcode-block" id="compute_tower_weight"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_weight">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -286,8 +286,10 @@
     <span class="n">L</span> <span class="o">=</span> <span class="n">L</span><span class="o">*</span><span class="mi">12</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">Di</span><span class="o">+</span><span class="n">tv</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">L</span><span class="o">+</span><span class="mf">0.8</span><span class="o">*</span><span class="n">Di</span><span class="p">)</span><span class="o">*</span><span class="n">tv</span><span class="o">*</span><span class="n">rho_M</span></div>
 
-<div class="viewcode-block" id="compute_wall_thickness"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_wall_thickness">[docs]</a><span class="k">def</span> <span class="nf">compute_wall_thickness</span><span class="p">(</span><span class="n">Po</span><span class="p">,</span> <span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="mf">29.5</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return tv, the wall thinkness (in) designed to withstand the internal pressure and the wind/earthquake load at the bottom.</span>
+<div class="viewcode-block" id="compute_tower_wall_thickness"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_wall_thickness">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_wall_thickness</span><span class="p">(</span><span class="n">Po</span><span class="p">,</span> <span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">M</span><span class="o">=</span><span class="mf">29.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the wall thinkness [tv; in inches] designed to withstand the</span>
+<span class="sd">    internal pressure and the wind/earthquake load at the bottom.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -363,7 +365,7 @@
     <span class="k">return</span> <span class="n">tv</span></div>
 
 <div class="viewcode-block" id="compute_tray_base_purchase_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tray_base_purchase_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_tray_base_purchase_cost</span><span class="p">(</span><span class="n">Di</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return C_BT, the base cost of a tray (USD) at a CE of 500.</span>
+    <span class="sd">&quot;&quot;&quot;Return the base cost of a tray [C_BT; USD] at a CE of 500.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -491,7 +493,7 @@
         <span class="n">A_dn</span> <span class="o">=</span> <span class="mf">0.2</span>
     <span class="k">return</span> <span class="n">A_dn</span></div>
 
-<div class="viewcode-block" id="compute_diameter"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_diameter">[docs]</a><span class="k">def</span> <span class="nf">compute_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_tower_diameter"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_diameter">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return column diameter [D_T; in ft].</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
@@ -513,9 +515,9 @@
     <span class="n">Di</span> <span class="o">*=</span> <span class="mf">3.28</span>
     <span class="k">return</span> <span class="n">Di</span></div>
 
-<div class="viewcode-block" id="compute_height"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_height">[docs]</a><span class="k">def</span> <span class="nf">compute_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">N_stages</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_tower_height"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_height">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">N_stages</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the height of the column [H; ft].</span>
+<span class="sd">    Return the height of a column [H; ft].</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

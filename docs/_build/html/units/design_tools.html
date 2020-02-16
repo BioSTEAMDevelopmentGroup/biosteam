@@ -222,8 +222,8 @@
 <p>Created on Wed Mar  6 16:46:04 2019</p>
 <p>&#64;author: yoelr</p>
 <dl class="function">
-<dt id="biosteam.units.design_tools.calculate_vacuum_system_power_and_cost">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">calculate_vacuum_system_power_and_cost</code><span class="sig-paren">(</span><em class="sig-param">F_mass</em>, <em class="sig-param">F_vol</em>, <em class="sig-param">P_suction</em>, <em class="sig-param">vessel_volume</em>, <em class="sig-param">vacuum_system_preference=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/vacuum.html#calculate_vacuum_system_power_and_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.calculate_vacuum_system_power_and_cost" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.design_tools.compute_vacuum_system_power_and_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_vacuum_system_power_and_cost</code><span class="sig-paren">(</span><em class="sig-param">F_mass</em>, <em class="sig-param">F_vol</em>, <em class="sig-param">P_suction</em>, <em class="sig-param">vessel_volume</em>, <em class="sig-param">vacuum_system_preference=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/vacuum.html#compute_vacuum_system_power_and_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_vacuum_system_power_and_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return power (kW) and cost (USD) of vacuum system.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -232,7 +232,7 @@
 <li><p><strong>F_vol</strong> (<em>float</em>) – Vapor volumetric flow rate entering vacuum system from vessel in m3/hr (not including inleakage).</p></li>
 <li><p><strong>P_suction</strong> (<em>float</em>) – Suction pressure in Pa</p></li>
 <li><p><strong>vessel_volume</strong> (<em>float</em>) – Vacuum volume in m3</p></li>
-<li><p><strong>vacuum_system_preference</strong> (<em>tuple</em><em>[</em><em>str</em><em>] or </em><em>str</em>) – Name(s) of preferred vacuum systems</p></li>
+<li><p><strong>vacuum_system_preference</strong> (<em>'Liquid-ring pump'</em><em>, </em><em>'Steam-jet ejector'</em><em>, or </em><em>'Dry-vacuum pump'</em>) – Name(s) of preferred vacuum systems</p></li>
 </ul>
 </dd>
 </dl>
@@ -375,7 +375,7 @@
 <dl class="function">
 <dt id="biosteam.units.design_tools.compute_plaform_ladder_cost">
 <code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_plaform_ladder_cost</code><span class="sig-paren">(</span><em class="sig-param">Di</em>, <em class="sig-param">L</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_plaform_ladder_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_plaform_ladder_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return C_PL, the cost (USD) of platforms and ladders assuming a CE of 500.</p>
+<dd><p>Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -387,9 +387,9 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.compute_weight">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_weight</code><span class="sig-paren">(</span><em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">tv</em>, <em class="sig-param">rho_M</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_weight" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return W, the weight (lb) of the tower assuming 2:1 elliptical head.</p>
+<dt id="biosteam.units.design_tools.compute_tower_weight">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_tower_weight</code><span class="sig-paren">(</span><em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">tv</em>, <em class="sig-param">rho_M</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_tower_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_tower_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -403,9 +403,10 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.compute_wall_thickness">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_wall_thickness</code><span class="sig-paren">(</span><em class="sig-param">Po</em>, <em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">S=15000</em>, <em class="sig-param">E=None</em>, <em class="sig-param">M=29.5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_wall_thickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_wall_thickness" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return tv, the wall thinkness (in) designed to withstand the internal pressure and the wind/earthquake load at the bottom.</p>
+<dt id="biosteam.units.design_tools.compute_tower_wall_thickness">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_tower_wall_thickness</code><span class="sig-paren">(</span><em class="sig-param">Po</em>, <em class="sig-param">Di</em>, <em class="sig-param">L</em>, <em class="sig-param">S=15000</em>, <em class="sig-param">E=None</em>, <em class="sig-param">M=29.5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_tower_wall_thickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_tower_wall_thickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the wall thinkness [tv; in inches] designed to withstand the
+internal pressure and the wind/earthquake load at the bottom.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -423,7 +424,7 @@
 <dl class="function">
 <dt id="biosteam.units.design_tools.compute_tray_base_purchase_cost">
 <code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_tray_base_purchase_cost</code><span class="sig-paren">(</span><em class="sig-param">Di</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_tray_base_purchase_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_tray_base_purchase_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return C_BT, the base cost of a tray (USD) at a CE of 500.</p>
+<dd><p>Return the base cost of a tray [C_BT; USD] at a CE of 500.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>Di</strong> (<em>float</em>) – Inner diameter [ft].</p>
@@ -519,8 +520,8 @@ through the net area of flow before flooding [U_f; in m/s].</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.compute_diameter">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_diameter</code><span class="sig-paren">(</span><em class="sig-param">V_vol</em>, <em class="sig-param">U_f</em>, <em class="sig-param">f</em>, <em class="sig-param">A_dn</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_diameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_diameter" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.design_tools.compute_tower_diameter">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_tower_diameter</code><span class="sig-paren">(</span><em class="sig-param">V_vol</em>, <em class="sig-param">U_f</em>, <em class="sig-param">f</em>, <em class="sig-param">A_dn</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_tower_diameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_tower_diameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return column diameter [D_T; in ft].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -535,9 +536,9 @@ through the net area of flow before flooding [U_f; in m/s].</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.units.design_tools.compute_height">
-<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_height</code><span class="sig-paren">(</span><em class="sig-param">TS</em>, <em class="sig-param">N_stages: int</em>, <em class="sig-param">top=True</em>, <em class="sig-param">bot=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_height" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the height of the column [H; ft].</p>
+<dt id="biosteam.units.design_tools.compute_tower_height">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_tower_height</code><span class="sig-paren">(</span><em class="sig-param">TS</em>, <em class="sig-param">N_stages: int</em>, <em class="sig-param">top=True</em>, <em class="sig-param">bot=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/column_design.html#compute_tower_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_tower_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the height of a column [H; ft].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -546,6 +547,221 @@ through the net area of flow before flooding [U_f; in m/s].</p>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heuristic_overall_heat_transfer_coefficient">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">heuristic_overall_heat_transfer_coefficient</code><span class="sig-paren">(</span><em class="sig-param">ci</em>, <em class="sig-param">hi</em>, <em class="sig-param">co</em>, <em class="sig-param">ho</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#heuristic_overall_heat_transfer_coefficient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heuristic_overall_heat_transfer_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a heuristic estimate of the overall heat transfer coefficient
+[U; in kW/m^2/K]. Assume <cite>U</cite> is 0.5 kW/m^2/K if heat exchange is sensible
+and 1.0 kW/m^2/K otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ci</strong> (<em>Stream</em>) – Cold inlet stream.</p></li>
+<li><p><strong>hi</strong> (<em>Stream</em>) – Hot inlet stream.</p></li>
+<li><p><strong>co</strong> (<em>Stream</em>) – Cold outlet stream.</p></li>
+<li><p><strong>ho</strong> (<em>Stream</em>) – Hot outlet stream.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>U</strong> – overall heat transfer coefficient [kW/m^2/K].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heuristic_pressure_drop">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">heuristic_pressure_drop</code><span class="sig-paren">(</span><em class="sig-param">inlet_phase</em>, <em class="sig-param">outlet_phase</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#heuristic_pressure_drop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heuristic_pressure_drop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a heuristic estimate of the pressure drop [dP; in psi]. If the fluid
+changes phase, <cite>dP</cite> is 1.5 psi. If the fluid remains a liquid, <cite>dP</cite> is 5 psi.
+If the fluid remains a gas, <cite>dP</cite> is 3 psi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inlet_phase</strong> (<em>str</em>) – </p></li>
+<li><p><strong>outlet_phase</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dP</strong> – Pressure drop [psi].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heuristic_tubeside_and_shellside_pressure_drops">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">heuristic_tubeside_and_shellside_pressure_drops</code><span class="sig-paren">(</span><em class="sig-param">ci</em>, <em class="sig-param">hi</em>, <em class="sig-param">co</em>, <em class="sig-param">ho</em>, <em class="sig-param">tubeside_iscooling=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#heuristic_tubeside_and_shellside_pressure_drops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heuristic_tubeside_and_shellside_pressure_drops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an estimate of tubeside and shellside pressure drops.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ci</strong> (<em>Stream</em>) – Cold inlet stream.</p></li>
+<li><p><strong>hi</strong> (<em>Stream</em>) – Hot inlet stream.</p></li>
+<li><p><strong>co</strong> (<em>Stream</em>) – Cold outlet stream.</p></li>
+<li><p><strong>ho</strong> (<em>Stream</em>) – Hot outlet stream.</p></li>
+<li><p><strong>tubeside_iscooling</strong> (<em>bool</em>) – True of tubeside fluid is cooling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>dP_tube</strong> (<em>float</em>) – Tubeside pressure drop (psi)</p></li>
+<li><p><strong>dP_shell</strong> (<em>float</em>) – Shellside pressure drop (psi)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.order_streams">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">order_streams</code><span class="sig-paren">(</span><em class="sig-param">in1</em>, <em class="sig-param">in2</em>, <em class="sig-param">out1</em>, <em class="sig-param">out2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#order_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.order_streams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cold and hot inlet and outlet streams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in1</strong> (<em>Stream</em>) – Inlet a.</p></li>
+<li><p><strong>in2</strong> (<em>Stream</em>) – Inlet b.</p></li>
+<li><p><strong>out1</strong> (<em>Stream</em>) – Outlet a.</p></li>
+<li><p><strong>out2</strong> (<em>Stream</em>) – Outlet b.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>ci</strong> (<em>Stream</em>) – Cold inlet.</p></li>
+<li><p><strong>hi</strong> (<em>Stream</em>) – Hot inlet.</p></li>
+<li><p><strong>co</strong> (<em>Stream</em>) – Cold outlet.</p></li>
+<li><p><strong>ho</strong> (<em>Stream</em>) – Hot outlet.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_Fahkeri_LMTD_correction_factor">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_Fahkeri_LMTD_correction_factor</code><span class="sig-paren">(</span><em class="sig-param">Tci</em>, <em class="sig-param">Thi</em>, <em class="sig-param">Tco</em>, <em class="sig-param">Tho</em>, <em class="sig-param">N_shells</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#compute_Fahkeri_LMTD_correction_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_Fahkeri_LMTD_correction_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-mean temperature difference correction factor <cite>Ft</cite>
+for a shell-and-tube heat exchanger with one or an even number of tube
+passes, and a given number of shell passes, with the expression given in
+<a class="footnote-reference brackets" href="#id3" id="id1">1</a> and also shown in <a class="footnote-reference brackets" href="#id4" id="id2">2</a>.</p>
+<div class="math">
+<p><img src="../_images/math/e7f58aff64654fd5c0067211e2ee5e073fb69cc7.png" alt="F_t=\frac{S\ln W}{\ln \frac{1+W-S+SW}{1+W+S-SW}}
+
+S = \frac{\sqrt{R^2+1}}{R-1}
+
+W = \left(\frac{1-PR}{1-P}\right)^{1/N}
+
+R = \frac{T_{in}-T_{out}}{t_{out}-t_{in}}
+
+P = \frac{t_{out}-t_{in}}{T_{in}-t_{in}}"/></p>
+</div><p>If R = 1 and logarithms cannot be evaluated:</p>
+<div class="math">
+<p><img src="../_images/math/4fe70798dba9928b570c0b6bfd6b562ff9f42ecf.png" alt="W' = \frac{N-NP}{N-NP+P}
+
+F_t = \frac{\sqrt{2}\frac{1-W'}{W'}}{\ln\frac{\frac{W'}{1-W'}+\frac{1}
+{\sqrt{2}}}{\frac{W'}{1-W'}-\frac{1}{\sqrt{2}}}}"/></p>
+</div><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Tci</strong> (<em>float</em>) – Inlet temperature of cold fluid, [K]</p></li>
+<li><p><strong>Thi</strong> (<em>float</em>) – Inlet temperature of hot fluid, [K]</p></li>
+<li><p><strong>Tco</strong> (<em>float</em>) – Outlet temperature of cold fluid, [K]</p></li>
+<li><p><strong>Tho</strong> (<em>float</em>) – Outlet temperature of hot fluid, [K]</p></li>
+<li><p><strong>shells</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of shell-side passes, [-]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Ft</strong> – Log-mean temperature difference correction factor, [-]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This expression is symmetric - the same result is calculated if the cold
+side values are swapped with the hot side values. It also does not
+depend on the units of the temperature given.</p>
+<p class="rubric">Examples</p>
+<p>compute_Fahkeri_LMTD_correction_factor(Tci=15, Tco=85, Thi=130, Tho=110, N_shells=1)
+0.9438358829645933</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Fakheri, Ahmad. “A General Expression for the Determination of the
+Log Mean Temperature Correction Factor for Shell and Tube Heat
+Exchangers.” Journal of Heat Transfer 125, no. 3 (May 20, 2003): 527-30.
+doi:10.1115/1.1571078.</p>
+</dd>
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Hall, Stephen. Rules of Thumb for Chemical Engineers, Fifth Edition.
+Oxford; Waltham, MA: Butterworth-Heinemann, 2012.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_heat_transfer_area">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_heat_transfer_area</code><span class="sig-paren">(</span><em class="sig-param">LMTD</em>, <em class="sig-param">U</em>, <em class="sig-param">Q</em>, <em class="sig-param">ft</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#compute_heat_transfer_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_heat_transfer_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return required heat transfer area by LMTD correction factor method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>LMTD</strong> (<em>float</em>) – Log mean temperature difference</p></li>
+<li><p><strong>U</strong> (<em>float</em>) – Heat transfer coefficient</p></li>
+<li><p><strong>Q</strong> (<em>float</em>) – Duty</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.compute_LMTD">
+<code class="sig-prename descclassname">biosteam.units.design_tools.</code><code class="sig-name descname">compute_LMTD</code><span class="sig-paren">(</span><em class="sig-param">Thi</em>, <em class="sig-param">Tho</em>, <em class="sig-param">Tci</em>, <em class="sig-param">Tco</em>, <em class="sig-param">counterflow=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/design_tools/heat_transfer.html#compute_LMTD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.compute_LMTD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-mean temperature difference of an ideal counterflow
+or co-current heat exchanger.</p>
+<div class="math">
+<p><img src="../_images/math/1a663aa0988de00ab733259d7126a46de8f61ee6.png" alt="\Delta T_{LMTD}=\frac{\Delta T_1-\Delta T_2}{\ln(\Delta T_1/\Delta T_2)}
+
+\text{For countercurrent:      } \\
+\Delta T_1=T_{h,i}-T_{c,o}\\
+\Delta T_2=T_{h,o}-T_{c,i}
+
+\text{Parallel Flow Only:} \\
+{\Delta T_1=T_{h,i}-T_{c,i}}\\
+{\Delta T_2=T_{h,o}-T_{c,o}}"/></p>
+</div><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Thi</strong> (<em>float</em>) – Inlet temperature of hot fluid [K].</p></li>
+<li><p><strong>Tho</strong> (<em>float</em>) – Outlet temperature of hot fluid [K].</p></li>
+<li><p><strong>Tci</strong> (<em>float</em>) – Inlet temperature of cold fluid [K].</p></li>
+<li><p><strong>Tco</strong> (<em>float</em>) – Outlet temperature of cold fluid [K].</p></li>
+<li><p><strong>counterflow</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the exchanger is counterflow or co-current.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>LMTD</strong> – Log-mean temperature difference [K]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Any consistent set of units produces a consistent output.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">LMTD</span><span class="p">(</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">60.</span><span class="p">,</span> <span class="mf">30.</span><span class="p">,</span> <span class="mf">40.2</span><span class="p">)</span>
+<span class="go">43.200409294131525</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">LMTD</span><span class="p">(</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">60.</span><span class="p">,</span> <span class="mf">30.</span><span class="p">,</span> <span class="mf">40.2</span><span class="p">,</span> <span class="n">counterflow</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">39.75251118049003</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>

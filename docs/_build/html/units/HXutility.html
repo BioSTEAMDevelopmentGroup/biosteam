@@ -222,17 +222,15 @@
 <dl class="class">
 <dt id="biosteam.units.HXutility">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">HXutility</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">T=None</em>, <em class="sig-param">V=None</em>, <em class="sig-param">rigorous=False</em>, <em class="sig-param">U=None</em>, <em class="sig-param">shell_and_tube_type='Floating head'</em>, <em class="sig-param">material='Carbon steel/carbon steel'</em>, <em class="sig-param">N_shells=2</em>, <em class="sig-param">ft=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_hx.html#HXutility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.HXutility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a heat exchanger that changes temperature of the output stream using a heat utility.</p>
+<dd><p>Create a heat exchanger that changes temperature of the
+outlet stream using a heat utility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ins</strong> (<em>stream</em>) – Inlet fluid.</p></li>
-<li><p><strong>outs</strong> – Outlet fluid.</p></li>
-<li><p><strong>at least one</strong> (<em>Define</em>) – <ul>
-<li><p>T: [float] Temperature of output stream (K).</p></li>
-<li><p>V: [float] Vapor fraction of output stream.</p></li>
-</ul>
-</p></li>
+<li><p><strong>ins</strong> (<em>stream</em>) – Inlet.</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Outlet.</p></li>
+<li><p><strong>T=None</strong> (<em>float</em>) – Temperature of outlet stream [K].</p></li>
+<li><p><strong>V=None</strong> (<em>float</em>) – Vapor fraction of outlet stream.</p></li>
 <li><p><strong>rigorous=False</strong> (<em>bool</em>) – If true, calculate vapor liquid equilibrium</p></li>
 <li><p><strong>U=None</strong> (<em>float</em><em>, </em><em>optional</em>) – Enforced overall heat transfer coefficent [kW/m^2/K].</p></li>
 <li><p><strong>shell_and_tube_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Heat exchanger type. Defaults to “Floating head”.</p></li>
@@ -241,12 +239,13 @@
 </ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Must specify either <cite>T</cite> or <cite>V</cite> when creating a HXutility object.</p>
 <p class="rubric">Examples</p>
 <p>Run heat exchanger by temperature:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">HXutility</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hx</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;product&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">50</span><span class="o">+</span><span class="mf">273.15</span><span class="p">,</span>
 <span class="gp">... </span>               <span class="n">rigorous</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Ignore VLE</span>
@@ -321,13 +320,13 @@
 <dl class="attribute">
 <dt id="biosteam.units.HXutility.T">
 <code class="sig-name descname">T</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXutility.T" title="Permalink to this definition">¶</a></dt>
-<dd><p>Temperature of output stream (K).</p>
+<dd><p>Temperature of outlet stream (K).</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.units.HXutility.V">
 <code class="sig-name descname">V</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXutility.V" title="Permalink to this definition">¶</a></dt>
-<dd><p>Vapor fraction of output stream.</p>
+<dd><p>Vapor fraction of outlet stream.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -340,6 +339,41 @@
 <dt id="biosteam.units.HXutility.U">
 <code class="sig-name descname">U</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXutility.U" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Enforced overall heat transfer coefficent (kW/m^2/K)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXutility.Q">
+<code class="sig-name descname">Q</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXutility.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Total heat transfered.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXutility.N_shells">
+<code class="sig-name descname">N_shells</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXutility.N_shells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of shells for LMTD correction factor method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXutility.ft">
+<code class="sig-name descname">ft</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.HXutility.ft" title="Permalink to this definition">¶</a></dt>
+<dd><p>User imposed correction factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.HXutility.get_streams">
+<code class="sig-name descname">get_streams</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_hx.html#HXutility.get_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.HXutility.get_streams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return inlet and outlet streams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>in_a</strong> (<em>Stream</em>) – Inlet a.</p></li>
+<li><p><strong>in_b</strong> (<em>Stream</em>) – Inlet b.</p></li>
+<li><p><strong>out_a</strong> (<em>Stream</em>) – Outlet a.</p></li>
+<li><p><strong>out_b</strong> (<em>Stream</em>) – Outlet b.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

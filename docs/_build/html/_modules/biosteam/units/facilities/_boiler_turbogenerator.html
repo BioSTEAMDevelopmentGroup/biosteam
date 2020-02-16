@@ -273,7 +273,7 @@
             <span class="n">H_steam</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">side_steam</span><span class="o">.</span><span class="n">H</span>
         <span class="n">Hc_feed</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">feed</span> <span class="ow">in</span> <span class="p">(</span><span class="n">feed_solids</span><span class="p">,</span> <span class="n">feed_gas</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">feed</span><span class="p">:</span> <span class="n">Hc_feed</span> <span class="o">+=</span> <span class="n">feed_gas</span><span class="o">.</span><span class="n">Hc</span>
+            <span class="k">if</span> <span class="n">feed</span><span class="p">:</span> <span class="n">Hc_feed</span> <span class="o">+=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Hc</span>
         
         <span class="c1"># This is simply for the mass balance (no special purpose)</span>
         <span class="c1"># TODO: In reality, this should be CO2</span>

@@ -236,12 +236,12 @@ Mulet et al. <a class="footnote-reference brackets" href="#id6" id="id2">2</a> <
 <li><p>[1] Liquid product</p></li>
 </ul>
 </p></li>
-<li><p><strong>P</strong> (<em>float</em><em>, </em><em>optional</em>) – Operating pressure [Pa].</p></li>
-<li><p><strong>Q</strong> (<em>float</em><em>, </em><em>optional</em>) – Duty [kJ/hr].</p></li>
-<li><p><strong>T</strong> (<em>float</em><em>, </em><em>optional</em>) – Operating temperature [K].</p></li>
-<li><p><strong>V</strong> (<em>float</em><em>, </em><em>optional</em>) – Molar vapor fraction.</p></li>
-<li><p><strong>x</strong> (<em>float</em><em>, </em><em>optional</em>) – Molar composition of liquid (for binary mixtures).</p></li>
-<li><p><strong>y</strong> (<em>float</em><em>, </em><em>optional</em>) – Molar composition of vapor (for binary mixtures).</p></li>
+<li><p><strong>P=None</strong> (<em>float</em>) – Operating pressure [Pa].</p></li>
+<li><p><strong>Q=None</strong> (<em>float</em>) – Duty [kJ/hr].</p></li>
+<li><p><strong>T=None</strong> (<em>float</em>) – Operating temperature [K].</p></li>
+<li><p><strong>V=None</strong> (<em>float</em>) – Molar vapor fraction.</p></li>
+<li><p><strong>x=None</strong> (<em>float</em>) – Molar composition of liquid (for binary mixtures).</p></li>
+<li><p><strong>y=None</strong> (<em>float</em>) – Molar composition of vapor (for binary mixtures).</p></li>
 <li><p><strong>vessel_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Vessel construction material. Defaults to ‘Carbon steel’.</p></li>
 <li><p><strong>vacuum_system_preference</strong> (<em>'Liquid-ring pump'</em><em>, </em><em>'Steam-jet ejector'</em><em>, or </em><em>'Dry-vacuum pump'</em>) – If a vacuum system is needed, it will choose one according to this
 preference. Defaults to ‘Liquid-ring pump’.</p></li>
@@ -262,8 +262,7 @@ P or T (e.g., x and V is invalid).</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Flash</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span> <span class="c1"># Feed at bubble point T</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
@@ -289,9 +288,7 @@ P or T (e.g., x and V is invalid).</p>
 <span class="go">    phase: &#39;l&#39;, T: 137 degC, P: 1 atm</span>
 <span class="go">    flow (kmol/hr): Water     42.4</span>
 <span class="go">                    Glycerol  298</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 <span class="go">Flash                                   Units            F1</span>
 <span class="go">Medium pressure steam Duty              kJ/hr      5.06e+07</span>
 <span class="go">                      Flow            kmol/hr       1.4e+03</span>

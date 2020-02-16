@@ -267,8 +267,6 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="units/design_tools.html#biosteam.units.design_tools.calculate_vacuum_system_power_and_cost">calculate_vacuum_system_power_and_cost() (in module biosteam.units.design_tools)</a>
-</li>
       <li><a href="units/Transesterification.html#biosteam.units.Transesterification.catalyst_molfrac">catalyst_molfrac() (biosteam.units.Transesterification property)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.ceil_half_step">ceil_half_step() (in module biosteam.units.design_tools)</a>
@@ -277,15 +275,17 @@
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA">CombinedTEA (class in biosteam)</a>
 </li>
-      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_diameter">compute_diameter() (in module biosteam.units.design_tools)</a>
-</li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_downcomer_area_fraction">compute_downcomer_area_fraction() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_empty_tower_cost">compute_empty_tower_cost() (in module biosteam.units.design_tools)</a>
 </li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_Fahkeri_LMTD_correction_factor">compute_Fahkeri_LMTD_correction_factor() (in module biosteam.units.design_tools)</a>
+</li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_flow_parameter">compute_flow_parameter() (in module biosteam.units.design_tools)</a>
 </li>
-      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_height">compute_height() (in module biosteam.units.design_tools)</a>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_heat_transfer_area">compute_heat_transfer_area() (in module biosteam.units.design_tools)</a>
+</li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_LMTD">compute_LMTD() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_max_capacity_parameter">compute_max_capacity_parameter() (in module biosteam.units.design_tools)</a>
 </li>
@@ -297,23 +297,29 @@
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_n_trays_factor">compute_n_trays_factor() (in module biosteam.units.design_tools)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_plaform_ladder_cost">compute_plaform_ladder_cost() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_purchase_cost_of_tower">compute_purchase_cost_of_tower() (in module biosteam.units.design_tools)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_purchase_cost_of_trays">compute_purchase_cost_of_trays() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_Stokes_law_York_Demister_K_value">compute_Stokes_law_York_Demister_K_value() (in module biosteam.units.design_tools)</a>
 </li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_diameter">compute_tower_diameter() (in module biosteam.units.design_tools)</a>
+</li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_height">compute_tower_height() (in module biosteam.units.design_tools)</a>
+</li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_wall_thickness">compute_tower_wall_thickness() (in module biosteam.units.design_tools)</a>
+</li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_weight">compute_tower_weight() (in module biosteam.units.design_tools)</a>
+</li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tray_base_purchase_cost">compute_tray_base_purchase_cost() (in module biosteam.units.design_tools)</a>
 </li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_vacuum_system_power_and_cost">compute_vacuum_system_power_and_cost() (in module biosteam.units.design_tools)</a>
+</li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_vessel_weight_and_wall_thickness">compute_vessel_weight_and_wall_thickness() (in module biosteam.units.design_tools)</a>
-</li>
-      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_wall_thickness">compute_wall_thickness() (in module biosteam.units.design_tools)</a>
-</li>
-      <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_weight">compute_weight() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="TEA.html#biosteam.TEA.construction_schedule">construction_schedule() (biosteam.TEA property)</a>
 </li>
@@ -499,6 +505,12 @@
         <li><a href="TEA.html#biosteam.TEA.FOC">(biosteam.TEA property)</a>
 </li>
       </ul></li>
+      <li><a href="units/HXprocess.html#biosteam.units.HXprocess.ft">ft (biosteam.units.HXprocess attribute)</a>
+
+      <ul>
+        <li><a href="units/HXutility.html#biosteam.units.HXutility.ft">(biosteam.units.HXutility attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -523,6 +535,8 @@
         <li><a href="evaluation/State.html#biosteam.evaluation.State.get_parameters">(biosteam.evaluation.State method)</a>
 </li>
       </ul></li>
+      <li><a href="units/HXutility.html#biosteam.units.HXutility.get_streams">get_streams() (biosteam.units.HXutility method)</a>
+</li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.GTable">GTable() (in module biosteam.units.design_tools)</a>
 </li>
   </ul></td>
@@ -559,8 +573,14 @@
 </li>
       <li><a href="HeatUtility.html#biosteam.HeatUtility">HeatUtility (class in biosteam)</a>
 </li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.heuristic_overall_heat_transfer_coefficient">heuristic_overall_heat_transfer_coefficient() (in module biosteam.units.design_tools)</a>
+</li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.heuristic_pressure_drop">heuristic_pressure_drop() (in module biosteam.units.design_tools)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.heuristic_tubeside_and_shellside_pressure_drops">heuristic_tubeside_and_shellside_pressure_drops() (in module biosteam.units.design_tools)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.Hf_in">Hf_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -763,16 +783,22 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/Fermentation.html#biosteam.units.Fermentation.N">N() (biosteam.units.Fermentation property)</a>
 </li>
+      <li><a href="units/HXprocess.html#biosteam.units.HXprocess.N_shells">N_shells (biosteam.units.HXprocess attribute)</a>
+
+      <ul>
+        <li><a href="units/HXutility.html#biosteam.units.HXutility.N_shells">(biosteam.units.HXutility attribute)</a>
+</li>
+      </ul></li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable.name">name (biosteam.evaluation.Variable attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.net_earnings">net_earnings() (biosteam.CombinedTEA property)</a>
 
       <ul>
         <li><a href="TEA.html#biosteam.TEA.net_earnings">(biosteam.TEA property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="System.html#biosteam.System.network">network (biosteam.System attribute)</a>
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.NPV">NPV() (biosteam.CombinedTEA property)</a>
@@ -795,6 +821,8 @@
         <li><a href="TEA.html#biosteam.TEA.operating_days">(biosteam.TEA property)</a>
 </li>
       </ul></li>
+      <li><a href="units/design_tools.html#biosteam.units.design_tools.order_streams">order_streams() (in module biosteam.units.design_tools)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Unit.html#biosteam.Unit.outs">outs (biosteam.Unit attribute)</a>
@@ -880,6 +908,14 @@
 
 <h2 id="Q">Q</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="units/HXprocess.html#biosteam.units.HXprocess.Q">Q (biosteam.units.HXprocess attribute)</a>
+
+      <ul>
+        <li><a href="units/HXutility.html#biosteam.units.HXutility.Q">(biosteam.units.HXutility attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/Flash.html#biosteam.units.Flash.Q">Q() (biosteam.units.Flash property)</a>
 </li>

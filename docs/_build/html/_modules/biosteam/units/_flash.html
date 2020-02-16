@@ -181,7 +181,7 @@
 <span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">MultiStream</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">ceil</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calculate_vacuum_system_power_and_cost</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="p">(</span><span class="n">compute_vacuum_system_power_and_cost</span><span class="p">,</span>
                            <span class="n">HNATable</span><span class="p">,</span> <span class="n">ceil_half_step</span><span class="p">,</span>
                            <span class="n">compute_vessel_weight_and_wall_thickness</span><span class="p">,</span>
                            <span class="n">compute_Stokes_law_York_Demister_K_value</span><span class="p">,</span>
@@ -221,17 +221,17 @@
 <span class="sd">    outs : stream sequence</span>
 <span class="sd">        * [0] Vapor product</span>
 <span class="sd">        * [1] Liquid product</span>
-<span class="sd">    P : float, optional</span>
+<span class="sd">    P=None : float</span>
 <span class="sd">        Operating pressure [Pa].</span>
-<span class="sd">    Q : float, optional</span>
+<span class="sd">    Q=None : float</span>
 <span class="sd">        Duty [kJ/hr].</span>
-<span class="sd">    T : float, optional</span>
+<span class="sd">    T=None : float</span>
 <span class="sd">        Operating temperature [K].</span>
-<span class="sd">    V : float, optional</span>
+<span class="sd">    V=None : float</span>
 <span class="sd">        Molar vapor fraction.</span>
-<span class="sd">    x : float, optional</span>
+<span class="sd">    x=None : float</span>
 <span class="sd">        Molar composition of liquid (for binary mixtures).</span>
-<span class="sd">    y : float, optional</span>
+<span class="sd">    y=None : float</span>
 <span class="sd">        Molar composition of vapor (for binary mixtures).</span>
 <span class="sd">    vessel_material : str, optional</span>
 <span class="sd">        Vessel construction material. Defaults to &#39;Carbon steel&#39;.</span>
@@ -262,8 +262,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import Flash</span>
 <span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
-<span class="sd">    &gt;&gt;&gt; chemicals = Chemicals([&#39;Water&#39;, &#39;Glycerol&#39;])</span>
-<span class="sd">    &gt;&gt;&gt; settings.set_thermo(chemicals)</span>
+<span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Glycerol&#39;])</span>
 <span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Glycerol=300, Water=1000)</span>
 <span class="sd">    &gt;&gt;&gt; bp = feed.bubble_point_at_P() # Feed at bubble point T</span>
 <span class="sd">    &gt;&gt;&gt; feed.T = bp.T</span>
@@ -289,7 +288,6 @@
 <span class="sd">        phase: &#39;l&#39;, T: 137 degC, P: 1 atm</span>
 <span class="sd">        flow (kmol/hr): Water     42.4</span>
 <span class="sd">                        Glycerol  298</span>
-<span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; F1.results()</span>
 <span class="sd">    Flash                                   Units            F1</span>
 <span class="sd">    Medium pressure steam Duty              kJ/hr      5.06e+07</span>
@@ -536,7 +534,7 @@
             <span class="n">F_mass</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">F_mass</span>
             <span class="n">F_vol</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">F_vol</span>
         
-        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">calculate_vacuum_system_power_and_cost</span><span class="p">(</span>
+        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">compute_vacuum_system_power_and_cost</span><span class="p">(</span>
                           <span class="n">F_mass</span><span class="p">,</span> <span class="n">F_vol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vacuum_system_preference</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>

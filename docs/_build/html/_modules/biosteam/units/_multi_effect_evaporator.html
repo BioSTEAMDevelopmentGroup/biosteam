@@ -182,7 +182,10 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
 <span class="kn">from</span> <span class="nn">._flash</span> <span class="kn">import</span> <span class="n">Evaporator_PV</span><span class="p">,</span> <span class="n">Evaporator_PQ</span>
-<span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="n">calculate_vacuum_system_power_and_cost</span>
+<span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">compute_vacuum_system_power_and_cost</span><span class="p">,</span>
+    <span class="n">compute_heat_transfer_area</span>
+<span class="p">)</span>    
 <span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">IQ_interpolation</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
@@ -220,7 +223,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ins : stream</span>
-<span class="sd">        Inlet stream.</span>
+<span class="sd">        Inlet.</span>
 <span class="sd">    outs : stream sequence</span>
 <span class="sd">        * [0] Solid-rich stream.</span>
 <span class="sd">        * [1] Condensate stream.</span>
@@ -362,7 +365,7 @@
         <span class="n">Th</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">inlet_utility_stream</span><span class="o">.</span><span class="n">T</span>
         <span class="n">LMTD</span> <span class="o">=</span> <span class="n">ht</span><span class="o">.</span><span class="n">LMTD</span><span class="p">(</span><span class="n">Th</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Tci</span><span class="p">,</span> <span class="n">Tco</span><span class="p">)</span>
         <span class="n">ft</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">A</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">HXutility</span><span class="o">.</span><span class="n">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">))</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">compute_heat_transfer_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_evap_costs</span> <span class="o">=</span> <span class="n">evap_costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">C_func</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">)]</span>
         
         <span class="c1"># Find condenser requirements</span>
@@ -379,7 +382,7 @@
             <span class="n">Tc</span> <span class="o">=</span> <span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
             <span class="n">Th</span> <span class="o">=</span> <span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
             <span class="n">LMTD</span> <span class="o">=</span> <span class="n">Th</span> <span class="o">-</span> <span class="n">Tc</span>
-            <span class="n">A</span> <span class="o">=</span> <span class="n">HXutility</span><span class="o">.</span><span class="n">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">)</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">compute_heat_transfer_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">)</span>
             <span class="n">As</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">debug</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">A_min</span> <span class="o">&lt;</span> <span class="n">A</span> <span class="o">&lt;</span> <span class="n">A_max</span><span class="p">:</span>
                 <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;area requirement (</span><span class="si">{A}</span><span class="s1">) is out of range, </span><span class="si">{A_range}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -390,7 +393,7 @@
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Evaporators&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">evap_costs</span><span class="p">)</span>
         
         <span class="c1"># Calculate power</span>
-        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">calculate_vacuum_system_power_and_cost</span><span class="p">(</span>
+        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">compute_vacuum_system_power_and_cost</span><span class="p">(</span>
             <span class="n">F_mass</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">F_vol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">P_suction</span><span class="o">=</span><span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">P</span><span class="p">,</span>
             <span class="n">vessel_volume</span><span class="o">=</span><span class="n">total_volume</span><span class="p">,</span>
             <span class="n">vacuum_system_preference</span><span class="o">=</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">)</span>

@@ -212,7 +212,7 @@ def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     
     Examples
     --------
-    compute_Fahkeri_LMTD_correction_factor(Tci=15, Tco=85, Thi=130, Tho=110, shells=1)
+    compute_Fahkeri_LMTD_correction_factor(Tci=15, Tco=85, Thi=130, Tho=110, N_shells=1)
     0.9438358829645933
     
     References
@@ -301,18 +301,10 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
 
     Examples
     --------
-    Example 11.1 in [1]_.
-
     >>> LMTD(100., 60., 30., 40.2)
     43.200409294131525
     >>> LMTD(100., 60., 30., 40.2, counterflow=False)
     39.75251118049003
-
-    References
-    ----------
-    .. [1] Bergman, Theodore L., Adrienne S. Lavine, Frank P. Incropera, and
-       David P. DeWitt. Introduction to Heat Transfer. 6E. Hoboken, NJ:
-       Wiley, 2011.
     
     '''
     if counterflow:

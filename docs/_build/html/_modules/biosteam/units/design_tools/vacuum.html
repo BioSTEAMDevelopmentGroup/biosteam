@@ -183,7 +183,7 @@
 <span class="kn">from</span> <span class="nn">biosteam._exceptions</span> <span class="kn">import</span> <span class="n">DesignError</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;calculate_vacuum_system_power_and_cost&#39;</span><span class="p">,)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;compute_vacuum_system_power_and_cost&#39;</span><span class="p">,)</span>
 
 
 <span class="c1"># %% Data</span>
@@ -211,7 +211,7 @@
 
 <span class="c1"># %% Calculate vacuum system requirements</span>
 
-<div class="viewcode-block" id="calculate_vacuum_system_power_and_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.calculate_vacuum_system_power_and_cost">[docs]</a><span class="k">def</span> <span class="nf">calculate_vacuum_system_power_and_cost</span><span class="p">(</span>
+<div class="viewcode-block" id="compute_vacuum_system_power_and_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_vacuum_system_power_and_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_vacuum_system_power_and_cost</span><span class="p">(</span>
         <span class="n">F_mass</span><span class="p">,</span> <span class="n">F_vol</span><span class="p">,</span> <span class="n">P_suction</span><span class="p">,</span> <span class="n">vessel_volume</span><span class="p">,</span>
         <span class="n">vacuum_system_preference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return power (kW) and cost (USD) of vacuum system.</span>
@@ -226,7 +226,7 @@
 <span class="sd">        Suction pressure in Pa</span>
 <span class="sd">    vessel_volume : float</span>
 <span class="sd">        Vacuum volume in m3</span>
-<span class="sd">    vacuum_system_preference : tuple[str] or str</span>
+<span class="sd">    vacuum_system_preference : &#39;Liquid-ring pump&#39;, &#39;Steam-jet ejector&#39;, or &#39;Dry-vacuum pump&#39;</span>
 <span class="sd">        Name(s) of preferred vacuum systems</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
