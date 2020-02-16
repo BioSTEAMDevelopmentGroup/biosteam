@@ -26,6 +26,7 @@ Key Features & Capabilities
    tutorial/Creating a Unit
    tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
+   tutorial/Unit operation results
    tutorial/Biorefineries
    tutorial/Techno-economic analysis
    tutorial/Inheriting from Unit

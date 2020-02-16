@@ -84,20 +84,19 @@ def HXutility_node(hx):
     try:
         si = hx.ins[0]
         so = hx.outs[0]
-        gi = si.phase == 'g'
-        li = so.phase == 'l'
-        go = so.phase == 'g'
-        lo = so.phase == 'l'
-        Ti = si.T
-        To = so.T
+        H_in = si.H
+        H_out = so.H
         graphics = hx._graphics
-        if Ti > To or (gi and lo):
+        if H_in > H_out:
             graphics.node['fillcolor'] = '#cfecf0'
+            graphics.node['gradientangle'] = '0'
             name = 'Cooling'
-        elif Ti < To or (li and go):
+        elif H_in < H_out:
+            graphics.node['gradientangle'] = '0'
             graphics.node['fillcolor'] = '#fad6d8'
             name = 'Heating'
         else:
+            graphics.node['gradientangle'] = '90'
             graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
             name = 'Heat exchanger'
     except:

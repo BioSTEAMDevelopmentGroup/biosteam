@@ -458,7 +458,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "**References**\n",
+    "### References\n",
     "\n",
     "<a id='References'></a>\n",
     "\n",
@@ -467,6 +467,13 @@
     "2. Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)\n",
     "\n"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {

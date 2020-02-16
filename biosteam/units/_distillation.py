@@ -171,8 +171,8 @@ class Distillation(Unit):
     >>> D1 = Distillation('D1', ins=feed,
     ...                   outs=('distillate', 'bottoms_product'),
     ...                   LHK=('Methanol', 'Water'),
-    ...                   y_top=0.99, x_bot=0.01, k=2)
-    >>> D1.is_divided = True
+    ...                   y_top=0.99, x_bot=0.01, k=2,
+                          is_divided=True)
     >>> D1.simulate()
     >>> # See all results
     >>> D1.show(T='degC', P='atm', composition=True)
@@ -230,20 +230,20 @@ class Distillation(Unit):
     """
     line = 'Distillation'
     _N_heat_utilities = 0
-    units = {'Minimum reflux': 'Ratio',
-             'Reflux': 'Ratio',
-             'Rectifier height': 'ft',
-             'Rectifier diameter': 'ft',
-             'Rectifier wall thickness': 'in',
-             'Rectifier weight': 'lb',
-             'Stripper height': 'ft',
-             'Stripper diameter': 'ft',
-             'Stripper wall thickness': 'in',
-             'Stripper weight': 'lb',
-             'Height': 'ft',
-             'Diameter': 'ft',
-             'Wall thickness': 'in',
-             'Weight': 'lb'}
+    _units = {'Minimum reflux': 'Ratio',
+              'Reflux': 'Ratio',
+              'Rectifier height': 'ft',
+              'Rectifier diameter': 'ft',
+              'Rectifier wall thickness': 'in',
+              'Rectifier weight': 'lb',
+              'Stripper height': 'ft',
+              'Stripper diameter': 'ft',
+              'Stripper wall thickness': 'in',
+              'Stripper weight': 'lb',
+              'Height': 'ft',
+              'Diameter': 'ft',
+              'Wall thickness': 'in',
+              'Weight': 'lb'}
     # Bare module factor
     BM = 4.3
     
@@ -297,8 +297,8 @@ class Distillation(Unit):
                                  thermo=thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
         self.condensate = Stream(None, thermo=thermo)
-        self.boil_up = Stream(None, phase='g', thermo=thermo)
-        self.precondensate =  Stream(None)
+        self.boilup = Stream(None, phase='g', thermo=thermo)
+        self.precondensate =  Stream(None, phase='g')
         self._McCabeThiele_args = np.zeros(6)
     
     @property
@@ -501,15 +501,15 @@ class Distillation(Unit):
         
     def _simulate_boiler(self):
         bottoms = self.outs[1]
-        boil_up = self.boil_up # Abstract attribute
+        boilup = self.boilup # Abstract attribute
         boiler = self.boiler
         s_in = boiler.ins[0]
         s_in.copy_like(bottoms)
-        s_in.mol += boil_up.mol
+        s_in.mol += boilup.mol
         ms1 = boiler.outs[0]
-        ms1.T = boil_up.T
-        ms1.P = boil_up.P
-        ms1.imol['g'] = boil_up.mol
+        ms1.T = boilup.T
+        ms1.P = boilup.P
+        ms1.imol['g'] = boilup.mol
         ms1.imol['l'] = bottoms.mol
         if hasattr(self, 'condenser'):
             boiler._design(self.H_out - self.H_in - self.condenser.Q)
@@ -707,14 +707,14 @@ class Distillation(Unit):
         V_mol = self._V_Smol
         rho_L = bottoms.rho
         bp = self._boilup_bubble_point
-        boil_up_flow = bp.y * V_mol
-        boil_up = self.boil_up
-        boil_up.T = bottoms.T
-        boil_up.P = bottoms.P
-        boil_up.imol[bp.IDs] = boil_up_flow
-        V = boil_up.F_mass
-        V_vol = boil_up.get_total_flow('m^3/s')
-        rho_V = boil_up.rho
+        boilup_flow = bp.y * V_mol
+        boilup = self.boilup
+        boilup.T = bottoms.T
+        boilup.P = bottoms.P
+        boilup.imol[bp.IDs] = boilup_flow
+        V = boilup.F_mass
+        V_vol = boilup.get_total_flow('m^3/s')
+        rho_V = boilup.rho
         L = bottoms.F_mass # To get liquid going down
         F_LV = compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = compute_max_capacity_parameter(TS, F_LV)

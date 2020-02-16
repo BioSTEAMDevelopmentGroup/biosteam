@@ -42,7 +42,7 @@ class Unit:
     _design()
         Add design requirements to the `design_results` dictionary.
     _cost()
-        Add itemized purchse costs to the "purchase_costs" dictionary.
+        Add itemized purchse costs to the `purchase_costs` dictionary.
 
     **Abstract class attributes**
     

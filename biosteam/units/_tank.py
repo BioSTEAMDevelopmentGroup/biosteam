@@ -295,7 +295,6 @@ class StorageTank(Tank):
     [0] effluent
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kg/hr): Ethanol  2.3e+04
-    
     >>> T1.results()
     Tank                                  Units       T1
     Design              Residence time               168
