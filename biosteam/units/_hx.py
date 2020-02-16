@@ -551,10 +551,10 @@ class HXprocess(HX):
     def fluid_type(self):
         """
         [str] Must be one of the following:
-            * **None:** Rigorously transfers heat until pinch temperature **-not implemented yet-**
-            * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
-            * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
-            * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
+            * **None** Rigorously transfers heat until pinch temperature (not implemented yet).
+            * **'ss'** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
+            * **'ll'** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
+            * **'ls'** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
         """
         return self._fluid_type
     @fluid_type.setter
