@@ -8,7 +8,7 @@ from .. import Unit, PowerUtility
 from thermosteam import MultiStream
 from math import pi, ceil
 import numpy as np
-from .design_tools import (calculate_vacuum_system_power_and_cost,
+from .design_tools import (compute_vacuum_system_power_and_cost,
                            HNATable, ceil_half_step,
                            compute_vessel_weight_and_wall_thickness,
                            compute_Stokes_law_York_Demister_K_value,
@@ -89,8 +89,7 @@ class Flash(Unit):
     --------
     >>> from biosteam.units import Flash
     >>> from thermosteam import Chemicals, Stream, settings
-    >>> chemicals = Chemicals(['Water', 'Glycerol'])
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Water', 'Glycerol'])
     >>> feed = Stream('feed', Glycerol=300, Water=1000)
     >>> bp = feed.bubble_point_at_P() # Feed at bubble point T
     >>> feed.T = bp.T
@@ -362,7 +361,7 @@ class Flash(Unit):
             F_mass = vapor.F_mass
             F_vol = vapor.F_vol
         
-        power, cost = calculate_vacuum_system_power_and_cost(
+        power, cost = compute_vacuum_system_power_and_cost(
                           F_mass, F_vol, P, volume, self.vacuum_system_preference)
         self.purchase_costs['Liquid-ring pump'] = cost
         self.power_utility(power)

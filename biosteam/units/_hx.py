@@ -20,7 +20,7 @@ pi = np.pi
 # Lenght factor 
 x = np.array((8, 13, 16, 20)) 
 y = np.array((1.25, 1.12,1.05,1))
-p2 = np.polyfit(x,y,2)
+p2 = np.polyfit(x, y, 2)
 
 # %% Purchase price
 
@@ -229,7 +229,6 @@ class HXutility(HX):
         phase: 'l', T: 323.15 K, P: 101325 Pa
         flow (kmol/hr): Water    200
                         Ethanol  200
-    
     >>> hx.results()
     Heat Exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
@@ -264,7 +263,6 @@ class HXutility(HX):
         phases: ('g', 'l'), T: 357.45 K, P: 101325 Pa
         flow (kmol/hr): (g) Water    200
                             Ethanol  200
-    
     >>> hx.results()
     Heat Exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 2.07e+07
@@ -465,7 +463,6 @@ class HXprocess(HX):
     [1] out2
         phase: 'l', T: 346.43 K, P: 101325 Pa
         flow (kmol/hr): Water  200
-    
     >>> hx.results()
     Heat Exchanger                                            Units       hx
     Design              Area                                   ft^2      625
@@ -503,7 +500,6 @@ class HXprocess(HX):
         phases: ('g', 'l'), T: 373.12 K, P: 101325 Pa
         flow (kmol/hr): (g) Water  150.8
                         (l) Water  49.19
-    
     >>> hx.results()
     Heat Exchanger                                            Units       hx
     Design              Area                                   ft^2      293

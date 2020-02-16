@@ -9,7 +9,10 @@ import biosteam as bst
 from .. import Unit
 from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
-from .design_tools import calculate_vacuum_system_power_and_cost
+from .design_tools import (
+    compute_vacuum_system_power_and_cost,
+    compute_heat_transfer_area
+)    
 from thermosteam import Stream, settings
 from flexsolve import IQ_interpolation
 from warnings import warn
@@ -189,7 +192,7 @@ class MultiEffectEvaporator(Unit):
         Th = hu.inlet_utility_stream.T
         LMTD = ht.LMTD(Th, Th, Tci, Tco)
         ft = 1
-        A = abs(HXutility._calc_area(LMTD, U, Q, ft))
+        A = abs(compute_heat_transfer_area(LMTD, U, Q, ft))
         self._evap_costs = evap_costs = [C_func(A, CE)]
         
         # Find condenser requirements
@@ -206,7 +209,7 @@ class MultiEffectEvaporator(Unit):
             Tc = evap.outs[0].T
             Th = evap.outs[2].T
             LMTD = Th - Tc
-            A = HXutility._calc_area(LMTD, U, Q, ft)
+            A = compute_heat_transfer_area(LMTD, U, Q, ft)
             As.append(A)
             if settings.debug and not A_min < A < A_max:
                 warn(f'area requirement ({A}) is out of range, {A_range}')
@@ -217,7 +220,7 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         # Calculate power
-        power, cost = calculate_vacuum_system_power_and_cost(
+        power, cost = compute_vacuum_system_power_and_cost(
             F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
             vessel_volume=total_volume,
             vacuum_system_preference='Liquid-ring pump')

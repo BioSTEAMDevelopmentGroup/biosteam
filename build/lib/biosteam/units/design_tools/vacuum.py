@@ -10,7 +10,7 @@ from biosteam.utils import checkbounds
 from biosteam._exceptions import DesignError
 import biosteam as bst
 
-__all__ = ('calculate_vacuum_system_power_and_cost',)
+__all__ = ('compute_vacuum_system_power_and_cost',)
 
 
 # %% Data
@@ -38,7 +38,7 @@ _air_density = 1.2041 # kg/m3 dry air
 
 # %% Calculate vacuum system requirements
 
-def calculate_vacuum_system_power_and_cost(
+def compute_vacuum_system_power_and_cost(
         F_mass, F_vol, P_suction, vessel_volume,
         vacuum_system_preference=None):
     """Return power (kW) and cost (USD) of vacuum system.

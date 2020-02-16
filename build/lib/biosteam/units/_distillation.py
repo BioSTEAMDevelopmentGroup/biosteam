@@ -512,7 +512,7 @@ class Distillation(Unit):
         ms1.imol['g'] = boil_up.mol
         ms1.imol['l'] = bottoms.mol
         if hasattr(self, 'condenser'):
-            boiler._design(self.H_out - self.H_in - self.condenser._duty)
+            boiler._design(self.H_out - self.H_in - self.condenser.Q)
             boiler._cost()
         else:
             boiler._design()
