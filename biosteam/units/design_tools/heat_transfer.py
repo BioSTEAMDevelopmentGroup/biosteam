@@ -161,7 +161,7 @@ def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
     return Ft
 
 def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
-    """
+    r"""
     Return the log-mean temperature difference correction factor `Ft` 
     for a shell-and-tube heat exchanger with one or an even number of tube 
     passes, and a given number of shell passes, with the expression given in 
