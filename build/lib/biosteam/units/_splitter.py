@@ -43,22 +43,22 @@ class Splitter(Unit):
         * [0] Split stream
         * [1] Remainder stream    
     split : Should be one of the following
-            * [float] The fraction of net feed in the 0th output stream
-            * [array_like] Componentwise split of feed to 0th output stream
+            * [float] The fraction of net feed in the 0th outlet stream
+            * [array_like] Componentwise split of feed to 0th outlet stream
+            * [dict] ID-split pairs of feed to 0th outlet stream
     order=None : Iterable[str], defaults to Stream.species.IDs
         Species order of split.
     
     Examples
     --------
-    Create a Splitter object with an ID, a feed stream, two output streams,
+    Create a Splitter object with an ID, a feed stream, two outlet streams,
     and an overall split:
         
     .. code-block:: python
     
        >>> from biosteam import units
        >>> import thermosteam as tmo
-       >>> chemicals = tmo.Chemicals(['Water', 'Ethanol'])
-       >>> tmo.settings.set_thermo(chemicals)
+       >>> tmo.settings.set_thermo(['Water', 'Ethanol'])
        >>> feed = tmo.Stream('feed', Water=20, Ethanol=10, T=340)
        >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
        >>> S1.simulate()
@@ -79,7 +79,8 @@ class Splitter(Unit):
            flow (kmol/hr): Water    18
                            Ethanol  9
       
-    Create a Splitter object, but this time with a componentwise split:
+    Create a Splitter object, but this time with a componentwise split
+    using a dictionary:
         
     .. code-block:: python
     
@@ -133,11 +134,11 @@ class Splitter(Unit):
     
     @property
     def isplit(self):
-        """[ChemicalIndexer] Componentwise split of feed to 0th output stream."""
+        """[ChemicalIndexer] Componentwise split of feed to 0th outlet stream."""
         return self._isplit
     @property
     def split(self):
-        """[Array] Componentwise split of feed to 0th output stream."""
+        """[Array] Componentwise split of feed to 0th outlet stream."""
         return self._isplit._data
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split, order=None):
@@ -173,7 +174,7 @@ class Splitter(Unit):
 Splitter._N_outs = 2
 
 class InvSplitter(Unit):
-    """Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.
+    """Create a splitter that sets the input stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input.
     """
     _graphics = Splitter._graphics
     def _run(self):
