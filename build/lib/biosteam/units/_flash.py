@@ -10,6 +10,8 @@ from math import pi, ceil
 import numpy as np
 from .design_tools import (compute_vacuum_system_power_and_cost,
                            HNATable, ceil_half_step,
+                           compute_vertical_vessel_purchase_cost,
+                           compute_horizontal_vessel_purchase_cost,
                            compute_vessel_weight_and_wall_thickness,
                            compute_Stokes_law_York_Demister_K_value,
                            pressure_vessel_material_factors,
@@ -316,17 +318,12 @@ class Flash(Unit):
         W = Design['Weight']
         D = Design['Diameter']
         L = Design['Length']
-        
-        # C_v: Vessel cost
-        # C_pl: Platforms and ladders cost
+        F_M = self._F_M
         if self._isVertical:
-            C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
-            C_pl = 410*D**0.7396*L**0.70684
+            Cp = compute_vertical_vessel_purchase_cost(W, D, L, F_M)
         else:
-            C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
-            C_pl = 2275*D**0.20294
-            
-        self.purchase_costs['Flash'] = bst.CE/567*(self._F_M * C_v + C_pl)
+            Cp = compute_horizontal_vessel_purchase_cost(W, D, F_M)
+        self.purchase_costs['Flash'] = Cp
         if self.heat_exchanger:
             hx = self.heat_exchanger
             hx._cost()

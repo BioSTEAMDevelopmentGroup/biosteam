@@ -94,8 +94,8 @@ class Distillation(Unit):
     methods, such as the Fenske-Underwood-Gilliland method, are more suitable
     for hydrocarbons. The Murphree efficiency is based on the modified
     O'Connell correlation [2]_. The diameter is based on tray separation
-    and flooding velocity [1]_. Purchase costs are based on correlations
-    by Mulet et al. [3]_ [4]_ as compiled by Warren et. al. [5]_.
+    and flooding velocity [1, 3]_. Purchase costs are based on correlations
+    compiled by Warren et. al. [5]_.
 
     Parameters
     ----------
@@ -145,9 +145,8 @@ class Distillation(Unit):
     .. [2] M. Duss, R. Taylor. (2018)
         Predict Distillation Tray Efficiency. AICHE 
     
-    .. [3] Mulet, A., A. B. Corripio, and L. B. Evans. (1981a).
-        Estimate Costs of Pressure Vessels via Correlations.
-        Chem. Eng., 88(20), 145–150.
+    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
 
     .. [4] Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).
         Estimate Costs of Distillation and Absorption Towers via Correlations.
@@ -155,7 +154,7 @@ class Distillation(Unit):
 
     .. [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
         & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)    
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
 
     Examples
     --------

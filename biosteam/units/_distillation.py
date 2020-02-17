@@ -712,7 +712,7 @@ class Distillation(Unit):
         if A_dn is None:
            self._A_dn = A_dn = compute_downcomer_area_fraction(F_LV)
         f = self._f
-        R_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn)
+        R_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         
         ### Get diameter of stripping section based on feed plate ###
         rho_L = bottoms_product.rho
@@ -728,15 +728,15 @@ class Distillation(Unit):
         A_dn = self._A_dn
         if A_dn is None:
             A_dn = compute_downcomer_area_fraction(F_LV)
-        S_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn)
+        S_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         Po = self.P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         
         if is_divided:
             Design['Rectifier stages'] = Rstages
             Design['Stripper stages'] =  Sstages
-            Design['Rectifier height'] = H_R = compute_tower_height(TS, Rstages-1)
-            Design['Stripper height'] = H_S = compute_tower_height(TS, Sstages-1)
+            Design['Rectifier height'] = H_R = compute_tower_height(TS, Rstages-1) * 3.28
+            Design['Stripper height'] = H_S = compute_tower_height(TS, Sstages-1) * 3.28
             Design['Rectifier diameter'] = R_diameter
             Design['Stripper diameter'] = S_diameter
             Design['Rectifier wall thickness'] = tv = compute_tower_wall_thickness(Po, R_diameter, H_R)
@@ -745,7 +745,7 @@ class Distillation(Unit):
             Design['Stripper weight'] = compute_tower_weight(S_diameter, H_S, tv, rho_M)
         else:
             Design['Actual stages'] = Rstages + Sstages
-            Design['Height'] = H = compute_tower_height(TS, Rstages+Sstages-2)
+            Design['Height'] = H = compute_tower_height(TS, Rstages+Sstages-2) * 3.28
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
             Design['Wall thickness'] = tv = compute_tower_wall_thickness(Po, Di, H)
             Design['Weight'] = compute_tower_weight(Di, H, tv, rho_M)

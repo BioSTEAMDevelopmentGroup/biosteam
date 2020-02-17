@@ -30,7 +30,8 @@ y = np.array((1/4, 5/16, 3/8, 7/16, 1/2))
 ts_min_p = np.polyfit(x,y,1)
 
 def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
-    """Return total cost of all trays at BioSTEAM's CEPCI.
+    """
+    Return total cost of all trays at BioSTEAM's CEPCI.
     
     Parameters
     ----------
@@ -42,6 +43,18 @@ def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
         Tray type factor.
     F_TM : float
         Tray material factor.
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    The purchase cost is scaled according to BioSTEAM's Chemical
+    Plant Cost Index, `biosteam.CE`.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     F_CE = bst.CE/500
@@ -62,7 +75,19 @@ def compute_purchase_cost_of_tower(Di, L, W, F_VM):
     W : float
         weight [lb].
     F_VM : float
-        Column material factor.
+        Tower material factor.
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    The purchase cost is scaled according to BioSTEAM's Chemical
+    Plant Cost Index, `biosteam.CE`.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     F_CE = bst.CE/500
@@ -71,18 +96,31 @@ def compute_purchase_cost_of_tower(Di, L, W, F_VM):
     return F_CE * (F_VM * C_V + C_PL)
 
 def compute_empty_tower_cost(W):
-    """Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.
+    """
+    Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.
     
     Parameters
     ----------
     W : float
         Weight [lb].
     
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     """
     return np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
 
 def compute_plaform_ladder_cost(Di, L):
-    """Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.
+    """
+    Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.
     
     Parameters
     ----------
@@ -91,22 +129,43 @@ def compute_plaform_ladder_cost(Di, L):
     L: float
         Legnth [ft].
     
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     """
     return 300.9*Di**0.63316*L**0.80161
 
 def compute_tower_weight(Di, L, tv, rho_M):
-    """Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.
+    """
+    Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.
     
     Parameters
     ----------
     Di : float
-        Inner diameter ([ft].
+        Inner diameter [ft].
     L :  float
         Legnth [ft].
     tv : float
         Shell thickness [in].
     rho_M: floa
         Density of material [lb/in^3].
+    
+    Notes
+    -----
+    The tower weight is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     Di = Di*12
@@ -121,18 +180,28 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     Parameters
     ----------
     Po : float
-        Operating internal pressure (psi)
+        Operating internal pressure [psi].
     Di : float
-        Internal diameter (ft)
+        Internal diameter [ft].
     L : float
-        Height (ft)
+        Height [ft].
     S : float
-        Maximum stress (psi)
+        Maximum stress [psi].
     E : float
         Fractional weld efficiency
     M : float
-        Elasticity (psi)
-        
+        Elasticity [psi].
+    
+    Notes
+    -----
+    The wall thickness is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     """
     # TODO: Incorporate temperature for choosing S and M
     Di = Di*12 # ft to in
@@ -199,6 +268,16 @@ def compute_tray_base_purchase_cost(Di):
     Di : float
         Inner diameter [ft].
     
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     """
     return 412.6985 * np.exp(0.1482*Di)
 
@@ -209,7 +288,17 @@ def compute_n_trays_factor(N_T):
     Parameters
     ----------
     N_T: Number of trays
-        
+    
+    Notes
+    -----
+    The cost factor is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
     """
     if N_T < 20:
         F_NT = 2.25/1.0414**N_T
@@ -224,13 +313,22 @@ def compute_murphree_stage_efficiency(mu, alpha, L, V):
     Parameters
     ----------
     mu: float
-        Viscosity (mPa*s)
+        Viscosity [mPa*s]
     alpha: float
         Relative volatility.    
     L: float
         Liquid flow rate by mol.
     V: float
-        Vapor flow rate by mol/
+        Vapor flow rate by mol.
+    
+    Notes
+    -----
+    The efficiency is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] M. Duss, R. Taylor. (2018)
+        Predict Distillation Tray Efficiency. AICHE 
     
     """
     S = alpha*V/L # Stripping factor
@@ -253,6 +351,15 @@ def compute_flow_parameter(L, V, rho_V, rho_L):
     rho_L : float
         Liquid density.
     
+    Notes
+    -----
+    The flow parameter is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    
     """
     return L/V*(rho_V/rho_L)**0.5
 
@@ -265,6 +372,15 @@ def compute_max_capacity_parameter(TS, F_LV):
         Tray spacing [mm].
     F_LV : float
         Flow parameter.
+    
+    Notes
+    -----
+    The max capacity parameter is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
     
     """
     return 0.0105 + 8.127e-4*TS**0.755*np.exp(-1.463*F_LV**0.842)
@@ -289,6 +405,15 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     A_ha : 
         Ratio of open area, A_h, to active area, A_a
     
+    Notes
+    -----
+    The max vapor velocity is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    
     """
     F_ST = (sigma/20)**0.2 # Surface tension factor
     
@@ -311,6 +436,15 @@ def compute_downcomer_area_fraction(F_LV):
     F_LV : float
         Flow parameter.
 
+    Notes
+    -----
+    The fraction of downcomer area is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+
     """
     if F_LV < 0.1:
         A_dn = 0.1
@@ -321,7 +455,7 @@ def compute_downcomer_area_fraction(F_LV):
     return A_dn
 
 def compute_tower_diameter(V_vol, U_f, f, A_dn):
-    """Return column diameter [D_T; in ft].
+    """Return tower diameter [D_T; in meter].
     
     Parameters
     ----------
@@ -334,17 +468,25 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
     A_dn : float
         Ratio of downcomer area to net (total) area.
     
+    Notes
+    -----
+    The tower diameter is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    
     """
     Di = (4*V_vol/(f*U_f*np.pi*(1-A_dn)))**0.5
     if Di < 0.914:
         # Make sure diameter is not too small
         Di = 0.914
-    Di *= 3.28
     return Di
 
 def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     """
-    Return the height of a column [H; ft].
+    Return the height of a tower [H; m].
     
     Parameters
     ----------
@@ -353,6 +495,15 @@ def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     N_stages : float
         Number of stages.
     
+    Notes
+    -----
+    The tower height is given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    
     """
     # 3 m bottoms surge capacity, 1.25 m above top tray to remove entrained liquid
     H = TS*N_stages/1000
@@ -360,5 +511,4 @@ def compute_tower_height(TS, N_stages: int, top=True, bot=True):
         H += 1.2672
     if bot:
         H += 3
-    H *= 3.28
     return H 
