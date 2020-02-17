@@ -127,8 +127,8 @@ class Flash(Unit):
                           Wall thickness       in         0.375
                           Material                 Carbon steel
     Purchase cost         Flash               USD      5.82e+04
-                          Heat exchanger      USD      4.36e+04
-    Total purchase cost                       USD      1.02e+05
+                          Heat exchanger      USD      4.04e+04
+    Total purchase cost                       USD      9.86e+04
     Utility cost                           USD/hr           385
 
 
@@ -200,7 +200,7 @@ class Flash(Unit):
                  has_mist_eliminator=False):
         Unit.__init__(self, ID, ins, outs, thermo)
         self._multistream = MultiStream(None)
-        self._heat_exchanger = None
+        self.heat_exchanger = None
         
         #: Enforced molar vapor fraction
         self.V = V
@@ -261,9 +261,9 @@ class Flash(Unit):
     @Q.setter
     def Q(self, Q):
         if Q == 0:
-            self._heat_exchanger = None
-        elif not self._heat_exchanger:
-            self._heat_exchanger = he = HXutility(None, outs=None) 
+            self.heat_exchanger = None
+        elif not self.heat_exchanger:
+            self.heat_exchanger = he = HXutility(None, outs=None) 
             self.heat_utilities = he.heat_utilities
             he._ins = self._ins
             he._outs[0] = self._multistream
@@ -308,7 +308,7 @@ class Flash(Unit):
         # Run vertical or horizontal design
         if isVertical: self._vertical()
         else: self._horizontal()
-        if self._heat_exchanger: self._heat_exchanger._design()
+        if self.heat_exchanger: self.heat_exchanger._design()
         self.design_results['Material'] = self._vessel_material
 
     def _cost(self):
@@ -327,8 +327,8 @@ class Flash(Unit):
             C_pl = 2275*D**0.20294
             
         self.purchase_costs['Flash'] = bst.CE/567*(self._F_M * C_v + C_pl)
-        if self._heat_exchanger:
-            hx = self._heat_exchanger
+        if self.heat_exchanger:
+            hx = self.heat_exchanger
             hx._cost()
             self.purchase_costs.update(hx.purchase_costs)
         self._cost_vacuum()
@@ -593,7 +593,9 @@ class SplitFlash(Flash):
                  has_mist_eliminator=False):
         Splitter.__init__(self, ID, ins, outs, split=split, order=order)
         self._multistream = MultiStream(None)
-        self._heat_exchanger = None
+        
+        #: [HXutility] Heat exchanger if needed.
+        self.heat_exchanger = None
         self.T = T #: Operating temperature (K)
         self.P = P #: Operating pressure (Pa)
         self.Q = Q #: Duty (kJ/hr)
@@ -637,8 +639,8 @@ class SplitFlash(Flash):
         bot.P = top.P = self.P
 
     def _design(self):
-        if self._heat_exchanger:
-            self._heat_exchanger.outs[0] = ms = self._multistream
+        if self.heat_exchanger:
+            self.heat_exchanger.outs[0] = ms = self._multistream
             ms.mix_from(self.outs)
         super()._design()
     

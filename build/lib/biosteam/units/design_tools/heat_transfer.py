@@ -112,19 +112,19 @@ def heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho,
         dP_shell = dP_h
     return dP_tube, dP_shell
 
-def order_streams(in1, in2, out1, out2):
+def order_streams(in_a, in_b, out_a, out_b):
     """
     Return cold and hot inlet and outlet streams.
     
     Parameters
     ----------
-    in1 : Stream
+    in_a : Stream
         Inlet a.
-    in2 : Stream
+    in_b : Stream
         Inlet b.
-    out1 : Stream
+    out_a : Stream
         Outlet a.
-    out2 : Stream
+    out_b : Stream
         Outlet b.
     
     Returns
@@ -139,10 +139,10 @@ def order_streams(in1, in2, out1, out2):
         Hot outlet.
     
     """
-    if in1.T < in2.T:
-        return in1, in2, out1, out2
+    if in_a.T < in_b.T:
+        return in_a, in_b, out_a, out_b
     else:
-        return in2, in1, out2, out1
+        return in_b, in_a, out_b, out_a
 
 def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
     """Return LMTF correction factor using the fallback equation for `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed."""
@@ -230,19 +230,23 @@ def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     else:
         R = (Thi - Tho)/(Tco - Tci)
     P = (Tco - Tci)/(Thi - Tci)
-    if 0.999 < R < 1.001 or 0.999 < P < 1.001:
+    if 0.999 < R < 1.001:
         Ft = compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells)
     else:
         W = ((1. - P*R)/(1. - P))**(1./N_shells)
-        if W <= 0.001:
+        S = (R*R + 1.)**0.5/(R - 1.)
+        K = (1. + W - S + S*W)/(1. + W + S - S*W)
+        if K <= 0.001 or 0.999 < K < 1.001:
             Ft = compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells)
         else:
-            S = (R*R + 1.)**0.5/(R - 1.)
-            K = (1. + W - S + S*W)/(1. + W + S - S*W)
-            if K <= 0.001 or 0.999 < K < 1.001:
-                Ft = compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells)
-            else:
-                Ft = S*ln(W)/ln(K)
+            Ft = S*ln(W)/ln(K)
+    if Ft > 1.0:
+        Ft = 1.0
+    elif Ft < 0.5:
+        # Bad design, probably a heat exchanger network with operating
+        # too close to the pinch. Fahkeri may not be valid, so give
+        # a conservative estimate of the correction factor.
+        Ft = 0.5
     return Ft
 
 def compute_heat_transfer_area(LMTD, U, Q, ft):

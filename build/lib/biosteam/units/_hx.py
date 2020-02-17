@@ -234,15 +234,15 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
                         Flow                                kmol/hr     26.1
                         Cost                                 USD/hr     6.21
-    Design              Area                                   ft^2     57.4
+    Design              Area                                   ft^2      320
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi        5
-                        Shell side pressure drop                psi      1.5
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi        5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 4.75e+03
-    Total purchase cost                                         USD 4.75e+03
+    Purchase cost       Heat exchanger                          USD 2.19e+04
+    Total purchase cost                                         USD 2.19e+04
     Utility cost                                             USD/hr     6.21
     
     Run heat exchanger by vapor fraction:
@@ -268,15 +268,15 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 2.07e+07
                         Flow                                kmol/hr      532
                         Cost                                 USD/hr      126
-    Design              Area                                   ft^2      733
+    Design              Area                                   ft^2      297
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.67e+04
-    Total purchase cost                                         USD 2.67e+04
+    Purchase cost       Heat exchanger                          USD 2.16e+04
+    Total purchase cost                                         USD 2.16e+04
     Utility cost                                             USD/hr      126
     
     
@@ -356,12 +356,12 @@ class HXutility(HX):
             Outlet b.
         
         """
-        in1 = self.ins[0]
-        out1 = self.outs[0]
+        in_a = self.ins[0]
+        out_a = self.outs[0]
         hu = self.heat_utilities[0]
-        in2 = hu.inlet_utility_stream
-        out2 = hu.outlet_utility_stream
-        return in1, in2, out1, out2
+        in_b = hu.inlet_utility_stream
+        out_b = hu.outlet_utility_stream
+        return in_a, in_b, out_a, out_b
 
     def _design(self, duty=None):
         # Set duty and run heat utility
@@ -405,25 +405,25 @@ class HXprocess(HX):
     >>> from biosteam.units import HXprocess
     >>> from thermosteam import Chemicals, Stream, settings
     >>> settings.set_thermo(['Water', 'Ethanol'])
-    >>> in1 = Stream('in1', Water=200, T=350)
-    >>> in2 = Stream('in2', Ethanol=200)
-    >>> hx = HXprocess('hx', ins=(in1, in2), outs=('out1', 'out2'),
+    >>> in_a = Stream('in_a', Water=200, T=350)
+    >>> in_b = Stream('in_b', Ethanol=200)
+    >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'),
     ...                fluid_type='ss')
     >>> hx.simulate()
     >>> hx.show()
     HXprocess: hx
     ins...
-    [0] in1
+    [0] in_a
         phase: 'l', T: 350 K, P: 101325 Pa
         flow (kmol/hr): Water  200
-    [1] in2
+    [1] in_b
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  200
     outs...
-    [0] out1
+    [0] out_a
         phase: 'l', T: 303.15 K, P: 101325 Pa
         flow (kmol/hr): Water  200
-    [1] out2
+    [1] out_b
         phase: 'l', T: 329.64 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  200
     >>> hx.results()
@@ -441,62 +441,62 @@ class HXprocess(HX):
     
     One latent fluid and one sensible fluid case:
     
-    >>> in1 = Stream('in1', Ethanol=50, T=351.43, phase='g')
-    >>> in2 = Stream('in2', Water=200)
-    >>> hx = HXprocess('hx', ins=(in1, in2), outs=('out1', 'out2'),
+    >>> in_a = Stream('in_a', Ethanol=50, T=351.43, phase='g')
+    >>> in_b = Stream('in_b', Water=200)
+    >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'),
     ...                fluid_type='ls')
     >>> hx.simulate()
     >>> hx.show()
     HXprocess: hx
     ins...
-    [0] in1
+    [0] in_a
         phase: 'g', T: 351.43 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  50
-    [1] in2
+    [1] in_b
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  200
     outs...
-    [0] out1
+    [0] out_a
         phases: ('g', 'l'), T: 351.39 K, P: 101325 Pa
         flow (kmol/hr): (g) Ethanol  32.94
                         (l) Ethanol  17.06
-    [1] out2
+    [1] out_b
         phase: 'l', T: 346.43 K, P: 101325 Pa
         flow (kmol/hr): Water  200
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      625
+    Design              Area                                   ft^2      228
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Fouling correction factor                          1
-                        Tube side pressure drop                 psi        5
-                        Shell side pressure drop                psi      1.5
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.53e+04
-    Total purchase cost                                         USD 2.53e+04
+    Purchase cost       Heat exchanger                          USD 2.07e+04
+    Total purchase cost                                         USD 2.07e+04
     Utility cost                                             USD/hr        0
     
     Latent fluids case:
     
-    >>> in1 = Stream('in1', Ethanol=50, T=351.43, phase='l')
-    >>> in2 = Stream('in2', Water=200, T=373.15, phase='g')
-    >>> hx = HXprocess('hx', ins=(in1, in2), outs=('out1', 'out2'),
+    >>> in_a = Stream('in_a', Ethanol=50, T=351.43, phase='l')
+    >>> in_b = Stream('in_b', Water=200, T=373.15, phase='g')
+    >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'),
     ...                fluid_type='ll')
     >>> hx.simulate()
     >>> hx.show()
     HXprocess: hx
     ins...
-    [0] in1
+    [0] in_a
         phase: 'l', T: 351.43 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  50
-    [1] in2
+    [1] in_b
         phase: 'g', T: 373.15 K, P: 101325 Pa
         flow (kmol/hr): Water  200
     outs...
-    [0] out1
+    [0] out_a
         phase: 'g', T: 351.43 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  50
-    [1] out2
+    [1] out_b
         phases: ('g', 'l'), T: 373.12 K, P: 101325 Pa
         flow (kmol/hr): (g) Water  150.8
                         (l) Water  49.19
@@ -546,7 +546,7 @@ class HXprocess(HX):
     @property
     def fluid_type(self):
         """
-        [str] Must be one of the following:
+        [None, 'ss', 'll', or 'ls']
             * **None** Rigorously transfers heat until pinch temperature (not implemented yet).
             * **'ss'** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
             * **'ll'** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
@@ -556,13 +556,13 @@ class HXprocess(HX):
     @fluid_type.setter
     def fluid_type(self, fluid_type):
         if fluid_type not in ('ss', 'ls', 'll'):
-            raise ValueError(f"fluid type must be either 'ss', 'ls', or 'll', not {fluid_type}")
+            raise ValueError(f"fluid type must be either 'ss', 'ls', or 'll', not {repr(fluid_type)}")
         self._fluid_type = fluid_type
         
     def get_streams(self):
-        s_in1, s_in2 = self.ins
-        s_out1, s_out2  = self.outs
-        return s_in1, s_in2, s_out1, s_out2
+        s_in_a, s_in_b = self.ins
+        s_out_a, s_out_b  = self.outs
+        return s_in_a, s_in_b, s_out_a, s_out_b
     
     def _run(self):
         so0, so1 = self._outs
