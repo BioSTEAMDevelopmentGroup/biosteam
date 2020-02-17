@@ -172,7 +172,7 @@ class Distillation(Unit):
     ...                   outs=('distillate', 'bottoms_product'),
     ...                   LHK=('Methanol', 'Water'),
     ...                   y_top=0.99, x_bot=0.01, k=2,
-                          is_divided=True)
+    ...                   is_divided=True)
     >>> D1.simulate()
     >>> # See all results
     >>> D1.show(T='degC', P='atm', composition=True)
@@ -206,25 +206,25 @@ class Distillation(Unit):
                         Cost                       USD/hr      58.1
     Design              Theoretical feed stage                    9
                         Theoretical stages                       13
-                        Minimum reflux                        0.687
-                        Reflux                                 1.37
+                        Minimum reflux              Ratio     0.687
+                        Reflux                      Ratio      1.37
                         Rectifier stages                         15
                         Stripper stages                          13
-                        Rectifier height                       34.7
-                        Stripper height                        31.7
-                        Rectifier diameter                     3.93
-                        Stripper diameter                      3.36
-                        Rectifier wall thickness               0.25
-                        Stripper wall thickness                0.25
-                        Rectifier weight                   4.79e+03
-                        Stripper weight                    3.74e+03
+                        Rectifier height               ft      34.7
+                        Stripper height                ft      31.7
+                        Rectifier diameter             ft      3.93
+                        Stripper diameter              ft      3.36
+                        Rectifier wall thickness       in      0.25
+                        Stripper wall thickness        in      0.25
+                        Rectifier weight               lb  4.79e+03
+                        Stripper weight                lb  3.74e+03
     Purchase cost       Rectifier trays               USD   1.5e+04
                         Stripper trays                USD  1.28e+04
                         Rectifier tower               USD  7.62e+04
                         Stripper tower                USD  6.53e+04
-                        Condenser                     USD  3.41e+04
-                        Boiler                        USD  2.64e+04
-    Total purchase cost                               USD   2.3e+05
+                        Condenser                     USD  2.02e+04
+                        Boiler                        USD  4.27e+03
+    Total purchase cost                               USD  1.94e+05
     Utility cost                                   USD/hr      59.8
     
     """
@@ -287,19 +287,31 @@ class Distillation(Unit):
         
         # Setup components
         thermo = self.thermo
+        #: [HXutility] Condenser.
         self.condenser = HXutility(None,
                                     ins=Stream(None, phase='g', thermo=thermo),
                                     outs=MultiStream(None, thermo=thermo),
                                     thermo=thermo)
+        #: [HXutility] Boiler.
         self.boiler = HXutility(None,
                                  ins=Stream(None, thermo=thermo),
                                  outs=MultiStream(None, thermo=thermo),
                                  thermo=thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
-        self.condensate = Stream(None, thermo=thermo)
-        self.boilup = Stream(None, phase='g', thermo=thermo)
-        self.precondensate =  Stream(None, phase='g')
         self._McCabeThiele_args = np.zeros(6)
+        
+    @property
+    def condensate(self):
+        return self.condenser.outs[0]['l']
+    @property
+    def boilup(self):
+        return self.boiler.outs[0]['g']    
+    @property
+    def bottoms_produt(self):
+        return self.boiler.outs[0]['l']
+    @property
+    def distillate(self):
+        return self.condenser.outs[0]['g']
     
     @property
     def LHK(self):
@@ -483,97 +495,6 @@ class Distillation(Unit):
         liq.T = bp.T
         vap.T = dp.T
 
-    def _simulate_condenser(self):
-        distillate = self.outs[0]
-        condensate = self.condensate # Abstract attribute
-        condenser = self.condenser
-        s_in = condenser.ins[0]
-        s_in.mol[:] = distillate.mol + condensate.mol
-        s_in.T = distillate.T
-        s_in.P = distillate.P
-        ms1 = condenser.outs[0]
-        ms1.imol['l'] = condensate.mol
-        ms1.T = condensate.T
-        ms1.P = condensate.P
-        ms1.imol['g'] = distillate.mol
-        condenser._design()
-        condenser._cost()
-        
-    def _simulate_boiler(self):
-        bottoms = self.outs[1]
-        boilup = self.boilup # Abstract attribute
-        boiler = self.boiler
-        s_in = boiler.ins[0]
-        s_in.copy_like(bottoms)
-        s_in.mol += boilup.mol
-        ms1 = boiler.outs[0]
-        ms1.T = boilup.T
-        ms1.P = boilup.P
-        ms1.imol['g'] = boilup.mol
-        ms1.imol['l'] = bottoms.mol
-        if hasattr(self, 'condenser'):
-            boiler._design(self.H_out - self.H_in - self.condenser.Q)
-            boiler._cost()
-        else:
-            boiler._design()
-            boiler._cost()  
-    
-    def _simulate_components(self): 
-        # Cost condenser
-        self._simulate_condenser()
-        self.purchase_costs['Condenser'] = self.condenser.purchase_costs['Heat exchanger']
-        
-        # Cost boiler
-        self._simulate_boiler()
-        self.purchase_costs['Boiler'] = self.boiler.purchase_costs['Heat exchanger']
-    
-    def compute_N_stages(self):
-        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
-        vap, liq = self.outs
-        Design = self.design_results
-        x_stages = self._x_stages
-        y_stages = self._y_stages
-        R = Design['Reflux']
-        N_stages = Design['Theoretical stages']
-        feed_stage = Design['Theoretical feed stage']
-        liq_mol = self._feed_liqmol
-        vap_mol = self._feed_vapmol
-        
-        E_eff = self.stage_efficiency
-        if E_eff:
-            E_rectifier = E_stripper = E_eff
-        else:    
-            # Calculate Murphree Efficiency for rectifying section
-            vap_F_mol = vap.F_mol
-            dp = self._condensate_dew_point
-            condensate_x_mol = dp.x
-            self._L_Rmol = L_Rmol = R*vap_F_mol
-            self._V_Rmol = V_Rmol = (R+1)*vap_F_mol
-            condensate = self.condensate
-            condensate.imol[dp.IDs] = condensate_x_mol * L_Rmol
-            condensate.T = vap.T
-            condensate.P = vap.P
-            mu = condensate.get_property('mu', 'mPa*s')
-            K_light = y_stages[-1]/x_stages[-1] 
-            K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
-            alpha = K_light/K_heavy
-            E_rectifier = compute_murphree_stage_efficiency(mu, alpha, L_Rmol, V_Rmol)
-            
-            # Calculate Murphree Efficiency for stripping section
-            mu = liq.get_property('mu', 'mPa*s')
-            self._V_Smol = V_Smol = (R+1)*vap_F_mol - sum(vap_mol)
-            self._L_Smol = L_Smol = R*vap_F_mol + sum(liq_mol) 
-            K_light = y_stages[0]/x_stages[0] 
-            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
-            alpha = K_light/K_heavy
-            E_stripper = compute_murphree_stage_efficiency(mu, alpha, L_Smol, V_Smol)
-            
-        # Calculate actual number of stages
-        mid_stage = feed_stage - 0.5
-        N_rectifier = np.ceil(mid_stage/E_rectifier)
-        N_stripper = np.ceil((N_stages-mid_stage)/E_stripper)
-        return N_rectifier, N_stripper
-
     def _run_McCabeThiele(self):
         distillate, bottoms = self.outs
         chemicals = self.chemicals
@@ -612,7 +533,8 @@ class Distillation(Unit):
         # Cache
         old_args = self._McCabeThiele_args
         args = np.array([P, k, y_top, x_bot, q, zf])
-        if (abs(old_args - args) < np.array([50, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6], float)).all(): return
+        tol = np.array([50, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6], float)
+        if (abs(old_args - args) < tol).all(): return
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
@@ -670,12 +592,105 @@ class Distillation(Unit):
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R
         
+    def _run_condenser_and_boiler(self):
+        distillate, bottoms_product = self.outs
+        condenser = self.condenser
+        boiler = self.boiler
+        R = self.design_results['Reflux']
+        
+        # Set condenser conditions
+        condenser.outs[0].imol['g'] = distillate.mol
+        self._F_mol_distillate = F_mol_distillate = distillate.F_mol
+        self._F_mol_condensate = F_mol_condensate = R * F_mol_distillate
+        dp = self._condensate_dew_point
+        condensate_x_mol = dp.x
+        condensate = self.condensate
+        condensate.imol[dp.IDs] = condensate_x_mol * F_mol_condensate
+        condensate.T = dp.T
+        condensate.P = dp.P
+        vap = condenser.ins[0]
+        vap.mol = distillate.mol + condensate.mol
+        vap.T = distillate.T
+        vap.P = distillate.P
+        
+        # Set boiler conditions
+        boiler.outs[0].imol['l'] = bottoms_product.mol
+        F_vap_feed = self._feed_vapmol.sum()
+        self._F_mol_boilup = F_mol_boilup = (R+1)*F_mol_distillate - F_vap_feed
+        bp = self._boilup_bubble_point
+        boilup_flow = bp.y * F_mol_boilup
+        boilup = self.boilup
+        boilup.T = bp.T
+        boilup.P = bp.P
+        boilup.imol[bp.IDs] = boilup_flow
+        liq = boiler.ins[0]
+        liq.mol = bottoms_product.mol + boilup.mol
+        
+    def _simulate_condenser(self):
+        condenser = self.condenser
+        condenser._design()
+        condenser._cost()
+        
+    def _simulate_boiler(self):
+        boiler = self.boiler
+        boiler._design(self.H_out - self.H_in - self.condenser.Q)
+        boiler._cost()
+    
+    def _simulate_components(self): 
+        # Cost condenser
+        self._simulate_condenser()
+        self.purchase_costs['Condenser'] = self.condenser.purchase_costs['Heat exchanger']
+        
+        # Cost boiler
+        self._simulate_boiler()
+        self.purchase_costs['Boiler'] = self.boiler.purchase_costs['Heat exchanger']
+    
+    def _compute_N_stages(self):
+        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
+        vap, liq = self.outs
+        Design = self.design_results
+        x_stages = self._x_stages
+        y_stages = self._y_stages
+        R = Design['Reflux']
+        N_stages = Design['Theoretical stages']
+        feed_stage = Design['Theoretical feed stage']
+        E_eff = self.stage_efficiency
+        if E_eff:
+            E_rectifier = E_stripper = E_eff
+        else:    
+            # Calculate Murphree Efficiency for rectifying section
+            condensate = self.condensate
+            mu = condensate.get_property('mu', 'mPa*s')
+            K_light = y_stages[-1]/x_stages[-1] 
+            K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
+            alpha = K_light/K_heavy
+            F_mol_distillate = self._F_mol_distillate
+            L_Rmol = self._F_mol_condensate
+            V_Rmol = (R+1) * F_mol_distillate
+            E_rectifier = compute_murphree_stage_efficiency(mu, alpha, L_Rmol, V_Rmol)
+            
+            # Calculate Murphree Efficiency for stripping section
+            mu = liq.get_property('mu', 'mPa*s')
+            V_Smol = self._F_mol_boilup
+            L_Smol = R*F_mol_distillate + sum(self._feed_liqmol) 
+            K_light = y_stages[0]/x_stages[0] 
+            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
+            alpha = K_light/K_heavy
+            E_stripper = compute_murphree_stage_efficiency(mu, alpha, L_Smol, V_Smol)
+            
+        # Calculate actual number of stages
+        mid_stage = feed_stage - 0.5
+        N_rectifier = np.ceil(mid_stage/E_rectifier)
+        N_stripper = np.ceil((N_stages-mid_stage)/E_stripper)
+        return N_rectifier, N_stripper
+        
     def _design(self):
         self._run_McCabeThiele()
-        distillate, bottoms = self._outs
+        self._run_condenser_and_boiler()
+        distillate, bottoms_product = self.outs
         Design = self.design_results
         R = Design['Reflux']
-        Rstages, Sstages = self.compute_N_stages()
+        Rstages, Sstages = self._compute_N_stages()
         is_divided = self.is_divided
         TS = self._TS
         
@@ -686,10 +701,8 @@ class Distillation(Unit):
         sigma = condensate.get_property('sigma', 'dyn/cm')
         L = condensate.F_mass
         V = L*(R+1)/R
-        precondensate = self.precondensate
-        precondensate.copy_like(distillate)
-        precondensate.mol *= R+1
-        V_vol = precondensate.get_total_flow('m^3/s')
+        vap = self.condenser.ins[0]
+        V_vol = vap.get_total_flow('m^3/s')
         rho_V = distillate.rho
         F_LV = compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = compute_max_capacity_parameter(TS, F_LV)
@@ -703,19 +716,12 @@ class Distillation(Unit):
         R_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn)
         
         ### Get diameter of stripping section based on feed plate ###
-        
-        V_mol = self._V_Smol
-        rho_L = bottoms.rho
-        bp = self._boilup_bubble_point
-        boilup_flow = bp.y * V_mol
+        rho_L = bottoms_product.rho
         boilup = self.boilup
-        boilup.T = bottoms.T
-        boilup.P = bottoms.P
-        boilup.imol[bp.IDs] = boilup_flow
         V = boilup.F_mass
         V_vol = boilup.get_total_flow('m^3/s')
         rho_V = boilup.rho
-        L = bottoms.F_mass # To get liquid going down
+        L = bottoms_product.F_mass # To get liquid going down
         F_LV = compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = compute_max_capacity_parameter(TS, F_LV)
         sigma = condensate.get_property('sigma', 'dyn/cm')
