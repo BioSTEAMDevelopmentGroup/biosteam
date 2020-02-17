@@ -1,10 +1,80 @@
-""" A module of tables and graphs for constants
 """
-from math import log, pi
-
-__all__ = ('GTable', 'HNATable', 'ceil_half_step',
+"""
+from math import log as ln, pi, exp
+import biosteam as bst
+__all__ = ('compute_horizontal_vessel_purchase_cost',
+           'compute_vertical_vessel_purchase_cost',
+           'GTable', 'HNATable', 'ceil_half_step',
            'compute_vessel_weight_and_wall_thickness',
            'compute_Stokes_law_York_Demister_K_value')
+
+def compute_horizontal_vessel_purchase_cost(W, D, F_M):
+    """
+    Return the purchase cost [Cp; in USD] of a horizontal vessel,
+    including thes cost of platforms and ladders.
+    
+    Parameters
+    ----------
+    W : float
+        Weight [lb].
+    D : float
+        Diameter [ft].
+    F_M : float
+        Vessel material factor.
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    The purchase cost is scaled according to BioSTEAM's Chemical
+    Plant Cost Index, `biosteam.CE`.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
+    """
+    # C_v: Vessel cost
+    # C_pl: Platforms and ladders cost
+    C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
+    C_pl = 2275*D**0.20294
+    return bst.CE/567 * (F_M * C_v + C_pl)
+
+def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
+    """
+    Return the purchase cost [Cp; in USD] of a horizontal vessel,
+    including thes cost of platforms and ladders.
+    
+    Parameters
+    ----------
+    W : float
+        Weight [lb].
+    D : float
+        Diameter [ft].
+    L : float
+        Length [ft].
+    F_M : float
+        Vessel material factor.
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    The purchase cost is scaled according to BioSTEAM's Chemical
+    Plant Cost Index, `biosteam.CE`.
+    
+    References
+    ----------
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+    
+    """
+    # C_v: Vessel cost
+    # C_pl: Platforms and ladders cost
+    C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
+    C_pl = 410*D**0.7396*L**0.70684
+    return bst.CE/567 * (F_M * C_v + C_pl)
 
 def GTable(DRho, Hlr):
     """
@@ -16,6 +86,10 @@ def GTable(DRho, Hlr):
         Density difference between light liquid and vapor [lb/ft^3 ?]
     Hlr : float
         Height of liquid level above the interphase of light liquid and heavy liquid [ft]
+    
+    Notes
+    -----
+    This function is not currently in use, nor has it been tested.
     
     """
 
@@ -119,7 +193,16 @@ def HNATable(Type, X):
         1 if given H/D and find A/At, 2 if given A/At and find H/D.
     X: float
         H/D or A/At.
-        
+    
+    Notes
+    -----
+    Equations are given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
+        Engineering Progress Oct, 1993.
+    
     """
     # Type = 1 is where H/D is known, find A/At, Type = 2 is where A/At is known, find H/D
     if (Type == 1):
@@ -165,6 +248,15 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
         Density of Material [lb/ft^3].
     Je: float
         Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel),
+    
+    Notes
+    -----
+    Equations are given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
+        Engineering Progress Oct, 1993.
     
     """
     S = 15000.0     # Vessel material stress value (assume carbon-steel)
@@ -222,7 +314,9 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
 
 
 def compute_low_liq_level_height(Type, P, D):
-    """Table to obtain Hlll for two-phase separators.
+    """
+    Return the height of the lowest liquid level [Hlll; in ft]
+    for two-phase separators.
     
     Parameters
     ----------
@@ -232,6 +326,15 @@ def compute_low_liq_level_height(Type, P, D):
         Pressure [psia].
     D: float 
         Diameter [ft].
+    
+    Notes
+    -----
+    Equations are given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
+        Engineering Progress Oct, 1993.
     
     """
     if Type == 1:
@@ -265,13 +368,22 @@ def compute_Stokes_law_York_Demister_K_value(P):
     P : float
         Pressure [psia].
         
+    Notes
+    -----
+    Equations are given by [1]_. See source code for details.
+    
+    References
+    ----------
+    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
+        Engineering Progress Oct, 1993.
+        
     """
     if P >= 0 and P <= 15.0:
-        K = 0.1821+(0.0029*P)+(0.046*log(P))
+        K = 0.1821+(0.0029*P)+(0.046*ln(P))
     elif P > 15.0 and P <= 40.0:
         K = 0.35
     elif P > 40.0 and P <= 5500.0:
-        K = 0.43 - 0.023*log(P)
+        K = 0.43 - 0.023*ln(P)
     else:
         raise ValueError(f'invalid Pressure {P} psia')
     return K

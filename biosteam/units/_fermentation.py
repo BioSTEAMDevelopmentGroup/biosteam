@@ -155,7 +155,7 @@ class Fermentation(Unit):
         self.efficiency = efficiency
         self.tau = tau
         self.N = N
-        self._cooler = hx = HXutility(None)
+        self.cooler = hx = HXutility(None)
         self.heat_utilities = hx.heat_utilities
         hx._ins = hx._outs
         vent, effluent = self.outs
@@ -263,7 +263,6 @@ class Fermentation(Unit):
         if self.iskinetic:
             self.fermentation.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation(effluent_mol)
-        vent.copy_flow(effluent, ('CO2',), remove=True)
         vent.recieve_vent(effluent)
     
     @property
@@ -291,7 +290,7 @@ class Fermentation(Unit):
             self.autoselect_N = True
         N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
-        hx = self._cooler
+        hx = self.cooler
         hx.outs[0].mol[:] = self.outs[0].mol/N 
         hu = hx.heat_utilities[0]
         hu(self.Hnet/N, self.outs[0].T)
@@ -300,6 +299,6 @@ class Fermentation(Unit):
         hu.duty *= N
         hu.cost *= N
         hu.flow *= N
-        self.purchase_costs['Coolers'] = self._cooler.purchase_costs['Heat exchanger'] * self._N
+        self.purchase_costs['Coolers'] = self.cooler.purchase_costs['Heat exchanger'] * N
         
     
