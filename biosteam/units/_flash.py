@@ -572,6 +572,14 @@ class Flash(Unit):
     def _end_decorated_cost_(self):
         if self.heat_utilities: self.heat_utilities[0](self.Hnet, self.T)
     
+# Flash
+edge_out = Flash._graphics.edge_out
+edge_out[0]['tailport'] = 'n'
+edge_out[1]['tailport'] = 's'
+node = Flash._graphics.node
+node['width'] = '1'
+node['height'] = '1.1'
+del edge_out, node
 
 # %% Special
 

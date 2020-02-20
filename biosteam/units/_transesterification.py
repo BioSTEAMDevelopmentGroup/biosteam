@@ -8,6 +8,8 @@ from .. import Unit
 from .decorators import cost
 from thermosteam.reaction import Reaction, ParallelReaction
 
+__all__ = ('Transesterification',)
+
 @cost('Volume', 'Reactor',
       CE=525.4, cost=15000, n=0.55, kW=1.5, BM=4.3,)
 class Transesterification(Unit):

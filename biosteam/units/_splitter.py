@@ -7,7 +7,8 @@ Created on Mon May 20 22:04:02 2019
 from .. import Unit
 import numpy as np 
 from thermosteam.indexer import ChemicalIndexer
-__all__ = ('run_split', 'run_split_with_mixing')
+
+__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'InvSplitter')
 
 
 def run_split(self):
@@ -130,7 +131,7 @@ class Splitter(Unit):
                            Ethanol  0.1
 
     """
-    _N_outs = 6
+    _N_outs = 2
     
     @property
     def isplit(self):
@@ -171,7 +172,13 @@ class Splitter(Unit):
         top.mol[:] = top_mol = feed_mol * self.split
         bot.mol[:] = feed_mol - top_mol
 
-Splitter._N_outs = 2
+graphics = Splitter._graphics
+graphics.edge_out *= 3
+graphics.node['shape'] = 'triangle'
+graphics.node['orientation'] = '90'
+graphics.node['fillcolor'] = "#bfbfbf:white"
+graphics.edge_in[0]['headport'] = 'w'
+
 
 class InvSplitter(Unit):
     """Create a splitter that sets the input stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input.
@@ -188,6 +195,7 @@ class InvSplitter(Unit):
             out.P = P
             out.phase = phase 
 InvSplitter.line = 'Splitter'
+
 
 
         

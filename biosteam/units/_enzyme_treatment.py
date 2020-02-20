@@ -7,6 +7,8 @@ Created on Thu Aug 23 22:07:01 2018
 from ._tank import MixTank
 from ._hx import HXutility
 
+__all__ = ('EnzymeTreatment',)
+
 class EnzymeTreatment(MixTank):
     """Create an EnzymeTreatment unit that is cost as a MixTank with a heat exchanger."""
     _N_outs = 1

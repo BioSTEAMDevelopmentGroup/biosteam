@@ -184,6 +184,13 @@ class MassBalance(Unit):
         else:
             raise ValueError( "balance type must be one of the following: 'flow', 'composition'")
 
+# Balance
+graphics = MassBalance._graphics
+graphics.node['shape'] = 'note'
+graphics.node['fillcolor'] = '#F0F0F0'
+graphics.in_system = False
+del graphics
+
 
 # %% Energy Balance Unit
 

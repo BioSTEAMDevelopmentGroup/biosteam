@@ -12,7 +12,6 @@ from ..utils.piping import Ins, Outs
 __all__ = ('Junction',)
 
 
-
 # %% Connect between different flowsheets
 
 chemicals_in_common = lambda upstream, downstream: \

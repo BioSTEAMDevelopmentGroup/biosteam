@@ -8,6 +8,8 @@ from .decorators import cost
 from ..utils.design_warning import lb_warning
 from .._unit import Unit
 
+__all__ = ('ScrewFeeder',)
+
 @cost('Flow rate', ub=10e4, CE=567, cost=1096, n=0.22)
 class ScrewFeeder(Unit):
     length = 30 #: ft
