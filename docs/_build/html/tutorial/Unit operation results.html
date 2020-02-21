@@ -90,7 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">7. Unit operation results</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#A-note-on-design-and-modeling">7.1. A note on design and modeling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Unit-operation-example">7.2. Unit operation example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#A-good-example">7.2. A good example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#References">7.3. References</a></li>
 </ul>
 </li>
@@ -396,8 +396,8 @@ operation. For detailed documentation and examples of each unit
 operation, visit the <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/units.html">units subpackage
 documentation</a>.</p>
 </div>
-<div class="section" id="Unit-operation-example">
-<h2><span class="section-number">7.2. </span>Unit operation example<a class="headerlink" href="#Unit-operation-example" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="A-good-example">
+<h2><span class="section-number">7.2. </span>A good example<a class="headerlink" href="#A-good-example" title="Permalink to this headline">¶</a></h2>
 <p>In the following example, BioSTEAM’s binary distillation column is used
 to highlight key details here on where do unit operations store results:</p>
 <div class="nbinput docutils container">
@@ -410,20 +410,20 @@ to highlight key details here on where do unit operations store results:</p>
 <span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
 
 <span class="c1"># First set the property package through thermosteam</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
 
 <span class="c1"># Create the feed at the bubble point</span>
-<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
+<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mf">1.08e+03</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">586</span><span class="p">)</span>
 <span class="n">bp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span> <span class="c1"># Feed at bubble point temperature</span>
 
 <span class="c1"># Create a distillation column and simulate</span>
 <span class="n">D1</span> <span class="o">=</span> <span class="n">Distillation</span><span class="p">(</span><span class="s1">&#39;D1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span>
                   <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;distillate&#39;</span><span class="p">,</span> <span class="s1">&#39;bottoms_product&#39;</span><span class="p">),</span>
-                  <span class="n">LHK</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">),</span> <span class="c1"># Light and heavy keys</span>
-                  <span class="n">y_top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="c1"># Light key composition at the distillate</span>
-                  <span class="n">x_bot</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="c1"># Light key composition at the bottoms product</span>
-                  <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="c1"># Ration of actual reflux over minimum reflux</span>
+                  <span class="n">LHK</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">),</span> <span class="c1"># Light and heavy keys</span>
+                  <span class="n">y_top</span><span class="o">=</span><span class="mf">0.79</span><span class="p">,</span> <span class="c1"># Light key composition at the distillate</span>
+                  <span class="n">x_bot</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="c1"># Light key composition at the bottoms product</span>
+                  <span class="n">k</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span> <span class="c1"># Ration of actual reflux over minimum reflux</span>
                   <span class="n">is_divided</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Whether the rectifying and stripping sections are divided</span>
 <span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -437,10 +437,9 @@ to highlight key details here on where do unit operations store results:</p>
 Distillation: D1
 ins...
 [0] feed
-    phase: &#39;l&#39;, T: 349.28 K, P: 101325 Pa
-    flow (kmol/hr): Water     80
-                    Methanol  100
-                    Glycerol  25
+    phase: &#39;l&#39;, T: 354.2 K, P: 101325 Pa
+    flow (kmol/hr): Water    1.08e+03
+                    Ethanol  586
 outs...
 [0] distillate
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
@@ -607,71 +606,11 @@ outs...
     flow: 0
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">boilup</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Stream: s.4
- phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
- flow: 0
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">condensate</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Stream: s.3
- phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
- flow: 0
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">precondensate</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Stream: s.5
- phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
- flow: 0
-</pre></div></div>
-</div>
 <p>After simulation, the unit operation along with its components will
 calculate all design results, purchase costs, and utilities:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [11]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -688,28 +627,26 @@ calculate all design results, purchase costs, and utilities:</p>
 Distillation: D1
 ins...
 [0] feed
-    phase: &#39;l&#39;, T: 76.129 degC, P: 1 atm
-    composition: Water     0.39
-                 Methanol  0.488
-                 Glycerol  0.122
-                 --------  205 kmol/hr
+    phase: &#39;l&#39;, T: 81.054 degC, P: 1 atm
+    composition: Water    0.648
+                 Ethanol  0.352
+                 -------  1.67e+03 kmol/hr
 outs...
 [0] distillate
-    phase: &#39;g&#39;, T: 64.91 degC, P: 1 atm
-    composition: Water     0.01
-                 Methanol  0.99
-                 --------  100 kmol/hr
+    phase: &#39;g&#39;, T: 78.388 degC, P: 1 atm
+    composition: Water    0.21
+                 Ethanol  0.79
+                 -------  741 kmol/hr
 [1] bottoms_product
-    phase: &#39;l&#39;, T: 100.06 degC, P: 1 atm
-    composition: Water     0.754
-                 Methanol  0.00761
-                 Glycerol  0.239
-                 --------  105 kmol/hr
+    phase: &#39;l&#39;, T: 99.674 degC, P: 1 atm
+    composition: Water    0.999
+                 Ethanol  0.001
+                 -------  925 kmol/hr
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [12]:
+<span></span>In [9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -719,30 +656,30 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[12]:
+<span></span>Out[9]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Theoretical feed stage&#39;: 9,
- &#39;Theoretical stages&#39;: 13,
- &#39;Minimum reflux&#39;: 0.6873794552117438,
- &#39;Reflux&#39;: 1.3747589104234876,
- &#39;Rectifier stages&#39;: 15.0,
- &#39;Stripper stages&#39;: 13.0,
- &#39;Rectifier height&#39;: 34.660416,
- &#39;Stripper height&#39;: 31.708416000000003,
- &#39;Rectifier diameter&#39;: 3.9275517410615417,
- &#39;Stripper diameter&#39;: 3.3634264808282524,
- &#39;Rectifier wall thickness&#39;: 0.25,
- &#39;Stripper wall thickness&#39;: 0.25,
- &#39;Rectifier weight&#39;: 4794.134870466409,
- &#39;Stripper weight&#39;: 3739.230285266795}
+<span></span>{&#39;Theoretical feed stage&#39;: 24,
+ &#39;Theoretical stages&#39;: 29,
+ &#39;Minimum reflux&#39;: 0.7584620415051225,
+ &#39;Reflux&#39;: 0.9480775518814032,
+ &#39;Rectifier stages&#39;: 42.0,
+ &#39;Stripper stages&#39;: 9.0,
+ &#39;Rectifier height&#39;: 74.51241599999999,
+ &#39;Stripper height&#39;: 25.804416,
+ &#39;Rectifier diameter&#39;: 9.954525921271852,
+ &#39;Stripper diameter&#39;: 7.64806278350484,
+ &#39;Rectifier wall thickness&#39;: 0.3125,
+ &#39;Stripper wall thickness&#39;: 0.3125,
+ &#39;Rectifier weight&#39;: 33049.41297502008,
+ &#39;Stripper weight&#39;: 9835.81406923573}
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [13]:
+<span></span>In [10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -752,22 +689,22 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[13]:
+<span></span>Out[10]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Rectifier trays&#39;: 14965.116461087171,
- &#39;Stripper trays&#39;: 12795.580061590348,
- &#39;Rectifier tower&#39;: 76202.03414211822,
- &#39;Stripper tower&#39;: 65309.08651096534,
- &#39;Condenser&#39;: 20184.208018943744,
- &#39;Boiler&#39;: 26400.639981756147}
+<span></span>{&#39;Rectifier trays&#39;: 83967.30377860223,
+ &#39;Stripper trays&#39;: 18932.530680788637,
+ &#39;Rectifier tower&#39;: 251923.52034384274,
+ &#39;Stripper tower&#39;: 104664.44595493002,
+ &#39;Condenser&#39;: 73520.3581337631,
+ &#39;Boiler&#39;: 20480.746085869352}
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [14]:
+<span></span>In [11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -777,18 +714,18 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[14]:
+<span></span>Out[11]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>(&lt;Cooling water: -5.11e+06 kJ/hr, 3.49e+03 kmol/hr, 1.71 USD/hr&gt;,
- &lt;Low pressure steam: 9.49e+06 kJ/hr, 244 kmol/hr, 58.1 USD/hr&gt;)
+<span></span>(&lt;Cooling water: -3.02e+07 kJ/hr, 2.06e+04 kmol/hr, 10.1 USD/hr&gt;,
+ &lt;Low pressure steam: 6.64e+07 kJ/hr, 1.71e+03 kmol/hr, 406 USD/hr&gt;)
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [15]:
+<span></span>In [12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -798,7 +735,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[15]:
+<span></span>Out[12]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -809,7 +746,7 @@ outs...
 <p>The <code class="docutils literal notranslate"><span class="pre">results()</span></code> method can conviniently present all these results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [16]:
+<span></span>In [13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -819,7 +756,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[16]:
+<span></span>Out[13]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -851,147 +788,147 @@ outs...
       <th rowspan="3" valign="top">Cooling water</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>-5.11e+06</td>
+      <td>-3.02e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>3.49e+03</td>
+      <td>2.06e+04</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>1.71</td>
+      <td>10.1</td>
     </tr>
     <tr>
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>9.49e+06</td>
+      <td>6.64e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>244</td>
+      <td>1.71e+03</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>58.1</td>
+      <td>406</td>
     </tr>
     <tr>
       <th rowspan="14" valign="top">Design</th>
       <th>Theoretical feed stage</th>
       <td></td>
-      <td>9</td>
+      <td>24</td>
     </tr>
     <tr>
       <th>Theoretical stages</th>
       <td></td>
-      <td>13</td>
+      <td>29</td>
     </tr>
     <tr>
       <th>Minimum reflux</th>
       <td>Ratio</td>
-      <td>0.687</td>
+      <td>0.758</td>
     </tr>
     <tr>
       <th>Reflux</th>
       <td>Ratio</td>
-      <td>1.37</td>
+      <td>0.948</td>
     </tr>
     <tr>
       <th>Rectifier stages</th>
       <td></td>
-      <td>15</td>
+      <td>42</td>
     </tr>
     <tr>
       <th>Stripper stages</th>
       <td></td>
-      <td>13</td>
+      <td>9</td>
     </tr>
     <tr>
       <th>Rectifier height</th>
       <td>ft</td>
-      <td>34.7</td>
+      <td>74.5</td>
     </tr>
     <tr>
       <th>Stripper height</th>
       <td>ft</td>
-      <td>31.7</td>
+      <td>25.8</td>
     </tr>
     <tr>
       <th>Rectifier diameter</th>
       <td>ft</td>
-      <td>3.93</td>
+      <td>9.95</td>
     </tr>
     <tr>
       <th>Stripper diameter</th>
       <td>ft</td>
-      <td>3.36</td>
+      <td>7.65</td>
     </tr>
     <tr>
       <th>Rectifier wall thickness</th>
       <td>in</td>
-      <td>0.25</td>
+      <td>0.312</td>
     </tr>
     <tr>
       <th>Stripper wall thickness</th>
       <td>in</td>
-      <td>0.25</td>
+      <td>0.312</td>
     </tr>
     <tr>
       <th>Rectifier weight</th>
       <td>lb</td>
-      <td>4.79e+03</td>
+      <td>3.3e+04</td>
     </tr>
     <tr>
       <th>Stripper weight</th>
       <td>lb</td>
-      <td>3.74e+03</td>
+      <td>9.84e+03</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Purchase cost</th>
       <th>Rectifier trays</th>
       <td>USD</td>
-      <td>1.5e+04</td>
+      <td>8.4e+04</td>
     </tr>
     <tr>
       <th>Stripper trays</th>
       <td>USD</td>
-      <td>1.28e+04</td>
+      <td>1.89e+04</td>
     </tr>
     <tr>
       <th>Rectifier tower</th>
       <td>USD</td>
-      <td>7.62e+04</td>
+      <td>2.52e+05</td>
     </tr>
     <tr>
       <th>Stripper tower</th>
       <td>USD</td>
-      <td>6.53e+04</td>
+      <td>1.05e+05</td>
     </tr>
     <tr>
       <th>Condenser</th>
       <td>USD</td>
-      <td>2.02e+04</td>
+      <td>7.35e+04</td>
     </tr>
     <tr>
       <th>Boiler</th>
       <td>USD</td>
-      <td>2.64e+04</td>
+      <td>2.05e+04</td>
     </tr>
     <tr>
       <th>Total purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>2.16e+05</td>
+      <td>5.53e+05</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>59.8</td>
+      <td>416</td>
     </tr>
   </tbody>
 </table>
@@ -1001,7 +938,7 @@ outs...
 dictionary:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [17]:
+<span></span>In [14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1011,7 +948,7 @@ dictionary:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[17]:
+<span></span>Out[14]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -1035,7 +972,7 @@ dictionary:</p>
 <p>It is also possible to retrieve design results in another set of units:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [18]:
+<span></span>In [15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1045,18 +982,18 @@ dictionary:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[18]:
+<span></span>Out[15]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>10.564494796799998
+<span></span>22.711384396799993
 </pre></div>
 </div>
 </div>
 <p>For completeness, here are the rest of the results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [19]:
+<span></span>In [16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1068,7 +1005,7 @@ dictionary:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Unit_operation_results_30_0.png" src="../_images/tutorial_Unit_operation_results_30_0.png" />
+<img alt="../_images/tutorial_Unit_operation_results_27_0.png" src="../_images/tutorial_Unit_operation_results_27_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1079,21 +1016,21 @@ dictionary:</p>
 HXutility: U.1
 ins...
 [0] s.1
-    phase: &#39;g&#39;, T: 338.06 K, P: 101325 Pa
-    flow (kmol/hr): Water     4.39
-                    Methanol  234
+    phase: &#39;g&#39;, T: 351.54 K, P: 101325 Pa
+    flow (kmol/hr): Water    327
+                    Ethanol  1.12e+03
 outs...
 [0] s.2
-    phases: (&#39;g&#39;, &#39;l&#39;), T: 338.06 K, P: 101325 Pa
-    flow (kmol/hr): (g) Water     1.002
-                        Methanol  99.2
-                    (l) Water     3.384
-                        Methanol  134.4
+    phases: (&#39;g&#39;, &#39;l&#39;), T: 351.54 K, P: 101325 Pa
+    flow (kmol/hr): (g) Water    155.5
+                        Ethanol  585.1
+                    (l) Water    171.6
+                        Ethanol  530.5
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [20]:
+<span></span>In [17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1105,7 +1042,7 @@ outs...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Unit_operation_results_31_0.png" src="../_images/tutorial_Unit_operation_results_31_0.png" />
+<img alt="../_images/tutorial_Unit_operation_results_28_0.png" src="../_images/tutorial_Unit_operation_results_28_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1116,84 +1053,45 @@ outs...
 HXutility: U.2
 ins...
 [0] s.2
-    phase: &#39;l&#39;, T: 373.21 K, P: 101325 Pa
-    flow (kmol/hr): Water     310
-                    Methanol  7.25
-                    Glycerol  25
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kmol/hr): Water    2.35e+03
+                    Ethanol  19.6
 outs...
 [0] s.3
-    phases: (&#39;g&#39;, &#39;l&#39;), T: 373.21 K, P: 101325 Pa
-    flow (kmol/hr): (g) Water     231.5
-                        Methanol  6.452
-                        Glycerol  0.03229
-                    (l) Water     79
-                        Methanol  0.798
-                        Glycerol  25
+    phases: (&#39;g&#39;, &#39;l&#39;), T: 372.82 K, P: 101325 Pa
+    flow (kmol/hr): (g) Water    1424
+                        Ethanol  18.68
+                    (l) Water    924.5
+                        Ethanol  0.9254
 </pre></div></div>
 </div>
+<p>Unit operations may also have special methods that you may find useful:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [21]:
+<span></span>In [18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">boilup</span>
+<span></span><span class="n">D1</span><span class="o">.</span><span class="n">plot_stages</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-Stream: s.4
- phase: &#39;g&#39;, T: 373.21 K, P: 101325 Pa
- flow (kmol/hr): Water     231
-                 Methanol  6.45
-                 Glycerol  0.0323
-</pre></div></div>
+<img alt="../_images/tutorial_Unit_operation_results_30_0.png" src="../_images/tutorial_Unit_operation_results_30_0.png" />
 </div>
-<div class="nbinput docutils container">
+</div>
+<div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [22]:
+<span></span>Out[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">condensate</span>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;module &#39;matplotlib.pyplot&#39; from &#39;C:\\ProgramData\\Anaconda3\\lib\\site-packages\\matplotlib\\pyplot.py&#39;&gt;
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Stream: s.3
- phase: &#39;l&#39;, T: 338.06 K, P: 101325 Pa
- flow (kmol/hr): Water     3.38
-                 Methanol  134
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [23]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">precondensate</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Stream: s.5
- phase: &#39;g&#39;, T: 338.06 K, P: 101325 Pa
- flow (kmol/hr): Water     2.38
-                 Methanol  236
-</pre></div></div>
 </div>
 </div>
 <div class="section" id="References">

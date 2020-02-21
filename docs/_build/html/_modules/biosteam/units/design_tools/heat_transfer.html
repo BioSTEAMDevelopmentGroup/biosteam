@@ -286,19 +286,19 @@
         <span class="n">dP_shell</span> <span class="o">=</span> <span class="n">dP_h</span>
     <span class="k">return</span> <span class="n">dP_tube</span><span class="p">,</span> <span class="n">dP_shell</span></div>
 
-<div class="viewcode-block" id="order_streams"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.order_streams">[docs]</a><span class="k">def</span> <span class="nf">order_streams</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">out1</span><span class="p">,</span> <span class="n">out2</span><span class="p">):</span>
+<div class="viewcode-block" id="order_streams"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.order_streams">[docs]</a><span class="k">def</span> <span class="nf">order_streams</span><span class="p">(</span><span class="n">in_a</span><span class="p">,</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">out_a</span><span class="p">,</span> <span class="n">out_b</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return cold and hot inlet and outlet streams.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    in1 : Stream</span>
+<span class="sd">    in_a : Stream</span>
 <span class="sd">        Inlet a.</span>
-<span class="sd">    in2 : Stream</span>
+<span class="sd">    in_b : Stream</span>
 <span class="sd">        Inlet b.</span>
-<span class="sd">    out1 : Stream</span>
+<span class="sd">    out_a : Stream</span>
 <span class="sd">        Outlet a.</span>
-<span class="sd">    out2 : Stream</span>
+<span class="sd">    out_b : Stream</span>
 <span class="sd">        Outlet b.</span>
 <span class="sd">    </span>
 <span class="sd">    Returns</span>
@@ -313,10 +313,10 @@
 <span class="sd">        Hot outlet.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">in1</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">in2</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">out1</span><span class="p">,</span> <span class="n">out2</span>
+    <span class="k">if</span> <span class="n">in_a</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">in_b</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">in_a</span><span class="p">,</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">out_a</span><span class="p">,</span> <span class="n">out_b</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">in2</span><span class="p">,</span> <span class="n">in1</span><span class="p">,</span> <span class="n">out2</span><span class="p">,</span> <span class="n">out1</span></div>
+        <span class="k">return</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">in_a</span><span class="p">,</span> <span class="n">out_b</span><span class="p">,</span> <span class="n">out_a</span></div>
 
 <span class="k">def</span> <span class="nf">compute_fallback_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return LMTF correction factor using the fallback equation for `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed.&quot;&quot;&quot;</span>
@@ -404,19 +404,23 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">Thi</span> <span class="o">-</span> <span class="n">Tho</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Tco</span> <span class="o">-</span> <span class="n">Tci</span><span class="p">)</span>
     <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="n">Tco</span> <span class="o">-</span> <span class="n">Tci</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Thi</span> <span class="o">-</span> <span class="n">Tci</span><span class="p">)</span>
-    <span class="k">if</span> <span class="mf">0.999</span> <span class="o">&lt;</span> <span class="n">R</span> <span class="o">&lt;</span> <span class="mf">1.001</span> <span class="ow">or</span> <span class="mf">0.999</span> <span class="o">&lt;</span> <span class="n">P</span> <span class="o">&lt;</span> <span class="mf">1.001</span><span class="p">:</span>
+    <span class="k">if</span> <span class="mf">0.999</span> <span class="o">&lt;</span> <span class="n">R</span> <span class="o">&lt;</span> <span class="mf">1.001</span><span class="p">:</span>
         <span class="n">Ft</span> <span class="o">=</span> <span class="n">compute_fallback_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">W</span> <span class="o">=</span> <span class="p">((</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">P</span><span class="o">*</span><span class="n">R</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">P</span><span class="p">))</span><span class="o">**</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">N_shells</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">W</span> <span class="o">&lt;=</span> <span class="mf">0.001</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">*</span><span class="n">R</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="o">/</span><span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">W</span> <span class="o">-</span> <span class="n">S</span> <span class="o">+</span> <span class="n">S</span><span class="o">*</span><span class="n">W</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">W</span> <span class="o">+</span> <span class="n">S</span> <span class="o">-</span> <span class="n">S</span><span class="o">*</span><span class="n">W</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">K</span> <span class="o">&lt;=</span> <span class="mf">0.001</span> <span class="ow">or</span> <span class="mf">0.999</span> <span class="o">&lt;</span> <span class="n">K</span> <span class="o">&lt;</span> <span class="mf">1.001</span><span class="p">:</span>
             <span class="n">Ft</span> <span class="o">=</span> <span class="n">compute_fallback_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">*</span><span class="n">R</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="o">/</span><span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
-            <span class="n">K</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">W</span> <span class="o">-</span> <span class="n">S</span> <span class="o">+</span> <span class="n">S</span><span class="o">*</span><span class="n">W</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">W</span> <span class="o">+</span> <span class="n">S</span> <span class="o">-</span> <span class="n">S</span><span class="o">*</span><span class="n">W</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">K</span> <span class="o">&lt;=</span> <span class="mf">0.001</span> <span class="ow">or</span> <span class="mf">0.999</span> <span class="o">&lt;</span> <span class="n">K</span> <span class="o">&lt;</span> <span class="mf">1.001</span><span class="p">:</span>
-                <span class="n">Ft</span> <span class="o">=</span> <span class="n">compute_fallback_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">Ft</span> <span class="o">=</span> <span class="n">S</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">/</span><span class="n">ln</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+            <span class="n">Ft</span> <span class="o">=</span> <span class="n">S</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">/</span><span class="n">ln</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Ft</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="n">Ft</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">Ft</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="c1"># Bad design, probably a heat exchanger network with operating</span>
+        <span class="c1"># too close to the pinch. Fahkeri may not be valid, so give</span>
+        <span class="c1"># a conservative estimate of the correction factor.</span>
+        <span class="n">Ft</span> <span class="o">=</span> <span class="mf">0.5</span>
     <span class="k">return</span> <span class="n">Ft</span></div>
 
 <div class="viewcode-block" id="compute_heat_transfer_area"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_heat_transfer_area">[docs]</a><span class="k">def</span> <span class="nf">compute_heat_transfer_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">):</span>

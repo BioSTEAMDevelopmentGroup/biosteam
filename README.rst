@@ -18,7 +18,8 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is an open source process simulation package in Python for fast and flexible techno-economic analysis. BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. 
+BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage process and technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_ GitHub repository, BioSTEAM’s premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
+
 
 Installation
 ------------
@@ -65,11 +66,8 @@ About the authors
 
 BioSTEAM was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
 
-Funding
--------
-
-This work was funded by the DOE Center for Advanced Bioenergy and Bioproducts Innovation  (U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research under Award Number DE-SC0018420). Any opinions, findings, and conclusions or recommendations expressed in this publication are those of the author(s) and do not necessarily reflect the views of the U.S. Department of Energy.
-
-This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE - 1144245
+References
+----------
+.. [1] Cortes-Peña, Y.; Kumar, D.; Singh, V.; Guest, J. S. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. https://doi.org/10.1021/acssuschemeng.9b07040.
 
 

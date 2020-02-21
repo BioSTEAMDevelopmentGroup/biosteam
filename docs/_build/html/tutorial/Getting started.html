@@ -95,7 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="More on unit operations.html">7. More on unit operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">9. Techno-economic analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
@@ -632,12 +632,12 @@ Stream: s1
 Unit</a>
 can be flexible. But in summary, a
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Unit.html">Unit</a> object is
-initialized with an ID, and unit-specific arguments. BioSTEAM comes with
+initialized with an ID, and unit-specific arguments. BioSTEAM includes
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/units.html">essential unit
 operations</a>
 with rigorous modeling and design algorithms. Here we create a
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/Flash.html">Flash</a>
-object:</p>
+object as an example:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [13]:
@@ -851,7 +851,7 @@ outs...
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
-      <th>SepType</th>
+      <th>Vessel type</th>
       <td></td>
       <td>Vertical</td>
     </tr>
@@ -889,13 +889,13 @@ outs...
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>4.89e+03</td>
+      <td>3.87e+03</td>
     </tr>
     <tr>
       <th>Total purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>8.63e+04</td>
+      <td>8.53e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
@@ -926,15 +926,15 @@ outs...
 <span></span>Low pressure steam   Duty                  1.03e+06
                      Flow                      26.4
                      Cost                      5.28
-Design               SepType               Vertical
+Design               Vessel type           Vertical
                      Length                    37.5
                      Diameter                   6.5
                      Weight                1.28e+04
                      Wall thickness           0.375
                      Material          Carbon steel
 Purchase cost        Flash                 8.14e+04
-                     Heat exchanger        4.89e+03
-Total purchase cost                        8.63e+04
+                     Heat exchanger        3.87e+03
+Total purchase cost                        8.53e+04
 Utility cost                                   5.28
 Name: F1, dtype: object
 </pre></div>
@@ -1169,7 +1169,7 @@ outs...
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
-      <th>SepType</th>
+      <th>Vessel type</th>
       <td></td>
       <td>Vertical</td>
     </tr>
@@ -1207,13 +1207,13 @@ outs...
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>4.63e+03</td>
+      <td>5.51e+03</td>
     </tr>
     <tr>
       <th>Total purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>7.92e+04</td>
+      <td>8e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>

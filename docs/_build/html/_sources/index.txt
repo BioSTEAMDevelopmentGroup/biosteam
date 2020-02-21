@@ -1,8 +1,12 @@
+BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+=========================================================================
+
 .. figure:: ./images/BioSTEAM_logo.png
+
+BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage process and technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_ GitHub repository, BioSTEAM’s premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
 
 Key Features & Capabilities
 ---------------------------
-
 * **Fast and flexible techno-economic analysis.** 
   BioSTEAM presents basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, and recycle loops.
 
@@ -74,6 +78,10 @@ commercial products to be derived from BioSTEAM with few restrictions and
 without a requirement for making any derived works also open source
 (i.e. not a "copyleft" license). If further clarification is needed,
 we suggest that you read the `License <https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt>`__.
+
+References
+----------
+.. [1] Cortes-Peña, Y.; Kumar, D.; Singh, V.; Guest, J. S. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. https://doi.org/10.1021/acssuschemeng.9b07040.
 
 Indices and tables
 ------------------

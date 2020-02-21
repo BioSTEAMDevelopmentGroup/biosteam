@@ -25,7 +25,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### Unit operation example "
+    "### A good example "
    ]
   },
   {
@@ -47,10 +47,9 @@
       "Distillation: D1\n",
       "ins...\n",
       "[0] feed\n",
-      "    phase: 'l', T: 349.28 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): Water     80\n",
-      "                    Methanol  100\n",
-      "                    Glycerol  25\n",
+      "    phase: 'l', T: 354.2 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water    1.08e+03\n",
+      "                    Ethanol  586\n",
       "outs...\n",
       "[0] distillate\n",
       "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
@@ -66,20 +65,20 @@
     "from thermosteam import Stream, settings\n",
     "\n",
     "# First set the property package through thermosteam\n",
-    "settings.set_thermo(['Water', 'Methanol', 'Glycerol'])\n",
+    "settings.set_thermo(['Water', 'Ethanol'])\n",
     "\n",
     "# Create the feed at the bubble point\n",
-    "feed = Stream('feed', flow=(80, 100, 25))\n",
+    "feed = Stream('feed', Water=1.08e+03, Ethanol=586)\n",
     "bp = feed.bubble_point_at_P()\n",
     "feed.T = bp.T # Feed at bubble point temperature\n",
     "\n",
     "# Create a distillation column and simulate\n",
     "D1 = Distillation('D1', ins=feed,\n",
     "                  outs=('distillate', 'bottoms_product'),\n",
-    "                  LHK=('Methanol', 'Water'), # Light and heavy keys\n",
-    "                  y_top=0.99, # Light key composition at the distillate\n",
-    "                  x_bot=0.01, # Light key composition at the bottoms product\n",
-    "                  k=2, # Ration of actual reflux over minimum reflux\n",
+    "                  LHK=('Ethanol', 'Water'), # Light and heavy keys\n",
+    "                  y_top=0.79, # Light key composition at the distillate\n",
+    "                  x_bot=0.001, # Light key composition at the bottoms product\n",
+    "                  k=1.25, # Ration of actual reflux over minimum reflux\n",
     "                  is_divided=True) # Whether the rectifying and stripping sections are divided\n",
     "D1.show()"
    ]
@@ -249,63 +248,6 @@
    ]
   },
   {
-   "cell_type": "code",
-   "execution_count": 8,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Stream: s.4\n",
-      " phase: 'g', T: 298.15 K, P: 101325 Pa\n",
-      " flow: 0\n"
-     ]
-    }
-   ],
-   "source": [
-    "D1.boilup"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 9,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Stream: s.3\n",
-      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
-      " flow: 0\n"
-     ]
-    }
-   ],
-   "source": [
-    "D1.condensate"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 10,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Stream: s.5\n",
-      " phase: 'g', T: 298.15 K, P: 101325 Pa\n",
-      " flow: 0\n"
-     ]
-    }
-   ],
-   "source": [
-    "D1.precondensate"
-   ]
-  },
-  {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -314,7 +256,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": 8,
    "metadata": {},
    "outputs": [
     {
@@ -324,23 +266,21 @@
       "Distillation: D1\n",
       "ins...\n",
       "[0] feed\n",
-      "    phase: 'l', T: 76.129 degC, P: 1 atm\n",
-      "    composition: Water     0.39\n",
-      "                 Methanol  0.488\n",
-      "                 Glycerol  0.122\n",
-      "                 --------  205 kmol/hr\n",
+      "    phase: 'l', T: 81.054 degC, P: 1 atm\n",
+      "    composition: Water    0.648\n",
+      "                 Ethanol  0.352\n",
+      "                 -------  1.67e+03 kmol/hr\n",
       "outs...\n",
       "[0] distillate\n",
-      "    phase: 'g', T: 64.91 degC, P: 1 atm\n",
-      "    composition: Water     0.01\n",
-      "                 Methanol  0.99\n",
-      "                 --------  100 kmol/hr\n",
+      "    phase: 'g', T: 78.388 degC, P: 1 atm\n",
+      "    composition: Water    0.21\n",
+      "                 Ethanol  0.79\n",
+      "                 -------  741 kmol/hr\n",
       "[1] bottoms_product\n",
-      "    phase: 'l', T: 100.06 degC, P: 1 atm\n",
-      "    composition: Water     0.754\n",
-      "                 Methanol  0.00761\n",
-      "                 Glycerol  0.239\n",
-      "                 --------  105 kmol/hr\n"
+      "    phase: 'l', T: 99.674 degC, P: 1 atm\n",
+      "    composition: Water    0.999\n",
+      "                 Ethanol  0.001\n",
+      "                 -------  925 kmol/hr\n"
      ]
     }
    ],
@@ -351,29 +291,29 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 12,
+   "execution_count": 9,
    "metadata": {},
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "{'Theoretical feed stage': 9,\n",
-       " 'Theoretical stages': 13,\n",
-       " 'Minimum reflux': 0.6873794552117438,\n",
-       " 'Reflux': 1.3747589104234876,\n",
-       " 'Rectifier stages': 15.0,\n",
-       " 'Stripper stages': 13.0,\n",
-       " 'Rectifier height': 34.660416,\n",
-       " 'Stripper height': 31.708416000000003,\n",
-       " 'Rectifier diameter': 3.9275517410615417,\n",
-       " 'Stripper diameter': 3.3634264808282524,\n",
-       " 'Rectifier wall thickness': 0.25,\n",
-       " 'Stripper wall thickness': 0.25,\n",
-       " 'Rectifier weight': 4794.134870466409,\n",
-       " 'Stripper weight': 3739.230285266795}"
+       "{'Theoretical feed stage': 24,\n",
+       " 'Theoretical stages': 29,\n",
+       " 'Minimum reflux': 0.7584620415051225,\n",
+       " 'Reflux': 0.9480775518814032,\n",
+       " 'Rectifier stages': 42.0,\n",
+       " 'Stripper stages': 9.0,\n",
+       " 'Rectifier height': 74.51241599999999,\n",
+       " 'Stripper height': 25.804416,\n",
+       " 'Rectifier diameter': 9.954525921271852,\n",
+       " 'Stripper diameter': 7.64806278350484,\n",
+       " 'Rectifier wall thickness': 0.3125,\n",
+       " 'Stripper wall thickness': 0.3125,\n",
+       " 'Rectifier weight': 33049.41297502008,\n",
+       " 'Stripper weight': 9835.81406923573}"
       ]
      },
-     "execution_count": 12,
+     "execution_count": 9,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -384,21 +324,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": 10,
    "metadata": {},
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "{'Rectifier trays': 14965.116461087171,\n",
-       " 'Stripper trays': 12795.580061590348,\n",
-       " 'Rectifier tower': 76202.03414211822,\n",
-       " 'Stripper tower': 65309.08651096534,\n",
-       " 'Condenser': 20184.208018943744,\n",
-       " 'Boiler': 26400.639981756147}"
+       "{'Rectifier trays': 83967.30377860223,\n",
+       " 'Stripper trays': 18932.530680788637,\n",
+       " 'Rectifier tower': 251923.52034384274,\n",
+       " 'Stripper tower': 104664.44595493002,\n",
+       " 'Condenser': 73520.3581337631,\n",
+       " 'Boiler': 20480.746085869352}"
       ]
      },
-     "execution_count": 13,
+     "execution_count": 10,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -409,17 +349,17 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 14,
+   "execution_count": 11,
    "metadata": {},
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "(<Cooling water: -5.11e+06 kJ/hr, 3.49e+03 kmol/hr, 1.71 USD/hr>,\n",
-       " <Low pressure steam: 9.49e+06 kJ/hr, 244 kmol/hr, 58.1 USD/hr>)"
+       "(<Cooling water: -3.02e+07 kJ/hr, 2.06e+04 kmol/hr, 10.1 USD/hr>,\n",
+       " <Low pressure steam: 6.64e+07 kJ/hr, 1.71e+03 kmol/hr, 406 USD/hr>)"
       ]
      },
-     "execution_count": 14,
+     "execution_count": 11,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -430,7 +370,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 15,
+   "execution_count": 12,
    "metadata": {},
    "outputs": [
     {
@@ -439,7 +379,7 @@
        "<PowerUtility: 0 kW, 0 USD/hr>"
       ]
      },
-     "execution_count": 15,
+     "execution_count": 12,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -457,7 +397,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 16,
+   "execution_count": 13,
    "metadata": {
     "scrolled": false
    },
@@ -493,147 +433,147 @@
        "      <th rowspan=\"3\" valign=\"top\">Cooling water</th>\n",
        "      <th>Duty</th>\n",
        "      <td>kJ/hr</td>\n",
-       "      <td>-5.11e+06</td>\n",
+       "      <td>-3.02e+07</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Flow</th>\n",
        "      <td>kmol/hr</td>\n",
-       "      <td>3.49e+03</td>\n",
+       "      <td>2.06e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Cost</th>\n",
        "      <td>USD/hr</td>\n",
-       "      <td>1.71</td>\n",
+       "      <td>10.1</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th rowspan=\"3\" valign=\"top\">Low pressure steam</th>\n",
        "      <th>Duty</th>\n",
        "      <td>kJ/hr</td>\n",
-       "      <td>9.49e+06</td>\n",
+       "      <td>6.64e+07</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Flow</th>\n",
        "      <td>kmol/hr</td>\n",
-       "      <td>244</td>\n",
+       "      <td>1.71e+03</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Cost</th>\n",
        "      <td>USD/hr</td>\n",
-       "      <td>58.1</td>\n",
+       "      <td>406</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th rowspan=\"14\" valign=\"top\">Design</th>\n",
        "      <th>Theoretical feed stage</th>\n",
        "      <td></td>\n",
-       "      <td>9</td>\n",
+       "      <td>24</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Theoretical stages</th>\n",
        "      <td></td>\n",
-       "      <td>13</td>\n",
+       "      <td>29</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Minimum reflux</th>\n",
        "      <td>Ratio</td>\n",
-       "      <td>0.687</td>\n",
+       "      <td>0.758</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Reflux</th>\n",
        "      <td>Ratio</td>\n",
-       "      <td>1.37</td>\n",
+       "      <td>0.948</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Rectifier stages</th>\n",
        "      <td></td>\n",
-       "      <td>15</td>\n",
+       "      <td>42</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper stages</th>\n",
        "      <td></td>\n",
-       "      <td>13</td>\n",
+       "      <td>9</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Rectifier height</th>\n",
        "      <td>ft</td>\n",
-       "      <td>34.7</td>\n",
+       "      <td>74.5</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper height</th>\n",
        "      <td>ft</td>\n",
-       "      <td>31.7</td>\n",
+       "      <td>25.8</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Rectifier diameter</th>\n",
        "      <td>ft</td>\n",
-       "      <td>3.93</td>\n",
+       "      <td>9.95</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper diameter</th>\n",
        "      <td>ft</td>\n",
-       "      <td>3.36</td>\n",
+       "      <td>7.65</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Rectifier wall thickness</th>\n",
        "      <td>in</td>\n",
-       "      <td>0.25</td>\n",
+       "      <td>0.312</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper wall thickness</th>\n",
        "      <td>in</td>\n",
-       "      <td>0.25</td>\n",
+       "      <td>0.312</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Rectifier weight</th>\n",
        "      <td>lb</td>\n",
-       "      <td>4.79e+03</td>\n",
+       "      <td>3.3e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper weight</th>\n",
        "      <td>lb</td>\n",
-       "      <td>3.74e+03</td>\n",
+       "      <td>9.84e+03</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th rowspan=\"6\" valign=\"top\">Purchase cost</th>\n",
        "      <th>Rectifier trays</th>\n",
        "      <td>USD</td>\n",
-       "      <td>1.5e+04</td>\n",
+       "      <td>8.4e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper trays</th>\n",
        "      <td>USD</td>\n",
-       "      <td>1.28e+04</td>\n",
+       "      <td>1.89e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Rectifier tower</th>\n",
        "      <td>USD</td>\n",
-       "      <td>7.62e+04</td>\n",
+       "      <td>2.52e+05</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Stripper tower</th>\n",
        "      <td>USD</td>\n",
-       "      <td>6.53e+04</td>\n",
+       "      <td>1.05e+05</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Condenser</th>\n",
        "      <td>USD</td>\n",
-       "      <td>2.02e+04</td>\n",
+       "      <td>7.35e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Boiler</th>\n",
        "      <td>USD</td>\n",
-       "      <td>2.64e+04</td>\n",
+       "      <td>2.05e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Total purchase cost</th>\n",
        "      <th></th>\n",
        "      <td>USD</td>\n",
-       "      <td>2.16e+05</td>\n",
+       "      <td>5.53e+05</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Utility cost</th>\n",
        "      <th></th>\n",
        "      <td>USD/hr</td>\n",
-       "      <td>59.8</td>\n",
+       "      <td>416</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
@@ -641,37 +581,37 @@
       ],
       "text/plain": [
        "Distillation                                    Units        D1\n",
-       "Cooling water       Duty                        kJ/hr -5.11e+06\n",
-       "                    Flow                      kmol/hr  3.49e+03\n",
-       "                    Cost                       USD/hr      1.71\n",
-       "Low pressure steam  Duty                        kJ/hr  9.49e+06\n",
-       "                    Flow                      kmol/hr       244\n",
-       "                    Cost                       USD/hr      58.1\n",
-       "Design              Theoretical feed stage                    9\n",
-       "                    Theoretical stages                       13\n",
-       "                    Minimum reflux              Ratio     0.687\n",
-       "                    Reflux                      Ratio      1.37\n",
-       "                    Rectifier stages                         15\n",
-       "                    Stripper stages                          13\n",
-       "                    Rectifier height               ft      34.7\n",
-       "                    Stripper height                ft      31.7\n",
-       "                    Rectifier diameter             ft      3.93\n",
-       "                    Stripper diameter              ft      3.36\n",
-       "                    Rectifier wall thickness       in      0.25\n",
-       "                    Stripper wall thickness        in      0.25\n",
-       "                    Rectifier weight               lb  4.79e+03\n",
-       "                    Stripper weight                lb  3.74e+03\n",
-       "Purchase cost       Rectifier trays               USD   1.5e+04\n",
-       "                    Stripper trays                USD  1.28e+04\n",
-       "                    Rectifier tower               USD  7.62e+04\n",
-       "                    Stripper tower                USD  6.53e+04\n",
-       "                    Condenser                     USD  2.02e+04\n",
-       "                    Boiler                        USD  2.64e+04\n",
-       "Total purchase cost                               USD  2.16e+05\n",
-       "Utility cost                                   USD/hr      59.8"
+       "Cooling water       Duty                        kJ/hr -3.02e+07\n",
+       "                    Flow                      kmol/hr  2.06e+04\n",
+       "                    Cost                       USD/hr      10.1\n",
+       "Low pressure steam  Duty                        kJ/hr  6.64e+07\n",
+       "                    Flow                      kmol/hr  1.71e+03\n",
+       "                    Cost                       USD/hr       406\n",
+       "Design              Theoretical feed stage                   24\n",
+       "                    Theoretical stages                       29\n",
+       "                    Minimum reflux              Ratio     0.758\n",
+       "                    Reflux                      Ratio     0.948\n",
+       "                    Rectifier stages                         42\n",
+       "                    Stripper stages                           9\n",
+       "                    Rectifier height               ft      74.5\n",
+       "                    Stripper height                ft      25.8\n",
+       "                    Rectifier diameter             ft      9.95\n",
+       "                    Stripper diameter              ft      7.65\n",
+       "                    Rectifier wall thickness       in     0.312\n",
+       "                    Stripper wall thickness        in     0.312\n",
+       "                    Rectifier weight               lb   3.3e+04\n",
+       "                    Stripper weight                lb  9.84e+03\n",
+       "Purchase cost       Rectifier trays               USD   8.4e+04\n",
+       "                    Stripper trays                USD  1.89e+04\n",
+       "                    Rectifier tower               USD  2.52e+05\n",
+       "                    Stripper tower                USD  1.05e+05\n",
+       "                    Condenser                     USD  7.35e+04\n",
+       "                    Boiler                        USD  2.05e+04\n",
+       "Total purchase cost                               USD  5.53e+05\n",
+       "Utility cost                                   USD/hr       416"
       ]
      },
-     "execution_count": 16,
+     "execution_count": 13,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -689,7 +629,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 17,
+   "execution_count": 14,
    "metadata": {},
    "outputs": [
     {
@@ -711,7 +651,7 @@
        " 'Weight': 'lb'}"
       ]
      },
-     "execution_count": 17,
+     "execution_count": 14,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -729,7 +669,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 18,
+   "execution_count": 15,
    "metadata": {
     "scrolled": true
    },
@@ -737,10 +677,10 @@
     {
      "data": {
       "text/plain": [
-       "10.564494796799998"
+       "22.711384396799993"
       ]
      },
-     "execution_count": 18,
+     "execution_count": 15,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -758,7 +698,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 19,
+   "execution_count": 16,
    "metadata": {},
    "outputs": [
     {
@@ -778,16 +718,16 @@
       "HXutility: U.1\n",
       "ins...\n",
       "[0] s.1\n",
-      "    phase: 'g', T: 338.06 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): Water     4.39\n",
-      "                    Methanol  234\n",
+      "    phase: 'g', T: 351.54 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water    327\n",
+      "                    Ethanol  1.12e+03\n",
       "outs...\n",
       "[0] s.2\n",
-      "    phases: ('g', 'l'), T: 338.06 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): (g) Water     1.002\n",
-      "                        Methanol  99.2\n",
-      "                    (l) Water     3.384\n",
-      "                        Methanol  134.4\n"
+      "    phases: ('g', 'l'), T: 351.54 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): (g) Water    155.5\n",
+      "                        Ethanol  585.1\n",
+      "                    (l) Water    171.6\n",
+      "                        Ethanol  530.5\n"
      ]
     }
    ],
@@ -797,7 +737,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 20,
+   "execution_count": 17,
    "metadata": {},
    "outputs": [
     {
@@ -817,19 +757,16 @@
       "HXutility: U.2\n",
       "ins...\n",
       "[0] s.2\n",
-      "    phase: 'l', T: 373.21 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): Water     310\n",
-      "                    Methanol  7.25\n",
-      "                    Glycerol  25\n",
+      "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water    2.35e+03\n",
+      "                    Ethanol  19.6\n",
       "outs...\n",
       "[0] s.3\n",
-      "    phases: ('g', 'l'), T: 373.21 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): (g) Water     231.5\n",
-      "                        Methanol  6.452\n",
-      "                        Glycerol  0.03229\n",
-      "                    (l) Water     79\n",
-      "                        Methanol  0.798\n",
-      "                        Glycerol  25\n"
+      "    phases: ('g', 'l'), T: 372.82 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): (g) Water    1424\n",
+      "                        Ethanol  18.68\n",
+      "                    (l) Water    924.5\n",
+      "                        Ethanol  0.9254\n"
      ]
     }
    ],
@@ -838,64 +775,42 @@
    ]
   },
   {
-   "cell_type": "code",
-   "execution_count": 21,
+   "cell_type": "markdown",
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Stream: s.4\n",
-      " phase: 'g', T: 373.21 K, P: 101325 Pa\n",
-      " flow (kmol/hr): Water     231\n",
-      "                 Methanol  6.45\n",
-      "                 Glycerol  0.0323\n"
-     ]
-    }
-   ],
    "source": [
-    "D1.boilup"
+    "Unit operations may also have special methods that you may find useful:"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 22,
+   "execution_count": 18,
    "metadata": {},
    "outputs": [
     {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Stream: s.3\n",
-      " phase: 'l', T: 338.06 K, P: 101325 Pa\n",
-      " flow (kmol/hr): Water     3.38\n",
-      "                 Methanol  134\n"
-     ]
-    }
-   ],
-   "source": [
-    "D1.condensate"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 23,
-   "metadata": {},
-   "outputs": [
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    },
     {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Stream: s.5\n",
-      " phase: 'g', T: 338.06 K, P: 101325 Pa\n",
-      " flow (kmol/hr): Water     2.38\n",
-      "                 Methanol  236\n"
-     ]
+     "data": {
+      "text/plain": [
+       "<module 'matplotlib.pyplot' from 'C:\\\\ProgramData\\\\Anaconda3\\\\lib\\\\site-packages\\\\matplotlib\\\\pyplot.py'>"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
     }
    ],
    "source": [
-    "D1.precondensate"
+    "D1.plot_stages()"
    ]
   },
   {

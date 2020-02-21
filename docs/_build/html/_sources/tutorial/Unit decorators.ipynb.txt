@@ -30,7 +30,7 @@
     "\n",
     "$ub\\text{: Upper bound of size}$\n",
     "\n",
-    "$CE\\text{: New Chemical Engineering Plant Cost Index}$\n",
+    "$CE_{new}\\text{: New Chemical Engineering Plant Cost Index}$\n",
     "\n",
     "$CE\\text{: Chemical Engineering Plant Cost Index}$\n",
     "\n",
@@ -200,7 +200,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Cost data is stored as CostItem objects in the \"cost_items\" dictionary:"
+    "Cost data is stored as CostItem objects in the `cost_items` dictionary:"
    ]
   },
   {
@@ -467,13 +467,6 @@
     "2. Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)\n",
     "\n"
    ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": []
   }
  ],
  "metadata": {

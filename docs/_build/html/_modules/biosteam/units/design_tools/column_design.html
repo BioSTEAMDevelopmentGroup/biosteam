@@ -204,7 +204,8 @@
 <span class="n">ts_min_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
 <div class="viewcode-block" id="compute_purchase_cost_of_trays"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_purchase_cost_of_trays">[docs]</a><span class="k">def</span> <span class="nf">compute_purchase_cost_of_trays</span><span class="p">(</span><span class="n">N_T</span><span class="p">,</span> <span class="n">Di</span><span class="p">,</span> <span class="n">F_TT</span><span class="p">,</span> <span class="n">F_TM</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return total cost of all trays at BioSTEAM&#39;s CEPCI.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return total cost of all trays at BioSTEAM&#39;s CEPCI.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -216,6 +217,18 @@
 <span class="sd">        Tray type factor.</span>
 <span class="sd">    F_TM : float</span>
 <span class="sd">        Tray material factor.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The purchase cost is given by [1]_. See source code for details.</span>
+<span class="sd">    The purchase cost is scaled according to BioSTEAM&#39;s Chemical</span>
+<span class="sd">    Plant Cost Index, `biosteam.CE`.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">F_CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span>
@@ -236,7 +249,19 @@
 <span class="sd">    W : float</span>
 <span class="sd">        weight [lb].</span>
 <span class="sd">    F_VM : float</span>
-<span class="sd">        Column material factor.</span>
+<span class="sd">        Tower material factor.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The purchase cost is given by [1]_. See source code for details.</span>
+<span class="sd">    The purchase cost is scaled according to BioSTEAM&#39;s Chemical</span>
+<span class="sd">    Plant Cost Index, `biosteam.CE`.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">F_CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span>
@@ -245,18 +270,31 @@
     <span class="k">return</span> <span class="n">F_CE</span> <span class="o">*</span> <span class="p">(</span><span class="n">F_VM</span> <span class="o">*</span> <span class="n">C_V</span> <span class="o">+</span> <span class="n">C_PL</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="compute_empty_tower_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_empty_tower_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_empty_tower_cost</span><span class="p">(</span><span class="n">W</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    W : float</span>
 <span class="sd">        Weight [lb].</span>
 <span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The purchase cost is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">7.2756</span> <span class="o">+</span> <span class="mf">0.18255</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.02297</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="compute_plaform_ladder_cost"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_plaform_ladder_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_plaform_ladder_cost</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -265,22 +303,43 @@
 <span class="sd">    L: float</span>
 <span class="sd">        Legnth [ft].</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The purchase cost is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="mf">300.9</span><span class="o">*</span><span class="n">Di</span><span class="o">**</span><span class="mf">0.63316</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mf">0.80161</span></div>
 
 <div class="viewcode-block" id="compute_tower_weight"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_weight">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    Di : float</span>
-<span class="sd">        Inner diameter ([ft].</span>
+<span class="sd">        Inner diameter [ft].</span>
 <span class="sd">    L :  float</span>
 <span class="sd">        Legnth [ft].</span>
 <span class="sd">    tv : float</span>
 <span class="sd">        Shell thickness [in].</span>
 <span class="sd">    rho_M: floa</span>
 <span class="sd">        Density of material [lb/in^3].</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The tower weight is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Di</span> <span class="o">=</span> <span class="n">Di</span><span class="o">*</span><span class="mi">12</span>
@@ -295,18 +354,28 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    Po : float</span>
-<span class="sd">        Operating internal pressure (psi)</span>
+<span class="sd">        Operating internal pressure [psi].</span>
 <span class="sd">    Di : float</span>
-<span class="sd">        Internal diameter (ft)</span>
+<span class="sd">        Internal diameter [ft].</span>
 <span class="sd">    L : float</span>
-<span class="sd">        Height (ft)</span>
+<span class="sd">        Height [ft].</span>
 <span class="sd">    S : float</span>
-<span class="sd">        Maximum stress (psi)</span>
+<span class="sd">        Maximum stress [psi].</span>
 <span class="sd">    E : float</span>
 <span class="sd">        Fractional weld efficiency</span>
 <span class="sd">    M : float</span>
-<span class="sd">        Elasticity (psi)</span>
-<span class="sd">        </span>
+<span class="sd">        Elasticity [psi].</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The wall thickness is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Incorporate temperature for choosing S and M</span>
     <span class="n">Di</span> <span class="o">=</span> <span class="n">Di</span><span class="o">*</span><span class="mi">12</span> <span class="c1"># ft to in</span>
@@ -373,6 +442,16 @@
 <span class="sd">    Di : float</span>
 <span class="sd">        Inner diameter [ft].</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The purchase cost is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="mf">412.6985</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.1482</span><span class="o">*</span><span class="n">Di</span><span class="p">)</span></div>
 
@@ -383,7 +462,17 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    N_T: Number of trays</span>
-<span class="sd">        </span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The cost factor is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">N_T</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
         <span class="n">F_NT</span> <span class="o">=</span> <span class="mf">2.25</span><span class="o">/</span><span class="mf">1.0414</span><span class="o">**</span><span class="n">N_T</span>
@@ -398,13 +487,22 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    mu: float</span>
-<span class="sd">        Viscosity (mPa*s)</span>
+<span class="sd">        Viscosity [mPa*s]</span>
 <span class="sd">    alpha: float</span>
 <span class="sd">        Relative volatility.    </span>
 <span class="sd">    L: float</span>
 <span class="sd">        Liquid flow rate by mol.</span>
 <span class="sd">    V: float</span>
-<span class="sd">        Vapor flow rate by mol/</span>
+<span class="sd">        Vapor flow rate by mol.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The efficiency is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] M. Duss, R. Taylor. (2018)</span>
+<span class="sd">        Predict Distillation Tray Efficiency. AICHE </span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">S</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">*</span><span class="n">V</span><span class="o">/</span><span class="n">L</span> <span class="c1"># Stripping factor</span>
@@ -427,6 +525,15 @@
 <span class="sd">    rho_L : float</span>
 <span class="sd">        Liquid density.</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The flow parameter is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">L</span><span class="o">/</span><span class="n">V</span><span class="o">*</span><span class="p">(</span><span class="n">rho_V</span><span class="o">/</span><span class="n">rho_L</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span></div>
 
@@ -439,6 +546,15 @@
 <span class="sd">        Tray spacing [mm].</span>
 <span class="sd">    F_LV : float</span>
 <span class="sd">        Flow parameter.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The max capacity parameter is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="mf">0.0105</span> <span class="o">+</span> <span class="mf">8.127e-4</span><span class="o">*</span><span class="n">TS</span><span class="o">**</span><span class="mf">0.755</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">1.463</span><span class="o">*</span><span class="n">F_LV</span><span class="o">**</span><span class="mf">0.842</span><span class="p">)</span></div>
@@ -463,6 +579,15 @@
 <span class="sd">    A_ha : </span>
 <span class="sd">        Ratio of open area, A_h, to active area, A_a</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The max vapor velocity is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">F_ST</span> <span class="o">=</span> <span class="p">(</span><span class="n">sigma</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span><span class="o">**</span><span class="mf">0.2</span> <span class="c1"># Surface tension factor</span>
     
@@ -485,6 +610,15 @@
 <span class="sd">    F_LV : float</span>
 <span class="sd">        Flow parameter.</span>
 
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The fraction of downcomer area is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">F_LV</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
         <span class="n">A_dn</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -495,7 +629,7 @@
     <span class="k">return</span> <span class="n">A_dn</span></div>
 
 <div class="viewcode-block" id="compute_tower_diameter"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_diameter">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return column diameter [D_T; in ft].</span>
+    <span class="sd">&quot;&quot;&quot;Return tower diameter [D_T; in meter].</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -508,17 +642,25 @@
 <span class="sd">    A_dn : float</span>
 <span class="sd">        Ratio of downcomer area to net (total) area.</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The tower diameter is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Di</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">V_vol</span><span class="o">/</span><span class="p">(</span><span class="n">f</span><span class="o">*</span><span class="n">U_f</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">A_dn</span><span class="p">)))</span><span class="o">**</span><span class="mf">0.5</span>
     <span class="k">if</span> <span class="n">Di</span> <span class="o">&lt;</span> <span class="mf">0.914</span><span class="p">:</span>
         <span class="c1"># Make sure diameter is not too small</span>
         <span class="n">Di</span> <span class="o">=</span> <span class="mf">0.914</span>
-    <span class="n">Di</span> <span class="o">*=</span> <span class="mf">3.28</span>
     <span class="k">return</span> <span class="n">Di</span></div>
 
 <div class="viewcode-block" id="compute_tower_height"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_tower_height">[docs]</a><span class="k">def</span> <span class="nf">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">N_stages</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the height of a column [H; ft].</span>
+<span class="sd">    Return the height of a tower [H; m].</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -527,6 +669,15 @@
 <span class="sd">    N_stages : float</span>
 <span class="sd">        Number of stages.</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The tower height is given by [1]_. See source code for details.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># 3 m bottoms surge capacity, 1.25 m above top tray to remove entrained liquid</span>
     <span class="n">H</span> <span class="o">=</span> <span class="n">TS</span><span class="o">*</span><span class="n">N_stages</span><span class="o">/</span><span class="mi">1000</span>
@@ -534,7 +685,6 @@
         <span class="n">H</span> <span class="o">+=</span> <span class="mf">1.2672</span>
     <span class="k">if</span> <span class="n">bot</span><span class="p">:</span>
         <span class="n">H</span> <span class="o">+=</span> <span class="mi">3</span>
-    <span class="n">H</span> <span class="o">*=</span> <span class="mf">3.28</span>
     <span class="k">return</span> <span class="n">H</span> </div>
 </pre></div>
 

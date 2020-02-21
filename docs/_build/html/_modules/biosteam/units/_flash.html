@@ -184,6 +184,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="p">(</span><span class="n">compute_vacuum_system_power_and_cost</span><span class="p">,</span>
                            <span class="n">HNATable</span><span class="p">,</span> <span class="n">ceil_half_step</span><span class="p">,</span>
+                           <span class="n">compute_vertical_vessel_purchase_cost</span><span class="p">,</span>
+                           <span class="n">compute_horizontal_vessel_purchase_cost</span><span class="p">,</span>
                            <span class="n">compute_vessel_weight_and_wall_thickness</span><span class="p">,</span>
                            <span class="n">compute_Stokes_law_York_Demister_K_value</span><span class="p">,</span>
                            <span class="n">pressure_vessel_material_factors</span><span class="p">,</span>
@@ -301,8 +303,8 @@
 <span class="sd">                          Wall thickness       in         0.375</span>
 <span class="sd">                          Material                 Carbon steel</span>
 <span class="sd">    Purchase cost         Flash               USD      5.82e+04</span>
-<span class="sd">                          Heat exchanger      USD      4.36e+04</span>
-<span class="sd">    Total purchase cost                       USD      1.02e+05</span>
+<span class="sd">                          Heat exchanger      USD      4.04e+04</span>
+<span class="sd">    Total purchase cost                       USD      9.86e+04</span>
 <span class="sd">    Utility cost                           USD/hr           385</span>
 
 
@@ -374,7 +376,7 @@
                  <span class="n">has_mist_eliminator</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="c1">#: Enforced molar vapor fraction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span>
@@ -435,9 +437,9 @@
     <span class="nd">@Q</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">Q</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">he</span><span class="o">.</span><span class="n">heat_utilities</span>
             <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
             <span class="n">he</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span>
@@ -482,7 +484,7 @@
         <span class="c1"># Run vertical or horizontal design</span>
         <span class="k">if</span> <span class="n">isVertical</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertical</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -490,19 +492,14 @@
         <span class="n">W</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span>
-        
-        <span class="c1"># C_v: Vessel cost</span>
-        <span class="c1"># C_pl: Platforms and ladders cost</span>
+        <span class="n">F_M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isVertical</span><span class="p">:</span>
-            <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">7.1390</span> <span class="o">+</span> <span class="mf">0.18255</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.02297</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">C_pl</span> <span class="o">=</span> <span class="mi">410</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mf">0.7396</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mf">0.70684</span>
+            <span class="n">Cp</span> <span class="o">=</span> <span class="n">compute_vertical_vessel_purchase_cost</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">F_M</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">5.6336</span> <span class="o">-</span> <span class="mf">0.4599</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.00582</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">C_pl</span> <span class="o">=</span> <span class="mi">2275</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mf">0.20294</span>
-            
-        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">*</span> <span class="n">C_v</span> <span class="o">+</span> <span class="n">C_pl</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="p">:</span>
-            <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span>
+            <span class="n">Cp</span> <span class="o">=</span> <span class="n">compute_horizontal_vessel_purchase_cost</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">F_M</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Cp</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="p">:</span>
+            <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span>
             <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hx</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_vacuum</span><span class="p">()</span>
@@ -749,6 +746,14 @@
     <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
     
+<span class="c1"># Flash</span>
+<span class="n">edge_out</span> <span class="o">=</span> <span class="n">Flash</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>
+<span class="n">edge_out</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;n&#39;</span>
+<span class="n">edge_out</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">Flash</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span>
+<span class="n">node</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+<span class="n">node</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1.1&#39;</span>
+<span class="k">del</span> <span class="n">edge_out</span><span class="p">,</span> <span class="n">node</span>
 
 <span class="c1"># %% Special</span>
 
@@ -767,7 +772,9 @@
                  <span class="n">has_mist_eliminator</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">Splitter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1">#: [HXutility] Heat exchanger if needed.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Operating temperature (K)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="c1">#: Operating pressure (Pa)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span> <span class="c1">#: Duty (kJ/hr)</span>
@@ -811,8 +818,8 @@
         <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span>
             <span class="n">ms</span><span class="o">.</span><span class="n">mix_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
     

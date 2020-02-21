@@ -187,6 +187,8 @@
 <span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="n">size_batch</span>
 <span class="kn">from</span> <span class="nn">thermosteam.reaction</span> <span class="kn">import</span> <span class="n">Reaction</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Fermentation&#39;</span><span class="p">,)</span>
+
 <div class="viewcode-block" id="Fermentation"><a class="viewcode-back" href="../../../units/Fermentation.html#biosteam.units.Fermentation">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Cleaning in place&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span>
       <span class="n">cost</span><span class="o">=</span><span class="mf">421e3</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Agitators&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">52500</span><span class="p">,</span>
@@ -195,7 +197,15 @@
       <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Fermentation</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1]_ [2]_ [3]_ [4]_. A compound with CAS &#39;Yeast&#39; must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [5]_. </span>
+<span class="sd">    Create a Fermentation object which models large-scale batch fermentation</span>
+<span class="sd">    for the production of 1st generation ethanol using yeast</span>
+<span class="sd">    [1]_ [2]_ [3]_ [4]_. A compound with CAS &#39;Yeast&#39; must be present.</span>
+<span class="sd">    Only sucrose and glucose are taken into account for conversion.</span>
+<span class="sd">    Conversion is based on reaction time, `tau`. Cleaning and unloading time,</span>
+<span class="sd">    `tau_0`, fraction of working volume, `V_wf`, and number of reactors,</span>
+<span class="sd">    `N_reactors`, are attributes that can be changed. Cost of a reactor</span>
+<span class="sd">    is based on the NREL batch fermentation tank cost assuming volumetric</span>
+<span class="sd">    scaling with a 6/10th exponent [5]_. </span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -215,20 +225,23 @@
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    Simulate a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast.</span>
+<span class="sd">    Simulate a Fermentation object which models batch fermentation for the</span>
+<span class="sd">    production of 1st generation ethanol using yeast.</span>
 <span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; from biorefineries.lipidcane.chemicals import ethanol_chemicals </span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import Fermentation</span>
 <span class="sd">    &gt;&gt;&gt; from thermosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo(ethanol_chemicals)</span>
 <span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;,</span>
-<span class="sd">    ...              Water=1.20e+05,</span>
-<span class="sd">    ...              Glucose=1.89e+03,</span>
-<span class="sd">    ...              Sucrose=2.14e+04,</span>
-<span class="sd">    ...              DryYeast=1.03e+04,</span>
-<span class="sd">    ...              units=&#39;kg/hr&#39;,</span>
-<span class="sd">    ...              T=32+273.15)</span>
-<span class="sd">    &gt;&gt;&gt; F1 = Fermentation(&#39;F1&#39;, ins=feed, outs=(&#39;CO2&#39;, &#39;product&#39;), tau=8, efficiency=0.90, N=8)</span>
+<span class="sd">    ...               Water=1.20e+05,</span>
+<span class="sd">    ...               Glucose=1.89e+03,</span>
+<span class="sd">    ...               Sucrose=2.14e+04,</span>
+<span class="sd">    ...               DryYeast=1.03e+04,</span>
+<span class="sd">    ...               units=&#39;kg/hr&#39;,</span>
+<span class="sd">    ...               T=32+273.15)</span>
+<span class="sd">    &gt;&gt;&gt; F1 = Fermentation(&#39;F1&#39;,</span>
+<span class="sd">    ...                   ins=feed, outs=(&#39;CO2&#39;, &#39;product&#39;),</span>
+<span class="sd">    ...                   tau=8, efficiency=0.90, N=8)</span>
 <span class="sd">    &gt;&gt;&gt; F1.simulate()</span>
 <span class="sd">    &gt;&gt;&gt; F1.show()</span>
 <span class="sd">    Fermentation: F1</span>
@@ -265,11 +278,11 @@
 <span class="sd">                        Cleaning and unloading time       hr         3</span>
 <span class="sd">                        Working volume fraction                    0.9</span>
 <span class="sd">                        Number of reactors                           8</span>
-<span class="sd">    Purchase cost       Coolers                          USD   2.2e+05</span>
+<span class="sd">    Purchase cost       Coolers                          USD  1.67e+05</span>
 <span class="sd">                        Reactors                         USD  1.86e+06</span>
 <span class="sd">                        Agitators                        USD  1.16e+05</span>
 <span class="sd">                        Cleaning in place                USD  7.05e+05</span>
-<span class="sd">    Total purchase cost                                  USD   2.9e+06</span>
+<span class="sd">    Total purchase cost                                  USD  2.85e+06</span>
 <span class="sd">    Utility cost                                      USD/hr      68.2</span>
 <span class="sd">    </span>
 <span class="sd">    </span>
@@ -329,7 +342,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span> <span class="o">=</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span> <span class="o">=</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">_outs</span>
         <span class="n">vent</span><span class="p">,</span> <span class="n">effluent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
@@ -437,7 +450,6 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iskinetic</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_efficiency</span><span class="p">(</span><span class="n">effluent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span><span class="p">(</span><span class="n">effluent_mol</span><span class="p">)</span>
-        <span class="n">vent</span><span class="o">.</span><span class="n">copy_flow</span><span class="p">(</span><span class="n">effluent</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;CO2&#39;</span><span class="p">,),</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">vent</span><span class="o">.</span><span class="n">recieve_vent</span><span class="p">(</span><span class="n">effluent</span><span class="p">)</span>
     
     <span class="nd">@property</span>
@@ -465,7 +477,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
         <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
-        <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span>
+        <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="o">/</span><span class="n">N</span> 
         <span class="n">hu</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
@@ -474,7 +486,7 @@
         <span class="n">hu</span><span class="o">.</span><span class="n">duty</span> <span class="o">*=</span> <span class="n">N</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">cost</span> <span class="o">*=</span> <span class="n">N</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">flow</span> <span class="o">*=</span> <span class="n">N</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span></div>
         
     
 </pre></div>

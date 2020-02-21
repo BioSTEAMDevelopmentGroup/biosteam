@@ -358,6 +358,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;balance type must be one of the following: &#39;flow&#39;, &#39;composition&#39;&quot;</span><span class="p">)</span></div>
 
+<span class="c1"># Balance</span>
+<span class="n">graphics</span> <span class="o">=</span> <span class="n">MassBalance</span><span class="o">.</span><span class="n">_graphics</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;note&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#F0F0F0&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">in_system</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">del</span> <span class="n">graphics</span>
+
 
 <span class="c1"># %% Energy Balance Unit</span>
 

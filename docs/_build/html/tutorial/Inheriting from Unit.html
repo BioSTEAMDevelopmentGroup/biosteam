@@ -435,22 +435,15 @@ Boiler class:</p>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    V : float</span>
-<span class="sd">        Vapor fraction</span>
-
+<span class="sd">        Molar vapor fraction.</span>
 <span class="sd">    P : float</span>
-<span class="sd">        Operating pressure (Pascal)</span>
-
-<span class="sd">    ins :</span>
-
-<span class="sd">        [0] feed</span>
-
-<span class="sd">    outs :</span>
-
-<span class="sd">        [0] vapor product</span>
-
-<span class="sd">        [1] liquid product</span>
+<span class="sd">        Operating pressure [Pa].</span>
+<span class="sd">    ins : stream</span>
+<span class="sd">        Inlet fluid.</span>
+<span class="sd">    outs : stream sequence</span>
+<span class="sd">        * [0] vapor product</span>
+<span class="sd">        * [1] liquid product</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
@@ -463,8 +456,8 @@ Boiler class:</p>
         <span class="c1"># Initialize MultiStream object to perform vapor-liquid equilibrium later</span>
         <span class="c1"># NOTE: ID is None to not register it in the flowsheet</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: Vapor fraction</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="c1">#: Operating pressure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: Molar vapor fraction.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="c1">#: Operating pressure [Pa].</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>

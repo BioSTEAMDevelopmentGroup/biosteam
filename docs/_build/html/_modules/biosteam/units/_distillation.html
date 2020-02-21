@@ -180,7 +180,8 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">MultiStream</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
 <span class="kn">from</span> <span class="nn">.design_tools.specification_factors</span> <span class="kn">import</span>  <span class="p">(</span>
     <span class="n">distillation_column_material_factors</span><span class="p">,</span>
     <span class="n">tray_material_factor_functions</span><span class="p">,</span>
@@ -202,6 +203,8 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">._hx</span> <span class="kn">import</span> <span class="n">HXutility</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Distillation&#39;</span><span class="p">,)</span>
 
 <span class="k">def</span> <span class="nf">compute_stages_McCabeThiele</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">operating_line</span><span class="p">,</span>
                                 <span class="n">x_stages</span><span class="p">,</span> <span class="n">y_stages</span><span class="p">,</span> <span class="n">T_stages</span><span class="p">,</span>
@@ -268,8 +271,8 @@
 <span class="sd">    methods, such as the Fenske-Underwood-Gilliland method, are more suitable</span>
 <span class="sd">    for hydrocarbons. The Murphree efficiency is based on the modified</span>
 <span class="sd">    O&#39;Connell correlation [2]_. The diameter is based on tray separation</span>
-<span class="sd">    and flooding velocity [1]_. Purchase costs are based on correlations</span>
-<span class="sd">    by Mulet et al. [3]_ [4]_ as compiled by Warren et. al. [5]_.</span>
+<span class="sd">    and flooding velocity [1, 3]_. Purchase costs are based on correlations</span>
+<span class="sd">    compiled by Warren et. al. [5]_.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -319,9 +322,8 @@
 <span class="sd">    .. [2] M. Duss, R. Taylor. (2018)</span>
 <span class="sd">        Predict Distillation Tray Efficiency. AICHE </span>
 <span class="sd">    </span>
-<span class="sd">    .. [3] Mulet, A., A. B. Corripio, and L. B. Evans. (1981a).</span>
-<span class="sd">        Estimate Costs of Pressure Vessels via Correlations.</span>
-<span class="sd">        Chem. Eng., 88(20), 145–150.</span>
+<span class="sd">    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
 
 <span class="sd">    .. [4] Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).</span>
 <span class="sd">        Estimate Costs of Distillation and Absorption Towers via Correlations.</span>
@@ -329,7 +331,7 @@
 
 <span class="sd">    .. [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
 <span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
-<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)    </span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -346,7 +348,7 @@
 <span class="sd">    ...                   outs=(&#39;distillate&#39;, &#39;bottoms_product&#39;),</span>
 <span class="sd">    ...                   LHK=(&#39;Methanol&#39;, &#39;Water&#39;),</span>
 <span class="sd">    ...                   y_top=0.99, x_bot=0.01, k=2,</span>
-<span class="sd">                          is_divided=True)</span>
+<span class="sd">    ...                   is_divided=True)</span>
 <span class="sd">    &gt;&gt;&gt; D1.simulate()</span>
 <span class="sd">    &gt;&gt;&gt; # See all results</span>
 <span class="sd">    &gt;&gt;&gt; D1.show(T=&#39;degC&#39;, P=&#39;atm&#39;, composition=True)</span>
@@ -380,25 +382,25 @@
 <span class="sd">                        Cost                       USD/hr      58.1</span>
 <span class="sd">    Design              Theoretical feed stage                    9</span>
 <span class="sd">                        Theoretical stages                       13</span>
-<span class="sd">                        Minimum reflux                        0.687</span>
-<span class="sd">                        Reflux                                 1.37</span>
+<span class="sd">                        Minimum reflux              Ratio     0.687</span>
+<span class="sd">                        Reflux                      Ratio      1.37</span>
 <span class="sd">                        Rectifier stages                         15</span>
 <span class="sd">                        Stripper stages                          13</span>
-<span class="sd">                        Rectifier height                       34.7</span>
-<span class="sd">                        Stripper height                        31.7</span>
-<span class="sd">                        Rectifier diameter                     3.93</span>
-<span class="sd">                        Stripper diameter                      3.36</span>
-<span class="sd">                        Rectifier wall thickness               0.25</span>
-<span class="sd">                        Stripper wall thickness                0.25</span>
-<span class="sd">                        Rectifier weight                   4.79e+03</span>
-<span class="sd">                        Stripper weight                    3.74e+03</span>
+<span class="sd">                        Rectifier height               ft      34.7</span>
+<span class="sd">                        Stripper height                ft      31.7</span>
+<span class="sd">                        Rectifier diameter             ft      3.93</span>
+<span class="sd">                        Stripper diameter              ft      3.36</span>
+<span class="sd">                        Rectifier wall thickness       in      0.25</span>
+<span class="sd">                        Stripper wall thickness        in      0.25</span>
+<span class="sd">                        Rectifier weight               lb  4.79e+03</span>
+<span class="sd">                        Stripper weight                lb  3.74e+03</span>
 <span class="sd">    Purchase cost       Rectifier trays               USD   1.5e+04</span>
 <span class="sd">                        Stripper trays                USD  1.28e+04</span>
 <span class="sd">                        Rectifier tower               USD  7.62e+04</span>
 <span class="sd">                        Stripper tower                USD  6.53e+04</span>
-<span class="sd">                        Condenser                     USD  3.41e+04</span>
-<span class="sd">                        Boiler                        USD  2.64e+04</span>
-<span class="sd">    Total purchase cost                               USD   2.3e+05</span>
+<span class="sd">                        Condenser                     USD  2.02e+04</span>
+<span class="sd">                        Boiler                        USD  4.27e+03</span>
+<span class="sd">    Total purchase cost                               USD  1.94e+05</span>
 <span class="sd">    Utility cost                                   USD/hr      59.8</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -461,19 +463,31 @@
         
         <span class="c1"># Setup components</span>
         <span class="n">thermo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span>
+        <span class="c1">#: [HXutility] Condenser.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
-                                    <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
-                                    <span class="n">outs</span><span class="o">=</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
-                                    <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
+                                   <span class="n">ins</span><span class="o">=</span><span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
+                                   <span class="n">outs</span><span class="o">=</span><span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
+                                   <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="c1">#: [HXutility] Boiler.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
-                                 <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
-                                 <span class="n">outs</span><span class="o">=</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
-                                 <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
+                                <span class="n">ins</span><span class="o">=</span><span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
+                                <span class="n">outs</span><span class="o">=</span><span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">),</span>
+                                <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">heat_utilities</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">boilup</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">precondensate</span> <span class="o">=</span>  <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">condensate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">boilup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bottoms_produt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">distillate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LHK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -483,6 +497,7 @@
     <span class="k">def</span> <span class="nf">LHK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LHK</span><span class="p">):</span>
         <span class="c1"># Set light non-key and heavy non-key indices</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span> <span class="o">=</span> <span class="n">LHK</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span>
+        <span class="n">intermediate_volatile_chemicals</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span>
         <span class="n">LHK_chemicals</span> <span class="o">=</span> <span class="n">LK_chemical</span><span class="p">,</span> <span class="n">HK_chemical</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span>
         <span class="n">Tb_light</span> <span class="o">=</span> <span class="n">LK_chemical</span><span class="o">.</span><span class="n">Tb</span>
@@ -500,9 +515,14 @@
             <span class="k">elif</span> <span class="n">Tb</span> <span class="o">&gt;</span> <span class="n">Tb_heavy</span><span class="p">:</span>
                 <span class="n">HNK</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chemical</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">chemical</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">LHK_chemicals</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;intermediate volatile specie, &#39;</span><span class="si">{chemical}</span><span class="s2">&#39;, between light and heavy key, [&#39;</span><span class="si">{LK_chemical}</span><span class="s2">&#39;, &#39;</span><span class="si">{HK_chemical}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span>
+                <span class="n">intermediate_volatile_chemicals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chemical</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_LNK</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">LNK</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_HNK</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">HNK</span><span class="p">)</span>
+        <span class="n">get_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">get_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span> <span class="o">=</span> <span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_LNK_index</span> <span class="o">=</span> <span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LNK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_HNK_index</span> <span class="o">=</span> <span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_HNK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_intermediate_volatile_chemicals</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">intermediate_volatile_chemicals</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">y_top</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -621,132 +641,61 @@
     <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_divided</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_divided</span> <span class="o">=</span> <span class="n">is_divided</span>
     
+    <span class="k">def</span> <span class="nf">_check_mass_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">LHK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span>
+        <span class="n">intermediate_chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intermediate_volatile_chemicals</span>
+        <span class="n">intemediates_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">intermediate_chemicals</span><span class="p">)</span>
+        <span class="n">intermediate_flows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_in</span><span class="p">[</span><span class="n">intemediates_index</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">flow</span><span class="p">,</span> <span class="n">chemical</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">intermediate_flows</span><span class="p">,</span> <span class="n">intermediate_chemicals</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">flow</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;intermediate volatile chemical,&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{chemical}</span><span class="s2">&#39;, between light and heavy &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;key, {&#39;, &#39;.join(LHK)}&quot;</span><span class="p">)</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">LHK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span>
+        <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
+        <span class="n">LK_distillate</span><span class="p">,</span> <span class="n">HK_distillate</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
+        <span class="n">LK_bottoms</span><span class="p">,</span> <span class="n">HK_bottoms</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">LK_distillate</span> <span class="ow">and</span> <span class="n">LK_bottoms</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Light key composition is infeasible&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">HK_distillate</span> <span class="ow">and</span> <span class="n">HK_bottoms</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;heavy key composition is infeasible&quot;</span><span class="p">)</span>
+    
     <span class="k">def</span> <span class="nf">_run_mass_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Get all important flow rates (both light and heavy keys and non-keys)</span>
-        <span class="n">get_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">get_index</span>
-        <span class="n">LHK_index</span> <span class="o">=</span> <span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span><span class="p">)</span>
-        <span class="n">LNK_index</span> <span class="o">=</span> <span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LNK</span><span class="p">)</span>
-        <span class="n">HNK_index</span> <span class="o">=</span> <span class="n">get_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_HNK</span><span class="p">)</span>
         <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_in</span>
+        <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
+        <span class="n">HNK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HNK_index</span>
+        <span class="n">LNK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LNK_index</span>
         <span class="n">LHK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
         <span class="n">HNK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span>
         <span class="n">LNK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span>
 
         <span class="c1"># Set light and heavy keys by lever rule</span>
         <span class="n">light</span><span class="p">,</span> <span class="n">heavy</span> <span class="o">=</span> <span class="n">LHK_mol</span>
-        <span class="n">LHK_F_mol</span> <span class="o">=</span> <span class="n">light</span> <span class="o">+</span> <span class="n">heavy</span>
-        <span class="n">zf</span> <span class="o">=</span> <span class="n">light</span><span class="o">/</span><span class="n">LHK_F_mol</span>
-        <span class="n">split_frac</span> <span class="o">=</span> <span class="p">(</span><span class="n">zf</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_top</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span>
-        <span class="n">top_net</span> <span class="o">=</span> <span class="n">LHK_F_mol</span><span class="o">*</span><span class="n">split_frac</span>
+        <span class="n">F_mol_LHK</span> <span class="o">=</span> <span class="n">light</span> <span class="o">+</span> <span class="n">heavy</span>
+        <span class="n">zf</span> <span class="o">=</span> <span class="n">light</span><span class="o">/</span><span class="n">F_mol_LHK</span>
+        <span class="n">distillate_fraction</span> <span class="o">=</span> <span class="p">(</span><span class="n">zf</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_top</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span>
+        <span class="n">F_mol_LHK_distillate</span> <span class="o">=</span> <span class="n">F_mol_LHK</span> <span class="o">*</span> <span class="n">distillate_fraction</span>
 
-        <span class="c1"># Set output streams</span>
-        <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">vap_LHK_mol</span> <span class="o">=</span> <span class="n">top_net</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LHK_mol</span> <span class="o">-</span> <span class="n">vap_LHK_mol</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_mol</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_mol</span>
+        <span class="c1"># Set outlet streams</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">distillate_LHK_mol</span> <span class="o">=</span> <span class="n">F_mol_LHK_distillate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate_LHK_mol</span>
+        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LHK_mol</span> <span class="o">-</span> <span class="n">distillate_LHK_mol</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_mol</span>
+        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_mol</span>
+        
+        <span class="k">if</span> <span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_mass_balance</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run_mass_balance</span><span class="p">()</span>
-        <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_condensate_dew_point</span> <span class="o">=</span> <span class="n">dp</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">dew_point_at_P</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boilup_bubble_point</span> <span class="o">=</span> <span class="n">bp</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">T</span>
-
-    <span class="k">def</span> <span class="nf">_simulate_condenser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">distillate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">condensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span> <span class="c1"># Abstract attribute</span>
-        <span class="n">condenser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span>
-        <span class="n">s_in</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">s_in</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">condensate</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">s_in</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">s_in</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">ms1</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        
-    <span class="k">def</span> <span class="nf">_simulate_boiler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">boilup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boilup</span> <span class="c1"># Abstract attribute</span>
-        <span class="n">boiler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span>
-        <span class="n">s_in</span> <span class="o">=</span> <span class="n">boiler</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">s_in</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">bottoms</span><span class="p">)</span>
-        <span class="n">s_in</span><span class="o">.</span><span class="n">mol</span> <span class="o">+=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">ms1</span> <span class="o">=</span> <span class="n">boiler</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">ms1</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;condenser&#39;</span><span class="p">):</span>
-            <span class="n">boiler</span><span class="o">.</span><span class="n">_design</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_in</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
-            <span class="n">boiler</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">boiler</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-            <span class="n">boiler</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>  
-    
-    <span class="k">def</span> <span class="nf">_simulate_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
-        <span class="c1"># Cost condenser</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_condenser</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
-        
-        <span class="c1"># Cost boiler</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_boiler</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
-    
-<div class="viewcode-block" id="Distillation.compute_N_stages"><a class="viewcode-back" href="../../../units/Distillation.html#biosteam.units.Distillation.compute_N_stages">[docs]</a>    <span class="k">def</span> <span class="nf">compute_N_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a tuple with the actual number of stages for the rectifier and the stripper.&quot;&quot;&quot;</span>
-        <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
-        <span class="n">x_stages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_stages</span>
-        <span class="n">y_stages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_stages</span>
-        <span class="n">R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>
-        <span class="n">N_stages</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span>
-        <span class="n">feed_stage</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical feed stage&#39;</span><span class="p">]</span>
-        <span class="n">liq_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_liqmol</span>
-        <span class="n">vap_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_vapmol</span>
-        
-        <span class="n">E_eff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage_efficiency</span>
-        <span class="k">if</span> <span class="n">E_eff</span><span class="p">:</span>
-            <span class="n">E_rectifier</span> <span class="o">=</span> <span class="n">E_stripper</span> <span class="o">=</span> <span class="n">E_eff</span>
-        <span class="k">else</span><span class="p">:</span>    
-            <span class="c1"># Calculate Murphree Efficiency for rectifying section</span>
-            <span class="n">vap_F_mol</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">F_mol</span>
-            <span class="n">dp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condensate_dew_point</span>
-            <span class="n">condensate_x_mol</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">x</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_L_Rmol</span> <span class="o">=</span> <span class="n">L_Rmol</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">vap_F_mol</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_V_Rmol</span> <span class="o">=</span> <span class="n">V_Rmol</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">vap_F_mol</span>
-            <span class="n">condensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span>
-            <span class="n">condensate</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">dp</span><span class="o">.</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">condensate_x_mol</span> <span class="o">*</span> <span class="n">L_Rmol</span>
-            <span class="n">condensate</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">T</span>
-            <span class="n">condensate</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">P</span>
-            <span class="n">mu</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;mPa*s&#39;</span><span class="p">)</span>
-            <span class="n">K_light</span> <span class="o">=</span> <span class="n">y_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">x_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> 
-            <span class="n">K_heavy</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">y_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">alpha</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
-            <span class="n">E_rectifier</span> <span class="o">=</span> <span class="n">compute_murphree_stage_efficiency</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">L_Rmol</span><span class="p">,</span> <span class="n">V_Rmol</span><span class="p">)</span>
-            
-            <span class="c1"># Calculate Murphree Efficiency for stripping section</span>
-            <span class="n">mu</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;mPa*s&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_V_Smol</span> <span class="o">=</span> <span class="n">V_Smol</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">vap_F_mol</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vap_mol</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_L_Smol</span> <span class="o">=</span> <span class="n">L_Smol</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">vap_F_mol</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">liq_mol</span><span class="p">)</span> 
-            <span class="n">K_light</span> <span class="o">=</span> <span class="n">y_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">x_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> 
-            <span class="n">K_heavy</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">y_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
-            <span class="n">alpha</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
-            <span class="n">E_stripper</span> <span class="o">=</span> <span class="n">compute_murphree_stage_efficiency</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">L_Smol</span><span class="p">,</span> <span class="n">V_Smol</span><span class="p">)</span>
-            
-        <span class="c1"># Calculate actual number of stages</span>
-        <span class="n">mid_stage</span> <span class="o">=</span> <span class="n">feed_stage</span> <span class="o">-</span> <span class="mf">0.5</span>
-        <span class="n">N_rectifier</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">mid_stage</span><span class="o">/</span><span class="n">E_rectifier</span><span class="p">)</span>
-        <span class="n">N_stripper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">N_stages</span><span class="o">-</span><span class="n">mid_stage</span><span class="p">)</span><span class="o">/</span><span class="n">E_stripper</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">N_rectifier</span><span class="p">,</span> <span class="n">N_stripper</span></div>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_condensate_dew_point</span> <span class="o">=</span> <span class="n">dp</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">dew_point_at_P</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boilup_bubble_point</span> <span class="o">=</span> <span class="n">bp</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
+        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">T</span>
 
     <span class="k">def</span> <span class="nf">_run_McCabeThiele</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
@@ -758,7 +707,7 @@
         <span class="n">liq_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">chemicals</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="n">vap_mol</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">MultiStream</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">):</span>
                 <span class="n">liq_mol</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
                 <span class="n">vap_mol</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
             <span class="k">elif</span> <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
@@ -771,11 +720,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_feed_liqmol</span> <span class="o">=</span> <span class="n">liq_mol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_feed_vapmol</span> <span class="o">=</span> <span class="n">vap_mol</span>
         <span class="n">LHK_mol</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">vap_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
-        <span class="n">LHK_F_mol</span> <span class="o">=</span> <span class="n">LHK_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">zf</span> <span class="o">=</span> <span class="n">LHK_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">LHK_F_mol</span>
+        <span class="n">F_mol_LHK</span> <span class="o">=</span> <span class="n">LHK_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">zf</span> <span class="o">=</span> <span class="n">LHK_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">F_mol_LHK</span>
         
         <span class="c1"># Get feed quality</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">LHK_F_mol</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">F_mol_LHK</span>
         
         <span class="c1"># Main arguments</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
@@ -786,7 +735,8 @@
         <span class="c1"># Cache</span>
         <span class="n">old_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">P</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">zf</span><span class="p">])</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">old_args</span> <span class="o">-</span> <span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">],</span> <span class="nb">float</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> <span class="k">return</span>
+        <span class="n">tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">old_args</span> <span class="o">-</span> <span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">args</span>
         
         <span class="c1"># Get R_min and the q_line </span>
@@ -831,25 +781,118 @@
         <span class="n">compute_stages_McCabeThiele</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">x_stages</span><span class="p">,</span> <span class="n">y_stages</span><span class="p">,</span> <span class="n">T_stages</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">solve_Ty</span><span class="p">)</span>
         
         <span class="c1"># Find feed stage</span>
+        <span class="n">N_stages</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_stages</span><span class="p">)</span>
+        <span class="n">feed_stage</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">N_stages</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_stages</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
-            <span class="k">if</span> <span class="n">y_stages</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">y_m</span> <span class="ow">and</span> <span class="n">y_stages</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">y_m</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">y_stages</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">y_m</span> <span class="o">&lt;</span> <span class="n">y_stages</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="n">feed_stage</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
-        <span class="n">stages</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_stages</span><span class="p">)</span>
         
         <span class="c1"># Results</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical feed stage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stages</span> <span class="o">-</span> <span class="n">feed_stage</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stages</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical feed stage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N_stages</span> <span class="o">-</span> <span class="n">feed_stage</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N_stages</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rmin</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span>
         
+    <span class="k">def</span> <span class="nf">_run_condenser_and_boiler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">condenser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span>
+        <span class="n">boiler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Set condenser conditions</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_F_mol_distillate</span> <span class="o">=</span> <span class="n">F_mol_distillate</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">F_mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_F_mol_condensate</span> <span class="o">=</span> <span class="n">F_mol_condensate</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">F_mol_distillate</span>
+        <span class="n">dp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condensate_dew_point</span>
+        <span class="n">condensate_x_mol</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">condensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span>
+        <span class="n">condensate</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">dp</span><span class="o">.</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">condensate_x_mol</span> <span class="o">*</span> <span class="n">F_mol_condensate</span>
+        <span class="n">condensate</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">condensate</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">vap</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">vap</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">condensate</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">vap</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">vap</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">P</span>
+        
+        <span class="c1"># Set boiler conditions</span>
+        <span class="n">boiler</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">F_vap_feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_vapmol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_F_mol_boilup</span> <span class="o">=</span> <span class="n">F_mol_boilup</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">F_mol_distillate</span> <span class="o">-</span> <span class="n">F_vap_feed</span>
+        <span class="n">bp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boilup_bubble_point</span>
+        <span class="n">boilup_flow</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">F_mol_boilup</span>
+        <span class="n">boilup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boilup</span>
+        <span class="n">boilup</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">boilup</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">boilup</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">bp</span><span class="o">.</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">boilup_flow</span>
+        <span class="n">liq</span> <span class="o">=</span> <span class="n">boiler</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">boilup</span><span class="o">.</span><span class="n">mol</span>
+        
+    <span class="k">def</span> <span class="nf">_simulate_condenser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">condenser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_simulate_boiler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">boiler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span>
+        <span class="n">boiler</span><span class="o">.</span><span class="n">_design</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_in</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">boiler</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_simulate_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="c1"># Cost condenser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_condenser</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Cost boiler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_boiler</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">_compute_N_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a tuple with the actual number of stages for the rectifier and the stripper.&quot;&quot;&quot;</span>
+        <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
+        <span class="n">x_stages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_stages</span>
+        <span class="n">y_stages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_stages</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>
+        <span class="n">N_stages</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span>
+        <span class="n">feed_stage</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical feed stage&#39;</span><span class="p">]</span>
+        <span class="n">E_eff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage_efficiency</span>
+        <span class="k">if</span> <span class="n">E_eff</span><span class="p">:</span>
+            <span class="n">E_rectifier</span> <span class="o">=</span> <span class="n">E_stripper</span> <span class="o">=</span> <span class="n">E_eff</span>
+        <span class="k">else</span><span class="p">:</span>    
+            <span class="c1"># Calculate Murphree Efficiency for rectifying section</span>
+            <span class="n">condensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;mPa*s&#39;</span><span class="p">)</span>
+            <span class="n">K_light</span> <span class="o">=</span> <span class="n">y_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">x_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> 
+            <span class="n">K_heavy</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">y_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x_stages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
+            <span class="n">F_mol_distillate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_mol_distillate</span>
+            <span class="n">L_Rmol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_mol_condensate</span>
+            <span class="n">V_Rmol</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">F_mol_distillate</span>
+            <span class="n">E_rectifier</span> <span class="o">=</span> <span class="n">compute_murphree_stage_efficiency</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">L_Rmol</span><span class="p">,</span> <span class="n">V_Rmol</span><span class="p">)</span>
+            
+            <span class="c1"># Calculate Murphree Efficiency for stripping section</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;mPa*s&#39;</span><span class="p">)</span>
+            <span class="n">V_Smol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_mol_boilup</span>
+            <span class="n">L_Smol</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">F_mol_distillate</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feed_liqmol</span><span class="p">)</span> 
+            <span class="n">K_light</span> <span class="o">=</span> <span class="n">y_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">x_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> 
+            <span class="n">K_heavy</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">y_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x_stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
+            <span class="n">E_stripper</span> <span class="o">=</span> <span class="n">compute_murphree_stage_efficiency</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">L_Smol</span><span class="p">,</span> <span class="n">V_Smol</span><span class="p">)</span>
+            
+        <span class="c1"># Calculate actual number of stages</span>
+        <span class="n">mid_stage</span> <span class="o">=</span> <span class="n">feed_stage</span> <span class="o">-</span> <span class="mf">0.5</span>
+        <span class="n">N_rectifier</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">mid_stage</span><span class="o">/</span><span class="n">E_rectifier</span><span class="p">)</span>
+        <span class="n">N_stripper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">N_stages</span><span class="o">-</span><span class="n">mid_stage</span><span class="p">)</span><span class="o">/</span><span class="n">E_stripper</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">N_rectifier</span><span class="p">,</span> <span class="n">N_stripper</span>
+        
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run_McCabeThiele</span><span class="p">()</span>
-        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_condenser_and_boiler</span><span class="p">()</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         <span class="n">R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>
-        <span class="n">Rstages</span><span class="p">,</span> <span class="n">Sstages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_N_stages</span><span class="p">()</span>
+        <span class="n">Rstages</span><span class="p">,</span> <span class="n">Sstages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_N_stages</span><span class="p">()</span>
         <span class="n">is_divided</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_divided</span>
         <span class="n">TS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TS</span>
         
@@ -860,10 +903,8 @@
         <span class="n">sigma</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;dyn/cm&#39;</span><span class="p">)</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">F_mass</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">L</span><span class="o">*</span><span class="p">(</span><span class="n">R</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">R</span>
-        <span class="n">precondensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precondensate</span>
-        <span class="n">precondensate</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">distillate</span><span class="p">)</span>
-        <span class="n">precondensate</span><span class="o">.</span><span class="n">mol</span> <span class="o">*=</span> <span class="n">R</span><span class="o">+</span><span class="mi">1</span>
-        <span class="n">V_vol</span> <span class="o">=</span> <span class="n">precondensate</span><span class="o">.</span><span class="n">get_total_flow</span><span class="p">(</span><span class="s1">&#39;m^3/s&#39;</span><span class="p">)</span>
+        <span class="n">vap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">V_vol</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">get_total_flow</span><span class="p">(</span><span class="s1">&#39;m^3/s&#39;</span><span class="p">)</span>
         <span class="n">rho_V</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">rho</span>
         <span class="n">F_LV</span> <span class="o">=</span> <span class="n">compute_flow_parameter</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">rho_V</span><span class="p">,</span> <span class="n">rho_L</span><span class="p">)</span>
         <span class="n">C_sbf</span> <span class="o">=</span> <span class="n">compute_max_capacity_parameter</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">F_LV</span><span class="p">)</span>
@@ -874,22 +915,15 @@
         <span class="k">if</span> <span class="n">A_dn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
            <span class="bp">self</span><span class="o">.</span><span class="n">_A_dn</span> <span class="o">=</span> <span class="n">A_dn</span> <span class="o">=</span> <span class="n">compute_downcomer_area_fraction</span><span class="p">(</span><span class="n">F_LV</span><span class="p">)</span>
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f</span>
-        <span class="n">R_diameter</span> <span class="o">=</span> <span class="n">compute_tower_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span>
+        <span class="n">R_diameter</span> <span class="o">=</span> <span class="n">compute_tower_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.28</span>
         
         <span class="c1">### Get diameter of stripping section based on feed plate ###</span>
-        
-        <span class="n">V_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_Smol</span>
-        <span class="n">rho_L</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">rho</span>
-        <span class="n">bp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boilup_bubble_point</span>
-        <span class="n">boilup_flow</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">V_mol</span>
+        <span class="n">rho_L</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">rho</span>
         <span class="n">boilup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boilup</span>
-        <span class="n">boilup</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">boilup</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">boilup</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">bp</span><span class="o">.</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">boilup_flow</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">F_mass</span>
         <span class="n">V_vol</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">get_total_flow</span><span class="p">(</span><span class="s1">&#39;m^3/s&#39;</span><span class="p">)</span>
         <span class="n">rho_V</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">rho</span>
-        <span class="n">L</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">F_mass</span> <span class="c1"># To get liquid going down</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">F_mass</span> <span class="c1"># To get liquid going down</span>
         <span class="n">F_LV</span> <span class="o">=</span> <span class="n">compute_flow_parameter</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">rho_V</span><span class="p">,</span> <span class="n">rho_L</span><span class="p">)</span>
         <span class="n">C_sbf</span> <span class="o">=</span> <span class="n">compute_max_capacity_parameter</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">F_LV</span><span class="p">)</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="n">condensate</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;dyn/cm&#39;</span><span class="p">)</span>
@@ -897,15 +931,15 @@
         <span class="n">A_dn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_dn</span>
         <span class="k">if</span> <span class="n">A_dn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">A_dn</span> <span class="o">=</span> <span class="n">compute_downcomer_area_fraction</span><span class="p">(</span><span class="n">F_LV</span><span class="p">)</span>
-        <span class="n">S_diameter</span> <span class="o">=</span> <span class="n">compute_tower_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span>
+        <span class="n">S_diameter</span> <span class="o">=</span> <span class="n">compute_tower_diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.28</span>
         <span class="n">Po</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">*</span> <span class="mf">0.000145078</span> <span class="c1"># to psi</span>
         <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_densities_lb_per_in3</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vessel_material</span><span class="p">]</span>
         
         <span class="k">if</span> <span class="n">is_divided</span><span class="p">:</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rstages</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper stages&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">Sstages</span>
-            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H_R</span> <span class="o">=</span> <span class="n">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Rstages</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H_S</span> <span class="o">=</span> <span class="n">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Sstages</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H_R</span> <span class="o">=</span> <span class="n">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Rstages</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.28</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H_S</span> <span class="o">=</span> <span class="n">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Sstages</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.28</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">R_diameter</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">S_diameter</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tv</span> <span class="o">=</span> <span class="n">compute_tower_wall_thickness</span><span class="p">(</span><span class="n">Po</span><span class="p">,</span> <span class="n">R_diameter</span><span class="p">,</span> <span class="n">H_R</span><span class="p">)</span>
@@ -914,7 +948,7 @@
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_tower_weight</span><span class="p">(</span><span class="n">S_diameter</span><span class="p">,</span> <span class="n">H_S</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Actual stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rstages</span> <span class="o">+</span> <span class="n">Sstages</span>
-            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span> <span class="o">=</span> <span class="n">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Rstages</span><span class="o">+</span><span class="n">Sstages</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span> <span class="o">=</span> <span class="n">compute_tower_height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Rstages</span><span class="o">+</span><span class="n">Sstages</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mf">3.28</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Di</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">R_diameter</span><span class="p">,</span> <span class="n">S_diameter</span><span class="p">))</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tv</span> <span class="o">=</span> <span class="n">compute_tower_wall_thickness</span><span class="p">(</span><span class="n">Po</span><span class="p">,</span> <span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_tower_weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
@@ -1037,6 +1071,14 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;McCabe Thiele Diagram (Rmin = </span><span class="si">{Rmin:.2f}</span><span class="s1">, R = </span><span class="si">{R:.2f}</span><span class="s1">)&#39;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">plt</span></div></div>
+
+<span class="n">edge_out</span> <span class="o">=</span> <span class="n">Distillation</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>
+<span class="n">edge_out</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;n&#39;</span>
+<span class="n">edge_out</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">Distillation</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span>
+<span class="n">node</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+<span class="n">node</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1.2&#39;</span>
+<span class="k">del</span> <span class="n">edge_out</span><span class="p">,</span> <span class="n">node</span>
 </pre></div>
 
            </div>

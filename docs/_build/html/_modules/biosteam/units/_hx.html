@@ -187,9 +187,9 @@
 <span class="kn">from</span> <span class="nn">.design_tools</span> <span class="kn">import</span> <span class="n">heat_transfer</span> <span class="k">as</span> <span class="n">ht</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
-<span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
-<span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span> <span class="k">as</span> <span class="n">ln</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;HXutility&#39;</span><span class="p">,</span> <span class="s1">&#39;HXprocess&#39;</span><span class="p">)</span>
 
 <span class="c1"># Lenght factor </span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span> 
@@ -408,15 +408,15 @@
 <span class="sd">    Low pressure steam  Duty                                  kJ/hr 1.01e+06</span>
 <span class="sd">                        Flow                                kmol/hr     26.1</span>
 <span class="sd">                        Cost                                 USD/hr     6.21</span>
-<span class="sd">    Design              Area                                   ft^2     57.4</span>
+<span class="sd">    Design              Area                                   ft^2      320</span>
 <span class="sd">                        Overall heat transfer coefficient  kW/m^2/K      0.5</span>
 <span class="sd">                        Fouling correction factor                          1</span>
-<span class="sd">                        Tube side pressure drop                 psi        5</span>
-<span class="sd">                        Shell side pressure drop                psi      1.5</span>
+<span class="sd">                        Tube side pressure drop                 psi      1.5</span>
+<span class="sd">                        Shell side pressure drop                psi        5</span>
 <span class="sd">                        Operating pressure                      psi       50</span>
 <span class="sd">                        Total tube length                        ft       20</span>
-<span class="sd">    Purchase cost       Heat exchanger                          USD 4.75e+03</span>
-<span class="sd">    Total purchase cost                                         USD 4.75e+03</span>
+<span class="sd">    Purchase cost       Heat exchanger                          USD 2.19e+04</span>
+<span class="sd">    Total purchase cost                                         USD 2.19e+04</span>
 <span class="sd">    Utility cost                                             USD/hr     6.21</span>
 <span class="sd">    </span>
 <span class="sd">    Run heat exchanger by vapor fraction:</span>
@@ -442,15 +442,15 @@
 <span class="sd">    Low pressure steam  Duty                                  kJ/hr 2.07e+07</span>
 <span class="sd">                        Flow                                kmol/hr      532</span>
 <span class="sd">                        Cost                                 USD/hr      126</span>
-<span class="sd">    Design              Area                                   ft^2      733</span>
+<span class="sd">    Design              Area                                   ft^2      297</span>
 <span class="sd">                        Overall heat transfer coefficient  kW/m^2/K        1</span>
 <span class="sd">                        Fouling correction factor                          1</span>
 <span class="sd">                        Tube side pressure drop                 psi      1.5</span>
 <span class="sd">                        Shell side pressure drop                psi      1.5</span>
 <span class="sd">                        Operating pressure                      psi       50</span>
 <span class="sd">                        Total tube length                        ft       20</span>
-<span class="sd">    Purchase cost       Heat exchanger                          USD 2.67e+04</span>
-<span class="sd">    Total purchase cost                                         USD 2.67e+04</span>
+<span class="sd">    Purchase cost       Heat exchanger                          USD 2.16e+04</span>
+<span class="sd">    Total purchase cost                                         USD 2.16e+04</span>
 <span class="sd">    Utility cost                                             USD/hr      126</span>
 <span class="sd">    </span>
 <span class="sd">    </span>
@@ -530,12 +530,12 @@
 <span class="sd">            Outlet b.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">in1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">out1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">in_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">out_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">in2</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">inlet_utility_stream</span>
-        <span class="n">out2</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">outlet_utility_stream</span>
-        <span class="k">return</span> <span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">out1</span><span class="p">,</span> <span class="n">out2</span></div>
+        <span class="n">in_b</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">inlet_utility_stream</span>
+        <span class="n">out_b</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">outlet_utility_stream</span>
+        <span class="k">return</span> <span class="n">in_a</span><span class="p">,</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">out_a</span><span class="p">,</span> <span class="n">out_b</span></div>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Set duty and run heat utility</span>
@@ -579,25 +579,25 @@
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import HXprocess</span>
 <span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
-<span class="sd">    &gt;&gt;&gt; in1 = Stream(&#39;in1&#39;, Water=200, T=350)</span>
-<span class="sd">    &gt;&gt;&gt; in2 = Stream(&#39;in2&#39;, Ethanol=200)</span>
-<span class="sd">    &gt;&gt;&gt; hx = HXprocess(&#39;hx&#39;, ins=(in1, in2), outs=(&#39;out1&#39;, &#39;out2&#39;),</span>
+<span class="sd">    &gt;&gt;&gt; in_a = Stream(&#39;in_a&#39;, Water=200, T=350)</span>
+<span class="sd">    &gt;&gt;&gt; in_b = Stream(&#39;in_b&#39;, Ethanol=200)</span>
+<span class="sd">    &gt;&gt;&gt; hx = HXprocess(&#39;hx&#39;, ins=(in_a, in_b), outs=(&#39;out_a&#39;, &#39;out_b&#39;),</span>
 <span class="sd">    ...                fluid_type=&#39;ss&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; hx.simulate()</span>
 <span class="sd">    &gt;&gt;&gt; hx.show()</span>
 <span class="sd">    HXprocess: hx</span>
 <span class="sd">    ins...</span>
-<span class="sd">    [0] in1</span>
+<span class="sd">    [0] in_a</span>
 <span class="sd">        phase: &#39;l&#39;, T: 350 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  200</span>
-<span class="sd">    [1] in2</span>
+<span class="sd">    [1] in_b</span>
 <span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  200</span>
 <span class="sd">    outs...</span>
-<span class="sd">    [0] out1</span>
+<span class="sd">    [0] out_a</span>
 <span class="sd">        phase: &#39;l&#39;, T: 303.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  200</span>
-<span class="sd">    [1] out2</span>
+<span class="sd">    [1] out_b</span>
 <span class="sd">        phase: &#39;l&#39;, T: 329.64 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  200</span>
 <span class="sd">    &gt;&gt;&gt; hx.results()</span>
@@ -615,62 +615,62 @@
 <span class="sd">    </span>
 <span class="sd">    One latent fluid and one sensible fluid case:</span>
 <span class="sd">    </span>
-<span class="sd">    &gt;&gt;&gt; in1 = Stream(&#39;in1&#39;, Ethanol=50, T=351.43, phase=&#39;g&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; in2 = Stream(&#39;in2&#39;, Water=200)</span>
-<span class="sd">    &gt;&gt;&gt; hx = HXprocess(&#39;hx&#39;, ins=(in1, in2), outs=(&#39;out1&#39;, &#39;out2&#39;),</span>
+<span class="sd">    &gt;&gt;&gt; in_a = Stream(&#39;in_a&#39;, Ethanol=50, T=351.43, phase=&#39;g&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; in_b = Stream(&#39;in_b&#39;, Water=200)</span>
+<span class="sd">    &gt;&gt;&gt; hx = HXprocess(&#39;hx&#39;, ins=(in_a, in_b), outs=(&#39;out_a&#39;, &#39;out_b&#39;),</span>
 <span class="sd">    ...                fluid_type=&#39;ls&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; hx.simulate()</span>
 <span class="sd">    &gt;&gt;&gt; hx.show()</span>
 <span class="sd">    HXprocess: hx</span>
 <span class="sd">    ins...</span>
-<span class="sd">    [0] in1</span>
+<span class="sd">    [0] in_a</span>
 <span class="sd">        phase: &#39;g&#39;, T: 351.43 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  50</span>
-<span class="sd">    [1] in2</span>
+<span class="sd">    [1] in_b</span>
 <span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  200</span>
 <span class="sd">    outs...</span>
-<span class="sd">    [0] out1</span>
+<span class="sd">    [0] out_a</span>
 <span class="sd">        phases: (&#39;g&#39;, &#39;l&#39;), T: 351.39 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): (g) Ethanol  32.94</span>
 <span class="sd">                        (l) Ethanol  17.06</span>
-<span class="sd">    [1] out2</span>
+<span class="sd">    [1] out_b</span>
 <span class="sd">        phase: &#39;l&#39;, T: 346.43 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  200</span>
 <span class="sd">    &gt;&gt;&gt; hx.results()</span>
 <span class="sd">    Heat Exchanger                                            Units       hx</span>
-<span class="sd">    Design              Area                                   ft^2      625</span>
+<span class="sd">    Design              Area                                   ft^2      228</span>
 <span class="sd">                        Overall heat transfer coefficient  kW/m^2/K      0.5</span>
 <span class="sd">                        Fouling correction factor                          1</span>
-<span class="sd">                        Tube side pressure drop                 psi        5</span>
-<span class="sd">                        Shell side pressure drop                psi      1.5</span>
+<span class="sd">                        Tube side pressure drop                 psi      1.5</span>
+<span class="sd">                        Shell side pressure drop                psi        5</span>
 <span class="sd">                        Operating pressure                      psi     14.7</span>
 <span class="sd">                        Total tube length                        ft       20</span>
-<span class="sd">    Purchase cost       Heat exchanger                          USD 2.53e+04</span>
-<span class="sd">    Total purchase cost                                         USD 2.53e+04</span>
+<span class="sd">    Purchase cost       Heat exchanger                          USD 2.07e+04</span>
+<span class="sd">    Total purchase cost                                         USD 2.07e+04</span>
 <span class="sd">    Utility cost                                             USD/hr        0</span>
 <span class="sd">    </span>
 <span class="sd">    Latent fluids case:</span>
 <span class="sd">    </span>
-<span class="sd">    &gt;&gt;&gt; in1 = Stream(&#39;in1&#39;, Ethanol=50, T=351.43, phase=&#39;l&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; in2 = Stream(&#39;in2&#39;, Water=200, T=373.15, phase=&#39;g&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; hx = HXprocess(&#39;hx&#39;, ins=(in1, in2), outs=(&#39;out1&#39;, &#39;out2&#39;),</span>
+<span class="sd">    &gt;&gt;&gt; in_a = Stream(&#39;in_a&#39;, Ethanol=50, T=351.43, phase=&#39;l&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; in_b = Stream(&#39;in_b&#39;, Water=200, T=373.15, phase=&#39;g&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; hx = HXprocess(&#39;hx&#39;, ins=(in_a, in_b), outs=(&#39;out_a&#39;, &#39;out_b&#39;),</span>
 <span class="sd">    ...                fluid_type=&#39;ll&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; hx.simulate()</span>
 <span class="sd">    &gt;&gt;&gt; hx.show()</span>
 <span class="sd">    HXprocess: hx</span>
 <span class="sd">    ins...</span>
-<span class="sd">    [0] in1</span>
+<span class="sd">    [0] in_a</span>
 <span class="sd">        phase: &#39;l&#39;, T: 351.43 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  50</span>
-<span class="sd">    [1] in2</span>
+<span class="sd">    [1] in_b</span>
 <span class="sd">        phase: &#39;g&#39;, T: 373.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  200</span>
 <span class="sd">    outs...</span>
-<span class="sd">    [0] out1</span>
+<span class="sd">    [0] out_a</span>
 <span class="sd">        phase: &#39;g&#39;, T: 351.43 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  50</span>
-<span class="sd">    [1] out2</span>
+<span class="sd">    [1] out_b</span>
 <span class="sd">        phases: (&#39;g&#39;, &#39;l&#39;), T: 373.12 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): (g) Water  150.8</span>
 <span class="sd">                        (l) Water  49.19</span>
@@ -720,7 +720,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">fluid_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        [str] Must be one of the following:</span>
+<span class="sd">        [None, &#39;ss&#39;, &#39;ll&#39;, or &#39;ls&#39;]</span>
 <span class="sd">            * **None** Rigorously transfers heat until pinch temperature (not implemented yet).</span>
 <span class="sd">            * **&#39;ss&#39;** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.</span>
 <span class="sd">            * **&#39;ll&#39;** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.</span>
@@ -730,13 +730,13 @@
     <span class="nd">@fluid_type</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">fluid_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fluid_type</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">fluid_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ss&#39;</span><span class="p">,</span> <span class="s1">&#39;ls&#39;</span><span class="p">,</span> <span class="s1">&#39;ll&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fluid type must be either &#39;ss&#39;, &#39;ls&#39;, or &#39;ll&#39;, not </span><span class="si">{fluid_type}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fluid type must be either &#39;ss&#39;, &#39;ls&#39;, or &#39;ll&#39;, not {repr(fluid_type)}&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fluid_type</span> <span class="o">=</span> <span class="n">fluid_type</span>
         
     <span class="k">def</span> <span class="nf">get_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s_in1</span><span class="p">,</span> <span class="n">s_in2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
-        <span class="n">s_out1</span><span class="p">,</span> <span class="n">s_out2</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="k">return</span> <span class="n">s_in1</span><span class="p">,</span> <span class="n">s_in2</span><span class="p">,</span> <span class="n">s_out1</span><span class="p">,</span> <span class="n">s_out2</span>
+        <span class="n">s_in_a</span><span class="p">,</span> <span class="n">s_in_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">s_out_a</span><span class="p">,</span> <span class="n">s_out_b</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="k">return</span> <span class="n">s_in_a</span><span class="p">,</span> <span class="n">s_in_b</span><span class="p">,</span> <span class="n">s_out_a</span><span class="p">,</span> <span class="n">s_out_b</span>
     
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">so0</span><span class="p">,</span> <span class="n">so1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
@@ -864,15 +864,49 @@
         <span class="n">sp_out</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="n">sp_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">sp_in</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">Q</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span></div>
         
-    
-<span class="c1"># elif U == &#39;Concentric tubes&#39;:</span>
-<span class="c1">#     raise NotImplementedError(&quot;&#39;Concentric tubes&#39; not yet implemented&quot;)</span>
-<span class="c1">#     Re_i = 30000 # Arbitrary, but turbulent ??</span>
-<span class="c1">#     Re_o = 30000 # Arbitrary, but turbulent ??</span>
-<span class="c1">#     s_tube, s_shell = self._shellntube_streams(ci, hi, co, ho, inside_heating)</span>
-<span class="c1">#     U = self._concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating)</span>
-<span class="c1"># else:</span>
-<span class="c1">#     raise ValueError(&quot;overall heat transfer coefficient, &#39;U&#39;, should be one of the following: value (kW/m^2/K), &#39;Tabulated&#39;, or &#39;Concentric tubes&#39;&quot;)</span>
+<span class="kn">from</span> <span class="nn">.._graphics</span> <span class="kn">import</span> <span class="n">Graphics</span>
+
+<span class="c1"># Single stream heat exchanger</span>
+<span class="n">HXutility</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;circle&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;margin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+
+<span class="k">def</span> <span class="nf">HXutility_node</span><span class="p">(</span><span class="n">hx</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">si</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">so</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">H_in</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">H</span>
+        <span class="n">H_out</span> <span class="o">=</span> <span class="n">so</span><span class="o">.</span><span class="n">H</span>
+        <span class="n">graphics</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">_graphics</span>
+        <span class="k">if</span> <span class="n">H_in</span> <span class="o">&gt;</span> <span class="n">H_out</span><span class="p">:</span>
+            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#cfecf0&#39;</span>
+            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Cooling&#39;</span>
+        <span class="k">elif</span> <span class="n">H_in</span> <span class="o">&lt;</span> <span class="n">H_out</span><span class="p">:</span>
+            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#fad6d8&#39;</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Heating&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;90&#39;</span>
+            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#cfecf0:#fad6d8&#39;</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Heat exchanger&#39;</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">graphics</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">_graphics</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Heat exchange&#39;</span>
+    <span class="k">return</span> <span class="n">name</span>
+
+<span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span> <span class="o">=</span> <span class="n">HXutility_node</span>
+
+<span class="c1"># Double stream heat exchanger</span>
+<span class="n">HXprocess</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;HXprocess&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;circle&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;margin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;90&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#cfecf0:#fad6d8&#39;</span>
+<span class="k">del</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">graphics</span>
 </pre></div>
 
            </div>

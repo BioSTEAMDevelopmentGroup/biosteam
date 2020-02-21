@@ -187,6 +187,8 @@
 <span class="kn">from</span> <span class="nn">thermosteam.base</span> <span class="kn">import</span> <span class="n">UnitsOfMeasure</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Tank&#39;</span><span class="p">,</span> <span class="s1">&#39;MixTank&#39;</span><span class="p">,</span> <span class="s1">&#39;StorageTank&#39;</span><span class="p">)</span>
+
 <span class="c1"># %% Cost classes for tanks</span>
 
 <span class="n">ExponentialFunctor</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">ExponentialFunctor</span>
@@ -608,7 +610,8 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kW_per_m3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">])</span></div>
 
-
+<span class="n">MixTank</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_in</span> <span class="o">*=</span> <span class="mi">3</span>
+<span class="n">MixTank</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span> <span class="o">*=</span> <span class="mi">3</span>
 <span class="k">del</span> <span class="n">ExponentialFunctor</span>
 </pre></div>
 

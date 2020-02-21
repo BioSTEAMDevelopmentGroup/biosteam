@@ -88,7 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/More on unit operations.html">7. More on unit operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit operation results.html">7. Unit operation results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
@@ -226,7 +226,7 @@
 <dd><p>Create a Distillation column that assumes all light and heavy non keys
 separate to the top and bottoms product respectively. McCabe-Thiele
 analysis is used to find both the number of stages and the reflux ratio
-given a ratio of actual reflux to minimum reflux <a class="footnote-reference brackets" href="#id9" id="id1">1</a>. This assumption
+given a ratio of actual reflux to minimum reflux <a class="footnote-reference brackets" href="#id6" id="id1">1</a>. This assumption
 is good for both binary distillation of highly polar compounds and
 ternary distillation assuming complete separation of light non-keys
 and heavy non-keys with large differences in boiling points. Preliminary
@@ -234,9 +234,9 @@ analysis showed that the theoretical number of stages using this method
 on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other
 methods, such as the Fenske-Underwood-Gilliland method, are more suitable
 for hydrocarbons. The Murphree efficiency is based on the modified
-O’Connell correlation <a class="footnote-reference brackets" href="#id10" id="id2">2</a>. The diameter is based on tray separation
-and flooding velocity <a class="footnote-reference brackets" href="#id9" id="id3">1</a>. Purchase costs are based on correlations
-by Mulet et al. <a class="footnote-reference brackets" href="#id11" id="id4">3</a> <a class="footnote-reference brackets" href="#id12" id="id5">4</a> as compiled by Warren et. al. <a class="footnote-reference brackets" href="#id13" id="id6">5</a>.</p>
+O’Connell correlation <a class="footnote-reference brackets" href="#id7" id="id2">2</a>. The diameter is based on tray separation
+and flooding velocity [1, 3]_. Purchase costs are based on correlations
+compiled by Warren et. al. <a class="footnote-reference brackets" href="#id10" id="id3">5</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -256,37 +256,36 @@ by Mulet et al. <a class="footnote-reference brackets" href="#id11" id="id4">3</
 <li><p><strong>tray_type='Sieve'</strong> (<em>'Sieve'</em><em>, </em><em>'Valve'</em><em>, or </em><em>'Bubble cap'</em>) – Tray type.</p></li>
 <li><p><strong>tray_spacing=450</strong> (<em>float</em>) – Typically between 152 to 915 mm.</p></li>
 <li><p><strong>stage_efficiency=None</strong> – User enforced stage efficiency. If None, stage efficiency is
-calculated by the O’Connell correlation <a class="footnote-reference brackets" href="#id10" id="id7">2</a>.</p></li>
+calculated by the O’Connell correlation <a class="footnote-reference brackets" href="#id7" id="id4">2</a>.</p></li>
 <li><p><strong>velocity_fraction=0.8</strong> (<em>float</em>) – Fraction of actual velocity to maximum velocity allowable before flooding.</p></li>
 <li><p><strong>foaming_factor=1.0</strong> (<em>float</em>) – Must be between 0 to 1.</p></li>
 <li><p><strong>open_tray_area_fraction=0.1</strong> (<em>float</em>) – Fraction of open area to active area of a tray.</p></li>
 <li><p><strong>downcomer_area_fraction=None</strong> (<em>float</em>) – Enforced fraction of downcomer area to net (total) area of a tray.
-If None, estimate ratio based on Oliver’s estimation <a class="footnote-reference brackets" href="#id9" id="id8">1</a>.</p></li>
+If None, estimate ratio based on Oliver’s estimation <a class="footnote-reference brackets" href="#id6" id="id5">1</a>.</p></li>
 <li><p><strong>is_divided=False</strong> (<em>bool</em>) – True if the stripper and rectifier are two separate columns.</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">References</p>
 <dl class="footnote brackets">
-<dt class="label" id="id9"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id3">2</a>,<a href="#id8">3</a>)</span></dt>
+<dt class="label" id="id6"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id5">2</a>)</span></dt>
 <dd><p>J.D. Seader, E.J. Henley, D.K. Roper. (2011)
 Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc.</p>
 </dd>
-<dt class="label" id="id10"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id7">2</a>)</span></dt>
+<dt class="label" id="id7"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id4">2</a>)</span></dt>
 <dd><p>M. Duss, R. Taylor. (2018)
 Predict Distillation Tray Efficiency. AICHE</p>
 </dd>
-<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
-<dd><p>Mulet, A., A. B. Corripio, and L. B. Evans. (1981a).
-Estimate Costs of Pressure Vessels via Correlations.
-Chem. Eng., 88(20), 145–150.</p>
+<dt class="label" id="id8"><span class="brackets">3</span></dt>
+<dd><p>Green, D. W. Distillation. In Perry’s Chemical Engineers’
+674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</p>
 </dd>
-<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
+<dt class="label" id="id9"><span class="brackets">4</span></dt>
 <dd><p>Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).
 Estimate Costs of Distillation and Absorption Towers via Correlations.
 Chem. Eng., 88(26), 77–82.</p>
 </dd>
-<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id6">5</a></span></dt>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id3">5</a></span></dt>
 <dd><p>Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
 &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.
 Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
@@ -305,7 +304,7 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <span class="gp">... </span>                  <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;distillate&#39;</span><span class="p">,</span> <span class="s1">&#39;bottoms_product&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                  <span class="n">LHK</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                  <span class="n">y_top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">x_bot</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-<span class="go">                      is_divided=True)</span>
+<span class="gp">... </span>                  <span class="n">is_divided</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">D1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># See all results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">composition</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -339,28 +338,40 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <span class="go">                    Cost                       USD/hr      58.1</span>
 <span class="go">Design              Theoretical feed stage                    9</span>
 <span class="go">                    Theoretical stages                       13</span>
-<span class="go">                    Minimum reflux                        0.687</span>
-<span class="go">                    Reflux                                 1.37</span>
+<span class="go">                    Minimum reflux              Ratio     0.687</span>
+<span class="go">                    Reflux                      Ratio      1.37</span>
 <span class="go">                    Rectifier stages                         15</span>
 <span class="go">                    Stripper stages                          13</span>
-<span class="go">                    Rectifier height                       34.7</span>
-<span class="go">                    Stripper height                        31.7</span>
-<span class="go">                    Rectifier diameter                     3.93</span>
-<span class="go">                    Stripper diameter                      3.36</span>
-<span class="go">                    Rectifier wall thickness               0.25</span>
-<span class="go">                    Stripper wall thickness                0.25</span>
-<span class="go">                    Rectifier weight                   4.79e+03</span>
-<span class="go">                    Stripper weight                    3.74e+03</span>
+<span class="go">                    Rectifier height               ft      34.7</span>
+<span class="go">                    Stripper height                ft      31.7</span>
+<span class="go">                    Rectifier diameter             ft      3.93</span>
+<span class="go">                    Stripper diameter              ft      3.36</span>
+<span class="go">                    Rectifier wall thickness       in      0.25</span>
+<span class="go">                    Stripper wall thickness        in      0.25</span>
+<span class="go">                    Rectifier weight               lb  4.79e+03</span>
+<span class="go">                    Stripper weight                lb  3.74e+03</span>
 <span class="go">Purchase cost       Rectifier trays               USD   1.5e+04</span>
 <span class="go">                    Stripper trays                USD  1.28e+04</span>
 <span class="go">                    Rectifier tower               USD  7.62e+04</span>
 <span class="go">                    Stripper tower                USD  6.53e+04</span>
-<span class="go">                    Condenser                     USD  3.41e+04</span>
-<span class="go">                    Boiler                        USD  2.64e+04</span>
-<span class="go">Total purchase cost                               USD   2.3e+05</span>
+<span class="go">                    Condenser                     USD  2.02e+04</span>
+<span class="go">                    Boiler                        USD  4.27e+03</span>
+<span class="go">Total purchase cost                               USD  1.94e+05</span>
 <span class="go">Utility cost                                   USD/hr      59.8</span>
 </pre></div>
 </div>
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.condenser">
+<code class="sig-name descname">condenser</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Distillation.condenser" title="Permalink to this definition">¶</a></dt>
+<dd><p>[HXutility] Condenser.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.boiler">
+<code class="sig-name descname">boiler</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Distillation.boiler" title="Permalink to this definition">¶</a></dt>
+<dd><p>[HXutility] Boiler.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="biosteam.units.Distillation.LHK">
 <em class="property">property </em><code class="sig-name descname">LHK</code><a class="headerlink" href="#biosteam.units.Distillation.LHK" title="Permalink to this definition">¶</a></dt>
@@ -432,12 +443,6 @@ If None, the fraction is estimated based on heuristics.</p>
 <dt id="biosteam.units.Distillation.is_divided">
 <em class="property">property </em><code class="sig-name descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.compute_N_stages">
-<code class="sig-name descname">compute_N_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.compute_N_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.compute_N_stages" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a tuple with the actual number of stages for the rectifier and the stripper.</p>
 </dd></dl>
 
 <dl class="method">
