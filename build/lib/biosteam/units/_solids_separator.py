@@ -7,6 +7,8 @@ Created on Thu Aug 23 22:14:01 2018
 from ._splitter import Splitter, run_split_with_mixing
 from ._CAS import H2O_CAS
 
+__all__ = ('SolidsSeparator',)
+
 class SolidsSeparator(Splitter):
     """Create SolidsSeparator object.
     

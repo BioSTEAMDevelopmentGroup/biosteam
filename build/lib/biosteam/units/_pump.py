@@ -14,6 +14,8 @@ from .._unit import Unit
 from ..utils import static_flow_and_phase
 import biosteam as bst
 
+__all__ = ('Pump',)
+
 ln = np.log
 exp = np.exp
 

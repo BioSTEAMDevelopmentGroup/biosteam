@@ -13,9 +13,9 @@ from fluids import nearest_pipe
 from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
-ln = np.log
-exp = np.exp
-pi = np.pi
+from math import exp, log as ln
+
+__all__ = ('HXutility', 'HXprocess')
 
 # Lenght factor 
 x = np.array((8, 13, 16, 20)) 
@@ -690,12 +690,46 @@ class HXprocess(HX):
         sp_out.vle(P=sp_out.P, H=sp_in.H + Q)
         self.Q = abs(Q)
         
-    
-# elif U == 'Concentric tubes':
-#     raise NotImplementedError("'Concentric tubes' not yet implemented")
-#     Re_i = 30000 # Arbitrary, but turbulent ??
-#     Re_o = 30000 # Arbitrary, but turbulent ??
-#     s_tube, s_shell = self._shellntube_streams(ci, hi, co, ho, inside_heating)
-#     U = self._concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating)
-# else:
-#     raise ValueError("overall heat transfer coefficient, 'U', should be one of the following: value (kW/m^2/K), 'Tabulated', or 'Concentric tubes'")
+from .._graphics import Graphics
+
+# Single stream heat exchanger
+HXutility._graphics = graphics = Graphics()
+graphics.node['shape'] = 'circle'
+graphics.node['color'] = 'none'
+graphics.node['margin'] = '0'
+
+def HXutility_node(hx):
+    try:
+        si = hx.ins[0]
+        so = hx.outs[0]
+        H_in = si.H
+        H_out = so.H
+        graphics = hx._graphics
+        if H_in > H_out:
+            graphics.node['fillcolor'] = '#cfecf0'
+            graphics.node['gradientangle'] = '0'
+            name = 'Cooling'
+        elif H_in < H_out:
+            graphics.node['gradientangle'] = '0'
+            graphics.node['fillcolor'] = '#fad6d8'
+            name = 'Heating'
+        else:
+            graphics.node['gradientangle'] = '90'
+            graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
+            name = 'Heat exchanger'
+    except:
+        graphics = hx._graphics
+        name = 'Heat exchange'
+    return name
+
+graphics.node_function = HXutility_node
+
+# Double stream heat exchanger
+HXprocess._graphics = graphics = Graphics()
+graphics.name = 'HXprocess'
+graphics.node['shape'] = 'circle'
+graphics.node['color'] = 'none'
+graphics.node['margin'] = '0'
+graphics.node['gradientangle'] = '90'
+graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
+del Graphics, graphics

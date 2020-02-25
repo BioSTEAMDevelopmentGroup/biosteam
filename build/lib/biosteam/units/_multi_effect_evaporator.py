@@ -7,7 +7,8 @@ Created on Thu Aug 23 21:43:13 2018
 import numpy as np
 import biosteam as bst
 from .. import Unit
-from . import Mixer, HXutility
+from ._mixer import Mixer
+from ._hx import HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
 from .design_tools import (
     compute_vacuum_system_power_and_cost,
@@ -17,6 +18,9 @@ from thermosteam import Stream, settings
 from flexsolve import IQ_interpolation
 from warnings import warn
 import ht
+
+__all__ = ('MultiEffectEvaporator',)
+
 log = np.log
 exp = np.exp
 
@@ -45,7 +49,15 @@ evaporators = {'Horizontal tube':
 
 
 class MultiEffectEvaporator(Unit):
-    """Creates evaporatorators with pressures given by P (a list of pressures). Adjusts first evaporator vapor fraction to satisfy an overall fraction evaporated. All evaporators after the first have zero duty. Condenses the vapor coming out of the last evaporator. Pumps all liquid streams to prevent back flow in later parts. All liquid evaporated is ultimately recondensed. Cost is based on required heat transfer area. Vacuum system is based on air leakage. Air leakage is based on volume, as given by residence time `tau` and flow rate to each evaporator.
+    """
+    Creates evaporatorators with pressures given by P (a list of pressures). 
+    Adjusts first evaporator vapor fraction to satisfy an overall fraction
+    evaporated. All evaporators after the first have zero duty. Condenses
+    the vapor coming out of the last evaporator. Pumps all liquid streams
+    to prevent back flow in later parts. All liquid evaporated is ultimately
+    recondensed. Cost is based on required heat transfer area. Vacuum system
+    is based on air leakage. Air leakage is based on volume, as given by
+    residence time `tau` and flow rate to each evaporator.
 
     Parameters
     ----------

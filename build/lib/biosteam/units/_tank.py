@@ -13,6 +13,8 @@ from thermosteam import settings
 from thermosteam.base import UnitsOfMeasure
 from warnings import warn
 
+__all__ = ('Tank', 'MixTank', 'StorageTank')
+
 # %% Cost classes for tanks
 
 ExponentialFunctor = bst.utils.ExponentialFunctor
@@ -434,5 +436,6 @@ class MixTank(Tank):
         super()._cost()
         self.power_utility(self.kW_per_m3 * self.design_results['Total volume'])
 
-
+MixTank._graphics.edge_in *= 3
+MixTank._graphics.edge_out *= 3
 del ExponentialFunctor

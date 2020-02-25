@@ -13,6 +13,8 @@ from ._tank import MixTank
 from .design_tools import size_batch
 from thermosteam.reaction import Reaction
 
+__all__ = ('Fermentation',)
+
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,
       cost=421e3, S=3785, n=0.6, BM=1.8, N='N')
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
@@ -21,7 +23,15 @@ from thermosteam.reaction import Reaction
       S=3785, n=0.5, BM=1.5, N='N')
 class Fermentation(Unit):
     """
-    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1]_ [2]_ [3]_ [4]_. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [5]_. 
+    Create a Fermentation object which models large-scale batch fermentation
+    for the production of 1st generation ethanol using yeast
+    [1]_ [2]_ [3]_ [4]_. A compound with CAS 'Yeast' must be present.
+    Only sucrose and glucose are taken into account for conversion.
+    Conversion is based on reaction time, `tau`. Cleaning and unloading time,
+    `tau_0`, fraction of working volume, `V_wf`, and number of reactors,
+    `N_reactors`, are attributes that can be changed. Cost of a reactor
+    is based on the NREL batch fermentation tank cost assuming volumetric
+    scaling with a 6/10th exponent [5]_. 
     
     Parameters
     ----------
@@ -41,20 +51,23 @@ class Fermentation(Unit):
     
     Examples
     --------
-    Simulate a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast.
+    Simulate a Fermentation object which models batch fermentation for the
+    production of 1st generation ethanol using yeast.
     
     >>> from biorefineries.lipidcane.chemicals import ethanol_chemicals 
     >>> from biosteam.units import Fermentation
     >>> from thermosteam import Stream, settings
     >>> settings.set_thermo(ethanol_chemicals)
     >>> feed = Stream('feed',
-    ...              Water=1.20e+05,
-    ...              Glucose=1.89e+03,
-    ...              Sucrose=2.14e+04,
-    ...              DryYeast=1.03e+04,
-    ...              units='kg/hr',
-    ...              T=32+273.15)
-    >>> F1 = Fermentation('F1', ins=feed, outs=('CO2', 'product'), tau=8, efficiency=0.90, N=8)
+    ...               Water=1.20e+05,
+    ...               Glucose=1.89e+03,
+    ...               Sucrose=2.14e+04,
+    ...               DryYeast=1.03e+04,
+    ...               units='kg/hr',
+    ...               T=32+273.15)
+    >>> F1 = Fermentation('F1',
+    ...                   ins=feed, outs=('CO2', 'product'),
+    ...                   tau=8, efficiency=0.90, N=8)
     >>> F1.simulate()
     >>> F1.show()
     Fermentation: F1

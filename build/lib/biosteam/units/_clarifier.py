@@ -9,6 +9,8 @@ from ._splitter import Splitter
 from .._exceptions import DesignError
 from .decorators import cost
 
+__all__ = ('Clarifier',)
+
 _iswithin = lambda x, bounds: bounds[0] < x < bounds[1]
 # Electricity: 16 hp / 200 ft diameter
 

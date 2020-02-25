@@ -9,6 +9,8 @@ from ..utils.design_warning import lb_warning
 from .decorators import cost
 from ._splitter import Splitter
 
+__all__ = ('SolidsCentrifuge',)
+
 @cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03,
       N='Number of centrifuges')
 class SolidsCentrifuge(Splitter):

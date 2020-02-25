@@ -52,7 +52,7 @@ class Unit:
     **BM=None** 
         [float] Bare module factor (installation factor).
     **_units={}**
-        [dict] Units of measure for results Operation and Design.
+        [dict] Units of measure for `design_results` dictionary.
     **_N_ins=1**
         [int] Expected number of input streams.
     **_N_outs=2**
@@ -261,17 +261,17 @@ class Unit:
     
     @property
     def purchase_cost(self):
-        """Total purchase cost (USD)."""
+        """Total purchase cost [USD]."""
         return sum(self.purchase_costs.values())
     
     @property
     def installation_cost(self):
-        """Installation cost (USD)."""
+        """Installation cost [USD]."""
         return self.BM * sum(self.purchase_costs.values())
     
     @property
     def utility_cost(self):
-        """Total utility cost (USD/hr)."""
+        """Total utility cost [USD/hr]."""
         return sum([i.cost for i in self.heat_utilities]) + self.power_utility.cost
 
     def simulate(self):
@@ -403,7 +403,7 @@ class Unit:
 
     @property
     def _downstream_units(self):
-        """Return set of all units downstream."""
+        """Return a set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
         _add_downstream = _add_downstream_neighbors
@@ -422,7 +422,7 @@ class Unit:
         return downstream_units
         
     def _neighborhood(self, radius=1, upstream=True, downstream=True):
-        """Return all neighboring units within given radius.
+        """Return a set of all neighboring units within given radius.
         
         Parameters
         ----------
@@ -529,16 +529,16 @@ class Unit:
     # Molar flow rates
     @property
     def mol_in(self):
-        """Molar flows going in (kmol/hr)."""
+        """Molar flows going in [kmol/hr]."""
         return sum([s.mol for s in self._ins if s])
     @property
     def mol_out(self):
-        """Molar flows going out (kmol/hr)."""
+        """Molar flows going out [kmol/hr]."""
         return sum([s.mol for s in self._outs if s])
 
     @property
     def z_mol_in(self):
-        """Molar fractions going in (kmol/hr)."""
+        """Molar fractions going in [kmol/hr]."""
         return self._mol_in/self.F_mol_in
     @property
     def z_mol_out(self):
@@ -547,21 +547,21 @@ class Unit:
 
     @property
     def F_mol_in(self):
-        """Net molar flow going in (kmol/hr)."""
+        """Net molar flow going in [kmol/hr]."""
         return sum([s.F_mol for s in self._ins if s])
     @property
     def F_mol_out(self):
-        """Net molar flow going out (kmol/hr)."""
+        """Net molar flow going out [kmol/hr]."""
         return sum([s.F_mol for s in self._outs if s])
 
     # Mass flow rates
     @property
     def mass_in(self):
-        """Mass flows going in (kg/hr)."""
+        """Mass flows going in [kg/hr]."""
         return sum([s.mol for s in self._ins if s]) * self._thermo.chemicals.MW
     @property
     def mass_out(self):
-        """Mass flows going out (kg/hr)."""
+        """Mass flows going out [kg/hr]."""
         return sum([s.mol for s in self._outs if s]) * self._thermo.chemicals.MW
 
     @property
@@ -575,21 +575,21 @@ class Unit:
 
     @property
     def F_mass_in(self):
-        """Net mass flow going in (kg/hr)."""
+        """Net mass flow going in [kg/hr]."""
         return self.mass_in.sum()
     @property
     def F_mass_out(self):
-        """Net mass flow going out (kg/hr)."""
+        """Net mass flow going out [kg/hr]."""
         return self.mass_out.sum()
 
     # Volumetric flow rates
     @property
     def vol_in(self):
-        """Volumetric flows going in (m3/hr)."""
+        """Volumetric flows going in [m3/hr]."""
         return sum([s.vol for s in self._ins if s])
     @property
     def F_vol_in(self):
-        """Net volumetric flow going in (m3/hr)."""
+        """Net volumetric flow going in [m3/hr]."""
         return sum(self.vol_in)
 
     @property
@@ -598,12 +598,12 @@ class Unit:
         return self.vol_in/self.F_vol_in
     @property
     def vol_out(self):
-        """Volumetric flows going out (m3/hr)."""
+        """Volumetric flows going out [m3/hr]."""
         return sum([s.vol for s in self._outs if s])
 
     @property
     def F_vol_out(self):
-        """Net volumetric flow going out (m3/hr)."""
+        """Net volumetric flow going out [m3/hr]."""
         return sum(self.vol_out)
     @property
     def z_vol_out(self):
@@ -613,27 +613,27 @@ class Unit:
     # Enthalpy flow rates
     @property
     def H_in(self):
-        """Enthalpy flow going in (kJ/hr)."""
+        """Enthalpy flow going in [kJ/hr]."""
         return sum([s.H for s in self._ins if s])
 
     @property
     def H_out(self):
-        """Enthalpy flow going out (kJ/hr)."""
+        """Enthalpy flow going out [kJ/hr]."""
         return sum([s.H for s in self._outs if s])
 
     @property
     def Hf_in(self):
-        """Enthalpy of formation flow going in (kJ/hr)."""
+        """Enthalpy of formation flow going in [kJ/hr]."""
         return sum([s.Hf for s in self._ins if s])
 
     @property
     def Hf_out(self):
-        """Enthalpy of formation flow going out (kJ/hr)."""
+        """Enthalpy of formation flow going out [kJ/hr]."""
         return sum([s.Hf for s in self._outs if s])
 
     @property
     def Hnet(self):
-        """Net enthalpy flow (including enthalpies of formation)."""
+        """Net enthalpy flow, including enthalpies of formation [kJ/hr]."""
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     
     # Representation

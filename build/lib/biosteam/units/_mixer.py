@@ -47,11 +47,18 @@ class Mixer(Unit):
     
     
     """
-    _has_cost = False
     _N_outs = 1
-    _N_ins = 5
+    _N_ins = 2
     _ins_size_is_fixed = False
     
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins)
+
+graphics = Mixer._graphics
+graphics.edge_in *= 3
+graphics.edge_out *= 3
+graphics.node['shape'] = 'triangle'
+graphics.node['orientation'] = '270'
+graphics.edge_out[0]['tailport'] = 'e'
+del graphics

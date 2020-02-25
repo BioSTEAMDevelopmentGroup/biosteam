@@ -6,7 +6,8 @@ Created on Thu Aug 23 19:33:20 2018
 @author: yoelr
 """
 import numpy as np
-from thermosteam import MultiStream, Stream
+from math import ceil
+import thermosteam as tmo
 from .design_tools.specification_factors import  (
     distillation_column_material_factors,
     tray_material_factor_functions,
@@ -28,6 +29,8 @@ from .. import Unit
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
+
+__all__ = ('Distillation',)
 
 def compute_stages_McCabeThiele(P, operating_line,
                                 x_stages, y_stages, T_stages,
@@ -110,8 +113,15 @@ class Distillation(Unit):
         Molar fraction of light key in the distillate.
     x_bot : float
         Molar fraction of light key in the bottoms.
+    Lr : float
+        Recovery of the light key in the distillate.
+    Hr : float
+        Recovery of the heavy key in the bottoms product.
     k : float
         Ratio of reflux to minimum reflux.
+    specification="Composition" : "Composition" or "Recovery"
+        If composition is used, `y_top` and `x_bot` must be specified.
+        If recovery is used, `Lr` and `Hr` must be specified.
     P=101325 : float
         Operating pressure [Pa].
     vessel_material : str, optional
@@ -252,7 +262,12 @@ class Distillation(Unit):
                'Weight': (9000., 2.5e6)}
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                P=101325, *, LHK, y_top, x_bot, k,
+                P=101325, *, LHK, k,
+                Lr=None,
+                Hr=None,
+                y_top=None,
+                x_bot=None, 
+                product_specification='Composition',
                 vessel_material='Carbon steel',
                 tray_material='Carbon steel',
                 tray_type='Sieve',
@@ -266,11 +281,18 @@ class Distillation(Unit):
         Unit.__init__(self, ID, ins, outs, thermo)
         
         # Operation specifications
+        self.k = k
         self.P = P
         self.LHK = LHK
-        self.y_top = y_top
-        self.x_bot = x_bot
-        self.k = k
+        self._product_specification = product_specification
+        if product_specification == 'Composition':
+            self.y_top = y_top
+            self.x_bot = x_bot
+        elif product_specification == 'Recovery':
+            self.Lr = Lr
+            self.Hr = Hr
+        else:
+            raise ValueError("product specification must be either 'Composition' or 'Recovery'")
         
         # Construction specifications
         self.vessel_material = vessel_material
@@ -288,29 +310,32 @@ class Distillation(Unit):
         thermo = self.thermo
         #: [HXutility] Condenser.
         self.condenser = HXutility(None,
-                                    ins=Stream(None, phase='g', thermo=thermo),
-                                    outs=MultiStream(None, thermo=thermo),
-                                    thermo=thermo)
+                                   ins=tmo.Stream(None, phase='g', thermo=thermo),
+                                   outs=tmo.MultiStream(None, thermo=thermo),
+                                   thermo=thermo)
         #: [HXutility] Boiler.
         self.boiler = HXutility(None,
-                                 ins=Stream(None, thermo=thermo),
-                                 outs=MultiStream(None, thermo=thermo),
-                                 thermo=thermo)
+                                ins=tmo.Stream(None, thermo=thermo),
+                                outs=tmo.MultiStream(None, thermo=thermo),
+                                thermo=thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
         self._McCabeThiele_args = np.zeros(6)
-        
+    
+    @property
+    def product_specification(self):
+        return self._product_specification
+    @product_specification.setter
+    def product_specification(self, spec):
+        assert spec in ('Composition', 'Recovery'), (
+            "product specification must be either 'Composition' or 'Recovery'")
+        self._product_specification = spec
+    
     @property
     def condensate(self):
         return self.condenser.outs[0]['l']
     @property
     def boilup(self):
         return self.boiler.outs[0]['g']    
-    @property
-    def bottoms_produt(self):
-        return self.boiler.outs[0]['l']
-    @property
-    def distillate(self):
-        return self.condenser.outs[0]['g']
     
     @property
     def LHK(self):
@@ -320,6 +345,7 @@ class Distillation(Unit):
     def LHK(self, LHK):
         # Set light non-key and heavy non-key indices
         self._LHK = LHK = tuple(LHK)
+        intermediate_volatile_chemicals = []
         chemicals = self.chemicals
         LHK_chemicals = LK_chemical, HK_chemical = self.chemicals.retrieve(LHK)
         Tb_light = LK_chemical.Tb
@@ -337,9 +363,14 @@ class Distillation(Unit):
             elif Tb > Tb_heavy:
                 HNK.append(chemical.ID)
             elif chemical not in LHK_chemicals:
-                raise ValueError(f"intermediate volatile specie, '{chemical}', between light and heavy key, ['{LK_chemical}', '{HK_chemical}']")
+                intermediate_volatile_chemicals.append(chemical.ID)
         self._LNK = tuple(LNK)
         self._HNK = tuple(HNK)
+        get_index = self.chemicals.get_index
+        self._LHK_index = get_index(self._LHK)
+        self._LNK_index = get_index(self._LNK)
+        self._HNK_index = get_index(self._HNK)
+        self._intermediate_volatile_chemicals = tuple(intermediate_volatile_chemicals)
     
     @property
     def y_top(self):
@@ -347,6 +378,10 @@ class Distillation(Unit):
         return self._y_top
     @y_top.setter
     def y_top(self, y_top):
+        assert self.product_specification == "Composition", (
+            "product specification must be 'Composition' "
+            "to set distillate composition")
+        assert 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
         self._y_top = y_top
         self._y = np.array([y_top, 1-y_top])
     
@@ -356,8 +391,36 @@ class Distillation(Unit):
         return self._x_bot
     @x_bot.setter
     def x_bot(self, x_bot):
+        assert self.product_specification == "Composition", (
+            "product specification must be 'Composition' to set bottoms "
+            "product composition")
+        assert 0 < x_bot < 1, "heavy key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
         self._x = np.array([x_bot, 1-x_bot])
+    
+    @property
+    def Lr(self):
+        """Light key recovery in the distillate."""
+        return self._Lr
+    @Lr.setter
+    def Lr(self, Lr):
+        assert self.product_specification == "Recovery", (
+            "product specification must be 'Recovery' "
+            "to set light key recovery")
+        assert 0 < Lr < 1, "light key recovery in the distillate must be a fraction" 
+        self._Lr = Lr
+    
+    @property
+    def Hr(self):
+        """Heavy key recovery in the bottoms product."""
+        return self._Hr
+    @Hr.setter
+    def Hr(self, Hr):
+        assert self.product_specification == "Recovery", (
+            "product specification must be 'Recovery' "
+            "to set heavy key recovery")
+        assert 0 < Hr < 1, "heavy key recovery in the bottoms product must be a fraction" 
+        self._Hr = Hr
     
     @property
     def tray_spacing(self):
@@ -436,7 +499,6 @@ class Distillation(Unit):
             raise ValueError("tray material must be one of the following: "
                             f"{', '.join(tray_material_factor_functions)}")
         
-
     @property
     def vessel_material(self):
         """Default 'Carbon steel'"""
@@ -458,41 +520,68 @@ class Distillation(Unit):
     def is_divided(self, is_divided):
         self._is_divided = is_divided
     
+    def _check_mass_balance(self):
+        LHK = self._LHK
+        intermediate_chemicals = self._intermediate_volatile_chemicals
+        intemediates_index = self.chemicals.get_index(intermediate_chemicals)
+        intermediate_flows = self.mol_in[intemediates_index]
+        for flow, chemical in zip(intermediate_flows, intermediate_chemicals):
+            assert flow==0, ("intermediate volatile chemical,"
+                            f"'{chemical}', between light and heavy "
+                            f"key, {', '.join(LHK)}")
+        distillate, bottoms_product = self.outs
+        LHK = self._LHK
+        LHK_index = self._LHK_index
+        LK_distillate, HK_distillate = distillate.mol[LHK_index]
+        LK_bottoms, HK_bottoms = bottoms_product.mol[LHK_index]
+        assert LK_distillate and LK_bottoms, ("Light key composition is infeasible")
+        assert HK_distillate and HK_bottoms, ("heavy key composition is infeasible")
+    
     def _run_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
-        get_index = self.chemicals.get_index
-        LHK_index = get_index(self._LHK)
-        LNK_index = get_index(self._LNK)
-        HNK_index = get_index(self._HNK)
         mol = self.mol_in
+        LHK_index = self._LHK_index
+        HNK_index = self._HNK_index
+        LNK_index = self._LNK_index
         LHK_mol = mol[LHK_index]
         HNK_mol = mol[HNK_index]
         LNK_mol = mol[LNK_index]
-
-        # Set light and heavy keys by lever rule
-        light, heavy = LHK_mol
-        LHK_F_mol = light + heavy
-        zf = light/LHK_F_mol
-        split_frac = (zf-self.x_bot)/(self.y_top-self.x_bot)
-        top_net = LHK_F_mol*split_frac
-
-        # Set output streams
-        vap, liq = self.outs
-        vap.mol[LHK_index] = vap_LHK_mol = top_net * self._y
-        liq.mol[LHK_index] = LHK_mol - vap_LHK_mol
-        vap.mol[LNK_index] = LNK_mol
-        liq.mol[HNK_index] = HNK_mol
+        
+        # Mass balance for non-keys
+        distillate, bottoms_product = self.outs
+        distillate.mol[LNK_index] = LNK_mol
+        bottoms_product.mol[HNK_index] = HNK_mol
+        
+        # Mass balance for keys
+        spec = self.product_specification
+        if  spec == 'Composition':
+            # Use lever rule
+            light, heavy = LHK_mol
+            F_mol_LHK = light + heavy
+            zf = light/F_mol_LHK
+            distillate_fraction = (zf-self.x_bot)/(self.y_top-self.x_bot)
+            F_mol_LHK_distillate = F_mol_LHK * distillate_fraction
+            distillate_LHK_mol = F_mol_LHK_distillate * self._y
+        elif spec == 'Recovery':
+            distillate_LHK_mol = LHK_mol * [self.Lr, (1 - self.Hr)]
+        else:
+            raise ValueError("invalid specification '{spec}'")
+        distillate.mol[LHK_index] = distillate_LHK_mol
+        bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
+        
+        if tmo.settings.debug:
+            self._check_mass_balance()
     
     def _run(self):
         self._run_mass_balance()
-        vap, liq = self.outs
-        vap.phase = 'g'
-        liq.phase = 'l'
-        vap.P = liq.P = self.P
-        self._condensate_dew_point = dp = vap.dew_point_at_P()
-        self._boilup_bubble_point = bp = liq.bubble_point_at_P()
-        liq.T = bp.T
-        vap.T = dp.T
+        distillate, bottoms_product = self.outs
+        distillate.phase = 'g'
+        bottoms_product.phase = 'l'
+        distillate.P = bottoms_product.P = self.P
+        self._condensate_dew_point = dp = distillate.dew_point_at_P()
+        self._boilup_bubble_point = bp = bottoms_product.bubble_point_at_P()
+        bottoms_product.T = bp.T
+        distillate.T = dp.T
 
     def _run_McCabeThiele(self):
         distillate, bottoms = self.outs
@@ -504,7 +593,7 @@ class Distillation(Unit):
         liq_mol = np.zeros(chemicals.size)
         vap_mol = liq_mol.copy()
         for s in self.ins:
-            if isinstance(s, MultiStream):
+            if isinstance(s, tmo.MultiStream):
                 liq_mol += s.imol['l']
                 vap_mol += s.imol['g']
             elif s.phase == 'g':
@@ -517,11 +606,11 @@ class Distillation(Unit):
         self._feed_liqmol = liq_mol
         self._feed_vapmol = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
-        LHK_F_mol = LHK_mol.sum()
-        zf = LHK_mol[0]/LHK_F_mol
+        F_mol_LHK = LHK_mol.sum()
+        zf = LHK_mol[0]/F_mol_LHK
         
         # Get feed quality
-        q = liq_mol[LHK_index].sum()/LHK_F_mol
+        q = liq_mol[LHK_index].sum()/F_mol_LHK
         
         # Main arguments
         P = self.P
@@ -578,16 +667,16 @@ class Distillation(Unit):
         compute_stages_McCabeThiele(P, rs, x_stages, y_stages, T_stages, y_top, solve_Ty)
         
         # Find feed stage
+        N_stages = len(x_stages)
+        feed_stage = ceil(N_stages/2)
         for i in range(len(y_stages)-1):
-            j = i+1
-            if y_stages[i] < y_m and y_stages[j] > y_m:
+            if y_stages[i] < y_m < y_stages[i+1]:
                 feed_stage = i+1
-        stages = len(x_stages)
         
         # Results
         Design = self.design_results
-        Design['Theoretical feed stage'] = stages - feed_stage
-        Design['Theoretical stages'] = stages
+        Design['Theoretical feed stage'] = N_stages - feed_stage
+        Design['Theoretical stages'] = N_stages
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R
         
@@ -868,3 +957,11 @@ class Distillation(Unit):
         plt.title(f'McCabe Thiele Diagram (Rmin = {Rmin:.2f}, R = {R:.2f})')
         plt.show()
         return plt
+
+edge_out = Distillation._graphics.edge_out
+edge_out[0]['tailport'] = 'n'
+edge_out[1]['tailport'] = 's'
+node = Distillation._graphics.node
+node['width'] = '1'
+node['height'] = '1.2'
+del edge_out, node
