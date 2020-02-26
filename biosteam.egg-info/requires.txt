@@ -1,5 +1,5 @@
 IPython==7.9.0
-thermosteam>=0.2.12
+thermosteam>=0.2.13
 graphviz==0.8.3
 lazypkg>=1.4
 chaospy==3.0.11

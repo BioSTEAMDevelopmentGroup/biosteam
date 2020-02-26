@@ -164,11 +164,13 @@ class Flash(Unit):
     BM_vertical = 4.16
     @property
     def BM(self):
-        vessel_type = self.SetType
+        vessel_type = self.vessel_type
         if vessel_type == 'Vertical':
-            return self._BM_vertical
+            return self.BM_vertical
         elif vessel_type == 'Horizontal':
-            return self._BM_horizontal
+            return self.BM_horizontal
+        elif vessel_type == 'Default':
+            return self.BM_vertical if self._isVertical else self.BM_horizontal 
         else:
             raise AttributeError('vessel_type not defined')
     
@@ -283,7 +285,7 @@ class Flash(Unit):
         ms.T = feed.T
         Q = self.Q
         H = feed.H + Q if Q is not None else None
-        ms.vle(self.P, H, self.T, self.V, self.x, self.y)
+        ms.vle(P=self.P, H=H, T=self.T, V=self.V, x=self.x, y=self.y)
 
         # Set Values
         vap.phase = 'g'

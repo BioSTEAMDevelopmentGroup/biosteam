@@ -534,8 +534,8 @@ class Distillation(Unit):
         LHK_index = self._LHK_index
         LK_distillate, HK_distillate = distillate.mol[LHK_index]
         LK_bottoms, HK_bottoms = bottoms_product.mol[LHK_index]
-        assert LK_distillate and LK_bottoms, ("Light key composition is infeasible")
-        assert HK_distillate and HK_bottoms, ("heavy key composition is infeasible")
+        assert LK_distillate >= 0 and LK_bottoms >= 0, ("Light key composition is infeasible")
+        assert HK_distillate >= 0 and HK_bottoms >= 0, ("heavy key composition is infeasible")
     
     def _run_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
@@ -615,8 +615,13 @@ class Distillation(Unit):
         # Main arguments
         P = self.P
         k = self.k
-        y_top = self.y_top
-        x_bot = self.x_bot
+        if self.product_specification == 'Composition':
+            y_top = self.y_top
+            x_bot = self.x_bot
+        else:
+            distillate, bottoms_product = self.outs
+            y_top, _ = distillate.get_normalized_mol(LHK)
+            x_bot, _ = bottoms_product.get_normalized_mol(LHK)
         
         # Cache
         old_args = self._McCabeThiele_args
@@ -938,8 +943,14 @@ class Distillation(Unit):
         zf = q_args['zf']
         q = q_args['q']
         q_line = lambda x: q*x/(q-1) - zf/(q-1)
-        y_top = self.y_top
-        x_bot = self.x_bot
+        if self.product_specification == 'Composition':
+            y_top = self.y_top
+            x_bot = self.x_bot
+        else:
+            distillate, bottoms_product = self.outs
+            LHK = self.LHK
+            y_top, _ = distillate.get_normalized_mol(LHK)
+            x_bot, _ = bottoms_product.get_normalized_mol(LHK)
         stages = Design['Theoretical stages']
         Rmin = Design['Minimum reflux']
         R = Design['Reflux']
