@@ -543,6 +543,8 @@ class Distillation(Unit):
         LHK_index = self._LHK_index
         HNK_index = self._HNK_index
         LNK_index = self._LNK_index
+        intermediate_chemicals = self._intermediate_volatile_chemicals
+        intemediates_index = self.chemicals.get_index(intermediate_chemicals)
         LHK_mol = mol[LHK_index]
         HNK_mol = mol[HNK_index]
         LNK_mol = mol[LNK_index]
@@ -568,7 +570,8 @@ class Distillation(Unit):
             raise ValueError("invalid specification '{spec}'")
         distillate.mol[LHK_index] = distillate_LHK_mol
         bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
-        
+        distillate.mol[intemediates_index] = \
+        bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
         if tmo.settings.debug:
             self._check_mass_balance()
     

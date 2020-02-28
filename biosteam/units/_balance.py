@@ -34,7 +34,10 @@ class MassBalance(Unit):
 
     Examples
     --------
-    MassBalance are Unit objects that serve to alter flow rates of selected species and input streams to satisfy the mass balance. The example below uses the MassBalance object to satisfy the target flow rate feeding the mixer M1:
+    MassBalance are Unit objects that serve to alter flow rates of selected
+    chemicals and input streams to satisfy the mass balance.
+    The example below uses the MassBalance object to satisfy the target
+    flow rate feeding the mixer M1:
     
     >>> from biosteam import System
     >>> from biosteam.units import Mixer, Splitter, StorageTank, Pump, Flash, MassBalance
