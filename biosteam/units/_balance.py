@@ -116,6 +116,7 @@ class MassBalance(Unit):
         self.chemical_IDs = chemical_IDs
         self.is_exact = is_exact
         self.balance = balance
+        self._assert_compatible_property_package()
         
     def _run(self):
         """Solve mass balance by iteration."""

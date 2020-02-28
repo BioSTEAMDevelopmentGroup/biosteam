@@ -80,6 +80,7 @@ def compute_stages_McCabeThiele(P, operating_line,
         if xi > x_limit:
             xi = x_limit
         x_stages.append(xi)
+    
 
 # %% Distillation
 
@@ -267,7 +268,7 @@ class Distillation(Unit):
                 Hr=None,
                 y_top=None,
                 x_bot=None, 
-                product_specification='Composition',
+                product_specification_format='Composition',
                 vessel_material='Carbon steel',
                 tray_material='Carbon steel',
                 tray_type='Sieve',
@@ -284,15 +285,8 @@ class Distillation(Unit):
         self.k = k
         self.P = P
         self.LHK = LHK
-        self._product_specification = product_specification
-        if product_specification == 'Composition':
-            self.y_top = y_top
-            self.x_bot = x_bot
-        elif product_specification == 'Recovery':
-            self.Lr = Lr
-            self.Hr = Hr
-        else:
-            raise ValueError("product specification must be either 'Composition' or 'Recovery'")
+        self._set_distillation_product_specifications(product_specification_format,
+                                                      x_bot, y_top, Lr, Hr)
         
         # Construction specifications
         self.vessel_material = vessel_material
@@ -322,13 +316,13 @@ class Distillation(Unit):
         self._McCabeThiele_args = np.zeros(6)
     
     @property
-    def product_specification(self):
-        return self._product_specification
-    @product_specification.setter
-    def product_specification(self, spec):
+    def product_specification_format(self):
+        return self._product_specification_format
+    @product_specification_format.setter
+    def product_specification_format(self, spec):
         assert spec in ('Composition', 'Recovery'), (
-            "product specification must be either 'Composition' or 'Recovery'")
-        self._product_specification = spec
+            "product specification format must be either 'Composition' or 'Recovery'")
+        self._product_specification_format = spec
     
     @property
     def condensate(self):
@@ -378,8 +372,8 @@ class Distillation(Unit):
         return self._y_top
     @y_top.setter
     def y_top(self, y_top):
-        assert self.product_specification == "Composition", (
-            "product specification must be 'Composition' "
+        assert self.product_specification_format == "Composition", (
+            "product specification format must be 'Composition' "
             "to set distillate composition")
         assert 0 < y_top < 1, "light key composition in the distillate must be a fraction" 
         self._y_top = y_top
@@ -391,8 +385,8 @@ class Distillation(Unit):
         return self._x_bot
     @x_bot.setter
     def x_bot(self, x_bot):
-        assert self.product_specification == "Composition", (
-            "product specification must be 'Composition' to set bottoms "
+        assert self.product_specification_format == "Composition", (
+            "product specification format must be 'Composition' to set bottoms "
             "product composition")
         assert 0 < x_bot < 1, "heavy key composition in the bottoms product must be a fraction" 
         self._x_bot = x_bot
@@ -404,8 +398,8 @@ class Distillation(Unit):
         return self._Lr
     @Lr.setter
     def Lr(self, Lr):
-        assert self.product_specification == "Recovery", (
-            "product specification must be 'Recovery' "
+        assert self.product_specification_format == "Recovery", (
+            "product specification format must be 'Recovery' "
             "to set light key recovery")
         assert 0 < Lr < 1, "light key recovery in the distillate must be a fraction" 
         self._Lr = Lr
@@ -416,8 +410,8 @@ class Distillation(Unit):
         return self._Hr
     @Hr.setter
     def Hr(self, Hr):
-        assert self.product_specification == "Recovery", (
-            "product specification must be 'Recovery' "
+        assert self.product_specification_format == "Recovery", (
+            "product specification format must be 'Recovery' "
             "to set heavy key recovery")
         assert 0 < Hr < 1, "heavy key recovery in the bottoms product must be a fraction" 
         self._Hr = Hr
@@ -520,6 +514,30 @@ class Distillation(Unit):
     def is_divided(self, is_divided):
         self._is_divided = is_divided
     
+    def _set_distillation_product_specifications(self,
+                                                 product_specification_format,
+                                                 x_bot, y_top, Lr, Hr):
+        self._product_specification_format = product_specification_format
+        if product_specification_format == 'Composition':
+            self.y_top = y_top
+            self.x_bot = x_bot
+        elif product_specification_format == 'Recovery':
+            self.Lr = Lr
+            self.Hr = Hr
+        else:
+            raise ValueError("product specification format must be either 'Composition' or 'Recovery'")
+    
+    def _get_y_top_and_x_bot(self):
+        if self.product_specification_format == 'Composition':
+            y_top = self.y_top
+            x_bot = self.x_bot
+        else:
+            distillate, bottoms_product = self.outs
+            LHK = self._LHK
+            y_top, _ = distillate.get_normalized_mol(LHK)
+            x_bot, _ = bottoms_product.get_normalized_mol(LHK)
+        return y_top, x_bot
+    
     def _check_mass_balance(self):
         LHK = self._LHK
         intermediate_chemicals = self._intermediate_volatile_chemicals
@@ -555,7 +573,7 @@ class Distillation(Unit):
         bottoms_product.mol[HNK_index] = HNK_mol
         
         # Mass balance for keys
-        spec = self.product_specification
+        spec = self.product_specification_format
         if  spec == 'Composition':
             # Use lever rule
             light, heavy = LHK_mol
@@ -618,13 +636,7 @@ class Distillation(Unit):
         # Main arguments
         P = self.P
         k = self.k
-        if self.product_specification == 'Composition':
-            y_top = self.y_top
-            x_bot = self.x_bot
-        else:
-            distillate, bottoms_product = self.outs
-            y_top, _ = distillate.get_normalized_mol(LHK)
-            x_bot, _ = bottoms_product.get_normalized_mol(LHK)
+        y_top, x_bot = self._get_y_top_and_x_bot()
         
         # Cache
         old_args = self._McCabeThiele_args
@@ -946,14 +958,7 @@ class Distillation(Unit):
         zf = q_args['zf']
         q = q_args['q']
         q_line = lambda x: q*x/(q-1) - zf/(q-1)
-        if self.product_specification == 'Composition':
-            y_top = self.y_top
-            x_bot = self.x_bot
-        else:
-            distillate, bottoms_product = self.outs
-            LHK = self.LHK
-            y_top, _ = distillate.get_normalized_mol(LHK)
-            x_bot, _ = bottoms_product.get_normalized_mol(LHK)
+        y_top, x_bot = self._get_y_top_and_x_bot()
         stages = Design['Theoretical stages']
         Rmin = Design['Minimum reflux']
         R = Design['Reflux']

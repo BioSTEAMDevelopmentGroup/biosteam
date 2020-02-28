@@ -34,9 +34,11 @@ class ProcessWaterCenter(Facility):
     _N_outs = 1
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(),):
+    def __init__(self, ID='', ins=None, outs=()):
         Facility.__init__(self, ID, ins, outs)
-        
+    
+    def _assert_compatible_property_package(self): pass
+    
     def _run(self):
         s_recycle, s_makeup = self._ins
         s_process, = self.outs

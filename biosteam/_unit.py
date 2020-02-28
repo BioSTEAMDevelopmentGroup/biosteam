@@ -167,6 +167,7 @@ class Unit:
         self._init_outs(outs)
         self._init_utils()
         self._init_results()
+        self._assert_compatible_property_package()
         self._register(ID)
     
     def _init_ins(self, ins):
@@ -194,6 +195,14 @@ class Unit:
         
         # [dict] Greenhouse gas emissions
         self._GHGs = {}
+    
+    def _assert_compatible_property_package(self):
+        chemical_IDs = self.chemicals.IDs
+        streams = self.ins + self.outs
+        assert all([s.chemicals.IDs == chemical_IDs for s in streams if s]), (
+            "unit operation chemicals are incompatible with inlet and outlet streams; "
+            "try using the `thermo` keyword argument to initialize unit operation "
+            "with a compatible thermodynamic property package")
     
     def get_design_result(self, key, units):
         value = self.design_results[key]
