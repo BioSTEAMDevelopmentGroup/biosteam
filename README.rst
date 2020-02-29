@@ -9,7 +9,7 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
    :target: https://biosteam.readthedocs.io/en/latest/
    :alt: Documentation
 .. image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
-   :target: https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt
+   :target: https://github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
    :alt: license
 
 
@@ -18,7 +18,7 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage process and technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_ GitHub repository, BioSTEAM's premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
+BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage process and technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/biosteam>`_ GitHub repository, BioSTEAM's premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
 
 
 Installation
@@ -33,7 +33,7 @@ If you have an installation of Python with pip, simple install it with:
 
 To get the git version, run:
 
-    $ git clone git://github.com/yoelcortes/biosteam
+    $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam.git
 
 Documentation
 -------------
@@ -47,7 +47,7 @@ Bug reports
 
 To report bugs, please use the BioSTEAM's Bug Tracker at:
 
-    https://github.com/yoelcortes/biosteam
+    https://github.com/BioSTEAMDevelopmentGroup/biosteam
 
 
 License information

@@ -726,16 +726,16 @@ class CombinedTEA(TEA):
         """Pay back period (yr) without accounting for annualized depreciation."""
         return self.FCI/self.net_earnings
     
-    def get_cashflow(self):
+    def get_cashflow_table(self):
         """Return DataFrame of the cash flow analysis."""
         TEA, *TEAs = self.TEAs
-        table = TEA.get_cashflow()
+        table = TEA.get_cashflow_table()
         DF = table['Discount factor']
         DF_data = np.array(DF)
         for i in TEAs:
-            i_table = i.get_cashflow()
+            i_table = i.get_cashflow_table()
             if (i_table.index != table.index).any():
-                raise NotImplementedError('cannot create cashflow table from TEAs with different venture years')
+                raise NotImplementedError('cannot yet create cashflow table from TEAs with different venture years')
             table[:] += np.asarray(i_table)
         DF[:] = DF_data
         return table    
