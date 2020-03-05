@@ -37,25 +37,24 @@ class BoilerTurbogenerator(Facility):
     ins : stream sequence
         [0] Liquid/solid feed that will be burned.
         
-        [1] Gas that will be burned.
+        [1] Gas feed that will be burned.
         
         [2] Make-up water. 
     outs : stream sequence
-        [0] Emission from burned liquid/solid feed.
+        [0] Total emissions produced.
         
-        [1] Emission from burned gas feed.
-        
-        [2] Blowdown water.
+        [1] Blowdown water.
     boiler_efficiency : float
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
         Fraction of steam heat converted to electricity.
     """
     #: TODO: Make this a whole system instead of approximating duty per mol values
-    duty_over_mol = 45000 # Superheat steam with 45000 kJ/kmol
+    duty_over_mol = 40000 # Superheat steam with 40000 kJ/kmol
     boiler_blowdown = 0.03
     RO_rejection = 0
-    _N_outs = _N_ins = 3
+    _N_ins = 3
+    _N_outs = 2
     _N_heat_utilities = 2
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW'}
@@ -93,41 +92,43 @@ class BoilerTurbogenerator(Facility):
         steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
         duty_over_mol = self.duty_over_mol
         feed_solids, feed_gas, _ = self.ins
-        emission_1, emission_2, _ = self.outs
+        emissions, _ = self.outs
         hu_cooling, hu_steam = self.heat_utilities
         H_steam = steam_mol * duty_over_mol
         if self.side_steam: 
             H_steam += self.side_steam.H
-        Hc_feed = 0
+        LHV_feed = 0
         for feed in (feed_solids, feed_gas):
-            if feed: Hc_feed += feed.Hc
+            if feed: LHV_feed -= feed.LHV
         
         # This is simply for the mass balance (no special purpose)
         # TODO: In reality, this should be CO2
-        if feed_solids: emission_1.mol[:] = feed_solids.mol
-        if feed_gas: emission_2.mol[:] = feed_gas.mol
-        
-        # A percent of solids is water, so remove latent heat of vaporization
+        emissions_mol = emissions.mol
+        emissions_mol[:] = 0
         if feed_solids:
-            F_mass_feed = feed_solids.F_mass
-            moisture_content = feed_solids.imass['7732-18-5']/F_mass_feed
-            H_moisture_evap = F_mass_feed*2300*moisture_content
-        else:
-            H_moisture_evap = 0
-        H_content = Hc_feed*B_eff - H_moisture_evap
+            emissions_mol += feed_solids.mol
+        if feed_gas: 
+            emissions_mol += feed_gas.mol
+        combustion_rxns = self.chemicals.get_combustion_reactions()
+        combustion_rxns(emissions_mol)
+        emissions.imol['O2'] = 0
+        emissions.T = 373.15
+        emissions.P = 101325
+        emissions.phase = 'g'
+        H_content = LHV_feed*B_eff - emissions.H
         
         #: [float] Total steam produced by the boiler (kmol/hr)
-        self.total_steam = H_content / 40000 
+        self.total_steam = H_content / duty_over_mol 
         # Note: A portion of the steam produced is at milder conditions,
         #       so it does not consume as much energy.
         #       This is a really vague approximation, a more rigorous 
         #       model is needed (i.e. simulate whole system).
         
-        self.makeup_water.imol['7732-18-5'] = makeup_mol = (
+        self.makeup_water.imol['7732-18-5'] = (
             self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
         )
         # Heat available for the turbogenerator
-        H_electricity = H_content - H_steam - makeup_mol * 18000
+        H_electricity = H_content - H_steam
         
         Design = self.design_results
         Design['Flow rate'] = self.total_steam * 18.01528

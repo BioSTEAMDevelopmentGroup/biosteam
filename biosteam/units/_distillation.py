@@ -347,7 +347,9 @@ class Distillation(Unit):
         LNK = []
         HNK = []
         if Tb_light > Tb_heavy:
-            raise ValueError(f"light key must be lighter than heavy key")
+            LK, HK = LHK
+            raise ValueError(f"light key must be lighter than heavy key "
+                             f"(i.e. {LK}.Tb must be lower than {HK}.Tb)")
         for chemical in chemicals:
             Tb = chemical.Tb
             if not Tb:

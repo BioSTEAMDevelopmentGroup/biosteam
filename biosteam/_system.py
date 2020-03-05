@@ -593,7 +593,6 @@ class System(metaclass=system):
         
         feeds = self.feeds
         for stream in self.streams:
-            if stream._link: continue
             if stream not in feeds: stream.empty()
 
     def simulate(self):
