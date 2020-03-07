@@ -159,7 +159,7 @@ chilled_water = UtilityAgent('chilled_water',
                              thermo=thermo_water,
                              T_limit = 300.372,
                              heat_transfer_price = 5e-6)
-chilled_brine = UtilityAgent('chilled_water',
+chilled_brine = UtilityAgent('chilled_brine',
                              Water=1, T=255.372, P=101325,
                              thermo=thermo_water,
                              T_limit = 275.372,
