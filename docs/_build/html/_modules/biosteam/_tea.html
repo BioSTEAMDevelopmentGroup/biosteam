@@ -97,6 +97,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
@@ -900,16 +901,16 @@
         <span class="sd">&quot;&quot;&quot;Pay back period (yr) without accounting for annualized depreciation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FCI</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">net_earnings</span>
     
-<div class="viewcode-block" id="CombinedTEA.get_cashflow"><a class="viewcode-back" href="../../CombinedTEA.html#biosteam.CombinedTEA.get_cashflow">[docs]</a>    <span class="k">def</span> <span class="nf">get_cashflow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinedTEA.get_cashflow_table"><a class="viewcode-back" href="../../CombinedTEA.html#biosteam.CombinedTEA.get_cashflow_table">[docs]</a>    <span class="k">def</span> <span class="nf">get_cashflow_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return DataFrame of the cash flow analysis.&quot;&quot;&quot;</span>
         <span class="n">TEA</span><span class="p">,</span> <span class="o">*</span><span class="n">TEAs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEAs</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">TEA</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">TEA</span><span class="o">.</span><span class="n">get_cashflow_table</span><span class="p">()</span>
         <span class="n">DF</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;Discount factor&#39;</span><span class="p">]</span>
         <span class="n">DF_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">DF</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">TEAs</span><span class="p">:</span>
-            <span class="n">i_table</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
+            <span class="n">i_table</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get_cashflow_table</span><span class="p">()</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">i_table</span><span class="o">.</span><span class="n">index</span> <span class="o">!=</span> <span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;cannot create cashflow table from TEAs with different venture years&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;cannot yet create cashflow table from TEAs with different venture years&#39;</span><span class="p">)</span>
             <span class="n">table</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">i_table</span><span class="p">)</span>
         <span class="n">DF</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">DF_data</span>
         <span class="k">return</span> <span class="n">table</span>    </div>

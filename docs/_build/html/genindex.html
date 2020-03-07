@@ -98,6 +98,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
@@ -224,7 +225,11 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.agent">agent (biosteam.HeatUtility attribute)</a>
+</li>
       <li><a href="units/facilities.html#biosteam.units.facilities.AirDistributionPackage">AirDistributionPackage (class in biosteam.units.facilities)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.alpha">alpha() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.annual_depreciation">annual_depreciation() (biosteam.CombinedTEA property)</a>
 
@@ -254,15 +259,19 @@
 </li>
       <li><a href="units/facilities.html#module-biosteam.units.facilities">biosteam.units.facilities (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="evaluation/Block.html#biosteam.evaluation.Block">Block (class in biosteam.evaluation)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/Flash.html#biosteam.units.Flash.BM">BM() (biosteam.units.Flash property)</a>
 </li>
       <li><a href="units/Distillation.html#biosteam.units.Distillation.boiler">boiler (biosteam.units.Distillation attribute)</a>
 </li>
       <li><a href="units/facilities.html#biosteam.units.facilities.BoilerTurbogenerator">BoilerTurbogenerator (class in biosteam.units.facilities)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.bubble_point_at_P">bubble_point_at_P() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.bubble_point_at_T">bubble_point_at_T() (biosteam.UtilityAgent method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -270,11 +279,15 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.C">C() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/Transesterification.html#biosteam.units.Transesterification.catalyst_molfrac">catalyst_molfrac() (biosteam.units.Transesterification property)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.ceil_half_step">ceil_half_step() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/facilities.html#biosteam.units.facilities.ChilledWaterPackage">ChilledWaterPackage (class in biosteam.units.facilities)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.Cn">Cn() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA">CombinedTEA (class in biosteam)</a>
 </li>
@@ -306,12 +319,12 @@
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_purchase_cost_of_trays">compute_purchase_cost_of_trays() (in module biosteam.units.design_tools)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_Stokes_law_York_Demister_K_value">compute_Stokes_law_York_Demister_K_value() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_diameter">compute_tower_diameter() (in module biosteam.units.design_tools)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_height">compute_tower_height() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.compute_tower_wall_thickness">compute_tower_wall_thickness() (in module biosteam.units.design_tools)</a>
@@ -339,12 +352,28 @@
       <ul>
         <li><a href="evaluation/State.html#biosteam.evaluation.State.copy">(biosteam.evaluation.State method)</a>
 </li>
+        <li><a href="UtilityAgent.html#biosteam.UtilityAgent.copy">(biosteam.UtilityAgent method)</a>
+</li>
       </ul></li>
-      <li><a href="PowerUtility.html#biosteam.PowerUtility.cost">cost (biosteam.PowerUtility attribute)</a>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.copy_flow">copy_flow() (biosteam.UtilityAgent method)</a>
 </li>
-      <li><a href="units/decorators.html#biosteam.units.decorators.cost">cost() (in module biosteam.units.decorators)</a>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.copy_like">copy_like() (biosteam.UtilityAgent method)</a>
 </li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.cost">cost (biosteam.HeatUtility attribute)</a>
+
+      <ul>
+        <li><a href="PowerUtility.html#biosteam.PowerUtility.cost">(biosteam.PowerUtility attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.cost">cost() (biosteam.UtilityAgent property)</a>
+
+      <ul>
+        <li><a href="units/decorators.html#biosteam.units.decorators.cost">(in module biosteam.units.decorators)</a>
+</li>
+      </ul></li>
       <li><a href="units/decorators.html#biosteam.units.decorators.CostItem">CostItem (class in biosteam.units.decorators)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.Cp">Cp() (biosteam.UtilityAgent property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -360,6 +389,10 @@
 </li>
       <li><a href="Unit.html#biosteam.Unit.design_results">design_results (biosteam.Unit attribute)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.dew_point_at_P">dew_point_at_P() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.dew_point_at_T">dew_point_at_T() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="Flowsheet.html#biosteam.Flowsheet.diagram">diagram() (biosteam.Flowsheet method)</a>
 
       <ul>
@@ -372,14 +405,14 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.diagram">(biosteam.units.StorageTank method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="HeatUtility.html#biosteam.HeatUtility.display_units">display_units (biosteam.HeatUtility attribute)</a>
 
       <ul>
         <li><a href="PowerUtility.html#biosteam.PowerUtility.display_units">(biosteam.PowerUtility attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/Distillation.html#biosteam.units.Distillation">Distillation (class in biosteam.units)</a>
 </li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable.distribution">distribution (biosteam.evaluation.Variable attribute)</a>
@@ -392,13 +425,15 @@
         <li><a href="TEA.html#biosteam.TEA.DPI">(biosteam.TEA property)</a>
 </li>
       </ul></li>
-      <li><a href="HeatUtility.html#biosteam.HeatUtility.dT">dT (biosteam.HeatUtility attribute)</a>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.dT">dT (biosteam.HeatUtility attribute)</a>, <a href="HeatUtility.html#biosteam.HeatUtility.dT">[1]</a>
 
       <ul>
         <li><a href="units/HXprocess.html#biosteam.units.HXprocess.dT">(biosteam.units.HXprocess attribute)</a>
 </li>
       </ul></li>
       <li><a href="TEA.html#biosteam.TEA.duration">duration() (biosteam.TEA property)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.duty">duty (biosteam.HeatUtility attribute)</a>
 </li>
       <li><a href="units/facilities.html#biosteam.units.facilities.BoilerTurbogenerator.duty_over_mol">duty_over_mol (biosteam.units.facilities.BoilerTurbogenerator attribute)</a>
 </li>
@@ -412,9 +447,19 @@
 </li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable.element">element (biosteam.evaluation.Variable attribute)</a>
 </li>
+      <li><a href="evaluation/Block.html#biosteam.evaluation.Block.element">element() (biosteam.evaluation.Block property)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.empty">empty() (biosteam.HeatUtility method)</a>
+
+      <ul>
+        <li><a href="UtilityAgent.html#biosteam.UtilityAgent.empty">(biosteam.UtilityAgent method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="evaluation/Block.html#biosteam.evaluation.Block.element">element() (biosteam.evaluation.Block property)</a>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.epsilon">epsilon() (biosteam.UtilityAgent property)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.equilibrium_chemicals">equilibrium_chemicals() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.evaluate">evaluate() (biosteam.evaluation.Model method)</a>
 </li>
@@ -426,6 +471,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.F_mass">F_mass() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.F_mass_in">F_mass_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -442,6 +489,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.F_mass_out">(biosteam.units.StorageTank property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.F_mol">F_mol() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.F_mol_in">F_mol_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -458,6 +507,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.F_mol_out">(biosteam.units.StorageTank property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.F_vol">F_vol() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.F_vol_in">F_vol_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -498,6 +549,10 @@
 </li>
       <li><a href="units/Flash.html#biosteam.units.Flash">Flash (class in biosteam.units)</a>
 </li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.flow">flow (biosteam.HeatUtility attribute)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.flow_proxy">flow_proxy() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="Flowsheet.html#biosteam.Flowsheet.flowsheet">flowsheet (biosteam.Flowsheet attribute)</a>
 </li>
       <li><a href="Flowsheet.html#biosteam.Flowsheet">Flowsheet (class in biosteam)</a>
@@ -524,9 +579,21 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="CombinedTEA.html#biosteam.CombinedTEA.get_cashflow">get_cashflow() (biosteam.CombinedTEA method)</a>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_agent">get_agent() (biosteam.HeatUtility class method)</a>
 </li>
-      <li><a href="TEA.html#biosteam.TEA.get_cashflow_table">get_cashflow_table() (biosteam.TEA method)</a>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_bubble_point">get_bubble_point() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="CombinedTEA.html#biosteam.CombinedTEA.get_cashflow_table">get_cashflow_table() (biosteam.CombinedTEA method)</a>
+
+      <ul>
+        <li><a href="TEA.html#biosteam.TEA.get_cashflow_table">(biosteam.TEA method)</a>
+</li>
+      </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_concentration">get_concentration() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_cooling_agent">get_cooling_agent() (biosteam.HeatUtility class method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_dew_point">get_dew_point() (biosteam.UtilityAgent method)</a>
 </li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.get_distribution_summary">get_distribution_summary() (biosteam.evaluation.Model method)</a>
 
@@ -534,15 +601,43 @@
         <li><a href="evaluation/State.html#biosteam.evaluation.State.get_distribution_summary">(biosteam.evaluation.State method)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_flow">get_flow() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_heating_agent">get_heating_agent() (biosteam.HeatUtility class method)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_inlet_and_outlet_T_pinch">get_inlet_and_outlet_T_pinch() (biosteam.HeatUtility class method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_mass_composition">get_mass_composition() (biosteam.UtilityAgent method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_molar_composition">get_molar_composition() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_normalized_mass">get_normalized_mass() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_normalized_mol">get_normalized_mol() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_normalized_vol">get_normalized_vol() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.get_parameters">get_parameters() (biosteam.evaluation.Model method)</a>
 
       <ul>
         <li><a href="evaluation/State.html#biosteam.evaluation.State.get_parameters">(biosteam.evaluation.State method)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_property">get_property() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="units/HXutility.html#biosteam.units.HXutility.get_streams">get_streams() (biosteam.units.HXutility method)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_suitable_cooling_agent">get_suitable_cooling_agent() (biosteam.HeatUtility class method)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_suitable_heating_agent">get_suitable_heating_agent() (biosteam.HeatUtility class method)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.get_T_outlet">get_T_outlet() (biosteam.HeatUtility static method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_total_flow">get_total_flow() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.get_volumetric_composition">get_volumetric_composition() (biosteam.UtilityAgent method)</a>
 </li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.GTable">GTable() (in module biosteam.units.design_tools)</a>
 </li>
@@ -552,6 +647,8 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.H">H() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.H_in">H_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -574,6 +671,10 @@
 </li>
       <li><a href="units/Flash.html#biosteam.units.Flash.has_mist_eliminator">has_mist_eliminator (biosteam.units.Flash attribute)</a>
 </li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.heat_transfer_efficiency">heat_transfer_efficiency (biosteam.HeatUtility attribute)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.heat_transfer_price">heat_transfer_price() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.heat_utilities">heat_utilities (biosteam.Unit attribute)</a>
 </li>
       <li><a href="HeatUtility.html#biosteam.HeatUtility.heating_agents">heating_agents (biosteam.HeatUtility attribute)</a>
@@ -587,6 +688,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.heuristic_tubeside_and_shellside_pressure_drops">heuristic_tubeside_and_shellside_pressure_drops() (in module biosteam.units.design_tools)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.Hf">Hf() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.Hf_in">Hf_in() (biosteam.Unit property)</a>
 
@@ -604,6 +707,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.Hf_out">(biosteam.units.StorageTank property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.HHV">HHV() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/design_tools.html#biosteam.units.design_tools.HNATable">HNATable() (in module biosteam.units.design_tools)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.Hnet">Hnet() (biosteam.Unit property)</a>
@@ -616,6 +721,10 @@
       </ul></li>
       <li><a href="units/Flash.html#biosteam.units.Flash.holdup_time">holdup_time (biosteam.units.Flash attribute)</a>
 </li>
+      <li><a href="units/Distillation.html#biosteam.units.Distillation.Hr">Hr() (biosteam.units.Distillation property)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.Hvap">Hvap() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/HXprocess.html#biosteam.units.HXprocess">HXprocess (class in biosteam.units)</a>
 </li>
       <li><a href="units/HXutility.html#biosteam.units.HXutility">HXutility (class in biosteam.units)</a>
@@ -626,17 +735,27 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="System.html#biosteam.System.ID">ID() (biosteam.System property)</a>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.ID">ID() (biosteam.HeatUtility property)</a>
 
       <ul>
+        <li><a href="System.html#biosteam.System.ID">(biosteam.System property)</a>
+</li>
         <li><a href="Unit.html#biosteam.Unit.ID">(biosteam.Unit property)</a>
 </li>
         <li><a href="units/MixTank.html#biosteam.units.MixTank.ID">(biosteam.units.MixTank property)</a>
 </li>
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.ID">(biosteam.units.StorageTank property)</a>
 </li>
+        <li><a href="UtilityAgent.html#biosteam.UtilityAgent.ID">(biosteam.UtilityAgent property)</a>
+</li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.imass">imass() (biosteam.UtilityAgent property)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.imol">imol() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="TEA.html#biosteam.TEA.income_tax">income_tax (biosteam.TEA attribute)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.inlet_utility_stream">inlet_utility_stream (biosteam.HeatUtility attribute)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.ins">ins (biosteam.Unit attribute)</a>
 </li>
@@ -666,7 +785,11 @@
 </li>
       <li><a href="units/Distillation.html#biosteam.units.Distillation.is_divided">is_divided() (biosteam.units.Distillation property)</a>
 </li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.iscooling">iscooling (biosteam.HeatUtility attribute)</a>
+</li>
       <li><a href="units/Splitter.html#biosteam.units.Splitter.isplit">isplit() (biosteam.units.Splitter property)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.ivol">ivol() (biosteam.UtilityAgent property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -682,10 +805,12 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="units/Fermentation.html#biosteam.units.Fermentation.kinetic_constants">kinetic_constants (biosteam.units.Fermentation attribute)</a>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.kappa">kappa() (biosteam.UtilityAgent property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="units/Fermentation.html#biosteam.units.Fermentation.kinetic_constants">kinetic_constants (biosteam.units.Fermentation attribute)</a>
+</li>
       <li><a href="units/Fermentation.html#biosteam.units.Fermentation.kinetic_model">kinetic_model() (biosteam.units.Fermentation static method)</a>
 </li>
   </ul></td>
@@ -698,11 +823,17 @@
 </li>
       <li><a href="units/Distillation.html#biosteam.units.Distillation.LHK">LHK() (biosteam.units.Distillation property)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.LHV">LHV() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="TEA.html#biosteam.TEA.like">like() (biosteam.TEA static method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.link_with">link_with() (biosteam.UtilityAgent method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/LiquidsSplitCentrifuge.html#biosteam.units.LiquidsSplitCentrifuge">LiquidsSplitCentrifuge (class in biosteam.units)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.load_agent">load_agent() (biosteam.HeatUtility method)</a>
 </li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.load_default_parameters">load_default_parameters() (biosteam.evaluation.Model method)</a>
 
@@ -712,12 +843,16 @@
       </ul></li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.load_samples">load_samples() (biosteam.evaluation.Model method)</a>
 </li>
+      <li><a href="units/Distillation.html#biosteam.units.Distillation.Lr">Lr() (biosteam.units.Distillation property)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.mass">mass() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.mass_in">mass_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -750,15 +885,19 @@
 </li>
       <li><a href="evaluation/Metric.html#biosteam.evaluation.Metric">Metric (class in biosteam.evaluation)</a>
 </li>
+      <li><a href="evaluation/Model.html#biosteam.evaluation.Model.metrics">metrics() (biosteam.evaluation.Model property)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="evaluation/Model.html#biosteam.evaluation.Model.metrics">metrics() (biosteam.evaluation.Model property)</a>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.mix_from">mix_from() (biosteam.UtilityAgent method)</a>
 </li>
       <li><a href="units/Mixer.html#biosteam.units.Mixer">Mixer (class in biosteam.units)</a>
 </li>
       <li><a href="units/MixTank.html#biosteam.units.MixTank">MixTank (class in biosteam.units)</a>
 </li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model">Model (class in biosteam.evaluation)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.mol">mol() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.mol_in">mol_in() (biosteam.Unit property)</a>
 
@@ -780,7 +919,11 @@
 </li>
       <li><a href="units/MolecularSieve.html#biosteam.units.MolecularSieve">MolecularSieve (class in biosteam.units)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.mu">mu() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/MultiEffectEvaporator.html#biosteam.units.MultiEffectEvaporator">MultiEffectEvaporator (class in biosteam.units)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.MW">MW() (biosteam.UtilityAgent property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -798,14 +941,14 @@
       </ul></li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable.name">name (biosteam.evaluation.Variable attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.net_earnings">net_earnings() (biosteam.CombinedTEA property)</a>
 
       <ul>
         <li><a href="TEA.html#biosteam.TEA.net_earnings">(biosteam.TEA property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="System.html#biosteam.System.network">network (biosteam.System attribute)</a>
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.NPV">NPV() (biosteam.CombinedTEA property)</a>
@@ -814,6 +957,8 @@
         <li><a href="TEA.html#biosteam.TEA.NPV">(biosteam.TEA property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.nu">nu() (biosteam.UtilityAgent property)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -832,6 +977,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.outlet_utility_stream">outlet_utility_stream (biosteam.HeatUtility attribute)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.outs">outs (biosteam.Unit attribute)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.outs">outs() (biosteam.Unit property)</a>
@@ -849,7 +996,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/Flash.html#biosteam.units.Flash.P">P() (biosteam.units.Flash property)</a>
+
+      <ul>
+        <li><a href="UtilityAgent.html#biosteam.UtilityAgent.P">(biosteam.UtilityAgent property)</a>
 </li>
+      </ul></li>
       <li><a href="evaluation/Parameter.html#biosteam.evaluation.Parameter">Parameter (class in biosteam.evaluation)</a>
 </li>
       <li><a href="evaluation/Block.html#biosteam.evaluation.Block.parameter">parameter() (biosteam.evaluation.Block method)</a>
@@ -866,18 +1017,24 @@
         <li><a href="TEA.html#biosteam.TEA.PBP">(biosteam.TEA property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.phase">phase() (biosteam.UtilityAgent property)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.phases">phases() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/Distillation.html#biosteam.units.Distillation.plot_stages">plot_stages() (biosteam.units.Distillation method)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.power_utility">power_utility (biosteam.Unit attribute)</a>
 </li>
       <li><a href="PowerUtility.html#biosteam.PowerUtility">PowerUtility (class in biosteam)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.Pr">Pr() (biosteam.UtilityAgent property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="PowerUtility.html#biosteam.PowerUtility.price">price (biosteam.PowerUtility attribute)</a>
 </li>
       <li><a href="units/facilities.html#biosteam.units.facilities.ProcessWaterCenter">ProcessWaterCenter (class in biosteam.units.facilities)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.production_cost">production_cost() (biosteam.CombinedTEA method)</a>
 
       <ul>
@@ -936,7 +1093,11 @@
 </li>
       <li><a href="units/Transesterification.html#biosteam.units.Transesterification.reaction">reaction (biosteam.units.Transesterification attribute)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.recieve_vent">recieve_vent() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="System.html#biosteam.System.recycle">recycle() (biosteam.System property)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.regeneration_price">regeneration_price() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="System.html#biosteam.System.reset_flows">reset_flows() (biosteam.System method)</a>
 </li>
@@ -952,6 +1113,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.results">(biosteam.units.StorageTank method)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.rho">rho() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/HXutility.html#biosteam.units.HXutility.rigorous">rigorous (biosteam.units.HXutility attribute)</a>
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.ROI">ROI() (biosteam.CombinedTEA property)</a>
@@ -966,6 +1129,8 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.S">S() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.sales">sales() (biosteam.CombinedTEA property)</a>
 
       <ul>
@@ -980,7 +1145,13 @@
       </ul></li>
       <li><a href="System.html#biosteam.System.save_report">save_report() (biosteam.System method)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.set_flow">set_flow() (biosteam.UtilityAgent method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.set_property">set_property() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="System.html#biosteam.System.set_spec">set_spec() (biosteam.System method)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.set_total_flow">set_total_flow() (biosteam.UtilityAgent method)</a>
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.show">show() (biosteam.CombinedTEA method)</a>
 
@@ -1001,7 +1172,11 @@
 </li>
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.show">(biosteam.units.StorageTank method)</a>
 </li>
+        <li><a href="UtilityAgent.html#biosteam.UtilityAgent.show">(biosteam.UtilityAgent method)</a>
+</li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.sigma">sigma() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="evaluation/Block.html#biosteam.evaluation.Block.simulate">simulate() (biosteam.evaluation.Block property)</a>
 
       <ul>
@@ -1038,6 +1213,8 @@
         <li><a href="units/Splitter.html#biosteam.units.Splitter.split">(biosteam.units.Splitter property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.split_to">split_to() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="units/Splitter.html#biosteam.units.Splitter">Splitter (class in biosteam.units)</a>
 </li>
       <li><a href="units/Distillation.html#biosteam.units.Distillation.stage_efficiency">stage_efficiency() (biosteam.units.Distillation property)</a>
@@ -1080,6 +1257,10 @@
         <li><a href="units/Transesterification.html#biosteam.units.Transesterification.T">(biosteam.units.Transesterification attribute)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.T">T() (biosteam.UtilityAgent property)</a>
+</li>
+      <li><a href="HeatUtility.html#biosteam.HeatUtility.T_pinch">T_pinch (biosteam.HeatUtility attribute)</a>
+</li>
       <li><a href="System.html#biosteam.System.T_tolerance">T_tolerance (biosteam.System attribute)</a>
 </li>
       <li><a href="evaluation/Model.html#biosteam.evaluation.Model.table">table() (biosteam.evaluation.Model property)</a>
@@ -1120,7 +1301,11 @@
 </li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.TEAs">TEAs (biosteam.CombinedTEA attribute)</a>
 </li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.thermal_condition">thermal_condition() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.thermo">thermo (biosteam.Unit attribute)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.to_stream">to_stream() (biosteam.UtilityAgent method)</a>
 </li>
       <li><a href="TEA.html#biosteam.TEA.total_production_cost">total_production_cost() (biosteam.TEA method)</a>
 </li>
@@ -1156,6 +1341,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.unlink">unlink() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.utility_cost">utility_cost() (biosteam.CombinedTEA property)</a>
 
       <ul>
@@ -1168,6 +1355,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.utility_cost">(biosteam.units.StorageTank property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent">UtilityAgent (class in biosteam)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -1182,6 +1371,8 @@
         <li><a href="units/MultiEffectEvaporator.html#biosteam.units.MultiEffectEvaporator.V">(biosteam.units.MultiEffectEvaporator attribute)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.V">V() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="units/Fermentation.html#biosteam.units.Fermentation.V_wf">V_wf (biosteam.units.Fermentation attribute)</a>
 
       <ul>
@@ -1218,12 +1409,16 @@
         <li><a href="units/Tank.html#biosteam.units.Tank.vessel_type">(biosteam.units.Tank attribute)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.vle">vle() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.VOC">VOC() (biosteam.CombinedTEA property)</a>
 
       <ul>
         <li><a href="TEA.html#biosteam.TEA.VOC">(biosteam.TEA property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.vol">vol() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.vol_in">vol_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -1278,6 +1473,8 @@
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.z_mass">z_mass() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.z_mass_in">z_mass_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -1294,6 +1491,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.z_mass_out">(biosteam.units.StorageTank property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.z_mol">z_mol() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.z_mol_in">z_mol_in() (biosteam.Unit property)</a>
 
       <ul>
@@ -1312,6 +1511,8 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.z_mol_out">(biosteam.units.StorageTank property)</a>
 </li>
       </ul></li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.z_vol">z_vol() (biosteam.UtilityAgent property)</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit.z_vol_in">z_vol_in() (biosteam.Unit property)</a>
 
       <ul>

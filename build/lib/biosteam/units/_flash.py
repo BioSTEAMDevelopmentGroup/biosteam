@@ -310,8 +310,8 @@ class Flash(Unit):
         self._isVertical = isVertical
 
         # Run vertical or horizontal design
-        if isVertical: self._vertical()
-        else: self._horizontal()
+        if isVertical: self._design_vertical_vessel()
+        else: self._design_horizontal_vessel()
         if self.heat_exchanger: self.heat_exchanger._design()
         self.design_results['Material'] = self._vessel_material
 
@@ -399,7 +399,7 @@ class Flash(Unit):
         Vs = Ts*Qll
         return rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs
 
-    def _vertical(self):
+    def _design_vertical_vessel(self):
         rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Calculate internal diameter, Dvd
@@ -467,7 +467,7 @@ class Flash(Unit):
         Design['Weight'] = VW     # lb
         Design['Wall thickness'] = VWT  # in
         
-    def _horizontal(self):
+    def _design_horizontal_vessel(self):
         rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Initialize LD

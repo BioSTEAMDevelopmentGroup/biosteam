@@ -9,7 +9,7 @@ This module includes arbitrary classes and functions.
 import biosteam as bst
 
 __all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple',
-           'format_unit_line', 'format_unit_name')
+           'format_unit_line', 'format_unit_name', 'sorted_keys_by_value')
 
 # %% Number functions
 
@@ -77,3 +77,7 @@ def format_unit_name(name):
         new_words.append(i[0].capitalize() + i[1:])
     return ''.join(new_words)
     
+# %% Sorting functions
+
+def sorted_keys_by_value(dct):
+    return sorted(dct, key=dct.__getitem__)

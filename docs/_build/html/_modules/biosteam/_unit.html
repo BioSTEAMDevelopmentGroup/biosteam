@@ -97,6 +97,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
@@ -226,7 +227,7 @@
 <span class="sd">    **BM=None** </span>
 <span class="sd">        [float] Bare module factor (installation factor).</span>
 <span class="sd">    **_units={}**</span>
-<span class="sd">        [dict] Units of measure for results Operation and Design.</span>
+<span class="sd">        [dict] Units of measure for `design_results` dictionary.</span>
 <span class="sd">    **_N_ins=1**</span>
 <span class="sd">        [int] Expected number of input streams.</span>
 <span class="sd">    **_N_outs=2**</span>
@@ -341,6 +342,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_utils</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assert_compatible_property_package</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
@@ -368,6 +370,14 @@
         
         <span class="c1"># [dict] Greenhouse gas emissions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">def</span> <span class="nf">_assert_compatible_property_package</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">chemical_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">IDs</span>
+        <span class="n">streams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">IDs</span> <span class="o">==</span> <span class="n">chemical_IDs</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span> <span class="k">if</span> <span class="n">s</span><span class="p">]),</span> <span class="p">(</span>
+            <span class="s2">&quot;unit operation chemicals are incompatible with inlet and outlet streams; &quot;</span>
+            <span class="s2">&quot;try using the `thermo` keyword argument to initialize unit operation &quot;</span>
+            <span class="s2">&quot;with a compatible thermodynamic property package&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">get_design_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -435,17 +445,17 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">purchase_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Total purchase cost (USD).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Total purchase cost [USD].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">installation_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Installation cost (USD).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Installation cost [USD].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">utility_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Total utility cost (USD/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Total utility cost [USD/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="o">.</span><span class="n">cost</span>
 
 <div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -471,7 +481,7 @@
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">power_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">heat_utility</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">heat_utility</span><span class="p">:</span>
-                        <span class="n">ID</span> <span class="o">=</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">ID</span>
+                        <span class="n">ID</span> <span class="o">=</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
@@ -524,7 +534,7 @@
                 <span class="k">for</span> <span class="n">heat_utility</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">heat_utility</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">heat_utility</span><span class="p">:</span>
-                            <span class="n">ID</span> <span class="o">=</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">ID</span>
+                            <span class="n">ID</span> <span class="o">=</span> <span class="n">heat_utility</span><span class="o">.</span><span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
                             <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
                             <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
                             <span class="n">addkey</span><span class="p">((</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
@@ -577,7 +587,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_downstream_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return set of all units downstream.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return a set of all units downstream.&quot;&quot;&quot;</span>
         <span class="n">downstream_units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">outer_periphery</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">_add_downstream</span> <span class="o">=</span> <span class="n">_add_downstream_neighbors</span>
@@ -596,7 +606,7 @@
         <span class="k">return</span> <span class="n">downstream_units</span>
         
     <span class="k">def</span> <span class="nf">_neighborhood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return all neighboring units within given radius.</span>
+        <span class="sd">&quot;&quot;&quot;Return a set of all neighboring units within given radius.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -703,16 +713,16 @@
     <span class="c1"># Molar flow rates</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Molar flows going in (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Molar flows going in [kmol/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Molar flows going out (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Molar flows going out [kmol/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">z_mol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Molar fractions going in (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Molar fractions going in [kmol/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">F_mol_in</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">z_mol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -721,21 +731,21 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">F_mol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net molar flow going in (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net molar flow going in [kmol/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">F_mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">F_mol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net molar flow going out (kmol/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net molar flow going out [kmol/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">F_mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="c1"># Mass flow rates</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mass_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Mass flows going in (kg/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Mass flows going in [kg/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">MW</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mass_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Mass flows going out (kg/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Mass flows going out [kg/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">MW</span>
 
     <span class="nd">@property</span>
@@ -749,21 +759,21 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">F_mass_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net mass flow going in (kg/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net mass flow going in [kg/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_in</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">F_mass_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net mass flow going out (kg/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net mass flow going out [kg/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_out</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Volumetric flow rates</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Volumetric flows going in (m3/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Volumetric flows going in [m3/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">vol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">F_vol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net volumetric flow going in (m3/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net volumetric flow going in [m3/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vol_in</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -772,12 +782,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol_in</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">F_vol_in</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Volumetric flows going out (m3/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Volumetric flows going out [m3/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">vol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">F_vol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net volumetric flow going out (m3/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net volumetric flow going out [m3/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vol_out</span><span class="p">)</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">z_vol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -787,27 +797,27 @@
     <span class="c1"># Enthalpy flow rates</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">H_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Enthalpy flow going in (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy flow going in [kJ/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">H_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Enthalpy flow going out (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy flow going out [kJ/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Hf_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going in (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going in [kJ/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Hf</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Hf_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going out (kJ/hr).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going out [kJ/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Hf</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="n">s</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Hnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net enthalpy flow (including enthalpies of formation).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Net enthalpy flow, including enthalpies of formation [kJ/hr].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_in</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hf_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hf_in</span>
     
     <span class="c1"># Representation</span>

@@ -99,6 +99,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
@@ -242,7 +243,10 @@ The number of chemicals must be same as the number of input streams varied.</p><
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p>MassBalance are Unit objects that serve to alter flow rates of selected species and input streams to satisfy the mass balance. The example below uses the MassBalance object to satisfy the target flow rate feeding the mixer M1:</p>
+<p>MassBalance are Unit objects that serve to alter flow rates of selected
+chemicals and input streams to satisfy the mass balance.
+The example below uses the MassBalance object to satisfy the target
+flow rate feeding the mixer M1:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">System</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span><span class="p">,</span> <span class="n">StorageTank</span><span class="p">,</span> <span class="n">Pump</span><span class="p">,</span> <span class="n">Flash</span><span class="p">,</span> <span class="n">MassBalance</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>

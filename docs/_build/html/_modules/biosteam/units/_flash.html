@@ -97,6 +97,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
@@ -338,11 +339,13 @@
     <span class="n">BM_vertical</span> <span class="o">=</span> <span class="mf">4.16</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">BM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">vessel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SetType</span>
+        <span class="n">vessel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span>
         <span class="k">if</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BM_vertical</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM_vertical</span>
         <span class="k">elif</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BM_horizontal</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM_horizontal</span>
+        <span class="k">elif</span> <span class="n">vessel_type</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM_vertical</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isVertical</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM_horizontal</span> 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;vessel_type not defined&#39;</span><span class="p">)</span>
     
@@ -457,7 +460,7 @@
         <span class="n">ms</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span>
         <span class="n">H</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">Q</span> <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
 
         <span class="c1"># Set Values</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
@@ -482,8 +485,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_isVertical</span> <span class="o">=</span> <span class="n">isVertical</span>
 
         <span class="c1"># Run vertical or horizontal design</span>
-        <span class="k">if</span> <span class="n">isVertical</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertical</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">isVertical</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_vertical_vessel</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_horizontal_vessel</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span>
 
@@ -571,7 +574,7 @@
         <span class="n">Vs</span> <span class="o">=</span> <span class="n">Ts</span><span class="o">*</span><span class="n">Qll</span>
         <span class="k">return</span> <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">has_mist_eliminator</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span>
 
-    <span class="k">def</span> <span class="nf">_vertical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design_vertical_vessel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">has_mist_eliminator</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
 
         <span class="c1"># Calculate internal diameter, Dvd</span>
@@ -639,7 +642,7 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>     <span class="c1"># lb</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in</span>
         
-    <span class="k">def</span> <span class="nf">_horizontal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design_horizontal_vessel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">has_mist_eliminator</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
 
         <span class="c1"># Initialize LD</span>

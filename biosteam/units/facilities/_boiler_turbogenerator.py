@@ -11,7 +11,7 @@ from ..decorators import cost
 
 __all__ = ('BoilerTurbogenerator',)
 
-lps = HeatUtility.heating_agents['Low pressure steam']
+lps = HeatUtility.get_heating_agent('low_pressure_steam')
 
 #: TODO add reference of NREL
 
@@ -64,7 +64,7 @@ class BoilerTurbogenerator(Facility):
                  turbogenerator_efficiency=0.85,
                  side_steam=None):
         Unit.__init__(self, ID, ins, outs)
-        self.makeup_water = makeup_water = Stream('boiler_makeup_water', thermo=lps.thermo)
+        self.makeup_water = makeup_water = lps.to_stream('boiler_makeup_water')
         loss = makeup_water.flow_proxy()
         loss.ID = 'rejected_water_and_blowdown'
         self.ins[-1] = makeup_water
@@ -72,8 +72,7 @@ class BoilerTurbogenerator(Facility):
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
-        self.steam_demand = Stream(None, thermo=lps.thermo, 
-                                   P=lps.P, T=lps.T, phase='g')
+        self.steam_demand = lps.to_stream()
         self.side_steam = side_steam
     
     def _run(self): pass
@@ -87,7 +86,7 @@ class BoilerTurbogenerator(Facility):
             for u in self.system.units:
                 if u is self: continue
                 for hu in u.heat_utilities:
-                    if hu.ID == 'Low pressure steam':
+                    if hu.ID == 'low_pressure_steam':
                         steam_utilities.add(hu)
         steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
         duty_over_mol = self.duty_over_mol
@@ -140,7 +139,7 @@ class BoilerTurbogenerator(Facility):
             electricity = H_electricity * TG_eff
             cooling = electricity - H_electricity
         hu_cooling(cooling, steam.T)
-        hu_steam.ID = 'Low pressure steam'
+        hu_steam.agent = lps
         hu_steam.cost = -sum([i.cost for i in steam_utilities])
         Design['Work'] = electricity/3600
 

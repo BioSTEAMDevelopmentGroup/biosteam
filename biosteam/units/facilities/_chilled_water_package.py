@@ -24,8 +24,11 @@ class ChilledWaterPackage(Facility):
     _N_heat_utilities = 1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID=''):
-        thermo = HeatUtility.cooling_agents['Chilled water'].thermo
-        super().__init__(ID, 'return_chilled_water', 'chilled_water', thermo=thermo)
+        chilled_water = HeatUtility.get_cooling_agent('chilled_water')
+        super().__init__(ID,
+                         ins='recirculated_chilled_water',
+                         outs=chilled_water.to_stream(),
+                         thermo=chilled_water.thermo)
         self.chilled_water_utilities = set()
         
     def _design(self):
@@ -34,12 +37,11 @@ class ChilledWaterPackage(Facility):
             for u in self.system.units:
                 if u is self: continue
                 for hu in u.heat_utilities:
-                    if hu.ID == 'Chilled water': cwu.add(hu)
+                    if hu.ID == 'chilled_water': cwu.add(hu)
         self.design_results['Duty'] = duty = sum([i.duty for i in cwu])
         hu = self.heat_utilities[0]
         hu(duty, 330)
-        used = self._ins[0]
+        used = self.ins[0]
         used.mol[0] = sum([i.flow for i in cwu])
         used.T = np.array([i.outlet_utility_stream.T for i in cwu]).mean()
-        self.outs[0].T = hu.cooling_agents['Chilled water'].T
         

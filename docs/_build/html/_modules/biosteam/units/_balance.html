@@ -97,6 +97,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
@@ -208,7 +209,10 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    MassBalance are Unit objects that serve to alter flow rates of selected species and input streams to satisfy the mass balance. The example below uses the MassBalance object to satisfy the target flow rate feeding the mixer M1:</span>
+<span class="sd">    MassBalance are Unit objects that serve to alter flow rates of selected</span>
+<span class="sd">    chemicals and input streams to satisfy the mass balance.</span>
+<span class="sd">    The example below uses the MassBalance object to satisfy the target</span>
+<span class="sd">    flow rate feeding the mixer M1:</span>
 <span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; from biosteam import System</span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import Mixer, Splitter, StorageTank, Pump, Flash, MassBalance</span>
@@ -287,6 +291,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">chemical_IDs</span> <span class="o">=</span> <span class="n">chemical_IDs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_exact</span> <span class="o">=</span> <span class="n">is_exact</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">balance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assert_compatible_property_package</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solve mass balance by iteration.&quot;&quot;&quot;</span>

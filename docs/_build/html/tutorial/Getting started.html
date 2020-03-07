@@ -106,6 +106,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
@@ -439,14 +440,18 @@ options:</p>
 </div>
 <p>Set
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
-options:</p>
+options via
+<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/UtilityAgent.html">UtilityAgent</a>
+objects. These are basically
+<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html">Stream</a>
+objects with additional attributes to describe a utility agent:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span> <span class="c1"># Functions as a dictionary of available cooling agents</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span> <span class="c1"># All available cooling agents</span>
 </pre></div>
 </div>
 </div>
@@ -456,7 +461,9 @@ options:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>CoolingAgents({&#39;Cooling water&#39;: &lt;UtilityAgent: T=305.372 K&gt;, &#39;Chilled water&#39;: &lt;UtilityAgent: T=280.372 K&gt;, &#39;Chilled Brine&#39;: &lt;UtilityAgent: T=255.372 K&gt;})
+<span></span>[&lt;UtilityAgent: cooling_water&gt;,
+ &lt;UtilityAgent: chilled_water&gt;,
+ &lt;UtilityAgent: chilled_water&gt;]
 </pre></div>
 </div>
 </div>
@@ -466,7 +473,7 @@ options:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cw</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">]</span>
+<span></span><span class="n">cw</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_cooling_agent</span><span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">)</span>
 <span class="n">cw</span> <span class="c1"># A UtilityAgent</span>
 
 </pre></div>
@@ -477,17 +484,13 @@ options:</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-UtilityAgent:
- thermo                Thermo(CompiledChemicals([Water]), ...)
- z_mol                 (1.00,)
- T           K         305.37
- P           Pa        101,325
- phase                 &#39;l&#39;
- Hvap        kJ/kmol   None
- T_limit     K         324.82
- price_kJ    USD/kJ    0
- price_kmol  USD/kmol  0.0004879
- efficiency            1.00
+UtilityAgent: cooling_water
+ phase: &#39;l&#39;, T: 305.37 K, P: 101325 Pa
+ heat_transfer_price: 0 USD/kJ
+ regeneration_price: 0.000488 USD/kmol
+ heat_transfer_efficiency: 1.000
+ T_limit: {T_limit:.3g} K
+ flow (kmol/hr): Water  1
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -496,8 +499,8 @@ UtilityAgent:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Data is stored as attributes</span>
-<span class="p">(</span><span class="n">cw</span><span class="o">.</span><span class="n">thermo</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">z_mol</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">T_limit</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">price_kJ</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">price_kmol</span><span class="p">,</span> <span class="n">cw</span><span class="o">.</span><span class="n">efficiency</span><span class="p">)</span>
+<span></span><span class="c1"># Price of regenerating the utility in USD/kmol</span>
+<span class="n">cw</span><span class="o">.</span><span class="n">regeneration_price</span>
 </pre></div>
 </div>
 </div>
@@ -507,45 +510,39 @@ UtilityAgent:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>(Thermo(chemicals=CompiledChemicals([Water]), mixture=Mixture(&#39;ideal mixing rules&#39;, ..., rigorous_energy_balance=True, include_excess_energies=False), Gamma=DortmundActivityCoefficients, Phi=IdealFugacityCoefficients, PCF=IdealPoyintingCorrectionFactors),
- (1,),
- 305.372,
- 101325,
- &#39;l&#39;,
- 324.817,
- 0,
- 0.00048785,
- 1)
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cw</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">302</span> <span class="c1"># Change temperature (K)</span>
+<span></span>0.00048785
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span> <span class="c1"># Functions as a dictionary of available heating agents</span>
+<span></span><span class="c1"># Other utilities may be priced for amount of heat transfered in USD/kJ</span>
+<span class="n">chilled_water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_cooling_agent</span><span class="p">(</span><span class="s1">&#39;chilled_water&#39;</span><span class="p">)</span>
+<span class="n">chilled_water</span><span class="o">.</span><span class="n">heat_transfer_price</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[9]:
+<span></span>Out[8]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>HeatingAgents({&#39;Low pressure steam&#39;: &lt;UtilityAgent: T=411.494 K&gt;, &#39;Medium pressure steam&#39;: &lt;UtilityAgent: T=454.484 K&gt;, &#39;High pressure steam&#39;: &lt;UtilityAgent: T=508.858 K&gt;})
+<span></span>5e-06
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">cw</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">302</span> <span class="c1"># Change the temperature of cooling water (K)</span>
 </pre></div>
 </div>
 </div>
@@ -555,7 +552,30 @@ UtilityAgent:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">[</span><span class="s1">&#39;Low pressure steam&#39;</span><span class="p">]</span> <span class="c1"># A UtilityAgent</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span> <span class="c1"># All available heating agents</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[10]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[&lt;UtilityAgent: low_pressure_steam&gt;,
+ &lt;UtilityAgent: medium_pressure_steam&gt;,
+ &lt;UtilityAgent: high_pressure_steam&gt;]
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">lps</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_heating_agent</span><span class="p">(</span><span class="s1">&#39;low_pressure_steam&#39;</span><span class="p">)</span> <span class="c1"># A UtilityAgent</span>
+<span class="n">lps</span> <span class="c1"># Note that because utility changes phase, T_limit is None</span>
 </pre></div>
 </div>
 </div>
@@ -564,26 +584,22 @@ UtilityAgent:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-UtilityAgent:
- thermo                Thermo(CompiledChemicals([Water]), ...)
- z_mol                 (1.00,)
- T           K         411.49
- P           Pa        344,738
- phase                 &#39;g&#39;
- Hvap        kJ/kmol   3.886e+04
- T_limit     K         None
- price_kJ    USD/kJ    0
- price_kmol  USD/kmol  0.2378
- efficiency            0.95
+UtilityAgent: low_pressure_steam
+ phase: &#39;g&#39;, T: 411.49 K, P: 344738 Pa
+ heat_transfer_price: 0 USD/kJ
+ regeneration_price: 0.238 USD/kmol
+ heat_transfer_efficiency: 0.950
+ T_limit: None
+ flow (kmol/hr): Water  1
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [11]:
+<span></span>In [12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">[</span><span class="s1">&#39;Low pressure steam&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">price_kmol</span> <span class="o">=</span> <span class="mf">0.20</span> <span class="c1"># Change price (USD/kmol)</span>
+<span></span><span class="n">lps</span><span class="o">.</span><span class="n">regeneration_price</span> <span class="o">=</span> <span class="mf">0.20</span> <span class="c1"># Change price (USD/kmol)</span>
 </pre></div>
 </div>
 </div>
@@ -602,7 +618,7 @@ thermodynamic engine. In this example, a simple feed stream with a few
 common chemicals will be initialized:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [12]:
+<span></span>In [13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -640,7 +656,7 @@ with rigorous modeling and design algorithms. Here we create a
 object as an example:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [13]:
+<span></span>In [14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -657,7 +673,7 @@ object as an example:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_22_0.png" src="../_images/tutorial_Getting_started_22_0.png" />
+<img alt="../_images/tutorial_Getting_started_23_0.png" src="../_images/tutorial_Getting_started_23_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -681,7 +697,7 @@ outs...
 <code class="docutils literal notranslate"><span class="pre">ins</span></code>, and empty streams to outputs, <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [14]:
+<span></span>In [15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -691,7 +707,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[14]:
+<span></span>Out[15]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -701,7 +717,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [15]:
+<span></span>In [16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -711,7 +727,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[15]:
+<span></span>Out[16]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -722,7 +738,7 @@ outs...
 <p>You can connect streams by setting the <code class="docutils literal notranslate"><span class="pre">ins</span></code> and <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [16]:
+<span></span>In [17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -735,7 +751,7 @@ outs...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_27_0.png" src="../_images/tutorial_Getting_started_27_0.png" />
+<img alt="../_images/tutorial_Getting_started_28_0.png" src="../_images/tutorial_Getting_started_28_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -761,7 +777,7 @@ outs...
 <p>To simulate the flash, use the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [17]:
+<span></span>In [18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -795,7 +811,7 @@ outs...
 <p>The <code class="docutils literal notranslate"><span class="pre">results</span></code> method returns simulation results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [18]:
+<span></span>In [19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -805,7 +821,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[18]:
+<span></span>Out[19]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -909,7 +925,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [19]:
+<span></span>In [20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -919,7 +935,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[19]:
+<span></span>Out[20]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -952,7 +968,7 @@ and a
 object:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [20]:
+<span></span>In [21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -967,7 +983,7 @@ flowsheets</a>
 with <code class="docutils literal notranslate"><span class="pre">find</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [21]:
+<span></span>In [22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -979,13 +995,13 @@ with <code class="docutils literal notranslate"><span class="pre">find</span></c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_38_0.svg" src="../_images/tutorial_Getting_started_38_0.svg" /></div>
+<img alt="../_images/tutorial_Getting_started_39_0.svg" src="../_images/tutorial_Getting_started_39_0.svg" /></div>
 </div>
 <p>Connect streams and make a recycle loop using <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Using%20-pipe-%20notation.html">-pipe-
 notation</a>:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [22]:
+<span></span>In [23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1007,7 +1023,7 @@ object by specifying an ID, a <code class="docutils literal notranslate"><span c
 units:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [23]:
+<span></span>In [24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1020,7 +1036,7 @@ units:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_42_0.png" src="../_images/tutorial_Getting_started_42_0.png" />
+<img alt="../_images/tutorial_Getting_started_43_0.png" src="../_images/tutorial_Getting_started_43_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1039,7 +1055,7 @@ System: sys1
 <p>View the System object as a Graphviz diagram:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [24]:
+<span></span>In [25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1051,13 +1067,13 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_44_0.png" src="../_images/tutorial_Getting_started_44_0.png" />
+<img alt="../_images/tutorial_Getting_started_45_0.png" src="../_images/tutorial_Getting_started_45_0.png" />
 </div>
 </div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [25]:
+<span></span>In [26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1081,7 +1097,7 @@ System: sys1
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [26]:
+<span></span>In [27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1113,7 +1129,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [27]:
+<span></span>In [28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1123,7 +1139,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[27]:
+<span></span>Out[28]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1228,7 +1244,7 @@ outs...
 <p>Save a system report:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [28]:
+<span></span>In [29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>

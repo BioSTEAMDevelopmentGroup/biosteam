@@ -95,21 +95,21 @@ class Fermentation(Unit):
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.5
                         Cost                          USD/hr     0.899
-    Chilled water       Duty                           kJ/hr -1.35e+07
-                        Flow                         kmol/hr  9.02e+03
-                        Cost                          USD/hr      67.3
+    Chilled water       Duty                           kJ/hr -2.91e+06
+                        Flow                         kmol/hr  1.95e+03
+                        Cost                          USD/hr      14.5
     Design              Reactor volume                    m3       243
                         Cycle time                        hr      12.6
                         Loading time                      hr      1.57
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
                         Number of reactors                           8
-    Purchase cost       Coolers                          USD  1.67e+05
+    Purchase cost       Coolers                          USD   3.7e+04
                         Reactors                         USD  1.86e+06
                         Agitators                        USD  1.16e+05
                         Cleaning in place                USD  7.05e+05
-    Total purchase cost                                  USD  2.85e+06
-    Utility cost                                      USD/hr      68.2
+    Total purchase cost                                  USD  2.72e+06
+    Utility cost                                      USD/hr      15.4
     
     
     References
@@ -204,7 +204,8 @@ class Fermentation(Unit):
         
     @staticmethod
     def kinetic_model(z, t, *kinetic_constants):
-        """Return change of yeast, ethanol, and substrate concentration in kg/m3.
+        """
+        Return change of yeast, ethanol, and substrate concentration in kg/m3.
         
         Parameters
         ----------

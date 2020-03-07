@@ -97,6 +97,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
@@ -254,6 +255,7 @@
         <span class="k">if</span> <span class="n">xi</span> <span class="o">&gt;</span> <span class="n">x_limit</span><span class="p">:</span>
             <span class="n">xi</span> <span class="o">=</span> <span class="n">x_limit</span>
         <span class="n">x_stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+    
 
 <span class="c1"># %% Distillation</span>
 
@@ -287,8 +289,15 @@
 <span class="sd">        Molar fraction of light key in the distillate.</span>
 <span class="sd">    x_bot : float</span>
 <span class="sd">        Molar fraction of light key in the bottoms.</span>
+<span class="sd">    Lr : float</span>
+<span class="sd">        Recovery of the light key in the distillate.</span>
+<span class="sd">    Hr : float</span>
+<span class="sd">        Recovery of the heavy key in the bottoms product.</span>
 <span class="sd">    k : float</span>
 <span class="sd">        Ratio of reflux to minimum reflux.</span>
+<span class="sd">    specification=&quot;Composition&quot; : &quot;Composition&quot; or &quot;Recovery&quot;</span>
+<span class="sd">        If composition is used, `y_top` and `x_bot` must be specified.</span>
+<span class="sd">        If recovery is used, `Lr` and `Hr` must be specified.</span>
 <span class="sd">    P=101325 : float</span>
 <span class="sd">        Operating pressure [Pa].</span>
 <span class="sd">    vessel_material : str, optional</span>
@@ -429,7 +438,12 @@
                <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">)}</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">LHK</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span>
+                <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">LHK</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span>
+                <span class="n">Lr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">Hr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">y_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">x_bot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">product_specification_format</span><span class="o">=</span><span class="s1">&#39;Composition&#39;</span><span class="p">,</span>
                 <span class="n">vessel_material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">,</span>
                 <span class="n">tray_material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">,</span>
                 <span class="n">tray_type</span><span class="o">=</span><span class="s1">&#39;Sieve&#39;</span><span class="p">,</span>
@@ -443,11 +457,11 @@
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         
         <span class="c1"># Operation specifications</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">LHK</span> <span class="o">=</span> <span class="n">LHK</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y_top</span> <span class="o">=</span> <span class="n">y_top</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span> <span class="o">=</span> <span class="n">x_bot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_distillation_product_specifications</span><span class="p">(</span><span class="n">product_specification_format</span><span class="p">,</span>
+                                                      <span class="n">x_bot</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">Lr</span><span class="p">,</span> <span class="n">Hr</span><span class="p">)</span>
         
         <span class="c1"># Construction specifications</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vessel_material</span> <span class="o">=</span> <span class="n">vessel_material</span>
@@ -475,19 +489,22 @@
                                 <span class="n">thermo</span><span class="o">=</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
-        
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">product_specification_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product_specification_format</span>
+    <span class="nd">@product_specification_format</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">product_specification_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">spec</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Composition&#39;</span><span class="p">,</span> <span class="s1">&#39;Recovery&#39;</span><span class="p">),</span> <span class="p">(</span>
+            <span class="s2">&quot;product specification format must be either &#39;Composition&#39; or &#39;Recovery&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_product_specification_format</span> <span class="o">=</span> <span class="n">spec</span>
+    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">condensate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">boilup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">bottoms_produt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;l&#39;</span><span class="p">]</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">distillate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LHK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -505,7 +522,9 @@
         <span class="n">LNK</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">HNK</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">Tb_light</span> <span class="o">&gt;</span> <span class="n">Tb_heavy</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;light key must be lighter than heavy key&quot;</span><span class="p">)</span>
+            <span class="n">LK</span><span class="p">,</span> <span class="n">HK</span> <span class="o">=</span> <span class="n">LHK</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;light key must be lighter than heavy key &quot;</span>
+                             <span class="sa">f</span><span class="s2">&quot;(i.e. </span><span class="si">{LK}</span><span class="s2">.Tb must be lower than </span><span class="si">{HK}</span><span class="s2">.Tb)&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">chemical</span> <span class="ow">in</span> <span class="n">chemicals</span><span class="p">:</span>
             <span class="n">Tb</span> <span class="o">=</span> <span class="n">chemical</span><span class="o">.</span><span class="n">Tb</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">Tb</span><span class="p">:</span>
@@ -530,6 +549,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_top</span>
     <span class="nd">@y_top</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">y_top</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_top</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_specification_format</span> <span class="o">==</span> <span class="s2">&quot;Composition&quot;</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;product specification format must be &#39;Composition&#39; &quot;</span>
+            <span class="s2">&quot;to set distillate composition&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">y_top</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;light key composition in the distillate must be a fraction&quot;</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_top</span> <span class="o">=</span> <span class="n">y_top</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y_top</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">y_top</span><span class="p">])</span>
     
@@ -539,8 +562,36 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_bot</span>
     <span class="nd">@x_bot</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">x_bot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_specification_format</span> <span class="o">==</span> <span class="s2">&quot;Composition&quot;</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;product specification format must be &#39;Composition&#39; to set bottoms &quot;</span>
+            <span class="s2">&quot;product composition&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">x_bot</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;heavy key composition in the bottoms product must be a fraction&quot;</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">_x_bot</span> <span class="o">=</span> <span class="n">x_bot</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x_bot</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">x_bot</span><span class="p">])</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Lr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Light key recovery in the distillate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Lr</span>
+    <span class="nd">@Lr</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">Lr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Lr</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_specification_format</span> <span class="o">==</span> <span class="s2">&quot;Recovery&quot;</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;product specification format must be &#39;Recovery&#39; &quot;</span>
+            <span class="s2">&quot;to set light key recovery&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">Lr</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;light key recovery in the distillate must be a fraction&quot;</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Lr</span> <span class="o">=</span> <span class="n">Lr</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Hr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Heavy key recovery in the bottoms product.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hr</span>
+    <span class="nd">@Hr</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">Hr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Hr</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_specification_format</span> <span class="o">==</span> <span class="s2">&quot;Recovery&quot;</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;product specification format must be &#39;Recovery&#39; &quot;</span>
+            <span class="s2">&quot;to set heavy key recovery&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">Hr</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;heavy key recovery in the bottoms product must be a fraction&quot;</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Hr</span> <span class="o">=</span> <span class="n">Hr</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tray_spacing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -619,7 +670,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;tray material must be one of the following: &quot;</span>
                             <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(tray_material_factor_functions)}&quot;</span><span class="p">)</span>
         
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vessel_material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Default &#39;Carbon steel&#39;&quot;&quot;&quot;</span>
@@ -641,6 +691,30 @@
     <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_divided</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_divided</span> <span class="o">=</span> <span class="n">is_divided</span>
     
+    <span class="k">def</span> <span class="nf">_set_distillation_product_specifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                                 <span class="n">product_specification_format</span><span class="p">,</span>
+                                                 <span class="n">x_bot</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">Lr</span><span class="p">,</span> <span class="n">Hr</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_product_specification_format</span> <span class="o">=</span> <span class="n">product_specification_format</span>
+        <span class="k">if</span> <span class="n">product_specification_format</span> <span class="o">==</span> <span class="s1">&#39;Composition&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_top</span> <span class="o">=</span> <span class="n">y_top</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span> <span class="o">=</span> <span class="n">x_bot</span>
+        <span class="k">elif</span> <span class="n">product_specification_format</span> <span class="o">==</span> <span class="s1">&#39;Recovery&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Lr</span> <span class="o">=</span> <span class="n">Lr</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Hr</span> <span class="o">=</span> <span class="n">Hr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;product specification format must be either &#39;Composition&#39; or &#39;Recovery&#39;&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_y_top_and_x_bot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_specification_format</span> <span class="o">==</span> <span class="s1">&#39;Composition&#39;</span><span class="p">:</span>
+            <span class="n">y_top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_top</span>
+            <span class="n">x_bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+            <span class="n">LHK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span>
+            <span class="n">y_top</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span>
+            <span class="n">x_bot</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span>
+    
     <span class="k">def</span> <span class="nf">_check_mass_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">LHK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span>
         <span class="n">intermediate_chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intermediate_volatile_chemicals</span>
@@ -655,8 +729,8 @@
         <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
         <span class="n">LK_distillate</span><span class="p">,</span> <span class="n">HK_distillate</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
         <span class="n">LK_bottoms</span><span class="p">,</span> <span class="n">HK_bottoms</span> <span class="o">=</span> <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
-        <span class="k">assert</span> <span class="n">LK_distillate</span> <span class="ow">and</span> <span class="n">LK_bottoms</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Light key composition is infeasible&quot;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">HK_distillate</span> <span class="ow">and</span> <span class="n">HK_bottoms</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;heavy key composition is infeasible&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">LK_distillate</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">LK_bottoms</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Light key composition is infeasible&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">HK_distillate</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">HK_bottoms</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;heavy key composition is infeasible&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_run_mass_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Get all important flow rates (both light and heavy keys and non-keys)</span>
@@ -664,25 +738,35 @@
         <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
         <span class="n">HNK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HNK_index</span>
         <span class="n">LNK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LNK_index</span>
+        <span class="n">intermediate_chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intermediate_volatile_chemicals</span>
+        <span class="n">intemediates_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">intermediate_chemicals</span><span class="p">)</span>
         <span class="n">LHK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
         <span class="n">HNK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span>
         <span class="n">LNK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span>
-
-        <span class="c1"># Set light and heavy keys by lever rule</span>
-        <span class="n">light</span><span class="p">,</span> <span class="n">heavy</span> <span class="o">=</span> <span class="n">LHK_mol</span>
-        <span class="n">F_mol_LHK</span> <span class="o">=</span> <span class="n">light</span> <span class="o">+</span> <span class="n">heavy</span>
-        <span class="n">zf</span> <span class="o">=</span> <span class="n">light</span><span class="o">/</span><span class="n">F_mol_LHK</span>
-        <span class="n">distillate_fraction</span> <span class="o">=</span> <span class="p">(</span><span class="n">zf</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_top</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span>
-        <span class="n">F_mol_LHK_distillate</span> <span class="o">=</span> <span class="n">F_mol_LHK</span> <span class="o">*</span> <span class="n">distillate_fraction</span>
-
-        <span class="c1"># Set outlet streams</span>
+        
+        <span class="c1"># Mass balance for non-keys</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">distillate_LHK_mol</span> <span class="o">=</span> <span class="n">F_mol_LHK_distillate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
-        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate_LHK_mol</span>
-        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LHK_mol</span> <span class="o">-</span> <span class="n">distillate_LHK_mol</span>
         <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_mol</span>
         <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_mol</span>
         
+        <span class="c1"># Mass balance for keys</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_specification_format</span>
+        <span class="k">if</span>  <span class="n">spec</span> <span class="o">==</span> <span class="s1">&#39;Composition&#39;</span><span class="p">:</span>
+            <span class="c1"># Use lever rule</span>
+            <span class="n">light</span><span class="p">,</span> <span class="n">heavy</span> <span class="o">=</span> <span class="n">LHK_mol</span>
+            <span class="n">F_mol_LHK</span> <span class="o">=</span> <span class="n">light</span> <span class="o">+</span> <span class="n">heavy</span>
+            <span class="n">zf</span> <span class="o">=</span> <span class="n">light</span><span class="o">/</span><span class="n">F_mol_LHK</span>
+            <span class="n">distillate_fraction</span> <span class="o">=</span> <span class="p">(</span><span class="n">zf</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_top</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span><span class="p">)</span>
+            <span class="n">F_mol_LHK_distillate</span> <span class="o">=</span> <span class="n">F_mol_LHK</span> <span class="o">*</span> <span class="n">distillate_fraction</span>
+            <span class="n">distillate_LHK_mol</span> <span class="o">=</span> <span class="n">F_mol_LHK_distillate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+        <span class="k">elif</span> <span class="n">spec</span> <span class="o">==</span> <span class="s1">&#39;Recovery&#39;</span><span class="p">:</span>
+            <span class="n">distillate_LHK_mol</span> <span class="o">=</span> <span class="n">LHK_mol</span> <span class="o">*</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Lr</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hr</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid specification &#39;</span><span class="si">{spec}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate_LHK_mol</span>
+        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LHK_mol</span> <span class="o">-</span> <span class="n">distillate_LHK_mol</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">intemediates_index</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">bottoms_product</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">intemediates_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">intemediates_index</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="k">if</span> <span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_check_mass_balance</span><span class="p">()</span>
     
@@ -729,8 +813,7 @@
         <span class="c1"># Main arguments</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
         <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span>
-        <span class="n">y_top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_top</span>
-        <span class="n">x_bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span>
+        <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_y_top_and_x_bot</span><span class="p">()</span>
         
         <span class="c1"># Cache</span>
         <span class="n">old_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span>
@@ -1052,8 +1135,7 @@
         <span class="n">zf</span> <span class="o">=</span> <span class="n">q_args</span><span class="p">[</span><span class="s1">&#39;zf&#39;</span><span class="p">]</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">q_args</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]</span>
         <span class="n">q_line</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">q</span><span class="o">*</span><span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="n">q</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">zf</span><span class="o">/</span><span class="p">(</span><span class="n">q</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">y_top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_top</span>
-        <span class="n">x_bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_bot</span>
+        <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_y_top_and_x_bot</span><span class="p">()</span>
         <span class="n">stages</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span>
         <span class="n">Rmin</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">]</span>
         <span class="n">R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>

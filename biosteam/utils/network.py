@@ -5,7 +5,7 @@ Created on Tue Sep 10 09:01:47 2019
 @author: yoelr
 """
 import biosteam as bst
-from .other_utils import strtuple
+from .misc import strtuple
 
 __all__ = ('_add_upstream_neighbors', '_add_downstream_neighbors',
            'Thread', 'build_network')

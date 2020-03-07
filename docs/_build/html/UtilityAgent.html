@@ -1,0 +1,1233 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>UtilityAgent &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HeatUtility" href="HeatUtility.html" />
+    <link rel="prev" title="PowerUtility" href="PowerUtility.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>UtilityAgent</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/UtilityAgent.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="utilityagent">
+<h1>UtilityAgent<a class="headerlink" href="#utilityagent" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.UtilityAgent">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">UtilityAgent</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">flow=()</em>, <em class="sig-param">phase='l'</em>, <em class="sig-param">T=298.15</em>, <em class="sig-param">P=101325.0</em>, <em class="sig-param">units='kmol/hr'</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">T_limit=None</em>, <em class="sig-param">heat_transfer_price=0.0</em>, <em class="sig-param">regeneration_price=0.0</em>, <em class="sig-param">heat_transfer_efficiency=1.0</em>, <em class="sig-param">**chemical_flows</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#UtilityAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.UtilityAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a UtilityAgent object that defines a utility option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ID=''</strong> (<em>str</em>) – A unique identification. If ID is None, stream will not be registered.
+If no ID is given, utility agent will be registered with a unique ID.</p></li>
+<li><p><strong>flow=</strong><strong>(</strong><strong>)</strong> (<em>tuple</em>) – All flow rates corresponding to chemical <cite>IDs</cite>.</p></li>
+<li><p><strong>phase='l'</strong> (<em>'l'</em><em>, </em><em>'g'</em><em>, or </em><em>'s'</em>) – Either gas (g), liquid (l), or solid (s).</p></li>
+<li><p><strong>T=298.15</strong> (<em>float</em>) – Temperature [K].</p></li>
+<li><p><strong>P=101325</strong> (<em>float</em>) – Pressure [Pa].</p></li>
+<li><p><strong>units='kmol/hr'</strong> (<em>str</em>) – Flow rate units of measure (only mass, molar, and
+volumetric flow rates are valid).</p></li>
+<li><p><strong>thermo=None</strong> (<em>Thermo</em>) – Thermodynamic equilibrium package. Defaults to <cite>thermosteam.settings.get_thermo()</cite>.</p></li>
+<li><p><strong>T_limit</strong> (<em>float</em><em>, </em><em>optional</em>) – Temperature limit of outlet utility streams [K]. If no limit is given,
+phase change is assumed. If utility agent heats up, <cite>T_limit</cite> is
+the maximum temperature. If utility agent cools down, <cite>T_limit</cite> is
+the minumum temperature.</p></li>
+<li><p><strong>heat_transfer_price</strong> (<em>float</em>) – Price of transfered heat [USD/kJ].</p></li>
+<li><p><strong>regeneration_price</strong> (<em>float</em>) – Price of regenerating the fluid for reuse [USD/kmol].</p></li>
+<li><p><strong>heat_transfer_efficiency</strong> (<em>float</em>) – Heat transfer heat_transfer_efficiency [between 0 to 1].</p></li>
+<li><p><strong>**chemical_flows</strong> (<em>float</em>) – ID - flow pairs.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="biosteam.UtilityAgent.to_stream">
+<code class="sig-name descname">to_stream</code><span class="sig-paren">(</span><em class="sig-param">ID=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#UtilityAgent.to_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.UtilityAgent.to_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy as a Stream object.</p>
+<p class="rubric">Examples</p>
+<p>Create a copy of a new stream:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cooling_water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_agent</span><span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cooling_water_copy</span> <span class="o">=</span> <span class="n">cooling_water</span><span class="o">.</span><span class="n">to_stream</span><span class="p">(</span><span class="s1">&#39;cooling_water_copy&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cooling_water_copy</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: cooling_water_copy</span>
+<span class="go"> phase: &#39;l&#39;, T: 305.37 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water  18</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.cost">
+<em class="property">property </em><code class="sig-name descname">cost</code><a class="headerlink" href="#biosteam.UtilityAgent.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Total cost of stream in USD/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.heat_transfer_price">
+<em class="property">property </em><code class="sig-name descname">heat_transfer_price</code><a class="headerlink" href="#biosteam.UtilityAgent.heat_transfer_price" title="Permalink to this definition">¶</a></dt>
+<dd><p>Price of transfered heat [USD/kJ].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.regeneration_price">
+<em class="property">property </em><code class="sig-name descname">regeneration_price</code><a class="headerlink" href="#biosteam.UtilityAgent.regeneration_price" title="Permalink to this definition">¶</a></dt>
+<dd><p>Price of regenerating the fluid for reuse [USD/kmol].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.C">
+<em class="property">property </em><code class="sig-name descname">C</code><a class="headerlink" href="#biosteam.UtilityAgent.C" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Heat capacity flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.Cn">
+<em class="property">property </em><code class="sig-name descname">Cn</code><a class="headerlink" href="#biosteam.UtilityAgent.Cn" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Molar heat capacity [J/mol/K].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.Cp">
+<em class="property">property </em><code class="sig-name descname">Cp</code><a class="headerlink" href="#biosteam.UtilityAgent.Cp" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Heat capacity [J/g/K].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.F_mass">
+<em class="property">property </em><code class="sig-name descname">F_mass</code><a class="headerlink" href="#biosteam.UtilityAgent.F_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Total mass flow rate in kg/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.F_mol">
+<em class="property">property </em><code class="sig-name descname">F_mol</code><a class="headerlink" href="#biosteam.UtilityAgent.F_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Total molar flow rate in kmol/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.F_vol">
+<em class="property">property </em><code class="sig-name descname">F_vol</code><a class="headerlink" href="#biosteam.UtilityAgent.F_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Total volumetric flow rate in m3/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.H">
+<em class="property">property </em><code class="sig-name descname">H</code><a class="headerlink" href="#biosteam.UtilityAgent.H" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Enthalpy flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.HHV">
+<em class="property">property </em><code class="sig-name descname">HHV</code><a class="headerlink" href="#biosteam.UtilityAgent.HHV" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Higher heating value flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.Hf">
+<em class="property">property </em><code class="sig-name descname">Hf</code><a class="headerlink" href="#biosteam.UtilityAgent.Hf" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Enthalpy of formation flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.Hvap">
+<em class="property">property </em><code class="sig-name descname">Hvap</code><a class="headerlink" href="#biosteam.UtilityAgent.Hvap" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Enthalpy of vaporization flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.ID">
+<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.UtilityAgent.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.LHV">
+<em class="property">property </em><code class="sig-name descname">LHV</code><a class="headerlink" href="#biosteam.UtilityAgent.LHV" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Lower heating value flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.MW">
+<em class="property">property </em><code class="sig-name descname">MW</code><a class="headerlink" href="#biosteam.UtilityAgent.MW" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Overall molecular weight.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.P">
+<em class="property">property </em><code class="sig-name descname">P</code><a class="headerlink" href="#biosteam.UtilityAgent.P" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Pressure in Pascal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.Pr">
+<em class="property">property </em><code class="sig-name descname">Pr</code><a class="headerlink" href="#biosteam.UtilityAgent.Pr" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Prandtl number [-].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.S">
+<em class="property">property </em><code class="sig-name descname">S</code><a class="headerlink" href="#biosteam.UtilityAgent.S" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Entropy flow rate in kJ/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.T">
+<em class="property">property </em><code class="sig-name descname">T</code><a class="headerlink" href="#biosteam.UtilityAgent.T" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Temperature in Kelvin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.V">
+<em class="property">property </em><code class="sig-name descname">V</code><a class="headerlink" href="#biosteam.UtilityAgent.V" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Molar volume [m^3/mol].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.alpha">
+<em class="property">property </em><code class="sig-name descname">alpha</code><a class="headerlink" href="#biosteam.UtilityAgent.alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Thermal diffusivity [m^2/s].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.bubble_point_at_P">
+<code class="sig-name descname">bubble_point_at_P</code><span class="sig-paren">(</span><em class="sig-param">P=None</em>, <em class="sig-param">IDs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.bubble_point_at_P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a BubblePointResults object with all data on the bubble point at constant pressure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Chemicals that participate in equilibrium. Defaults to all chemicals in equilibrium.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
+<span class="go">BubblePointValues(T=357.0881141715846, P=101325.0, IDs=(&#39;Water&#39;, &#39;Ethanol&#39;), z=[0.836 0.164], y=[0.49 0.51])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.bubble_point_at_T">
+<code class="sig-name descname">bubble_point_at_T</code><span class="sig-paren">(</span><em class="sig-param">T=None</em>, <em class="sig-param">IDs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.bubble_point_at_T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a BubblePointResults object with all data on the bubble point at constant temperature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Chemicals that participate in equilibrium. Defaults to all chemicals in equilibrium.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">bubble_point_at_T</span><span class="p">()</span>
+<span class="go">BubblePointValues(T=350, P=76621.54388128374, IDs=(&#39;Water&#39;, &#39;Ethanol&#39;), z=[0.836 0.164], y=[0.486 0.514])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">ID=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the stream.</p>
+<p class="rubric">Examples</p>
+<p>Create a copy of a new stream:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1_copy</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="s1">&#39;s1_copy&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1_copy</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s1_copy</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water    20</span>
+<span class="go">               Ethanol  10</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Prices are not copied.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.copy_flow">
+<code class="sig-name descname">copy_flow</code><span class="sig-paren">(</span><em class="sig-param">stream</em>, <em class="sig-param">IDs=Ellipsis</em>, <em class="sig-param">*</em>, <em class="sig-param">remove=False</em>, <em class="sig-param">exclude=False</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.copy_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy flow rates of stream to self.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream</strong> (<em>Stream</em>) – Flow rates will be copied from here.</p></li>
+<li><p><strong>IDs=...</strong> (<em>iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>defaults to all chemicals.</em>) – Chemical IDs.</p></li>
+<li><p><strong>remove=False</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, copied chemicals will be removed from <cite>stream</cite>.</p></li>
+<li><p><strong>exclude=False</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, exclude designated chemicals when copying.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Initialize streams:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Copy all flows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">copy_flow</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s2</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water    20</span>
+<span class="go">               Ethanol  10</span>
+</pre></div>
+</div>
+<p>Reset and copy just water flow:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">copy_flow</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s2</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water  20</span>
+</pre></div>
+</div>
+<p>Reset and copy all flows except water:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">copy_flow</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s2</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Ethanol  10</span>
+</pre></div>
+</div>
+<p>Cut and paste flows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">copy_flow</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow: 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.copy_like">
+<code class="sig-name descname">copy_like</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.copy_like" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy all conditions of another stream.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water  2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.dew_point_at_P">
+<code class="sig-name descname">dew_point_at_P</code><span class="sig-paren">(</span><em class="sig-param">P=None</em>, <em class="sig-param">IDs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.dew_point_at_P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DewPointResults object with all data on the dew point at constant pressure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Chemicals that participate in equilibrium. Defaults to all chemicals in equilibrium.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">dew_point_at_P</span><span class="p">()</span>
+<span class="go">DewPointValues(T=368.6573659718087, P=101325.0, IDs=(&#39;Water&#39;, &#39;Ethanol&#39;), z=[0.836 0.164], x=[0.984 0.016])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.dew_point_at_T">
+<code class="sig-name descname">dew_point_at_T</code><span class="sig-paren">(</span><em class="sig-param">T=None</em>, <em class="sig-param">IDs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.dew_point_at_T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DewPointResults object with all data on the dew point at constant temperature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Chemicals that participate in equilibrium. Defaults to all chemicals in equilibrium.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">dew_point_at_T</span><span class="p">()</span>
+<span class="go">DewPointValues(T=350, P=48990.56398459762, IDs=(&#39;Water&#39;, &#39;Ethanol&#39;), z=[0.836 0.164], x=[0.984 0.016])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.empty">
+<code class="sig-name descname">empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty stream flow rates.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">F_mol</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.epsilon">
+<em class="property">property </em><code class="sig-name descname">epsilon</code><a class="headerlink" href="#biosteam.UtilityAgent.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Relative permittivity [-].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.equilibrium_chemicals">
+<em class="property">property </em><code class="sig-name descname">equilibrium_chemicals</code><a class="headerlink" href="#biosteam.UtilityAgent.equilibrium_chemicals" title="Permalink to this definition">¶</a></dt>
+<dd><p>list[Chemical] Chemicals cabable of vapor-liquid equilibrium.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.flow_proxy">
+<code class="sig-name descname">flow_proxy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.flow_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new stream that shares flow rate data with this one.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">flow_proxy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="ow">is</span> <span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_bubble_point">
+<code class="sig-name descname">get_bubble_point</code><span class="sig-paren">(</span><em class="sig-param">IDs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_bubble_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a BubblePoint object capable of computing bubble points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Chemicals that participate in equilibrium. Defaults to all chemicals in equilibrium.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_bubble_point</span><span class="p">()</span>
+<span class="go">BubblePoint([Water, Ethanol])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_concentration">
+<code class="sig-name descname">get_concentration</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return concentration of given chemicals in kmol/m3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m3/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_concentration</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([27.823,  4.265])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_dew_point">
+<code class="sig-name descname">get_dew_point</code><span class="sig-paren">(</span><em class="sig-param">IDs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_dew_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DewPoint object capable of computing dew points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Chemicals that participate in equilibrium. Defaults to all chemicals in equilibrium.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_dew_point</span><span class="p">()</span>
+<span class="go">DewPoint([Water, Ethanol])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_flow">
+<code class="sig-name descname">get_flow</code><span class="sig-paren">(</span><em class="sig-param">units</em>, <em class="sig-param">IDs=Ellipsis</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an flow rates in requested units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
+<li><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>] or </em><em>str</em><em>, </em><em>optional</em>) – Chemical identifiers.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_flow</span><span class="p">(</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="go">20.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_mass_composition">
+<code class="sig-name descname">get_mass_composition</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_mass_composition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return mass composition of given chemicals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_mass_composition</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([0.5 , 0.25])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_molar_composition">
+<code class="sig-name descname">get_molar_composition</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_molar_composition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return molar composition of given chemicals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_molar_composition</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([0.5 , 0.25])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_normalized_mass">
+<code class="sig-name descname">get_normalized_mass</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_normalized_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return normalized mass fractions of given chemicals. The sum of the result is always 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals to be normalized.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_normalized_mass</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([0.667, 0.333])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_normalized_mol">
+<code class="sig-name descname">get_normalized_mol</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_normalized_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return normalized molar fractions of given chemicals. The sum of the result is always 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals to be normalized.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([0.667, 0.333])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_normalized_vol">
+<code class="sig-name descname">get_normalized_vol</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_normalized_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return normalized mass fractions of given chemicals. The sum of the result is always 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals to be normalized.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m3/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_normalized_vol</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([0.667, 0.333])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_property">
+<code class="sig-name descname">get_property</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_property" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return property in requested units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of stream property.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;N/m&#39;</span><span class="p">)</span> <span class="c1"># Surface tension</span>
+<span class="go">0.06384967976396348</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_total_flow">
+<code class="sig-name descname">get_total_flow</code><span class="sig-paren">(</span><em class="sig-param">units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_total_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get total flow rate in given units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>units</strong> (<em>str</em>) – Units of measure.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_total_flow</span><span class="p">(</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">30.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.get_volumetric_composition">
+<code class="sig-name descname">get_volumetric_composition</code><span class="sig-paren">(</span><em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_volumetric_composition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return volumetric composition of given chemicals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m3/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_volumetric_composition</span><span class="p">((</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
+<span class="go">array([0.5 , 0.25])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.imass">
+<em class="property">property </em><code class="sig-name descname">imass</code><a class="headerlink" href="#biosteam.UtilityAgent.imass" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Indexer] Flow rate indexer with data in kg/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.imol">
+<em class="property">property </em><code class="sig-name descname">imol</code><a class="headerlink" href="#biosteam.UtilityAgent.imol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Indexer] Flow rate indexer with data in kmol/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.ivol">
+<em class="property">property </em><code class="sig-name descname">ivol</code><a class="headerlink" href="#biosteam.UtilityAgent.ivol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Indexer] Flow rate indexer with data in m3/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.kappa">
+<em class="property">property </em><code class="sig-name descname">kappa</code><a class="headerlink" href="#biosteam.UtilityAgent.kappa" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Thermal conductivity [W/m/k].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.link_with">
+<code class="sig-name descname">link_with</code><span class="sig-paren">(</span><em class="sig-param">other</em>, <em class="sig-param">flow=True</em>, <em class="sig-param">phase=True</em>, <em class="sig-param">TP=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.link_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Link with another stream.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<em>Stream</em>) – </p></li>
+<li><p><strong>flow</strong> (<em>bool</em><em>, </em><em>defaults to True</em>) – Whether to link the flow rate data.</p></li>
+<li><p><strong>phase</strong> (<em>bool</em><em>, </em><em>defaults to True</em>) – Whether to link the phase.</p></li>
+<li><p><strong>TP</strong> (<em>bool</em><em>, </em><em>defaults to True</em>) – Whether to link the temperature and pressure.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">link_with</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span> <span class="ow">is</span> <span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">thermal_condition</span> <span class="ow">is</span> <span class="n">s1</span><span class="o">.</span><span class="n">thermal_condition</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">phase</span>
+<span class="go">&#39;g&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.mass">
+<em class="property">property </em><code class="sig-name descname">mass</code><a class="headerlink" href="#biosteam.UtilityAgent.mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>[property_array] Mass flow rates in kg/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.mix_from">
+<code class="sig-name descname">mix_from</code><span class="sig-paren">(</span><em class="sig-param">others</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.mix_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mix all other streams into this one, ignoring its initial contents.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mix_from</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water    40</span>
+<span class="go">               Ethanol  20</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.mol">
+<em class="property">property </em><code class="sig-name descname">mol</code><a class="headerlink" href="#biosteam.UtilityAgent.mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[array] Molar flow rates in kmol/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.mu">
+<em class="property">property </em><code class="sig-name descname">mu</code><a class="headerlink" href="#biosteam.UtilityAgent.mu" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Hydrolic viscosity [Pa*s].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.nu">
+<em class="property">property </em><code class="sig-name descname">nu</code><a class="headerlink" href="#biosteam.UtilityAgent.nu" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Kinematic viscosity [-].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.phase">
+<em class="property">property </em><code class="sig-name descname">phase</code><a class="headerlink" href="#biosteam.UtilityAgent.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Phase of stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.phases">
+<em class="property">property </em><code class="sig-name descname">phases</code><a class="headerlink" href="#biosteam.UtilityAgent.phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[str] All phases that may be present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.recieve_vent">
+<code class="sig-name descname">recieve_vent</code><span class="sig-paren">(</span><em class="sig-param">other</em>, <em class="sig-param">accumulate=False</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.recieve_vent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recieve vapors from another stream as if in equilibrium.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IDs</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – IDs of chemicals.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;N2&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span><span class="o">.</span><span class="n">N2</span><span class="o">.</span><span class="n">at_state</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">N2</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m3/hr&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">330</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">330</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">recieve_vent</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;g&#39;, T: 330 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Water    0.0557</span>
+<span class="go">                 Ethanol  0.0616</span>
+<span class="go">                 N2       0.369</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.rho">
+<em class="property">property </em><code class="sig-name descname">rho</code><a class="headerlink" href="#biosteam.UtilityAgent.rho" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Density [kg/m^3].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.set_flow">
+<code class="sig-name descname">set_flow</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">units</em>, <em class="sig-param">IDs=Ellipsis</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.set_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set flow rates in given units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>1d ndarray</em><em> or </em><em>float</em>) – Flow rate data.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
+<li><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>] or </em><em>str</em><em>, </em><em>optional</em>) – Chemical identifiers.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">set_flow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_flow</span><span class="p">(</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="go">10.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.set_property">
+<code class="sig-name descname">set_property</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">value</em>, <em class="sig-param">units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.set_property" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set property in given units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of stream property.</p></li>
+<li><p><strong>value</strong> (<em>str</em>) – New value of stream property.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;atm&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">P</span>
+<span class="go">202650.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.set_total_flow">
+<code class="sig-name descname">set_total_flow</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.set_total_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set total flow rate in given units keeping the composition constant.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>float</em>) – New total flow rate.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">set_total_flow</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_total_flow</span><span class="p">(</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">0.9999999999999999</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.show">
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">composition=False</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all specifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T</strong> (<em>str</em><em>, </em><em>optional</em>) – Temperature units.</p></li>
+<li><p><strong>P</strong> (<em>str</em><em>, </em><em>optional</em>) – Pressure units.</p></li>
+<li><p><strong>flow</strong> (<em>str</em><em>, </em><em>optional</em>) – Flow rate units.</p></li>
+<li><p><strong>composition</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show composition.</p></li>
+<li><p><strong>N</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of compounds to display.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Default values are stored in <cite>Stream.display_units</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.sigma">
+<em class="property">property </em><code class="sig-name descname">sigma</code><a class="headerlink" href="#biosteam.UtilityAgent.sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Surface tension [N/m].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.split_to">
+<code class="sig-name descname">split_to</code><span class="sig-paren">(</span><em class="sig-param">s1</em>, <em class="sig-param">s2</em>, <em class="sig-param">split</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.split_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split molar flow rate from this stream to two others given
+the split fraction or an array of split fractions.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">split</span> <span class="o">=</span> <span class="n">chemicals</span><span class="o">.</span><span class="n">kwarray</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">split_to</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">split</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water    10</span>
+<span class="go">               Ethanol  1</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s2</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Water    10</span>
+<span class="go">               Ethanol  9</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.thermal_condition">
+<em class="property">property </em><code class="sig-name descname">thermal_condition</code><a class="headerlink" href="#biosteam.UtilityAgent.thermal_condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>[ThermalCondition] Contains the temperature and pressure conditions of the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.unlink">
+<code class="sig-name descname">unlink</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.unlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unlink stream from other streams.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">link_with</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="ow">is</span> <span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.vle">
+<em class="property">property </em><code class="sig-name descname">vle</code><a class="headerlink" href="#biosteam.UtilityAgent.vle" title="Permalink to this definition">¶</a></dt>
+<dd><p>[VLE] An object that can perform vapor-liquid equilibrium on the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.vol">
+<em class="property">property </em><code class="sig-name descname">vol</code><a class="headerlink" href="#biosteam.UtilityAgent.vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[property_array] Volumetric flow rates in m3/hr.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.z_mass">
+<em class="property">property </em><code class="sig-name descname">z_mass</code><a class="headerlink" href="#biosteam.UtilityAgent.z_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>[1d array] Mass composition.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.z_mol">
+<em class="property">property </em><code class="sig-name descname">z_mol</code><a class="headerlink" href="#biosteam.UtilityAgent.z_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[1d array] Molar composition.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.z_vol">
+<em class="property">property </em><code class="sig-name descname">z_vol</code><a class="headerlink" href="#biosteam.UtilityAgent.z_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>[1d array] Volumetric composition.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="HeatUtility.html" class="btn btn-neutral float-right" title="HeatUtility" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PowerUtility.html" class="btn btn-neutral float-left" title="PowerUtility" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

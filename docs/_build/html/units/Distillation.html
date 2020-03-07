@@ -99,6 +99,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
@@ -222,7 +223,7 @@
 <h1>Distillation<a class="headerlink" href="#distillation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Distillation">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">y_top</em>, <em class="sig-param">x_bot</em>, <em class="sig-param">k</em>, <em class="sig-param">vessel_material='Carbon steel'</em>, <em class="sig-param">tray_material='Carbon steel'</em>, <em class="sig-param">tray_type='Sieve'</em>, <em class="sig-param">tray_spacing=450</em>, <em class="sig-param">stage_efficiency=None</em>, <em class="sig-param">velocity_fraction=0.8</em>, <em class="sig-param">foaming_factor=1.0</em>, <em class="sig-param">open_tray_area_fraction=0.1</em>, <em class="sig-param">downcomer_area_fraction=None</em>, <em class="sig-param">is_divided=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">k</em>, <em class="sig-param">Lr=None</em>, <em class="sig-param">Hr=None</em>, <em class="sig-param">y_top=None</em>, <em class="sig-param">x_bot=None</em>, <em class="sig-param">product_specification_format='Composition'</em>, <em class="sig-param">vessel_material='Carbon steel'</em>, <em class="sig-param">tray_material='Carbon steel'</em>, <em class="sig-param">tray_type='Sieve'</em>, <em class="sig-param">tray_spacing=450</em>, <em class="sig-param">stage_efficiency=None</em>, <em class="sig-param">velocity_fraction=0.8</em>, <em class="sig-param">foaming_factor=1.0</em>, <em class="sig-param">open_tray_area_fraction=0.1</em>, <em class="sig-param">downcomer_area_fraction=None</em>, <em class="sig-param">is_divided=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Distillation column that assumes all light and heavy non keys
 separate to the top and bottoms product respectively. McCabe-Thiele
 analysis is used to find both the number of stages and the reflux ratio
@@ -249,7 +250,11 @@ compiled by Warren et. al. <a class="footnote-reference brackets" href="#id10" i
 <li><p><strong>LHK</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – Light and heavy keys.</p></li>
 <li><p><strong>y_top</strong> (<em>float</em>) – Molar fraction of light key in the distillate.</p></li>
 <li><p><strong>x_bot</strong> (<em>float</em>) – Molar fraction of light key in the bottoms.</p></li>
+<li><p><strong>Lr</strong> (<em>float</em>) – Recovery of the light key in the distillate.</p></li>
+<li><p><strong>Hr</strong> (<em>float</em>) – Recovery of the heavy key in the bottoms product.</p></li>
 <li><p><strong>k</strong> (<em>float</em>) – Ratio of reflux to minimum reflux.</p></li>
+<li><p><strong>specification=&quot;Composition&quot;</strong> (<em>&quot;Composition&quot;</em><em> or </em><em>&quot;Recovery&quot;</em>) – If composition is used, <cite>y_top</cite> and <cite>x_bot</cite> must be specified.
+If recovery is used, <cite>Lr</cite> and <cite>Hr</cite> must be specified.</p></li>
 <li><p><strong>P=101325</strong> (<em>float</em>) – Operating pressure [Pa].</p></li>
 <li><p><strong>vessel_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Vessel construction material. Defaults to ‘Carbon steel’.</p></li>
 <li><p><strong>tray_material</strong> (<em>str</em><em>, </em><em>optional</em>) – Tray construction material. Defaults to ‘Carbon steel’.</p></li>
@@ -388,6 +393,18 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <dt id="biosteam.units.Distillation.x_bot">
 <em class="property">property </em><code class="sig-name descname">x_bot</code><a class="headerlink" href="#biosteam.units.Distillation.x_bot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Light key composition at the bottoms product.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.Lr">
+<em class="property">property </em><code class="sig-name descname">Lr</code><a class="headerlink" href="#biosteam.units.Distillation.Lr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Light key recovery in the distillate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.Hr">
+<em class="property">property </em><code class="sig-name descname">Hr</code><a class="headerlink" href="#biosteam.units.Distillation.Hr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heavy key recovery in the bottoms product.</p>
 </dd></dl>
 
 <dl class="method">

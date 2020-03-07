@@ -88,7 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/More on unit operations.html">7. More on unit operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit operation results.html">7. Unit operation results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
@@ -99,6 +99,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
@@ -218,7 +219,7 @@ name of the first child class.</p>
 </dd>
 <dt><strong>BM=None</strong></dt><dd><p>[float] Bare module factor (installation factor).</p>
 </dd>
-<dt><strong>_units={}</strong></dt><dd><p>[dict] Units of measure for results Operation and Design.</p>
+<dt><strong>_units={}</strong></dt><dd><p>[dict] Units of measure for <cite>design_results</cite> dictionary.</p>
 </dd>
 <dt><strong>_N_ins=1</strong></dt><dd><p>[int] Expected number of input streams.</p>
 </dd>
@@ -335,19 +336,19 @@ If None, leave streams missing.</p></li>
 <dl class="method">
 <dt id="biosteam.Unit.purchase_cost">
 <em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.Unit.purchase_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total purchase cost (USD).</p>
+<dd><p>Total purchase cost [USD].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.installation_cost">
 <em class="property">property </em><code class="sig-name descname">installation_cost</code><a class="headerlink" href="#biosteam.Unit.installation_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Installation cost (USD).</p>
+<dd><p>Installation cost [USD].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.utility_cost">
 <em class="property">property </em><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.Unit.utility_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total utility cost (USD/hr).</p>
+<dd><p>Total utility cost [USD/hr].</p>
 </dd></dl>
 
 <dl class="method">
@@ -398,19 +399,19 @@ If None, leave streams missing.</p></li>
 <dl class="method">
 <dt id="biosteam.Unit.mol_in">
 <em class="property">property </em><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.Unit.mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going in (kmol/hr).</p>
+<dd><p>Molar flows going in [kmol/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.mol_out">
 <em class="property">property </em><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.Unit.mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going out (kmol/hr).</p>
+<dd><p>Molar flows going out [kmol/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.z_mol_in">
 <em class="property">property </em><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.Unit.z_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in (kmol/hr).</p>
+<dd><p>Molar fractions going in [kmol/hr].</p>
 </dd></dl>
 
 <dl class="method">
@@ -422,25 +423,25 @@ If None, leave streams missing.</p></li>
 <dl class="method">
 <dt id="biosteam.Unit.F_mol_in">
 <em class="property">property </em><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.Unit.F_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going in (kmol/hr).</p>
+<dd><p>Net molar flow going in [kmol/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.F_mol_out">
 <em class="property">property </em><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.Unit.F_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going out (kmol/hr).</p>
+<dd><p>Net molar flow going out [kmol/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.mass_in">
 <em class="property">property </em><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.Unit.mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going in (kg/hr).</p>
+<dd><p>Mass flows going in [kg/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.mass_out">
 <em class="property">property </em><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.Unit.mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going out (kg/hr).</p>
+<dd><p>Mass flows going out [kg/hr].</p>
 </dd></dl>
 
 <dl class="method">
@@ -458,25 +459,25 @@ If None, leave streams missing.</p></li>
 <dl class="method">
 <dt id="biosteam.Unit.F_mass_in">
 <em class="property">property </em><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.Unit.F_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going in (kg/hr).</p>
+<dd><p>Net mass flow going in [kg/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.F_mass_out">
 <em class="property">property </em><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.Unit.F_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going out (kg/hr).</p>
+<dd><p>Net mass flow going out [kg/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.vol_in">
 <em class="property">property </em><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.Unit.vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going in (m3/hr).</p>
+<dd><p>Volumetric flows going in [m3/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.F_vol_in">
 <em class="property">property </em><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.Unit.F_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going in (m3/hr).</p>
+<dd><p>Net volumetric flow going in [m3/hr].</p>
 </dd></dl>
 
 <dl class="method">
@@ -488,13 +489,13 @@ If None, leave streams missing.</p></li>
 <dl class="method">
 <dt id="biosteam.Unit.vol_out">
 <em class="property">property </em><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.Unit.vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going out (m3/hr).</p>
+<dd><p>Volumetric flows going out [m3/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.F_vol_out">
 <em class="property">property </em><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.Unit.F_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going out (m3/hr).</p>
+<dd><p>Net volumetric flow going out [m3/hr].</p>
 </dd></dl>
 
 <dl class="method">
@@ -506,31 +507,31 @@ If None, leave streams missing.</p></li>
 <dl class="method">
 <dt id="biosteam.Unit.H_in">
 <em class="property">property </em><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.Unit.H_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going in (kJ/hr).</p>
+<dd><p>Enthalpy flow going in [kJ/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.H_out">
 <em class="property">property </em><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.Unit.H_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going out (kJ/hr).</p>
+<dd><p>Enthalpy flow going out [kJ/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.Hf_in">
 <em class="property">property </em><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.Unit.Hf_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going in (kJ/hr).</p>
+<dd><p>Enthalpy of formation flow going in [kJ/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.Hf_out">
 <em class="property">property </em><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.Unit.Hf_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going out (kJ/hr).</p>
+<dd><p>Enthalpy of formation flow going out [kJ/hr].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.Hnet">
 <em class="property">property </em><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.Unit.Hnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
+<dd><p>Net enthalpy flow, including enthalpies of formation [kJ/hr].</p>
 </dd></dl>
 
 <dl class="method">

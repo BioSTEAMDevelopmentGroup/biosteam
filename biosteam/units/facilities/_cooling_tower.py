@@ -25,13 +25,12 @@ class CoolingTower(Facility):
     evaporation = 0.01
     blowdown = 0.001
     def __init__(self, ID=''):
-        thermo = HeatUtility.cooling_agents['Cooling water'].thermo
-        self.makeup_water = makeup_water = Stream('cooling_tower_makeup_water',
-                                                  thermo=thermo)
+        cooling_water = HeatUtility.get_cooling_agent('cooling_water')
+        self.makeup_water = makeup_water = cooling_water.to_stream('cooling_tower_makeup_water')
         loss = makeup_water.flow_proxy()
         loss.ID = 'evaporation_and_blowdown'
         super().__init__(ID, ('return_cooling_water', makeup_water),
-                         ('cooling_water', loss), thermo=thermo)
+                         (cooling_water.to_stream(), loss), thermo=cooling_water.thermo)
         self.cooling_water_utilities = set()
         
     def _design(self):
@@ -40,7 +39,7 @@ class CoolingTower(Facility):
             for u in self.system.units:
                 if u is self: continue
                 for hu in u.heat_utilities:
-                    if hu.ID == 'Cooling water':
+                    if hu.ID == 'cooling_water':
                         cwu.add(hu)
         used = self._ins[0]
         
@@ -49,10 +48,10 @@ class CoolingTower(Facility):
         self.design_results['Flow rate'] = \
         self.cooling_water = sum([i.flow for i in cwu])
         hu = self.heat_utilities[0]
-        cw = hu.cooling_agents['Cooling water']
+        cw = hu.get_cooling_agent('cooling_water')
         self._outs[0].T = cw.T
-        hu.ID = 'Cooling water'
-        hu.cost = -self.cooling_water*cw.price_kmol
+        hu.ID = 'cooling_water'
+        hu.cost = -self.cooling_water*cw.regeneration_price
         self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)
 
 CoolingTower._N_outs = CoolingTower._N_ins = 2
