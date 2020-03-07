@@ -99,7 +99,7 @@ class Distillation(Unit):
     for hydrocarbons. The Murphree efficiency is based on the modified
     O'Connell correlation [2]_. The diameter is based on tray separation
     and flooding velocity [1, 3]_. Purchase costs are based on correlations
-    compiled by Warren et. al. [5]_.
+    compiled by Warren et. al. [4]_.
 
     Parameters
     ----------
@@ -159,11 +159,7 @@ class Distillation(Unit):
     .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
         674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
 
-    .. [4] Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).
-        Estimate Costs of Distillation and Absorption Towers via Correlations.
-        Chem. Eng., 88(26), 77–82.
-
-    .. [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
         & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
         Cost Accounting and Capital Cost Estimation (Chapter 16)
 

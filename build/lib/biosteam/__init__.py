@@ -5,7 +5,7 @@ Created on Sat Oct 28 17:28:09 2017
 
 @author: Yoel Rene Cortes-Pena
 """
-__all__ = ['Unit', 'PowerUtility', 'HeatUtility',
+__all__ = ['Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 
            'find', 'Flowsheet', 'CE']
 
@@ -15,7 +15,7 @@ CE = 567.5
 
 # %% Initialize BioSTEAM 
 
-from ._heat_utility import HeatUtility
+from ._heat_utility import HeatUtility, UtilityAgent
 from ._power_utility import PowerUtility
 from ._unit import Unit
 from ._system import System

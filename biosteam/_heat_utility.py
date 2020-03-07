@@ -298,9 +298,9 @@ class HeatUtility:
         duty : float
                Unit duty requirement (kJ/hr)
         T_in : float
-               Entering process stream temperature (K)
+               Inlet process stream temperature (K)
         T_out : float, optional
-                Exit process stream temperature (K)
+               Outlet process stream temperature (K)
         
         """
         if duty == 0:
@@ -375,7 +375,7 @@ class HeatUtility:
         Parameters
         ----------
         T_pinch : float
-            Pinch temperature of process stream [K].
+            Pinch temperature [K].
         
         """
         for agent in cls.heating_agents:
@@ -389,7 +389,7 @@ class HeatUtility:
         Parameters
         ----------
         T_pinch : float
-            Pinch temperature of process stream [K].
+            Pinch temperature [K].
         
         """
         for agent in cls.cooling_agents:
@@ -413,9 +413,9 @@ class HeatUtility:
         Parameters
         ----------
         T_pinch : float
-                  Pinch temperature of utility stream (K)
+                  Pinch temperature of utility stream [K].
         iscooling : bool
-                  True if exit temperature should be lower (process stream is gaining energy)
+                  True if utility is loosing energy.
 
         """
         if iscooling:

@@ -86,10 +86,10 @@ biosteam/utils/__init__.py
 biosteam/utils/biosteam_colors.py
 biosteam/utils/design_warning.py
 biosteam/utils/functors.py
-biosteam/utils/network_utils.py
+biosteam/utils/misc.py
+biosteam/utils/network.py
 biosteam/utils/not_implemented_method.py
-biosteam/utils/other_utils.py
 biosteam/utils/piping.py
-biosteam/utils/plot_utils.py
+biosteam/utils/plotting.py
 biosteam/utils/stream_link_options.py
 biosteam/utils/tictoc.py

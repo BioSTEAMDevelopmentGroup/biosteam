@@ -306,7 +306,7 @@ class Unit:
                     addval(('USD/hr', power_utility.cost))
                 for heat_utility in self.heat_utilities:
                     if heat_utility:
-                        ID = heat_utility.ID
+                        ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
                         addkey((ID, 'Flow'))
                         addkey((ID, 'Cost'))
@@ -359,7 +359,7 @@ class Unit:
                 for heat_utility in self.heat_utilities:
                     if heat_utility:
                         if heat_utility:
-                            ID = heat_utility.ID
+                            ID = heat_utility.ID.replace('_', ' ').capitalize()
                             addkey((ID, 'Duty'))
                             addkey((ID, 'Flow'))
                             addkey((ID, 'Cost'))
