@@ -82,7 +82,7 @@ class Unit:
         If None, leave streams missing.
     thermo=None : Thermo
         Thermo object to initialize input and output streams. Defaults to
-        `thermosteam.settings.thermo`.
+        `biosteam.settings.thermo`.
     
     Attributes
     ----------

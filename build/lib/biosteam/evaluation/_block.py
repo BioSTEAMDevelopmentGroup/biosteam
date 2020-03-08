@@ -17,13 +17,15 @@ def do_nothing(): pass
 # %% Simulation blocks
 
 class Block:
-    """Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.
+    """
+    Create a Block object that can simulate the element and the system 
+    downstream. The block can also generate Parameter objects that can
+    update the system state.
     
     Parameters
     ----------
     element : Unit or Stream
-              Element in the system.
-        
+        Element in the system.  
     system=None : System, optional
         System affected by element. In other words, element should affect
         downstream operations in the system.

@@ -56,7 +56,7 @@ class Fermentation(Unit):
     
     >>> from biorefineries.lipidcane.chemicals import ethanol_chemicals 
     >>> from biosteam.units import Fermentation
-    >>> from thermosteam import Stream, settings
+    >>> from biosteam import Stream, settings
     >>> settings.set_thermo(ethanol_chemicals)
     >>> feed = Stream('feed',
     ...               Water=1.20e+05,

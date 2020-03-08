@@ -37,7 +37,7 @@ class UtilityAgent(Stream):
         Flow rate units of measure (only mass, molar, and
         volumetric flow rates are valid).
     thermo=None : Thermo
-        Thermodynamic equilibrium package. Defaults to `thermosteam.settings.get_thermo()`.
+        Thermodynamic equilibrium package. Defaults to `biosteam.settings.get_thermo()`.
     T_limit : float, optional
         Temperature limit of outlet utility streams [K]. If no limit is given,
         phase change is assumed. If utility agent heats up, `T_limit` is
@@ -82,10 +82,8 @@ class UtilityAgent(Stream):
         --------
         Create a copy of a new stream:
         
-        >>> import thermosteam as tmo
         >>> import biosteam as bst
-        >>> chemicals = tmo.Chemicals(['Water', 'Ethanol'])
-        >>> tmo.settings.set_thermo(chemicals) 
+        >>> bst.settings.set_thermo(['Water', 'Ethanol']) 
         >>> cooling_water = bst.HeatUtility.get_agent('cooling_water')
         >>> cooling_water_copy = cooling_water.to_stream('cooling_water_copy')
         >>> cooling_water_copy.show(flow='kg/hr')

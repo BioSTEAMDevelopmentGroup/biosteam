@@ -5,11 +5,9 @@ Created on Wed Jul 17 18:43:39 2019
 @author: yoelr
 """
 from . import Facility
-import biosteam as bst
+from ..decorators import cost
 
 __all__ = ('ProcessWaterCenter',)
-
-cost = bst.units.decorators.cost
 
 @cost('Makeup water flow rate', 'Makeup water pump',
       CE=551, kW=20*0.7457, cost=6864, S=155564, n=0.8, BM=3.1)

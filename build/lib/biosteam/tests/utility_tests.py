@@ -8,10 +8,12 @@ import biosteam as bst
 import doctest
 
 def test_heat_utility():
-    doctest.testmod(bst._heat_utility)
+    from biosteam import _heat_utility
+    doctest.testmod(_heat_utility)
     
 def test_power_utility():
-    doctest.testmod(bst._power_utility)
+    from biosteam import _power_utility
+    doctest.testmod(_power_utility)
     
 def test_utilities():
     test_heat_utility()

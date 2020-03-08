@@ -63,10 +63,9 @@ class UpdateWithSkipping:
             raise Error
 
 class UpdateWithoutSkipping:
-    __slots__ = ('cache', 'params')
+    __slots__ = ('params',)
     def __init__(self, params):
         self.params = tuple(params)
-        self.cache = None
     def __call__(self, sample):
         sim = None
         for p, x in zip(self.params, sample):
@@ -77,11 +76,12 @@ class UpdateWithoutSkipping:
         if sim: sim()
 
 
-
 # %%
     
 class State:
-    """Create a State object that can update the `system` state given a sample of parameter states.
+    """
+    Create a State object that can update the `system` state given
+    a sample of parameter states.
     
     Parameters
     ----------

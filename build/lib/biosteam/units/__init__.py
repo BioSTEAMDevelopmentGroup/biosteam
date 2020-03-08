@@ -15,8 +15,8 @@ from . import (
     _enzyme_treatment, _clarifier, _rvf,
     _solids_centrifuge, _crushing_mill,
     _balance, _shredder, _screw_feeder,
+    decorators, design_tools, facilities,
 )
-
 __all__ = [*_flash.__all__,
            *_liquids_centrifuge.__all__,
            *_mixer.__all__,
@@ -44,6 +44,10 @@ __all__ = [*_flash.__all__,
            *_shredder.__all__,
            *_screw_feeder.__all__,
            *_magnetic_separator.__all__,
+           *facilities.__all__,
+           'facilities',
+           'decorators',
+           'design_tools',
 ]
 
 from ._flash import *
@@ -73,7 +77,5 @@ from ._crushing_mill import *
 from ._balance import *
 from ._shredder import *
 from ._screw_feeder import *
-
-from lazypkg import LazyPkg
-LazyPkg(__name__, ['decorators', 'design_tools', 'facilities'])
+from .facilities import *
 
