@@ -8,24 +8,26 @@ __all__ = ('Parameter',)
 from ._variable import Variable
 
 class Parameter(Variable):
-    """Create a Parameter object that, when called, runs the setter and the simulate functions.
+    """
+    Create a Parameter object that, when called, runs the setter and
+    the simulate functions.
     
     Parameters
     ----------
     name : str
-           Name of parameter.
+        Name of parameter.
     setter : function
-             Should set the parameter.
+        Should set the parameter.
     simulate : function
-               Should simulate parameter effects.
+        Should simulate parameter effects.
     element : object
-              Element associated to parameter.
+        Element associated to parameter.
     system : System
-             System associated to parameter.
+        System associated to parameter.
     distribution : chaospy.Dist
-                   Parameter distribution.
+        Parameter distribution.
     units : str
-            Units of parameter.
+        Units of parameter.
     baseline : float
         Baseline value of parameter.
     

@@ -40,10 +40,9 @@ class MassBalance(Unit):
     flow rate feeding the mixer M1:
     
     >>> from biosteam import System
-    >>> from biosteam.units import Mixer, Splitter, StorageTank, Pump, Flash, MassBalance
-    >>> from thermosteam import Chemicals, Stream, settings
-    >>> chemicals = Chemicals(['Water', 'Ethanol'])
-    >>> settings.set_thermo(chemicals)
+    >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump, Flash,
+    ...                             MassBalance, Stream, settings)
+    >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> water = Stream('water',
     ...                Water=40,
     ...                units='lb/s',

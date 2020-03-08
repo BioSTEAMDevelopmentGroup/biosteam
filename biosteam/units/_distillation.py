@@ -167,10 +167,8 @@ class Distillation(Unit):
     --------
     Binary distillation assuming 100% separation on non-keys:
     
-    >>> from biosteam.units import Distillation
-    >>> from thermosteam import Stream, Chemicals, settings
-    >>> chemicals = Chemicals(['Water', 'Methanol', 'Glycerol'])
-    >>> settings.set_thermo(chemicals)
+    >>> from biosteam.units import Distillation, Stream, settings
+    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
     >>> feed = Stream('feed', flow=(80, 100, 25))
     >>> bp = feed.bubble_point_at_P()
     >>> feed.T = bp.T # Feed at bubble point T

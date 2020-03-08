@@ -277,11 +277,10 @@ class StorageTank(Tank):
     --------
     Create a carbon steel, floating roof storage tank for the storage of bioethanol:
     
-    >>> import thermosteam as tmo
-    >>> from biosteam import units
-    >>> tmo.settings.set_thermo(tmo.Chemicals(['Ethanol']))
-    >>> feed = tmo.Stream('feed', Ethanol=23e3, units='kg/hr')
-    >>> effluent = tmo.Stream('effluent')
+    >>> from biosteam import units, settings, Stream
+    >>> settings.set_thermo(['Ethanol'])
+    >>> feed = Stream('feed', Ethanol=23e3, units='kg/hr')
+    >>> effluent = Stream('effluent')
     >>> T1 = units.StorageTank('T1', ins=feed, outs=effluent,
     ...                        tau=7*24, # In hours
     ...                        vessel_type='Floating roof',

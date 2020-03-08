@@ -9,7 +9,8 @@ from ._name import element_name
 
 
 class Variable:
-    """Abstract class for a variable in BioSTEAM.
+    """
+    Abstract class for a variable in BioSTEAM.
     
     Attributes
     ----------

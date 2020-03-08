@@ -34,10 +34,9 @@ class MolecularSieve(Splitter):
     
     Examples
     --------
-    >>> from thermosteam import Chemicals, Stream, settings
+    >>> from biosteam import Stream, settings
     >>> from biosteam.units import MolecularSieve
-    >>> chemicals = Chemicals(['Water', 'Ethanol'])
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> feed = Stream('feed', flow=(75.7, 286), phase='g')
     >>> bp = feed.bubble_point_at_T()
     >>> feed.T = bp.T

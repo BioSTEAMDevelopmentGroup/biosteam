@@ -61,7 +61,7 @@ class Pump(Unit):
     --------
     Simulate Pump for pressure increase:
     
-    >>> from thermosteam import Chemicals, Stream, settings
+    >>> from biosteam import Stream, settings
     >>> from biosteam.units import Pump
     >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> feed = Stream('feed', Water=200, T=350)
