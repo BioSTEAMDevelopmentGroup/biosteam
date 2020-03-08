@@ -210,7 +210,8 @@ class HXutility(HX):
     --------
     Run heat exchanger by temperature:
     
-    >>> from biosteam.units import HXutility, Stream, settings
+    >>> from biosteam.units import HXutility
+    >>> from biosteam import Stream, settings
     >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> feed = Stream('feed', Water=200, Ethanol=200)
     >>> hx = HXutility('hx', ins=feed, outs='product', T=50+273.15,
@@ -401,7 +402,8 @@ class HXprocess(HX):
     --------
     Sensible fluids case:
         
-    >>> from biosteam.units import HXprocess, Stream, settings
+    >>> from biosteam.units import HXprocess
+    >>> from biosteam import Stream, settings
     >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> in_a = Stream('in_a', Water=200, T=350)
     >>> in_b = Stream('in_b', Ethanol=200)

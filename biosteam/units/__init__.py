@@ -45,6 +45,7 @@ __all__ = [*_flash.__all__,
            *_screw_feeder.__all__,
            *_magnetic_separator.__all__,
            *facilities.__all__,
+           'facilities',
            'decorators',
            'design_tools',
 ]

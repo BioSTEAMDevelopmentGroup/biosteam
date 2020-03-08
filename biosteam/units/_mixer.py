@@ -23,7 +23,7 @@ class Mixer(Unit):
     Mix two streams:
     
     >>> from biosteam import units, settings, Stream
-    >>> settings.set_thermo(chemicals)
+    >>> settings.set_thermo(['Ethanol', 'Water'])
     >>> s1 = Stream('s1', Water=20, T=350)
     >>> s2 = Stream('s2', Ethanol=30, T=300)
     >>> M1 = units.Mixer('M1', ins=(s1, s2), outs='s3')

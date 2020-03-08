@@ -55,7 +55,8 @@ class Fermentation(Unit):
     production of 1st generation ethanol using yeast.
     
     >>> from biorefineries.lipidcane.chemicals import ethanol_chemicals 
-    >>> from biosteam.units import Fermentation, Stream, settings
+    >>> from biosteam.units import Fermentation
+    >>> from biosteam import Stream, settings
     >>> settings.set_thermo(ethanol_chemicals)
     >>> feed = Stream('feed',
     ...               Water=1.20e+05,

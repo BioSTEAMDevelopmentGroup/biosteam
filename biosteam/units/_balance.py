@@ -39,9 +39,9 @@ class MassBalance(Unit):
     The example below uses the MassBalance object to satisfy the target
     flow rate feeding the mixer M1:
     
-    >>> from biosteam import System
-    >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump, Flash,
-    ...                             MassBalance, Stream, settings)
+    >>> from biosteam import System, Stream, settings
+    >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump,
+    ...                             Flash, MassBalance)
     >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> water = Stream('water',
     ...                Water=40,
