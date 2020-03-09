@@ -12,7 +12,6 @@ from ._graphics import Graphics, default_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
-                   _add_upstream_neighbors, _add_downstream_neighbors, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
 from ._digraph import save_digraph
@@ -410,13 +409,24 @@ class Unit:
         """All output streams."""
         return self._outs
 
+    def _add_upstream_neighbors_to_set(self, set):
+        """Add upsteam neighboring units to set."""
+        for s in self._ins:
+            u_source = s._source
+            if u_source: set.add(u_source)
+
+    def _add_downstream_neighbors_to_set(self, set):
+        """Add downstream neighboring units to set."""
+        for s in self._outs:
+            u_sink = s._sink
+            if u_sink: set.add(u_sink)
+
     @property
     def _downstream_units(self):
         """Return a set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
-        _add_downstream = _add_downstream_neighbors
-        _add_downstream(self, outer_periphery)
+        self._add_downstream_neighbors_to_set(outer_periphery)
         inner_periphery = None
         old_length = -1
         new_length = 0
@@ -426,7 +436,7 @@ class Unit:
             downstream_units.update(inner_periphery)
             outer_periphery = set()
             for unit in inner_periphery:
-                _add_downstream(unit, outer_periphery)
+                unit._add_downstream_neighbors_to_set(outer_periphery)
             new_length = len(downstream_units)
         return downstream_units
         
@@ -446,14 +456,14 @@ class Unit:
         radius -= 1
         neighborhood = set()
         if radius < 0: return neighborhood
-        upstream and _add_upstream_neighbors(self, neighborhood)
-        downstream and _add_downstream_neighbors(self, neighborhood)
+        if upstream:self._add_upstream_neighbors_to_set(neighborhood)
+        if downstream: self._add_downstream_neighbors_to_set(neighborhood)
         direct_neighborhood = neighborhood
         for i in range(radius):
             neighbors = set()
-            for neighbor in direct_neighborhood:
-                upstream and _add_upstream_neighbors(neighbor, neighbors)
-                downstream and _add_downstream_neighbors(neighbor, neighbors)
+            for unit in direct_neighborhood:
+                if upstream: unit._add_upstream_neighbors_to_set(neighbors)
+                if downstream: unit._add_downstream_neighbors_to_set(neighbors)
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)

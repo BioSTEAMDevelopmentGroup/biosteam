@@ -80,8 +80,6 @@ class UtilityAgent(Stream):
 
         Examples
         --------
-        Create a copy of a new stream:
-        
         >>> import biosteam as bst
         >>> bst.settings.set_thermo(['Water', 'Ethanol']) 
         >>> cooling_water = bst.HeatUtility.get_agent('cooling_water')
