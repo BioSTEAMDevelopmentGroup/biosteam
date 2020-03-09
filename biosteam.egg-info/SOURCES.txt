@@ -11,6 +11,7 @@ biosteam/_power_utility.py
 biosteam/_system.py
 biosteam/_tea.py
 biosteam/_unit.py
+biosteam/network.py
 biosteam.egg-info/PKG-INFO
 biosteam.egg-info/SOURCES.txt
 biosteam.egg-info/dependency_links.txt
@@ -87,7 +88,6 @@ biosteam/utils/biosteam_colors.py
 biosteam/utils/design_warning.py
 biosteam/utils/functors.py
 biosteam/utils/misc.py
-biosteam/utils/network.py
 biosteam/utils/not_implemented_method.py
 biosteam/utils/piping.py
 biosteam/utils/plotting.py

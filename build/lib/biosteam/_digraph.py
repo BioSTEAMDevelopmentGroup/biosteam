@@ -8,7 +8,8 @@ Created on Sun Jan  5 09:59:29 2020
 from graphviz import Digraph
 from IPython import display
 
-def make_digraph(units, streams, format='svg', maxiter='100000', **graph_attrs):
+def make_digraph(units, streams, format='svg',
+                 maxiter='500000', **graph_attrs):
     """Return digraph of units and streams."""
     # Create a digraph and set direction left to right
     f = Digraph(format=format)

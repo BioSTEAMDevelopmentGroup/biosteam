@@ -18,9 +18,9 @@ setup(
     #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
     #include_dirs=[numpy.get_include()],
     author='Yoel Cortes-Pena',
-    install_requires=['IPython==7.9.0',
-                      'thermosteam>=0.3.5', 'graphviz==0.8.3',
-                      'lazypkg>=1.4', 'chaospy==3.0.11'],
+    install_requires=['IPython==7.9.0', 'biorefineries>=2.3.4',
+                      'thermosteam>=0.3.6', 'graphviz==0.8.3',
+                      'chaospy==3.0.11'],
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_report/*',

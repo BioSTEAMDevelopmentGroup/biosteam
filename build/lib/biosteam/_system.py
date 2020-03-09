@@ -12,7 +12,7 @@ from thermosteam.utils import registered
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from .utils import colors, MissingStream, strtuple, build_network
+from .utils import colors, MissingStream, strtuple
 import biosteam as bst
 
 __all__ = ('System',)
@@ -84,6 +84,13 @@ class DiagramOnlyUnit(Unit, isabstract=True):
     _ID = ID = None
     _N_ins = _N_outs = 1
     _ins_size_is_fixed = _outs_size_is_fixed = False
+    
+    def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        self._load_thermo(thermo)
+        self._init_ins(ins)
+        self._init_outs(outs)
+        self._register(ID)
+    
     def _register(self, ID): 
         self.ID = self._ID = ID
     
@@ -166,25 +173,25 @@ class System(metaclass=system):
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
-    @classmethod
-    def from_feedstock(cls, ID, feedstock):
-        return NotImplemented
-        if not _isfeed(feedstock):
-            raise ValueError('feedstock must have no upstream units')
-        sink = feedstock.sink
-        all_units = sink._neighborhood(10000)
-        sources = [sink]
-        for i in all_units:
-            if any([i.source for i in i._ins]): continue
-            sources.append(i)
-        return build_network(sources)
+    # @classmethod
+    # def from_feedstock(cls, ID, feedstock):
+    #     return NotImplemented
+    #     if not _isfeed(feedstock):
+    #         raise ValueError('feedstock must have no upstream units')
+    #     sink = feedstock.sink
+    #     all_units = sink._neighborhood(10000)
+    #     sources = [sink]
+    #     for i in all_units:
+    #         if any([i.source for i in i._ins]): continue
+    #         sources.append(i)
+    #     return build_network(sources)
             
-    @classmethod
-    def from_area(cls, ID, sources, sinks=()):
-        return NotImplemented
-        network = build_network(sources, sinks)
-        system = cls(ID, network)
-        return system
+    # @classmethod
+    # def from_area(cls, ID, sources, sinks=()):
+    #     return NotImplemented
+    #     network = build_network(sources, sinks)
+    #     system = cls(ID, network)
+    #     return system
     
     def __init__(self, ID, network, recycle=None, facilities=()):
         from ._flowsheet import find
