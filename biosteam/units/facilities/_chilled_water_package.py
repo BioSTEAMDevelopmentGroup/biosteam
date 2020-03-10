@@ -13,12 +13,23 @@ __all__ = ('ChilledWaterPackage',)
 
 @cost('Duty', S=-14*4184000, kW=3400*0.7457, cost=1375e3, CE=551, n=0.7, BM=1.5)
 class ChilledWaterPackage(Facility):
-    """Create a chilled water package that is cost based on flow rate of chilled water.
+    """
+    Create a chilled water package with capital cost and power based on the flow rate 
+    of chilled water as in [1]_.
+    
     
     Parameters
     ----------
-    Duty : float
-        Chilled water duty (kJ/hr)
+    ID : str, optional
+        Unit ID.
+    
+    References
+    ----------
+    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+        Dudgeon, D. (2011). Process Design and Economics for Biochemical 
+        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
+        Pretreatment and Enzymatic Hydrolysis of Corn Stover
+        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
     _N_heat_utilities = 1

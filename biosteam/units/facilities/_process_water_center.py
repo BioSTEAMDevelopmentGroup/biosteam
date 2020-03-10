@@ -19,13 +19,13 @@ class ProcessWaterCenter(Facility):
     """
     Parameters
     ----------
-    ins
-        [0] Recycle water
+    ins : stream sequence
+        [0] Recycle water.
         
-        [1] Make-up water
+        [1] Make-up water.
         
-    outs
-        [0] Process water
+    outs : stream
+        Process water.
     
     """
     _N_ins = 2

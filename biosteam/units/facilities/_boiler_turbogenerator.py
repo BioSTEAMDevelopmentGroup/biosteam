@@ -30,7 +30,8 @@ class BoilerTurbogenerator(Facility):
     Create a BoilerTurbogenerator object that will calculate electricity
     generation from burning the feed. It also takes into account how much
     steam is being produced, and the required cooling utility of the turbo
-    generator. No emissions or mass balances are taken into account.
+    generator. No emissions or mass balances are taken into account. All 
+    capital cost correlations are based on [1]_.
     
     Parameters
     ----------
@@ -48,8 +49,18 @@ class BoilerTurbogenerator(Facility):
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
         Fraction of steam heat converted to electricity.
+    
+    
+    References
+    ----------
+    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+        Dudgeon, D. (2011). Process Design and Economics for Biochemical 
+        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
+        Pretreatment and Enzymatic Hydrolysis of Corn Stover
+        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
+    
     """
-    #: TODO: Make this a whole system instead of approximating duty per mol values
+    # TODO: Make this a whole system instead of approximating duty per mol values
     duty_over_mol = 40000 # Superheat steam with 40000 kJ/kmol
     boiler_blowdown = 0.03
     RO_rejection = 0
