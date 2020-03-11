@@ -4,7 +4,6 @@ Created on Sun Feb 17 16:36:47 2019
 
 @author: yoelr
 """
-from thermosteam import Stream
 from ... import HeatUtility, Unit
 from . import Facility
 from ..decorators import cost
@@ -60,6 +59,8 @@ class BoilerTurbogenerator(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
+    network_priority = 0
+    
     # TODO: Make this a whole system instead of approximating duty per mol values
     duty_over_mol = 40000 # Superheat steam with 40000 kJ/kmol
     boiler_blowdown = 0.03

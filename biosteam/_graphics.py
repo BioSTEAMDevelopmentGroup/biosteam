@@ -37,8 +37,7 @@ class Graphics:
     def __init__(self, edge_in=None,
                  edge_out=None,
                  node=None,
-                 node_function=None,
-                 in_system=True):
+                 node_function=None):
         # [dict] Input stream edge settings
         self.edge_in = edge_in or copy.deepcopy(_edge_in)
         
@@ -51,9 +50,6 @@ class Graphics:
         #: [function] Is called to update node settings
         self.node_function = node_function or _node_function
         
-        #: [bool] True for Unit object to appear within a system diagram
-        self.in_system = in_system
-
     def __repr__(self):
         return f'<{type(self).__name__}>'
 

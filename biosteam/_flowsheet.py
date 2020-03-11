@@ -9,8 +9,19 @@ from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
 from ._system import System
+from ._network import Network
 
 __all__ = ('find', 'Flowsheet')
+
+# %% Functions
+
+def get_feeds_big_to_small(streams):
+    isa = isinstance
+    feeds = [i for i in streams if i._sink and not 
+             (i._source or isa(i._sink, Facility))]
+    feeds_negflows = [(i, -i.F_mass) for i in feeds]
+    feeds_negflows = sorted(feeds_negflows, key=lambda x: x[1])
+    return [i[0] for i in feeds_negflows]
 
 # %% Flowsheet search      
 
@@ -164,15 +175,16 @@ class Flowsheet:
             u._ins[:] = ins
             u._outs[:] = outs
     
-    def create_system(self, ID=None, facilities=(), end_streams=()):
-        streams = tuple(self.stream)
-        feeds = [i for i in streams if i._sink and not 
-                 (i._source or isinstance(i._sink, Facility))]
-        feeds_negflows = [(i, -i.F_mass) for i in feeds]
-        feeds_negflows = sorted(feeds_negflows, key=lambda x: x[1])
-        feedstock, *feeds = [i[0] for i in feeds_negflows]
+    def create_system(self, ID=None, ends=()):
+        feedstock, *feeds = get_feeds_big_to_small(self.stream)
+        isa = isinstance
+        facilities = [i for i in self.unit if isa(i, Facility)]
         return System.from_feedstock(ID or self.ID + '_sys', feedstock, feeds,
-                                     facilities, end_streams)
+                                     facilities, ends)
+    
+    def create_network(self, ends=()):
+        feedstock, *feeds = get_feeds_big_to_small(self.stream)
+        return Network.from_feedstock(feedstock, feeds, ends)
     
     def __call__(self, ID):
         """Return requested biosteam item.

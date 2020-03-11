@@ -17,27 +17,43 @@ __all__ = ('ProcessWaterCenter',)
       CE=522, cost=250e3, S=451555, n=0.7, BM=1.7)
 class ProcessWaterCenter(Facility):
     """
+    Create a ProcessWaterCenter object that takes care of balancing the amount
+    of make-up water required for the process. The capital cost and power
+    are based on the flow rate of process and make-up water as in [1]_.
+    
     Parameters
     ----------
     ins : stream sequence
         [0] Recycle water.
         
         [1] Make-up water.
-        
     outs : stream
         Process water.
+    update_recycle_water : callable, optional
+        Function to update recycled water (ins[0]).
+    
+    References
+    ----------
+    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+        Dudgeon, D. (2011). Process Design and Economics for Biochemical 
+        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
+        Pretreatment and Enzymatic Hydrolysis of Corn Stover
+        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
+    network_priority = 2
     _N_ins = 2
     _N_outs = 1
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=()):
+    def __init__(self, ID='', ins=None, outs=(), update_recycle_water=None):
         Facility.__init__(self, ID, ins, outs)
+        self.update_recycle_water = update_recycle_water
     
     def _assert_compatible_property_package(self): pass
     
     def _run(self):
+        if self.update_recycle_water: self.update_recycle_water()
         s_recycle, s_makeup = self._ins
         s_process, = self.outs
         process_water = s_process.F_mol

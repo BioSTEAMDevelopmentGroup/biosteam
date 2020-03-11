@@ -60,5 +60,5 @@ class SolidsCentrifuge(Splitter):
         self.design_results['Solids loading'] = ts
         lb = self._minimum_solids_loading
         if ts < lb:
-            lb_warning('Solids loading', ts, 'tonn/hr', lb)
+            lb_warning('Solids loading', ts, 'tonn/hr', lb, 3, self)
     

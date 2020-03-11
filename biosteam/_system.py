@@ -9,7 +9,7 @@ from flexsolve import SolverError, conditional_wegstein, conditional_aitken
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from thermosteam.utils import registered
-from .network import Network
+from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
@@ -28,11 +28,11 @@ def subsystems_units_and_streams_from_path(path):
     for i in path:
         if isa(i, System):
             subsystems.add(i)
+            units.update(i.units)
             streams.add(i.streams)
         elif isa(i, Unit):
             units.add(i)
-            units.update(i.units)
-            streams.add(i._ins + i._outs)
+            streams.update(i._ins + i._outs)
     streams.discard(MissingStream)
     return subsystems, units, streams
     
@@ -56,10 +56,7 @@ def _evaluate(self, command=None):
     if command == 'exit': raise KeyboardInterrupt()
     if command:
         # Build locals dictionary for evaluating command
-        lcs = {} 
-        for dct in self.flowsheet.__dict__.values():
-            lcs.update({i:j() for i, j in dct.items()})
-        lcs.update({attr:getattr(bst, attr) for attr in bst.__all__})
+        lcs = {self.ID: self, 'bst': bst} 
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -194,14 +191,13 @@ class System(metaclass=system):
     _cached_downstream_systems = {} 
 
     @classmethod
-    def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(),
-                       end_streams=None):
-        network = Network.from_feedstock(feedstock, feeds,
-                                         end_streams)
+    def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), ends=None):
+        network = Network.from_feedstock(feedstock, feeds, ends)
         return cls.from_network(ID, network, facilities)
 
     @classmethod
     def from_network(cls, ID, network, facilities=()):
+        facilities = Facility.ordered_facilities(facilities)
         self = cls.__new__(cls)
         self.units = units = network.units
         self.streams = streams = network.streams
@@ -212,7 +208,6 @@ class System(metaclass=system):
         self._set_facilities(facilities)
         self._set_recycle(network.recycle)
         self._register(ID)
-        self._TEA = None
         if facilities:
             f_subsystems, f_units, f_streams = subsystems_units_and_streams_from_path(facilities)
             f_feeds = feeds_from_streams(f_streams)
@@ -233,9 +228,6 @@ class System(metaclass=system):
         self._load_streams()
         self._set_recycle(recycle)
         self._register(ID)
-        
-        #: [TEA] System object for Techno-Economic Analysis.
-        self._TEA = None
     
     save_report = save_report
     
@@ -322,7 +314,8 @@ class System(metaclass=system):
     @property
     def TEA(self):
         """[TEA] Object for Techno-Economic Analysis."""
-        return self._TEA
+        try: return self._TEA
+        except AttributeError: return None
     
     @property
     def recycle(self):
@@ -711,8 +704,8 @@ class System(metaclass=system):
         """Prints information on unit."""
         print(self._info())
     
-    def create_network(self):
-        path = [(i.create_network() if hasattr(i, 'path') else i) for i in self.path]
+    def to_network(self):
+        path = [(i.to_network() if hasattr(i, 'path') else i) for i in self.path]
         network = Network.__new__(Network)    
         network.path = path
         network.recycle = self.recycle
@@ -757,7 +750,7 @@ class System(metaclass=system):
                 path = (path[:i] + '%' + path[i:])
                 last_i = i
             elif i == -1: break
-        path = path.replace('%, ', ',\n' + ' '*9)
+        path = path.replace('%, ', ',\n' + ' '*8)
         
         if self.facilities:
             facilities = strtuple(self.facilities)

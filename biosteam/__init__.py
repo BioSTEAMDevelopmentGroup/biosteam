@@ -18,6 +18,7 @@ from ._system import System
 from ._tea import CombinedTEA, TEA
 from ._flowsheet import Flowsheet, find
 from ._process_specification import ProcessSpecification
+from ._network import Network
 from . import utils
 from . import units
 from . import evaluation
@@ -25,7 +26,7 @@ from . import evaluation
 __all__ = ['Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
            'find', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
-           'MultiStream', 'settings', 'ProcessSpecification',
+           'MultiStream', 'settings', 'ProcessSpecification', 'Network',
            *units.__all__, *evaluation.__all__]
 
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings

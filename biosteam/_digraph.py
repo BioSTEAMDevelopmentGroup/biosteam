@@ -19,8 +19,6 @@ def make_digraph(units, streams, format='svg',
     for u in units:
         u._load_stream_links()
         graphics = u._graphics
-        if not graphics.in_system:
-            continue  # Ignore Unit
         
         # Initialize graphics and make Unit node with attributes
         Type = graphics.node_function(u) or u.line

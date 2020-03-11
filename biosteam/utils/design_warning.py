@@ -29,7 +29,7 @@ def lb_warning(key, value, units, lb, stacklevel, source):
     except:  # Handle format errors
         msg = f"{key} ({value:.4g}{units}) is out of bounds (minimum {lb}{units})."
     
-    warn(design_warning(source, msg, DesignWarning), stacklevel=stacklevel)
+    warn(design_warning(source, msg), stacklevel=stacklevel)
     
 def ub_warning(key, value, units, ub, stacklevel, source):
     units = ' ' + units if units else ''
@@ -38,7 +38,7 @@ def ub_warning(key, value, units, ub, stacklevel, source):
     except:  # Handle format errors
         msg = f"{key} ({value:.4g}{units}) is out of bounds (maximum {ub}{units})."
     
-    warn(design_warning(source, msg, DesignWarning), stacklevel=stacklevel)
+    warn(design_warning(source, msg), stacklevel=stacklevel)
 
 def bounds_warning(source, key, value, units, bounds):
     """Issue a warning if value is out of bounds.

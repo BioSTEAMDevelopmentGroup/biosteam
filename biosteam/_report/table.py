@@ -78,8 +78,8 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
             flowsheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     
-    if system._TEA:
-        tea = system._TEA
+    if system.TEA:
+        tea = system.TEA
         if isinstance(tea, CombinedTEA):
             costs = [cost_table(i) for i in tea.TEAs]
             _save(costs, writer, 'Itemized costs')

@@ -5,8 +5,8 @@ Created on Sat Sep  1 17:35:28 2018
 @author: yoelr
 """
 import numpy as np
-from ..utils.piping import StreamSequence
-from .. import Unit, PowerUtility
+from .. import Unit
+from .._process_specification import ProcessSpecification
 
 __all__ = ('MassBalance',)
 
@@ -17,15 +17,22 @@ class MassBalance(Unit):
 
     Parameters
     ----------
-    ins :
-        Inlet streams.
-    outs : 
-        Outlet streams
+    ins : stream
+        Inlet stream. Doesn't actually affect mass balance. It's just to
+        show the position in the process.
+    outs : stream
+        Outlet stream. Doesn't actually affect mass balance. It's just to
+        show the position in the process.
     chemical_IDs : tuple[str]
         Chemicals that will be used to solve mass balance linear equations.
         The number of chemicals must be same as the number of input streams varied.
-    streams : tuple[int]
-        Indices of input streams that can vary in net flow rate
+    variable_inlets : Iterable[Stream]
+        Inlet streams that can vary in net flow rate to accomodate for the
+        mass balance.
+    constant_inlets: Iterable[Stream], optional
+        Inlet streams that cannot vary in flow rates.
+    constant_outlets: Iterable[Stream], optional
+        Outlet streams that cannot vary in flow rates.
     is_exact=True : bool, optional
         True if exact flow rate solution is required for the specified IDs.
     balance='flow' : {'flow', 'composition'}, optional
@@ -97,39 +104,35 @@ class MassBalance(Unit):
     
     """
     line = 'Balance'
-    results = None
-    _has_cost = False
-    _N_ins = 2
-    heat_utilities = ()
-    power_utility = None
 
-    def __init__(self, ID='', outs=(), ins=None,
-                 chemical_IDs=None, streams=None,
-                 is_exact=True, balance='flow', thermo=None):
-        self.ID = ID
-        thermo = self._load_thermo(thermo)
-        self._ins = StreamSequence(self._N_ins, ins, thermo, fixed_size=False)
-        self._outs = StreamSequence(self._N_outs, outs, thermo, fixed_size=False)
-        self._power_utility = PowerUtility()
-        self.streams = streams
+    def __init__(self, ID='', ins=None, outs=(), thermo=None,
+                 chemical_IDs=None, variable_inlets=(),
+                 constant_outlets=(), constant_inlets=(),
+                 is_exact=True, balance='flow'):
+        self._load_thermo(thermo)
+        self._init_ins(ins)
+        self._init_outs(outs)
+        self._assert_compatible_property_package()
+        self._register(ID)
+        self.variable_inlets = variable_inlets
+        self.constant_inlets = constant_inlets
+        self.constant_outlets = constant_outlets
         self.chemical_IDs = chemical_IDs
         self.is_exact = is_exact
         self.balance = balance
-        self._assert_compatible_property_package()
         
     def _run(self):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-        stream_index = self.streams
         balance = self.balance
         solver = np.linalg.solve if self.is_exact else np.linalg.lstsq
-        ins = self.ins
 
         # Set up constant and variable streams
-        vary = [ins[i] for i in stream_index]  # Streams to vary in mass balance
-        constant = [i for i in ins if (i and i not in vary)]  # Constant streams
+        vary = self.variable_inlets # Streams to vary in mass balance
+        constant = self.constant_inlets # Constant streams
         index = self.chemicals.get_index(self.chemical_IDs)
+        mol_out = sum([s.F_mol for s in self.constant_outlets])
 
         if balance == 'flow':
             # Perform the following calculation: Ax = b = f - g
@@ -142,7 +145,7 @@ class MassBalance(Unit):
 
             # Solve linear equations for mass balance
             A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = self.mol_out[index]
+            f = mol_out[index]
             g = sum([s.mol[index] for s in constant])
             b = f - g
             x = solver(A, b)
@@ -151,7 +154,7 @@ class MassBalance(Unit):
             for factor, s in zip(x, vary):
                 s.mol[:] = s.mol * factor
 
-        elif balance == 'fraction':
+        elif balance == 'composition':
             # Perform the following calculation:
             # Ax = b
             #    = sum( A_ * x_guess + g_ )f - g
@@ -165,7 +168,9 @@ class MassBalance(Unit):
             # Set all variables
             A_ = np.array([s.mol for s in vary]).transpose()
             A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = self.z_mol_out[index]
+            F_mol_out = mol_out.sum()
+            z_mol_out = mol_out / F_mol_out if F_mol_out else mol_out
+            f = z_mol_out[index]
             g_ = sum([s.mol for s in constant])
             g = g_[index]
             O = sum(g_) * f - g
@@ -189,9 +194,7 @@ class MassBalance(Unit):
 
 # Balance
 graphics = MassBalance._graphics
-graphics.node['shape'] = 'note'
-graphics.node['fillcolor'] = '#F0F0F0'
-graphics.in_system = False
+graphics.node = ProcessSpecification._graphics.node
 del graphics
 
 
