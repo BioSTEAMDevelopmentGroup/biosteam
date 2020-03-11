@@ -6,7 +6,9 @@ As BioSTEAM objects are created, they are automatically registered. The `find` o
 from thermosteam.utils import Registry
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
-from . import Unit, System
+from ._unit import Unit
+from ._facility import Facility
+from ._system import System
 
 __all__ = ('find', 'Flowsheet')
 
@@ -161,6 +163,16 @@ class Flowsheet:
         for u, ins, outs in refresh_units:
             u._ins[:] = ins
             u._outs[:] = outs
+    
+    def create_system(self, ID=None, facilities=(), end_streams=()):
+        streams = tuple(self.stream)
+        feeds = [i for i in streams if i._sink and not 
+                 (i._source or isinstance(i._sink, Facility))]
+        feeds_negflows = [(i, -i.F_mass) for i in feeds]
+        feeds_negflows = sorted(feeds_negflows, key=lambda x: x[1])
+        feedstock, *feeds = [i[0] for i in feeds_negflows]
+        return System.from_feedstock(ID or self.ID + '_sys', feedstock, feeds,
+                                     facilities, end_streams)
     
     def __call__(self, ID):
         """Return requested biosteam item.

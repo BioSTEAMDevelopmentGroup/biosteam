@@ -18,7 +18,25 @@ __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
 @cost('Flow rate', 'Cooling tower',
       S=557183, kW=1598, cost=1375e3, CE=551, n=0.7, BM=1.5)
 class CoolingTower(Facility):
-    """Create a cooling tower that is cost based on flow rate of cooling water."""
+    """
+    Create a cooling tower with capital cost and power based on the flow rate 
+    of cooling water as in [1]_.
+    
+    
+    Parameters
+    ----------
+    ID : str, optional
+        Unit ID.
+    
+    References
+    ----------
+    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+        Dudgeon, D. (2011). Process Design and Economics for Biochemical 
+        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
+        Pretreatment and Enzymatic Hydrolysis of Corn Stover
+        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
+    
+    """
     _units = {'Flow rate': 'kmol/hr'}
     _N_heat_utilities = 1
     _N_outs = _N_ins = 2

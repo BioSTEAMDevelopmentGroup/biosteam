@@ -10,6 +10,8 @@ __all__ = ('Facility',)
 
 class Facility(Unit, isabstract=True, new_graphics=False):
     
+    _is_facility_ = True
+    
     @property
     def system(self):
         return self._system

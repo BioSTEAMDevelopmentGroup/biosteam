@@ -6,46 +6,119 @@ Created on Tue Sep 10 09:01:47 2019
 """
 # import biosteam as bst
 # from .misc import strtuple
-
+from biosteam._unit import Unit
 # __all__ = ('Thread', 'build_network')
 
-class RecycleNetwork:
-    __slots__ = ('recycle', 'network')
-    
-    def __int__(self, recycle, network):
-        self.recycle = recycle
-        self.network = network
-
-
 class Network:
-    __slots__ = ('start', 'middle', 'ends', 'units')
+    __slots__ = ('path', 'recycle', 'units', 'subnetworks')
     
-    def __init__(self, start=None, middle=None, ends=None):
-        raise NotImplementedError("Network is avalilable yet")
-        self.start = start or []
-        self.middle = middle = middle or []
-        self.ends = ends or []
-        self.units = set(middle)
-        
-    def insert_cyclic_path_in_middle(self, cyclic_path, recycle):
-        middle = self.middle
-        unit = cyclic_path[0]
-        start_index = middle.index(unit)
-        segment = middle[start_index:]
-        end_index = start_index
-        for unit_cyclic, unit_linear in zip(cyclic_path, segment):
-            if unit_cyclic is unit_linear:
-                end_index += 1
-            else: 
+    def __init__(self, path, recycle=None):
+        self.path = list(path)
+        self.recycle = recycle
+        self.units = units = set()
+        self.subnetworks = subnetworks = set()
+        isa = isinstance
+        for i in path:
+            if isa(i, Unit): 
+                units.add(i)
+            elif isa(i, Network):
+                units.update(i.units)
+                subnetworks.add(i)
+            else:
+                raise ValueError("path elements must be either Unit or Network "
+                                f"objects not '{type(i).__name__}' objects")
+    
+    @classmethod
+    def from_feed(cls, feed):
+        linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(feed)
+        network = Network([cls(i) for i in linear_paths])
+        recycle_networks = [Network(path, recycle) for path, recycle in cyclic_paths_with_recycle]
+        for recycle_network in recycle_networks:
+            network.join_network(recycle_network)
+        return network
+
+    def copy_like(self, other):
+        self.path = other.path
+        self.recycle = other.recycle
+        self.units = other.units
+        self.subnetworks = other.subnetworks
+
+    def __contains__(self, other):
+        if isinstance(other, Unit):
+            return other in self.units
+        elif isinstance(other, Network):
+            return other in self.subnetworks
+        else:
+            return False
+    
+    def isdisjoint(self, network):
+        return self.units.isdisjoint(network.units)
+    
+    def join_network(self, network):
+        if network in self: return
+        if self.isdisjoint(network):
+            self._append_network(network)
+        else:
+            self._add_subnetwork(network)
+    
+    def _append_network(self, network):
+        self.path.append(network)
+        self.units.update(network.units)
+        self.subnetworks.add(network)
+    
+    def _insert_network(self, index, network):
+        self._remove_overlap(network)
+        self.path.insert(index, network)
+        self.subnetworks.add(network)
+        self.units.update(network.units)
+    
+    def _add_subnetwork(self, subnetwork):
+        path = self.path
+        subunits = subnetwork.units
+        for index, item in enumerate(path):
+            if isinstance(item, Unit):
+                if item not in subunits: continue
+                self._insert_network(index, subnetwork)
                 break
-        self.middle = (middle[:start_index],
-                       RecycleNetwork(cyclic_path, recycle),
-                       middle[end_index:])        
+            elif isinstance(item, Network):
+                if item.isdisjoint(subnetwork): continue
+                item._add_subnetwork(subnetwork)
+                self._remove_overlap(subnetwork)
+        if path == [subnetwork]:
+            self.copy_like(subnetwork)
 
-def form_network(linear_paths):
-    *ends, linear_path = linear_paths
-    return Network(linear_path, ends=ends)
+    def _remove_overlap(self, subnetwork):
+        path = self.path
+        for item in tuple(path):
+            if item in subnetwork: path.remove(item)
 
+    def __repr__(self):
+        return f"{type(self).__name__}(path={self.path}, recycle={self.recycle})"
+    
+    def _info(self, spaces):
+        info = f"{type(self).__name__}("
+        spaces += 4 * " "
+        end = ',\n' + spaces
+        path_info = []
+        path = self.path
+        isa = isinstance
+        info += '\n' + spaces
+        for i in path:
+            if isa(i, Unit):
+                path_info.append(str(i))
+            elif isa(i, Network):
+                path_info.append(i._info(spaces))
+        if self.recycle:
+            path_info.append(f"recycle={self.recycle})")
+        else:
+            path_info[-1] += ")"
+        info += end.join(path_info)
+        return info
+            
+    def show(self):
+        print(self._info(spaces=""))
+
+check = 0
 # def form_networks(linear_paths, cyclic_paths_with_recycle):
 #     networks = []
 #     for linear_path in linear_paths:

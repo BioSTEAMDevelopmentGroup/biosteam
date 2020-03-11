@@ -239,8 +239,8 @@ class State:
     
     def _loadparams(self):
         """Load parameters."""
-        length = len(self._system._unit_network)
-        index =  self._system._unit_network.index
+        length = len(self._system._unit_path)
+        index =  self._system._unit_path.index
         self._params.sort(key=lambda x: index(param_unit(x)) if x.system else length)
         self._update = (UpdateWithSkipping if self._skip 
                         else UpdateWithoutSkipping)(self._params)

@@ -125,7 +125,9 @@ class Unit:
                 cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         
         if not isabstract and not hasattr(cls, '_run'): static(cls)
-            
+         
+    _is_facility_ = False
+        
     ### Abstract Attributes ###
     
     # [float] Bare module factor (installation factor).
@@ -467,7 +469,6 @@ class Unit:
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
-        
         return neighborhood
 
     def diagram(self, radius=0, upstream=True, downstream=True, 
