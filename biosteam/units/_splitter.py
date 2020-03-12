@@ -9,7 +9,8 @@ import numpy as np
 from thermosteam.indexer import ChemicalIndexer
 from ._process_specification import ProcessSpecification
 
-__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'FakeSplitter', 'InverseSplit')
+__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'FakeSplitter',
+           'ReversedSplitter', 'ReversedSplit')
 
 
 def run_split(self):
@@ -191,34 +192,52 @@ class FakeSplitter(Unit):
     
     def _run(self): pass
     
-    def create_inverse_splitter_process_specification(self, ID='', ins=None, outs=()):
-        return ProcessSpecification(InverseSplit(self.ins, self.outs), ins, outs, self.thermo, ID)    
+    def create_reversed_splitter_process_specification(self, ID='', ins=None, outs=()):
+        return ProcessSpecification(ReversedSplit(self.ins, self.outs), ins, outs, self.thermo, ID)    
     
 FakeSplitter.line = 'Splitter'
 
-class InverseSplit:
-    """Create a splitter that, when called, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
-    __slots__ = ('inlets', 'outlets')
+class ReversedSplitter(Unit):
+    """Create a splitter that, when simulated, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    _graphics = Splitter._graphics
+    _N_ins = 1
+    _N_outs = 2
+    _outs_size_is_fixed = False
+    power_utility = None
+    heat_utilities = ()
+    results = None
     
-    def __init__(self, inlets, outlets):
-        self.inlets = inlets
-        self.outlets = outlets
+    def _run(self):
+        inlet, = self.ins
+        outlets = self.outs
+        reversed_split(inlet, outlets)
+
+class ReversedSplit:
+    """Create a splitter that, when called, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    __slots__ = ('splitter',)
+    
+    def __init__(self, splitter):
+        self.splitter = splitter
     
     @property
     def __name__(self):
-        return 'InverseSplit'
+        return 'ReversedSplit'
     
     def __call__(self):
-        inlet, = self.inlets
-        outlets = self.outlets
-        inlet.mol[:] = sum([i.mol for i in outlets])
-        T = inlet.T
-        P = inlet.P
-        phase = inlet.phase
-        for out in outlets:
-            out.T = T
-            out.P = P
-            out.phase = phase 
+        splitter = self.splitter
+        inlet, = splitter.ins
+        outlets = splitter.outs
+        reversed_split(inlet, outlets)
+        
+def reversed_split(inlet, outlets):
+    inlet.mol[:] = sum([i.mol for i in outlets])
+    T = inlet.T
+    P = inlet.P
+    phase = inlet.phase
+    for out in outlets:
+        out.T = T
+        out.P = P
+        out.phase = phase 
 
   
     

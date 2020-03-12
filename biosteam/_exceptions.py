@@ -7,7 +7,7 @@ This module includes classes and functions relating exception handling.
 
 @author: Yoel Rene Cortes-Pena
 """
-# import sys as _sys
+from biosteam.utils import colors
 
 __all__ = ('DesignError',)
 
@@ -15,6 +15,24 @@ __all__ = ('DesignError',)
 
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
+
+def message_with_designated_unit(unit, msg):
+    return colors.brown_tint(repr(unit)) + ' ' + msg
+
+def raise_error_with_designated_unit(error, unit):
+    if hasattr(error, 'args'):
+        msg, *args = error.args
+        error.args = (message_with_designated_unit(unit, msg), *args)
+    if hasattr(error, 'msg'):
+        error.msg = message_with_designated_unit(unit, unit.msg)
+    raise error
+
+def try_unit_method(unit, method):
+    method = getattr(unit, method)
+    try:
+        method()
+    except Exception as error:
+        raise_error_with_designated_unit(error, unit)
 
 # class UnitError(RuntimeError):
 #     """RuntimeError regarding unit operations."""

@@ -9,6 +9,7 @@ from flexsolve import SolverError, conditional_wegstein, conditional_aitken
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from thermosteam.utils import registered
+from ._exceptions import try_unit_method
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
@@ -574,12 +575,7 @@ class System(metaclass=system):
         isa = isinstance
         for i in self.path:
             if isa(i, Unit):
-                try:
-                    i._run()
-                except Exception as Error:
-                    try: Error.msg = repr(i) + ' ' + Error.msg
-                    except: pass
-                    raise Error
+                try_unit_method(i, '_run')
             elif isa(i, System): i._converge()
             else: i() # Assume it is a function
     
@@ -687,20 +683,11 @@ class System(metaclass=system):
         self._setup()
         self._converge()
         for i in self._path_costunits:
-            try:
-                i._summary()
-            except Exception as Error:
-                try: Error.msg = repr(i) + ' ' + Error.msg
-                except: pass
-                raise Error
+            try_unit_method(i, '_summary')
         isa = isinstance
         for i in self.facilities:
             if isa(i, Unit):
-                try:
-                    i.simulate()
-                except Exception as Error:
-                    Error.msg = repr(i) + ' ' + Error.msg
-                    raise Error
+                try_unit_method(i, 'simulate')
             elif isa(i, System):
                 i.simulate()
             else:
