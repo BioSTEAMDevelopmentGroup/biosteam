@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-As BioSTEAM objects are created, they are automatically registered. The `find` object allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
+As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 
 """
 from thermosteam.utils import Registry
@@ -11,7 +11,7 @@ from ._facility import Facility
 from ._system import System
 from ._network import Network
 
-__all__ = ('find', 'Flowsheet')
+__all__ = ('main_flowsheet', 'Flowsheet')
 
 # %% Functions
 
@@ -36,7 +36,7 @@ class Flowsheets:
         yield from self.__dict__.values()
     
     def __delattr__(self, key):
-        if key == find.ID:
+        if key == main_flowsheet.ID:
             raise AttributeError('cannot delete main flowsheet')
         else:
             super().__delattr__(key)
@@ -176,6 +176,18 @@ class Flowsheet:
             u._outs[:] = outs
     
     def create_system(self, ID=None, ends=()):
+        """
+        Create a System object from all units and streams defined in the flowsheet.
+        
+        Parameters
+        ----------
+        ID : str, optional
+            Name of system. Defaults to the flowsheet ID + '_sys'.
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
+        
+        """
         feedstock, *feeds = get_feeds_big_to_small(self.stream)
         isa = isinstance
         facilities = [i for i in self.unit if isa(i, Facility)]
@@ -183,6 +195,16 @@ class Flowsheet:
                                      facilities, ends)
     
     def create_network(self, ends=()):
+        """
+        Create a Network object from all units and streams defined in the flowsheet.
+        
+        Parameters
+        ----------
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
+        
+        """
         feedstock, *feeds = get_feeds_big_to_small(self.stream)
         return Network.from_feedstock(feedstock, feeds, ends)
     
@@ -214,37 +236,39 @@ class MainFlowsheet(Flowsheet):
     biosteam objects as they are created."""
     __slots__ = ()
     
-    @staticmethod
-    def set_flowsheet(flowsheet):
+    def set_flowsheet(self, flowsheet):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):
             dct = flowsheet.__dict__
         elif isinstance(flowsheet, str):
-            if flowsheet in find.flowsheet:
-                dct = find.flowsheet[flowsheet].__dict__
+            if flowsheet in self.flowsheet:
+                dct = main_flowsheet.flowsheet[flowsheet].__dict__
             else:
                 new_flowsheet = Flowsheet(flowsheet)
-                find.flowsheet.__dict__[flowsheet] = new_flowsheet
+                self.flowsheet.__dict__[flowsheet] = new_flowsheet
                 dct = new_flowsheet.__dict__
         else:
             raise TypeError('flowsheet must be a Flowsheet object')
         Stream.registry = dct['stream']
         System.registry = dct['system']
         Unit.registry = dct['unit']
-        object.__setattr__(find, '__dict__', dct)
+        object.__setattr__(self, '__dict__', dct)
+        
+    def get_flowsheet(self):
+        return self.flowsheet[self.ID]
         
     __setattr__ = Flowsheets.__setattr__
     
     def __new__(cls):
-        raise TypeError('cannot create new find object.')
+        raise TypeError(f'cannot create new {cls.__name__} object')
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
     
     
-#: [find] Find BioSTEAM objects by ID.
-find = object.__new__(MainFlowsheet)
-find.set_flowsheet('default')
+#: [main_flowsheet] Main flowsheet where objects are registered by ID.
+main_flowsheet = object.__new__(MainFlowsheet)
+main_flowsheet.set_flowsheet('default')
     
 
 # %% Attempt at contantly rendered digraph

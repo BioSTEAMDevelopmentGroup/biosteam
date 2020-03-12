@@ -9,7 +9,7 @@ from .._unit import Unit
 
 __all__ = ('ConveyingBelt',)
 
-@cost('Flow rate', CE=567, cost=813, ub=500, n=0.38, N='Number of conveyors')
+@cost('Flow rate', CE=567, cost=813, ub=2000, n=0.38, N='Number of conveyors')
 class ConveyingBelt(Unit):
     length = 40 #: ft
     height = 20 #: ft

@@ -11,6 +11,17 @@ from ._facility import Facility
 from ._digraph import make_digraph, save_digraph
 # __all__ = ('Thread', 'build_network')
 
+
+class End:
+    __slots__ = ('sink',)
+    
+    def __init__(self, sink):
+        self.sink = sink
+
+    def __bool__(self):
+        return False
+    
+    
 # %% Path tools
 
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
@@ -34,14 +45,15 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
     has_recycle = False
-    if feed in ends:
-        return has_recycle
     unit = feed.sink
     if not unit or isinstance(unit, Facility):
+        return has_recycle
+    if feed in ends:
         return has_recycle
     if unit in path: 
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
+        ends.add(feed)
         has_recycle = True
         return has_recycle
     path.append(unit)
@@ -110,6 +122,18 @@ def load_network_components(path, units, streams, feeds,
 # %% Network
 
 class Network:
+    """
+    Create a Network object that defines a network of unit operations.
+    
+    Parameters
+    ----------
+    path : Iterable[Unit or Network]
+        A path of unit operations and subnetworks.
+    recycle : Stream
+        A recycle stream if any.
+    
+    """
+    
     __slots__ = ('path', 'recycle', 'units', 'subnetworks',
                  'feeds', 'products', 'streams')
     
@@ -126,11 +150,30 @@ class Network:
         
     @classmethod
     def from_feedstock(cls, feedstock, feeds=(), ends=None):
+        """
+        Create a Network object from a feedstock.
+        
+        Parameters
+        ----------
+        feedstock : Stream
+            Main feedstock of the process.
+        feeds : Iterable[Stream]
+            Additional feeds to the process.
+        facilities : Iterable[Facility]
+            Offsite facilities that are simulated only after 
+            completing the path simulation.
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
+        
+        """
+        ends = set(ends) or set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
-            feedstock, ends or set())
+            feedstock, ends)
         network = Network(sum(reversed(linear_paths), []))
         recycle_networks = [Network(path, recycle) for path, recycle
                             in cyclic_paths_with_recycle]
+        
         for recycle_network in recycle_networks:
             network.join_network(recycle_network)
         isa = isinstance
@@ -178,7 +221,6 @@ class Network:
         return self.units.isdisjoint(network.units)
     
     def join_network(self, network, downstream=True):
-        if network in self: return
         if self.isdisjoint(network):
             if downstream:
                 self._append_network(network)
@@ -188,9 +230,15 @@ class Network:
             self._add_subnetwork(network)
     
     def join_network_at_unit(self, network, unit):
+        isa = isinstance
+        self._remove_overlap(network)
         has_overlap = False
         for index, item in enumerate(self.path):
-            if unit == item:
+            if isa(item, Network) and unit in item.units:
+                item.join_network_at_unit(network, unit)
+                self._update_from_newly_added_network(network)
+                break
+            elif unit == item:
                 self._insert_network(index, network, has_overlap)
                 break
     
@@ -199,6 +247,16 @@ class Network:
         self.products.update([i for i in unit._outs if i and not i._sink])
         self.feeds.update([i for i in unit._ins if i and not i._source])
         self.streams.update(unit._ins + unit._outs)
+
+    # @property
+    # def all_subnetworks(self):
+    #     all_subnetworks = set()
+    #     for i in self.subnetworks:
+    #         if i.subnetworks:
+    #             all_subnetworks.update(i.all_subnetworks )
+    #         else:
+    #             i.add(i)
+    #     return all_subnetworks
     
     def _update_from_newly_added_network(self, network):
         self.subnetworks.add(network)
@@ -235,22 +293,26 @@ class Network:
         path = self.path
         subunits = subnetwork.units
         isa = isinstance
-        done = False
+        index_found = done = False
         subnetworks = self.subnetworks
         overlap = True
-        for i in tuple(subnetworks):
-            if i.issubset(subnetwork):
+        path_tuple = tuple(path)
+        for i in path_tuple:
+            if isa(i, Unit):
+                continue
+            elif i.issubset(subnetwork):
                 subnetwork._add_subnetwork(i)
-                try: path.remove(i)
-                except: pass
-                subunits.difference_update(i.units)
+                index = path.index(i)
+                path.remove(i)
                 subnetworks.remove(i)
+                index_found = True
             elif subnetwork.issubset(i):
                 i._add_subnetwork(subnetwork)
-                subunits.update(subnetwork.units)
                 done = True
-        if not done:
-            for index, item in enumerate(path):
+        if index_found:
+            self._insert_network(index, subnetwork)
+        elif not done:
+            for index, item in enumerate(path_tuple):
                 if isa(item, Unit):
                     if item not in subunits: continue
                     self._insert_network(index, subnetwork)
@@ -298,13 +360,11 @@ class Network:
                 path_info.append(str(i))
             else:
                 path_info.append(i._info(spaces))
+        info += '[' + (end + " ").join(path_info) + ']'
         if self.recycle:
-            path_info.append(f"recycle={self.recycle})")
-        elif path_info:
-            path_info[-1] += ")"
+            info += end + f"recycle={self.recycle})"
         else:
             info += ')'
-        info += end.join(path_info)
         return info
     
     def _ipython_display_(self):

@@ -22,7 +22,6 @@ class CoolingTower(Facility):
     Create a cooling tower with capital cost and power based on the flow rate 
     of cooling water as in [1]_.
     
-    
     Parameters
     ----------
     ID : str, optional

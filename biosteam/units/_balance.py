@@ -6,14 +6,19 @@ Created on Sat Sep  1 17:35:28 2018
 """
 import numpy as np
 from .. import Unit
-from .._process_specification import ProcessSpecification
+from ._process_specification import ProcessSpecification
+from ..utils import static
 
 __all__ = ('MassBalance',)
 
 # %% Mass Balance Unit
 
+@static
 class MassBalance(Unit):
-    """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified IDs. 
+    """
+    Create a Unit object that changes net input flow rates to satisfy output
+    flow rates. This calculation is based on mass balance equations for
+    specified IDs. 
 
     Parameters
     ----------
@@ -46,9 +51,10 @@ class MassBalance(Unit):
     The example below uses the MassBalance object to satisfy the target
     flow rate feeding the mixer M1:
     
-    >>> from biosteam import System, Stream, settings
+    >>> from biosteam import System, Stream, settings, main_flowsheet
     >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump,
     ...                             Flash, MassBalance)
+    >>> main_flowsheet.set_flowsheet('mass_balance_example')
     >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> water = Stream('water',
     ...                Water=40,
@@ -57,52 +63,42 @@ class MassBalance(Unit):
     >>> ethanol = Stream('ethanol',
     ...                  Ethanol=190, Water=30,
     ...                  T=300, P=101325)
-    >>> target = Stream('target', flow=[50, 50])
-    >>> T1 = StorageTank('T1')
-    >>> T2 = StorageTank('T2')
-    >>> P1 = Pump('P1', P=101325)
-    >>> P2 = Pump('P2', P=101325)
-    >>> M1 = Mixer('M1', outs='s1')
-    >>> S1 = Splitter('S1', outs=('s2', 's3'), split=0.5)
-    >>> F1 = Flash('F1', outs=('s4', 's5'), V=0.5, P =101325)
+    >>> target = Stream('target',
+    ...                 Ethanol=500, Water=500)
+    >>> T1 = StorageTank('T1', outs='s1')
+    >>> T2 = StorageTank('T2', outs='s2')
+    >>> P1 = Pump('P1', P=101325, outs='s3')
+    >>> P2 = Pump('P2', P=101325, outs='s4')
+    >>> M1 = Mixer('M1', outs='s5')
+    >>> S1 = Splitter('S1', outs=('s6', 's7'), split=0.5)
+    >>> F1 = Flash('F1', outs=('s8', 's9'), V=0.5, P =101325)
+    >>> MB1 = MassBalance('MB1', outs='s6_2',
+    ...                   variable_inlets=[water, ethanol],
+    ...                   constant_inlets=[S1-0],
+    ...                   constant_outlets=[target],
+    ...                   chemical_IDs=['Ethanol', 'Water'])
     >>> # Connect units
     >>> water-T1-P1
     <Pump: P1>
     >>> ethanol-T2-P2
     <Pump: P2>
-    >>> [P1-0, P2-0, S1-0]-M1-F1-1-S1
+    >>> [P1-0, P2-0, MB1-0]-M1-F1-1-S1-0-MB1
     <Splitter: S1>
-    >>> MB1 = MassBalance('MB1', streams=[0,1],
-    ...                   chemical_IDs=['Ethanol', 'Water'],
-    ...                   outs=target,
-    ...                   ins=(water, ethanol, S1-0))
-    >>> mixSys = System('mixSys',
-    ...                  recycle=S1-0,
-    ...                  network=(MB1, T1, P1, T2, P2, M1, F1, S1))
+    >>> sys = main_flowsheet.create_system('sys')
     >>> # Make diagram to view system
-    >>> # mixSys.diagram()
-    >>> mixSys.simulate();
-    >>> MB1.show()
-    MassBalance: MB1
-    ins...
-    [0] water
-        phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  28.3
-    [1] ethanol
-        phase: 'l', T: 300 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.37
-                        Ethanol  40.3
-    [2] s2  from  Splitter-S1
-        phase: 'l', T: 353.88 K, P: 101325 Pa
-        flow (kmol/hr): Water    15.3
-                        Ethanol  9.65
-    outs...
-    [0] target
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    50
-                        Ethanol  50
+    >>> # sys.diagram()
+    >>> sys.simulate();
+    >>> target.show()
+    Stream: target
+     phase: 'l', T: 298.15 K, P: 101325 Pa
+     flow (kmol/hr): Water    500
+                     Ethanol  500
     
     """
+    power_utility = None
+    heat_utilities = ()
+    results = None
+    _N_ins = _N_outs = 1
     line = 'Balance'
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
@@ -132,7 +128,7 @@ class MassBalance(Unit):
         vary = self.variable_inlets # Streams to vary in mass balance
         constant = self.constant_inlets # Constant streams
         index = self.chemicals.get_index(self.chemical_IDs)
-        mol_out = sum([s.F_mol for s in self.constant_outlets])
+        mol_out = sum([s.mol for s in self.constant_outlets])
 
         if balance == 'flow':
             # Perform the following calculation: Ax = b = f - g

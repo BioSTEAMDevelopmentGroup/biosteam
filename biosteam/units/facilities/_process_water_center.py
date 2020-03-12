@@ -29,7 +29,7 @@ class ProcessWaterCenter(Facility):
         [1] Make-up water.
     outs : stream
         Process water.
-    update_recycle_water : callable, optional
+    update_recycled_process_water : callable, optional
         Function to update recycled water (ins[0]).
     
     References
@@ -46,14 +46,14 @@ class ProcessWaterCenter(Facility):
     _N_outs = 1
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(), update_recycle_water=None):
+    def __init__(self, ID='', ins=None, outs=(), update_recycled_process_water=None):
         Facility.__init__(self, ID, ins, outs)
-        self.update_recycle_water = update_recycle_water
+        self.update_recycled_process_water = update_recycled_process_water
     
     def _assert_compatible_property_package(self): pass
     
     def _run(self):
-        if self.update_recycle_water: self.update_recycle_water()
+        if self.update_recycled_process_water: self.update_recycled_process_water()
         s_recycle, s_makeup = self._ins
         s_process, = self.outs
         process_water = s_process.F_mol

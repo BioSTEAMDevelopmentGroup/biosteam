@@ -7,8 +7,9 @@ Created on Mon May 20 22:04:02 2019
 from .. import Unit
 import numpy as np 
 from thermosteam.indexer import ChemicalIndexer
+from ._process_specification import ProcessSpecification
 
-__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'InvSplitter')
+__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'FakeSplitter', 'InverseSplit')
 
 
 def run_split(self):
@@ -179,23 +180,45 @@ graphics.node['fillcolor'] = "#bfbfbf:white"
 graphics.edge_in[0]['headport'] = 'w'
 
 
-class InvSplitter(Unit):
-    """Create a splitter that sets the input stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input.
+class FakeSplitter(Unit):
+    """
+    Create a FakeSplitter object that does nothing when simulated.
     """
     _graphics = Splitter._graphics
-    def _run(self):
-        feed = self.ins[0]
-        feed.mol[:] = self.mol_out
-        T = feed.T
-        P = feed.P
-        phase = feed.phase
-        for out in self._outs:
+    _N_ins = 1
+    _N_outs = 2
+    _outs_size_is_fixed = False
+    
+    def _run(self): pass
+    
+    def create_inverse_splitter_process_specification(self, ID='', ins=None, outs=()):
+        return ProcessSpecification(InverseSplit(self.ins, self.outs), ins, outs, self.thermo, ID)    
+    
+FakeSplitter.line = 'Splitter'
+
+class InverseSplit:
+    """Create a splitter that, when called, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    __slots__ = ('inlets', 'outlets')
+    
+    def __init__(self, inlets, outlets):
+        self.inlets = inlets
+        self.outlets = outlets
+    
+    @property
+    def __name__(self):
+        return 'InverseSplit'
+    
+    def __call__(self):
+        inlet, = self.inlets
+        outlets = self.outlets
+        inlet.mol[:] = sum([i.mol for i in outlets])
+        T = inlet.T
+        P = inlet.P
+        phase = inlet.phase
+        for out in outlets:
             out.T = T
             out.P = P
             out.phase = phase 
-InvSplitter.line = 'Splitter'
 
-
-
-        
+  
     

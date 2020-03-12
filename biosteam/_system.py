@@ -192,11 +192,44 @@ class System(metaclass=system):
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), ends=None):
+        """
+        Create a System object from a feedstock.
+        
+        Parameters
+        ----------
+        ID : str
+            Name of system.
+        feedstock : Stream
+            Main feedstock of the process.
+        feeds : Iterable[Stream]
+            Additional feeds to the process.
+        facilities : Iterable[Facility]
+            Offsite facilities that are simulated only after 
+            completing the path simulation.
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
+        
+        """
         network = Network.from_feedstock(feedstock, feeds, ends)
         return cls.from_network(ID, network, facilities)
 
     @classmethod
     def from_network(cls, ID, network, facilities=()):
+        """
+        Create a System object from a network.
+        
+        Parameters
+        ----------
+        ID : str
+            Name of system.
+        network : Network
+            Network that defines the simulation path.
+        facilities : Iterable[Facility]
+            Offsite facilities that are simulated only after 
+            completing the path simulation.
+        
+        """
         facilities = Facility.ordered_facilities(facilities)
         self = cls.__new__(cls)
         self.units = units = network.units
@@ -232,8 +265,7 @@ class System(metaclass=system):
     save_report = save_report
     
     def _load_flowsheet(self):
-        from ._flowsheet import find
-        self.flowsheet = find.flowsheet[find.ID]
+        self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
     
     def _set_recycle(self, recycle):
         if recycle is None:
@@ -540,10 +572,16 @@ class System(metaclass=system):
     def _run(self):
         """Rigorous run each element of the system."""
         isa = isinstance
-        for a in self.path:
-            if isa(a, Unit): a._run()
-            elif isa(a, System): a._converge()
-            else: a() # Assume it is a function
+        for i in self.path:
+            if isa(i, Unit):
+                try:
+                    i._run()
+                except Exception as Error:
+                    try: Error.msg = repr(i) + ' ' + Error.msg
+                    except: pass
+                    raise Error
+            elif isa(i, System): i._converge()
+            else: i() # Assume it is a function
     
     # Methods for convering the recycle stream
     def _fixed_point(self):
@@ -648,11 +686,25 @@ class System(metaclass=system):
         self._reset_iter()
         self._setup()
         self._converge()
-        for u in self._path_costunits: u._summary()
+        for i in self._path_costunits:
+            try:
+                i._summary()
+            except Exception as Error:
+                try: Error.msg = repr(i) + ' ' + Error.msg
+                except: pass
+                raise Error
         isa = isinstance
         for i in self.facilities:
-            if isa(i, (Unit, System)): i.simulate()
-            else: i() # Assume it is a function
+            if isa(i, Unit):
+                try:
+                    i.simulate()
+                except Exception as Error:
+                    Error.msg = repr(i) + ' ' + Error.msg
+                    raise Error
+            elif isa(i, System):
+                i.simulate()
+            else:
+                i() # Assume it is a function
         
     # Debugging
     def _debug_on(self):
@@ -772,3 +824,6 @@ class System(metaclass=system):
                 + f"\n path: {path}"
                 + facilities
                 + error)
+
+
+from biosteam import _flowsheet as flowsheet_module

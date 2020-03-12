@@ -123,8 +123,7 @@ class Unit:
             elif '_graphics' not in dct:
                 # Set new graphics for specified line
                 cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-        
-        if not isabstract and not hasattr(cls, '_run'): static(cls)
+        if not isabstract and not cls._run: static(cls)
          
     _is_facility_ = False
         
@@ -214,42 +213,57 @@ class Unit:
     # Forward pipping
     def __sub__(self, other):
         """Source streams."""
-        if isinstance(other, Unit):
+        isa = isinstance
+        int_types = (int, np.int)
+        if isa(other, Unit):
             other._ins[:] = self._outs
             return other
-        elif type(other) is int:
+        elif isa(other, int_types):
             return self.outs[other]
-        elif isinstance(other, Stream):
+        elif isa(other, Stream):
             self._outs[:] = (other,)
             return self
-        elif isinstance(other, (tuple, list, np.ndarray)):
-            if isinstance(other[0], int):
-                return [self.outs[i] for i in other]
+        elif isa(other, (tuple, list, np.ndarray)):
+            if all(isa(i, (int, np.int)) for i in other):
+                return [self._outs[i] for i in other]
             else:
-                self._outs[:] = other
-                return self
+                if isa(other, Unit):
+                    self._outs[:] = other._ins
+                    return other
+                else:
+                    self._outs[:] = other
+                    return self
         else:
             return other.__rsub__(self)
 
     def __rsub__(self, other):
         """Sink streams."""
-        if type(other) is int:
+        isa = isinstance
+        int_types = (int, np.int)
+        if isa(other, int_types):
             return self._ins[other]
-        elif isinstance(other, Stream):
+        elif isa(other, Stream):
             self._ins[:] = (other,)
             return self
-        elif isinstance(other, (tuple, list, np.ndarray)):
-            if all(isinstance(i, int) for i in other):
+        elif isa(other, (tuple, list, np.ndarray)):
+            if all(isa(i, int_types) for i in other):
                 return [self._ins[i] for i in other]
             else:
-                self._ins[:] = other
-                return self
+                if isa(other, Unit):
+                    self._ins[:] = other._outs
+                    return other
+                else:
+                    self._ins[:] = other
+                    return self
+        else:
+            raise ValueError(f"cannot pipe '{type(other).__name__}' object into unit")
 
     # Backwards pipping
     __pow__ = __sub__
     __rpow__ = __rsub__
     
     # Abstract methods
+    _run = NotImplementedMethod
     _setup = NotImplementedMethod
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
