@@ -4,22 +4,21 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-from scipy.optimize import newton
 from flexsolve import SolverError, conditional_wegstein, conditional_aitken
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from thermosteam.utils import registered
-from ._exceptions import try_unit_method
+from ._exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from .utils import colors, MissingStream, strtuple
+from .utils import colors, MissingStream, strtuple, BoundedNumericalSpecification
 import biosteam as bst
 
 __all__ = ('System',)
 
-# %% Functions
+# %% Functions for building systems
 
 def subsystems_units_and_streams_from_path(path):
     isa = isinstance
@@ -43,6 +42,43 @@ def feeds_from_streams(streams):
 def products_from_streams(streams):
     return {s for s in streams if s and not s._sink}
 
+# %% Functions for taking care of numerical specifications within a system path
+    
+def run_unit_in_path(unit):
+    try:
+        numerical_specification = unit.numerical_specification
+    except:
+        method = unit._run
+    else:
+        method = numerical_specification.solve
+    try_method_with_object_stamp(unit, method)
+
+def converge_system_in_path(system):
+    try:
+        numerical_specification = system.numerical_specification
+    except:
+        method = system._converge
+    else:
+        method = numerical_specification.solve
+    try_method_with_object_stamp(system, method)
+
+def simulate_unit_in_path(unit):
+    try:
+        numerical_specification = unit.numerical_specification
+    except:
+        method = unit.simulate
+    else:
+        method = numerical_specification.solve
+    try_method_with_object_stamp(unit, method)
+
+def simulate_system_in_path(system):
+    try:
+        numerical_specification = system.numerical_specification
+    except:
+        method = system.simulate
+    else:
+        method = numerical_specification.solve
+    try_method_with_object_stamp(system, method)
 
 # %% Debugging and exception handling
 
@@ -280,7 +316,8 @@ class System(metaclass=system):
     def _set_path(self, path):
         isa = isinstance
         
-        #: tuple[Unit, function and/or System] A path that is run element by element until the recycle converges.
+        #: tuple[Unit, function and/or System] A path that is run element
+        #: by element until the recycle converges.
         net2sys = System.from_network
         self.path = path = tuple([(net2sys('', i) if isa(i, Network) else i)
                                   for i in path])
@@ -400,8 +437,8 @@ class System(metaclass=system):
                     unit_found = True
                     path.append(unit)
                 elif isa(i, System) and unit in i.units:
-                        unit_found = True   
-                        path.append(i)
+                    unit_found = True   
+                    path.append(i)
         return path
 
     def _downstream_system(self, unit):
@@ -533,7 +570,8 @@ class System(metaclass=system):
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
-        """Run the system at specified recycle molar flow rate.
+        """
+        Run the system at specified recycle molar flow rate.
         
         Parameters
         ----------
@@ -575,8 +613,9 @@ class System(metaclass=system):
         isa = isinstance
         for i in self.path:
             if isa(i, Unit):
-                try_unit_method(i, '_run')
-            elif isa(i, System): i._converge()
+                run_unit_in_path(i)
+            elif isa(i, System): 
+                converge_system_in_path(i)
             else: i() # Assume it is a function
     
     # Methods for convering the recycle stream
@@ -607,34 +646,23 @@ class System(metaclass=system):
     # Default converge method
     _converge = _aitken
 
-    def set_spec(self, getter, setter, solver=newton, **kwargs):
-        """Wrap a solver around the converge method.
+    def set_numerical_specification(self, f, a, b, **kwargs):
+        """
+        Set numerical process specification for system. 
 
         Parameters
         ----------
-        getter : function
-            Returns objective value.
-        setter : function
-            Changes independent variable.
-        solver=scipy.optimize.newton : function
-            Solves objective function.
+        f : function
+            Objective function; f(x) -> 0 at solution.
+        a : float
+            Lower or upper bound of parameter.
+        b : float
+            Upper or lower bound of parameter.
         **kwargs
-            Key word arguments passed to solver.
+            Key word arguments passed to scipy.optimize.brentq solver.
 
         """
-        converge = self._converge
-
-        def error(val):
-            setter(val)
-            converge()
-            self._spec_error = e = getter()
-            return e
-
-        def converge_spec():
-            x = solver(error, **kwargs)
-            if solver is newton: kwargs['x0'] = x
-
-        self._converge = converge_spec
+        self.numerical_specification = BoundedNumericalSpecification(f, a, b, kwargs)
 
     def _reset_iter(self):
         self._iter = 0
@@ -683,13 +711,13 @@ class System(metaclass=system):
         self._setup()
         self._converge()
         for i in self._path_costunits:
-            try_unit_method(i, '_summary')
+            try_method_with_object_stamp(i, i._summary)
         isa = isinstance
         for i in self.facilities:
             if isa(i, Unit):
-                try_unit_method(i, 'simulate')
+                run_unit_in_path(i)
             elif isa(i, System):
-                i.simulate()
+                simulate_system_in_path(i)
             else:
                 i() # Assume it is a function
         
@@ -761,16 +789,12 @@ class System(metaclass=system):
 
     def _error_info(self):
         """Return information on convergence."""
-        recycle = self.recycle
-        error_info = ''
-        if self._spec_error:
-            error_info += f'\n specification error: {self._spec_error:.3g}'
-        if recycle:
-            error_info +=(f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
-                          f"\n                    Temperature {self._T_error:.2e} K")
-        if self._spec_error or recycle:
-            error_info += f"\n iterations: {self._iter}"
-        return error_info
+        if self.recycle:
+            return (f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
+                    f"\n                    Temperature {self._T_error:.2e} K"
+                    f"\n iterations: {self._iter}")
+        else:
+            return ""
 
     def _info(self):
         """Return string with all specifications."""

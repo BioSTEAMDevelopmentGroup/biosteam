@@ -154,14 +154,14 @@ class Fermentation(Unit):
                          0.45,  # Y_PS
                          0.18)  # a
     
-    def _get_design_specs(self):
+    def _get_design_info(self):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
                 ('Working volume fraction', self.V_wf, ''),
                 ('Number of reactors', self.N, ''))
     
-    def __init__(self, ID='', ins=None, outs=(), *, 
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  tau,  N, efficiency=0.9, iskinetic=False):
-        Unit.__init__(self, ID, ins, outs)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
         self.iskinetic = iskinetic

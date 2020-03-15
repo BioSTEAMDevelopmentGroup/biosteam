@@ -36,7 +36,8 @@ def run_split_with_mixing(self):
 
 
 class Splitter(Unit):
-    """Create a splitter that separates mixed streams based on splits.
+    """
+    Create a splitter that separates mixed streams based on splits.
 
     Parameters
     ----------
@@ -49,8 +50,8 @@ class Splitter(Unit):
             * [float] The fraction of net feed in the 0th outlet stream
             * [array_like] Componentwise split of feed to 0th outlet stream
             * [dict] ID-split pairs of feed to 0th outlet stream
-    order=None : Iterable[str], defaults to Stream.species.IDs
-        Species order of split.
+    order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
+        Chemical order of split.
     
     Examples
     --------

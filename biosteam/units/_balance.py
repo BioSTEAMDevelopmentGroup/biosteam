@@ -110,6 +110,7 @@ class MassBalance(Unit):
         self._init_outs(outs)
         self._assert_compatible_property_package()
         self._register(ID)
+        self._spec = None
         self.variable_inlets = variable_inlets
         self.constant_inlets = constant_inlets
         self.constant_outlets = constant_outlets

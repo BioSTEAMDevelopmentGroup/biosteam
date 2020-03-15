@@ -16,23 +16,22 @@ __all__ = ('DesignError',)
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
 
-def message_with_designated_unit(unit, msg):
-    return colors.brown_tint(repr(unit)) + ' ' + msg
+def message_with_object_stamp(object, msg):
+    return colors.dim(repr(object)) + ' ' + msg
 
-def raise_error_with_designated_unit(error, unit):
+def raise_error_with_object_stamp(object, error):
     if hasattr(error, 'args'):
         msg, *args = error.args
-        error.args = (message_with_designated_unit(unit, msg), *args)
+        error.args = (message_with_object_stamp(object, msg), *args)
     if hasattr(error, 'msg'):
-        error.msg = message_with_designated_unit(unit, unit.msg)
+        error.msg = message_with_object_stamp(object, error.msg)
     raise error
 
-def try_unit_method(unit, method):
-    method = getattr(unit, method)
+def try_method_with_object_stamp(object, method):
     try:
         method()
     except Exception as error:
-        raise_error_with_designated_unit(error, unit)
+        raise_error_with_object_stamp(object, error)
 
 # class UnitError(RuntimeError):
 #     """RuntimeError regarding unit operations."""

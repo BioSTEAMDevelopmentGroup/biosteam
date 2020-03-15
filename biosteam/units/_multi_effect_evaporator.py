@@ -105,8 +105,8 @@ class MultiEffectEvaporator(Unit):
             raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
-    def __init__(self, ID='', ins=None, outs=(), *, P, V):
-        Unit.__init__(self, ID, ins, outs)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, V):
+        Unit.__init__(self, ID, ins, outs, thermo)
         # Unpack
         out_wt_solids, liq = self.outs
         self.V = V #: [float] Overall molar fraction of component evaporated.

@@ -14,7 +14,9 @@ __all__ = ('SolidsCentrifuge',)
 @cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03,
       N='Number of centrifuges')
 class SolidsCentrifuge(Splitter):
-    """Create a solids centrifuge that separates out solids according to user defined split. Assume a continuous scroll solid bowl. 
+    """
+    Create a solids centrifuge that separates out solids according to
+    user defined split. Assume a continuous scroll solid bowl. 
     
     Parameters
     ----------
@@ -32,15 +34,15 @@ class SolidsCentrifuge(Splitter):
     
     References
     ----------
-        .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
+    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
     
     """
     _units = {'Solids loading': 'tonn/hr'}
     _minimum_solids_loading = 2
 
-    def __init__(self, ID='', ins=None, outs=(), *,
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  split, order=None, solids=None):
-        super().__init__(ID, ins, outs, split=split, order=order)
+        super().__init__(ID, ins, outs, thermo, split=split, order=order)
         self.solids = solids
     
     @property

@@ -12,7 +12,7 @@ from ._graphics import Graphics, default_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
-                   format_unit_line, static
+                   format_unit_line, static, BoundedNumericalSpecification
 from ._power_utility import PowerUtility
 from ._digraph import save_digraph
 from thermosteam.utils import thermo_user, registered
@@ -267,7 +267,8 @@ class Unit:
     _setup = NotImplementedMethod
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
-    def _get_design_specs(self):
+    
+    def _get_design_info(self):
         return ()
     
     def _load_stream_links(self):
@@ -277,11 +278,28 @@ class Unit:
             s_out = self.outs[0]
             s_out.link_with(s_in, options.flow, options.phase, options.TP)
     
-    # Summary
     def _summary(self):
         """Calculate all results from unit run."""
         self._design()
         self._cost()
+    
+    def set_numerical_specification(self, f, a, b, **kwargs):
+        """
+        Set numerical design specification for unit operation. 
+
+        Parameters
+        ----------
+        f : function
+            Objective function; f(x) -> 0 at solution.
+        a : float
+            Lower or upper bound of parameter.
+        b : float
+            Upper or lower bound of parameter.
+        **kwargs
+            Key word arguments passed to scipy.optimize.brentq solver.
+
+        """
+        self.numerical_specification = BoundedNumericalSpecification(f, a, b, kwargs)
     
     @property
     def purchase_cost(self):
@@ -299,7 +317,7 @@ class Unit:
         return sum([i.cost for i in self.heat_utilities]) + self.power_utility.cost
 
     def simulate(self):
-        """Run rigourous simulation and determine all design requirements."""
+        """Run rigourous simulation and determine all design requirements. No design specifications are solved."""
         self._load_stream_links()
         self._setup()
         self._run()
@@ -333,7 +351,7 @@ class Unit:
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval((units.get(ki, ''), vi))
-            for ki, vi, ui in self._get_design_specs():
+            for ki, vi, ui in self._get_design_info():
                 addkey(('Design', ki))
                 addval((ui, vi))
             for ki, vi in Cost.items():
@@ -384,7 +402,7 @@ class Unit:
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval(vi)
-            for ki, vi, ui in self._get_design_specs():
+            for ki, vi, ui in self._get_design_info():
                 addkey(('Design', ki))
                 addval((ui, vi))
             for ki, vi in self.purchase_costs.items():

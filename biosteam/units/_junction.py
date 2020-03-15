@@ -67,6 +67,12 @@ class Junction(Unit):
         self._outs = Outs(self, self._N_outs, downstream, thermo)
         self._register(ID)
     
+    def set_spec(self, *args, **kwargs):
+        raise TypeError("{type(self).__name__}' does not support design specifications")
+        
+    def get_spec(self):
+        return None
+    
     def _get_chemicals_in_common(self, upstream, downstream):
         if (upstream, downstream) == self._past_streams:
             IDs = self._chemicals_in_common

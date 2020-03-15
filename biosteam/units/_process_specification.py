@@ -18,12 +18,14 @@ class ProcessSpecification(Unit):
     ----------
     run : function
         Called during simulation to set a process specification.
-    ins : stream
+    ins : stream, optional
         Inlet stream.
-    outs : stream
+    outs : stream, optional
         Outlet stream.
-    thermo : Thermo
+    thermo : Thermo, optional
         Thermodynamic property package to initialize streams.
+    ID : str, optional
+        Name of unit. Defaults to name of the `run` function.
     
     Examples
     --------
@@ -34,7 +36,7 @@ class ProcessSpecification(Unit):
     >>> from biosteam import settings, Stream, units, main_flowsheet
     >>> main_flowsheet.set_flowsheet('mix_ethanol_with_denaturant')
     >>> settings.set_thermo(['Water', 'Ethanol', 'Octane'])
-    >>> ethanol = Stream('ethanol', T=340, Water=200, Ethanol=22500)
+    >>> ethanol = Stream('ethanol', T=340, Water=200, Ethanol=22500, units='kg/hr')
     >>> denaturant = Stream('denaturant', Octane=1)
     >>> def adjust_denaturant():
     ...     denaturant_over_ethanol_flow = 0.02 / 0.98 # A mass ratio
@@ -50,10 +52,10 @@ class ProcessSpecification(Unit):
     >>> M1.outs[0].show(composition=True, flow='kg/hr')
     Stream: denatured_ethanol from <Mixer: M1>
      phase: 'l', T: 339.32 K, P: 101325 Pa
-     composition: Water    0.00339
-                  Ethanol  0.977
+     composition: Water    0.00863
+                  Ethanol  0.971
                   Octane   0.02
-                  -------  1.06e+06 kg/hr
+                  -------  2.32e+04 kg/hr
     
     """
     _N_ins = _N_outs = 1
