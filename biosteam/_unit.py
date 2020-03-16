@@ -8,11 +8,11 @@ Created on Wed Dec 18 07:18:50 2019
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
-from ._graphics import Graphics, default_graphics
+from ._graphics import Graphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
-                   format_unit_line, static, BoundedNumericalSpecification
+                   format_unit_line, static
 from ._power_utility import PowerUtility
 from ._digraph import save_digraph
 from thermosteam.utils import thermo_user, registered
@@ -20,10 +20,6 @@ from thermosteam.base import UnitsOfMeasure
 import biosteam as bst
 
 __all__ = ('Unit',)
-
-
-lines_with_new_graphics = ['Unit', 'Mixer', 'Static',
-                           'Splitter', 'Solids separator', 'Facility']
 
 # %% Unit Operation
 
@@ -113,19 +109,14 @@ class Unit:
     
     """ 
     
-    def __init_subclass__(cls, isabstract=False, new_graphics=True):
+    def __init_subclass__(cls, isabstract=False):
         dct = cls.__dict__
-        if new_graphics:
-            if 'line' not in dct and cls.line in lines_with_new_graphics:
-                # Set new graphics for default line
-                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-                cls.line = format_unit_line(cls.__name__)
-            elif '_graphics' not in dct:
-                # Set new graphics for specified line
-                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-        if not isabstract and not cls._run: static(cls)
-         
-    _is_facility_ = False
+        if 'line' not in dct:
+            cls.line = format_unit_line(cls.__name__)
+        if '_graphics' not in dct:
+            # Set new graphics for specified line
+            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+        if not (isabstract or cls._run): static(cls)
         
     ### Abstract Attributes ###
     
@@ -154,7 +145,7 @@ class Unit:
     _stream_link_options = None
     
     # [biosteam Graphics] a Graphics object for diagram representation.
-    _graphics = default_graphics
+    _graphics = box_graphics
     
     # [str] The general type of unit, regardless of class
     line = 'Unit'
@@ -162,6 +153,7 @@ class Unit:
     ### Other defaults ###
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        self._numerical_specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
@@ -283,23 +275,16 @@ class Unit:
         self._design()
         self._cost()
     
-    def set_numerical_specification(self, f, a, b, **kwargs):
-        """
-        Set numerical design specification for unit operation. 
-
-        Parameters
-        ----------
-        f : function
-            Objective function; f(x) -> 0 at solution.
-        a : float
-            Lower or upper bound of parameter.
-        b : float
-            Upper or lower bound of parameter.
-        **kwargs
-            Key word arguments passed to scipy.optimize.brentq solver.
-
-        """
-        self.numerical_specification = BoundedNumericalSpecification(f, a, b, kwargs)
+    @property
+    def numerical_specification(self):
+        """Numerical design or process specification."""
+        return self._numerical_specification
+    @numerical_specification.setter
+    def numerical_specification(self, numerical_specification):
+        if numerical_specification:
+            if not callable(numerical_specification):
+                raise ValueError("numerical specification must a callable or None.")
+        self._numerical_specification = numerical_specification
     
     @property
     def purchase_cost(self):

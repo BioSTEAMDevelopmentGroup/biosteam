@@ -11,13 +11,13 @@ __all__ = ('BoundedNumericalSpecification',)
 class BoundedNumericalSpecification:
     __slots__ = ('f', 'a', 'b', 'kwargs')
     
-    def __init__(self, f, a, b, kwargs=None):
+    def __init__(self, f, a, b, **kwargs):
         self.f = f
         self.a = a
         self.b = b
-        self.kwargs = kwargs or {}
+        self.kwargs = kwargs
         
-    def solve(self):
+    def __call__(self):
         return brentq(self.f, self.a, self.b, **self.kwargs)
     
     def __repr__(self):

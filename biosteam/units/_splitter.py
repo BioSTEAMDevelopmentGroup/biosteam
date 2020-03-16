@@ -5,6 +5,7 @@ Created on Mon May 20 22:04:02 2019
 @author: yoelr
 """
 from .. import Unit
+from .._graphics import splitter_graphics
 import numpy as np 
 from thermosteam.indexer import ChemicalIndexer
 from ._process_specification import ProcessSpecification
@@ -134,6 +135,7 @@ class Splitter(Unit):
 
     """
     _N_outs = 2
+    _graphics = splitter_graphics
     
     @property
     def isplit(self):
@@ -174,13 +176,6 @@ class Splitter(Unit):
         top.mol[:] = top_mol = feed_mol * self.split
         bot.mol[:] = feed_mol - top_mol
 
-graphics = Splitter._graphics
-graphics.edge_out *= 3
-graphics.node['shape'] = 'triangle'
-graphics.node['orientation'] = '90'
-graphics.node['fillcolor'] = "#bfbfbf:white"
-graphics.edge_in[0]['headport'] = 'w'
-
 
 class FakeSplitter(Unit):
     """
@@ -193,8 +188,11 @@ class FakeSplitter(Unit):
     
     def _run(self): pass
     
-    def create_reversed_splitter_process_specification(self, ID='', ins=None, outs=()):
-        return ProcessSpecification(ReversedSplit(self.ins, self.outs), ins, outs, self.thermo, ID)    
+    def create_reversed_splitter_process_specification(self, ID='', ins=None, outs=(),
+                                                       description=None):
+        return ProcessSpecification(ID, ins, outs, self.thermo, 
+                                    specification=ReversedSplit(self),
+                                    description=description or 'Reverse split')    
     
 FakeSplitter.line = 'Splitter'
 

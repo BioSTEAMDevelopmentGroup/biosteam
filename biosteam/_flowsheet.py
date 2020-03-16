@@ -175,7 +175,7 @@ class Flowsheet:
             u._ins[:] = ins
             u._outs[:] = outs
     
-    def create_system(self, ID=None, ends=()):
+    def create_system(self, ID=None, feeds=None, ends=()):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -188,13 +188,13 @@ class Flowsheet:
             process requirements and not by its unit source.
         
         """
-        feedstock, *feeds = get_feeds_big_to_small(self.stream)
+        feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
         isa = isinstance
         facilities = [i for i in self.unit if isa(i, Facility)]
         return System.from_feedstock(ID or self.ID + '_sys', feedstock, feeds,
                                      facilities, ends)
     
-    def create_network(self, ends=()):
+    def create_network(self, feeds=None, ends=()):
         """
         Create a Network object from all units and streams defined in the flowsheet.
         
@@ -205,7 +205,7 @@ class Flowsheet:
             process requirements and not by its unit source.
         
         """
-        feedstock, *feeds = get_feeds_big_to_small(self.stream)
+        feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
         return Network.from_feedstock(feedstock, feeds, ends)
     
     def __call__(self, ID):

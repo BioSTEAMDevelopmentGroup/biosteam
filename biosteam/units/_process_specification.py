@@ -5,7 +5,8 @@ Created on Sat Jul 13 02:24:35 2019
 @author: yoelr
 """
 from .._unit import Unit
-from ..utils import colors
+from .._graphics import process_specification_graphics
+from ..utils import format_unit_line
 
 __all__ = ('ProcessSpecification',)
 
@@ -16,16 +17,14 @@ class ProcessSpecification(Unit):
     
     Parameters
     ----------
-    run : function
-        Called during simulation to set a process specification.
     ins : stream, optional
         Inlet stream.
     outs : stream, optional
         Outlet stream.
-    thermo : Thermo, optional
-        Thermodynamic property package to initialize streams.
-    ID : str, optional
-        Name of unit. Defaults to name of the `run` function.
+    specification : callable
+        Called during simulation to set a process specification.
+    description : 
+        Description of process specification. Defaults to name of the `specification` function.
     
     Examples
     --------
@@ -58,31 +57,29 @@ class ProcessSpecification(Unit):
                   -------  2.32e+04 kg/hr
     
     """
+    _graphics = process_specification_graphics
     _N_ins = _N_outs = 1
     power_utility = None
     results = None
     heat_utilities = ()
     
-    def __init__(self, run, ins=None, outs=(), thermo=None, ID=None):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 specification, description=None):
+        self._numerical_specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
         self._assert_compatible_property_package()
-        self._register(ID or run.__name__)
-        self.run = run
+        self._register(ID)
+        self.specification = specification
+        self.description = format_unit_line(description or specification.__name__)
         
     @property
-    def run(self):
-        return self._run
-    @run.setter
-    def run(self, run):
-        assert callable(run), "run must be a function"
-        self._run = run
+    def specification(self):
+        return self._specification
+    @specification.setter
+    def specification(self, specification):
+        assert callable(specification), "specification must be a function"
+        self._run = self._specification = specification
         
-orange = colors.orange_tint.tint(50)
-orange_tint = orange.tint(75)
-node = ProcessSpecification._graphics.node
-node['fillcolor'] = orange_tint.HEX + ':' + orange.HEX
-node['shape'] = 'note'
-node['margin'] = '0.2'
 

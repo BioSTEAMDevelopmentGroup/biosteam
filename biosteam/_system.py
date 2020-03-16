@@ -8,33 +8,29 @@ from flexsolve import SolverError, conditional_wegstein, conditional_aitken
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from thermosteam.utils import registered
+from ._graphics import system_unit, stream_unit
 from ._exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from .utils import colors, MissingStream, strtuple, BoundedNumericalSpecification
+from .utils import colors, MissingStream, strtuple
 import biosteam as bst
 
 __all__ = ('System',)
 
 # %% Functions for building systems
 
-def subsystems_units_and_streams_from_path(path):
+def streams_from_path(path):
     isa = isinstance
     streams = set()
-    subsystems = set()
-    units = set()
     for i in path:
         if isa(i, System):
-            subsystems.add(i)
-            units.update(i.units)
             streams.add(i.streams)
         elif isa(i, Unit):
-            units.add(i)
             streams.update(i._ins + i._outs)
     streams.discard(MissingStream)
-    return subsystems, units, streams
+    return streams
     
 def feeds_from_streams(streams):
     return {s for s in streams if s and not s._source}
@@ -45,39 +41,35 @@ def products_from_streams(streams):
 # %% Functions for taking care of numerical specifications within a system path
     
 def run_unit_in_path(unit):
-    try:
-        numerical_specification = unit.numerical_specification
-    except:
-        method = unit._run
+    numerical_specification = unit._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
     else:
-        method = numerical_specification.solve
+        method = unit._run
     try_method_with_object_stamp(unit, method)
 
 def converge_system_in_path(system):
-    try:
-        numerical_specification = system.numerical_specification
-    except:
-        method = system._converge
+    numerical_specification = system._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
     else:
-        method = numerical_specification.solve
+        method = system._converge
     try_method_with_object_stamp(system, method)
 
 def simulate_unit_in_path(unit):
-    try:
-        numerical_specification = unit.numerical_specification
-    except:
-        method = unit.simulate
+    numerical_specification = unit._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
     else:
-        method = numerical_specification.solve
+        method = unit.simulate
     try_method_with_object_stamp(unit, method)
 
 def simulate_system_in_path(system):
-    try:
-        numerical_specification = system.numerical_specification
-    except:
-        method = system.simulate
+    numerical_specification = system._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
     else:
-        method = numerical_specification.solve
+        method = system.simulate
     try_method_with_object_stamp(system, method)
 
 # %% Debugging and exception handling
@@ -154,22 +146,16 @@ class DiagramOnlyUnit(Unit, isabstract=True):
     def _register(self, ID): 
         self.ID = self._ID = ID
     
-class _systemUnit(DiagramOnlyUnit, isabstract=True):
+class SystemUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a system as a unit."""
     line = 'System'
+    _graphics = system_unit
 
-_sysgraphics = _systemUnit._graphics
-_sysgraphics.edge_in = _sysgraphics.edge_in * 10
-_sysgraphics.edge_out = _sysgraphics.edge_out * 15
-_sysgraphics.node['peripheries'] = '2'
-
-class _streamUnit(DiagramOnlyUnit, isabstract=True):
+class StreamUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a streams as a unit."""
     line = ''
-    
-_stream_graphics = _streamUnit._graphics
-_stream_graphics.node['fillcolor'] = 'white:#79dae8'
-del _stream_graphics, _sysgraphics
+    _graphics = stream_unit
+
 
 # %% Process flow
 
@@ -269,27 +255,27 @@ class System(metaclass=system):
         """
         facilities = Facility.ordered_facilities(facilities)
         self = cls.__new__(cls)
-        self.units = units = network.units
+        self.units = network.units
         self.streams = streams = network.streams
         self.feeds = feeds = network.feeds
         self.products = products = network.products
+        self._numerical_specification = None
         self._reset_errors()
         self._set_path(network.path)
         self._set_facilities(facilities)
         self._set_recycle(network.recycle)
         self._register(ID)
         if facilities:
-            f_subsystems, f_units, f_streams = subsystems_units_and_streams_from_path(facilities)
+            f_streams = streams_from_path(facilities)
             f_feeds = feeds_from_streams(f_streams)
             f_products = products_from_streams(f_streams)
-            units.update(f_units)
-            self.subsystems.update(f_subsystems)
             streams.update(f_streams)
             feeds.update(f_feeds)
             products.update(f_products)
         return self
         
     def __init__(self, ID, path, recycle=None, facilities=()):
+        self._numerical_specification = None
         self._load_flowsheet()
         self._reset_errors()
         self._set_path(path)
@@ -299,6 +285,7 @@ class System(metaclass=system):
         self._set_recycle(recycle)
         self._register(ID)
     
+    numerical_specification = Unit.numerical_specification
     save_report = save_report
     
     def _load_flowsheet(self):
@@ -357,6 +344,7 @@ class System(metaclass=system):
         isa = isinstance
         for i in facilities:
             if isa(i, Unit):
+                i._load_stream_links()
                 units.add(i)
                 if i._cost: costunits.add(i)
                 if isa(i, Facility): i._system = self
@@ -479,11 +467,11 @@ class System(metaclass=system):
         product._ID = ''
         feed = Stream(None)
         feed._ID = ''
-        _streamUnit('\n'.join([i.ID for i in ins]),
+        StreamUnit('\n'.join([i.ID for i in ins]),
                     None, feed)
-        _streamUnit('\n'.join([i.ID for i in outs]),
+        StreamUnit('\n'.join([i.ID for i in outs]),
                     product, None)
-        unit = _systemUnit(self.ID, feed, product)
+        unit = SystemUnit(self.ID, feed, product)
         unit.diagram(1, file=file, format=format, **graph_attrs)
 
     def _surface_diagram(self, file, format, **graph_attrs):
@@ -516,7 +504,7 @@ class System(metaclass=system):
                 if len(feeds) > 1:
                     feed = Stream(None)
                     feed._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]),
+                    units.add(StreamUnit('\n'.join([i.ID for i in feeds]),
                                           None, feed))
                     ins.append(feed)
                 else: ins += feeds
@@ -524,12 +512,12 @@ class System(metaclass=system):
                 if len(products) > 1:
                     product = Stream(None)
                     product._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in products]),
+                    units.add(StreamUnit('\n'.join([i.ID for i in products]),
                                           product, None))
                     outs.append(product)
                 else: outs += products
                 
-                subsystem_unit = _systemUnit(i.ID, ins, outs)
+                subsystem_unit = SystemUnit(i.ID, ins, outs)
                 units.add(subsystem_unit)
                 
         System(None, units)._thorough_diagram(file, format, **graph_attrs)
@@ -646,24 +634,6 @@ class System(metaclass=system):
     # Default converge method
     _converge = _aitken
 
-    def set_numerical_specification(self, f, a, b, **kwargs):
-        """
-        Set numerical process specification for system. 
-
-        Parameters
-        ----------
-        f : function
-            Objective function; f(x) -> 0 at solution.
-        a : float
-            Lower or upper bound of parameter.
-        b : float
-            Upper or lower bound of parameter.
-        **kwargs
-            Key word arguments passed to scipy.optimize.brentq solver.
-
-        """
-        self.numerical_specification = BoundedNumericalSpecification(f, a, b, kwargs)
-
     def _reset_iter(self):
         self._iter = 0
         for system in self.subsystems: system._reset_iter()
@@ -715,7 +685,7 @@ class System(metaclass=system):
         isa = isinstance
         for i in self.facilities:
             if isa(i, Unit):
-                run_unit_in_path(i)
+                simulate_unit_in_path(i)
             elif isa(i, System):
                 simulate_system_in_path(i)
             else:

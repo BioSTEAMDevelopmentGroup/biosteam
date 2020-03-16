@@ -18,8 +18,8 @@ from .design_tools import (compute_vacuum_system_power_and_cost,
                            material_densities_lb_per_ft3,)
 from ._splitter import Splitter
 from ._hx import HX, HXutility
+from .._graphics import vertical_vessel_graphics
 from ..utils import bounds_warning
-import biosteam as bst
 from ._CAS import H2O_CAS
 
 exp = np.exp
@@ -156,6 +156,7 @@ class Flash(Unit):
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
+    _graphics = vertical_vessel_graphics 
     _N_outs = 2
     _N_heat_utilities = 0
     

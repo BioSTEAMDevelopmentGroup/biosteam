@@ -105,12 +105,12 @@ class MassBalance(Unit):
                  chemical_IDs=None, variable_inlets=(),
                  constant_outlets=(), constant_inlets=(),
                  is_exact=True, balance='flow'):
+        self._numerical_specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
         self._assert_compatible_property_package()
         self._register(ID)
-        self._spec = None
         self.variable_inlets = variable_inlets
         self.constant_inlets = constant_inlets
         self.constant_outlets = constant_outlets
@@ -188,11 +188,6 @@ class MassBalance(Unit):
         
         else:
             raise ValueError( "balance type must be one of the following: 'flow', 'composition'")
-
-# Balance
-graphics = MassBalance._graphics
-graphics.node = ProcessSpecification._graphics.node
-del graphics
 
 
 # %% Energy Balance Unit

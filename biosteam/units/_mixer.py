@@ -5,6 +5,7 @@ Created on Thu Aug 23 14:26:41 2018
 @author: yoelr
 """
 from .. import Unit
+from .._graphics import mixer_graphics
 
 __all__ = ('Mixer',)
 
@@ -45,6 +46,7 @@ class Mixer(Unit):
     
     
     """
+    _graphics = mixer_graphics
     _N_outs = 1
     _N_ins = 2
     _ins_size_is_fixed = False
@@ -52,11 +54,3 @@ class Mixer(Unit):
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins)
-
-graphics = Mixer._graphics
-graphics.edge_in *= 3
-graphics.edge_out *= 3
-graphics.node['shape'] = 'triangle'
-graphics.node['orientation'] = '270'
-graphics.edge_out[0]['tailport'] = 'e'
-del graphics

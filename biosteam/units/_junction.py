@@ -5,6 +5,7 @@ Created on Sat Jun  8 23:29:37 2019
 @author: yoelr
 """
 from .._unit import Unit
+from .._graphics import junction_graphics
 from .._power_utility import PowerUtility
 from thermosteam import MultiStream
 from ..utils.piping import Ins, Outs
@@ -56,12 +57,13 @@ class Junction(Unit):
         flow (kmol/hr): Water  20
         
     """
-    _has_cost = False
+    _graphics = junction_graphics
     _N_ins = _N_outs = 1
     heat_utilities = ()
     power_utility = PowerUtility()
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         thermo = self._load_thermo(thermo)
+        self._numerical_specification = None
         self._chemicals_in_common = self._past_streams = ()
         self._ins = Ins(self, self._N_ins, upstream, thermo)
         self._outs = Outs(self, self._N_outs, downstream, thermo)
@@ -109,16 +111,4 @@ class Junction(Unit):
     simulate = _run
 
 
-def node_function(self):
-    node = self._graphics.node
-    if not any(self._get_streams()):
-        node['fontsize'] = '18'
-        node['shape'] = 'plaintext'
-        node['fillcolor'] = 'none'
-    else:
-        node['width'] = '0.1'
-        node['shape'] = 'point'
-        node['color'] = node['fillcolor'] = 'black'
 
-Junction._graphics.node_function = node_function
-del node_function
