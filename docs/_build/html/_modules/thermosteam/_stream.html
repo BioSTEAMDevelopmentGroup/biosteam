@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -743,7 +744,7 @@
     <span class="k">def</span> <span class="nf">F_vol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">F_vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">F_vol</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">F_vol</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;undefined composition; cannot set flow rate&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ivol</span><span class="o">.</span><span class="n">_data</span><span class="p">[:]</span> <span class="o">*=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">F_vol</span> <span class="o">/</span> <span class="mf">1000.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imol</span><span class="o">.</span><span class="n">_data</span><span class="p">[:]</span> <span class="o">*=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">F_vol</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1471,6 +1472,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">F_vol</span>
     
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">P_vapor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Vapor pressure of liquid.&quot;&quot;&quot;</span>
+        <span class="n">chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">equilibrium_chemicals</span>
+        <span class="n">F_l</span> <span class="o">=</span> <span class="n">eq</span><span class="o">.</span><span class="n">LiquidFugacities</span><span class="p">(</span><span class="n">chemicals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">chemicals</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_molar_composition</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="n">F_l</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
     <span class="k">def</span> <span class="nf">recieve_vent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">accumulate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Recieve vapors from another stream as if in equilibrium.</span>
@@ -1530,11 +1541,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">MultiStream</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_imol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imol</span><span class="o">.</span><span class="n">to_material_indexer</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_streams</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_vle_cache</span> <span class="o">=</span> <span class="n">Cache</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">VLE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TP</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vle_cache</span> <span class="o">=</span> <span class="n">Cache</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">VLE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TP</span><span class="p">,</span>
+                                <span class="n">thermo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span><span class="p">,</span>
                                 <span class="n">bubble_point_cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point_cache</span><span class="p">,</span>
                                 <span class="n">dew_point_cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dew_point_cache</span><span class="p">)</span>
     
     <span class="c1">### Representation ###</span>
+    
+    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">biosteam._digraph</span> <span class="kn">import</span> <span class="n">make_digraph</span><span class="p">,</span> <span class="n">save_digraph</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">streams</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ins</span> <span class="o">+</span> <span class="n">i</span><span class="o">.</span><span class="n">outs</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">units</span><span class="p">],</span> <span class="p">[])</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">make_digraph</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">streams</span><span class="p">))</span>
+        <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_basic_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}: {self.ID or &#39;&#39;}</span><span class="se">\n</span><span class="s2">&quot;</span>

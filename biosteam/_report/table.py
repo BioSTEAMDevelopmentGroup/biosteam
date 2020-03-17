@@ -98,6 +98,7 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
     # Organize streams by chemicals first
     streams_by_chemicals = {}
     for i in system.streams:
+        if not i: continue
         chemicals = i.chemicals
         if chemicals in streams_by_chemicals:
             streams_by_chemicals[chemicals].append(i)

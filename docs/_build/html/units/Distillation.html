@@ -89,11 +89,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -237,7 +236,7 @@ methods, such as the Fenske-Underwood-Gilliland method, are more suitable
 for hydrocarbons. The Murphree efficiency is based on the modified
 O’Connell correlation <a class="footnote-reference brackets" href="#id7" id="id2">2</a>. The diameter is based on tray separation
 and flooding velocity [1, 3]_. Purchase costs are based on correlations
-compiled by Warren et. al. <a class="footnote-reference brackets" href="#id10" id="id3">5</a>.</p>
+compiled by Warren et. al. <a class="footnote-reference brackets" href="#id9" id="id3">4</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -285,12 +284,7 @@ Predict Distillation Tray Efficiency. AICHE</p>
 <dd><p>Green, D. W. Distillation. In Perry’s Chemical Engineers’
 674 Handbook, 9 ed.; McGraw-Hill Education, 2018.</p>
 </dd>
-<dt class="label" id="id9"><span class="brackets">4</span></dt>
-<dd><p>Mulet, A., A.B. Corripio, and L.B.Evans. (1981b).
-Estimate Costs of Distillation and Absorption Towers via Correlations.
-Chem. Eng., 88(26), 77–82.</p>
-</dd>
-<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id3">5</a></span></dt>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id3">4</a></span></dt>
 <dd><p>Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
 &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.
 Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
@@ -299,9 +293,8 @@ Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <p class="rubric">Examples</p>
 <p>Binary distillation assuming 100% separation on non-keys:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Distillation</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Chemicals</span><span class="p">,</span> <span class="n">settings</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">settings</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span> <span class="c1"># Feed at bubble point T</span>

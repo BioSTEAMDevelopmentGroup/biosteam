@@ -12,7 +12,7 @@ from . import (biosteam_colors,
                not_implemented_method,
                piping,
                stream_link_options,
-               design_warning,
+               unit_warnings,
                functors,
                bounded_numerical_specification)
 
@@ -29,7 +29,7 @@ __all__ = ('biosteam_colors',
            *tictoc.__all__, 
            *piping.__all__, 
            *stream_link_options.__all__,
-           *design_warning.__all__,
+           *unit_warnings.__all__,
            *functors.__all__,
            *bounded_numerical_specification.__all__)
 
@@ -41,5 +41,5 @@ from .plotting import *
 from .tictoc import *
 from .piping import *
 from .stream_link_options import *
-from .design_warning import *
+from .unit_warnings import *
 from .functors import *

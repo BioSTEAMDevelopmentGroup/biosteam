@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 import numpy as np
-from ..utils.design_warning import lb_warning
+from ..utils.unit_warnings import lb_warning
 from .decorators import cost
 from ._splitter import Splitter
 

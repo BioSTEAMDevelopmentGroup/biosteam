@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -209,10 +210,9 @@
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import MolecularSieve</span>
-<span class="sd">    &gt;&gt;&gt; chemicals = Chemicals([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
-<span class="sd">    &gt;&gt;&gt; settings.set_thermo(chemicals)</span>
+<span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
 <span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, flow=(75.7, 286), phase=&#39;g&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; bp = feed.bubble_point_at_T()</span>
 <span class="sd">    &gt;&gt;&gt; feed.T = bp.T</span>

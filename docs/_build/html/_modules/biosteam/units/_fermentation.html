@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -231,7 +232,7 @@
 <span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; from biorefineries.lipidcane.chemicals import ethanol_chemicals </span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import Fermentation</span>
-<span class="sd">    &gt;&gt;&gt; from thermosteam import Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo(ethanol_chemicals)</span>
 <span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;,</span>
 <span class="sd">    ...               Water=1.20e+05,</span>
@@ -329,14 +330,14 @@
                          <span class="mf">0.45</span><span class="p">,</span>  <span class="c1"># Y_PS</span>
                          <span class="mf">0.18</span><span class="p">)</span>  <span class="c1"># a</span>
     
-    <span class="k">def</span> <span class="nf">_get_design_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_design_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">((</span><span class="s1">&#39;Cleaning and unloading time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_0</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;Working volume fraction&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> 
                  <span class="n">tau</span><span class="p">,</span>  <span class="n">N</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">iskinetic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hydrolysis</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Sucrose + Water -&gt; 2Glucose&#39;</span><span class="p">,</span> <span class="s1">&#39;Sucrose&#39;</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Glucose -&gt; 2Ethanol + 2CO2&#39;</span><span class="p">,</span>  <span class="s1">&#39;Glucose&#39;</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iskinetic</span> <span class="o">=</span> <span class="n">iskinetic</span>

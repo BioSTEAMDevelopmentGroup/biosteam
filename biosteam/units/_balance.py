@@ -76,14 +76,15 @@ class MassBalance(Unit):
     ...                   variable_inlets=[water, ethanol],
     ...                   constant_inlets=[S1-0],
     ...                   constant_outlets=[target],
-    ...                   chemical_IDs=['Ethanol', 'Water'])
+    ...                   chemical_IDs=['Ethanol', 'Water'],
+    ...                   description='Adjust flow rate of feed to mixer')
     >>> # Connect units
     >>> water-T1-P1
     <Pump: P1>
     >>> ethanol-T2-P2
     <Pump: P2>
     >>> [P1-0, P2-0, MB1-0]-M1-F1-1-S1-0-MB1
-    <Splitter: S1>
+    <MassBalance: MB1>
     >>> sys = main_flowsheet.create_system('sys')
     >>> # Make diagram to view system
     >>> # sys.diagram()
@@ -95,16 +96,17 @@ class MassBalance(Unit):
                      Ethanol  500
     
     """
+    _graphics = ProcessSpecification._graphics
     power_utility = None
     heat_utilities = ()
     results = None
     _N_ins = _N_outs = 1
-    line = 'Balance'
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                  chemical_IDs=None, variable_inlets=(),
                  constant_outlets=(), constant_inlets=(),
-                 is_exact=True, balance='flow'):
+                 is_exact=True, balance='flow',
+                 description=""):
         self._numerical_specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
@@ -117,6 +119,7 @@ class MassBalance(Unit):
         self.chemical_IDs = chemical_IDs
         self.is_exact = is_exact
         self.balance = balance
+        self.description = description
         
     def _run(self):
         """Solve mass balance by iteration."""

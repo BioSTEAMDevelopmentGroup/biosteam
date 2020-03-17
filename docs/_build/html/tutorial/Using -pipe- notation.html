@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="7. Bioferineries" href="Biorefineries.html" />
+    <link rel="next" title="7. Unit operation results" href="Unit operation results.html" />
     <link rel="prev" title="5. Managing flowsheets" href="Managing flowsheets.html" /> 
 </head>
 
@@ -88,7 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">8. Techno-economic analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
@@ -98,6 +98,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
@@ -387,18 +388,16 @@ the following format:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
 <span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span>
 
 <span class="c1"># Set property pacakge</span>
-<span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
-<span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
 
 <span class="c1"># Set feed stream and units</span>
-<span class="n">feed1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed1&#39;</span><span class="p">)</span>
+<span class="n">feed1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed1&#39;</span><span class="p">)</span>
 <span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
 <span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;product1&#39;</span><span class="p">),</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">feed2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
+<span class="n">feed2</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
 <span class="n">M2</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
 <span class="n">S2</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;recycle&#39;</span><span class="p">,</span> <span class="s1">&#39;product2&#39;</span><span class="p">),</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
@@ -450,7 +449,7 @@ S2 and M1:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Biorefineries.html" class="btn btn-neutral float-right" title="7. Bioferineries" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Unit operation results.html" class="btn btn-neutral float-right" title="7. Unit operation results" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Managing flowsheets.html" class="btn btn-neutral float-left" title="5. Managing flowsheets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

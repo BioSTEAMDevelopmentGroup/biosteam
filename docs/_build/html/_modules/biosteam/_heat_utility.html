@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -198,7 +199,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ID=&#39;&#39; : str</span>
-<span class="sd">        A unique identification. If ID is None, stream will not be registered.</span>
+<span class="sd">        A unique identification. If ID is None, utility agent will not be registered.</span>
 <span class="sd">        If no ID is given, utility agent will be registered with a unique ID.</span>
 <span class="sd">    flow=() : tuple</span>
 <span class="sd">        All flow rates corresponding to chemical `IDs`.</span>
@@ -212,7 +213,7 @@
 <span class="sd">        Flow rate units of measure (only mass, molar, and</span>
 <span class="sd">        volumetric flow rates are valid).</span>
 <span class="sd">    thermo=None : Thermo</span>
-<span class="sd">        Thermodynamic equilibrium package. Defaults to `thermosteam.settings.get_thermo()`.</span>
+<span class="sd">        Thermodynamic equilibrium package. Defaults to `biosteam.settings.get_thermo()`.</span>
 <span class="sd">    T_limit : float, optional</span>
 <span class="sd">        Temperature limit of outlet utility streams [K]. If no limit is given,</span>
 <span class="sd">        phase change is assumed. If utility agent heats up, `T_limit` is</span>
@@ -223,7 +224,7 @@
 <span class="sd">    regeneration_price : float</span>
 <span class="sd">        Price of regenerating the fluid for reuse [USD/kmol].</span>
 <span class="sd">    heat_transfer_efficiency : float</span>
-<span class="sd">        Heat transfer heat_transfer_efficiency [between 0 to 1].</span>
+<span class="sd">        Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1).</span>
 <span class="sd">    **chemical_flows : float</span>
 <span class="sd">        ID - flow pairs.</span>
 <span class="sd">        </span>
@@ -241,7 +242,7 @@
             <span class="n">name</span><span class="p">,</span> <span class="n">factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_flow_name_and_factor</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
             <span class="n">flow</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="n">flow</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">/</span> <span class="n">factor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># For BioSTEAM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_cache</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">T_limit</span> <span class="o">=</span> <span class="n">T_limit</span>
@@ -255,12 +256,8 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        Create a copy of a new stream:</span>
-<span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; import thermosteam as tmo</span>
 <span class="sd">        &gt;&gt;&gt; import biosteam as bst</span>
-<span class="sd">        &gt;&gt;&gt; chemicals = tmo.Chemicals([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; tmo.settings.set_thermo(chemicals) </span>
+<span class="sd">        &gt;&gt;&gt; bst.settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;]) </span>
 <span class="sd">        &gt;&gt;&gt; cooling_water = bst.HeatUtility.get_agent(&#39;cooling_water&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; cooling_water_copy = cooling_water.to_stream(&#39;cooling_water_copy&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; cooling_water_copy.show(flow=&#39;kg/hr&#39;)</span>
@@ -281,10 +278,10 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;{type(self).__name__}&#39; object has no attribute &#39;cost&#39;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">price</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;{type(self).__name__}&#39; object has no attribute &#39;price&#39;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">heat_transfer_price</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -316,7 +313,7 @@
                 <span class="sa">f</span><span class="s2">&quot; heat_transfer_price: </span><span class="si">{ht_price:.3g}</span><span class="s2"> USD/kJ</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="sa">f</span><span class="s2">&quot; regeneration_price: </span><span class="si">{rg_price:.3g}</span><span class="s2"> USD/kmol</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="sa">f</span><span class="s2">&quot; heat_transfer_efficiency: </span><span class="si">{ht_eff:.3f}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot; T_limit: &quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">{T_limit:.3g}</span><span class="s2"> K</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">T_limit</span> <span class="k">else</span> <span class="s2">&quot;None</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+                 <span class="s2">&quot; T_limit: &quot;</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{T_limit:.3g}</span><span class="s2"> K</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">T_limit</span> <span class="k">else</span> <span class="s2">&quot;None</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
     
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s2">&gt;&quot;</span></div>
@@ -334,7 +331,7 @@
                              <span class="n">thermo</span><span class="o">=</span><span class="n">thermo_water</span><span class="p">,</span>
                              <span class="n">T_limit</span> <span class="o">=</span> <span class="mf">300.372</span><span class="p">,</span>
                              <span class="n">heat_transfer_price</span> <span class="o">=</span> <span class="mf">5e-6</span><span class="p">)</span>
-<span class="n">chilled_brine</span> <span class="o">=</span> <span class="n">UtilityAgent</span><span class="p">(</span><span class="s1">&#39;chilled_water&#39;</span><span class="p">,</span>
+<span class="n">chilled_brine</span> <span class="o">=</span> <span class="n">UtilityAgent</span><span class="p">(</span><span class="s1">&#39;chilled_brine&#39;</span><span class="p">,</span>
                              <span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">255.372</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span>
                              <span class="n">thermo</span><span class="o">=</span><span class="n">thermo_water</span><span class="p">,</span>
                              <span class="n">T_limit</span> <span class="o">=</span> <span class="mf">275.372</span><span class="p">,</span>
@@ -473,9 +470,9 @@
 <span class="sd">        duty : float</span>
 <span class="sd">               Unit duty requirement (kJ/hr)</span>
 <span class="sd">        T_in : float</span>
-<span class="sd">               Entering process stream temperature (K)</span>
+<span class="sd">               Inlet process stream temperature (K)</span>
 <span class="sd">        T_out : float, optional</span>
-<span class="sd">                Exit process stream temperature (K)</span>
+<span class="sd">               Outlet process stream temperature (K)</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">duty</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -550,7 +547,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        T_pinch : float</span>
-<span class="sd">            Pinch temperature of process stream [K].</span>
+<span class="sd">            Pinch temperature [K].</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">:</span>
@@ -564,7 +561,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        T_pinch : float</span>
-<span class="sd">            Pinch temperature of process stream [K].</span>
+<span class="sd">            Pinch temperature [K].</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">:</span>
@@ -588,9 +585,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        T_pinch : float</span>
-<span class="sd">                  Pinch temperature of utility stream (K)</span>
+<span class="sd">                  Pinch temperature of utility stream [K].</span>
 <span class="sd">        iscooling : bool</span>
-<span class="sd">                  True if exit temperature should be lower (process stream is gaining energy)</span>
+<span class="sd">                  True if utility is loosing energy.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">iscooling</span><span class="p">:</span>

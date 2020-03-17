@@ -40,13 +40,14 @@ class ProcessSpecification(Unit):
     >>> def adjust_denaturant():
     ...     denaturant_over_ethanol_flow = 0.02 / 0.98 # A mass ratio
     ...     denaturant.imass['Octane'] = denaturant_over_ethanol_flow * ethanol.F_mass
-    >>> PS1 = units.ProcessSpecification(adjust_denaturant,
-    ...                                  ins=ethanol, outs='ethanol_')
+    >>> PS1 = units.ProcessSpecification('PS1',
+    ...                                  ins=ethanol, outs='ethanol_',
+    ...                                  specification=adjust_denaturant)
     >>> M1 = units.Mixer('M1', ins=(PS1-0, denaturant), outs='denatured_ethanol')
-    >>> system = main_flowsheet.create_system()
+    >>> system = main_flowsheet.create_system('mix_ethanol_with_denaturant_sys')
     >>> system.show()
     System: mix_ethanol_with_denaturant_sys
-     path: (adjust_denaturant, M1)
+     path: (PS1, M1)
     >>> system.simulate()
     >>> M1.outs[0].show(composition=True, flow='kg/hr')
     Stream: denatured_ethanol from <Mixer: M1>

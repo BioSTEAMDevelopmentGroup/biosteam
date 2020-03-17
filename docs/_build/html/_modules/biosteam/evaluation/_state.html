@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -238,10 +239,9 @@
             <span class="k">raise</span> <span class="n">Error</span>
 
 <span class="k">class</span> <span class="nc">UpdateWithoutSkipping</span><span class="p">:</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cache&#39;</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,)</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
         <span class="n">sim</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
@@ -252,11 +252,12 @@
         <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="n">sim</span><span class="p">()</span>
 
 
-
 <span class="c1"># %%</span>
     
 <div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a State object that can update the `system` state given a sample of parameter states.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a State object that can update the `system` state given</span>
+<span class="sd">    a sample of parameter states.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -414,8 +415,8 @@
     
     <span class="k">def</span> <span class="nf">_loadparams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Load parameters.&quot;&quot;&quot;</span>
-        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unit_network</span><span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unit_network</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unit_path</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unit_path</span><span class="o">.</span><span class="n">index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">index</span><span class="p">(</span><span class="n">param_unit</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">system</span> <span class="k">else</span> <span class="n">length</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">=</span> <span class="p">(</span><span class="n">UpdateWithSkipping</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span> 
                         <span class="k">else</span> <span class="n">UpdateWithoutSkipping</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>

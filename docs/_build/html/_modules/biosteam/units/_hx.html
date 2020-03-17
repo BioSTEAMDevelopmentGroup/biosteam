@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -180,6 +181,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">.._graphics</span> <span class="kn">import</span> <span class="n">utility_heat_exchanger_graphics</span><span class="p">,</span> <span class="n">process_heat_exchanger_graphics</span>
 <span class="kn">from</span> <span class="nn">.design_tools.specification_factors</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">shell_and_tube_material_factor_coefficients</span><span class="p">,</span>
     <span class="n">compute_shell_and_tube_material_factor</span><span class="p">)</span>
@@ -386,7 +388,7 @@
 <span class="sd">    Run heat exchanger by temperature:</span>
 <span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import HXutility</span>
-<span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
 <span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=200, Ethanol=200)</span>
 <span class="sd">    &gt;&gt;&gt; hx = HXutility(&#39;hx&#39;, ins=feed, outs=&#39;product&#39;, T=50+273.15,</span>
@@ -454,8 +456,8 @@
 <span class="sd">    Total purchase cost                                         USD 2.16e+04</span>
 <span class="sd">    Utility cost                                             USD/hr      126</span>
 <span class="sd">    </span>
-<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_graphics</span> <span class="o">=</span> <span class="n">utility_heat_exchanger_graphics</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rigorous</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -578,7 +580,7 @@
 <span class="sd">    Sensible fluids case:</span>
 <span class="sd">        </span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import HXprocess</span>
-<span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
 <span class="sd">    &gt;&gt;&gt; in_a = Stream(&#39;in_a&#39;, Water=200, T=350)</span>
 <span class="sd">    &gt;&gt;&gt; in_b = Stream(&#39;in_b&#39;, Ethanol=200)</span>
@@ -689,6 +691,7 @@
 <span class="sd">    Utility cost                                             USD/hr        0</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_graphics</span> <span class="o">=</span> <span class="n">process_heat_exchanger_graphics</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
@@ -864,50 +867,8 @@
         <span class="n">Q</span> <span class="o">=</span> <span class="p">(</span><span class="n">sc_in</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
         <span class="n">sp_out</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="n">sp_out</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">sp_in</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">Q</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span></div>
-        
-<span class="kn">from</span> <span class="nn">.._graphics</span> <span class="kn">import</span> <span class="n">Graphics</span>
 
-<span class="c1"># Single stream heat exchanger</span>
-<span class="n">HXutility</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;circle&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;margin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
 
-<span class="k">def</span> <span class="nf">HXutility_node</span><span class="p">(</span><span class="n">hx</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">si</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">so</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">H_in</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">H</span>
-        <span class="n">H_out</span> <span class="o">=</span> <span class="n">so</span><span class="o">.</span><span class="n">H</span>
-        <span class="n">graphics</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">_graphics</span>
-        <span class="k">if</span> <span class="n">H_in</span> <span class="o">&gt;</span> <span class="n">H_out</span><span class="p">:</span>
-            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#cfecf0&#39;</span>
-            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Cooling&#39;</span>
-        <span class="k">elif</span> <span class="n">H_in</span> <span class="o">&lt;</span> <span class="n">H_out</span><span class="p">:</span>
-            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
-            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#fad6d8&#39;</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Heating&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;90&#39;</span>
-            <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#cfecf0:#fad6d8&#39;</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Heat exchanger&#39;</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="n">graphics</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">_graphics</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Heat exchange&#39;</span>
-    <span class="k">return</span> <span class="n">name</span>
-
-<span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span> <span class="o">=</span> <span class="n">HXutility_node</span>
-
-<span class="c1"># Double stream heat exchanger</span>
-<span class="n">HXprocess</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;HXprocess&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;circle&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;margin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;gradientangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;90&#39;</span>
-<span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;#cfecf0:#fad6d8&#39;</span>
-<span class="k">del</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">graphics</span>
 </pre></div>
 
            </div>

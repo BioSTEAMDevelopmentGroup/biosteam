@@ -89,11 +89,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -226,19 +225,39 @@
 <dl class="class">
 <dt id="biosteam.units.facilities.Facility">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">Facility</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/_facility.html#Facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.Facility" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="method">
+<dt id="biosteam.units.facilities.Facility.ordered_facilities">
+<em class="property">static </em><code class="sig-name descname">ordered_facilities</code><span class="sig-paren">(</span><em class="sig-param">facilities</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/_facility.html#Facility.ordered_facilities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.Facility.ordered_facilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return facilitied ordered according to their network priority.</p>
+</dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.facilities.ProcessWaterCenter">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">ProcessWaterCenter</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_process_water_center.html#ProcessWaterCenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ProcessWaterCenter" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">ProcessWaterCenter</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">update_recycled_process_water=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_process_water_center.html#ProcessWaterCenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ProcessWaterCenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a ProcessWaterCenter object that takes care of balancing the amount
+of make-up water required for the process. The capital cost and power
+are based on the flow rate of process and make-up water as in <a href="#id11"><span class="problematic" id="id1">[1]_</span></a>.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ins</strong> – <p>[0] Recycle water</p>
-<p>[1] Make-up water</p>
+<li><p><strong>ins</strong> (<em>stream sequence</em>) – <p>[0] Recycle water.</p>
+<p>[1] Make-up water.</p>
 </p></li>
-<li><p><strong>outs</strong> – [0] Process water</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Process water.</p></li>
+<li><p><strong>update_recycled_process_water</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to update recycled water (ins[0]).</p></li>
 </ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets">1</span></dt>
+<dd><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -246,21 +265,33 @@
 <dl class="class">
 <dt id="biosteam.units.facilities.ChilledWaterPackage">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">ChilledWaterPackage</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_chilled_water_package.html#ChilledWaterPackage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a chilled water package that is cost based on flow rate of chilled water.</p>
+<dd><p>Create a chilled water package with capital cost and power based on the flow rate
+of chilled water as in <a href="#id12"><span class="problematic" id="id3">[1]_</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>Duty</strong> (<em>float</em>) – Chilled water duty (kJ/hr)</p>
+<dd class="field-odd"><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Unit ID.</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets">1</span></dt>
+<dd><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.facilities.BoilerTurbogenerator">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">BoilerTurbogenerator</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">*</em>, <em class="sig-param">boiler_efficiency=0.8</em>, <em class="sig-param">turbogenerator_efficiency=0.85</em>, <em class="sig-param">side_steam=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_boiler_turbogenerator.html#BoilerTurbogenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">BoilerTurbogenerator</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">*</em>, <em class="sig-param">boiler_efficiency=0.8</em>, <em class="sig-param">turbogenerator_efficiency=0.85</em>, <em class="sig-param">side_steam=None</em>, <em class="sig-param">agent=&lt;UtilityAgent: low_pressure_steam&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_boiler_turbogenerator.html#BoilerTurbogenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a BoilerTurbogenerator object that will calculate electricity
 generation from burning the feed. It also takes into account how much
 steam is being produced, and the required cooling utility of the turbo
-generator. No emissions or mass balances are taken into account.</p>
+generator. No emissions or mass balances are taken into account. All
+capital cost correlations are based on <a href="#id13"><span class="problematic" id="id5">[1]_</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -273,32 +304,69 @@ generator. No emissions or mass balances are taken into account.</p>
 </p></li>
 <li><p><strong>boiler_efficiency</strong> (<em>float</em>) – Fraction of heat transfered to steam.</p></li>
 <li><p><strong>turbo_generator_efficiency</strong> (<em>float</em>) – Fraction of steam heat converted to electricity.</p></li>
+<li><p><strong>agent</strong> (<a class="reference internal" href="../UtilityAgent.html#biosteam.UtilityAgent" title="biosteam.UtilityAgent"><em>UtilityAgent</em></a>) – Steam produced.</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="attribute">
-<dt id="biosteam.units.facilities.BoilerTurbogenerator.duty_over_mol">
-<code class="sig-name descname">duty_over_mol</code><em class="property"> = 40000</em><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator.duty_over_mol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make this a whole system instead of approximating duty per mol values</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>TODO</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id6"><span class="brackets">1</span></dt>
+<dd><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
 </dd>
 </dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.facilities.CoolingTower">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">CoolingTower</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTower" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a cooling tower that is cost based on flow rate of cooling water.</p>
+<dd><p>Create a cooling tower with capital cost and power based on the flow rate
+of cooling water as in <a href="#id14"><span class="problematic" id="id7">[1]_</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Unit ID.</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id8"><span class="brackets">1</span></dt>
+<dd><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.facilities.AirDistributionPackage">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">AirDistributionPackage</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_air_distribution_package.html#AirDistributionPackage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create a AirDistributionPackage object that accounts for the capital cost
+and power of air distribution based on flow rate correlations from <a href="#id15"><span class="problematic" id="id9">[1]_</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Unit ID.</p></li>
+<li><p><strong>ins</strong> (<em>stream</em>) – Air flow to be distributed.</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Distributed air flow.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id10"><span class="brackets">1</span></dt>
+<dd><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 

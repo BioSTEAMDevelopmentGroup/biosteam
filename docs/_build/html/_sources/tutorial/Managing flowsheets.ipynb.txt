@@ -83,9 +83,7 @@
     }
    ],
    "source": [
-    "import thermosteam as tmo\n",
-    "chemicals = tmo.Chemicals(['Water', 'Ethanol'])\n",
-    "tmo.settings.set_thermo(chemicals)\n",
+    "bst.settings.set_thermo(['Water', 'Ethanol'])\n",
     "unit = bst.units.Mixer('M1')\n",
     "bst.find('M1')"
    ]

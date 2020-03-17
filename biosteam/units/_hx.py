@@ -281,6 +281,7 @@ class HXutility(HX):
     Utility cost                                             USD/hr      126
     
     """
+    line = 'Heat Exchanger'
     _graphics = utility_heat_exchanger_graphics
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
@@ -515,6 +516,7 @@ class HXprocess(HX):
     Utility cost                                             USD/hr        0
     
     """
+    line = 'Heat Exchanger'
     _graphics = process_heat_exchanger_graphics
     _N_heat_utilities = 0
     _N_ins = 2

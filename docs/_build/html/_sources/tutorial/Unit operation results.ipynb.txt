@@ -61,10 +61,9 @@
     }
    ],
    "source": [
-    "from biosteam.units import Distillation\n",
-    "from thermosteam import Stream, settings\n",
+    "from biosteam.units import Distillation, Stream, settings\n",
     "\n",
-    "# First set the property package through thermosteam\n",
+    "# First set the property package\n",
     "settings.set_thermo(['Water', 'Ethanol'])\n",
     "\n",
     "# Create the feed at the bubble point\n",

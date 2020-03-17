@@ -89,11 +89,10 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -204,7 +203,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ID=''</strong> (<em>str</em>) – A unique identification. If ID is None, stream will not be registered.
+<li><p><strong>ID=''</strong> (<em>str</em>) – A unique identification. If ID is None, utility agent will not be registered.
 If no ID is given, utility agent will be registered with a unique ID.</p></li>
 <li><p><strong>flow=</strong><strong>(</strong><strong>)</strong> (<em>tuple</em>) – All flow rates corresponding to chemical <cite>IDs</cite>.</p></li>
 <li><p><strong>phase='l'</strong> (<em>'l'</em><em>, </em><em>'g'</em><em>, or </em><em>'s'</em>) – Either gas (g), liquid (l), or solid (s).</p></li>
@@ -212,14 +211,14 @@ If no ID is given, utility agent will be registered with a unique ID.</p></li>
 <li><p><strong>P=101325</strong> (<em>float</em>) – Pressure [Pa].</p></li>
 <li><p><strong>units='kmol/hr'</strong> (<em>str</em>) – Flow rate units of measure (only mass, molar, and
 volumetric flow rates are valid).</p></li>
-<li><p><strong>thermo=None</strong> (<em>Thermo</em>) – Thermodynamic equilibrium package. Defaults to <cite>thermosteam.settings.get_thermo()</cite>.</p></li>
+<li><p><strong>thermo=None</strong> (<em>Thermo</em>) – Thermodynamic equilibrium package. Defaults to <cite>biosteam.settings.get_thermo()</cite>.</p></li>
 <li><p><strong>T_limit</strong> (<em>float</em><em>, </em><em>optional</em>) – Temperature limit of outlet utility streams [K]. If no limit is given,
 phase change is assumed. If utility agent heats up, <cite>T_limit</cite> is
 the maximum temperature. If utility agent cools down, <cite>T_limit</cite> is
 the minumum temperature.</p></li>
 <li><p><strong>heat_transfer_price</strong> (<em>float</em>) – Price of transfered heat [USD/kJ].</p></li>
 <li><p><strong>regeneration_price</strong> (<em>float</em>) – Price of regenerating the fluid for reuse [USD/kmol].</p></li>
-<li><p><strong>heat_transfer_efficiency</strong> (<em>float</em>) – Heat transfer heat_transfer_efficiency [between 0 to 1].</p></li>
+<li><p><strong>heat_transfer_efficiency</strong> (<em>float</em>) – Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1).</p></li>
 <li><p><strong>**chemical_flows</strong> (<em>float</em>) – ID - flow pairs.</p></li>
 </ul>
 </dd>
@@ -229,11 +228,8 @@ the minumum temperature.</p></li>
 <code class="sig-name descname">to_stream</code><span class="sig-paren">(</span><em class="sig-param">ID=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#UtilityAgent.to_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.UtilityAgent.to_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a copy as a Stream object.</p>
 <p class="rubric">Examples</p>
-<p>Create a copy of a new stream:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cooling_water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_agent</span><span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cooling_water_copy</span> <span class="o">=</span> <span class="n">cooling_water</span><span class="o">.</span><span class="n">to_stream</span><span class="p">(</span><span class="s1">&#39;cooling_water_copy&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cooling_water_copy</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
@@ -344,6 +340,12 @@ the minumum temperature.</p></li>
 <dt id="biosteam.UtilityAgent.P">
 <em class="property">property </em><code class="sig-name descname">P</code><a class="headerlink" href="#biosteam.UtilityAgent.P" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pressure in Pascal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.P_vapor">
+<em class="property">property </em><code class="sig-name descname">P_vapor</code><a class="headerlink" href="#biosteam.UtilityAgent.P_vapor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vapor pressure of liquid.</p>
 </dd></dl>
 
 <dl class="method">

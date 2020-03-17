@@ -6,8 +6,6 @@ Created on Mon Apr 29 18:28:55 2019
 """
 from . import Facility
 from ..decorators import cost
-from thermosteam import Stream
-import numpy as np
 from ... import HeatUtility
 # from copy import copy
 

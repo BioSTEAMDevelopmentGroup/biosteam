@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -179,7 +180,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..._unit</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">..._facility</span> <span class="kn">import</span> <span class="n">Facility</span>
 <span class="kn">from</span> <span class="nn">..decorators</span> <span class="kn">import</span> <span class="n">cost</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;AirDistributionPackage&#39;</span><span class="p">,)</span>
@@ -190,8 +191,29 @@
       <span class="n">cost</span><span class="o">=</span><span class="mf">15e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">522</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">83333</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Plant air compressor&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>
       <span class="n">cost</span><span class="o">=</span><span class="mf">28e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">83333</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">150</span><span class="o">*</span><span class="mf">0.7457</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">AirDistributionPackage</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span> <span class="k">pass</span></div>
-    
+<span class="k">class</span> <span class="nc">AirDistributionPackage</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a AirDistributionPackage object that accounts for the capital cost </span>
+<span class="sd">    and power of air distribution based on flow rate correlations from [1]_.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ID : str, optional</span>
+<span class="sd">        Unit ID.</span>
+<span class="sd">    ins : stream</span>
+<span class="sd">        Air flow to be distributed.</span>
+<span class="sd">    outs : stream</span>
+<span class="sd">        Distributed air flow.</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,</span>
+<span class="sd">        Dudgeon, D. (2011). Process Design and Economics for Biochemical </span>
+<span class="sd">        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid </span>
+<span class="sd">        Pretreatment and Enzymatic Hydrolysis of Corn Stover</span>
+<span class="sd">        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">network_priority</span> <span class="o">=</span> <span class="mi">0</span></div>
 </pre></div>
 
            </div>

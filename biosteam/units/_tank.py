@@ -297,7 +297,7 @@ class StorageTank(Tank):
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kg/hr): Ethanol  2.3e+04
     >>> T1.results()
-    Tank                                  Units       T1
+    Storage tank                          Units       T1
     Design              Residence time               168
                         Total volume        m^3 4.92e+03
                         Number of tanks                2

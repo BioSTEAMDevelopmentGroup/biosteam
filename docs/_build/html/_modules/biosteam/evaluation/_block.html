@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -192,13 +193,15 @@
 <span class="c1"># %% Simulation blocks</span>
 
 <div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../../evaluation/Block.html#biosteam.evaluation.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a Block object that can simulate the element and the system </span>
+<span class="sd">    downstream. The block can also generate Parameter objects that can</span>
+<span class="sd">    update the system state.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    element : Unit or Stream</span>
-<span class="sd">              Element in the system.</span>
-<span class="sd">        </span>
+<span class="sd">        Element in the system.  </span>
 <span class="sd">    system=None : System, optional</span>
 <span class="sd">        System affected by element. In other words, element should affect</span>
 <span class="sd">        downstream operations in the system.</span>

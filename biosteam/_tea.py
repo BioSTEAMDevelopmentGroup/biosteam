@@ -542,7 +542,7 @@ class TEA:
         except:
             self._IRR = secant(self._NPV_at_IRR,
                                0.15, 0.15001,
-                               xtol=1e-6, maxiter=200,
+                               xtol=1e-4, maxiter=200,
                                args=(self.cashflow,))
         return self._IRR
     

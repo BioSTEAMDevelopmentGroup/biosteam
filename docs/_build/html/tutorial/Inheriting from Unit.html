@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>10. Inheriting from Unit &mdash; BioSTEAM 0.1 documentation</title>
+  <title>11. Inheriting from Unit &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="11. Unit decorators" href="Unit decorators.html" />
-    <link rel="prev" title="9. Techno-economic analysis" href="Techno-economic analysis.html" /> 
+    <link rel="next" title="12. Unit decorators" href="Unit decorators.html" />
+    <link rel="prev" title="10. Techno-economic analysis" href="Techno-economic analysis.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -89,22 +89,24 @@
 <li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">10. Inheriting from Unit</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Abstract-attributes-and-methods">10.1. Abstract attributes and methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Subclass-example">10.2. Subclass example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Simulation-test">10.3. Simulation test</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">10.4. Graphviz attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">11. Inheriting from Unit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Abstract-attributes-and-methods">11.1. Abstract attributes and methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Subclass-example">11.2. Subclass example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Simulation-test">11.3. Simulation test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">11.4. Graphviz attributes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../UtilityAgent.html">UtilityAgent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
@@ -162,7 +164,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li><span class="section-number">10. </span>Inheriting from Unit</li>
+      <li><span class="section-number">11. </span>Inheriting from Unit</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -365,9 +367,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Inheriting-from-Unit">
-<h1><span class="section-number">10. </span>Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">11. </span>Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Abstract-attributes-and-methods">
-<h2><span class="section-number">10.1. </span>Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">11.1. </span>Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
 <p><img alt="image0" src="../_images/UML_Unit.png" /></p>
 <p><strong>A Unit subclass has class attributes that dictate how an instance is
 initialized:</strong></p>
@@ -417,7 +419,7 @@ unit.</p></li>
 </ul>
 </div>
 <div class="section" id="Subclass-example">
-<h2><span class="section-number">10.2. </span>Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">11.2. </span>Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
 <p>The following example depicts inheritance from Unit by creating a new
 Boiler class:</p>
 <div class="nbinput nblast docutils container">
@@ -435,17 +437,25 @@ Boiler class:</p>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    V : float</span>
-<span class="sd">        Molar vapor fraction.</span>
-<span class="sd">    P : float</span>
-<span class="sd">        Operating pressure [Pa].</span>
 <span class="sd">    ins : stream</span>
 <span class="sd">        Inlet fluid.</span>
 <span class="sd">    outs : stream sequence</span>
 <span class="sd">        * [0] vapor product</span>
 <span class="sd">        * [1] liquid product</span>
+<span class="sd">    V : float</span>
+<span class="sd">        Molar vapor fraction.</span>
+<span class="sd">    P : float</span>
+<span class="sd">        Operating pressure [Pa].</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Note that the documentation does not include `ID` or `thermo` in the parameters.</span>
+    <span class="c1"># This is OK, and most subclasses in BioSTEAM are documented this way too.</span>
+    <span class="c1"># Documentation for all unit operations should include the inlet and outlet streams</span>
+    <span class="c1"># listed by index. If there is only one stream in the inlets (or outlets), there is no</span>
+    <span class="c1"># need to list out by index. The types for the `ins` and `outs` should be either</span>
+    <span class="c1"># `stream sequence` for multiple streams, or `stream` for a single stream.</span>
+    <span class="c1"># Any additional arguments to the unit should also be listed (e.g. V, and P).</span>
+
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
@@ -455,7 +465,7 @@ Boiler class:</p>
         <span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="c1"># Initialize MultiStream object to perform vapor-liquid equilibrium later</span>
         <span class="c1"># NOTE: ID is None to not register it in the flowsheet</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MultiStream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">thermo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: Molar vapor fraction.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="c1">#: Operating pressure [Pa].</span>
 
@@ -533,17 +543,16 @@ Boiler class:</p>
 </div>
 </div>
 <div class="section" id="Simulation-test">
-<h2><span class="section-number">10.3. </span>Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">11.3. </span>Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
-<span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
-<span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
-<span class="n">water</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
+<span class="n">water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 <span class="n">B1</span> <span class="o">=</span> <span class="n">Boiler</span><span class="p">(</span><span class="s1">&#39;B1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;gas&#39;</span><span class="p">,</span> <span class="s1">&#39;liq&#39;</span><span class="p">),</span>
             <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
@@ -709,7 +718,7 @@ outs...
 </div>
 </div>
 <div class="section" id="Graphviz-attributes">
-<h2><span class="section-number">10.4. </span>Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">11.4. </span>Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
 <p>All <a class="reference external" href="https://graphviz.readthedocs.io/en/stable/manual.html">graphviz</a>
 attributes for generating a diagram are stored in <code class="docutils literal notranslate"><span class="pre">_graphics</span></code> as a
 Graphics object. One Graphics object is generated for each Unit
@@ -845,11 +854,11 @@ adding a node_function:</p>
     <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">outs</span>
     <span class="k">if</span> <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="ow">or</span> <span class="n">gas</span><span class="o">.</span><span class="n">F_mol</span><span class="p">:</span>
         <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#fad6d8&#39;</span>
-        <span class="n">unit_op_name</span> <span class="o">=</span> <span class="s1">&#39;Active boiler&#39;</span>
+        <span class="n">unit_name</span> <span class="o">=</span> <span class="s1">&#39;Active boiler&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#CDCDCD&#39;</span>
-        <span class="n">unit_op_name</span> <span class="o">=</span> <span class="s1">&#39;Inactive boiler&#39;</span>
-    <span class="k">return</span> <span class="n">unit_op_name</span> <span class="c1"># If a string is returned, it will replace the Unit operation name</span>
+        <span class="n">unit_name</span> <span class="o">=</span> <span class="s1">&#39;Inactive boiler&#39;</span>
+    <span class="k">return</span> <span class="n">unit_name</span> <span class="c1"># If a string is returned, it will replace the Unit operation name</span>
 
 <span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span> <span class="o">=</span> <span class="n">boiler_node_function</span>
 </pre></div>
@@ -885,10 +894,10 @@ suggested; best to keep diagrams simple.</strong></p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="11. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="12. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Techno-economic analysis.html" class="btn btn-neutral float-left" title="9. Techno-economic analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Techno-economic analysis.html" class="btn btn-neutral float-left" title="10. Techno-economic analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -490,7 +490,9 @@ class Unit:
 
     def diagram(self, radius=0, upstream=True, downstream=True, 
                 file=None, format='png', **graph_attrs):
-        """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
+        """
+        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
+        of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
@@ -526,10 +528,8 @@ class Unit:
             f.attr('graph', nodesep='0.4')
 
         # Initialize node arguments based on unit and make node
-        type_ = graphics.node_function(self) or self.line
-        name = self.ID + '\n' + type_
-        f.attr('node', **self._graphics.node)
-        f.node(name)
+        node = graphics.get_node_taylored_to_unit(self)
+        f.node(**node)
 
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
@@ -540,12 +540,12 @@ class Unit:
         di = 0  # Destination position of stream
         for stream in self.ins:
             if not stream: continue
-            f.node(stream.ID)  
-            edge_in = self._graphics.edge_in
+            f.node(stream.ID)
+            edge_in = graphics.edge_in
             if di >= len(edge_in): di = 0
             f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[di])
-            f.edge(stream.ID, name)
+            f.edge(stream.ID, node['name'])
             di += 1
 
         # Make nodes and edges for output streams
@@ -553,11 +553,11 @@ class Unit:
         for stream in self.outs:
             if not stream: continue
             f.node(stream.ID) 
-            edge_out = self._graphics.edge_out  
+            edge_out = graphics.edge_out  
             if oi >= len(edge_out): oi = 0
             f.attr('edge', arrowtail='none', arrowhead='none',
                    headport='w', **edge_out[oi])
-            f.edge(name, stream.ID)
+            f.edge(node['name'], stream.ID)
             oi += 1
         save_digraph(f, file, format)
     

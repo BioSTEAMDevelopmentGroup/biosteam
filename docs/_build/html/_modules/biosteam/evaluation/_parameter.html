@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -183,24 +184,26 @@
 <span class="kn">from</span> <span class="nn">._variable</span> <span class="kn">import</span> <span class="n">Variable</span>
 
 <div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../evaluation/Parameter.html#biosteam.evaluation.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="n">Variable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a Parameter object that, when called, runs the setter and the simulate functions.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a Parameter object that, when called, runs the setter and</span>
+<span class="sd">    the simulate functions.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
-<span class="sd">           Name of parameter.</span>
+<span class="sd">        Name of parameter.</span>
 <span class="sd">    setter : function</span>
-<span class="sd">             Should set the parameter.</span>
+<span class="sd">        Should set the parameter.</span>
 <span class="sd">    simulate : function</span>
-<span class="sd">               Should simulate parameter effects.</span>
+<span class="sd">        Should simulate parameter effects.</span>
 <span class="sd">    element : object</span>
-<span class="sd">              Element associated to parameter.</span>
+<span class="sd">        Element associated to parameter.</span>
 <span class="sd">    system : System</span>
-<span class="sd">             System associated to parameter.</span>
+<span class="sd">        System associated to parameter.</span>
 <span class="sd">    distribution : chaospy.Dist</span>
-<span class="sd">                   Parameter distribution.</span>
+<span class="sd">        Parameter distribution.</span>
 <span class="sd">    units : str</span>
-<span class="sd">            Units of parameter.</span>
+<span class="sd">        Units of parameter.</span>
 <span class="sd">    baseline : float</span>
 <span class="sd">        Baseline value of parameter.</span>
 <span class="sd">    </span>

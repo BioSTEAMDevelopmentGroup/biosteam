@@ -36,7 +36,10 @@ def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1):
 def load_default_parameters(self, feedstock, shape=triang,
                             bounded_shape=bounded_triang,
                             operating_days=False, include_feedstock_price=True):
-    """Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.
+    """
+    Load all default parameters, including coefficients of cost items,
+    stream prices, electricity price, heat utility prices, feedstock
+    flow rate, and number of operating days.
     
     Parameters
     ----------
@@ -54,6 +57,7 @@ def load_default_parameters(self, feedstock, shape=triang,
         distribution is applied to exponential factor "n" of cost items.
     operating_days : bool, optional
         If True, include operating days
+    
     """
     bounded_shape = bounded_shape or shape
     add_all_cost_item_params(self, shape, bounded_shape)
@@ -106,10 +110,10 @@ def add_power_utility_price_param(model, shape):
                         baseline=baseline)
         
 def add_heat_utility_price_params(model, shape):
-    named_agents = (*bst.HeatUtility.cooling_agents,
+    agents = (*bst.HeatUtility.cooling_agents,
                     *bst.HeatUtility.heating_agents)
-    for name, agent in named_agents:
-        add_agent_price_params(model, name, agent, shape)
+    for agent in agents:
+        add_agent_price_params(model, agent.ID, agent, shape)
         
 class Setter:
     __slots__ = ('obj', 'attr')
@@ -120,13 +124,14 @@ class Setter:
         setattr(self.obj, self.attr, value)
         
 def add_agent_price_params(model, name, agent, shape):
-    if agent.price_kJ:
-        baseline = agent.price_kJ
-        model.parameter(Setter(agent, 'price_kJ'), element=name, units='USD/kJ',
+    if agent.heat_transfer_price:
+        baseline = agent.heat_transfer_price
+        model.parameter(Setter(agent, 'heat_transfer_price'), element=name, units='USD/kJ',
                         name='Price', distribution=shape(baseline), baseline=baseline)
-    elif agent.price_kmol:
-        baseline = agent.price_kmol
-        model.parameter(Setter(agent, 'price_kmol'), element=name, units='USD/kmol',
+    elif agent.regeneration_price:
+        baseline = agent.regeneration_price
+        model.parameter(Setter(agent, 'regeneration_price'),
+                        element=name, units='USD/kmol',
                         name='Price', distribution=shape(baseline),
                         baseline=baseline)
         

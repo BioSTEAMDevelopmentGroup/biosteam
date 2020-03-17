@@ -31,9 +31,11 @@ Key Features & Capabilities
    tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
    tutorial/Unit operation results
-   tutorial/Biorefineries
+   tutorial/Process specifications
+   tutorial/Importing biorefineries
    tutorial/Techno-economic analysis
    tutorial/Inheriting from Unit
+   tutorial/Building biorefineries
    tutorial/Unit decorators
    tutorial/Monte Carlo
 

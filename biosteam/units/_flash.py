@@ -371,7 +371,7 @@ class Flash(Unit):
         vap, liq = self._outs
         rhov = vap.get_property('rho', 'lb/ft3')
         rhol = liq.get_property('rho', 'lb/ft3')
-        P = liq.P*0.000145  # Pressure (psi)
+        P = liq.get_property('P', 'psi')  # Pressure (psi)
 
         vessel_type = self.vessel_type
         Th = self.holdup_time
@@ -415,13 +415,13 @@ class Flash(Unit):
         if P < 300:
             Hlll = 1.25
 
-        # Calculate the height from Hlll to  Normal liq level, Hnll
+        # Calculate the height from Hlll to Normal liq level, Hnll
         Hh = Vh/(pi/4.0*Dvd**2)
-        Hh = 1.0 if Hh < 1.0 else ceil_half_step(Hh)
+        if Hh < 1.0: Hh = 1.0
 
         # Calculate the height from Hnll to  High liq level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
-        Hs = 0.5 if Hs < 0.5 else ceil_half_step(Hs)
+        if Hs < 0.5: Hs = 0.5
 
         # Calculate dN
         Qm = Qll + Qv
@@ -437,19 +437,12 @@ class Flash(Unit):
         Hv = 0.5*Dvd
         Hv2 = (2.0 if has_mist_eliminator else 3.0) + dN/2.0
         if Hv2 < Hv: Hv = Hv2
-        Hv = ceil(Hv)
+        Hv = Hv
 
         # Calculate total height, Ht
         Hme = 1.5 if has_mist_eliminator else 0.0
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = ceil_half_step(Ht)
-
-        # Check if LD is between 1.5 and 6.0
-        while True:
-            LD = Ht/D
-            if (LD < 1.5): D -= 0.5
-            elif (LD > 6.0): D += 0.5
-            else: break
 
         # Calculate Vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
@@ -460,8 +453,12 @@ class Flash(Unit):
         # Hnll = Hh + Hlll
 
         Design = self.design_results
-        bounds_warning(self, 'Vertical vessel weight', VW, 'lb', self._bounds['Vertical vessel weight'])
-        bounds_warning(self, 'Vertical vessel length', Ht, 'ft', self._bounds['Vertical vessel length'])
+        bounds_warning(self, 'Vertical vessel weight', VW, 'lb',
+                       self._bounds['Vertical vessel weight'],
+                       'cost')
+        bounds_warning(self, 'Vertical vessel length', Ht, 'ft',
+                       self._bounds['Vertical vessel length'],
+                       'cost')
         Design['Vessel type'] = 'Vertical'
         Design['Length'] = Ht     # ft
         Design['Diameter'] = D    # ft
@@ -565,7 +562,8 @@ class Flash(Unit):
         # Hnll = Y*D
         
         Design = self.design_results
-        bounds_warning(self, 'Horizontal vessel weight', VW, 'lb', self._bounds['Horizontal vessel weight'])
+        bounds_warning(self, 'Horizontal vessel weight', VW, 'lb',
+                       self._bounds['Horizontal vessel weight'], 'cost')
         Design['Vessel type'] = 'Horizontal'
         Design['Length'] = L  # ft
         Design['Diameter'] = D  # ft
@@ -575,14 +573,6 @@ class Flash(Unit):
     def _end_decorated_cost_(self):
         if self.heat_utilities: self.heat_utilities[0](self.Hnet, self.T)
     
-# Flash
-edge_out = Flash._graphics.edge_out
-edge_out[0]['tailport'] = 'n'
-edge_out[1]['tailport'] = 's'
-node = Flash._graphics.node
-node['width'] = '1'
-node['height'] = '1.1'
-del edge_out, node
 
 # %% Special
 

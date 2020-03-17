@@ -388,7 +388,8 @@ class System(metaclass=system):
     @converge_method.setter
     def converge_method(self, method):
         if self.recycle is None:
-            raise ValueError("cannot set converge method when no recyle is specified")
+            raise ValueError(
+                "cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' == method:
             self._converge = self._wegstein
@@ -397,7 +398,9 @@ class System(metaclass=system):
         elif 'aitken' == method:
             self._converge = self._aitken
         else:
-            raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
+            raise ValueError(
+                f"only 'wegstein', 'aitken', and 'fixed point' methods "
+                f"are valid, not '{method}'")
 
     
     def _downstream_path(self, unit):
@@ -430,7 +433,8 @@ class System(metaclass=system):
         return path
 
     def _downstream_system(self, unit):
-        """Return a system with a path composed of the `unit` and everything downstream (facilities included)."""
+        """Return a system with a path composed of the `unit` and
+        everything downstream (facilities included)."""
         if unit is self.path[0]: return self
         system = self._cached_downstream_systems.get((self, unit))
         if system: return system

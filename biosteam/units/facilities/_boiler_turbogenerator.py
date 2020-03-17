@@ -132,10 +132,6 @@ class BoilerTurbogenerator(Facility):
         
         #: [float] Total steam produced by the boiler (kmol/hr)
         self.total_steam = H_content / duty_over_mol 
-        # Note: A portion of the steam produced is at milder conditions,
-        #       so it does not consume as much energy.
-        #       This is a really vague approximation, a more rigorous 
-        #       model is needed (i.e. simulate whole system).
         
         self.makeup_water.imol['7732-18-5'] = (
             self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)

@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -253,8 +254,8 @@
             <span class="n">flowsheet</span><span class="o">.</span><span class="n">insert_image</span><span class="p">(</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="s1">&#39;flowsheet.png&#39;</span><span class="p">)</span>
         <span class="n">diagram_completed</span> <span class="o">=</span> <span class="kc">True</span>
     
-    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span><span class="p">:</span>
-        <span class="n">tea</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span>
+    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">TEA</span><span class="p">:</span>
+        <span class="n">tea</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">TEA</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tea</span><span class="p">,</span> <span class="n">CombinedTEA</span><span class="p">):</span>
             <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">cost_table</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tea</span><span class="o">.</span><span class="n">TEAs</span><span class="p">]</span>
             <span class="n">_save</span><span class="p">(</span><span class="n">costs</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Itemized costs&#39;</span><span class="p">)</span>

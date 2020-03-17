@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -183,7 +184,23 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Facility&#39;</span><span class="p">,)</span>
 
-<div class="viewcode-block" id="Facility"><a class="viewcode-back" href="../../units/facilities.html#biosteam.units.facilities.Facility">[docs]</a><span class="k">class</span> <span class="nc">Facility</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_graphics</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_network_priority</span><span class="p">(</span><span class="n">facility</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">facility</span><span class="o">.</span><span class="n">network_priority</span>
+
+<div class="viewcode-block" id="Facility"><a class="viewcode-back" href="../../units/facilities.html#biosteam.units.facilities.Facility">[docs]</a><span class="k">class</span> <span class="nc">Facility</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    
+<div class="viewcode-block" id="Facility.ordered_facilities"><a class="viewcode-back" href="../../units/facilities.html#biosteam.units.facilities.Facility.ordered_facilities">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">ordered_facilities</span><span class="p">(</span><span class="n">facilities</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return facilitied ordered according to their network priority.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">facilities</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">get_network_priority</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="n">isabstract</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;network_priority&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Facility subclasses must implement a &#39;</span>
+                                      <span class="s1">&#39;`network_priority` attribute to designate &#39;</span>
+                                      <span class="s1">&#39;the order of simulation relative to other &#39;</span>
+                                      <span class="s1">&#39;facilities&#39;</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

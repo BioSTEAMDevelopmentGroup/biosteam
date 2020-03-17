@@ -7,8 +7,18 @@ Created on Sun Dec  8 02:13:07 2019
 from biosteam import units
 import doctest
 
-__all__ = ('test_binary_distillation', 'test_mixer', 'test_splitter',
-           'test_tank')
+__all__ = ('test_binary_distillation',
+           'test_mixer',
+           'test_splitter',
+           'test_fermentation',
+           'test_heat_exchanger',
+           'test_pump',
+           'test_tank',
+           'test_molecular_sieve',
+           'test_flash',
+           'test_mass_balance',
+           'test_process_specification',
+           'test_unit_operations')
 
 def test_binary_distillation():
     doctest.testmod(units._distillation)
@@ -40,6 +50,9 @@ def test_flash():
 def test_mass_balance():
     doctest.testmod(units._balance)
     
+def test_process_specification():
+    doctest.testmod(units._process_specification)
+    
 def test_unit_operations():
     test_binary_distillation()
     test_mixer()
@@ -51,6 +64,7 @@ def test_unit_operations():
     test_molecular_sieve()
     test_flash()
     test_mass_balance()
+    test_process_specification()
     
 if __name__ == '__main__':
     test_unit_operations()

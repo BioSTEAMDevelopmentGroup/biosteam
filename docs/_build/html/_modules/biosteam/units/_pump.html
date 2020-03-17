@@ -87,11 +87,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">9. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">12. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -236,7 +237,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    Simulate Pump for pressure increase:</span>
 <span class="sd">    </span>
-<span class="sd">    &gt;&gt;&gt; from thermosteam import Chemicals, Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import Pump</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
 <span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=200, T=350)</span>
@@ -306,12 +307,13 @@
                             <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(pump_material_factors)}&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
         
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span>
                  <span class="n">pump_type</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
                  <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Cast iron&#39;</span><span class="p">,</span>
                  <span class="n">P_design</span><span class="o">=</span><span class="mi">405300</span><span class="p">,</span>
                  <span class="n">ignore_NPSH</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pump_type</span> <span class="o">=</span> <span class="n">pump_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
@@ -388,7 +390,11 @@
                 <span class="n">pump_type</span> <span class="o">=</span> <span class="s1">&#39;MeteringPlunger&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">NPSH</span> <span class="o">=</span> <span class="n">calculate_NPSH</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">P_vapor</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no pump type available at current power (</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;no pump type available at current power &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
                 
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pump_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="n">N</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span> <span class="c1"># Set power in kW</span>
