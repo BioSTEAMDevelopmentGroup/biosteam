@@ -1,4 +1,4 @@
-thermosteam>=0.2.4
+thermosteam>=0.5.0
 lazypkg>=1.4
 IPython==7.9.0
 colorpalette==0.3.0
