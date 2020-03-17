@@ -26,6 +26,7 @@ from .design_tools.column_design import (
     compute_purchase_cost_of_trays,
     compute_purchase_cost_of_tower)
 from .. import Unit
+from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
@@ -234,6 +235,7 @@ class Distillation(Unit):
     
     """
     line = 'Distillation'
+    _graphics = vertical_column_graphics
     _N_heat_utilities = 0
     _units = {'Minimum reflux': 'Ratio',
               'Reflux': 'Ratio',

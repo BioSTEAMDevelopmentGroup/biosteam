@@ -190,8 +190,15 @@ class StreamSequence:
             
     def __setitem__(self, index, item):
         if isa(index, int):
+            assert isa(item, Stream), (
+                f"'{type(self).__name__}' object can only contain "
+                f"'Stream' objects; not '{type(item)}'")
             self._set_stream(index, item)
         elif isa(index, slice):
+            for i in item:
+                assert isa(i, Stream), (
+                    f"'{type(self).__name__}' object can only contain "
+                    f"'Stream' objects; not '{type(item)}'")
             self._set_streams(index, item)
         else:
             raise TypeError(f"Only intergers and slices are valid indices for '{type(self).__name__}' objects")

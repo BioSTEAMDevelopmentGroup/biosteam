@@ -5,6 +5,7 @@ Created on Thu Aug 23 14:38:34 2018
 @author: yoelr
 """
 from .. import Unit
+from .._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_graphics
 from .design_tools.specification_factors import (
     shell_and_tube_material_factor_coefficients,
     compute_shell_and_tube_material_factor)
@@ -279,8 +280,9 @@ class HXutility(HX):
     Total purchase cost                                         USD 2.16e+04
     Utility cost                                             USD/hr      126
     
-    
     """
+    line = 'Heat Exchanger'
+    _graphics = utility_heat_exchanger_graphics
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  T=None, V=None, rigorous=False, U=None,
@@ -514,6 +516,8 @@ class HXprocess(HX):
     Utility cost                                             USD/hr        0
     
     """
+    line = 'Heat Exchanger'
+    _graphics = process_heat_exchanger_graphics
     _N_heat_utilities = 0
     _N_ins = 2
     _N_outs = 2
@@ -689,47 +693,5 @@ class HXprocess(HX):
         Q = (sc_in.H - sc_out.H)
         sp_out.vle(P=sp_out.P, H=sp_in.H + Q)
         self.Q = abs(Q)
-        
-from .._graphics import Graphics
 
-# Single stream heat exchanger
-HXutility._graphics = graphics = Graphics()
-graphics.node['shape'] = 'circle'
-graphics.node['color'] = 'none'
-graphics.node['margin'] = '0'
 
-def HXutility_node(hx):
-    try:
-        si = hx.ins[0]
-        so = hx.outs[0]
-        H_in = si.H
-        H_out = so.H
-        graphics = hx._graphics
-        if H_in > H_out:
-            graphics.node['fillcolor'] = '#cfecf0'
-            graphics.node['gradientangle'] = '0'
-            name = 'Cooling'
-        elif H_in < H_out:
-            graphics.node['gradientangle'] = '0'
-            graphics.node['fillcolor'] = '#fad6d8'
-            name = 'Heating'
-        else:
-            graphics.node['gradientangle'] = '90'
-            graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
-            name = 'Heat exchanger'
-    except:
-        graphics = hx._graphics
-        name = 'Heat exchange'
-    return name
-
-graphics.node_function = HXutility_node
-
-# Double stream heat exchanger
-HXprocess._graphics = graphics = Graphics()
-graphics.name = 'HXprocess'
-graphics.node['shape'] = 'circle'
-graphics.node['color'] = 'none'
-graphics.node['margin'] = '0'
-graphics.node['gradientangle'] = '90'
-graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
-del Graphics, graphics

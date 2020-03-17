@@ -131,12 +131,13 @@ class Pump(Unit):
                             f"{', '.join(pump_material_factors)}")
         self._F_Mstr = material  
         
-    def __init__(self, ID='', ins=None, outs=(), P=101325,
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 P=101325,
                  pump_type='Default',
                  material='Cast iron',
                  P_design=405300,
                  ignore_NPSH=True):
-        Unit.__init__(self, ID, ins, outs)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
         self.pump_type = pump_type
         self.material = material
@@ -213,7 +214,11 @@ class Pump(Unit):
                 pump_type = 'MeteringPlunger'
             else:
                 NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
-                raise NotImplementedError(f'no pump type available at current power ({power:.3g} hp), flow rate ({q:.3g} gpm), and head ({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft)')
+                raise NotImplementedError(
+                    f'no pump type available at current power '
+                    f'({power:.3g} hp), flow rate ({q:.3g} gpm), and head '
+                    f'({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), '
+                    f'and NPSH ({NPSH:.3g} ft)')
                 
         Design['Type'] = pump_type
         self.power_utility(power/N/1.341) # Set power in kW

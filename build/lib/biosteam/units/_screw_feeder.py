@@ -5,7 +5,7 @@ Created on Mon Mar  4 16:40:50 2019
 @author: yoelr
 """
 from .decorators import cost
-from ..utils.design_warning import lb_warning
+from ..utils.unit_warnings import lb_warning
 from .._unit import Unit
 
 __all__ = ('ScrewFeeder',)

@@ -5,7 +5,6 @@ Created on Fri Dec 27 00:45:47 2019
 @author: yoelr
 """
 from collections import namedtuple
-from .not_implemented_method import NotImplementedMethod
 
 __all__ = ('StreamLinkOptions',
            'static',
@@ -24,7 +23,6 @@ static_flow_link_options = StreamLinkOptions(flow=True, TP=False, phase=False)
 
 def static(cls):
     cls._stream_link_options = static_link_options
-    cls._run = NotImplementedMethod
     cls._N_ins = cls._N_outs = 1
     return cls
 

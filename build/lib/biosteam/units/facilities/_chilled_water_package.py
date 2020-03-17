@@ -32,6 +32,7 @@ class ChilledWaterPackage(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
+    network_priority = 0
     _N_heat_utilities = 1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID=''):

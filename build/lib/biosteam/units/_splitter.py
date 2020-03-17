@@ -5,10 +5,13 @@ Created on Mon May 20 22:04:02 2019
 @author: yoelr
 """
 from .. import Unit
+from .._graphics import splitter_graphics
 import numpy as np 
 from thermosteam.indexer import ChemicalIndexer
+from ._process_specification import ProcessSpecification
 
-__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'InvSplitter')
+__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'FakeSplitter',
+           'ReversedSplitter', 'ReversedSplit')
 
 
 def run_split(self):
@@ -34,7 +37,8 @@ def run_split_with_mixing(self):
 
 
 class Splitter(Unit):
-    """Create a splitter that separates mixed streams based on splits.
+    """
+    Create a splitter that separates mixed streams based on splits.
 
     Parameters
     ----------
@@ -47,8 +51,8 @@ class Splitter(Unit):
             * [float] The fraction of net feed in the 0th outlet stream
             * [array_like] Componentwise split of feed to 0th outlet stream
             * [dict] ID-split pairs of feed to 0th outlet stream
-    order=None : Iterable[str], defaults to Stream.species.IDs
-        Species order of split.
+    order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
+        Chemical order of split.
     
     Examples
     --------
@@ -131,6 +135,7 @@ class Splitter(Unit):
 
     """
     _N_outs = 2
+    _graphics = splitter_graphics
     
     @property
     def isplit(self):
@@ -171,31 +176,67 @@ class Splitter(Unit):
         top.mol[:] = top_mol = feed_mol * self.split
         bot.mol[:] = feed_mol - top_mol
 
-graphics = Splitter._graphics
-graphics.edge_out *= 3
-graphics.node['shape'] = 'triangle'
-graphics.node['orientation'] = '90'
-graphics.node['fillcolor'] = "#bfbfbf:white"
-graphics.edge_in[0]['headport'] = 'w'
 
-
-class InvSplitter(Unit):
-    """Create a splitter that sets the input stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input.
+class FakeSplitter(Unit):
+    """
+    Create a FakeSplitter object that does nothing when simulated.
     """
     _graphics = Splitter._graphics
+    _N_ins = 1
+    _N_outs = 2
+    _outs_size_is_fixed = False
+    
+    def _run(self): pass
+    
+    def create_reversed_splitter_process_specification(self, ID='', ins=None, outs=(),
+                                                       description=None):
+        return ProcessSpecification(ID, ins, outs, self.thermo, 
+                                    specification=ReversedSplit(self),
+                                    description=description or 'Reverse split')    
+    
+FakeSplitter.line = 'Splitter'
+
+class ReversedSplitter(Unit):
+    """Create a splitter that, when simulated, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    _graphics = Splitter._graphics
+    _N_ins = 1
+    _N_outs = 2
+    _outs_size_is_fixed = False
+    power_utility = None
+    heat_utilities = ()
+    results = None
+    
     def _run(self):
-        feed = self.ins[0]
-        feed.mol[:] = self.mol_out
-        T = feed.T
-        P = feed.P
-        phase = feed.phase
-        for out in self._outs:
-            out.T = T
-            out.P = P
-            out.phase = phase 
-InvSplitter.line = 'Splitter'
+        inlet, = self.ins
+        outlets = self.outs
+        reversed_split(inlet, outlets)
 
-
-
+class ReversedSplit:
+    """Create a splitter that, when called, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    __slots__ = ('splitter',)
+    
+    def __init__(self, splitter):
+        self.splitter = splitter
+    
+    @property
+    def __name__(self):
+        return 'ReversedSplit'
+    
+    def __call__(self):
+        splitter = self.splitter
+        inlet, = splitter.ins
+        outlets = splitter.outs
+        reversed_split(inlet, outlets)
         
+def reversed_split(inlet, outlets):
+    inlet.mol[:] = sum([i.mol for i in outlets])
+    T = inlet.T
+    P = inlet.P
+    phase = inlet.phase
+    for out in outlets:
+        out.T = T
+        out.P = P
+        out.phase = phase 
+
+  
     

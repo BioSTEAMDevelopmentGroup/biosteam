@@ -4,11 +4,13 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-from scipy.optimize import newton
 from flexsolve import SolverError, conditional_wegstein, conditional_aitken
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from thermosteam.utils import registered
+from ._graphics import system_unit, stream_unit
+from ._exceptions import try_method_with_object_stamp
+from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
@@ -16,6 +18,59 @@ from .utils import colors, MissingStream, strtuple
 import biosteam as bst
 
 __all__ = ('System',)
+
+# %% Functions for building systems
+
+def streams_from_path(path):
+    isa = isinstance
+    streams = set()
+    for i in path:
+        if isa(i, System):
+            streams.add(i.streams)
+        elif isa(i, Unit):
+            streams.update(i._ins + i._outs)
+    streams.discard(MissingStream)
+    return streams
+    
+def feeds_from_streams(streams):
+    return {s for s in streams if s and not s._source}
+
+def products_from_streams(streams):
+    return {s for s in streams if s and not s._sink}
+
+# %% Functions for taking care of numerical specifications within a system path
+    
+def run_unit_in_path(unit):
+    numerical_specification = unit._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
+    else:
+        method = unit._run
+    try_method_with_object_stamp(unit, method)
+
+def converge_system_in_path(system):
+    numerical_specification = system._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
+    else:
+        method = system._converge
+    try_method_with_object_stamp(system, method)
+
+def simulate_unit_in_path(unit):
+    numerical_specification = unit._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
+    else:
+        method = unit.simulate
+    try_method_with_object_stamp(unit, method)
+
+def simulate_system_in_path(system):
+    numerical_specification = system._numerical_specification
+    if numerical_specification:
+        method = numerical_specification
+    else:
+        method = system.simulate
+    try_method_with_object_stamp(system, method)
 
 # %% Debugging and exception handling
 
@@ -30,10 +85,7 @@ def _evaluate(self, command=None):
     if command == 'exit': raise KeyboardInterrupt()
     if command:
         # Build locals dictionary for evaluating command
-        lcs = {} 
-        for dct in self.flowsheet.__dict__.values():
-            lcs.update({i:j() for i, j in dct.items()})
-        lcs.update({attr:getattr(bst, attr) for attr in bst.__all__})
+        lcs = {self.ID: self, 'bst': bst} 
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -94,27 +146,15 @@ class DiagramOnlyUnit(Unit, isabstract=True):
     def _register(self, ID): 
         self.ID = self._ID = ID
     
-class _systemUnit(DiagramOnlyUnit, isabstract=True):
+class SystemUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a system as a unit."""
     line = 'System'
+    _graphics = system_unit
 
-_sysgraphics = _systemUnit._graphics
-_sysgraphics.edge_in = _sysgraphics.edge_in * 10
-_sysgraphics.edge_out = _sysgraphics.edge_out * 15
-_sysgraphics.node['peripheries'] = '2'
-
-class _streamUnit(DiagramOnlyUnit, isabstract=True):
+class StreamUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a streams as a unit."""
     line = ''
-    
-_stream_graphics = _streamUnit._graphics
-_stream_graphics.node['fillcolor'] = 'white:#79dae8'
-del _stream_graphics, _sysgraphics
-
-# %% Other
-
-_isfeed = lambda stream: stream and not stream._source and stream._sink
-_isproduct = lambda stream: stream and not stream._sink and stream._source
+    _graphics = stream_unit
 
 
 # %% Process flow
@@ -140,9 +180,9 @@ class system(type):
 @registered('SYS')
 class System(metaclass=system):
     """
-    Create a System object that can iteratively run each element in a network
-    of BioSTREAM objects until the recycle stream is converged. A network can
-    have function, Unit and/or System objects. When the network contains an
+    Create a System object that can iteratively run each element in a path
+    of BioSTREAM objects until the recycle stream is converged. A path can
+    have function, Unit and/or System objects. When the path contains an
     inner System object, it converges/solves it in each loop/iteration.
 
     Parameters
@@ -150,13 +190,13 @@ class System(metaclass=system):
     ID : str
          A unique identification. If ID is None, instance will not be
          registered in flowsheet.
-    network : tuple[Unit, function and/or System]
-        A network that is run element by element until the recycle converges.
+    path : tuple[Unit, function and/or System]
+        A path that is run element by element until the recycle converges.
     recycle=None : Stream, optional
         A tear stream for the recycle loop.
     facilities=() : tuple[Unit, function, and/or System], optional
         Offsite facilities that are simulated only after
-        completing the network simulation.
+        completing the path simulation.
 
     """
     ### Class attributes ###
@@ -173,117 +213,167 @@ class System(metaclass=system):
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
-    # @classmethod
-    # def from_feedstock(cls, ID, feedstock):
-    #     return NotImplemented
-    #     if not _isfeed(feedstock):
-    #         raise ValueError('feedstock must have no upstream units')
-    #     sink = feedstock.sink
-    #     all_units = sink._neighborhood(10000)
-    #     sources = [sink]
-    #     for i in all_units:
-    #         if any([i.source for i in i._ins]): continue
-    #         sources.append(i)
-    #     return build_network(sources)
-            
-    # @classmethod
-    # def from_area(cls, ID, sources, sinks=()):
-    #     return NotImplemented
-    #     network = build_network(sources, sinks)
-    #     system = cls(ID, network)
-    #     return system
-    
-    def __init__(self, ID, network, recycle=None, facilities=()):
-        from ._flowsheet import find
-        self.flowsheet = find.flowsheet[find.ID]
+    @classmethod
+    def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), ends=None):
+        """
+        Create a System object from a feedstock.
         
-        #: Molar flow rate error (kmol/hr)
-        self._mol_error = 0
+        Parameters
+        ----------
+        ID : str
+            Name of system.
+        feedstock : Stream
+            Main feedstock of the process.
+        feeds : Iterable[Stream]
+            Additional feeds to the process.
+        facilities : Iterable[Facility]
+            Offsite facilities that are simulated only after 
+            completing the path simulation.
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
         
-        #: Temperature error (K)
-        self._T_error = 0
-        
-        #: Specification error
-        self._spec_error = 0
-        
-        #: Number of iterations
-        self._iter = 0
-         
-        #: set[Stream] All streams within the system
-        self.streams = streams = set()
+        """
+        network = Network.from_feedstock(feedstock, feeds, ends)
+        return cls.from_network(ID, network, facilities)
 
+    @classmethod
+    def from_network(cls, ID, network, facilities=()):
+        """
+        Create a System object from a network.
+        
+        Parameters
+        ----------
+        ID : str
+            Name of system.
+        network : Network
+            Network that defines the simulation path.
+        facilities : Iterable[Facility]
+            Offsite facilities that are simulated only after 
+            completing the path simulation.
+        
+        """
+        facilities = Facility.ordered_facilities(facilities)
+        self = cls.__new__(cls)
+        self.units = network.units
+        self.streams = streams = network.streams
+        self.feeds = feeds = network.feeds
+        self.products = products = network.products
+        self._numerical_specification = None
+        self._reset_errors()
+        self._set_path(network.path)
+        self._set_facilities(facilities)
+        self._set_recycle(network.recycle)
+        self._register(ID)
+        if facilities:
+            f_streams = streams_from_path(facilities)
+            f_feeds = feeds_from_streams(f_streams)
+            f_products = products_from_streams(f_streams)
+            streams.update(f_streams)
+            feeds.update(f_feeds)
+            products.update(f_products)
+        return self
+        
+    def __init__(self, ID, path, recycle=None, facilities=()):
+        self._numerical_specification = None
+        self._load_flowsheet()
+        self._reset_errors()
+        self._set_path(path)
+        self._load_units()
+        self._set_facilities(facilities)
+        self._load_streams()
+        self._set_recycle(recycle)
+        self._register(ID)
+    
+    numerical_specification = Unit.numerical_specification
+    save_report = save_report
+    
+    def _load_flowsheet(self):
+        self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
+    
+    def _set_recycle(self, recycle):
+        if recycle is None:
+            self._converge = self._run
+        else:
+            assert isinstance(recycle, Stream), (
+             "recycle must be a Stream instance or None, not "
+            f"{type(recycle).__name__}")
+        self._recycle = recycle
+    
+    def _set_path(self, path):
+        isa = isinstance
+        
+        #: tuple[Unit, function and/or System] A path that is run element
+        #: by element until the recycle converges.
+        net2sys = System.from_network
+        self.path = path = tuple([(net2sys('', i) if isa(i, Network) else i)
+                                  for i in path])
+        
         #: set[System] All subsystems in the system
         self.subsystems = subsystems = set()
         
         #: list[Unit] Network of only unit operations
-        self._unit_network = units = []
+        self._unit_path = unit_path = []
         
-        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-        self.network = tuple(network)
-        isa = isinstance
-        for i in network:
-            if i in units: continue
+        for i in path:
+            if i in unit_path: continue
             if isa(i, Unit): 
-                units.append(i)
-                streams.update(i._ins)
-                streams.update(i._outs)
+                unit_path.append(i)
             elif isa(i, System):
-                units.extend(i._unit_network)
+                unit_path.extend(i._unit_path)
                 subsystems.add(i)
-                streams.update(i.streams)
-        
-        # link all unit operations with linked streams
-        for u in units: u._load_stream_links()
-        
-        #: set[Unit] All units within the system
-        self.units = units = set(units)
-        
-        #: set[Unit] All units in the network that have costs
-        self._network_costunits = costunits = {i for i in units if i._design or i._cost}
+        for u in unit_path: u._load_stream_links()
+    
+        #: set[Unit] All units in the path that have costs
+        self._path_costunits = costunits = {i for i in unit_path
+                                            if i._design or i._cost}
         
         #: set[Unit] All units that have costs.
         self._costunits = costunits = costunits.copy()
         
-        #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
-        self.facilities = tuple(facilities)
+    def _load_units(self):
+        #: set[Unit] All units within the system
+        self.units = set(self._unit_path)
+    
+    def _set_facilities(self, facilities):
+        #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
+        self.facilities = facilities = tuple(facilities)
+        subsystems = self.subsystems
+        costunits = self._costunits
+        units = self.units
+        isa = isinstance
         for i in facilities:
             if isa(i, Unit):
+                i._load_stream_links()
                 units.add(i)
-                streams.update(i._ins + i._outs)
                 if i._cost: costunits.add(i)
                 if isa(i, Facility): i._system = self
             elif isa(i, System):
                 units.update(i.units)
-                streams.update(i.streams)
                 subsystems.add(i)
                 costunits.update(i._costunits)
         
+    def _load_streams(self):
+        #: set[Stream] All streams within the system
+        self.streams = streams = set()
+        
+        for u in self.units:
+            streams.update(u._ins + u._outs)
+        for sys in self.subsystems:
+            streams.update(sys.streams)
         streams.discard(MissingStream)
         
         #: set[Stream] All feed streams in the system.
-        self.feeds = set(filter(_isfeed, streams))
+        self.feeds = feeds_from_streams(streams)
         
         #: set[Stream] All product streams in the system.
-        self.products = set(filter(_isproduct, streams)) 
+        self.products = products_from_streams(streams)
         
-        #: [TEA] System object for Techno-Economic Analysis.
-        self._TEA = None
-        
-        if recycle is None:
-            self._converge = self._run
-        else:
-            assert isa(recycle, Stream), (
-             "recycle must be a Stream instance or None, not "
-            f"{type(recycle).__name__}")
-        self._recycle = recycle
-        self._register(ID)
-    
-    save_report = save_report
-    
     @property
     def TEA(self):
         """[TEA] Object for Techno-Economic Analysis."""
-        return self._TEA
+        try: return self._TEA
+        except AttributeError: return None
     
     @property
     def recycle(self):
@@ -298,7 +388,8 @@ class System(metaclass=system):
     @converge_method.setter
     def converge_method(self, method):
         if self.recycle is None:
-            raise ValueError("cannot set converge method when no recyle is specified")
+            raise ValueError(
+                "cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' == method:
             self._converge = self._wegstein
@@ -307,45 +398,48 @@ class System(metaclass=system):
         elif 'aitken' == method:
             self._converge = self._aitken
         else:
-            raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
+            raise ValueError(
+                f"only 'wegstein', 'aitken', and 'fixed point' methods "
+                f"are valid, not '{method}'")
 
     
-    def _downstream_network(self, unit):
+    def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
         if unit not in self.units: return []
-        elif self._recycle: return self.network
+        elif self._recycle: return self.path
         unit_found = False
         downstream_units = unit._downstream_units
-        network = []
+        path = []
         isa = isinstance
-        for i in self.network:
+        for i in self.path:
             if unit_found:
                 if isa(i, System):
                     for u in i.units:
                         if u in downstream_units:
-                            network.append(i)
+                            path.append(i)
                             break
                 elif i in downstream_units:
-                    network.append(i)
+                    path.append(i)
                 elif (not isa(i, Unit)
                       or i.line == 'Balance'):
-                    network.append(i)
+                    path.append(i)
             else:
                 if unit is i:
                     unit_found = True
-                    network.append(unit)
+                    path.append(unit)
                 elif isa(i, System) and unit in i.units:
-                        unit_found = True   
-                        network.append(i)
-        return network
+                    unit_found = True   
+                    path.append(i)
+        return path
 
     def _downstream_system(self, unit):
-        """Return a system with a network composed of the `unit` and everything downstream (facilities included)."""
-        if unit is self.network[0]: return self
+        """Return a system with a path composed of the `unit` and
+        everything downstream (facilities included)."""
+        if unit is self.path[0]: return self
         system = self._cached_downstream_systems.get((self, unit))
         if system: return system
-        network = self._downstream_network(unit)
-        if network:
+        path = self._downstream_path(unit)
+        if path:
             downstream_facilities = self.facilities            
         else:
             unit_found = False
@@ -356,14 +450,14 @@ class System(metaclass=system):
                     unit_found = True
                     break
             assert unit_found, f'{unit} not found in system'
-        system = System(None, network,
+        system = System(None, path,
                         facilities=downstream_facilities)
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
         self._cached_downstream_systems[unit] = system
         return system
     
     def _minimal_diagram(self, file, format, **graph_attrs):
-        """Minimally display the network as a box."""
+        """Minimally display the path as a box."""
         outs = []
         ins = []
         for s in self.streams:
@@ -377,19 +471,19 @@ class System(metaclass=system):
         product._ID = ''
         feed = Stream(None)
         feed._ID = ''
-        _streamUnit('\n'.join([i.ID for i in ins]),
+        StreamUnit('\n'.join([i.ID for i in ins]),
                     None, feed)
-        _streamUnit('\n'.join([i.ID for i in outs]),
+        StreamUnit('\n'.join([i.ID for i in outs]),
                     product, None)
-        unit = _systemUnit(self.ID, feed, product)
+        unit = SystemUnit(self.ID, feed, product)
         unit.diagram(1, file=file, format=format, **graph_attrs)
 
     def _surface_diagram(self, file, format, **graph_attrs):
-        """Display only surface elements listed in the network."""
+        """Display only surface elements listed in the path."""
         # Get surface items to make nodes and edges
         units = set()  
         refresh_units = set()
-        for i in self.network:
+        for i in self.path:
             if isinstance(i, Unit):
                 units.add(i)
             elif isinstance(i, System):
@@ -414,7 +508,7 @@ class System(metaclass=system):
                 if len(feeds) > 1:
                     feed = Stream(None)
                     feed._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]),
+                    units.add(StreamUnit('\n'.join([i.ID for i in feeds]),
                                           None, feed))
                     ins.append(feed)
                 else: ins += feeds
@@ -422,12 +516,12 @@ class System(metaclass=system):
                 if len(products) > 1:
                     product = Stream(None)
                     product._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in products]),
+                    units.add(StreamUnit('\n'.join([i.ID for i in products]),
                                           product, None))
                     outs.append(product)
                 else: outs += products
                 
-                subsystem_unit = _systemUnit(i.ID, ins, outs)
+                subsystem_unit = SystemUnit(i.ID, ins, outs)
                 units.add(subsystem_unit)
                 
         System(None, units)._thorough_diagram(file, format, **graph_attrs)
@@ -437,7 +531,7 @@ class System(metaclass=system):
             u._outs[:] = outs
       
     def _thorough_diagram(self, file, format, **graph_attrs):
-        """Thoroughly display every unit within the network."""
+        """Thoroughly display every unit within the path."""
         # Create a digraph and set direction left to right
         f = make_digraph(self.units, self.streams, format=format, **graph_attrs)
         save_digraph(f, file, format)
@@ -448,9 +542,9 @@ class System(metaclass=system):
         Parameters
         ----------
         kind='surface' : {'thorough', 'surface', 'minimal'}:
-            * **'thorough':** Display every unit within the network.
-            * **'surface':** Display only elements listed in the network.
-            * **'minimal':** Display network as a box.
+            * **'thorough':** Display every unit within the path.
+            * **'surface':** Display only elements listed in the path.
+            * **'minimal':** Display path as a box.
         file=None : str, display in console by default
             File name to save diagram.
         format='png' : str
@@ -468,7 +562,8 @@ class System(metaclass=system):
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
-        """Run the system at specified recycle molar flow rate.
+        """
+        Run the system at specified recycle molar flow rate.
         
         Parameters
         ----------
@@ -501,17 +596,19 @@ class System(metaclass=system):
     def _setup(self):
         """Setup each element of the system."""
         isa = isinstance
-        for a in self.network:
+        for a in self.path:
             if isa(a, (Unit, System)): a._setup()
             else: pass # Assume it is a function
         
     def _run(self):
         """Rigorous run each element of the system."""
         isa = isinstance
-        for a in self.network:
-            if isa(a, Unit): a._run()
-            elif isa(a, System): a._converge()
-            else: a() # Assume it is a function
+        for i in self.path:
+            if isa(i, Unit):
+                run_unit_in_path(i)
+            elif isa(i, System): 
+                converge_system_in_path(i)
+            else: i() # Assume it is a function
     
     # Methods for convering the recycle stream
     def _fixed_point(self):
@@ -541,46 +638,17 @@ class System(metaclass=system):
     # Default converge method
     _converge = _aitken
 
-    def set_spec(self, getter, setter, solver=newton, **kwargs):
-        """Wrap a solver around the converge method.
-
-        Parameters
-        ----------
-        getter : function
-            Returns objective value.
-        setter : function
-            Changes independent variable.
-        solver=scipy.optimize.newton : function
-            Solves objective function.
-        **kwargs
-            Key word arguments passed to solver.
-
-        """
-        converge = self._converge
-
-        def error(val):
-            setter(val)
-            converge()
-            self._spec_error = e = getter()
-            return e
-
-        def converge_spec():
-            x = solver(error, **kwargs)
-            if solver is newton: kwargs['x0'] = x
-
-        self._converge = converge_spec
-
     def _reset_iter(self):
         self._iter = 0
         for system in self.subsystems: system._reset_iter()
     
     def reset_names(self, unit_format=None, stream_format=None):
-        """Reset names of all streams and units according to the network order."""
+        """Reset names of all streams and units according to the path order."""
         Unit._default_ID = unit_format if unit_format else ['U', 0]
         Stream._default_ID = stream_format if stream_format else ['d', 0]
         streams = set()
         units = set()
-        for i in self._unit_network:
+        for i in self._unit_path:
             if i in units: continue
             try: i.ID = ''
             except: continue
@@ -591,53 +659,67 @@ class System(metaclass=system):
                     streams.add(s)
             units.add(i)
     
-    def reset_flows(self):
-        """Reset all process streams to zero flow."""
-        self._iter = 0
-        self._spec_error = 0
+    def _reset_errors(self):
+        #: Molar flow rate error (kmol/hr)
         self._mol_error = 0
+        
+        #: Temperature error (K)
         self._T_error = 0
         
+        #: Specification error
+        self._spec_error = 0
+        
+        #: Number of iterations
+        self._iter = 0
+    
+    def reset_flows(self):
+        """Reset all process streams to zero flow."""
+        self._reset_errors()        
         feeds = self.feeds
         for stream in self.streams:
             if stream not in feeds: stream.empty()
 
     def simulate(self):
-        """Converge the network and simulate all units."""
+        """Converge the path and simulate all units."""
         self._reset_iter()
         self._setup()
         self._converge()
-        for u in self._network_costunits: u._summary()
+        for i in self._path_costunits:
+            try_method_with_object_stamp(i, i._summary)
         isa = isinstance
         for i in self.facilities:
-            if isa(i, (Unit, System)): i.simulate()
-            else: i() # Assume it is a function
+            if isa(i, Unit):
+                simulate_unit_in_path(i)
+            elif isa(i, System):
+                simulate_system_in_path(i)
+            else:
+                i() # Assume it is a function
         
     # Debugging
     def _debug_on(self):
         """Turn on debug mode."""
         self._run = _notify_run_wrapper(self, self._run)
-        self.network = network = list(self.network)
-        for i, item in enumerate(network):
+        self.path = path = list(self.path)
+        for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = _method_debug(item, item._run)
             elif isinstance(item, System):
                 item._converge = _method_debug(item, item._converge)
             elif callable(item):
-                network[i] = _method_debug(item, item)
+                path[i] = _method_debug(item, item)
 
     def _debug_off(self):
         """Turn off debug mode."""
         self._run = self._run._original
-        network = self.network
-        for i, item in enumerate(network):
+        path = self.path
+        for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = item._run._original
             elif isinstance(item, System):
                 item._converge = item._converge._original
             elif callable(item):
-                network[i] = item._original
-        self.network = tuple(network)
+                path[i] = item._original
+        self.path = tuple(path)
     
     def debug(self):
         """Converge in debug mode. Just try it!"""
@@ -663,6 +745,17 @@ class System(metaclass=system):
         """Prints information on unit."""
         print(self._info())
     
+    def to_network(self):
+        path = [(i.to_network() if hasattr(i, 'path') else i) for i in self.path]
+        network = Network.__new__(Network)    
+        network.path = path
+        network.recycle = self.recycle
+        network.units = self.units
+        network.subnetworks = [i for i in path if isinstance(i, Network)]
+        network.feeds = self.feeds
+        network.products = self.products
+        return network
+    
     def _ipython_display_(self):
         try: self.diagram('minimal')
         except: pass
@@ -670,16 +763,12 @@ class System(metaclass=system):
 
     def _error_info(self):
         """Return information on convergence."""
-        recycle = self.recycle
-        error_info = ''
-        if self._spec_error:
-            error_info += f'\n specification error: {self._spec_error:.3g}'
-        if recycle:
-            error_info +=(f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
-                          f"\n                    Temperature {self._T_error:.2e} K")
-        if self._spec_error or recycle:
-            error_info += f"\n iterations: {self._iter}"
-        return error_info
+        if self.recycle:
+            return (f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
+                    f"\n                    Temperature {self._T_error:.2e} K"
+                    f"\n iterations: {self._iter}")
+        else:
+            return ""
 
     def _info(self):
         """Return string with all specifications."""
@@ -688,17 +777,17 @@ class System(metaclass=system):
         else:
             recycle = f"\n recycle: {self.recycle}"
         error = self._error_info()
-        network = strtuple(self.network)
+        path = strtuple(self.path)
         i = 1; last_i = 0
         while True:
             i += 2
-            i = network.find(', ', i)
-            i_next = network.find(', ', i+2)
+            i = path.find(', ', i)
+            i_next = path.find(', ', i+2)
             if (i_next-last_i) > 35:
-                network = (network[:i] + '%' + network[i:])
+                path = (path[:i] + '%' + path[i:])
                 last_i = i
             elif i == -1: break
-        network = network.replace('%, ', ',\n'+' '*11)
+        path = path.replace('%, ', ',\n' + ' '*8)
         
         if self.facilities:
             facilities = strtuple(self.facilities)
@@ -717,6 +806,9 @@ class System(metaclass=system):
         
         return (f"System: {self.ID}"
                 + recycle
-                + f"\n network: {network}"
+                + f"\n path: {path}"
                 + facilities
                 + error)
+
+
+from biosteam import _flowsheet as flowsheet_module

@@ -15,19 +15,15 @@ def make_digraph(units, streams, format='svg',
     f = Digraph(format=format)
     f.attr(rankdir='LR', **graph_attrs)
     # Set up unit nodes
-    UD = {}  # Contains full description (ID and line) by ID
+    UD = {}  # Contains full description (ID and line) by unit
     for u in units:
         u._load_stream_links()
         graphics = u._graphics
-        if not graphics.in_system:
-            continue  # Ignore Unit
         
         # Initialize graphics and make Unit node with attributes
-        Type = graphics.node_function(u) or u.line
-        name = u.ID + '\n' + Type
-        f.attr('node', **u._graphics.node)
-        f.node(name)
-        UD[u] = name
+        node = graphics.get_node_taylored_to_unit(u)
+        f.node(**node)
+        UD[u] = node['name']
         
     keys = UD.keys()
 

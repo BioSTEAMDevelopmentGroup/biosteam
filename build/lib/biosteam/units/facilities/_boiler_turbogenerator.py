@@ -4,14 +4,11 @@ Created on Sun Feb 17 16:36:47 2019
 
 @author: yoelr
 """
-from thermosteam import Stream
 from ... import HeatUtility, Unit
 from . import Facility
 from ..decorators import cost
 
 __all__ = ('BoilerTurbogenerator',)
-
-lps = HeatUtility.get_heating_agent('low_pressure_steam')
 
 #: TODO add reference of NREL
 
@@ -49,7 +46,8 @@ class BoilerTurbogenerator(Facility):
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
         Fraction of steam heat converted to electricity.
-    
+    agent : UtilityAgent
+        Steam produced.
     
     References
     ----------
@@ -60,6 +58,8 @@ class BoilerTurbogenerator(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
+    network_priority = 0
+    
     # TODO: Make this a whole system instead of approximating duty per mol values
     duty_over_mol = 40000 # Superheat steam with 40000 kJ/kmol
     boiler_blowdown = 0.03
@@ -73,9 +73,11 @@ class BoilerTurbogenerator(Facility):
     def __init__(self, ID='', ins=None, outs=(), *,
                  boiler_efficiency=0.80,
                  turbogenerator_efficiency=0.85,
-                 side_steam=None):
+                 side_steam=None,
+                 agent=HeatUtility.get_heating_agent('low_pressure_steam')):
         Unit.__init__(self, ID, ins, outs)
-        self.makeup_water = makeup_water = lps.to_stream('boiler_makeup_water')
+        self.agent = agent
+        self.makeup_water = makeup_water = agent.to_stream('boiler_makeup_water')
         loss = makeup_water.flow_proxy()
         loss.ID = 'rejected_water_and_blowdown'
         self.ins[-1] = makeup_water
@@ -83,7 +85,7 @@ class BoilerTurbogenerator(Facility):
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
-        self.steam_demand = lps.to_stream()
+        self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
     
     def _run(self): pass
@@ -93,11 +95,12 @@ class BoilerTurbogenerator(Facility):
         TG_eff = self.turbogenerator_efficiency
         steam = self.steam_demand
         steam_utilities = self.steam_utilities
+        agent_ID = self.agent.ID
         if not steam_utilities:
             for u in self.system.units:
                 if u is self: continue
                 for hu in u.heat_utilities:
-                    if hu.ID == 'low_pressure_steam':
+                    if hu.ID == agent_ID:
                         steam_utilities.add(hu)
         steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
         duty_over_mol = self.duty_over_mol
@@ -129,10 +132,6 @@ class BoilerTurbogenerator(Facility):
         
         #: [float] Total steam produced by the boiler (kmol/hr)
         self.total_steam = H_content / duty_over_mol 
-        # Note: A portion of the steam produced is at milder conditions,
-        #       so it does not consume as much energy.
-        #       This is a really vague approximation, a more rigorous 
-        #       model is needed (i.e. simulate whole system).
         
         self.makeup_water.imol['7732-18-5'] = (
             self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
@@ -150,7 +149,7 @@ class BoilerTurbogenerator(Facility):
             electricity = H_electricity * TG_eff
             cooling = electricity - H_electricity
         hu_cooling(cooling, steam.T)
-        hu_steam.agent = lps
+        hu_steam.agent = self.agent
         hu_steam.cost = -sum([i.cost for i in steam_utilities])
         Design['Work'] = electricity/3600
 

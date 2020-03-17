@@ -22,6 +22,7 @@ colors.exception = ansicolor('bright red', '\x1b[31m\x1b[1m')
 colors.next = colors.info = ansicolor('bright blue', '\x1b[34m\x1b[1m')
 colors.note = ansicolor('bright cyan', '\x1b[36m\x1b[1m')
 colors.dim = ansicolor('dim', '\x1b[37m\x1b[22m')
+colors.violet = Color('strong purple', '#e53fe5')
 
 # Main colors
 colors.blue = Color('blue', np.array([0.376, 0.757, 0.812]) * 255)

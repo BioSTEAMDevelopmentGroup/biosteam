@@ -6,8 +6,6 @@ Created on Mon Apr 29 18:28:55 2019
 """
 from . import Facility
 from ..decorators import cost
-from thermosteam import Stream
-import numpy as np
 from ... import HeatUtility
 # from copy import copy
 
@@ -21,7 +19,6 @@ class CoolingTower(Facility):
     """
     Create a cooling tower with capital cost and power based on the flow rate 
     of cooling water as in [1]_.
-    
     
     Parameters
     ----------
@@ -37,6 +34,7 @@ class CoolingTower(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
+    network_priority = 1
     _units = {'Flow rate': 'kmol/hr'}
     _N_heat_utilities = 1
     _N_outs = _N_ins = 2

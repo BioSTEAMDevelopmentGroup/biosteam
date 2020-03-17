@@ -1,14 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-As BioSTEAM objects are created, they are automatically registered. The `find` object allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
+As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 
 """
 from thermosteam.utils import Registry
 from ._digraph import make_digraph, save_digraph
 from thermosteam import Stream
-from . import Unit, System
+from ._unit import Unit
+from ._facility import Facility
+from ._system import System
+from ._network import Network
 
-__all__ = ('find', 'Flowsheet')
+__all__ = ('main_flowsheet', 'Flowsheet')
+
+# %% Functions
+
+def get_feeds_big_to_small(streams):
+    isa = isinstance
+    feeds = [i for i in streams if i._sink and not 
+             (i._source or isa(i._sink, Facility))]
+    feeds_negflows = [(i, -i.F_mass) for i in feeds]
+    feeds_negflows = sorted(feeds_negflows, key=lambda x: x[1])
+    return [i[0] for i in feeds_negflows]
 
 # %% Flowsheet search      
 
@@ -23,7 +36,7 @@ class Flowsheets:
         yield from self.__dict__.values()
     
     def __delattr__(self, key):
-        if key == find.ID:
+        if key == main_flowsheet.ID:
             raise AttributeError('cannot delete main flowsheet')
         else:
             super().__delattr__(key)
@@ -40,7 +53,9 @@ class Flowsheet:
     #: [Register] All flowsheets.
     flowsheet = Flowsheets()
     
-    def __init__(self, ID):        
+    def __new__(cls, ID):        
+        self = super().__new__(cls)
+        
         #: [Register] Contains all System objects as attributes.
         self.system = Registry()
         
@@ -53,6 +68,10 @@ class Flowsheet:
         #: [str] ID of flowsheet.
         self._ID = ID
         self.flowsheet.__dict__[ID] = self
+        return self
+    
+    def __reduce__(self):
+        return self.from_registries, self.registries
     
     def __setattr__(self, key, value):
         if hasattr(self, '_ID'):
@@ -63,6 +82,33 @@ class Flowsheet:
     @property
     def ID(self):
         return self._ID
+    
+    @classmethod
+    def from_registries(cls, stream, unit, system):
+        flowsheet = super().__new__(cls)
+        flowsheet.stream = stream
+        flowsheet.unit = unit
+        flowsheet.system = system
+        return flowsheet
+    
+    @property
+    def registries(self):
+        return (self.stream, self.unit, self.system)
+    
+    def update(self, flowsheet):
+        for registry, other_registry in zip(self.registries, flowsheet.registries):
+            registry.__dict__.update(other_registry.__dict__)
+    
+    @classmethod
+    def from_flowsheets(cls, ID, flowsheets):
+        """Return a new flowsheet with all registered objects from the given flowsheets."""
+        new = cls(ID)
+        isa = isinstance
+        for flowsheet in flowsheets:
+            if isa(flowsheet, str):
+                flowsheet = cls.flowsheet[flowsheet]
+            new.update(flowsheet)
+        return new
     
     def diagram(self, kind='surface', file=None, format='svg', **graph_attrs):
         """Display all units and attached streams.
@@ -103,18 +149,18 @@ class Flowsheet:
         product._ID = ''
         feed = Stream(None)
         feed._ID = ''
-        _system._streamUnit('\n'.join([i.ID for i in feeds]),
+        _system.StreamUnit('\n'.join([i.ID for i in feeds]),
                            None, feed)
-        _system._streamUnit('\n'.join([i.ID for i in products]),
+        _system.StreamUnit('\n'.join([i.ID for i in products]),
                            product, None)
-        unit = _system._systemUnit(self.ID, feed, product)
+        unit = _system.SystemUnit(self.ID, feed, product)
         unit.line = 'flowsheet'
         unit.diagram(1, file, format, **graph_attrs)
         
     def _surface_diagram(self, file, format, **graph_attrs):
         from . import _system
         units = set(self.unit)
-        StrUnit = _system._streamUnit
+        StrUnit = _system.StreamUnit
         refresh_units = set()
         for i in self.system:
             if i.recycle and not any(sub.recycle for sub in i.subsystems):
@@ -152,7 +198,7 @@ class Flowsheet:
                     outs.append(product)
                 else: outs += products
                 
-                subsystem_unit = _system._systemUnit(i.ID, ins, outs)
+                subsystem_unit = _system.SystemUnit(i.ID, ins, outs)
                 units.difference_update(i.units)
                 units.add(subsystem_unit)
         
@@ -161,6 +207,49 @@ class Flowsheet:
         for u, ins, outs in refresh_units:
             u._ins[:] = ins
             u._outs[:] = outs
+    
+    def create_system(self, ID="", feeds=None, ends=()):
+        """
+        Create a System object from all units and streams defined in the flowsheet.
+        
+        Parameters
+        ----------
+        ID : str, optional
+            Name of system.
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
+        
+        """
+        feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
+        facilities = self.get_facilities()
+        return System.from_feedstock(ID, feedstock, feeds,
+                                     facilities, ends)
+    
+    def create_network(self, feeds=None, ends=()):
+        """
+        Create a Network object from all units and streams defined in the flowsheet.
+        
+        Parameters
+        ----------
+        ends : Iterable[Stream]
+            Streams that not products, but are ultimately specified through
+            process requirements and not by its unit source.
+        
+        """
+        feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
+        return Network.from_feedstock(feedstock, feeds, ends)
+    
+    def create_path(self, feeds=None, ends=()):
+        isa = isinstance
+        network = self.create_network(feeds, ends)
+        net2sys = System.from_network
+        return tuple([(net2sys('', i) if isa(i, Network) else i)
+                      for i in network.path])
+    
+    def get_facilities(self):
+        isa = isinstance
+        return [i for i in self.unit if isa(i, Facility)]
     
     def __call__(self, ID):
         """Return requested biosteam item.
@@ -190,37 +279,40 @@ class MainFlowsheet(Flowsheet):
     biosteam objects as they are created."""
     __slots__ = ()
     
-    @staticmethod
-    def set_flowsheet(flowsheet):
+    def set_flowsheet(self, flowsheet):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):
             dct = flowsheet.__dict__
         elif isinstance(flowsheet, str):
-            if flowsheet in find.flowsheet:
-                dct = find.flowsheet[flowsheet].__dict__
+            if flowsheet in self.flowsheet:
+                dct = main_flowsheet.flowsheet[flowsheet].__dict__
             else:
                 new_flowsheet = Flowsheet(flowsheet)
-                find.flowsheet.__dict__[flowsheet] = new_flowsheet
+                self.flowsheet.__dict__[flowsheet] = new_flowsheet
                 dct = new_flowsheet.__dict__
         else:
             raise TypeError('flowsheet must be a Flowsheet object')
         Stream.registry = dct['stream']
         System.registry = dct['system']
         Unit.registry = dct['unit']
-        object.__setattr__(find, '__dict__', dct)
+        object.__setattr__(self, '__dict__', dct)
+        
+    def get_flowsheet(self):
+        return self.flowsheet[self.ID]
         
     __setattr__ = Flowsheets.__setattr__
     
-    def __new__(cls):
-        raise TypeError('cannot create new find object.')
+    def __new__(cls, ID):
+        main_flowsheet.set_flowsheet(ID)
+        return main_flowsheet
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
     
     
-#: [find] Find BioSTEAM objects by ID.
-find = object.__new__(MainFlowsheet)
-find.set_flowsheet('default')
+#: [main_flowsheet] Main flowsheet where objects are registered by ID.
+main_flowsheet = object.__new__(MainFlowsheet)
+main_flowsheet.set_flowsheet('default')
     
 
 # %% Attempt at contantly rendered digraph

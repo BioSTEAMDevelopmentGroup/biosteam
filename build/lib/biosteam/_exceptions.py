@@ -7,7 +7,7 @@ This module includes classes and functions relating exception handling.
 
 @author: Yoel Rene Cortes-Pena
 """
-# import sys as _sys
+from .utils.biosteam_colors import colors
 
 __all__ = ('DesignError',)
 
@@ -16,30 +16,19 @@ __all__ = ('DesignError',)
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
 
-# class UnitError(RuntimeError):
-#     """RuntimeError regarding unit operations."""
-#     def __init__(self, unit, method, error):
-#         # Add location to message
-#         msg = (f'{type(error).__name__} at {repr(unit)}.{method.__name__}\n{error}')
-        
-#         # Raise exception with same traceback but new message
-#         super().__init__(msg)
-#         self.original_exception = error
-#         self.with_traceback(_sys.exc_info()[2])
+def message_with_object_stamp(object, msg):
+    return colors.violet(repr(object)) + ' ' + msg
 
+def raise_error_with_object_stamp(object, error):
+    if hasattr(error, 'args'):
+        msg, *args = error.args
+        error.args = (message_with_object_stamp(object, msg), *args)
+    if hasattr(error, 'msg'):
+        error.msg = message_with_object_stamp(object, error.msg)
+    raise error
 
-#%% Decorators and functions
-
-# def _try_method(method):
-#     try: return method()
-#     except UnitError:
-#         raise UnitError
-#     except Exception as error:
-#         # If exception already include location, it is replaced
-#         try:
-#             self = method.__self__
-#         except:
-#             raise error
-#         raise UnitError(self, method, error)
-        
-
+def try_method_with_object_stamp(object, method):
+    try:
+        method()
+    except Exception as error:
+        raise_error_with_object_stamp(object, error)

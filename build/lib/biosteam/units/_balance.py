@@ -5,27 +5,39 @@ Created on Sat Sep  1 17:35:28 2018
 @author: yoelr
 """
 import numpy as np
-from ..utils.piping import StreamSequence
-from .. import Unit, PowerUtility
+from .. import Unit
+from ._process_specification import ProcessSpecification
+from ..utils import static
 
 __all__ = ('MassBalance',)
 
 # %% Mass Balance Unit
 
+@static
 class MassBalance(Unit):
-    """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified IDs. 
+    """
+    Create a Unit object that changes net input flow rates to satisfy output
+    flow rates. This calculation is based on mass balance equations for
+    specified IDs. 
 
     Parameters
     ----------
-    ins :
-        Inlet streams.
-    outs : 
-        Outlet streams
+    ins : stream
+        Inlet stream. Doesn't actually affect mass balance. It's just to
+        show the position in the process.
+    outs : stream
+        Outlet stream. Doesn't actually affect mass balance. It's just to
+        show the position in the process.
     chemical_IDs : tuple[str]
         Chemicals that will be used to solve mass balance linear equations.
         The number of chemicals must be same as the number of input streams varied.
-    streams : tuple[int]
-        Indices of input streams that can vary in net flow rate
+    variable_inlets : Iterable[Stream]
+        Inlet streams that can vary in net flow rate to accomodate for the
+        mass balance.
+    constant_inlets: Iterable[Stream], optional
+        Inlet streams that cannot vary in flow rates.
+    constant_outlets: Iterable[Stream], optional
+        Outlet streams that cannot vary in flow rates.
     is_exact=True : bool, optional
         True if exact flow rate solution is required for the specified IDs.
     balance='flow' : {'flow', 'composition'}, optional
@@ -39,9 +51,10 @@ class MassBalance(Unit):
     The example below uses the MassBalance object to satisfy the target
     flow rate feeding the mixer M1:
     
-    >>> from biosteam import System, Stream, settings
+    >>> from biosteam import System, Stream, settings, main_flowsheet
     >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump,
     ...                             Flash, MassBalance)
+    >>> main_flowsheet.set_flowsheet('mass_balance_example')
     >>> settings.set_thermo(['Water', 'Ethanol'])
     >>> water = Stream('water',
     ...                Water=40,
@@ -50,86 +63,76 @@ class MassBalance(Unit):
     >>> ethanol = Stream('ethanol',
     ...                  Ethanol=190, Water=30,
     ...                  T=300, P=101325)
-    >>> target = Stream('target', flow=[50, 50])
-    >>> T1 = StorageTank('T1')
-    >>> T2 = StorageTank('T2')
-    >>> P1 = Pump('P1', P=101325)
-    >>> P2 = Pump('P2', P=101325)
-    >>> M1 = Mixer('M1', outs='s1')
-    >>> S1 = Splitter('S1', outs=('s2', 's3'), split=0.5)
-    >>> F1 = Flash('F1', outs=('s4', 's5'), V=0.5, P =101325)
+    >>> target = Stream('target',
+    ...                 Ethanol=500, Water=500)
+    >>> T1 = StorageTank('T1', outs='s1')
+    >>> T2 = StorageTank('T2', outs='s2')
+    >>> P1 = Pump('P1', P=101325, outs='s3')
+    >>> P2 = Pump('P2', P=101325, outs='s4')
+    >>> M1 = Mixer('M1', outs='s5')
+    >>> S1 = Splitter('S1', outs=('s6', 's7'), split=0.5)
+    >>> F1 = Flash('F1', outs=('s8', 's9'), V=0.5, P =101325)
+    >>> MB1 = MassBalance('MB1', outs='s6_2',
+    ...                   variable_inlets=[water, ethanol],
+    ...                   constant_inlets=[S1-0],
+    ...                   constant_outlets=[target],
+    ...                   chemical_IDs=['Ethanol', 'Water'],
+    ...                   description='Adjust flow rate of feed to mixer')
     >>> # Connect units
     >>> water-T1-P1
     <Pump: P1>
     >>> ethanol-T2-P2
     <Pump: P2>
-    >>> [P1-0, P2-0, S1-0]-M1-F1-1-S1
-    <Splitter: S1>
-    >>> MB1 = MassBalance('MB1', streams=[0,1],
-    ...                   chemical_IDs=['Ethanol', 'Water'],
-    ...                   outs=target,
-    ...                   ins=(water, ethanol, S1-0))
-    >>> mixSys = System('mixSys',
-    ...                  recycle=S1-0,
-    ...                  network=(MB1, T1, P1, T2, P2, M1, F1, S1))
+    >>> [P1-0, P2-0, MB1-0]-M1-F1-1-S1-0-MB1
+    <MassBalance: MB1>
+    >>> sys = main_flowsheet.create_system('sys')
     >>> # Make diagram to view system
-    >>> # mixSys.diagram()
-    >>> mixSys.simulate();
-    >>> MB1.show()
-    MassBalance: MB1
-    ins...
-    [0] water
-        phase: 'l', T: 350 K, P: 101325 Pa
-        flow (kmol/hr): Water  28.3
-    [1] ethanol
-        phase: 'l', T: 300 K, P: 101325 Pa
-        flow (kmol/hr): Water    6.37
-                        Ethanol  40.3
-    [2] s2  from  Splitter-S1
-        phase: 'l', T: 353.88 K, P: 101325 Pa
-        flow (kmol/hr): Water    15.3
-                        Ethanol  9.65
-    outs...
-    [0] target
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    50
-                        Ethanol  50
+    >>> # sys.diagram()
+    >>> sys.simulate();
+    >>> target.show()
+    Stream: target
+     phase: 'l', T: 298.15 K, P: 101325 Pa
+     flow (kmol/hr): Water    500
+                     Ethanol  500
     
     """
-    line = 'Balance'
-    results = None
-    _has_cost = False
-    _N_ins = 2
-    heat_utilities = ()
+    _graphics = ProcessSpecification._graphics
     power_utility = None
+    heat_utilities = ()
+    results = None
+    _N_ins = _N_outs = 1
 
-    def __init__(self, ID='', outs=(), ins=None,
-                 chemical_IDs=None, streams=None,
-                 is_exact=True, balance='flow', thermo=None):
-        self.ID = ID
-        thermo = self._load_thermo(thermo)
-        self._ins = StreamSequence(self._N_ins, ins, thermo, fixed_size=False)
-        self._outs = StreamSequence(self._N_outs, outs, thermo, fixed_size=False)
-        self._power_utility = PowerUtility()
-        self.streams = streams
+    def __init__(self, ID='', ins=None, outs=(), thermo=None,
+                 chemical_IDs=None, variable_inlets=(),
+                 constant_outlets=(), constant_inlets=(),
+                 is_exact=True, balance='flow',
+                 description=""):
+        self._numerical_specification = None
+        self._load_thermo(thermo)
+        self._init_ins(ins)
+        self._init_outs(outs)
+        self._assert_compatible_property_package()
+        self._register(ID)
+        self.variable_inlets = variable_inlets
+        self.constant_inlets = constant_inlets
+        self.constant_outlets = constant_outlets
         self.chemical_IDs = chemical_IDs
         self.is_exact = is_exact
         self.balance = balance
-        self._assert_compatible_property_package()
+        self.description = description
         
     def _run(self):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-        stream_index = self.streams
         balance = self.balance
         solver = np.linalg.solve if self.is_exact else np.linalg.lstsq
-        ins = self.ins
 
         # Set up constant and variable streams
-        vary = [ins[i] for i in stream_index]  # Streams to vary in mass balance
-        constant = [i for i in ins if (i and i not in vary)]  # Constant streams
+        vary = self.variable_inlets # Streams to vary in mass balance
+        constant = self.constant_inlets # Constant streams
         index = self.chemicals.get_index(self.chemical_IDs)
+        mol_out = sum([s.mol for s in self.constant_outlets])
 
         if balance == 'flow':
             # Perform the following calculation: Ax = b = f - g
@@ -142,7 +145,7 @@ class MassBalance(Unit):
 
             # Solve linear equations for mass balance
             A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = self.mol_out[index]
+            f = mol_out[index]
             g = sum([s.mol[index] for s in constant])
             b = f - g
             x = solver(A, b)
@@ -151,7 +154,7 @@ class MassBalance(Unit):
             for factor, s in zip(x, vary):
                 s.mol[:] = s.mol * factor
 
-        elif balance == 'fraction':
+        elif balance == 'composition':
             # Perform the following calculation:
             # Ax = b
             #    = sum( A_ * x_guess + g_ )f - g
@@ -165,7 +168,9 @@ class MassBalance(Unit):
             # Set all variables
             A_ = np.array([s.mol for s in vary]).transpose()
             A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = self.z_mol_out[index]
+            F_mol_out = mol_out.sum()
+            z_mol_out = mol_out / F_mol_out if F_mol_out else mol_out
+            f = z_mol_out[index]
             g_ = sum([s.mol for s in constant])
             g = g_[index]
             O = sum(g_) * f - g
@@ -186,13 +191,6 @@ class MassBalance(Unit):
         
         else:
             raise ValueError( "balance type must be one of the following: 'flow', 'composition'")
-
-# Balance
-graphics = MassBalance._graphics
-graphics.node['shape'] = 'note'
-graphics.node['fillcolor'] = '#F0F0F0'
-graphics.in_system = False
-del graphics
 
 
 # %% Energy Balance Unit

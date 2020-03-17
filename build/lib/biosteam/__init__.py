@@ -16,15 +16,17 @@ from ._power_utility import PowerUtility
 from ._unit import Unit
 from ._system import System
 from ._tea import CombinedTEA, TEA
-from ._flowsheet import Flowsheet, find
+from ._flowsheet import Flowsheet, main_flowsheet
+from ._network import Network
 from . import utils
 from . import units
 from . import evaluation
 
 __all__ = ['Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
-           'find', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
-           'MultiStream', 'settings', *units.__all__, *evaluation.__all__]
+           'main_flowsheet', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
+           'MultiStream', 'settings', 'Network',
+           *units.__all__, *evaluation.__all__]
 
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
 from .evaluation import *

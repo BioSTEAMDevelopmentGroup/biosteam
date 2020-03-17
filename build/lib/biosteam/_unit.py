@@ -8,7 +8,7 @@ Created on Wed Dec 18 07:18:50 2019
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
-from ._graphics import Graphics, default_graphics
+from ._graphics import Graphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
@@ -20,10 +20,6 @@ from thermosteam.base import UnitsOfMeasure
 import biosteam as bst
 
 __all__ = ('Unit',)
-
-
-lines_with_new_graphics = ['Unit', 'Mixer', 'Static',
-                           'Splitter', 'Solids separator', 'Facility']
 
 # %% Unit Operation
 
@@ -113,19 +109,15 @@ class Unit:
     
     """ 
     
-    def __init_subclass__(cls, isabstract=False, new_graphics=True):
+    def __init_subclass__(cls, isabstract=False):
         dct = cls.__dict__
-        if new_graphics:
-            if 'line' not in dct and cls.line in lines_with_new_graphics:
-                # Set new graphics for default line
-                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-                cls.line = format_unit_line(cls.__name__)
-            elif '_graphics' not in dct:
-                # Set new graphics for specified line
-                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+        if 'line' not in dct:
+            cls.line = format_unit_line(cls.__name__)
+        if '_graphics' not in dct:
+            # Set new graphics for specified line
+            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+        if not (isabstract or cls._run): static(cls)
         
-        if not isabstract and not hasattr(cls, '_run'): static(cls)
-            
     ### Abstract Attributes ###
     
     # [float] Bare module factor (installation factor).
@@ -153,7 +145,7 @@ class Unit:
     _stream_link_options = None
     
     # [biosteam Graphics] a Graphics object for diagram representation.
-    _graphics = default_graphics
+    _graphics = box_graphics
     
     # [str] The general type of unit, regardless of class
     line = 'Unit'
@@ -161,6 +153,7 @@ class Unit:
     ### Other defaults ###
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        self._numerical_specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
@@ -212,46 +205,62 @@ class Unit:
     # Forward pipping
     def __sub__(self, other):
         """Source streams."""
-        if isinstance(other, Unit):
+        isa = isinstance
+        int_types = (int, np.int)
+        if isa(other, Unit):
             other._ins[:] = self._outs
             return other
-        elif type(other) is int:
+        elif isa(other, int_types):
             return self.outs[other]
-        elif isinstance(other, Stream):
+        elif isa(other, Stream):
             self._outs[:] = (other,)
             return self
-        elif isinstance(other, (tuple, list, np.ndarray)):
-            if isinstance(other[0], int):
-                return [self.outs[i] for i in other]
+        elif isa(other, (tuple, list, np.ndarray)):
+            if all(isa(i, (int, np.int)) for i in other):
+                return [self._outs[i] for i in other]
             else:
-                self._outs[:] = other
-                return self
+                if isa(other, Unit):
+                    self._outs[:] = other._ins
+                    return other
+                else:
+                    self._outs[:] = other
+                    return self
         else:
             return other.__rsub__(self)
 
     def __rsub__(self, other):
         """Sink streams."""
-        if type(other) is int:
+        isa = isinstance
+        int_types = (int, np.int)
+        if isa(other, int_types):
             return self._ins[other]
-        elif isinstance(other, Stream):
+        elif isa(other, Stream):
             self._ins[:] = (other,)
             return self
-        elif isinstance(other, (tuple, list, np.ndarray)):
-            if all(isinstance(i, int) for i in other):
+        elif isa(other, (tuple, list, np.ndarray)):
+            if all(isa(i, int_types) for i in other):
                 return [self._ins[i] for i in other]
             else:
-                self._ins[:] = other
-                return self
+                if isa(other, Unit):
+                    self._ins[:] = other._outs
+                    return other
+                else:
+                    self._ins[:] = other
+                    return self
+        else:
+            raise ValueError(f"cannot pipe '{type(other).__name__}' object into unit")
 
     # Backwards pipping
     __pow__ = __sub__
     __rpow__ = __rsub__
     
     # Abstract methods
+    _run = NotImplementedMethod
     _setup = NotImplementedMethod
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
-    def _get_design_specs(self):
+    
+    def _get_design_info(self):
         return ()
     
     def _load_stream_links(self):
@@ -261,11 +270,21 @@ class Unit:
             s_out = self.outs[0]
             s_out.link_with(s_in, options.flow, options.phase, options.TP)
     
-    # Summary
     def _summary(self):
         """Calculate all results from unit run."""
         self._design()
         self._cost()
+    
+    @property
+    def numerical_specification(self):
+        """Numerical design or process specification."""
+        return self._numerical_specification
+    @numerical_specification.setter
+    def numerical_specification(self, numerical_specification):
+        if numerical_specification:
+            if not callable(numerical_specification):
+                raise ValueError("numerical specification must a callable or None.")
+        self._numerical_specification = numerical_specification
     
     @property
     def purchase_cost(self):
@@ -283,7 +302,7 @@ class Unit:
         return sum([i.cost for i in self.heat_utilities]) + self.power_utility.cost
 
     def simulate(self):
-        """Run rigourous simulation and determine all design requirements."""
+        """Run rigourous simulation and determine all design requirements. No design specifications are solved."""
         self._load_stream_links()
         self._setup()
         self._run()
@@ -317,7 +336,7 @@ class Unit:
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval((units.get(ki, ''), vi))
-            for ki, vi, ui in self._get_design_specs():
+            for ki, vi, ui in self._get_design_info():
                 addkey(('Design', ki))
                 addval((ui, vi))
             for ki, vi in Cost.items():
@@ -368,7 +387,7 @@ class Unit:
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval(vi)
-            for ki, vi, ui in self._get_design_specs():
+            for ki, vi, ui in self._get_design_info():
                 addkey(('Design', ki))
                 addval((ui, vi))
             for ki, vi in self.purchase_costs.items():
@@ -467,12 +486,13 @@ class Unit:
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
-        
         return neighborhood
 
     def diagram(self, radius=0, upstream=True, downstream=True, 
                 file=None, format='png', **graph_attrs):
-        """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
+        """
+        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
+        of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
@@ -508,10 +528,8 @@ class Unit:
             f.attr('graph', nodesep='0.4')
 
         # Initialize node arguments based on unit and make node
-        type_ = graphics.node_function(self) or self.line
-        name = self.ID + '\n' + type_
-        f.attr('node', **self._graphics.node)
-        f.node(name)
+        node = graphics.get_node_taylored_to_unit(self)
+        f.node(**node)
 
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
@@ -522,12 +540,12 @@ class Unit:
         di = 0  # Destination position of stream
         for stream in self.ins:
             if not stream: continue
-            f.node(stream.ID)  
-            edge_in = self._graphics.edge_in
+            f.node(stream.ID)
+            edge_in = graphics.edge_in
             if di >= len(edge_in): di = 0
             f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[di])
-            f.edge(stream.ID, name)
+            f.edge(stream.ID, node['name'])
             di += 1
 
         # Make nodes and edges for output streams
@@ -535,11 +553,11 @@ class Unit:
         for stream in self.outs:
             if not stream: continue
             f.node(stream.ID) 
-            edge_out = self._graphics.edge_out  
+            edge_out = graphics.edge_out  
             if oi >= len(edge_out): oi = 0
             f.attr('edge', arrowtail='none', arrowhead='none',
                    headport='w', **edge_out[oi])
-            f.edge(name, stream.ID)
+            f.edge(node['name'], stream.ID)
             oi += 1
         save_digraph(f, file, format)
     

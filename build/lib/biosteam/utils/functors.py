@@ -43,3 +43,4 @@ class ExponentialFunctor:
 
     def __repr__(self):
         return f"{type(self).__name__}(A={self.A}, n={self.n})"
+    
