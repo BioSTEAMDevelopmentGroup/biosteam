@@ -32,12 +32,7 @@ def parameter(system, element, setter, kind, name, distribution, units, baseline
         return Block(element, None).parameter(setter, element._summary,
                     name, distribution=distribution, units=units, baseline=baseline)
     elif kind == 'cost':
-        if hasattr(element, '_end'):
-            def simulate():
-                element._cost()
-                element._end()
-        else:
-            simulate = element._cost
+        simulate = element._cost
         return Block(element, None).parameter(setter, simulate, name,
                     distribution=distribution, units=units, baseline=baseline)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
