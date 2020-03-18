@@ -8,6 +8,7 @@ units
    design_tools
    facilities
    Distillation
+   Duplicator
    Fermentation
    Flash
    HXprocess
