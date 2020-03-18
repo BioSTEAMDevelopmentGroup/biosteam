@@ -48,7 +48,13 @@ class Flowsheets:
 class Flowsheet:
     """
     Create a Flowsheet object which stores references to all stream, unit,
-    and system objects."""
+    and system objects.
+	
+	Examples
+	--------
+	:doc:`tutorial/Managing flowsheets` 
+	
+	"""
     
     #: [Register] All flowsheets.
     flowsheet = Flowsheets()
@@ -275,8 +281,15 @@ class Flowsheet:
 
 
 class MainFlowsheet(Flowsheet):
-    """Create a MainFlowsheet object which automatically registers 
-    biosteam objects as they are created."""
+    """
+	Create a MainFlowsheet object which automatically registers 
+    biosteam objects as they are created.
+	
+	Examples
+	--------
+	:doc:`tutorial/Managing flowsheets` 
+	
+	"""
     __slots__ = ()
     
     def set_flowsheet(self, flowsheet):

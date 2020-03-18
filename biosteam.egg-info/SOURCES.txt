@@ -43,6 +43,7 @@ biosteam/units/_clarifier.py
 biosteam/units/_conveying_belt.py
 biosteam/units/_crushing_mill.py
 biosteam/units/_distillation.py
+biosteam/units/_duplicator.py
 biosteam/units/_enzyme_treatment.py
 biosteam/units/_fermentation.py
 biosteam/units/_flash.py

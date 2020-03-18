@@ -16,7 +16,7 @@ from . import (
     _solids_centrifuge, _crushing_mill,
     _balance, _shredder, _screw_feeder,
     decorators, design_tools, facilities,
-    _process_specification,
+    _process_specification, _duplicator,
 )
 __all__ = [*_flash.__all__,
            *_liquids_centrifuge.__all__,
@@ -47,11 +47,13 @@ __all__ = [*_flash.__all__,
            *_magnetic_separator.__all__,
            *facilities.__all__,
            *_process_specification.__all__,
+           *_duplicator.__all__,
            'facilities',
            'decorators',
            'design_tools',
 ]
 
+from ._duplicator import *
 from ._process_specification import *
 from ._flash import *
 from ._liquids_centrifuge import *
