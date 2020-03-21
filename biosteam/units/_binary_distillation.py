@@ -31,7 +31,7 @@ from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
 
-__all__ = ('Distillation',)
+__all__ = ('BinaryDistillation',)
 
 def compute_stages_McCabeThiele(P, operating_line,
                                 x_stages, y_stages, T_stages,
@@ -85,9 +85,9 @@ def compute_stages_McCabeThiele(P, operating_line,
 
 # %% Distillation
 
-class Distillation(Unit):
+class BinaryDistillation(Unit):
     r"""
-    Create a Distillation column that assumes all light and heavy non keys
+    Create a binary distillation column that assumes all light and heavy non keys
     separate to the top and bottoms product respectively. McCabe-Thiele
     analysis is used to find both the number of stages and the reflux ratio
     given a ratio of actual reflux to minimum reflux [1]_. This assumption
@@ -168,21 +168,21 @@ class Distillation(Unit):
     --------
     Binary distillation assuming 100% separation on non-keys:
     
-    >>> from biosteam.units import Distillation
+    >>> from biosteam.units import BinaryDistillation
     >>> from biosteam import Stream, settings
     >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
     >>> feed = Stream('feed', flow=(80, 100, 25))
     >>> bp = feed.bubble_point_at_P()
     >>> feed.T = bp.T # Feed at bubble point T
-    >>> D1 = Distillation('D1', ins=feed,
-    ...                   outs=('distillate', 'bottoms_product'),
-    ...                   LHK=('Methanol', 'Water'),
-    ...                   y_top=0.99, x_bot=0.01, k=2,
-    ...                   is_divided=True)
+    >>> D1 = BinaryDistillation('D1', ins=feed,
+    ...                         outs=('distillate', 'bottoms_product'),
+    ...                         LHK=('Methanol', 'Water'),
+    ...                         y_top=0.99, x_bot=0.01, k=2,
+    ...                         is_divided=True)
     >>> D1.simulate()
     >>> # See all results
     >>> D1.show(T='degC', P='atm', composition=True)
-    Distillation: D1
+    BinaryDistillation: D1
     ins...
     [0] feed
         phase: 'l', T: 76.129 degC, P: 1 atm
@@ -343,26 +343,35 @@ class Distillation(Unit):
         Tb_heavy = HK_chemical.Tb
         LNK = []
         HNK = []
+        gases = []
+        solids = []
         if Tb_light > Tb_heavy:
             LK, HK = LHK
             raise ValueError(f"light key must be lighter than heavy key "
                              f"(i.e. {LK}.Tb must be lower than {HK}.Tb)")
         for chemical in chemicals:
+            ID = chemical.ID
             Tb = chemical.Tb
-            if not Tb:
-                HNK.append(chemical.ID)
+            if not Tb or chemical.locked_state in ('l', 's'):
+                solids.append(ID)
+            elif chemical.locked_state == 'g':
+                gases.append(ID)
             elif Tb < Tb_light:
-                LNK.append(chemical.ID)
+                LNK.append(ID)
             elif Tb > Tb_heavy:
-                HNK.append(chemical.ID)
+                HNK.append(ID)
             elif chemical not in LHK_chemicals:
                 intermediate_volatile_chemicals.append(chemical.ID)
-        self._LNK = tuple(LNK)
-        self._HNK = tuple(HNK)
+        self._LNK = LNK = tuple(LNK)
+        self._HNK = HNK = tuple(HNK)
+        self._gases = gases = tuple(gases)
+        self._solids = solids = tuple(solids)
         get_index = self.chemicals.get_index
-        self._LHK_index = get_index(self._LHK)
-        self._LNK_index = get_index(self._LNK)
-        self._HNK_index = get_index(self._HNK)
+        self._LHK_index = get_index(LHK)
+        self._LNK_index = get_index(LNK)
+        self._HNK_index = get_index(HNK)
+        self._gases_index = get_index(gases)
+        self._solids_index = get_index(solids)
         self._intermediate_volatile_chemicals = tuple(intermediate_volatile_chemicals)
     
     @property
@@ -554,22 +563,28 @@ class Distillation(Unit):
         assert LK_distillate >= 0 and LK_bottoms >= 0, ("Light key composition is infeasible")
         assert HK_distillate >= 0 and HK_bottoms >= 0, ("heavy key composition is infeasible")
     
-    def _run_mass_balance(self):
+    def _run_binary_distillation_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
         mol = self.mol_in
         LHK_index = self._LHK_index
-        HNK_index = self._HNK_index
         LNK_index = self._LNK_index
+        HNK_index = self._HNK_index
+        gases_index = self._gases_index
+        solids_index = self._solids_index
         intermediate_chemicals = self._intermediate_volatile_chemicals
         intemediates_index = self.chemicals.get_index(intermediate_chemicals)
         LHK_mol = mol[LHK_index]
-        HNK_mol = mol[HNK_index]
         LNK_mol = mol[LNK_index]
+        HNK_mol = mol[HNK_index]
+        gases_mol = mol[gases_index]
+        solids_mol = mol[solids_index]
         
         # Mass balance for non-keys
         distillate, bottoms_product = self.outs
         distillate.mol[LNK_index] = LNK_mol
+        distillate.mol[gases_index] = gases_mol
         bottoms_product.mol[HNK_index] = HNK_mol
+        bottoms_product.mol[solids_index] = solids_mol
         
         # Mass balance for keys
         spec = self.product_specification_format
@@ -592,24 +607,25 @@ class Distillation(Unit):
         if tmo.settings.debug:
             self._check_mass_balance()
     
-    def _run(self):
-        self._run_mass_balance()
+    def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
-        distillate.phase = 'g'
-        bottoms_product.phase = 'l'
-        distillate.P = bottoms_product.P = self.P
         self._condensate_dew_point = dp = distillate.dew_point_at_P()
         self._boilup_bubble_point = bp = bottoms_product.bubble_point_at_P()
         bottoms_product.T = bp.T
         distillate.T = dp.T
+    
+    def _setup(self):
+        distillate, bottoms_product = self.outs
+        distillate.P = bottoms_product.P = self.P
+        distillate.phase = 'g'
+        bottoms_product.phase = 'l'
+    
+    def _run(self):
+        self._run_binary_distillation_mass_balance()
+        self._update_distillate_and_bottoms_temperature()
 
-    def _run_McCabeThiele(self):
-        distillate, bottoms = self.outs
+    def _load_feed_flows(self):
         chemicals = self.chemicals
-        LHK = self._LHK
-        LHK_index = chemicals.get_index(LHK)
-
-        # Feed light key mol fraction
         liq_mol = np.zeros(chemicals.size)
         vap_mol = liq_mol.copy()
         for s in self.ins:
@@ -625,6 +641,17 @@ class Distillation(Unit):
                 raise RuntimeError(f'invalid phase encountered in {repr(s)}')
         self._feed_liqmol = liq_mol
         self._feed_vapmol = vap_mol
+
+    def _run_McCabeThiele(self):
+        distillate, bottoms = self.outs
+        chemicals = self.chemicals
+        LHK = self._LHK
+        LHK_index = chemicals.get_index(LHK)
+
+        # Feed light key mol fraction
+        self._load_feed_flows()
+        liq_mol = self._feed_liqmol
+        vap_mol = self._feed_vapmol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
         F_mol_LHK = LHK_mol.sum()
         zf = LHK_mol[0]/F_mol_LHK
@@ -752,12 +779,24 @@ class Distillation(Unit):
         self._simulate_boiler()
         self.purchase_costs['Boiler'] = self.boiler.purchase_costs['Heat exchanger']
     
+    def _get_relative_volatilities_LHK(self):
+        x_stages = self._x_stages
+        y_stages = self._y_stages
+        
+        K_light = y_stages[-1]/x_stages[-1] 
+        K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
+        alpha_LHK_distillate = K_light/K_heavy
+        
+        K_light = y_stages[0]/x_stages[0] 
+        K_heavy = (1-y_stages[0])/(1-x_stages[0] )
+        alpha_LHK_bottoms = K_light/K_heavy
+        
+        return alpha_LHK_distillate, alpha_LHK_bottoms
+    
     def _compute_N_stages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
         vap, liq = self.outs
         Design = self.design_results
-        x_stages = self._x_stages
-        y_stages = self._y_stages
         R = Design['Reflux']
         N_stages = Design['Theoretical stages']
         feed_stage = Design['Theoretical feed stage']
@@ -768,22 +807,21 @@ class Distillation(Unit):
             # Calculate Murphree Efficiency for rectifying section
             condensate = self.condensate
             mu = condensate.get_property('mu', 'mPa*s')
-            K_light = y_stages[-1]/x_stages[-1] 
-            K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
-            alpha = K_light/K_heavy
+            alpha_LHK_distillate, alpha_LHK_bottoms = self._get_relative_volatilities_LHK()
             F_mol_distillate = self._F_mol_distillate
             L_Rmol = self._F_mol_condensate
             V_Rmol = (R+1) * F_mol_distillate
-            E_rectifier = compute_murphree_stage_efficiency(mu, alpha, L_Rmol, V_Rmol)
+            E_rectifier = compute_murphree_stage_efficiency(mu,
+                                                            alpha_LHK_distillate,
+                                                            L_Rmol, V_Rmol)
             
             # Calculate Murphree Efficiency for stripping section
             mu = liq.get_property('mu', 'mPa*s')
             V_Smol = self._F_mol_boilup
             L_Smol = R*F_mol_distillate + sum(self._feed_liqmol) 
-            K_light = y_stages[0]/x_stages[0] 
-            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
-            alpha = K_light/K_heavy
-            E_stripper = compute_murphree_stage_efficiency(mu, alpha, L_Smol, V_Smol)
+            E_stripper = compute_murphree_stage_efficiency(mu,
+                                                           alpha_LHK_bottoms,
+                                                           L_Smol, V_Smol)
             
         # Calculate actual number of stages
         mid_stage = feed_stage - 0.5
@@ -794,6 +832,9 @@ class Distillation(Unit):
     def _design(self):
         self._run_McCabeThiele()
         self._run_condenser_and_boiler()
+        self._complete_distillation_column_design()
+        
+    def _complete_distillation_column_design(self):
         distillate, bottoms_product = self.outs
         Design = self.design_results
         R = Design['Reflux']
@@ -898,7 +939,7 @@ class Distillation(Unit):
         """Plot stages, graphical aid line, and equilibrium curve. The plot does not include operating lines nor a legend."""
         vap, liq = self.outs
         if not hasattr(self, 'x_stages'):
-            self._design()
+            raise RuntimeError('cannot plot stages without running McCabe Thiele binary distillation')
         x_stages = self._x_stages
         y_stages = self._y_stages
         LHK = self.LHK
@@ -975,11 +1016,3 @@ class Distillation(Unit):
         plt.title(f'McCabe Thiele Diagram (Rmin = {Rmin:.2f}, R = {R:.2f})')
         plt.show()
         return plt
-
-edge_out = Distillation._graphics.edge_out
-edge_out[0]['tailport'] = 'n'
-edge_out[1]['tailport'] = 's'
-node = Distillation._graphics.node
-node['width'] = '1'
-node['height'] = '1.2'
-del edge_out, node

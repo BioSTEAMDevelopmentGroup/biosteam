@@ -733,11 +733,14 @@ class Evaporator_PQ(Unit):
         # Energy balance to find vapor fraction
         f = feed.imol[H2O_CAS]
         H = feed_H + Q - liquid.H
-        V = H/(f * self._Hvap)
-        if V < 0:
+        if f:
+            V = H/(f * self._Hvap)
+            if V < 0:
+                V = 0
+            elif V > 1:
+                V = 1
+        else:
             V = 0
-        elif V > 1:
-            V = 1
         evaporated = f * V
         vapor.imol[H2O_CAS] = evaporated
         liquid.imol[H2O_CAS] = (1-V)*f

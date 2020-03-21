@@ -7,8 +7,8 @@ Created on Sun Apr 15 20:39:46 2018
 """
 from . import (
     _flash, _liquids_centrifuge, _mixer, _splitter,
-    _pump, _hx, _multi_effect_evaporator,
-    _distillation, _tank, _magnetic_separator,
+    _pump, _hx, _multi_effect_evaporator, _shortcut_column,
+    _binary_distillation, _tank, _magnetic_separator,
     _molecular_sieve, _conveying_belt, _vent_scrubber,
     _vibrating_screen, _junction, _solids_separator,
     _transesterification, _fermentation, 
@@ -18,15 +18,16 @@ from . import (
     decorators, design_tools, facilities,
     _process_specification, _duplicator,
 )
-__all__ = [*_flash.__all__,
+__all__ = (*_flash.__all__,
            *_liquids_centrifuge.__all__,
+           *_shortcut_column.__all__,
            *_mixer.__all__,
            *_splitter.__all__,
            *_pump.__all__,
            *_hx.__all__,
            *_multi_effect_evaporator.__all__,
            *_liquids_centrifuge.__all__,
-           *_distillation.__all__,
+           *_binary_distillation.__all__,
            *_tank.__all__,
            *_molecular_sieve.__all__,
            *_conveying_belt.__all__,
@@ -51,8 +52,9 @@ __all__ = [*_flash.__all__,
            'facilities',
            'decorators',
            'design_tools',
-]
+)
 
+from ._shortcut_column import *
 from ._duplicator import *
 from ._process_specification import *
 from ._flash import *
@@ -64,7 +66,7 @@ from ._hx import *
 from ._magnetic_separator import *
 from ._multi_effect_evaporator import *
 from ._liquids_centrifuge import *
-from ._distillation import *
+from ._binary_distillation import *
 from ._tank import *
 from ._molecular_sieve import *
 from ._conveying_belt import *

@@ -223,8 +223,9 @@ class Flowsheet:
         ID : str, optional
             Name of system.
         ends : Iterable[Stream]
-            Streams that not products, but are ultimately specified through
-            process requirements and not by its unit source.
+            End streams of the system which are not products. Specify this argument
+			if only a section of the system is wanted, or if recycle streams should be 
+			ignored.
         
         """
         feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
@@ -239,8 +240,9 @@ class Flowsheet:
         Parameters
         ----------
         ends : Iterable[Stream]
-            Streams that not products, but are ultimately specified through
-            process requirements and not by its unit source.
+            End streams of the system which are not products. Specify this argument
+			if only a section of the system is wanted, or if recycle streams should be 
+			ignored.
         
         """
         feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)

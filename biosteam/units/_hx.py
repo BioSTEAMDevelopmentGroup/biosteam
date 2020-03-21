@@ -312,6 +312,14 @@ class HXutility(HX):
         self.material = material
         self.shell_and_tube_type = shell_and_tube_type
     
+    def simulate_as_auxiliary_exchanger(self, duty, stream):
+        outlet = self.outs[0]
+        outlet.copy_like(stream)
+        self.ins[0] = outlet.proxy()
+        self.heat_utilities[0](duty, stream.T)
+        self.Q = duty
+        super()._design()
+        self._cost()
         
     def _run(self):
         feed = self.ins[0]
@@ -320,8 +328,6 @@ class HXutility(HX):
         T = self.T
         V = self.V
         V_given = V is not None
-        if not (T or V_given):
-            raise ValueError("must define at least one of the following: 'T', 'V'")
         if self.rigorous:
             if T and V_given:
                 raise ValueError("may only define either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
@@ -329,7 +335,7 @@ class HXutility(HX):
                 s.vle(V=V, P=s.P)
             else:
                 s.vle(T=T, P=s.P)
-        else:
+        elif (T or V_given):
             if V_given:
                 if V == 0:
                     s.phase = 'l'
@@ -342,6 +348,8 @@ class HXutility(HX):
                     s.imol['l'] = mol - vap_mol
             if T:
                 s.T = T
+        else:
+            raise ValueError("must define at least one of the following: 'T', 'V'")
 
     def get_streams(self):
         """Return inlet and outlet streams.

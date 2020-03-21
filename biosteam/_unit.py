@@ -109,11 +109,13 @@ class Unit:
     
     """ 
     
-    def __init_subclass__(cls, isabstract=False):
+    def __init_subclass__(cls,
+                          isabstract=False,
+                          new_graphics=True):
         dct = cls.__dict__
         if 'line' not in dct:
             cls.line = format_unit_line(cls.__name__)
-        if '_graphics' not in dct:
+        if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
             cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         if not (isabstract or cls._run): static(cls)
