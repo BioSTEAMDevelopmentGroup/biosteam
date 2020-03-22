@@ -11,9 +11,6 @@ from ._digraph import make_digraph, save_digraph
 
 # %% Path tools
 
-def get_stream_path_priority(stream):
-    return stream.path_priority
-
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     paths_with_recycle, linear_paths = find_paths_with_and_without_recycle(
         feed, ends)
@@ -43,7 +40,7 @@ def fill_path(feed, path, paths_with_recycle,
         ends.add(feed)
     else:
         path.append(unit)
-        outlet, *other_outlets = sorted(unit.outs, key=get_stream_path_priority)
+        outlet, *other_outlets = unit.outs
         fill_path(outlet, path.copy(),
                   paths_with_recycle,
                   paths_without_recycle,

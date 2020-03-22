@@ -59,7 +59,6 @@ class UtilityAgent(Stream):
                  thermo=None, T_limit=None, heat_transfer_price=0.0,
                  regeneration_price=0.0, heat_transfer_efficiency=1.0,
                  **chemical_flows):
-        self.path_priority = 0
         self._TP = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
@@ -92,7 +91,6 @@ class UtilityAgent(Stream):
         
         """
         new = Stream.__new__(Stream)
-        new.path_priority = 0
         new._sink = new._source = None
         new._thermo = self._thermo
         new._imol = self._imol.copy()
