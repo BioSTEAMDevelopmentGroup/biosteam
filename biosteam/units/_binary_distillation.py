@@ -112,9 +112,11 @@ class BinaryDistillation(Unit):
     LHK : tuple[str]
         Light and heavy keys.
     y_top : float
-        Molar fraction of light key in the distillate.
+        Molar fraction of light key to the light and heavy keys in the
+        distillate.
     x_bot : float
-        Molar fraction of light key in the bottoms.
+        Molar fraction of light key to the light and heavy keys in the bottoms
+        product.
     Lr : float
         Recovery of the light key in the distillate.
     Hr : float
@@ -138,7 +140,8 @@ class BinaryDistillation(Unit):
         User enforced stage efficiency. If None, stage efficiency is
         calculated by the O'Connell correlation [2]_.
     velocity_fraction=0.8 : float
-        Fraction of actual velocity to maximum velocity allowable before flooding.
+        Fraction of actual velocity to maximum velocity allowable before
+        flooding.
     foaming_factor=1.0 : float
         Must be between 0 to 1.
     open_tray_area_fraction=0.1 : float
@@ -158,7 +161,7 @@ class BinaryDistillation(Unit):
         Predict Distillation Tray Efficiency. AICHE 
     
     .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+        Handbook, 9 ed.; McGraw-Hill Education, 2018.
 
     .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
         & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
@@ -299,6 +302,10 @@ class BinaryDistillation(Unit):
         
         # Setup components
         thermo = self.thermo
+        
+        #: [MultiStream] Overall feed to the distillation column
+        self.feed = tmo.MultiStream(None)
+        
         #: [HXutility] Condenser.
         self.condenser = HXutility(None,
                                    ins=tmo.Stream(None, phase='g', thermo=thermo),
@@ -310,6 +317,9 @@ class BinaryDistillation(Unit):
                                 outs=tmo.MultiStream(None, thermo=thermo),
                                 thermo=thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
+        self._setup_cache()
+        
+    def _setup_cache(self):
         self._McCabeThiele_args = np.zeros(6)
     
     @property
@@ -565,7 +575,9 @@ class BinaryDistillation(Unit):
     
     def _run_binary_distillation_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
-        mol = self.mol_in
+        feed = self.feed
+        feed.mix_from(self.ins)
+        mol = feed.mol
         LHK_index = self._LHK_index
         LNK_index = self._LNK_index
         HNK_index = self._HNK_index
@@ -624,23 +636,22 @@ class BinaryDistillation(Unit):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
 
-    def _load_feed_flows(self):
-        chemicals = self.chemicals
-        liq_mol = np.zeros(chemicals.size)
-        vap_mol = liq_mol.copy()
-        for s in self.ins:
-            if isinstance(s, tmo.MultiStream):
-                liq_mol += s.imol['l']
-                vap_mol += s.imol['g']
-            elif s.phase == 'g':
-                vap_mol += s.mol
-            elif s.phase.lower() == 'l':
-                liq_mol += s.mol
-            elif s.phase == 's': pass
-            else:
-                raise RuntimeError(f'invalid phase encountered in {repr(s)}')
-        self._feed_liqmol = liq_mol
-        self._feed_vapmol = vap_mol
+    def _get_feed_quality(self):
+        feed = self.feed
+        feed = feed.copy()
+        H_feed = feed.H
+        try: dp = feed.dew_point_at_P()
+        except: pass
+        else: feed.T = dp.T
+        feed.phase = 'g'
+        H_vap = feed.H
+        try: bp = feed.bubble_point_at_P()
+        except: pass
+        else: feed.T = bp.T
+        feed.phase = 'l'
+        H_liq = feed.H
+        q = (H_vap - H_feed) / (H_vap - H_liq)
+        return q
 
     def _run_McCabeThiele(self):
         distillate, bottoms = self.outs
@@ -649,15 +660,13 @@ class BinaryDistillation(Unit):
         LHK_index = chemicals.get_index(LHK)
 
         # Feed light key mol fraction
-        self._load_feed_flows()
-        liq_mol = self._feed_liqmol
-        vap_mol = self._feed_vapmol
+        feed = self.feed
+        liq_mol = feed.imol['l']
+        vap_mol = feed.imol['g']
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
         F_mol_LHK = LHK_mol.sum()
         zf = LHK_mol[0]/F_mol_LHK
-        
-        # Get feed quality
-        q = liq_mol[LHK_index].sum()/F_mol_LHK
+        q = self._get_feed_quality()
         
         # Main arguments
         P = self.P
@@ -727,6 +736,7 @@ class BinaryDistillation(Unit):
         Design['Reflux'] = R
         
     def _run_condenser_and_boiler(self):
+        feed = self.feed
         distillate, bottoms_product = self.outs
         condenser = self.condenser
         boiler = self.boiler
@@ -749,7 +759,7 @@ class BinaryDistillation(Unit):
         
         # Set boiler conditions
         boiler.outs[0].imol['l'] = bottoms_product.mol
-        F_vap_feed = self._feed_vapmol.sum()
+        F_vap_feed = feed.imol['g'].sum()
         self._F_mol_boilup = F_mol_boilup = (R+1)*F_mol_distillate - F_vap_feed
         bp = self._boilup_bubble_point
         boilup_flow = bp.y * F_mol_boilup
@@ -795,6 +805,7 @@ class BinaryDistillation(Unit):
     
     def _compute_N_stages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
+        feed = self.feed
         vap, liq = self.outs
         Design = self.design_results
         R = Design['Reflux']
@@ -818,7 +829,7 @@ class BinaryDistillation(Unit):
             # Calculate Murphree Efficiency for stripping section
             mu = liq.get_property('mu', 'mPa*s')
             V_Smol = self._F_mol_boilup
-            L_Smol = R*F_mol_distillate + sum(self._feed_liqmol) 
+            L_Smol = R*F_mol_distillate + feed.imol['g'].sum()
             E_stripper = compute_murphree_stage_efficiency(mu,
                                                            alpha_LHK_bottoms,
                                                            L_Smol, V_Smol)
@@ -938,7 +949,7 @@ class BinaryDistillation(Unit):
     def _plot_stages(self):
         """Plot stages, graphical aid line, and equilibrium curve. The plot does not include operating lines nor a legend."""
         vap, liq = self.outs
-        if not hasattr(self, 'x_stages'):
+        if not hasattr(self, '_x_stages'):
             raise RuntimeError('cannot plot stages without running McCabe Thiele binary distillation')
         x_stages = self._x_stages
         y_stages = self._y_stages

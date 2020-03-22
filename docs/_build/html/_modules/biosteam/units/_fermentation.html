@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -224,6 +225,8 @@
 <span class="sd">        If True, `Fermenation.kinetic_model` will be used.</span>
 <span class="sd">    N : int</span>
 <span class="sd">        Number of batch reactors</span>
+<span class="sd">    T=305.15 : float</span>
+<span class="sd">        Temperature of reactor [K].</span>
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -306,7 +309,7 @@
               <span class="s1">&#39;Loading time&#39;</span><span class="p">:</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Total dead time&#39;</span><span class="p">:</span> <span class="s1">&#39;hr&#39;</span><span class="p">}</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Fermentation&#39;</span>    
     
@@ -336,7 +339,7 @@
                 <span class="p">(</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> 
-                 <span class="n">tau</span><span class="p">,</span>  <span class="n">N</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">iskinetic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">tau</span><span class="p">,</span>  <span class="n">N</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">iskinetic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">305.15</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hydrolysis</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Sucrose + Water -&gt; 2Glucose&#39;</span><span class="p">,</span> <span class="s1">&#39;Sucrose&#39;</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Glucose -&gt; 2Ethanol + 2CO2&#39;</span><span class="p">,</span>  <span class="s1">&#39;Glucose&#39;</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span>
@@ -344,12 +347,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span> <span class="o">=</span> <span class="n">hx</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">_outs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vent</span><span class="p">,</span> <span class="n">effluent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">effluent</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">vent</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mf">305.15</span>
         <span class="n">vent</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">effluent</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">vent</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
 
     <span class="k">def</span> <span class="nf">_calc_efficiency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feed</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
         <span class="c1"># Get initial concentrations</span>
@@ -453,7 +457,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iskinetic</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_efficiency</span><span class="p">(</span><span class="n">effluent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span><span class="p">(</span><span class="n">effluent_mol</span><span class="p">)</span>
-        <span class="n">vent</span><span class="o">.</span><span class="n">recieve_vent</span><span class="p">(</span><span class="n">effluent</span><span class="p">)</span>
+        <span class="n">vent</span><span class="o">.</span><span class="n">receive_vent</span><span class="p">(</span><span class="n">effluent</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">N_at_minimum_capital_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -470,7 +474,8 @@
         <span class="k">return</span> <span class="n">N</span> <span class="o">-</span> <span class="mi">1</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">v_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">F_vol</span>
+        <span class="n">effluent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">v_0</span> <span class="o">=</span> <span class="n">effluent</span><span class="o">.</span><span class="n">F_vol</span>
         <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span>
         <span class="n">tau_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_0</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
@@ -480,15 +485,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
         <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
-        <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="o">/</span><span class="n">N</span> 
-        <span class="n">hu</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">hu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">_design</span><span class="p">(</span><span class="n">hu</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="n">hu</span><span class="o">.</span><span class="n">duty</span> <span class="o">*=</span> <span class="n">N</span>
-        <span class="n">hu</span><span class="o">.</span><span class="n">cost</span> <span class="o">*=</span> <span class="n">N</span>
-        <span class="n">hu</span><span class="o">.</span><span class="n">flow</span> <span class="o">*=</span> <span class="n">N</span>
+        <span class="n">hx_effluent</span> <span class="o">=</span> <span class="n">effluent</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">hx_effluent</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">/=</span> <span class="n">N</span>
+        <span class="n">cooler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span>
+        <span class="n">cooler</span><span class="o">.</span><span class="n">simulate_as_auxiliary_exchanger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="n">hx_effluent</span><span class="p">)</span>
+        <span class="n">hu_fermentation</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span>
+        <span class="n">hu_cooler</span><span class="p">,</span> <span class="o">=</span> <span class="n">cooler</span><span class="o">.</span><span class="n">heat_utilities</span>
+        <span class="n">hu_fermentation</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">hu_cooler</span><span class="p">)</span>
+        <span class="n">hu_fermentation</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span><span class="o">.</span><span class="n">purchase_costs</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span></div>
         
     

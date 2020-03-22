@@ -7,7 +7,7 @@ units
    decorators
    design_tools
    facilities
-   Distillation
+   BinaryDistillation
    Duplicator
    Fermentation
    Flash
@@ -21,6 +21,7 @@ units
    MolecularSieve
    MultiEffectEvaporator
    Pump
+   ShortcutColumn
    Splitter
    StorageTank
    Transesterification

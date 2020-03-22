@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -285,11 +286,13 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
     
-    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span>
+                          <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">new_graphics</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">dct</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span>
         <span class="k">if</span> <span class="s1">&#39;line&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">format_unit_line</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="n">new_graphics</span><span class="p">:</span>
             <span class="c1"># Set new graphics for specified line</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">isabstract</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_run</span><span class="p">):</span> <span class="n">static</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
@@ -666,7 +669,9 @@
 
 <div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
                 <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram of the unit and all neighboring units within given radius.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram</span>
+<span class="sd">        of the unit and all neighboring units within given radius.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -702,10 +707,8 @@
             <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;0.4&#39;</span><span class="p">)</span>
 
         <span class="c1"># Initialize node arguments based on unit and make node</span>
-        <span class="n">type_</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">type_</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">get_node_taylored_to_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="o">**</span><span class="n">node</span><span class="p">)</span>
 
         <span class="c1"># Set stream node attributes</span>
         <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;rarrow&#39;</span><span class="p">,</span> <span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;#79dae8&#39;</span><span class="p">,</span>
@@ -716,12 +719,12 @@
         <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  
-            <span class="n">edge_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_in</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+            <span class="n">edge_in</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_in</span>
             <span class="k">if</span> <span class="n">di</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_in</span><span class="p">):</span> <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
                    <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">])</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
             <span class="n">di</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="c1"># Make nodes and edges for output streams</span>
@@ -729,11 +732,11 @@
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
             <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> 
-            <span class="n">edge_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>  
+            <span class="n">edge_out</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_out</span>  
             <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_out</span><span class="p">):</span> <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
                    <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
             <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
     

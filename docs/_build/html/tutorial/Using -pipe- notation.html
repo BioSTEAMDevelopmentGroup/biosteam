@@ -89,10 +89,13 @@
 <li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +106,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -391,7 +394,7 @@ the following format:</p>
 <span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span>
 
 <span class="c1"># Set property pacakge</span>
-<span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">])</span>
 
 <span class="c1"># Set feed stream and units</span>
 <span class="n">feed1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed1&#39;</span><span class="p">)</span>
@@ -400,7 +403,7 @@ the following format:</p>
 <span class="n">feed2</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
 <span class="n">M2</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
 <span class="n">S2</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;recycle&#39;</span><span class="p">,</span> <span class="s1">&#39;product2&#39;</span><span class="p">),</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -428,7 +431,7 @@ S2 and M1:</p>
 <span class="c1"># M2.ins[:] = (feed2, S1.outs[0])</span>
 <span class="c1"># S2.ins[:] = M2.outs</span>
 
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

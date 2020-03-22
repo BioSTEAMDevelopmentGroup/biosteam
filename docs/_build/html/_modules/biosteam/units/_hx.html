@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -457,6 +458,7 @@
 <span class="sd">    Utility cost                                             USD/hr      126</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Heat Exchanger&#39;</span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">utility_heat_exchanger_graphics</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
@@ -487,6 +489,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shell_and_tube_type</span> <span class="o">=</span> <span class="n">shell_and_tube_type</span>
     
+    <span class="k">def</span> <span class="nf">simulate_as_auxiliary_exchanger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="n">outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">outlet</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">outlet</span><span class="o">.</span><span class="n">proxy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">duty</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -495,8 +505,6 @@
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span>
         <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must define at least one of the following: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rigorous</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">T</span> <span class="ow">and</span> <span class="n">V_given</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;may only define either temperature, &#39;T&#39;, or vapor fraction &#39;V&#39;, in a rigorous simulation&quot;</span><span class="p">)</span>
@@ -504,7 +512,7 @@
                 <span class="n">s</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">vle</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">T</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">V_given</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
@@ -517,6 +525,8 @@
                     <span class="n">s</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vap_mol</span>
             <span class="k">if</span> <span class="n">T</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must define at least one of the following: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HXutility.get_streams"><a class="viewcode-back" href="../../../units/HXutility.html#biosteam.units.HXutility.get_streams">[docs]</a>    <span class="k">def</span> <span class="nf">get_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return inlet and outlet streams.</span>
@@ -691,6 +701,7 @@
 <span class="sd">    Utility cost                                             USD/hr        0</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Heat Exchanger&#39;</span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">process_heat_exchanger_graphics</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>find &mdash; BioSTEAM 0.1 documentation</title>
+  <title>Flowsheet &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -89,10 +89,13 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -103,7 +106,7 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">find</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -156,7 +159,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>find</li>
+      <li>Flowsheet</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -194,37 +197,26 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="find">
-<h1>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h1>
-<p>As BioSTEAM objects are created, they are automatically registered. The <cite>find</cite> object allows the user to find any Unit, Stream or System instance.  When <cite>find</cite> is called, it simply looks up the item and returns it.</p>
-<p><a class="reference internal" href="tutorial/Managing flowsheets.html"><span class="doc">Managing flowsheets</span></a></p>
+<div class="section" id="flowsheet">
+<h1>Flowsheet<a class="headerlink" href="#flowsheet" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Flowsheet">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">Flowsheet</code><span class="sig-paren">(</span><em class="sig-param">ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">Flowsheet</code><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Flowsheet object which stores references to all stream, unit,
 and system objects.</p>
+<blockquote>
+<div><p><a class="reference internal" href="tutorial/Managing flowsheets.html"><span class="doc">Managing flowsheets</span></a></p>
+</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.Flowsheet.flowsheet">
 <code class="sig-name descname">flowsheet</code><em class="property"> = Register:  &lt;Flowsheet: default&gt;</em><a class="headerlink" href="#biosteam.Flowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>[Register] All flowsheets.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="biosteam.Flowsheet.system">
-<code class="sig-name descname">system</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.system" title="Permalink to this definition">¶</a></dt>
-<dd><p>[Register] Contains all System objects as attributes.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Flowsheet.unit">
-<code class="sig-name descname">unit</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.unit" title="Permalink to this definition">¶</a></dt>
-<dd><p>[Register] Contains all Unit objects as attributes.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Flowsheet.stream">
-<code class="sig-name descname">stream</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>[Register] Contains all Stream objects as attributes.</p>
+<dl class="method">
+<dt id="biosteam.Flowsheet.from_flowsheets">
+<em class="property">classmethod </em><code class="sig-name descname">from_flowsheets</code><span class="sig-paren">(</span><em class="sig-param">ID</em>, <em class="sig-param">flowsheets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.from_flowsheets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.from_flowsheets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new flowsheet with all registered objects from the given flowsheets.</p>
 </dd></dl>
 
 <dl class="method">
@@ -245,14 +237,18 @@ and system objects.</p>
 
 <dl class="method">
 <dt id="biosteam.Flowsheet.create_system">
-<code class="sig-name descname">create_system</code><span class="sig-paren">(</span><em class="sig-param">ID=None</em>, <em class="sig-param">feeds=None</em>, <em class="sig-param">ends=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.create_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.create_system" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">create_system</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">feeds=None</em>, <em class="sig-param">ends=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.create_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.create_system" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a System object from all units and streams defined in the flowsheet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of system. Defaults to the flowsheet ID + ‘_sys’.</p></li>
-<li><p><strong>ends</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Streams that not products, but are ultimately specified through
-process requirements and not by its unit source.</p></li>
+<li><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of system.</p></li>
+<li><p><strong>ends</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – <dl class="simple">
+<dt>End streams of the system which are not products. Specify this argument</dt><dd><p>if only a section of the system is wanted, or if recycle streams should be
+ignored.</p>
+</dd>
+</dl>
+</p></li>
 </ul>
 </dd>
 </dl>
@@ -264,8 +260,12 @@ process requirements and not by its unit source.</p></li>
 <dd><p>Create a Network object from all units and streams defined in the flowsheet.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ends</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Streams that not products, but are ultimately specified through
-process requirements and not by its unit source.</p>
+<dd class="field-odd"><p><strong>ends</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – <dl class="simple">
+<dt>End streams of the system which are not products. Specify this argument</dt><dd><p>if only a section of the system is wanted, or if recycle streams should be
+ignored.</p>
+</dd>
+</dl>
+</p>
 </dd>
 </dl>
 </dd></dl>

@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -564,7 +565,8 @@
     <span class="nd">@converge_method</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">converge_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot set converge method when no recyle is specified&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;cannot set converge method when no recyle is specified&quot;</span><span class="p">)</span>
         <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;wegstein&#39;</span> <span class="o">==</span> <span class="n">method</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wegstein</span>
@@ -573,7 +575,9 @@
         <span class="k">elif</span> <span class="s1">&#39;aitken&#39;</span> <span class="o">==</span> <span class="n">method</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aitken</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;only &#39;wegstein&#39;, &#39;aitken&#39;, and &#39;fixed point&#39; methods are valid, not &#39;</span><span class="si">{method}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;only &#39;wegstein&#39;, &#39;aitken&#39;, and &#39;fixed point&#39; methods &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;are valid, not &#39;</span><span class="si">{method}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
     
     <span class="k">def</span> <span class="nf">_downstream_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
@@ -606,7 +610,8 @@
         <span class="k">return</span> <span class="n">path</span>
 
     <span class="k">def</span> <span class="nf">_downstream_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a system with a path composed of the `unit` and everything downstream (facilities included).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return a system with a path composed of the `unit` and</span>
+<span class="sd">        everything downstream (facilities included).&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="k">return</span> <span class="bp">self</span>
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_downstream_systems</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">system</span><span class="p">:</span> <span class="k">return</span> <span class="n">system</span>
@@ -755,15 +760,19 @@
         <span class="n">rmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">recycle</span><span class="o">.</span><span class="n">T</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mol</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">mol_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mol</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">T_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_tolerance</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">mol_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span> <span class="ow">and</span> <span class="n">T_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_tolerance</span><span class="p">:</span>
+            <span class="n">unconverged</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;{repr(self)} could not converge&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_info</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">True</span>
+            <span class="n">unconverged</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">=</span> <span class="n">T_error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">=</span> <span class="n">mol_error</span>
+        <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">unconverged</span>
+            
         
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Setup each element of the system.&quot;&quot;&quot;</span>

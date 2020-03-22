@@ -302,7 +302,7 @@ class HeatUtility:
         self.cost *= factor
         self.inlet_utility_stream.mol *= factor
         # No need to factor the outlet utility stream
-        # because the it shares the same flow rate data as the inlet
+        # because it shares the same flow rate data as the inlet
 
     def empty(self):
         """Remove utility requirements."""
@@ -415,7 +415,7 @@ class HeatUtility:
         raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')    
 
     def load_agent(self, agent):
-        """Initialize streams with given agent."""
+        """Initialize utility streams with given agent."""
         # Initialize streams
         self.inlet_utility_stream = agent.to_stream()
         self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()

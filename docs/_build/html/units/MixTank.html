@@ -89,10 +89,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -103,12 +106,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Duplicator.html">Duplicator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
@@ -121,6 +125,7 @@
 <li class="toctree-l2"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ShortcutColumn.html">ShortcutColumn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
@@ -343,7 +348,8 @@ vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
 <dl class="method">
 <dt id="biosteam.units.MixTank.diagram">
 <code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
-<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
+<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram
+of the unit and all neighboring units within given radius.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

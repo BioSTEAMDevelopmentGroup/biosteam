@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -252,14 +253,15 @@
 <span class="sd">    ...                   variable_inlets=[water, ethanol],</span>
 <span class="sd">    ...                   constant_inlets=[S1-0],</span>
 <span class="sd">    ...                   constant_outlets=[target],</span>
-<span class="sd">    ...                   chemical_IDs=[&#39;Ethanol&#39;, &#39;Water&#39;])</span>
+<span class="sd">    ...                   chemical_IDs=[&#39;Ethanol&#39;, &#39;Water&#39;],</span>
+<span class="sd">    ...                   description=&#39;Adjust flow rate of feed to mixer&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; # Connect units</span>
 <span class="sd">    &gt;&gt;&gt; water-T1-P1</span>
 <span class="sd">    &lt;Pump: P1&gt;</span>
 <span class="sd">    &gt;&gt;&gt; ethanol-T2-P2</span>
 <span class="sd">    &lt;Pump: P2&gt;</span>
 <span class="sd">    &gt;&gt;&gt; [P1-0, P2-0, MB1-0]-M1-F1-1-S1-0-MB1</span>
-<span class="sd">    &lt;Splitter: S1&gt;</span>
+<span class="sd">    &lt;MassBalance: MB1&gt;</span>
 <span class="sd">    &gt;&gt;&gt; sys = main_flowsheet.create_system(&#39;sys&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; # Make diagram to view system</span>
 <span class="sd">    &gt;&gt;&gt; # sys.diagram()</span>
@@ -271,16 +273,17 @@
 <span class="sd">                     Ethanol  500</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_graphics</span> <span class="o">=</span> <span class="n">ProcessSpecification</span><span class="o">.</span><span class="n">_graphics</span>
     <span class="n">power_utility</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">heat_utilities</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Balance&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">chemical_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_inlets</span><span class="o">=</span><span class="p">(),</span>
                  <span class="n">constant_outlets</span><span class="o">=</span><span class="p">(),</span> <span class="n">constant_inlets</span><span class="o">=</span><span class="p">(),</span>
-                 <span class="n">is_exact</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;flow&#39;</span><span class="p">):</span>
+                 <span class="n">is_exact</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">balance</span><span class="o">=</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span>
+                 <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_numerical_specification</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_load_thermo</span><span class="p">(</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
@@ -293,6 +296,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">chemical_IDs</span> <span class="o">=</span> <span class="n">chemical_IDs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_exact</span> <span class="o">=</span> <span class="n">is_exact</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">balance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
         
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solve mass balance by iteration.&quot;&quot;&quot;</span>

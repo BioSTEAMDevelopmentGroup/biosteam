@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>12. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
+  <title>13. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="13. Monte Carlo" href="Monte Carlo.html" />
-    <link rel="prev" title="11. Inheriting from Unit" href="Inheriting from Unit.html" /> 
+    <link rel="next" title="14. Monte Carlo" href="Monte Carlo.html" />
+    <link rel="prev" title="12. Inheriting from Unit" href="Inheriting from Unit.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -92,13 +92,14 @@
 <li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">12. Unit decorators</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">12.1. cost decorator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#References">12.2. References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">13. Unit decorators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">13.1. cost decorator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#References">13.2. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -109,7 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -162,7 +163,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li><span class="section-number">12. </span>Unit decorators</li>
+      <li><span class="section-number">13. </span>Unit decorators</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -365,9 +366,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Unit-decorators">
-<h1><span class="section-number">12. </span>Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">13. </span>Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="cost-decorator">
-<h2><span class="section-number">12.1. </span>cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">13.1. </span>cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
 <p>The cost decorator adds a free on board purchase cost based on the
 exponential scale up equation:</p>
 <div class="math">
@@ -407,7 +408,7 @@ for this example <a class="reference external" href="#References">[2]</a>.</p>
 
 <span class="c1"># Set up thermo property package</span>
 <span class="n">chemicals</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="n">SugarCane</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemical</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s1">&#39;SugarCane&#39;</span><span class="p">)</span>
+<span class="n">SugarCane</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemical</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s1">&#39;SugarCane&#39;</span><span class="p">,</span> <span class="n">phase_ref</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
 <span class="n">SugarCane</span><span class="o">.</span><span class="n">default</span><span class="p">()</span>
 <span class="n">chemicals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SugarCane</span><span class="p">)</span>
 <span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
@@ -743,7 +744,7 @@ CostItem: Flow rate (kg/hr)
 add multiple cost items.</p>
 </div>
 <div class="section" id="References">
-<h2><span class="section-number">12.2. </span>References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">13.2. </span>References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Huang, H., Long, S., &amp; Singh, V. (2016) “Techno-economic analysis of
 biodiesel and ethanol co-production from lipid-producing sugarcane”
@@ -764,10 +765,10 @@ Accounting and Capital Cost Estimation (Chapter 16)</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Monte Carlo.html" class="btn btn-neutral float-right" title="13. Monte Carlo" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Monte Carlo.html" class="btn btn-neutral float-right" title="14. Monte Carlo" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Inheriting from Unit.html" class="btn btn-neutral float-left" title="11. Inheriting from Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Inheriting from Unit.html" class="btn btn-neutral float-left" title="12. Inheriting from Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

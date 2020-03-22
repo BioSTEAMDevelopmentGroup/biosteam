@@ -586,13 +586,8 @@ class System(metaclass=system):
         mol_error = abs(mol - recycle.mol).sum()
         T_error = abs(T - recycle.T)
         self._iter += 1
-        last_mol_error = self._mol_error
-        last_T_error = self._T_error
         if mol_error < self.molar_tolerance and T_error < self.T_tolerance:
             unconverged = False
-        # elif (last_mol_error and mol_error > 0.99 * last_mol_error
-        #       and T_error > 0.99 * last_T_error):
-        #     unconverged = False
         elif self._iter > self.maxiter:
             raise SolverError(f'{repr(self)} could not converge' + self._error_info())
         else:

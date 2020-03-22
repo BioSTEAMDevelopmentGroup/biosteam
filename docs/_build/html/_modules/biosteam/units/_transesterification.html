@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -189,7 +190,10 @@
 <div class="viewcode-block" id="Transesterification"><a class="viewcode-back" href="../../../units/Transesterification.html#biosteam.units.Transesterification">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Reactor&#39;</span><span class="p">,</span>
       <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,)</span>
 <span class="k">class</span> <span class="nc">Transesterification</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a transesterification reactor that converts &#39;Lipid&#39; and &#39;Methanol&#39; to &#39;Biodiesel&#39; and &#39;Glycerol&#39;. Finds the amount of catalyst &#39;NaOCH3&#39; required and consumes it to &#39;NaOH&#39; and &#39;Methanol&#39;.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a transesterification reactor that converts &#39;Lipid&#39; and &#39;Methanol&#39;</span>
+<span class="sd">    to &#39;Biodiesel&#39; and &#39;Glycerol&#39;. Finds the amount of catalyst &#39;NaOCH3&#39;</span>
+<span class="sd">    required and consumes it to produce &#39;NaOH&#39; and &#39;Methanol&#39;.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

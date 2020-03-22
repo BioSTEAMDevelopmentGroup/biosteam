@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -224,12 +225,20 @@
 <div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a Flowsheet object which stores references to all stream, unit,</span>
-<span class="sd">    and system objects.&quot;&quot;&quot;</span>
+<span class="sd">    and system objects.</span>
+<span class="sd">	</span>
+<span class="sd">	Examples</span>
+<span class="sd">	--------</span>
+<span class="sd">	:doc:`tutorial/Managing flowsheets` </span>
+<span class="sd">	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
     
     <span class="c1">#: [Register] All flowsheets.</span>
     <span class="n">flowsheet</span> <span class="o">=</span> <span class="n">Flowsheets</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>        
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>        
+        <span class="bp">self</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        
         <span class="c1">#: [Register] Contains all System objects as attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">Registry</span><span class="p">()</span>
         
@@ -242,6 +251,10 @@
         <span class="c1">#: [str] ID of flowsheet.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flowsheet</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    
+    <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_registries</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">registries</span>
     
     <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_ID&#39;</span><span class="p">):</span>
@@ -252,6 +265,33 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span>
+    
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_registries</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+        <span class="n">flowsheet</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="k">return</span> <span class="n">flowsheet</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">registries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">registry</span><span class="p">,</span> <span class="n">other_registry</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">registries</span><span class="p">,</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">registries</span><span class="p">):</span>
+            <span class="n">registry</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other_registry</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Flowsheet.from_flowsheets"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.from_flowsheets">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_flowsheets</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">flowsheets</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a new flowsheet with all registered objects from the given flowsheets.&quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+        <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
+        <span class="k">for</span> <span class="n">flowsheet</span> <span class="ow">in</span> <span class="n">flowsheets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">isa</span><span class="p">(</span><span class="n">flowsheet</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">flowsheet</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="n">flowsheet</span><span class="p">]</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">flowsheet</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new</span></div>
     
 <div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display all units and attached streams.</span>
@@ -292,18 +332,18 @@
         <span class="n">product</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">feed</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">_system</span><span class="o">.</span><span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">]),</span>
+        <span class="n">_system</span><span class="o">.</span><span class="n">StreamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">]),</span>
                            <span class="kc">None</span><span class="p">,</span> <span class="n">feed</span><span class="p">)</span>
-        <span class="n">_system</span><span class="o">.</span><span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]),</span>
+        <span class="n">_system</span><span class="o">.</span><span class="n">StreamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]),</span>
                            <span class="n">product</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">unit</span> <span class="o">=</span> <span class="n">_system</span><span class="o">.</span><span class="n">_systemUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">feed</span><span class="p">,</span> <span class="n">product</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">_system</span><span class="o">.</span><span class="n">SystemUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">feed</span><span class="p">,</span> <span class="n">product</span><span class="p">)</span>
         <span class="n">unit</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;flowsheet&#39;</span>
         <span class="n">unit</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>
         
     <span class="k">def</span> <span class="nf">_surface_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_system</span>
         <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
-        <span class="n">StrUnit</span> <span class="o">=</span> <span class="n">_system</span><span class="o">.</span><span class="n">_streamUnit</span>
+        <span class="n">StrUnit</span> <span class="o">=</span> <span class="n">_system</span><span class="o">.</span><span class="n">StreamUnit</span>
         <span class="n">refresh_units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">recycle</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">recycle</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">subsystems</span><span class="p">):</span>
@@ -341,7 +381,7 @@
                     <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span> <span class="n">outs</span> <span class="o">+=</span> <span class="n">products</span>
                 
-                <span class="n">subsystem_unit</span> <span class="o">=</span> <span class="n">_system</span><span class="o">.</span><span class="n">_systemUnit</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+                <span class="n">subsystem_unit</span> <span class="o">=</span> <span class="n">_system</span><span class="o">.</span><span class="n">SystemUnit</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
                 <span class="n">units</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
                 <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subsystem_unit</span><span class="p">)</span>
         
@@ -351,23 +391,23 @@
             <span class="n">u</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ins</span>
             <span class="n">u</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">outs</span>
     
-<div class="viewcode-block" id="Flowsheet.create_system"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.create_system">[docs]</a>    <span class="k">def</span> <span class="nf">create_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">feeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="p">()):</span>
+<div class="viewcode-block" id="Flowsheet.create_system"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.create_system">[docs]</a>    <span class="k">def</span> <span class="nf">create_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">feeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a System object from all units and streams defined in the flowsheet.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        ID : str, optional</span>
-<span class="sd">            Name of system. Defaults to the flowsheet ID + &#39;_sys&#39;.</span>
+<span class="sd">            Name of system.</span>
 <span class="sd">        ends : Iterable[Stream]</span>
-<span class="sd">            Streams that not products, but are ultimately specified through</span>
-<span class="sd">            process requirements and not by its unit source.</span>
+<span class="sd">            End streams of the system which are not products. Specify this argument</span>
+<span class="sd">			if only a section of the system is wanted, or if recycle streams should be </span>
+<span class="sd">			ignored.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">feedstock</span><span class="p">,</span> <span class="o">*</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">get_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
-        <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
-        <span class="n">facilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Facility</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="n">System</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">ID</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;_sys&#39;</span><span class="p">,</span> <span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span>
+        <span class="n">facilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_facilities</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">System</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span>
                                      <span class="n">facilities</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Flowsheet.create_network"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.create_network">[docs]</a>    <span class="k">def</span> <span class="nf">create_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="p">()):</span>
@@ -377,12 +417,24 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        ends : Iterable[Stream]</span>
-<span class="sd">            Streams that not products, but are ultimately specified through</span>
-<span class="sd">            process requirements and not by its unit source.</span>
+<span class="sd">            End streams of the system which are not products. Specify this argument</span>
+<span class="sd">			if only a section of the system is wanted, or if recycle streams should be </span>
+<span class="sd">			ignored.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">feedstock</span><span class="p">,</span> <span class="o">*</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">get_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Network</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">create_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="p">()):</span>
+        <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_network</span><span class="p">(</span><span class="n">feeds</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span>
+        <span class="n">net2sys</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="n">from_network</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">([(</span><span class="n">net2sys</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Network</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">network</span><span class="o">.</span><span class="n">path</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">get_facilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Facility</span><span class="p">)]</span>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return requested biosteam item.</span>
@@ -408,8 +460,15 @@
 
 
 <span class="k">class</span> <span class="nc">MainFlowsheet</span><span class="p">(</span><span class="n">Flowsheet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a MainFlowsheet object which automatically registers </span>
-<span class="sd">    biosteam objects as they are created.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Create a MainFlowsheet object which automatically registers </span>
+<span class="sd">    biosteam objects as they are created.</span>
+<span class="sd">	</span>
+<span class="sd">	Examples</span>
+<span class="sd">	--------</span>
+<span class="sd">	:doc:`tutorial/Managing flowsheets` </span>
+<span class="sd">	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">set_flowsheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">):</span>
@@ -435,8 +494,9 @@
         
     <span class="fm">__setattr__</span> <span class="o">=</span> <span class="n">Flowsheets</span><span class="o">.</span><span class="fm">__setattr__</span>
     
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;cannot create new </span><span class="si">{cls.__name__}</span><span class="s1"> object&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">main_flowsheet</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>

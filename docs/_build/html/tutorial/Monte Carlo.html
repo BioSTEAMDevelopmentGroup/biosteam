@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>13. Monte Carlo &mdash; BioSTEAM 0.1 documentation</title>
+  <title>14. Monte Carlo &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Unit" href="../Unit.html" />
-    <link rel="prev" title="12. Unit decorators" href="Unit decorators.html" /> 
+    <link rel="prev" title="13. Unit decorators" href="Unit decorators.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -92,20 +92,21 @@
 <li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">13. Monte Carlo</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Model-objects">13.1. Model objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Create-parameter-distributions">13.2. Create parameter distributions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Parameter-objects">13.3. Parameter objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Create-a-model-object">13.4. Create a model object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-design-parameters">13.5. Add design parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-cost-parameters">13.6. Add cost parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-isolated-parameters">13.7. Add isolated parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-coupled-parameters">13.8. Add coupled parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-given-a-sample">13.9. Evaluate metric given a sample</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Monte-Carlo">13.10. Monte Carlo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Behind-the-scenes">13.11. Behind the scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">14. Monte Carlo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Model-objects">14.1. Model objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Create-parameter-distributions">14.2. Create parameter distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Parameter-objects">14.3. Parameter objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Create-a-model-object">14.4. Create a model object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-design-parameters">14.5. Add design parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-cost-parameters">14.6. Add cost parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-isolated-parameters">14.7. Add isolated parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-coupled-parameters">14.8. Add coupled parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-given-a-sample">14.9. Evaluate metric given a sample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Monte-Carlo">14.10. Monte Carlo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Behind-the-scenes">14.11. Behind the scenes</a></li>
 </ul>
 </li>
 </ul>
@@ -118,7 +119,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -171,7 +172,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li><span class="section-number">13. </span>Monte Carlo</li>
+      <li><span class="section-number">14. </span>Monte Carlo</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -374,9 +375,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Monte-Carlo">
-<h1><span class="section-number">13.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">14.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Model-objects">
-<h2><span class="section-number">13.1. </span>Model objects<a class="headerlink" href="#Model-objects" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.1. </span>Model objects<a class="headerlink" href="#Model-objects" title="Permalink to this headline">¶</a></h2>
 <p>BioSTEAM streamlines uncertainty analysis with an object-oriented
 framework where a Model object samples from parameter distributions and
 reevaluates biorefinery metrics at each new condition. In essence, a
@@ -392,7 +393,7 @@ This decreases the number of iterations required to solve recycle
 systems. The following examples show how Model objects can be used.</p>
 </div>
 <div class="section" id="Create-parameter-distributions">
-<h2><span class="section-number">13.2. </span>Create parameter distributions<a class="headerlink" href="#Create-parameter-distributions" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.2. </span>Create parameter distributions<a class="headerlink" href="#Create-parameter-distributions" title="Permalink to this headline">¶</a></h2>
 <p><strong>Let’s first learn how to create common parameter distributions using</strong>
 <a class="reference external" href="https://chaospy.readthedocs.io/en/master/tutorial.html">chaospy</a>.</p>
 <p>A triangular distribution is typically used when the parameter is
@@ -451,7 +452,7 @@ generally triangular and uniform distributions are the most widely used
 to describe the uncertainty of parameters in Monte Carlo analyses.</p>
 </div>
 <div class="section" id="Parameter-objects">
-<h2><span class="section-number">13.3. </span>Parameter objects<a class="headerlink" href="#Parameter-objects" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.3. </span>Parameter objects<a class="headerlink" href="#Parameter-objects" title="Permalink to this headline">¶</a></h2>
 <p><strong>Parameter objects are simply structures BioSTEAM uses to manage
 parameter values and distributions.</strong></p>
 <p>This section is just to get you familiar with Parameter objects. All the
@@ -481,7 +482,7 @@ the Model object when creating the parameter.</p>
 parameter objects in the following sections…</p>
 </div>
 <div class="section" id="Create-a-model-object">
-<h2><span class="section-number">13.4. </span>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.4. </span>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
 <p><strong>Model objects are used to evaluate metrics around multiple parameters
 of a system.</strong></p>
 <p>Create a Model object of the lipidcane biorefinery with internal rate of
@@ -503,7 +504,7 @@ return and utility cost as metrics:</p>
 </pre></div>
 </div>
 </div>
-<p>The Model object begins with no paramters:</p>
+<p>The Model object begins with no parameters:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [4]:
@@ -526,7 +527,7 @@ Model: Biorefinery internal rate of return (%)
 </div>
 </div>
 <div class="section" id="Add-design-parameters">
-<h2><span class="section-number">13.5. </span>Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.5. </span>Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>A design parameter is a Unit attribute that changes design
 requirements but does not affect mass and energy balances.</strong></p>
 <p>Add number of fermentation reactors as a “design” parameter:</p>
@@ -536,7 +537,7 @@ requirements but does not affect mass and energy balances.</strong></p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">R301</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">R301</span> <span class="c1"># The Fermentation Unit</span>
+<span></span><span class="n">R301</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">R301</span> <span class="c1"># The Fermentation Unit</span>
 <span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">,</span>
                  <span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;design&#39;</span><span class="p">,</span>
                  <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
@@ -576,9 +577,9 @@ to the model:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">set_N_reactors_parameter</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">set_N_reactors_parameter</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 5 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">set_N_reactors_parameter</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 8 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -588,15 +589,15 @@ to the model:</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Puchase cost at 5 reactors: $2,604,573
-Puchase cost at 8 reactors: $2,604,573
+Puchase cost at 5 reactors: $2,411,642
+Puchase cost at 8 reactors: $2,879,540
 </pre></div></div>
 </div>
 <p>The distribution will come into play later, when creating samples for
 Monte Carlo simulations.</p>
 </div>
 <div class="section" id="Add-cost-parameters">
-<h2><span class="section-number">13.6. </span>Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.6. </span>Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>A cost parameter is a Unit attribute that affects cost but does not
 change design requirements.</strong></p>
 <p>Add the fermentation unit base cost as a “cost” parameter with a
@@ -643,7 +644,7 @@ signature:</p>
 </div>
 </div>
 <div class="section" id="Add-isolated-parameters">
-<h2><span class="section-number">13.7. </span>Add isolated parameters<a class="headerlink" href="#Add-isolated-parameters" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.7. </span>Add isolated parameters<a class="headerlink" href="#Add-isolated-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>An isolated parameter should not affect Unit objects in any way.</strong></p>
 <p>Add feedstock price as a “isolated” parameter:</p>
 <div class="nbinput nblast docutils container">
@@ -664,7 +665,7 @@ signature:</p>
 </div>
 </div>
 <div class="section" id="Add-coupled-parameters">
-<h2><span class="section-number">13.8. </span>Add coupled parameters<a class="headerlink" href="#Add-coupled-parameters" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.8. </span>Add coupled parameters<a class="headerlink" href="#Add-coupled-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>A coupled parameter affects mass and energy balances of the system.</strong></p>
 <p>Add lipid fraction as a “coupled” parameter:</p>
 <div class="nbinput nblast docutils container">
@@ -677,7 +678,7 @@ signature:</p>
 <span class="c1"># you can pass it as the first argument</span>
 <span class="n">set_lipid_fraction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span>
                                      <span class="n">element</span><span class="o">=</span><span class="n">lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">,</span>
-                                     <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">))</span>
+                                     <span class="n">distribution</span><span class="o">=</span><span class="n">shape</span><span class="o">.</span><span class="n">Uniform</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -697,7 +698,7 @@ signature:</p>
 </div>
 </div>
 <div class="section" id="Evaluate-metric-given-a-sample">
-<h2><span class="section-number">13.9. </span>Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.9. </span>Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
 <p><strong>The model can be called to evaluate a sample of parameters.</strong></p>
 <p>Note that all parameters are stored in the model with highly coupled
 parameters first:</p>
@@ -778,7 +779,7 @@ distributions:</p>
       <td>Lipid fraction</td>
       <td></td>
       <td>Uniform</td>
-      <td>0.02</td>
+      <td>0.05</td>
       <td>0.1</td>
     </tr>
     <tr>
@@ -882,32 +883,23 @@ distributions:</p>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\thermosteam\thermosteam\equilibrium\solve_composition.py:20: RuntimeWarning: invalid value encountered in true_divide
-  return y_phi / phi(y/y.sum(), T, P)
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>Out[16]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[0.111993180764959, -16.598678707133107]
+<span></span>[0.10408652018694081, -14.71299957809741]
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Monte-Carlo">
-<h2><span class="section-number">13.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h2>
 <p>Sample from a joint distribution, and simulate samples:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [18]:
+<span></span>In [17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -922,7 +914,7 @@ C:\Users\yoelr\OneDrive\Code\thermosteam\thermosteam\equilibrium\solve_compositi
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[18]:
+<span></span>Out[17]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -963,53 +955,53 @@ C:\Users\yoelr\OneDrive\Code\thermosteam\thermosteam\equilibrium\solve_compositi
   <tbody>
     <tr>
       <th>0</th>
-      <td>0.0724</td>
-      <td>0.897</td>
-      <td>9.5</td>
-      <td>0.53</td>
-      <td>0.0338</td>
-      <td>0.174</td>
-      <td>-20.5</td>
+      <td>0.0714</td>
+      <td>0.875</td>
+      <td>7.04</td>
+      <td>0.475</td>
+      <td>0.0321</td>
+      <td>0.171</td>
+      <td>-18.3</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>0.0967</td>
-      <td>0.935</td>
-      <td>5.88</td>
-      <td>0.433</td>
-      <td>0.0344</td>
-      <td>0.194</td>
-      <td>-24.6</td>
+      <td>0.0672</td>
+      <td>0.91</td>
+      <td>8.6</td>
+      <td>0.512</td>
+      <td>0.0371</td>
+      <td>0.147</td>
+      <td>-17.2</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>0.0959</td>
-      <td>0.882</td>
-      <td>4.03</td>
-      <td>0.558</td>
-      <td>0.0358</td>
-      <td>0.181</td>
-      <td>-24.9</td>
+      <td>0.0608</td>
+      <td>0.903</td>
+      <td>5.06</td>
+      <td>0.493</td>
+      <td>0.0319</td>
+      <td>0.17</td>
+      <td>-16.1</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>0.0257</td>
-      <td>0.914</td>
-      <td>7.55</td>
-      <td>0.507</td>
-      <td>0.0375</td>
-      <td>0.113</td>
-      <td>-10.6</td>
+      <td>0.0589</td>
+      <td>0.88</td>
+      <td>6.53</td>
+      <td>0.488</td>
+      <td>0.0346</td>
+      <td>0.149</td>
+      <td>-15.9</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>0.0813</td>
-      <td>0.862</td>
-      <td>5.21</td>
-      <td>0.518</td>
-      <td>0.0342</td>
-      <td>0.175</td>
-      <td>-22.4</td>
+      <td>0.0904</td>
+      <td>0.908</td>
+      <td>4.21</td>
+      <td>0.516</td>
+      <td>0.0376</td>
+      <td>0.163</td>
+      <td>-21.1</td>
     </tr>
     <tr>
       <th>...</th>
@@ -1023,53 +1015,53 @@ C:\Users\yoelr\OneDrive\Code\thermosteam\thermosteam\equilibrium\solve_compositi
     </tr>
     <tr>
       <th>95</th>
-      <td>0.0701</td>
-      <td>0.852</td>
-      <td>9.91</td>
-      <td>0.509</td>
-      <td>0.0313</td>
-      <td>0.176</td>
-      <td>-20.5</td>
+      <td>0.0964</td>
+      <td>0.93</td>
+      <td>5.49</td>
+      <td>0.486</td>
+      <td>0.0321</td>
+      <td>0.196</td>
+      <td>-22</td>
     </tr>
     <tr>
       <th>96</th>
-      <td>0.0611</td>
-      <td>0.913</td>
-      <td>7.51</td>
-      <td>0.513</td>
-      <td>0.0357</td>
-      <td>0.158</td>
-      <td>-18</td>
+      <td>0.0613</td>
+      <td>0.892</td>
+      <td>6.21</td>
+      <td>0.48</td>
+      <td>0.0366</td>
+      <td>0.141</td>
+      <td>-16.3</td>
     </tr>
     <tr>
       <th>97</th>
-      <td>0.0351</td>
-      <td>0.875</td>
-      <td>5.76</td>
-      <td>0.536</td>
-      <td>0.0347</td>
-      <td>0.131</td>
-      <td>-13.1</td>
+      <td>0.0627</td>
+      <td>0.915</td>
+      <td>5.23</td>
+      <td>0.528</td>
+      <td>0.0352</td>
+      <td>0.156</td>
+      <td>-16.3</td>
     </tr>
     <tr>
       <th>98</th>
-      <td>0.043</td>
-      <td>0.895</td>
-      <td>4.79</td>
-      <td>0.511</td>
-      <td>0.0331</td>
-      <td>0.153</td>
-      <td>-14.4</td>
+      <td>0.0928</td>
+      <td>0.92</td>
+      <td>5.62</td>
+      <td>0.451</td>
+      <td>0.0345</td>
+      <td>0.18</td>
+      <td>-21.5</td>
     </tr>
     <tr>
       <th>99</th>
-      <td>0.0843</td>
-      <td>0.905</td>
-      <td>7.7</td>
-      <td>0.435</td>
-      <td>0.0379</td>
-      <td>0.163</td>
-      <td>-22.6</td>
+      <td>0.0922</td>
+      <td>0.904</td>
+      <td>9.1</td>
+      <td>0.542</td>
+      <td>0.0323</td>
+      <td>0.188</td>
+      <td>-21.5</td>
     </tr>
   </tbody>
 </table>
@@ -1081,7 +1073,7 @@ ordered from upstream to downstream (e.g. &lt;Stream: Lipid cane&gt; is
 upstream from &lt;Fermentation: R301&gt;)</p>
 </div>
 <div class="section" id="Behind-the-scenes">
-<h2><span class="section-number">13.11. </span>Behind the scenes<a class="headerlink" href="#Behind-the-scenes" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">14.11. </span>Behind the scenes<a class="headerlink" href="#Behind-the-scenes" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-default" id="id3">
 <img alt="Model UML" src="../_images/Model_UML.png" />
 <p class="caption"><span class="caption-text">Model UML Diagram</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
@@ -1107,7 +1099,7 @@ Parameter object by passing its simulation method.</p>
         <a href="../Unit.html" class="btn btn-neutral float-right" title="Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Unit decorators.html" class="btn btn-neutral float-left" title="12. Unit decorators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Unit decorators.html" class="btn btn-neutral float-left" title="13. Unit decorators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

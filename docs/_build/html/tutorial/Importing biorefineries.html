@@ -92,9 +92,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -105,7 +106,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -366,7 +367,7 @@ div.nboutput div.output_area.stderr {
 ethanol production from corntover and a design for the co-production of
 ethanol and biodiesel from lipidcane <a class="reference external" href="#References">[1, 2]</a>. To load
 the cornstover biorefinery, simply load the <code class="docutils literal notranslate"><span class="pre">system</span></code>:</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
 </pre></div>
@@ -376,17 +377,6 @@ the cornstover biorefinery, simply load the <code class="docutils literal notran
 <span class="kn">from</span> <span class="nn">biorefineries.cornstover</span> <span class="kn">import</span> <span class="n">system</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\Bioindustrial-Park\BioSTEAM 2.x.x\biorefineries\cornstover\units.py:453: RuntimeWarning: divide by zero encountered in double_scalars
-  cool_water.mol[:] *= (feed.H - H_at_35C)/(hot_water.H - cool_water.H)
-C:\Users\yoelr\OneDrive\Code\Bioindustrial-Park\BioSTEAM 2.x.x\biorefineries\cornstover\units.py:453: RuntimeWarning: invalid value encountered in multiply
-  cool_water.mol[:] *= (feed.H - H_at_35C)/(hot_water.H - cool_water.H)
-</pre></div></div>
 </div>
 <p>Now your flowsheet should change to the cornstover biorefinery:</p>
 <div class="nbinput docutils container">
@@ -471,28 +461,11 @@ as the flowsheet:</p>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:746: RuntimeWarning: divide by zero encountered in double_scalars
-  V = H/(f * self._Hvap)
-C:\Users\yoelr\OneDrive\Code\flexsolve\flexsolve\bounded_solvers.py:78: RuntimeWarning: divide by zero encountered in double_scalars
-  df0_d12 = df0/d12
-C:\Users\yoelr\OneDrive\Code\flexsolve\flexsolve\bounded_solvers.py:79: RuntimeWarning: divide by zero encountered in double_scalars
-  df1_d02 = df1/d02
-C:\Users\yoelr\OneDrive\Code\flexsolve\flexsolve\bounded_solvers.py:80: RuntimeWarning: divide by zero encountered in double_scalars
-  df2_d01 = df2/d01
-C:\Users\yoelr\OneDrive\Code\flexsolve\flexsolve\bounded_solvers.py:81: RuntimeWarning: invalid value encountered in double_scalars
-  x = x0*df1_d02*df2_d01 - x1*df0_d12*df2_d01 + x2*df0_d12*df1_d02
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Importing_biorefineries_10_1.png" src="../_images/tutorial_Importing_biorefineries_10_1.png" />
+<img alt="../_images/tutorial_Importing_biorefineries_10_0.png" src="../_images/tutorial_Importing_biorefineries_10_0.png" />
 </div>
 </div>
 <p>Note that your main flowsheet is now “lipidcane”:</p>

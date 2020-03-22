@@ -93,10 +93,13 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -107,7 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -366,16 +369,17 @@ div.nboutput div.output_area.stderr {
 <h1><span class="section-number">5. </span>Managing flowsheets<a class="headerlink" href="#Managing-flowsheets" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Retrieve-any-Unit,-Stream-or-System-object-by-ID">
 <h2><span class="section-number">5.1. </span>Retrieve any Unit, Stream or System object by ID<a class="headerlink" href="#Retrieve-any-Unit,-Stream-or-System-object-by-ID" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">find</span></code> has access to Flowsheet objects where all BioSTEAM objects are
-registered. The main flowsheet defaults to the ‘Default’ flowsheet:</p>
+<p>All BioSTEAM objects are registered in the main flowsheet. When BioSTEAM
+is first imported, the main flowsheet defaults to the ‘default’
+flowsheet:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">main_flowsheet</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">units</span>
+<span class="n">main_flowsheet</span>
 </pre></div>
 </div>
 </div>
@@ -396,9 +400,9 @@ registered. The main flowsheet defaults to the ‘Default’ flowsheet:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="n">unit</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span></span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="n">unit</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span class="n">main_flowsheet</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -418,9 +422,6 @@ Mixer: M1
 ins...
 [0] missing stream
 [1] missing stream
-[2] missing stream
-[3] missing stream
-[4] missing stream
 outs...
 [0] s1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
@@ -434,7 +435,7 @@ outs...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
+<span></span><span class="n">main_flowsheet</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -455,8 +456,8 @@ Stream: s1 from &lt;Mixer: M1&gt;
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">)</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">)</span>
+<span class="n">main_flowsheet</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -474,7 +475,7 @@ Stream: s1 from &lt;Mixer: M1&gt;
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">stream</span>
 </pre></div>
 </div>
 </div>
@@ -496,7 +497,7 @@ Stream: s1 from &lt;Mixer: M1&gt;
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">unit</span>
 </pre></div>
 </div>
 </div>
@@ -518,7 +519,7 @@ Stream: s1 from &lt;Mixer: M1&gt;
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">system</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">system</span>
 </pre></div>
 </div>
 </div>
@@ -539,7 +540,7 @@ Stream: s1 from &lt;Mixer: M1&gt;
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">M1</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">M1</span>
 </pre></div>
 </div>
 </div>
@@ -559,9 +560,6 @@ Mixer: M1
 ins...
 [0] missing stream
 [1] missing stream
-[2] missing stream
-[3] missing stream
-[4] missing stream
 outs...
 [0] s1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
@@ -578,8 +576,8 @@ outs...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;new_flowsheet&#39;</span><span class="p">)</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;new_flowsheet&#39;</span><span class="p">)</span>
+<span class="n">main_flowsheet</span>
 </pre></div>
 </div>
 </div>
@@ -600,8 +598,8 @@ outs...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">unit</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M3&#39;</span><span class="p">)</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">unit</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M3&#39;</span><span class="p">)</span>
+<span class="n">main_flowsheet</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -619,7 +617,7 @@ searching them would raise an error:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span></span><span class="n">main_flowsheet</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -630,15 +628,15 @@ searching them would raise an error:</p>
 <div class="highlight"><pre>
 <span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
 <span class="ansi-red-intense-fg ansi-bold">LookupError</span>                               Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-11-0658d1dcac4c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>bst<span class="ansi-yellow-intense-fg ansi-bold">.</span>find<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">&#39;M1&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-11-48b9bbf4ed05&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>main_flowsheet<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">&#39;M1&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
 
-<span class="ansi-green-intense-fg ansi-bold">~\OneDrive\Code\biosteam2\biosteam\_flowsheet.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-intense-fg ansi-bold">(self, ID)</span>
-<span class="ansi-green-fg">    172</span>                <span class="ansi-green-intense-fg ansi-bold">or</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>unit<span class="ansi-yellow-intense-fg ansi-bold">.</span>search<span class="ansi-yellow-intense-fg ansi-bold">(</span>ID<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    173</span>                or self.system.search(ID))
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 174</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> obj<span class="ansi-yellow-intense-fg ansi-bold">:</span> <span class="ansi-green-intense-fg ansi-bold">raise</span> LookupError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;no registered item &#39;{ID}&#39;&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    175</span>         <span class="ansi-green-intense-fg ansi-bold">return</span> obj
-<span class="ansi-green-fg">    176</span>
+<span class="ansi-green-intense-fg ansi-bold">~\OneDrive\Code\biosteam\biosteam\_flowsheet.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-intense-fg ansi-bold">(self, ID)</span>
+<span class="ansi-green-fg">    273</span>                <span class="ansi-green-intense-fg ansi-bold">or</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>unit<span class="ansi-yellow-intense-fg ansi-bold">.</span>search<span class="ansi-yellow-intense-fg ansi-bold">(</span>ID<span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    274</span>                or self.system.search(ID))
+<span class="ansi-green-intense-fg ansi-bold">--&gt; 275</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> obj<span class="ansi-yellow-intense-fg ansi-bold">:</span> <span class="ansi-green-intense-fg ansi-bold">raise</span> LookupError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;no registered item &#39;{ID}&#39;&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    276</span>         <span class="ansi-green-intense-fg ansi-bold">return</span> obj
+<span class="ansi-green-fg">    277</span>
 
 <span class="ansi-red-intense-fg ansi-bold">LookupError</span>: no registered item &#39;M1&#39;
 </pre></div></div>
@@ -651,8 +649,8 @@ between flowsheets is easy:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span> <span class="c1"># Switch back to default flowsheet</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span> <span class="c1"># Switch back to default flowsheet</span>
+<span class="n">main_flowsheet</span>
 </pre></div>
 </div>
 </div>
@@ -675,7 +673,7 @@ and leaves it as the main flowsheet when you import it:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane</span> <span class="kn">import</span> <span class="n">system</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
+<span class="n">main_flowsheet</span>
 </pre></div>
 </div>
 </div>
@@ -695,7 +693,7 @@ and leaves it as the main flowsheet when you import it:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

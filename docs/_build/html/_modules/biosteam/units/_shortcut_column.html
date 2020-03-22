@@ -1,0 +1,635 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam.units._shortcut_column &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam.units._shortcut_column</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam.units._shortcut_column</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Mar 19 09:22:08 2020</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log10</span><span class="p">,</span> <span class="n">ceil</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">floor</span>
+<span class="kn">from</span> <span class="nn">._binary_distillation</span> <span class="kn">import</span> <span class="n">BinaryDistillation</span>
+<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">wegstein</span><span class="p">,</span> <span class="n">bisection</span>
+<span class="kn">from</span> <span class="nn">thermosteam.equilibrium</span> <span class="kn">import</span> <span class="n">DewPoint</span><span class="p">,</span> <span class="n">BubblePoint</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ShortcutColumn&#39;</span><span class="p">,)</span>
+
+<span class="c1"># %% Functions</span>
+
+<span class="k">def</span> <span class="nf">geometric_mean</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">compute_mean_volatilities_relative_to_heavy_key</span><span class="p">(</span><span class="n">K_distillate</span><span class="p">,</span> <span class="n">K_bottoms</span><span class="p">,</span> <span class="n">HK_index</span><span class="p">):</span>
+    <span class="n">alpha_distillate</span> <span class="o">=</span> <span class="n">K_distillate</span> <span class="o">/</span> <span class="n">K_distillate</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span>
+    <span class="n">alpha_bottoms</span> <span class="o">=</span> <span class="n">K_bottoms</span> <span class="o">/</span> <span class="n">K_bottoms</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span>
+    <span class="n">alpha_mean</span> <span class="o">=</span> <span class="n">geometric_mean</span><span class="p">(</span><span class="n">alpha_distillate</span><span class="p">,</span>
+                                <span class="n">alpha_bottoms</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">alpha_mean</span>
+    
+<span class="k">def</span> <span class="nf">compute_partition_coefficients</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">[(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">y</span> <span class="o">/</span> <span class="n">x</span>
+    
+<span class="k">def</span> <span class="nf">compute_distillate_recoveries_Hengsteback_and_Gaddes</span><span class="p">(</span><span class="n">d_Lr</span><span class="p">,</span> <span class="n">b_Hr</span><span class="p">,</span>
+                                                         <span class="n">alpha_mean</span><span class="p">,</span>
+                                                         <span class="n">LHK_index</span><span class="p">):</span>
+    <span class="n">LK_index</span> <span class="o">=</span> <span class="n">LHK_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">alpha_LK</span> <span class="o">=</span> <span class="n">alpha_mean</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span>
+    <span class="n">A_dummy</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">b_Hr</span><span class="p">)</span> <span class="o">/</span> <span class="n">b_Hr</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">log10</span><span class="p">(</span><span class="n">A_dummy</span><span class="p">)</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="n">log10</span><span class="p">(</span><span class="n">d_Lr</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">d_Lr</span><span class="p">)</span> <span class="o">/</span> <span class="n">A_dummy</span><span class="p">)</span> <span class="o">/</span> <span class="n">log10</span><span class="p">(</span><span class="n">alpha_LK</span><span class="p">)</span>
+    <span class="n">dummy</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">A</span> <span class="o">*</span> <span class="n">alpha_mean</span><span class="o">**</span><span class="n">B</span>
+    <span class="n">distillate_recoveries</span> <span class="o">=</span> <span class="n">dummy</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">dummy</span><span class="p">)</span>
+    <span class="n">distillate_recoveries</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d_Lr</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">b_Hr</span><span class="p">]</span>
+    <span class="n">distillate_recoveries</span><span class="p">[</span><span class="n">distillate_recoveries</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="k">return</span> <span class="n">distillate_recoveries</span>
+
+<span class="k">def</span> <span class="nf">compute_minimum_theoretical_stages_Fenske</span><span class="p">(</span><span class="n">LHK_distillate</span><span class="p">,</span> <span class="n">LHK_bottoms</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">):</span>
+    <span class="n">LK</span><span class="p">,</span> <span class="n">HK</span> <span class="o">=</span> <span class="n">LHK_distillate</span>
+    <span class="n">LHK_ratio_distillate</span> <span class="o">=</span> <span class="n">LK</span> <span class="o">/</span> <span class="n">HK</span>
+    <span class="n">LK</span><span class="p">,</span> <span class="n">HK</span> <span class="o">=</span> <span class="n">LHK_bottoms</span>
+    <span class="n">HLK_ratio_bottoms</span> <span class="o">=</span> <span class="n">HK</span> <span class="o">/</span> <span class="n">LK</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">log10</span><span class="p">(</span><span class="n">LHK_ratio_distillate</span> <span class="o">*</span> <span class="n">HLK_ratio_bottoms</span><span class="p">)</span> <span class="o">/</span> <span class="n">log10</span><span class="p">(</span><span class="n">alpha_LK</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">N</span>
+
+<span class="k">def</span> <span class="nf">objective_function_Underwood_constant</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">z_f</span><span class="p">,</span>
+                                          <span class="n">alpha_mean</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">alpha_mean</span> <span class="o">*</span> <span class="n">z_f</span> <span class="o">/</span> <span class="p">(</span><span class="n">alpha_mean</span> <span class="o">-</span> <span class="n">theta</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">q</span>
+
+<span class="k">def</span> <span class="nf">compute_minimum_reflux_ratio_Underwood</span><span class="p">(</span><span class="n">alpha_mean</span><span class="p">,</span> <span class="n">z_d</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+    <span class="n">Rm</span> <span class="o">=</span> <span class="p">(</span><span class="n">alpha_mean</span> <span class="o">*</span> <span class="n">z_d</span> <span class="o">/</span> <span class="p">(</span><span class="n">alpha_mean</span> <span class="o">-</span> <span class="n">theta</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">Rm</span>
+
+<span class="k">def</span> <span class="nf">compute_theoretical_stages_Gilliland</span><span class="p">(</span><span class="n">Nm</span><span class="p">,</span> <span class="n">Rm</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span> <span class="o">-</span> <span class="n">Rm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">R</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">exp</span><span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">54.4</span><span class="o">*</span><span class="n">X</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">11</span> <span class="o">+</span> <span class="mf">117.2</span><span class="o">*</span><span class="n">X</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">X</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="p">(</span><span class="n">Y</span> <span class="o">+</span> <span class="n">Nm</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ceil</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">compute_feed_stage_Kirkbride</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span>
+                                 <span class="n">feed_HK_over_LK</span><span class="p">,</span>
+                                 <span class="n">z_LK_bottoms</span><span class="p">,</span>
+                                 <span class="n">z_HK_distillate</span><span class="p">):</span>
+    <span class="n">m_over_p</span> <span class="o">=</span> <span class="p">(</span><span class="n">B</span><span class="o">/</span><span class="n">D</span> <span class="o">*</span> <span class="n">feed_HK_over_LK</span> <span class="o">*</span> <span class="p">(</span><span class="n">z_LK_bottoms</span> <span class="o">/</span> <span class="n">z_HK_distillate</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.206</span>
+    <span class="k">return</span> <span class="n">floor</span><span class="p">(</span><span class="n">N</span> <span class="o">/</span> <span class="p">(</span><span class="n">m_over_p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    
+    
+
+<span class="c1"># %%</span>
+
+<div class="viewcode-block" id="ShortcutColumn"><a class="viewcode-back" href="../../../units/ShortcutColumn.html#biosteam.units.ShortcutColumn">[docs]</a><span class="k">class</span> <span class="nc">ShortcutColumn</span><span class="p">(</span><span class="n">BinaryDistillation</span><span class="p">,</span>
+                     <span class="n">new_graphics</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a multicomponent distillation column that relies on the</span>
+<span class="sd">    Fenske-Underwood-Gilliland method to solve for the theoretical design</span>
+<span class="sd">    of the distillation column and the separation of non-keys [1]_.The Murphree</span>
+<span class="sd">    efficiency (i.e. column efficiency) is based on the modified O&#39;Connell</span>
+<span class="sd">    correlation [2]_. The diameter is based on tray separation and flooding </span>
+<span class="sd">    velocity [1, 3]_. Purchase costs are based on correlations compiled by</span>
+<span class="sd">    Warren et. al. [4]_.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ins : streams</span>
+<span class="sd">        Inlet fluids to be mixed into the feed stage.</span>
+<span class="sd">    outs : stream sequence</span>
+<span class="sd">        * [0] Distillate</span>
+<span class="sd">        * [1] Bottoms product</span>
+<span class="sd">    LHK : tuple[str]</span>
+<span class="sd">        Light and heavy keys.</span>
+<span class="sd">    y_top : float</span>
+<span class="sd">        Molar fraction of light key to the light and heavy keys in the</span>
+<span class="sd">        distillate.</span>
+<span class="sd">    x_bot : float</span>
+<span class="sd">        Molar fraction of light key to the light and heavy keys in the bottoms</span>
+<span class="sd">        product.</span>
+<span class="sd">    Lr : float</span>
+<span class="sd">        Recovery of the light key in the distillate.</span>
+<span class="sd">    Hr : float</span>
+<span class="sd">        Recovery of the heavy key in the bottoms product.</span>
+<span class="sd">    k : float</span>
+<span class="sd">        Ratio of reflux to minimum reflux.</span>
+<span class="sd">    specification=&quot;Composition&quot; : &quot;Composition&quot; or &quot;Recovery&quot;</span>
+<span class="sd">        If composition is used, `y_top` and `x_bot` must be specified.</span>
+<span class="sd">        If recovery is used, `Lr` and `Hr` must be specified.</span>
+<span class="sd">    P=101325 : float</span>
+<span class="sd">        Operating pressure [Pa].</span>
+<span class="sd">    vessel_material : str, optional</span>
+<span class="sd">        Vessel construction material. Defaults to &#39;Carbon steel&#39;.</span>
+<span class="sd">    tray_material : str, optional</span>
+<span class="sd">        Tray construction material. Defaults to &#39;Carbon steel&#39;.</span>
+<span class="sd">    tray_type=&#39;Sieve&#39; : &#39;Sieve&#39;, &#39;Valve&#39;, or &#39;Bubble cap&#39;</span>
+<span class="sd">        Tray type.</span>
+<span class="sd">    tray_spacing=450 : float</span>
+<span class="sd">        Typically between 152 to 915 mm.</span>
+<span class="sd">    stage_efficiency=None : </span>
+<span class="sd">        User enforced stage efficiency. If None, stage efficiency is</span>
+<span class="sd">        calculated by the O&#39;Connell correlation [2]_.</span>
+<span class="sd">    velocity_fraction=0.8 : float</span>
+<span class="sd">        Fraction of actual velocity to maximum velocity allowable before</span>
+<span class="sd">        flooding.</span>
+<span class="sd">    foaming_factor=1.0 : float</span>
+<span class="sd">        Must be between 0 to 1.</span>
+<span class="sd">    open_tray_area_fraction=0.1 : float</span>
+<span class="sd">        Fraction of open area to active area of a tray.</span>
+<span class="sd">    downcomer_area_fraction=None : float</span>
+<span class="sd">        Enforced fraction of downcomer area to net (total) area of a tray.</span>
+<span class="sd">        If None, estimate ratio based on Oliver&#39;s estimation [1]_.</span>
+<span class="sd">    is_divided=False : bool</span>
+<span class="sd">        True if the stripper and rectifier are two separate columns.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)</span>
+<span class="sd">        Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc. </span>
+
+<span class="sd">    .. [2] M. Duss, R. Taylor. (2018)</span>
+<span class="sd">        Predict Distillation Tray Efficiency. AICHE </span>
+<span class="sd">    </span>
+<span class="sd">    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’</span>
+<span class="sd">        Handbook, 9 ed.; McGraw-Hill Education, 2018.</span>
+
+<span class="sd">    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,</span>
+<span class="sd">        &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.</span>
+<span class="sd">        Cost Accounting and Capital Cost Estimation (Chapter 16)</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Binary distillation assuming 100% separation on non-keys:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units import ShortcutColumn</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
+<span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Methanol&#39;, &#39;Glycerol&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, flow=(80, 100, 25))</span>
+<span class="sd">    &gt;&gt;&gt; bp = feed.bubble_point_at_P()</span>
+<span class="sd">    &gt;&gt;&gt; feed.T = bp.T # Feed at bubble point T</span>
+<span class="sd">    &gt;&gt;&gt; D1 = ShortcutColumn(&#39;D1&#39;, ins=feed,</span>
+<span class="sd">    ...                     outs=(&#39;distillate&#39;, &#39;bottoms_product&#39;),</span>
+<span class="sd">    ...                     LHK=(&#39;Methanol&#39;, &#39;Water&#39;),</span>
+<span class="sd">    ...                     y_top=0.99, x_bot=0.01, k=2,</span>
+<span class="sd">    ...                     is_divided=True)</span>
+<span class="sd">    &gt;&gt;&gt; D1.simulate()</span>
+<span class="sd">    &gt;&gt;&gt; # See all results</span>
+<span class="sd">    &gt;&gt;&gt; D1.show(T=&#39;degC&#39;, P=&#39;atm&#39;, composition=True)</span>
+<span class="sd">    ShortcutColumn: D1</span>
+<span class="sd">    ins...</span>
+<span class="sd">    [0] feed</span>
+<span class="sd">        phase: &#39;l&#39;, T: 76.129 degC, P: 1 atm</span>
+<span class="sd">        composition: Water     0.39</span>
+<span class="sd">                     Methanol  0.488</span>
+<span class="sd">                     Glycerol  0.122</span>
+<span class="sd">                     --------  205 kmol/hr</span>
+<span class="sd">    outs...</span>
+<span class="sd">    [0] distillate</span>
+<span class="sd">        phase: &#39;g&#39;, T: 64.91 degC, P: 1 atm</span>
+<span class="sd">        composition: Water     0.01</span>
+<span class="sd">                     Methanol  0.99</span>
+<span class="sd">                     --------  100 kmol/hr</span>
+<span class="sd">    [1] bottoms_product</span>
+<span class="sd">        phase: &#39;l&#39;, T: 100.06 degC, P: 1 atm</span>
+<span class="sd">        composition: Water     0.754</span>
+<span class="sd">                     Methanol  0.00761</span>
+<span class="sd">                     Glycerol  0.239</span>
+<span class="sd">                     --------  105 kmol/hr</span>
+<span class="sd">    &gt;&gt;&gt; D1.results()</span>
+<span class="sd">    Distillation                                    Units       D1</span>
+<span class="sd">    Cooling water       Duty                        kJ/hr -7.9e+06</span>
+<span class="sd">                        Flow                      kmol/hr  5.4e+03</span>
+<span class="sd">                        Cost                       USD/hr     2.63</span>
+<span class="sd">    Low pressure steam  Duty                        kJ/hr 1.24e+07</span>
+<span class="sd">                        Flow                      kmol/hr      320</span>
+<span class="sd">                        Cost                       USD/hr       76</span>
+<span class="sd">    Design              Theoretical feed stage                   8</span>
+<span class="sd">                        Theoretical stages                      16</span>
+<span class="sd">                        Minimum reflux              Ratio     1.06</span>
+<span class="sd">                        Reflux                      Ratio     2.12</span>
+<span class="sd">                        Rectifier stages                        13</span>
+<span class="sd">                        Stripper stages                         26</span>
+<span class="sd">                        Rectifier height               ft     31.7</span>
+<span class="sd">                        Stripper height                ft     50.9</span>
+<span class="sd">                        Rectifier diameter             ft     4.52</span>
+<span class="sd">                        Stripper diameter              ft     3.84</span>
+<span class="sd">                        Rectifier wall thickness       in    0.312</span>
+<span class="sd">                        Stripper wall thickness        in     0.25</span>
+<span class="sd">                        Rectifier weight               lb 5.15e+03</span>
+<span class="sd">                        Stripper weight                lb 6.69e+03</span>
+<span class="sd">    Purchase cost       Rectifier trays               USD 1.52e+04</span>
+<span class="sd">                        Stripper trays                USD 2.07e+04</span>
+<span class="sd">                        Rectifier tower               USD 7.86e+04</span>
+<span class="sd">                        Stripper tower                USD  9.7e+04</span>
+<span class="sd">                        Condenser                     USD 2.09e+04</span>
+<span class="sd">                        Boiler                        USD 4.45e+03</span>
+<span class="sd">    Total purchase cost                               USD 2.37e+05</span>
+<span class="sd">    Utility cost                                   USD/hr     78.6</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Distillation&#39;</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>     
+     
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set starting point for solving column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_binary_distillation_mass_balance</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_heavy_and_light_non_keys_in_products</span><span class="p">()</span>
+        
+        <span class="c1"># Initialize objects to calculate bubble and dew points</span>
+        <span class="n">equilibrium_chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feed</span><span class="o">.</span><span class="n">equilibrium_chemicals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span> <span class="o">=</span> <span class="n">DewPoint</span><span class="p">(</span><span class="n">equilibrium_chemicals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span> <span class="o">=</span> <span class="n">BubblePoint</span><span class="p">(</span><span class="n">equilibrium_chemicals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span> <span class="o">=</span> <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span><span class="o">.</span><span class="n">IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_equilibrium_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">IDs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">LHK</span><span class="p">]</span>
+        
+        <span class="c1"># Solve for new recoveries</span>
+        <span class="n">distillate_recoveries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve_distillate_recoveries</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_distillate_recoveries</span><span class="p">(</span><span class="n">distillate_recoveries</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_distillate_and_bottoms_temperature</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_setup_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="ShortcutColumn.plot_stages"><a class="viewcode-back" href="../../../units/ShortcutColumn.html#biosteam.units.ShortcutColumn.plot_stages">[docs]</a>    <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+        
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_FenskeUnderwoodGilliland</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_condenser_and_boiler</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_complete_distillation_column_design</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_run_FenskeUnderwoodGilliland</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
+        <span class="n">alpha_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_mean_volatilities_relative_to_heavy_key</span><span class="p">()</span>
+        <span class="n">LK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_equilibrium_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">alpha_LK</span> <span class="o">=</span> <span class="n">alpha_mean</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span>
+        <span class="n">feed</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">Nm</span> <span class="o">=</span> <span class="n">compute_minimum_theoretical_stages_Fenske</span><span class="p">(</span><span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">],</span>
+                                                       <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">],</span>
+                                                       <span class="n">alpha_LK</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve_Underwood_constant</span><span class="p">(</span><span class="n">alpha_mean</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">)</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+        <span class="n">z_d</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+        <span class="n">Rm</span> <span class="o">=</span> <span class="n">compute_minimum_reflux_ratio_Underwood</span><span class="p">(</span><span class="n">alpha_mean</span><span class="p">,</span> <span class="n">z_d</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Rm</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span> <span class="n">Rm</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">Rm</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">compute_theoretical_stages_Gilliland</span><span class="p">(</span><span class="n">Nm</span><span class="p">,</span> <span class="n">Rm</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
+        <span class="n">feed_HK</span><span class="p">,</span> <span class="n">feed_LK</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
+        <span class="n">feed_HK_over_LK</span> <span class="o">=</span> <span class="n">feed_HK</span> <span class="o">/</span> <span class="n">feed_LK</span>
+        <span class="n">Bs</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span>
+        <span class="n">Ds</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">Bs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">Ds</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">LK_index</span><span class="p">,</span> <span class="n">HK_index</span> <span class="o">=</span> <span class="n">LHK_index</span>
+        <span class="n">z_LK_bottoms</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span> <span class="o">/</span> <span class="n">B</span>
+        <span class="n">z_HK_distillate</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span> <span class="o">/</span> <span class="n">D</span>
+        <span class="n">feed_stage</span> <span class="o">=</span> <span class="n">compute_feed_stage_Kirkbride</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> 
+                                                  <span class="n">feed_HK_over_LK</span><span class="p">,</span>
+                                                  <span class="n">z_LK_bottoms</span><span class="p">,</span>
+                                                  <span class="n">z_HK_distillate</span><span class="p">)</span>
+        <span class="n">design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
+        <span class="n">design</span><span class="p">[</span><span class="s1">&#39;Theoretical feed stage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">-</span> <span class="n">feed_stage</span>
+        <span class="n">design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span>
+        <span class="n">design</span><span class="p">[</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rm</span>
+        <span class="n">design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span>
+        
+    <span class="k">def</span> <span class="nf">_get_relative_volatilities_LHK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">LHK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LHK</span>
+        <span class="n">condensate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensate</span>
+        <span class="n">K_light</span><span class="p">,</span> <span class="n">K_heavy</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">get_molar_composition</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span> <span class="o">/</span> <span class="n">condensate</span><span class="o">.</span><span class="n">get_molar_composition</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span>
+        <span class="n">alpha_LHK_distillate</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
+        
+        <span class="n">boilup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boilup</span>
+        <span class="n">K_light</span><span class="p">,</span> <span class="n">K_heavy</span> <span class="o">=</span> <span class="n">boilup</span><span class="o">.</span><span class="n">get_molar_composition</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span> <span class="o">/</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">get_molar_composition</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span>
+        <span class="n">alpha_LHK_distillate</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
+        <span class="n">alpha_LHK_bottoms</span> <span class="o">=</span> <span class="n">K_light</span><span class="o">/</span><span class="n">K_heavy</span>
+        
+        <span class="k">return</span> <span class="n">alpha_LHK_distillate</span><span class="p">,</span> <span class="n">alpha_LHK_bottoms</span>
+        
+    <span class="k">def</span> <span class="nf">_get_feed_quality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feed</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">H_feed</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">H</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">dp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">dew_point_at_P</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+        <span class="n">H_vap</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">H</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">bp</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point_at_P</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bp</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+        <span class="n">H_liq</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">H</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">(</span><span class="n">H_vap</span> <span class="o">-</span> <span class="n">H_feed</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">H_vap</span> <span class="o">-</span> <span class="n">H_liq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q</span>
+    
+    <span class="k">def</span> <span class="nf">_solve_Underwood_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_mean</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_feed_quality</span><span class="p">()</span>
+        <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">bisection</span><span class="p">(</span><span class="n">objective_function_Underwood_constant</span><span class="p">,</span>
+                          <span class="mi">1</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">z_f</span><span class="p">,</span> <span class="n">alpha_mean</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">theta</span>
+        
+    <span class="k">def</span> <span class="nf">_add_trace_heavy_and_light_non_keys_in_products</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">LNK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LNK_index</span>
+        <span class="n">HNK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HNK_index</span>
+        <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_trace</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">-=</span> <span class="n">LNK_trace</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_trace</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span>
+        <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">-=</span> <span class="n">HNK_trace</span>
+        
+    <span class="k">def</span> <span class="nf">_estimate_mean_volatilities_relative_to_heavy_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Mean volatilities taken at distillate and bottoms product</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">dew_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span>
+        <span class="n">bubble_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+        <span class="n">z_distillate</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+        <span class="n">z_bottoms</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+        <span class="n">dp</span> <span class="o">=</span> <span class="n">dew_point</span><span class="p">(</span><span class="n">z_distillate</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">bp</span> <span class="o">=</span> <span class="n">bubble_point</span><span class="p">(</span><span class="n">z_bottoms</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">K_distillate</span> <span class="o">=</span> <span class="n">compute_partition_coefficients</span><span class="p">(</span><span class="n">dp</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">dp</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">K_bottoms</span> <span class="o">=</span> <span class="n">compute_partition_coefficients</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">HK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_equilibrium_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">alpha_mean</span> <span class="o">=</span> <span class="n">compute_mean_volatilities_relative_to_heavy_key</span><span class="p">(</span><span class="n">K_distillate</span><span class="p">,</span>
+                                                                     <span class="n">K_bottoms</span><span class="p">,</span>
+                                                                     <span class="n">HK_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">alpha_mean</span>
+        
+    <span class="k">def</span> <span class="nf">_estimate_distillate_recoveries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Use Hengsteback and Geddes equations</span>
+        <span class="n">alpha_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_mean_volatilities_relative_to_heavy_key</span><span class="p">()</span>
+        <span class="n">feed</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
+        <span class="n">LK_index</span><span class="p">,</span> <span class="n">HK_index</span> <span class="o">=</span> <span class="n">LHK_index</span>
+        <span class="n">d_Lr</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span> <span class="o">/</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span>
+        <span class="n">b_Hr</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span> <span class="o">/</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span>
+        <span class="n">LHK_equilibrium_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_equilibrium_index</span>
+        <span class="n">LK_index</span> <span class="o">=</span> <span class="n">LHK_equilibrium_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">compute_distillate_recoveries_Hengsteback_and_Gaddes</span><span class="p">(</span><span class="n">d_Lr</span><span class="p">,</span> <span class="n">b_Hr</span><span class="p">,</span>
+                                                                    <span class="n">alpha_mean</span><span class="p">,</span>
+                                                                    <span class="n">LHK_equilibrium_index</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_update_distillate_recoveries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distillate_recoveries</span><span class="p">):</span>
+        <span class="n">feed</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+        <span class="n">feed_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span>
+        <span class="n">distillate</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate_mol</span> <span class="o">=</span> <span class="n">distillate_recoveries</span> <span class="o">*</span> <span class="n">feed_mol</span>
+        <span class="n">bottoms</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span> <span class="o">-</span> <span class="n">distillate_mol</span>
+        
+    <span class="k">def</span> <span class="nf">_solve_distillate_recoveries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">distillate_recoveries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_distillate_recoveries</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">wegstein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_recompute_distillate_recovery</span><span class="p">,</span>
+                        <span class="n">distillate_recoveries</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_recompute_distillate_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distillate_recoveries</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_distillate_recoveries</span><span class="p">(</span><span class="n">distillate_recoveries</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_distillate_recoveries</span><span class="p">()</span></div>
+        
+
+<span class="c1"># if __name__ == &#39;__main__&#39;:</span>
+    <span class="c1"># from biosteam import Stream, settings, ShortcutColumn, BinaryDistillation</span>
+    <span class="c1"># settings.set_thermo([&#39;Water&#39;, &#39;Ethanol&#39;, &#39;Methanol&#39;, &#39;Glycerol&#39;])</span>
+    <span class="c1"># feed = Stream(&#39;feed&#39;, flow=(1, 80, 80, 1))</span>
+    <span class="c1"># bp = feed.bubble_point_at_P()</span>
+    <span class="c1"># feed.T = bp.T</span>
+    
+    <span class="c1"># D1 = ShortcutColumn(&#39;D1&#39;, ins=feed,</span>
+    <span class="c1">#                     outs=(&#39;distillate&#39;, &#39;bottoms_product&#39;),</span>
+    <span class="c1">#                     LHK=(&#39;Methanol&#39;, &#39;Ethanol&#39;),</span>
+    <span class="c1">#                     Lr=0.80, Hr=0.80, k=1.2,</span>
+    <span class="c1">#                     product_specification_format=&#39;Recovery&#39;,                        </span>
+    <span class="c1">#                     is_divided=True)</span>
+    <span class="c1"># D1.simulate()</span>
+    <span class="c1"># D1.show(T=&#39;degC&#39;, P=&#39;atm&#39;, composition=True)</span>
+    <span class="c1"># print(D1.results())</span>
+    <span class="c1"># print(&#39;\n&#39;)</span>
+    <span class="c1"># feed2 = feed.copy(&#39;feed2&#39;)</span>
+    <span class="c1"># D2 = BinaryDistillation(&#39;D2&#39;, ins=feed2,</span>
+    <span class="c1">#                         outs=(&#39;distillate2&#39;, &#39;bottoms_product2&#39;),</span>
+    <span class="c1">#                         LHK=(&#39;Methanol&#39;, &#39;Ethanol&#39;),</span>
+    <span class="c1">#                         Lr=0.80, Hr=0.80, k=1.2,</span>
+    <span class="c1">#                         product_specification_format=&#39;Recovery&#39;,                        </span>
+    <span class="c1">#                         is_divided=True)</span>
+    <span class="c1"># D2.simulate()</span>
+    <span class="c1"># D2.show(T=&#39;degC&#39;, P=&#39;atm&#39;, composition=True)</span>
+    <span class="c1"># print(D2.results())</span>
+    
+    
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

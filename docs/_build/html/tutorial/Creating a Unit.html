@@ -89,10 +89,13 @@
 <li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +106,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -367,7 +370,7 @@ Either an iterable of Stream objects, or a Stream object work for
 <code class="docutils literal notranslate"><span class="pre">ins</span></code> and <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
+<span></span>In [1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -402,7 +405,7 @@ outs...
 <p>You can also view a diagram() to check connections:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [3]:
+<span></span>In [2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -420,7 +423,7 @@ outs...
 <p>IDs for Stream objects can also be used instead:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
+<span></span>In [3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -436,7 +439,7 @@ outs...
 <div class="highlight"><pre>
 Unit: P1
 ins...
-[0] s1
+[0] in0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 outs...
@@ -452,7 +455,7 @@ outs...
 <code class="docutils literal notranslate"><span class="pre">ins</span></code>, and empty streams to <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -470,10 +473,10 @@ Unit: U1
 ins...
 [0] missing stream
 outs...
-[0] s2
+[0] s1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] s3
+[1] s2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -483,7 +486,7 @@ initialized. If an empty iterable is given, empty streams are
 initialized:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -507,7 +510,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
+<span></span>In [6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -523,14 +526,14 @@ outs...
 <div class="highlight"><pre>
 Unit: P1
 ins...
-[0] s4
+[0] s3
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 outs...
-[0] s5
+[0] s4
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] s6
+[1] s5
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -538,7 +541,7 @@ outs...
 <p>The number of default streams is different for each Unit subclass:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<span></span>In [7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -556,18 +559,15 @@ Mixer: U2
 ins...
 [0] missing stream
 [1] missing stream
-[2] missing stream
-[3] missing stream
-[4] missing stream
 outs...
-[0] s7
+[0] s6
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -584,10 +584,10 @@ Splitter: U2
 ins...
 [0] missing stream
 outs...
-[0] s8
+[0] s7
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] s9
+[1] s8
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>

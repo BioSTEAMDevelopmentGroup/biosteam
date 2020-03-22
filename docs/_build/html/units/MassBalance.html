@@ -89,10 +89,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -103,12 +106,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Duplicator.html">Duplicator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
@@ -121,6 +125,7 @@
 <li class="toctree-l2"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ShortcutColumn.html">ShortcutColumn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
@@ -222,7 +227,7 @@
 <h1>MassBalance<a class="headerlink" href="#massbalance" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.MassBalance">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MassBalance</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">chemical_IDs=None</em>, <em class="sig-param">variable_inlets=()</em>, <em class="sig-param">constant_outlets=()</em>, <em class="sig-param">constant_inlets=()</em>, <em class="sig-param">is_exact=True</em>, <em class="sig-param">balance='flow'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_balance.html#MassBalance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MassBalance" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MassBalance</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">chemical_IDs=None</em>, <em class="sig-param">variable_inlets=()</em>, <em class="sig-param">constant_outlets=()</em>, <em class="sig-param">constant_inlets=()</em>, <em class="sig-param">is_exact=True</em>, <em class="sig-param">balance='flow'</em>, <em class="sig-param">description=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_balance.html#MassBalance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MassBalance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Unit object that changes net input flow rates to satisfy output
 flow rates. This calculation is based on mass balance equations for
 specified IDs.</p>
@@ -278,14 +283,15 @@ flow rate feeding the mixer M1:</p>
 <span class="gp">... </span>                  <span class="n">variable_inlets</span><span class="o">=</span><span class="p">[</span><span class="n">water</span><span class="p">,</span> <span class="n">ethanol</span><span class="p">],</span>
 <span class="gp">... </span>                  <span class="n">constant_inlets</span><span class="o">=</span><span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">],</span>
 <span class="gp">... </span>                  <span class="n">constant_outlets</span><span class="o">=</span><span class="p">[</span><span class="n">target</span><span class="p">],</span>
-<span class="gp">... </span>                  <span class="n">chemical_IDs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">])</span>
+<span class="gp">... </span>                  <span class="n">chemical_IDs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                  <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Adjust flow rate of feed to mixer&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Connect units</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">-</span><span class="n">T1</span><span class="o">-</span><span class="n">P1</span>
 <span class="go">&lt;Pump: P1&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ethanol</span><span class="o">-</span><span class="n">T2</span><span class="o">-</span><span class="n">P2</span>
 <span class="go">&lt;Pump: P2&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">P1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">P2</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">MB1</span><span class="o">-</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span><span class="o">-</span><span class="n">F1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="o">-</span><span class="n">MB1</span>
-<span class="go">&lt;Splitter: S1&gt;</span>
+<span class="go">&lt;MassBalance: MB1&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span> <span class="o">=</span> <span class="n">main_flowsheet</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="s1">&#39;sys&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Make diagram to view system</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># sys.diagram()</span>

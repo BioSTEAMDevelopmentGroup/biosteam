@@ -103,9 +103,10 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -116,7 +117,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -395,7 +396,7 @@ must be 2 wt. % denaturant:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">main_flowsheet</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Chemical</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">main_flowsheet</span>
 
 <span class="c1"># First name a new flowsheet</span>
 <span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;mix_ethanol_with_denaturant&#39;</span><span class="p">)</span>
@@ -478,18 +479,15 @@ such that the slurry is 32 wt. %:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">units</span>
-
-<span class="c1"># First name a new flowsheet</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;corn_slurry_example&#39;</span><span class="p">)</span>
+<span></span><span class="c1"># First name a new flowsheet</span>
+<span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;corn_slurry_example&#39;</span><span class="p">)</span>
 
 <span class="c1"># Create a general chemicals to represent the</span>
 <span class="c1"># components of corn.</span>
-<span class="n">Starch</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemical</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s1">&#39;Starch&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
-<span class="n">Fiber</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemical</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s1">&#39;Fiber&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
-<span class="n">Oil</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Oil&#39;</span><span class="p">,</span> <span class="n">search_ID</span><span class="o">=</span><span class="s1">&#39;Oleic_acid&#39;</span><span class="p">)</span>
-<span class="n">Water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="n">Starch</span> <span class="o">=</span> <span class="n">Chemical</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s1">&#39;Starch&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+<span class="n">Fiber</span> <span class="o">=</span> <span class="n">Chemical</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s1">&#39;Fiber&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+<span class="n">Oil</span> <span class="o">=</span> <span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Oil&#39;</span><span class="p">,</span> <span class="n">search_ID</span><span class="o">=</span><span class="s1">&#39;Oleic_acid&#39;</span><span class="p">)</span>
+<span class="n">Water</span> <span class="o">=</span> <span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 
 <span class="c1"># The exact properties are not important for</span>
 <span class="c1"># the example, so just assume its like water at</span>
@@ -500,7 +498,7 @@ such that the slurry is 32 wt. %:</p>
 <span class="c1"># Set the thermodynamic property package.</span>
 <span class="c1"># In an actual process, much more chemicals</span>
 <span class="c1"># would be defined, but here we keep it short.</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="n">Starch</span><span class="p">,</span> <span class="n">Oil</span><span class="p">,</span> <span class="n">Fiber</span><span class="p">,</span> <span class="n">Water</span><span class="p">])</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="n">Starch</span><span class="p">,</span> <span class="n">Oil</span><span class="p">,</span> <span class="n">Fiber</span><span class="p">,</span> <span class="n">Water</span><span class="p">])</span>
 
 <span class="c1"># A typical dry grind process may produce</span>
 <span class="c1"># 40 million gal of ethanol a year with a</span>
@@ -512,11 +510,12 @@ such that the slurry is 32 wt. %:</p>
 
 <span class="c1"># The corn kernel iscomposed of starch (62%), protein and fiber (19%),</span>
 <span class="c1"># water (15%), and oil (4%).</span>
-<span class="n">corn_feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;corn_feed&#39;</span><span class="p">,</span> <span class="n">Starch</span><span class="o">=</span><span class="mi">62</span><span class="p">,</span> <span class="n">Fiber</span><span class="o">=</span><span class="mi">19</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">Oil</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="n">corn_feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;corn_feed&#39;</span><span class="p">,</span>
+                   <span class="n">Starch</span><span class="o">=</span><span class="mi">62</span><span class="p">,</span> <span class="n">Fiber</span><span class="o">=</span><span class="mi">19</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">Oil</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
 <span class="n">corn_feed</span><span class="o">.</span><span class="n">set_total_flow</span><span class="p">(</span><span class="n">corn_flow_per_day</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;bu/day&#39;</span><span class="p">)</span>
 
 <span class="c1"># Water that will be mixed with the milled corn to create the slurry.</span>
-<span class="n">slurry_water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;slurry_water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">slurry_water</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;slurry_water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Create the process specification function.</span>
 <span class="k">def</span> <span class="nf">adjust_water_flow</span><span class="p">():</span>
@@ -533,7 +532,7 @@ such that the slurry is 32 wt. %:</p>
                  <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;slurry&#39;</span><span class="p">)</span>
 
 <span class="c1"># Now create the system, simulate, and check results.</span>
-<span class="n">system</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">create_system</span><span class="p">()</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">main_flowsheet</span><span class="o">.</span><span class="n">create_system</span><span class="p">()</span>
 <span class="n">system</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 <span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 <span class="n">M1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="n">composition</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -591,21 +590,21 @@ a given temperature:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">units</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="kn">import</span> <span class="n">BoundedNumericalSpecification</span>
+<span class="c1"># ^ BioSTEAM provides some basic classes for numerical specifications.</span>
 
 <span class="c1"># First name a new flowsheet</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;flash_specification_example&#39;</span><span class="p">)</span>
+<span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;flash_specification_example&#39;</span><span class="p">)</span>
 
 <span class="c1"># Set the thermodynamic property package.</span>
 <span class="c1"># In an actual process, much more chemicals</span>
 <span class="c1"># would be defined, but here we keep it short.</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Propanol&#39;</span><span class="p">])</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Propanol&#39;</span><span class="p">])</span>
 
 <span class="c1"># Feed stream</span>
-<span class="n">mixture</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;mixture&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">,</span>
-                      <span class="n">Water</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">Propanol</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                      <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="n">mixture</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;mixture&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">,</span>
+                 <span class="n">Water</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">Propanol</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
 
 <span class="c1"># Create a flash vessel</span>
 <span class="n">F1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span>
@@ -624,11 +623,10 @@ a given temperature:</p>
     <span class="k">return</span>  <span class="n">V</span> <span class="o">-</span> <span class="mf">0.60</span>
 
 <span class="c1"># Set a numerical specification which solves the objective function when called.</span>
-<span class="c1"># BioSTEAM provides some basic classes for numerical specifications.</span>
-<span class="n">F1</span><span class="o">.</span><span class="n">numerical_specification</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">BoundedNumericalSpecification</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">351.39</span><span class="p">,</span> <span class="mf">373.15</span><span class="p">)</span>
+<span class="n">F1</span><span class="o">.</span><span class="n">numerical_specification</span> <span class="o">=</span> <span class="n">BoundedNumericalSpecification</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">351.39</span><span class="p">,</span> <span class="mf">373.15</span><span class="p">)</span>
 
 <span class="c1"># Now create the system, simulate, and check results.</span>
-<span class="n">system</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">create_system</span><span class="p">()</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">main_flowsheet</span><span class="o">.</span><span class="n">create_system</span><span class="p">()</span>
 <span class="n">system</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 <span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;liquid mass fraction: &#39;</span><span class="p">,</span> <span class="nb">format</span><span class="p">(</span><span class="n">F1</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">F_mass</span> <span class="o">/</span> <span class="n">mixture</span><span class="o">.</span><span class="n">F_mass</span><span class="p">,</span> <span class="s1">&#39;.0%&#39;</span><span class="p">))</span>
@@ -640,9 +638,7 @@ a given temperature:</p>
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: DesignWarning: @Flash F1: Vertical vessel weight (806.4 lb) is out of bounds (4200 to 1e+06 lb).
-  if isVertical: self._design_vertical_vessel()
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: DesignWarning: @Flash F1: Vertical vessel length (11.5 ft) is out of bounds (12 to 40 ft).
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: CostWarning: <span style="color: rgb(229,63,229)">&lt;Flash: F1&gt;</span> Vertical vessel weight (640 lb) is out of bounds (4200 to 1e+06 lb).
   if isVertical: self._design_vertical_vessel()
 </pre></div></div>
 </div>

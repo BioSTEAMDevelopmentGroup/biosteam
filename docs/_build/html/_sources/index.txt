@@ -34,8 +34,8 @@ Key Features & Capabilities
    tutorial/Process specifications
    tutorial/Importing biorefineries
    tutorial/Techno-economic analysis
+   tutorial/Building a biorefinery
    tutorial/Inheriting from Unit
-   tutorial/Building biorefineries
    tutorial/Unit decorators
    tutorial/Monte Carlo
 

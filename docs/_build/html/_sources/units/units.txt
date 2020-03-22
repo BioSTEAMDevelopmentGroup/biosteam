@@ -7,7 +7,8 @@ units
    decorators
    design_tools
    facilities
-   Distillation
+   BinaryDistillation
+   Duplicator
    Fermentation
    Flash
    HXprocess
@@ -20,6 +21,7 @@ units
    MolecularSieve
    MultiEffectEvaporator
    Pump
+   ShortcutColumn
    Splitter
    StorageTank
    Transesterification

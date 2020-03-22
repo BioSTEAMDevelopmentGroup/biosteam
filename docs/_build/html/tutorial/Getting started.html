@@ -89,17 +89,19 @@
 <li class="toctree-l2"><a class="reference internal" href="#Process-settings">3.2. Process settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Find-design-requirements-and-cost-with-Unit-objects">3.3. Find design requirements and cost with Unit objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Solve-recycle-loops-and-process-specifications-with-System-objects">3.4. Solve recycle loops and process specifications with System objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Join-the-community!">3.5. Join the community!</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">8. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">11. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -110,7 +112,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -391,8 +393,8 @@ feed stream with a few common chemicals will be initialized:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">])</span>
-<span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">])</span>
+<span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -404,8 +406,8 @@ feed stream with a few common chemicals will be initialized:</p>
 <div class="highlight"><pre>
 Stream: s1
  phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
- flow (kmol/hr): Water     20
-                 Glycerol  10
+ flow (kmol/hr): Water     50
+                 Methanol  20
 </pre></div></div>
 </div>
 <p>Set prices for performing techno-economic analysis later:</p>
@@ -426,7 +428,7 @@ Stream: s1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>192.18657
+<span></span>231.24018
 </pre></div>
 </div>
 </div>
@@ -504,7 +506,7 @@ options:</p>
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
 options via
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/UtilityAgent.html">UtilityAgent</a>
-objects, which are basically
+objects, which are
 <a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html">Stream</a>
 objects with additional attributes to describe a utility agent:</p>
 <div class="nbinput docutils container">
@@ -786,8 +788,8 @@ Flash: F1
 ins...
 [0] s1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
-    flow (kmol/hr): Water     20
-                    Glycerol  10
+    flow (kmol/hr): Water     50
+                    Methanol  20
 outs...
 [0] s2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
@@ -809,7 +811,7 @@ outs...
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -818,19 +820,34 @@ Flash: F1
 ins...
 [0] s1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
-    flow (kmol/hr): Water     20
-                    Glycerol  10
+    flow (kmol/hr): Water     50
+                    Methanol  20
 outs...
 [0] s2
-    phase: &#39;g&#39;, T: 382.91 K, P: 101325 Pa
-    flow (kmol/hr): Water     15
-                    Glycerol  0.00534
+    phase: &#39;g&#39;, T: 359.63 K, P: 101325 Pa
+    flow (kmol/hr): Water     19
+                    Methanol  16
 [1] s3
-    phase: &#39;l&#39;, T: 382.91 K, P: 101325 Pa
-    flow (kmol/hr): Water     5.01
-                    Glycerol  9.99
+    phase: &#39;l&#39;, T: 359.63 K, P: 101325 Pa
+    flow (kmol/hr): Water     31
+                    Methanol  4
 </pre></div></div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: CostWarning: <span style="color: rgb(229,63,229)">&lt;Flash: F1&gt;</span> Vertical vessel weight (591.9 lb) is out of bounds (4200 to 1e+06 lb).
+  if isVertical: self._design_vertical_vessel()
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: CostWarning: <span style="color: rgb(229,63,229)">&lt;Flash: F1&gt;</span> Vertical vessel length (11.5 ft) is out of bounds (12 to 40 ft).
+  if isVertical: self._design_vertical_vessel()
+</pre></div></div>
+</div>
+<p>Note that warnings notify you whether purchase cost correlations are out
+of range for the given design. This is ok for the example, but its
+important to make sure that the process is well designed and cost
+correlations are suitable for the domain.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">results</span></code> method returns simulation results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -876,17 +893,17 @@ outs...
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>1.03e+06</td>
+      <td>1.84e+06</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>26.4</td>
+      <td>47.4</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>5.28</td>
+      <td>9.48</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
@@ -897,22 +914,22 @@ outs...
     <tr>
       <th>Length</th>
       <td>ft</td>
-      <td>37.5</td>
+      <td>11.5</td>
     </tr>
     <tr>
       <th>Diameter</th>
       <td>ft</td>
-      <td>6.5</td>
+      <td>1.5</td>
     </tr>
     <tr>
       <th>Weight</th>
       <td>lb</td>
-      <td>1.28e+04</td>
+      <td>592</td>
     </tr>
     <tr>
       <th>Wall thickness</th>
       <td>in</td>
-      <td>0.375</td>
+      <td>0.25</td>
     </tr>
     <tr>
       <th>Material</th>
@@ -923,24 +940,24 @@ outs...
       <th rowspan="2" valign="top">Purchase cost</th>
       <th>Flash</th>
       <td>USD</td>
-      <td>8.14e+04</td>
+      <td>1.43e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>3.87e+03</td>
+      <td>4.29e+03</td>
     </tr>
     <tr>
       <th>Total purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>8.53e+04</td>
+      <td>1.86e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>5.28</td>
+      <td>9.48</td>
     </tr>
   </tbody>
 </table>
@@ -962,19 +979,19 @@ outs...
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Low pressure steam   Duty                  1.03e+06
-                     Flow                      26.4
-                     Cost                      5.28
+<span></span>Low pressure steam   Duty                  1.84e+06
+                     Flow                      47.4
+                     Cost                      9.48
 Design               Vessel type           Vertical
-                     Length                    37.5
-                     Diameter                   6.5
-                     Weight                1.28e+04
-                     Wall thickness           0.375
+                     Length                    11.5
+                     Diameter                   1.5
+                     Weight                     592
+                     Wall thickness            0.25
                      Material          Carbon steel
-Purchase cost        Flash                 8.14e+04
-                     Heat exchanger        3.87e+03
-Total purchase cost                        8.53e+04
-Utility cost                                   5.28
+Purchase cost        Flash                 1.43e+04
+                     Heat exchanger        4.29e+03
+Total purchase cost                        1.86e+04
+Utility cost                                   9.48
 Name: F1, dtype: object
 </pre></div>
 </div>
@@ -1005,14 +1022,14 @@ object:</p>
 </div>
 <p>You can <a class="reference external" href="https://biosteam.readthedocs.io/en/master/tutorial/Managing%20flowsheets.html">find unit operations and manage
 flowsheets</a>
-with <code class="docutils literal notranslate"><span class="pre">find</span></code>:</p>
+with the <code class="docutils literal notranslate"><span class="pre">main_flowsheet</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -1020,7 +1037,7 @@ with <code class="docutils literal notranslate"><span class="pre">find</span></c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_41_0.svg" src="../_images/tutorial_Getting_started_41_0.svg" /></div>
+<img alt="../_images/tutorial_Getting_started_42_0.svg" src="../_images/tutorial_Getting_started_42_0.svg" /></div>
 </div>
 <p>Connect streams and make a recycle loop using <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Using%20-pipe-%20notation.html">-pipe-
 notation</a>:</p>
@@ -1030,7 +1047,7 @@ notation</a>:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">450</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">450</span><span class="p">)</span>
 
 <span class="c1"># Broken down -pipe- notation</span>
 <span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">feed</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span>     <span class="c1"># M1.ins[:] = [S1.outs[0], feed]</span>
@@ -1049,7 +1066,7 @@ notation</a>:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1057,7 +1074,7 @@ notation</a>:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_45_0.png" src="../_images/tutorial_Getting_started_45_0.png" />
+<img alt="../_images/tutorial_Getting_started_46_0.png" src="../_images/tutorial_Getting_started_46_0.png" />
 </div>
 </div>
 <p>A <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/System.html">System</a>
@@ -1068,8 +1085,8 @@ object can be created directly from the flowsheet:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">sys1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">)</span>
-<span class="n">sys1</span>
+<span></span><span class="n">SYS1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">main_flowsheet</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="s1">&#39;SYS1&#39;</span><span class="p">)</span>
+<span class="n">SYS1</span>
 </pre></div>
 </div>
 </div>
@@ -1077,7 +1094,7 @@ object can be created directly from the flowsheet:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_47_0.png" src="../_images/tutorial_Getting_started_47_0.png" />
+<img alt="../_images/tutorial_Getting_started_48_0.png" src="../_images/tutorial_Getting_started_48_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1085,7 +1102,7 @@ object can be created directly from the flowsheet:</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-System: sys1
+System: SYS1
  recycle: liquid_recycle
  path: (M1, F1, S1)
  convergence error: Flow rate   0.00e+00 kmol/hr
@@ -1112,7 +1129,7 @@ to run element by element:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_49_0.png" src="../_images/tutorial_Getting_started_49_0.png" />
+<img alt="../_images/tutorial_Getting_started_50_0.png" src="../_images/tutorial_Getting_started_50_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1143,7 +1160,7 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_51_0.png" src="../_images/tutorial_Getting_started_51_0.png" />
+<img alt="../_images/tutorial_Getting_started_52_0.png" src="../_images/tutorial_Getting_started_52_0.png" />
 </div>
 </div>
 <p>Simulate the System object:</p>
@@ -1158,7 +1175,7 @@ System: sys1
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -1166,9 +1183,18 @@ System: sys1
 System: sys1
  recycle: liquid_recycle
  path: (M1, F1, S1)
- convergence error: Flow rate   5.91e-03 kmol/hr
-                    Temperature 8.44e-02 K
- iterations: 5
+ convergence error: Flow rate   1.50e-01 kmol/hr
+                    Temperature 4.39e-03 K
+ iterations: 4
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: CostWarning: <span style="color: rgb(229,63,229)">&lt;Flash: F1&gt;</span> Vertical vessel weight (1726 lb) is out of bounds (4200 to 1e+06 lb).
+  if isVertical: self._design_vertical_vessel()
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1188,19 +1214,19 @@ System: sys1
 <div class="highlight"><pre>
 Flash: F1
 ins...
-[0] s5  from  Mixer-M1
-    phase: &#39;l&#39;, T: 326.07 K, P: 101325 Pa
-    flow (kmol/hr): Water     533
-                    Glycerol  200
+[0] s4  from  Mixer-M1
+    phase: &#39;l&#39;, T: 315.15 K, P: 101325 Pa
+    flow (kmol/hr): Water     626
+                    Methanol  108
 outs...
 [0] vapor_product
-    phase: &#39;g&#39;, T: 377.45 K, P: 101325 Pa
-    flow (kmol/hr): Water     367
-                    Glycerol  0.0795
+    phase: &#39;g&#39;, T: 366.37 K, P: 101325 Pa
+    flow (kmol/hr): Water     275
+                    Methanol  92.1
 [1] liquid  to  Splitter-S1
-    phase: &#39;l&#39;, T: 377.45 K, P: 101325 Pa
-    flow (kmol/hr): Water     167
-                    Glycerol  200
+    phase: &#39;l&#39;, T: 366.37 K, P: 101325 Pa
+    flow (kmol/hr): Water     351
+                    Methanol  15.8
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1247,17 +1273,17 @@ outs...
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>2.15e+07</td>
+      <td>1.91e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>553</td>
+      <td>493</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>111</td>
+      <td>98.5</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
@@ -1268,22 +1294,22 @@ outs...
     <tr>
       <th>Length</th>
       <td>ft</td>
-      <td>35.5</td>
+      <td>13.5</td>
     </tr>
     <tr>
       <th>Diameter</th>
       <td>ft</td>
-      <td>6</td>
+      <td>3.5</td>
     </tr>
     <tr>
       <th>Weight</th>
       <td>lb</td>
-      <td>1.12e+04</td>
+      <td>1.73e+03</td>
     </tr>
     <tr>
       <th>Wall thickness</th>
       <td>in</td>
-      <td>0.375</td>
+      <td>0.25</td>
     </tr>
     <tr>
       <th>Material</th>
@@ -1294,30 +1320,36 @@ outs...
       <th rowspan="2" valign="top">Purchase cost</th>
       <th>Flash</th>
       <td>USD</td>
-      <td>7.45e+04</td>
+      <td>2.57e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>5.51e+03</td>
+      <td>3.75e+03</td>
     </tr>
     <tr>
       <th>Total purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>8e+04</td>
+      <td>2.94e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>111</td>
+      <td>98.5</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
-<p>Save a system report:</p>
+<p>Although BioSTEAM includes a large set of essential unit operations,
+many process specific unit operations are not yet available. In this
+case, you can create new <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Inheriting%20from%20Unit.html">Unit
+subclasses</a>
+to model unit operations not yet available in BioSTEAM.</p>
+<p>Once your system has been simulated, you can save a system report to
+view all results in an excel spreadsheet:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [32]:
@@ -1343,13 +1375,6 @@ analysis</a>.
 If a <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/TEA.html">TEA</a> object
 of the system was initialized, TEA results would also appear in the
 report.</p>
-</div>
-<div class="section" id="Join-the-community!">
-<h2><span class="section-number">3.5. </span>Join the community!<a class="headerlink" href="#Join-the-community!" title="Permalink to this headline">¶</a></h2>
-<p>BioSTEAM will become more relevant with communitity involvement. It is
-strongly encouraged to share designs and new <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Inheriting%20from%20Unit.html">Unit
-subclasses</a>,
-no matter how preliminary or rigorous they are.</p>
 </div>
 </div>
 

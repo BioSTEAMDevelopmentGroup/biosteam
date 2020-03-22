@@ -44,7 +44,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Distillation: D1\n",
+      "BinaryDistillation: D1\n",
       "ins...\n",
       "[0] feed\n",
       "    phase: 'l', T: 354.2 K, P: 101325 Pa\n",
@@ -61,7 +61,8 @@
     }
    ],
    "source": [
-    "from biosteam.units import Distillation, Stream, settings\n",
+    "from biosteam import Stream, settings\n",
+    "from biosteam.units import BinaryDistillation\n",
     "\n",
     "# First set the property package\n",
     "settings.set_thermo(['Water', 'Ethanol'])\n",
@@ -72,13 +73,13 @@
     "feed.T = bp.T # Feed at bubble point temperature\n",
     "\n",
     "# Create a distillation column and simulate\n",
-    "D1 = Distillation('D1', ins=feed,\n",
-    "                  outs=('distillate', 'bottoms_product'),\n",
-    "                  LHK=('Ethanol', 'Water'), # Light and heavy keys\n",
-    "                  y_top=0.79, # Light key composition at the distillate\n",
-    "                  x_bot=0.001, # Light key composition at the bottoms product\n",
-    "                  k=1.25, # Ration of actual reflux over minimum reflux\n",
-    "                  is_divided=True) # Whether the rectifying and stripping sections are divided\n",
+    "D1 = BinaryDistillation('D1', ins=feed,\n",
+    "                    outs=('distillate', 'bottoms_product'),\n",
+    "                    LHK=('Ethanol', 'Water'), # Light and heavy keys\n",
+    "                    y_top=0.79, # Light key composition at the distillate\n",
+    "                    x_bot=0.001, # Light key composition at the bottoms product\n",
+    "                    k=1.25, # Ratio of actual reflux over minimum reflux\n",
+    "                    is_divided=True) # Whether the rectifying and stripping sections are divided\n",
     "D1.show()"
    ]
   },
@@ -262,7 +263,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Distillation: D1\n",
+      "BinaryDistillation: D1\n",
       "ins...\n",
       "[0] feed\n",
       "    phase: 'l', T: 81.054 degC, P: 1 atm\n",
@@ -333,8 +334,8 @@
        " 'Stripper trays': 18932.530680788637,\n",
        " 'Rectifier tower': 251923.52034384274,\n",
        " 'Stripper tower': 104664.44595493002,\n",
-       " 'Condenser': 73520.3581337631,\n",
-       " 'Boiler': 20480.746085869352}"
+       " 'Condenser': 73520.35813376313,\n",
+       " 'Boiler': 20480.74608586936}"
       ]
      },
      "execution_count": 10,
@@ -354,8 +355,8 @@
     {
      "data": {
       "text/plain": [
-       "(<Cooling water: -3.02e+07 kJ/hr, 2.06e+04 kmol/hr, 10.1 USD/hr>,\n",
-       " <Low pressure steam: 6.64e+07 kJ/hr, 1.71e+03 kmol/hr, 406 USD/hr>)"
+       "(<cooling_water: -3.02e+07 kJ/hr, 2.06e+04 kmol/hr, 10.1 USD/hr>,\n",
+       " <low_pressure_steam: 6.64e+07 kJ/hr, 1.71e+03 kmol/hr, 406 USD/hr>)"
       ]
      },
      "execution_count": 11,

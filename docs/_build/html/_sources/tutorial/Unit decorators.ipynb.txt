@@ -167,7 +167,7 @@
     "\n",
     "# Set up thermo property package\n",
     "chemicals = bst.Chemicals(['Water', 'Ethanol'])\n",
-    "SugarCane = bst.Chemical.blank('SugarCane')\n",
+    "SugarCane = bst.Chemical.blank('SugarCane', phase_ref='s')\n",
     "SugarCane.default()\n",
     "chemicals.append(SugarCane)\n",
     "bst.settings.set_thermo(chemicals)\n",

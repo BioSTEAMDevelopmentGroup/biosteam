@@ -1,0 +1,114 @@
+<svg height="327pt" viewBox="0.00 0.00 438.39 327.24" width="438pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 323.24)">
+<title>%3</title>
+<polygon fill="white" points="-4,4 -4,-323.24 434.392,-323.24 434.392,4 -4,4" stroke="none"/>
+<!-- S1
+Splitter&#45;&gt;liquid_recycle -->
+<g class="edge" id="edge3"><title>S1
+Splitter:c-&gt;liquid_recycle:w</title>
+<path d="M118.947,-67.5565C140.929,-74.1994 169.116,-80.7401 194.892,-80.7401" fill="none" stroke="black"/>
+</g>
+<!-- S1
+Splitter&#45;&gt;liquid_product -->
+<g class="edge" id="edge6"><title>S1
+Splitter:c-&gt;liquid_product:w</title>
+<path d="M119.035,-39.8447C140.881,-33.229 168.825,-26.7401 194.392,-26.7401" fill="none" stroke="black"/>
+</g>
+<!-- M1
+Mixer&#45;&gt;s4 -->
+<g class="edge" id="edge4"><title>M1
+Mixer:e-&gt;s4:w</title>
+<path d="M149.196,-171.74C181.061,-171.74 189.027,-171.74 220.892,-171.74" fill="none" stroke="black"/>
+</g>
+<!-- F1
+Flash&#45;&gt;liquid -->
+<g class="edge" id="edge2"><title>F1
+Flash:s-&gt;liquid:w</title>
+<path d="M243.892,-216.74C243.892,-192.072 330.224,-217.74 354.892,-217.74" fill="none" stroke="black"/>
+</g>
+<!-- F1
+Flash&#45;&gt;vapor_product -->
+<g class="edge" id="edge5"><title>F1
+Flash:n-&gt;vapor_product:w</title>
+<path d="M243.892,-298.74C243.892,-336.743 291.389,-297.74 329.392,-297.74" fill="none" stroke="black"/>
+</g>
+<!-- s1&#45;&gt;F1
+Flash -->
+<g class="edge" id="edge1"><title>s1:e-&gt;F1
+Flash:c</title>
+<path d="M102.196,-257.74C138.103,-257.74 179.164,-257.74 207.621,-257.74" fill="none" stroke="black"/>
+</g>
+<!-- S1
+Splitter -->
+<g class="node" id="node1"><title>S1
+Splitter</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="-0.196446" x2="118.892" y1="-53.7401" y2="-53.7401">
+<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="-0.196446,-53.7401 118.892,0.241193 118.892,-107.721 -0.196446,-53.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-57.5401">S1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-42.5401">Splitter</text>
+</g>
+<!-- M1
+Mixer -->
+<g class="node" id="node2"><title>M1
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_1" x1="44.6492" x2="148.289" y1="-171.74" y2="-171.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_1)" points="148.289,-171.74 44.6492,-225.721 44.6492,-117.759 148.289,-171.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-175.54">M1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-160.54">Mixer</text>
+</g>
+<!-- F1
+Flash -->
+<g class="node" id="node3"><title>F1
+Flash</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_2" x1="207.892" x2="279.892" y1="-257.74" y2="-257.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_2)" points="279.892,-297.24 207.892,-297.24 207.892,-218.24 279.892,-218.24 279.892,-297.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="243.892" y="-261.54">F1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="243.892" y="-246.54">Flash</text>
+</g>
+<!-- s1 -->
+<g class="node" id="node4"><title>s1</title>
+<polygon fill="#79dae8" points="82.696,-273.24 57.696,-273.24 57.696,-242.24 82.696,-242.24 82.696,-236.24 100.696,-257.74 82.696,-279.24 82.696,-273.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="79.196" y="-254.04">s1</text>
+</g>
+<!-- liquid -->
+<g class="node" id="node5"><title>liquid</title>
+<polygon fill="#79dae8" points="385.392,-233.24 356.392,-233.24 356.392,-202.24 385.392,-202.24 385.392,-196.24 403.392,-217.74 385.392,-239.24 385.392,-233.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="379.892" y="-214.04">liquid</text>
+</g>
+<!-- liquid_recycle -->
+<g class="node" id="node6"><title>liquid_recycle</title>
+<polygon fill="#79dae8" points="273.392,-96.2401 196.392,-96.2401 196.392,-65.2401 273.392,-65.2401 273.392,-59.2401 291.392,-80.7401 273.392,-102.24 273.392,-96.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="243.892" y="-77.0401">liquid_recycle</text>
+</g>
+<!-- s4 -->
+<g class="node" id="node7"><title>s4</title>
+<polygon fill="#79dae8" points="247.392,-187.24 222.392,-187.24 222.392,-156.24 247.392,-156.24 247.392,-150.24 265.392,-171.74 247.392,-193.24 247.392,-187.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="243.892" y="-168.04">s4</text>
+</g>
+<!-- vapor_product -->
+<g class="node" id="node8"><title>vapor_product</title>
+<polygon fill="#79dae8" points="412.392,-313.24 329.392,-313.24 329.392,-282.24 412.392,-282.24 412.392,-276.24 430.392,-297.74 412.392,-319.24 412.392,-313.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="379.892" y="-294.04">vapor_product</text>
+</g>
+<!-- liquid_product -->
+<g class="node" id="node9"><title>liquid_product</title>
+<polygon fill="#79dae8" points="275.392,-42.2401 194.392,-42.2401 194.392,-11.2401 275.392,-11.2401 275.392,-5.24012 293.392,-26.7401 275.392,-48.2401 275.392,-42.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="243.892" y="-23.0401">liquid_product</text>
+</g>
+</g>
+</svg>

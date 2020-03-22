@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>11. Inheriting from Unit &mdash; BioSTEAM 0.1 documentation</title>
+  <title>12. Inheriting from Unit &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="12. Unit decorators" href="Unit decorators.html" />
-    <link rel="prev" title="10. Techno-economic analysis" href="Techno-economic analysis.html" /> 
+    <link rel="next" title="13. Unit decorators" href="Unit decorators.html" />
+    <link rel="prev" title="11. Building a biorefinery" href="Building a biorefinery.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -92,15 +92,16 @@
 <li class="toctree-l1"><a class="reference internal" href="Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">11. Inheriting from Unit</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Abstract-attributes-and-methods">11.1. Abstract attributes and methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Subclass-example">11.2. Subclass example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Simulation-test">11.3. Simulation test</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">11.4. Graphviz attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">12. Inheriting from Unit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Abstract-attributes-and-methods">12.1. Abstract attributes and methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Subclass-example">12.2. Subclass example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Simulation-test">12.3. Simulation test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">12.4. Graphviz attributes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -111,7 +112,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -164,7 +165,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li><span class="section-number">11. </span>Inheriting from Unit</li>
+      <li><span class="section-number">12. </span>Inheriting from Unit</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -367,9 +368,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Inheriting-from-Unit">
-<h1><span class="section-number">11. </span>Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">12. </span>Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Abstract-attributes-and-methods">
-<h2><span class="section-number">11.1. </span>Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">12.1. </span>Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
 <p><img alt="image0" src="../_images/UML_Unit.png" /></p>
 <p><strong>A Unit subclass has class attributes that dictate how an instance is
 initialized:</strong></p>
@@ -419,7 +420,7 @@ unit.</p></li>
 </ul>
 </div>
 <div class="section" id="Subclass-example">
-<h2><span class="section-number">11.2. </span>Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">12.2. </span>Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
 <p>The following example depicts inheritance from Unit by creating a new
 Boiler class:</p>
 <div class="nbinput nblast docutils container">
@@ -543,7 +544,7 @@ Boiler class:</p>
 </div>
 </div>
 <div class="section" id="Simulation-test">
-<h2><span class="section-number">11.3. </span>Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">12.3. </span>Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
@@ -657,17 +658,6 @@ outs...
   </thead>
   <tbody>
     <tr>
-      <th rowspan="2" valign="top">Power</th>
-      <th>Rate</th>
-      <td>kW</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>Cost</th>
-      <td>USD/hr</td>
-      <td>0</td>
-    </tr>
-    <tr>
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
@@ -718,7 +708,7 @@ outs...
 </div>
 </div>
 <div class="section" id="Graphviz-attributes">
-<h2><span class="section-number">11.4. </span>Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">12.4. </span>Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
 <p>All <a class="reference external" href="https://graphviz.readthedocs.io/en/stable/manual.html">graphviz</a>
 attributes for generating a diagram are stored in <code class="docutils literal notranslate"><span class="pre">_graphics</span></code> as a
 Graphics object. One Graphics object is generated for each Unit
@@ -742,7 +732,7 @@ subclass:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Attributes correspond to each ins stream respectively</span>
+<span></span><span class="c1"># Attributes correspond to each inlet stream respectively</span>
 <span class="c1"># For example: Attributes for B1.ins[0] would correspond to edge_in[0]</span>
 <span class="n">edge_in</span>
 </pre></div>
@@ -764,7 +754,7 @@ subclass:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Attributes correspond to each outs stream respectively</span>
+<span></span><span class="c1"># Attributes correspond to each outlet stream respectively</span>
 <span class="c1"># For example: Attributes for B1.outs[0] would correspond to edge_out[0]</span>
 <span class="n">edge_out</span>
 </pre></div>
@@ -786,7 +776,7 @@ subclass:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">node</span> <span class="c1"># The node is the actuall unit</span>
+<span></span><span class="n">node</span> <span class="c1"># The node represents the actual unit</span>
 </pre></div>
 </div>
 </div>
@@ -805,7 +795,8 @@ subclass:</p>
  &#39;orientation&#39;: &#39;0.0&#39;,
  &#39;color&#39;: &#39;black&#39;,
  &#39;peripheries&#39;: &#39;1&#39;,
- &#39;margin&#39;: &#39;default&#39;}
+ &#39;margin&#39;: &#39;default&#39;,
+ &#39;name&#39;: &#39;B1\nBoiler&#39;}
 </pre></div>
 </div>
 </div>
@@ -841,27 +832,27 @@ subclass:</p>
 </div>
 </div>
 <p>It is also possible to dynamically adjust node and edge attributes by
-adding a node_function:</p>
-<div class="nbinput nblast docutils container">
+setting the <code class="docutils literal notranslate"><span class="pre">taylor_node_to_unit</span></code> attribute:</p>
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">boiler_node_function</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
-    <span class="n">graphics</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">_graphics</span>
+<span></span><span class="k">def</span> <span class="nf">taylor_node_to_unit</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
     <span class="n">feed</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">outs</span>
-    <span class="k">if</span> <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="ow">or</span> <span class="n">gas</span><span class="o">.</span><span class="n">F_mol</span><span class="p">:</span>
-        <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#fad6d8&#39;</span>
-        <span class="n">unit_name</span> <span class="o">=</span> <span class="s1">&#39;Active boiler&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#CDCDCD&#39;</span>
-        <span class="n">unit_name</span> <span class="o">=</span> <span class="s1">&#39;Inactive boiler&#39;</span>
-    <span class="k">return</span> <span class="n">unit_name</span> <span class="c1"># If a string is returned, it will replace the Unit operation name</span>
-
-<span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span> <span class="o">=</span> <span class="n">boiler_node_function</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">feed</span><span class="o">.</span><span class="n">F_mol</span><span class="p">:</span>
+        <span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">-empty-&#39;</span>
+<span class="n">graphics</span><span class="o">.</span><span class="n">taylor_node_to_unit</span> <span class="o">=</span> <span class="n">taylor_node_to_unit</span>
+<span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Inheriting_from_Unit_21_0.png" src="../_images/tutorial_Inheriting_from_Unit_21_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -870,7 +861,8 @@ adding a node_function:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">B1</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+<span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -881,8 +873,8 @@ adding a node_function:</p>
 <img alt="../_images/tutorial_Inheriting_from_Unit_22_0.png" src="../_images/tutorial_Inheriting_from_Unit_22_0.png" />
 </div>
 </div>
-<p><strong>NOTE: The example implementation of the node_function is not
-suggested; best to keep diagrams simple.</strong></p>
+<p>NOTE: The example implementation of the <code class="docutils literal notranslate"><span class="pre">taylor_node_to_unit</span></code> function
+is not suggested; best to keep diagrams simple.</p>
 </div>
 </div>
 
@@ -894,10 +886,10 @@ suggested; best to keep diagrams simple.</strong></p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="12. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="13. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Techno-economic analysis.html" class="btn btn-neutral float-left" title="10. Techno-economic analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Building a biorefinery.html" class="btn btn-neutral float-left" title="11. Building a biorefinery" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

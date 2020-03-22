@@ -90,9 +90,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Process specifications.html">8. Process specifications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">13. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -103,7 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
@@ -547,7 +548,7 @@
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
         <span class="n">rhov</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;lb/ft3&#39;</span><span class="p">)</span>
         <span class="n">rhol</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;lb/ft3&#39;</span><span class="p">)</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span><span class="o">*</span><span class="mf">0.000145</span>  <span class="c1"># Pressure (psi)</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;psi&#39;</span><span class="p">)</span>  <span class="c1"># Pressure (psi)</span>
 
         <span class="n">vessel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vessel_type</span>
         <span class="n">Th</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">holdup_time</span>
@@ -591,13 +592,13 @@
         <span class="k">if</span> <span class="n">P</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
             <span class="n">Hlll</span> <span class="o">=</span> <span class="mf">1.25</span>
 
-        <span class="c1"># Calculate the height from Hlll to  Normal liq level, Hnll</span>
+        <span class="c1"># Calculate the height from Hlll to Normal liq level, Hnll</span>
         <span class="n">Hh</span> <span class="o">=</span> <span class="n">Vh</span><span class="o">/</span><span class="p">(</span><span class="n">pi</span><span class="o">/</span><span class="mf">4.0</span><span class="o">*</span><span class="n">Dvd</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">Hh</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">Hh</span> <span class="o">&lt;</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="n">ceil_half_step</span><span class="p">(</span><span class="n">Hh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Hh</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span> <span class="n">Hh</span> <span class="o">=</span> <span class="mf">1.0</span>
 
         <span class="c1"># Calculate the height from Hnll to  High liq level, Hhll</span>
         <span class="n">Hs</span> <span class="o">=</span> <span class="n">Vs</span><span class="o">/</span><span class="p">(</span><span class="n">pi</span><span class="o">/</span><span class="mf">4.0</span><span class="o">*</span><span class="n">Dvd</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">Hs</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="k">if</span> <span class="n">Hs</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="k">else</span> <span class="n">ceil_half_step</span><span class="p">(</span><span class="n">Hs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Hs</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span> <span class="n">Hs</span> <span class="o">=</span> <span class="mf">0.5</span>
 
         <span class="c1"># Calculate dN</span>
         <span class="n">Qm</span> <span class="o">=</span> <span class="n">Qll</span> <span class="o">+</span> <span class="n">Qv</span>
@@ -613,19 +614,12 @@
         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">Dvd</span>
         <span class="n">Hv2</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="k">if</span> <span class="n">has_mist_eliminator</span> <span class="k">else</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">dN</span><span class="o">/</span><span class="mf">2.0</span>
         <span class="k">if</span> <span class="n">Hv2</span> <span class="o">&lt;</span> <span class="n">Hv</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="n">Hv2</span>
-        <span class="n">Hv</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">Hv</span><span class="p">)</span>
+        <span class="n">Hv</span> <span class="o">=</span> <span class="n">Hv</span>
 
         <span class="c1"># Calculate total height, Ht</span>
         <span class="n">Hme</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="k">if</span> <span class="n">has_mist_eliminator</span> <span class="k">else</span> <span class="mf">0.0</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">Hlll</span> <span class="o">+</span> <span class="n">Hh</span> <span class="o">+</span> <span class="n">Hs</span> <span class="o">+</span> <span class="n">Hlin</span> <span class="o">+</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">Hme</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">ceil_half_step</span><span class="p">(</span><span class="n">Ht</span><span class="p">)</span>
-
-        <span class="c1"># Check if LD is between 1.5 and 6.0</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">LD</span> <span class="o">=</span> <span class="n">Ht</span><span class="o">/</span><span class="n">D</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">LD</span> <span class="o">&lt;</span> <span class="mf">1.5</span><span class="p">):</span> <span class="n">D</span> <span class="o">-=</span> <span class="mf">0.5</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="n">LD</span> <span class="o">&gt;</span> <span class="mf">6.0</span><span class="p">):</span> <span class="n">D</span> <span class="o">+=</span> <span class="mf">0.5</span>
-            <span class="k">else</span><span class="p">:</span> <span class="k">break</span>
 
         <span class="c1"># Calculate Vessel weight and wall thickness</span>
         <span class="n">rho_M</span> <span class="o">=</span> <span class="n">material_densities_lb_per_ft3</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vessel_material</span><span class="p">]</span>
@@ -636,8 +630,12 @@
         <span class="c1"># Hnll = Hh + Hlll</span>
 
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
-        <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">])</span>
-        <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">])</span>
+        <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">],</span>
+                       <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
+        <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">],</span>
+                       <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Vessel type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
@@ -741,7 +739,8 @@
         <span class="c1"># Hnll = Y*D</span>
         
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
-        <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">])</span>
+        <span class="n">bounds_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">],</span> <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Vessel type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>
@@ -751,14 +750,6 @@
     <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
     
-<span class="c1"># Flash</span>
-<span class="n">edge_out</span> <span class="o">=</span> <span class="n">Flash</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>
-<span class="n">edge_out</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;n&#39;</span>
-<span class="n">edge_out</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
-<span class="n">node</span> <span class="o">=</span> <span class="n">Flash</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span>
-<span class="n">node</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
-<span class="n">node</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1.1&#39;</span>
-<span class="k">del</span> <span class="n">edge_out</span><span class="p">,</span> <span class="n">node</span>
 
 <span class="c1"># %% Special</span>
 
@@ -919,11 +910,14 @@
         <span class="c1"># Energy balance to find vapor fraction</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">H2O_CAS</span><span class="p">]</span>
         <span class="n">H</span> <span class="o">=</span> <span class="n">feed_H</span> <span class="o">+</span> <span class="n">Q</span> <span class="o">-</span> <span class="n">liquid</span><span class="o">.</span><span class="n">H</span>
-        <span class="n">V</span> <span class="o">=</span> <span class="n">H</span><span class="o">/</span><span class="p">(</span><span class="n">f</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hvap</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="n">H</span><span class="o">/</span><span class="p">(</span><span class="n">f</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hvap</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">V</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">V</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">V</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">elif</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">V</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">evaporated</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">V</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">H2O_CAS</span><span class="p">]</span> <span class="o">=</span> <span class="n">evaporated</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">H2O_CAS</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">V</span><span class="p">)</span><span class="o">*</span><span class="n">f</span>

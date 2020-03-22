@@ -4,7 +4,7 @@ Created on Thu Mar 19 09:22:08 2020
 
 @author: yoelr
 """
-from math import log10, ceil, exp
+from math import log10, ceil, exp, floor
 from ._binary_distillation import BinaryDistillation
 from flexsolve import wegstein, bisection
 from thermosteam.equilibrium import DewPoint, BubblePoint
@@ -24,6 +24,7 @@ def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_
     return alpha_mean
     
 def compute_partition_coefficients(y, x):
+    x[(y == 0) & (x == 0)] = 1
     return y / x
     
 def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
@@ -37,6 +38,7 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     dummy = 10**A * alpha_mean**B
     distillate_recoveries = dummy / (1 + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1 - b_Hr]
+    distillate_recoveries[distillate_recoveries < 1e-12] = 0.
     return distillate_recoveries
 
 def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha_LK):
@@ -65,8 +67,8 @@ def compute_feed_stage_Kirkbride(N, B, D,
                                  feed_HK_over_LK,
                                  z_LK_bottoms,
                                  z_HK_distillate):
-    m_over_p = B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2
-    return ceil(N / (m_over_p + 1))
+    m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2) ** 0.206
+    return floor(N / (m_over_p + 1))
     
     
 
@@ -74,32 +76,177 @@ def compute_feed_stage_Kirkbride(N, B, D,
 
 class ShortcutColumn(BinaryDistillation,
                      new_graphics=False):
+    r"""
+    Create a multicomponent distillation column that relies on the
+    Fenske-Underwood-Gilliland method to solve for the theoretical design
+    of the distillation column and the separation of non-keys [1]_.The Murphree
+    efficiency (i.e. column efficiency) is based on the modified O'Connell
+    correlation [2]_. The diameter is based on tray separation and flooding 
+    velocity [1, 3]_. Purchase costs are based on correlations compiled by
+    Warren et. al. [4]_.
+
+    Parameters
+    ----------
+    ins : streams
+        Inlet fluids to be mixed into the feed stage.
+    outs : stream sequence
+        * [0] Distillate
+        * [1] Bottoms product
+    LHK : tuple[str]
+        Light and heavy keys.
+    y_top : float
+        Molar fraction of light key to the light and heavy keys in the
+        distillate.
+    x_bot : float
+        Molar fraction of light key to the light and heavy keys in the bottoms
+        product.
+    Lr : float
+        Recovery of the light key in the distillate.
+    Hr : float
+        Recovery of the heavy key in the bottoms product.
+    k : float
+        Ratio of reflux to minimum reflux.
+    specification="Composition" : "Composition" or "Recovery"
+        If composition is used, `y_top` and `x_bot` must be specified.
+        If recovery is used, `Lr` and `Hr` must be specified.
+    P=101325 : float
+        Operating pressure [Pa].
+    vessel_material : str, optional
+        Vessel construction material. Defaults to 'Carbon steel'.
+    tray_material : str, optional
+        Tray construction material. Defaults to 'Carbon steel'.
+    tray_type='Sieve' : 'Sieve', 'Valve', or 'Bubble cap'
+        Tray type.
+    tray_spacing=450 : float
+        Typically between 152 to 915 mm.
+    stage_efficiency=None : 
+        User enforced stage efficiency. If None, stage efficiency is
+        calculated by the O'Connell correlation [2]_.
+    velocity_fraction=0.8 : float
+        Fraction of actual velocity to maximum velocity allowable before
+        flooding.
+    foaming_factor=1.0 : float
+        Must be between 0 to 1.
+    open_tray_area_fraction=0.1 : float
+        Fraction of open area to active area of a tray.
+    downcomer_area_fraction=None : float
+        Enforced fraction of downcomer area to net (total) area of a tray.
+        If None, estimate ratio based on Oliver's estimation [1]_.
+    is_divided=False : bool
+        True if the stripper and rectifier are two separate columns.
+
+    References
+    ----------
+    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
+        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
+
+    .. [2] M. Duss, R. Taylor. (2018)
+        Predict Distillation Tray Efficiency. AICHE 
+    
+    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        Handbook, 9 ed.; McGraw-Hill Education, 2018.
+
+    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+
+    Examples
+    --------
+    Binary distillation assuming 100% separation on non-keys:
+    
+    >>> from biosteam.units import ShortcutColumn
+    >>> from biosteam import Stream, settings
+    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
+    >>> feed = Stream('feed', flow=(80, 100, 25))
+    >>> bp = feed.bubble_point_at_P()
+    >>> feed.T = bp.T # Feed at bubble point T
+    >>> D1 = ShortcutColumn('D1', ins=feed,
+    ...                     outs=('distillate', 'bottoms_product'),
+    ...                     LHK=('Methanol', 'Water'),
+    ...                     y_top=0.99, x_bot=0.01, k=2,
+    ...                     is_divided=True)
+    >>> D1.simulate()
+    >>> # See all results
+    >>> D1.show(T='degC', P='atm', composition=True)
+    ShortcutColumn: D1
+    ins...
+    [0] feed
+        phase: 'l', T: 76.129 degC, P: 1 atm
+        composition: Water     0.39
+                     Methanol  0.488
+                     Glycerol  0.122
+                     --------  205 kmol/hr
+    outs...
+    [0] distillate
+        phase: 'g', T: 64.91 degC, P: 1 atm
+        composition: Water     0.01
+                     Methanol  0.99
+                     --------  100 kmol/hr
+    [1] bottoms_product
+        phase: 'l', T: 100.06 degC, P: 1 atm
+        composition: Water     0.754
+                     Methanol  0.00761
+                     Glycerol  0.239
+                     --------  105 kmol/hr
+    >>> D1.results()
+    Distillation                                    Units       D1
+    Cooling water       Duty                        kJ/hr -7.9e+06
+                        Flow                      kmol/hr  5.4e+03
+                        Cost                       USD/hr     2.63
+    Low pressure steam  Duty                        kJ/hr 1.24e+07
+                        Flow                      kmol/hr      320
+                        Cost                       USD/hr       76
+    Design              Theoretical feed stage                   8
+                        Theoretical stages                      16
+                        Minimum reflux              Ratio     1.06
+                        Reflux                      Ratio     2.12
+                        Rectifier stages                        13
+                        Stripper stages                         26
+                        Rectifier height               ft     31.7
+                        Stripper height                ft     50.9
+                        Rectifier diameter             ft     4.52
+                        Stripper diameter              ft     3.84
+                        Rectifier wall thickness       in    0.312
+                        Stripper wall thickness        in     0.25
+                        Rectifier weight               lb 5.15e+03
+                        Stripper weight                lb 6.69e+03
+    Purchase cost       Rectifier trays               USD 1.52e+04
+                        Stripper trays                USD 2.07e+04
+                        Rectifier tower               USD 7.86e+04
+                        Stripper tower                USD  9.7e+04
+                        Condenser                     USD 2.09e+04
+                        Boiler                        USD 4.45e+03
+    Total purchase cost                               USD 2.37e+05
+    Utility cost                                   USD/hr     78.6
+    """
+    line = 'Distillation'
     _N_ins = 1
     _N_outs = 2     
      
     def _run(self):
-        # Initialize objects to calculate bubble and dew points
-        feed = self.ins[0]
-        equilibrium_chemicals = feed.equilibrium_chemicals
-        self._dew_point = DewPoint(equilibrium_chemicals, self.thermo)
-        self._bubble_point = BubblePoint(equilibrium_chemicals, self.thermo)
-        self._IDs = IDs = self._dew_point.IDs
-        LK, HK = self.LHK
-        LK_index = IDs.index(LK)
-        HK_index = IDs.index(HK)
-        self._LHK_equilibrium_index = [LK_index, HK_index]
-        
         # Set starting point for solving column
         self._run_binary_distillation_mass_balance()
         self._add_trace_heavy_and_light_non_keys_in_products()
+        
+        # Initialize objects to calculate bubble and dew points
+        equilibrium_chemicals = self.feed.equilibrium_chemicals
+        self._dew_point = DewPoint(equilibrium_chemicals, self.thermo)
+        self._bubble_point = BubblePoint(equilibrium_chemicals, self.thermo)
+        self._IDs = IDs = self._dew_point.IDs
+        self._LHK_equilibrium_index = [IDs.index(i) for i in self.LHK]
         
         # Solve for new recoveries
         distillate_recoveries = self._solve_distillate_recoveries()
         self._update_distillate_recoveries(distillate_recoveries)
         self._update_distillate_and_bottoms_temperature()
         
+    def _setup_cache(self):
+        pass
+
+    def plot_stages(self):
+        raise NotImplementedError
+        
     def _design(self):
-        self._load_feed_flows()
         self._run_FenskeUnderwoodGilliland()
         self._run_condenser_and_boiler()
         self._complete_distillation_column_design()
@@ -155,7 +302,7 @@ class ShortcutColumn(BinaryDistillation,
         return alpha_LHK_distillate, alpha_LHK_bottoms
         
     def _get_feed_quality(self):
-        feed, = self.ins
+        feed = self.feed
         feed = feed.copy()
         H_feed = feed.H
         try: dp = feed.dew_point_at_P()
@@ -195,7 +342,6 @@ class ShortcutColumn(BinaryDistillation,
         IDs = self._IDs
         z_distillate = distillate.get_normalized_mol(IDs)
         z_bottoms = bottoms.get_normalized_mol(IDs)
-        # print(IDs, 'z_distillate', z_distillate, 'P', self.P, 'z_bottoms', z_bottoms)
         dp = dew_point(z_distillate, P=self.P)
         bp = bubble_point(z_bottoms, P=self.P)
         K_distillate = compute_partition_coefficients(dp.z, dp.x)
@@ -240,30 +386,31 @@ class ShortcutColumn(BinaryDistillation,
         
 
 # if __name__ == '__main__':
-#     from biosteam import Stream, settings, ShortcutColumn, BinaryDistillation
-#     settings.set_thermo(['Water', 'Ethanol', 'Methanol', 'Glycerol'])
-#     feed = Stream('feed', flow=(1, 80, 80, 1))
-#     bp = feed.bubble_point_at_P()
-#     feed.T = bp.T
+    # from biosteam import Stream, settings, ShortcutColumn, BinaryDistillation
+    # settings.set_thermo(['Water', 'Ethanol', 'Methanol', 'Glycerol'])
+    # feed = Stream('feed', flow=(1, 80, 80, 1))
+    # bp = feed.bubble_point_at_P()
+    # feed.T = bp.T
     
-#     D1 = ShortcutColumn('D1', ins=feed,
-#                         outs=('distillate', 'bottoms_product'),
-#                         LHK=('Methanol', 'Ethanol'),
-#                         Lr=0.80, Hr=0.80, k=1.2,
-#                         product_specification_format='Recovery',                        
-#                         is_divided=True)
-#     D1.simulate()
-#     D1.show(T='degC', P='atm', composition=True)
-#     print(D1.results())
-#     print('\n')
-#     D2 = BinaryDistillation('D2', ins=feed,
-#                             outs=('distillate2', 'bottoms_product2'),
-#                             LHK=('Methanol', 'Ethanol'),
-#                             Lr=0.80, Hr=0.80, k=1.2,
-#                             product_specification_format='Recovery',                        
-#                             is_divided=True)
-#     D2.simulate()
-#     D2.show(T='degC', P='atm', composition=True)
-#     print(D2.results())
+    # D1 = ShortcutColumn('D1', ins=feed,
+    #                     outs=('distillate', 'bottoms_product'),
+    #                     LHK=('Methanol', 'Ethanol'),
+    #                     Lr=0.80, Hr=0.80, k=1.2,
+    #                     product_specification_format='Recovery',                        
+    #                     is_divided=True)
+    # D1.simulate()
+    # D1.show(T='degC', P='atm', composition=True)
+    # print(D1.results())
+    # print('\n')
+    # feed2 = feed.copy('feed2')
+    # D2 = BinaryDistillation('D2', ins=feed2,
+    #                         outs=('distillate2', 'bottoms_product2'),
+    #                         LHK=('Methanol', 'Ethanol'),
+    #                         Lr=0.80, Hr=0.80, k=1.2,
+    #                         product_specification_format='Recovery',                        
+    #                         is_divided=True)
+    # D2.simulate()
+    # D2.show(T='degC', P='atm', composition=True)
+    # print(D2.results())
     
     
