@@ -48,7 +48,13 @@ class Flowsheets:
 class Flowsheet:
     """
     Create a Flowsheet object which stores references to all stream, unit,
-    and system objects."""
+    and system objects.
+	
+	Examples
+	--------
+	:doc:`tutorial/Managing flowsheets` 
+	
+	"""
     
     #: [Register] All flowsheets.
     flowsheet = Flowsheets()
@@ -217,8 +223,9 @@ class Flowsheet:
         ID : str, optional
             Name of system.
         ends : Iterable[Stream]
-            Streams that not products, but are ultimately specified through
-            process requirements and not by its unit source.
+            End streams of the system which are not products. Specify this argument
+			if only a section of the system is wanted, or if recycle streams should be 
+			ignored.
         
         """
         feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
@@ -233,8 +240,9 @@ class Flowsheet:
         Parameters
         ----------
         ends : Iterable[Stream]
-            Streams that not products, but are ultimately specified through
-            process requirements and not by its unit source.
+            End streams of the system which are not products. Specify this argument
+			if only a section of the system is wanted, or if recycle streams should be 
+			ignored.
         
         """
         feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
@@ -275,8 +283,15 @@ class Flowsheet:
 
 
 class MainFlowsheet(Flowsheet):
-    """Create a MainFlowsheet object which automatically registers 
-    biosteam objects as they are created."""
+    """
+	Create a MainFlowsheet object which automatically registers 
+    biosteam objects as they are created.
+	
+	Examples
+	--------
+	:doc:`tutorial/Managing flowsheets` 
+	
+	"""
     __slots__ = ()
     
     def set_flowsheet(self, flowsheet):

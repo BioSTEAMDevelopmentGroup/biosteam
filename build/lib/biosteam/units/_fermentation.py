@@ -48,6 +48,8 @@ class Fermentation(Unit):
         If True, `Fermenation.kinetic_model` will be used.
     N : int
         Number of batch reactors
+    T=305.15 : float
+        Temperature of reactor [K].
     
     Examples
     --------
@@ -130,7 +132,7 @@ class Fermentation(Unit):
               'Loading time': 'hr',
               'Total dead time': 'hr'}
     _N_ins = _N_outs = 2
-    _N_heat_utilities = 0
+    _N_heat_utilities = 1
     _has_power_utility = True
     line = 'Fermentation'    
     
@@ -160,7 +162,7 @@ class Fermentation(Unit):
                 ('Number of reactors', self.N, ''))
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 tau,  N, efficiency=0.9, iskinetic=False):
+                 tau,  N, efficiency=0.9, iskinetic=False, T=305.15):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
@@ -168,12 +170,13 @@ class Fermentation(Unit):
         self.efficiency = efficiency
         self.tau = tau
         self.N = N
-        self.cooler = hx = HXutility(None)
-        self.heat_utilities = hx.heat_utilities
-        hx._ins = hx._outs
+        self.T = T
+        self.cooler = HXutility(None)
+        
+    def _setup(self):
         vent, effluent = self.outs
-        hx._outs[0].T = effluent.T = vent.T = 305.15
         vent.phase = 'g'
+        self.cooler._outs[0].T = effluent.T = vent.T = self.T
 
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
@@ -277,7 +280,7 @@ class Fermentation(Unit):
         if self.iskinetic:
             self.fermentation.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation(effluent_mol)
-        vent.recieve_vent(effluent)
+        vent.receive_vent(effluent)
     
     @property
     def N_at_minimum_capital_cost(self):
@@ -294,7 +297,8 @@ class Fermentation(Unit):
         return N - 1
         
     def _design(self):
-        v_0 = self.outs[1].F_vol
+        effluent = self.outs[1]
+        v_0 = effluent.F_vol
         tau = self._tau
         tau_0 = self.tau_0
         Design = self.design_results
@@ -304,15 +308,14 @@ class Fermentation(Unit):
             self.autoselect_N = True
         N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
-        hx = self.cooler
-        hx.outs[0].mol[:] = self.outs[0].mol/N 
-        hu = hx.heat_utilities[0]
-        hu(self.Hnet/N, self.outs[0].T)
-        hx._design(hu.duty)
-        hx._cost()
-        hu.duty *= N
-        hu.cost *= N
-        hu.flow *= N
+        hx_effluent = effluent.copy()
+        hx_effluent.mol[:] /= N
+        cooler = self.cooler
+        cooler.simulate_as_auxiliary_exchanger(self.Hnet/N, hx_effluent)
+        hu_fermentation, = self.heat_utilities
+        hu_cooler, = cooler.heat_utilities
+        hu_fermentation.copy_like(hu_cooler)
+        hu_fermentation.scale(N)
         self.purchase_costs['Coolers'] = self.cooler.purchase_costs['Heat exchanger'] * N
         
     

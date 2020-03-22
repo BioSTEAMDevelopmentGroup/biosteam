@@ -47,18 +47,16 @@ def find_paths_with_and_without_recycle(feed, ends):
 def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
-    has_recycle = False
     unit = feed.sink
     if not unit or isinstance(unit, Facility):
-        return has_recycle
+        return False
     if feed in ends:
-        return has_recycle
+        return False
     if unit in path: 
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
         ends.add(feed)
-        has_recycle = True
-        return has_recycle
+        return True
     path.append(unit)
     outlet, *other_outlets = sorted(unit.outs, key=get_stream_path_priority)
     has_recycle = fill_path(outlet, path.copy(),
@@ -75,7 +73,7 @@ def fill_path(feed, path, paths_with_recycle,
                                 ends)
         if not has_recycle:
             paths_without_recycle.add(tuple(new_path))
-    return has_recycle
+    return False
 
 def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     path, recycle = path_with_recycle

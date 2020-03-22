@@ -39,10 +39,10 @@ biosteam/tests/utility_tests.py
 biosteam/units/_CAS.py
 biosteam/units/__init__.py
 biosteam/units/_balance.py
+biosteam/units/_binary_distillation.py
 biosteam/units/_clarifier.py
 biosteam/units/_conveying_belt.py
 biosteam/units/_crushing_mill.py
-biosteam/units/_distillation.py
 biosteam/units/_duplicator.py
 biosteam/units/_enzyme_treatment.py
 biosteam/units/_fermentation.py
@@ -58,6 +58,7 @@ biosteam/units/_process_specification.py
 biosteam/units/_pump.py
 biosteam/units/_rvf.py
 biosteam/units/_screw_feeder.py
+biosteam/units/_shortcut_column.py
 biosteam/units/_shredder.py
 biosteam/units/_solids_centrifuge.py
 biosteam/units/_solids_separator.py

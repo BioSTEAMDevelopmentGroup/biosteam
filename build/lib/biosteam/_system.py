@@ -583,15 +583,19 @@ class System(metaclass=system):
         rmol[:] = mol
         T = recycle.T
         self._run()
-        self._mol_error = abs(mol - recycle.mol).sum()
-        self._T_error = abs(T - recycle.T)
+        mol_error = abs(mol - recycle.mol).sum()
+        T_error = abs(T - recycle.T)
         self._iter += 1
-        if self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
-            return rmol.copy(), False
+        if mol_error < self.molar_tolerance and T_error < self.T_tolerance:
+            unconverged = False
         elif self._iter > self.maxiter:
             raise SolverError(f'{repr(self)} could not converge' + self._error_info())
         else:
-            return rmol.copy(), True
+            unconverged = True
+        self._T_error = T_error
+        self._mol_error = mol_error
+        return rmol.copy(), unconverged
+            
         
     def _setup(self):
         """Setup each element of the system."""

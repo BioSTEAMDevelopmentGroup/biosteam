@@ -21,7 +21,10 @@ __all__ = ('test_binary_distillation',
            'test_unit_operations')
 
 def test_binary_distillation():
-    doctest.testmod(units._distillation)
+    doctest.testmod(units._binary_distillation)
+
+def test_shortcut_column():
+    doctest.testmod(units._shortcut_column)
     
 def test_mixer():
     doctest.testmod(units._mixer)
@@ -55,6 +58,7 @@ def test_process_specification():
     
 def test_unit_operations():
     test_binary_distillation()
+    test_shortcut_column
     test_mixer()
     test_splitter()
     test_tank()

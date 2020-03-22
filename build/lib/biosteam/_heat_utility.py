@@ -283,6 +283,27 @@ class HeatUtility:
         """[str] ID of utility agent being used."""
         self.agent = self.get_agent(ID)
 
+    def copy_like(self, other):
+        """Copy all data from another heat utility."""
+        self.inlet_utility_stream = other.inlet_utility_stream.copy()
+        self.outlet_utility_stream = other.outlet_utility_stream.copy()
+        self.flow = other.flow
+        self.duty = other.duty
+        self.cost = other.cost
+        self.heat_transfer_efficiency = other.heat_transfer_efficiency
+        self.T_pinch = other.T_pinch
+        self.iscooling = other.iscooling
+        self.agent = other.agent
+
+    def scale(self, factor):
+        """Scale utility data."""
+        self.flow *= factor
+        self.duty *= factor
+        self.cost *= factor
+        self.inlet_utility_stream.mol *= factor
+        # No need to factor the outlet utility stream
+        # because it shares the same flow rate data as the inlet
+
     def empty(self):
         """Remove utility requirements."""
         self.cost = self.flow = self.duty = 0
@@ -324,7 +345,6 @@ class HeatUtility:
             self.load_agent(agent)
             
         ## Calculate utility requirement ##
-        
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
         duty = duty/heat_transfer_efficiency
         if agent.T_limit:
@@ -395,7 +415,7 @@ class HeatUtility:
         raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')    
 
     def load_agent(self, agent):
-        """Initialize streams with given agent."""
+        """Initialize utility streams with given agent."""
         # Initialize streams
         self.inlet_utility_stream = agent.to_stream()
         self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()

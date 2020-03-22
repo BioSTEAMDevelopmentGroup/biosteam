@@ -13,7 +13,10 @@ __all__ = ('Transesterification',)
 @cost('Volume', 'Reactor',
       CE=525.4, cost=15000, n=0.55, kW=1.5, BM=4.3,)
 class Transesterification(Unit):
-    """Create a transesterification reactor that converts 'Lipid' and 'Methanol' to 'Biodiesel' and 'Glycerol'. Finds the amount of catalyst 'NaOCH3' required and consumes it to 'NaOH' and 'Methanol'.
+    """
+    Create a transesterification reactor that converts 'Lipid' and 'Methanol'
+    to 'Biodiesel' and 'Glycerol'. Finds the amount of catalyst 'NaOCH3'
+    required and consumes it to produce 'NaOH' and 'Methanol'.
     
     Parameters
     ----------
