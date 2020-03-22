@@ -73,7 +73,7 @@ def fill_path(feed, path, paths_with_recycle,
                                 ends)
         if not has_recycle:
             paths_without_recycle.add(tuple(new_path))
-    return False
+    return True
 
 def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     path, recycle = path_with_recycle
