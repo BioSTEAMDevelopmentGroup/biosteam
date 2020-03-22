@@ -48,32 +48,25 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
     unit = feed.sink
-    if not unit or isinstance(unit, Facility):
-        return False
-    if feed in ends:
-        return False
-    if unit in path: 
+    if not unit or isinstance(unit, Facility) or feed in ends:
+        paths_without_recycle.add(tuple(path))
+    elif unit in path: 
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
         ends.add(feed)
-        return True
-    path.append(unit)
-    outlet, *other_outlets = sorted(unit.outs, key=get_stream_path_priority)
-    has_recycle = fill_path(outlet, path.copy(),
-                            paths_with_recycle,
-                            paths_without_recycle,
-                            ends)
-    if not has_recycle:
-        paths_without_recycle.add(tuple(path))
-    for outlet in other_outlets:
-        new_path = path.copy()
-        has_recycle = fill_path(outlet, new_path,
-                                paths_with_recycle,
-                                paths_without_recycle,
-                                ends)
-        if not has_recycle:
-            paths_without_recycle.add(tuple(new_path))
-    return True
+    else:
+        path.append(unit)
+        outlet, *other_outlets = sorted(unit.outs, key=get_stream_path_priority)
+        fill_path(outlet, path.copy(),
+                  paths_with_recycle,
+                  paths_without_recycle,
+                  ends)
+        for outlet in other_outlets:
+            new_path = path.copy()
+            fill_path(outlet, new_path,
+                      paths_with_recycle,
+                      paths_without_recycle,
+                      ends)
 
 def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     path, recycle = path_with_recycle
