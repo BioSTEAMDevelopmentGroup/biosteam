@@ -244,7 +244,7 @@ class ShortcutColumn(BinaryDistillation,
         pass
 
     def plot_stages(self):
-        raise NotImplementedError
+        raise TypeError('cannot plot stages for shortcut column')
         
     def _design(self):
         self._run_FenskeUnderwoodGilliland()
