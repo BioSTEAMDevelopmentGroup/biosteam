@@ -220,6 +220,7 @@ class ShortcutColumn(BinaryDistillation,
     Utility cost                                   USD/hr     78.6
     """
     line = 'Distillation'
+    _ins_size_is_fixed = False
     _N_ins = 1
     _N_outs = 2     
      
@@ -355,7 +356,7 @@ class ShortcutColumn(BinaryDistillation,
     def _estimate_distillate_recoveries(self):
         # Use Hengsteback and Geddes equations
         alpha_mean = self._estimate_mean_volatilities_relative_to_heavy_key()
-        feed, = self.ins
+        feed = self.feed
         distillate, bottoms = self.outs
         LHK_index = self._LHK_index
         LK_index, HK_index = LHK_index
@@ -367,7 +368,7 @@ class ShortcutColumn(BinaryDistillation,
                                                                     LHK_equilibrium_index)
         
     def _update_distillate_recoveries(self, distillate_recoveries):
-        feed, = self.ins
+        feed = self.feed
         distillate, bottoms = self.outs
         IDs = self._IDs_equilibrium
         feed_mol = feed.imol[IDs]

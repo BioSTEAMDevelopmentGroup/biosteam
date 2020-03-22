@@ -240,6 +240,9 @@ class BinaryDistillation(Unit):
     line = 'Distillation'
     _graphics = vertical_column_graphics
     _N_heat_utilities = 0
+    _ins_size_is_fixed = False
+    _N_ins = 1
+    _N_outs = 2
     _units = {'Minimum reflux': 'Ratio',
               'Reflux': 'Ratio',
               'Rectifier height': 'ft',
