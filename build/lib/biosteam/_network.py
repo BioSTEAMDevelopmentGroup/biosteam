@@ -4,28 +4,12 @@ Created on Tue Sep 10 09:01:47 2019
 
 @author: yoelr
 """
-# import biosteam as bst
-# from .misc import strtuple
 from ._unit import Unit
 from ._facility import Facility
 from ._digraph import make_digraph, save_digraph
-# __all__ = ('Thread', 'build_network')
-
-
-class End:
-    __slots__ = ('sink',)
     
-    def __init__(self, sink):
-        self.sink = sink
 
-    def __bool__(self):
-        return False
-    
-    
 # %% Path tools
-
-def get_stream_path_priority(stream):
-    return stream.path_priority
 
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     paths_with_recycle, linear_paths = find_paths_with_and_without_recycle(
@@ -56,7 +40,7 @@ def fill_path(feed, path, paths_with_recycle,
         ends.add(feed)
     else:
         path.append(unit)
-        outlet, *other_outlets = sorted(unit.outs, key=get_stream_path_priority)
+        outlet, *other_outlets = unit.outs
         fill_path(outlet, path.copy(),
                   paths_with_recycle,
                   paths_without_recycle,
@@ -78,8 +62,8 @@ def simplify_linear_paths(linear_paths):
     simplified_linear_paths = []
     linear_paths = sorted(linear_paths, key=len)
     while linear_paths:
-        bigger_path, *linear_paths = linear_paths
-        simplified_path = simplify_linear_path(bigger_path, linear_paths)
+        smaller_path, *linear_paths = linear_paths
+        simplified_path = simplify_linear_path(smaller_path, linear_paths)
         if simplified_path:
             simplified_linear_paths.append(simplified_path)
     return simplified_linear_paths
@@ -241,16 +225,6 @@ class Network:
         self.products.update([i for i in unit._outs if i and not i._sink])
         self.feeds.update([i for i in unit._ins if i and not i._source])
         self.streams.update(unit._ins + unit._outs)
-
-    # @property
-    # def all_subnetworks(self):
-    #     all_subnetworks = set()
-    #     for i in self.subnetworks:
-    #         if i.subnetworks:
-    #             all_subnetworks.update(i.all_subnetworks )
-    #         else:
-    #             i.add(i)
-    #     return all_subnetworks
     
     def _update_from_newly_added_network(self, network):
         self.subnetworks.add(network)
