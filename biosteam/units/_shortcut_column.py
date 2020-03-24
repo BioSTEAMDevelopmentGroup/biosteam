@@ -152,8 +152,6 @@ class ShortcutColumn(BinaryDistillation,
 
     Examples
     --------
-    Binary distillation assuming 100% separation on non-keys:
-    
     >>> from biosteam.units import ShortcutColumn
     >>> from biosteam import Stream, settings
     >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])

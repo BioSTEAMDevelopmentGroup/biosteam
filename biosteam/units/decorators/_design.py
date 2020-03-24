@@ -52,16 +52,15 @@ class DesignCenter:
         return design_basis
     
     def __call__(self, name, units, fsize=None):    
-        """Return a Unit class decorator that adds a size/design requirement to the class.
+        """
+        Return a Unit class decorator that adds a size/design requirement to the class.
         
         Parameters
         ----------
         name : str
-            Name of design item.
-            
+            Name of design item            
         units : str
-            Units of measure of design item.
-            
+            Units of measure of design item.            
         fsize : function
             Should return design item given the Unit object. If None, defaults to function predefined for given name and units.
         
@@ -69,18 +68,16 @@ class DesignCenter:
         return lambda cls: self._add_design2cls(cls, name, units, fsize)
     
     def _add_design2cls(self, cls, name, units, fsize):
-        """Add size/design requirement to class.
+        """
+        Add size/design requirement to class.
         
         Parameters
         ----------
-        cls : Unit class.
-    
+        cls : Unit class.    
         name : str
-            Name of design item.
-        
+            Name of design item.        
         units : str
-            Units of measure of design item.
-        
+            Units of measure of design item.        
         fsize : function
             Should return design item given the Unit object. If None, defaults to function predefined for given name and units.
             
@@ -116,10 +113,10 @@ class DesignCenter:
         return cls
 
     def __contains__(self, basis):
-        return basis in self.__dict__
+        return basis in self.design_basis_functions
     
     def __iter__(self):
-        yield from self.__dict__
+        yield from self.design_basis_functions
     
     def __repr__(self):
         return f"<{type(self).__name__}: {', '.join(self)}>"
@@ -151,7 +148,7 @@ def duty(self, units):
 def dry_flow_rate(self, units):
     ins = self._ins
     flow_in = sum([i.get_total_flow(units) for i in ins])
-    moisture = sum([i.get_flow(units, IDs='7732-18-5') for i in ins])
+    moisture = sum([i.get_flow(units, '7732-18-5') for i in ins])
     return flow_in - moisture
 
 del flow_rate, duty, dry_flow_rate

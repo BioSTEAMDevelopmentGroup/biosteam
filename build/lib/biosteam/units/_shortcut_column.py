@@ -39,7 +39,6 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     distillate_recoveries = dummy / (1 + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1 - b_Hr]
     distillate_recoveries[distillate_recoveries < 1e-12] = 0.
-    print(distillate_recoveries)
     return distillate_recoveries
 
 def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha_LK):
@@ -153,8 +152,6 @@ class ShortcutColumn(BinaryDistillation,
 
     Examples
     --------
-    Binary distillation assuming 100% separation on non-keys:
-    
     >>> from biosteam.units import ShortcutColumn
     >>> from biosteam import Stream, settings
     >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
