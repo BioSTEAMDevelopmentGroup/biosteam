@@ -40,17 +40,17 @@ def fill_path(feed, path, paths_with_recycle,
         ends.add(feed)
     else:
         path.append(unit)
-        outlet, *other_outlets = unit.outs
-        fill_path(outlet, path.copy(),
-                  paths_with_recycle,
-                  paths_without_recycle,
-                  ends)
+        first_outlet, *other_outlets = unit.outs
         for outlet in other_outlets:
             new_path = path.copy()
             fill_path(outlet, new_path,
                       paths_with_recycle,
                       paths_without_recycle,
                       ends)
+        fill_path(first_outlet, path,
+                  paths_with_recycle,
+                  paths_without_recycle,
+                  ends)
 
 def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     path, recycle = path_with_recycle
@@ -108,7 +108,7 @@ class Network:
     path : Iterable[Unit or Network]
         A path of unit operations and subnetworks.
     recycle : Stream
-        A recycle stream if any.
+        A recycle stream, if any.
     
     """
     
@@ -249,7 +249,8 @@ class Network:
     
     def _insert_network(self, index, network, has_overlap=True):
         path = self.path
-        if has_overlap: self._remove_overlap(network)
+        if has_overlap:
+            self._remove_overlap(network)
         if network.recycle:
             path.insert(index, network)
         else:
@@ -263,7 +264,7 @@ class Network:
         isa = isinstance
         index_found = done = False
         subnetworks = self.subnetworks
-        overlap = True
+        has_overlap = True
         path_tuple = tuple(path)
         for i in path_tuple:
             if isa(i, Unit):
@@ -284,7 +285,7 @@ class Network:
                 if isa(item, Unit):
                     if item not in subunits: continue
                     self._insert_network(index, subnetwork)
-                    overlap = False
+                    has_overlap = False
                     done = True
                     break
                 elif isa(item, Network):
@@ -294,7 +295,8 @@ class Network:
                         item._add_subnetwork(subnetwork)
                         done = True
                         break
-        if overlap: self._remove_overlap(subnetwork)
+        if has_overlap:
+            self._remove_overlap(subnetwork)
         if not done:
             self._append_network(subnetwork)
         if len(path) == 1 and isa(path[0], Network):
