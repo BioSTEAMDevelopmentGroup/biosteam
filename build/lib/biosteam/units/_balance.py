@@ -76,7 +76,7 @@ class MassBalance(Unit):
     ...                   variable_inlets=[water, ethanol],
     ...                   constant_inlets=[S1-0],
     ...                   constant_outlets=[target],
-    ...                   chemical_IDs=['Ethanol', 'Water'],
+    ...                   chemical_IDs=('Ethanol', 'Water'),
     ...                   description='Adjust flow rate of feed to mixer')
     >>> # Connect units
     >>> water-T1-P1
@@ -116,7 +116,7 @@ class MassBalance(Unit):
         self.variable_inlets = variable_inlets
         self.constant_inlets = constant_inlets
         self.constant_outlets = constant_outlets
-        self.chemical_IDs = chemical_IDs
+        self.chemical_IDs = tuple(chemical_IDs)
         self.is_exact = is_exact
         self.balance = balance
         self.description = description
