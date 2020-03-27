@@ -107,7 +107,7 @@ class Network:
     ----------
     path : Iterable[Unit or Network]
         A path of unit operations and subnetworks.
-    recycle : Stream
+    recycle : :class:`~thermosteam.Stream`
         A recycle stream, if any.
     
     """
@@ -133,14 +133,14 @@ class Network:
         
         Parameters
         ----------
-        feedstock : Stream
+        feedstock : :class:`~thermosteam.Stream`
             Main feedstock of the process.
-        feeds : Iterable[Stream]
+        feeds : Iterable[:class:`~thermosteam.Stream`]
             Additional feeds to the process.
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after 
             completing the path simulation.
-        ends : Iterable[Stream]
+        ends : Iterable[:class:`~thermosteam.Stream`]
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
         

@@ -36,14 +36,9 @@ Common Issues
 
      $ pip install --user --ignore-installed biosteam
 
-
-* **BioSTEAM version is not the latest:**
-
-  You can make sure you install the right version with the following line:
+  You can make sure you install the right version by including the version number:
 
   .. code-block:: bash
 
      $ pip install biosteam==<version>
-
-  Where `<version>` is the version number.
 

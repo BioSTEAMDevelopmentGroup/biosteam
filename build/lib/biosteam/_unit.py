@@ -68,10 +68,10 @@ class Unit:
     ID='' : str, defaults to a unique ID
         A unique identification. If ID is None, unit will not be
         registered in flowsheet.
-    ins=None : Iterable[Stream, or str], Stream, or str
+    ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
         Input streams or IDs to initialize input streams.
         If empty, default IDs will be given. If None, defaults to missing streams.
-    outs=() : Iterable[Stream, or str], Stream, or str
+    outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
         Output streams or IDs to initialize output streams.
         If empty, default IDs will be given.
         If None, leave streams missing.
@@ -81,9 +81,9 @@ class Unit:
     
     Attributes
     ----------
-    ins : Ins[Stream]
+    ins : Ins[:class:`~thermosteam.Stream`]
         Input streams.
-    outs : Outs[Stream]
+    outs : Outs[:class:`~thermosteam.Stream`]
         Output streams.
     power_utility : PowerUtility
         Electricity rate requirements are stored here.
@@ -165,11 +165,11 @@ class Unit:
         self._register(ID)
     
     def _init_ins(self, ins):
-        # Ins[Stream] Input streams
+        # Ins[:class:`~thermosteam.Stream`] Input streams
         self._ins = Ins(self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed)
     
     def _init_outs(self, outs):
-        # Outs[Stream] Output streams
+        # Outs[:class:`~thermosteam.Stream`] Output streams
         self._outs = Outs(self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed)
     
     def _init_utils(self):

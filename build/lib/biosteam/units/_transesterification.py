@@ -50,7 +50,7 @@ class Transesterification(Unit):
     def __init__(self, ID='', ins=None, outs=(), *,
                  efficiency, methanol2lipid, T, catalyst_molfrac):
         Unit.__init__(self, ID, ins, outs)
-        #: [ParallelReaction] Transesterification and catalyst consumption reaction
+        #: [:class:~thermosteam.ParallelReaction] Transesterification and catalyst consumption reaction
         self.reaction = ParallelReaction([
           Reaction('Lipid + 3Methanol -> 3Biodiesel + Glycerol',
                    reactant='Lipid',  X=efficiency),
@@ -63,7 +63,7 @@ class Transesterification(Unit):
         self._lipid_index, self._methanol_index, self._catalyst_index = \
                 chemicals.get_index(('Lipid', 'Methanol', 'NaOCH3'))
         self._methanol2lipid = methanol2lipid
-        self.T = T #: Operation temperature (K).
+        self.T = T #: Operating temperature (K).
     
     @property
     def tau(self):

@@ -192,7 +192,7 @@ class System(metaclass=system):
          registered in flowsheet.
     path : tuple[Unit, function and/or System]
         A path that is run element by element until the recycle converges.
-    recycle=None : Stream, optional
+    recycle=None : :class:`~thermosteam.Stream`, optional
         A tear stream for the recycle loop.
     facilities=() : tuple[Unit, function, and/or System], optional
         Offsite facilities that are simulated only after
@@ -222,14 +222,14 @@ class System(metaclass=system):
         ----------
         ID : str
             Name of system.
-        feedstock : Stream
+        feedstock : :class:`~thermosteam.Stream`
             Main feedstock of the process.
-        feeds : Iterable[Stream]
+        feeds : Iterable[:class:`~thermosteam.Stream`]
             Additional feeds to the process.
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after 
             completing the path simulation.
-        ends : Iterable[Stream]
+        ends : Iterable[:class:`~thermosteam.Stream`]
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
         
@@ -354,7 +354,7 @@ class System(metaclass=system):
                 costunits.update(i._costunits)
         
     def _load_streams(self):
-        #: set[Stream] All streams within the system
+        #: set[:class:`~thermosteam.Stream`] All streams within the system
         self.streams = streams = set()
         
         for u in self.units:
@@ -363,10 +363,10 @@ class System(metaclass=system):
             streams.update(sys.streams)
         streams.discard(MissingStream)
         
-        #: set[Stream] All feed streams in the system.
+        #: set[:class:`~thermosteam.Stream`] All feed streams in the system.
         self.feeds = feeds_from_streams(streams)
         
-        #: set[Stream] All product streams in the system.
+        #: set[:class:`~thermosteam.Stream`] All product streams in the system.
         self.products = products_from_streams(streams)
         
     @property
@@ -377,7 +377,7 @@ class System(metaclass=system):
     
     @property
     def recycle(self):
-        """[Stream] A tear stream for the recycle loop"""
+        """[:class:`~thermosteam.Stream`] A tear stream for the recycle loop"""
         return self._recycle
 
     @property

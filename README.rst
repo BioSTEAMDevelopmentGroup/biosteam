@@ -26,18 +26,13 @@ Installation
 
 Get the latest version of BioSTEAM from `PyPI <https://pypi.python.org/pypi/biosteam/>`__. If you have an installation of Python with pip, simple install it with:
 
-.. code-block:: bash
-
-   $ pip install biosteam
-
+    $ pip install biosteam
 
 To get the git version, run:
 
-.. code-block:: bash
-   
-   $ git clone git://github.com/yoelcortes/biosteam
+    $ git clone git://github.com/yoelcortes/biosteam
 
-For help on common installtion issues, please visit the `documentation <file:///C:/Users/yoelr/OneDrive/Code/biosteam/docs/_build/html/Installation.html>_.
+For help on common installtion issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/Installation.html>`__.
 
 Documentation
 -------------

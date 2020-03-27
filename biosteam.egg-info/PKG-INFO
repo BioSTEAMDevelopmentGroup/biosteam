@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: biosteam
-Version: 2.7.3
+Version: 2.7.4
 Summary: The Biorefinery Simulation and Techno-Economic Analysis Modules
 Home-page: https://github.com/BioSTEAMDevelopmentGroup/biosteam
 Author: Yoel Cortes-Pena
@@ -33,16 +33,15 @@ Description: ===================================================================
         Installation
         ------------
         
-        Get the latest version of BioSTEAM from
-        https://pypi.python.org/pypi/biosteam/
-        
-        If you have an installation of Python with pip, simple install it with:
+        Get the latest version of BioSTEAM from `PyPI <https://pypi.python.org/pypi/biosteam/>`__. If you have an installation of Python with pip, simple install it with:
         
             $ pip install biosteam
         
         To get the git version, run:
         
-            $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam.git
+            $ git clone git://github.com/yoelcortes/biosteam
+        
+        For help on common installtion issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/Installation.html>`__.
         
         Documentation
         -------------
