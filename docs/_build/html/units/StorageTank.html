@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -119,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LLECentrifuge.html">LLECentrifuge</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
@@ -489,6 +490,12 @@ of the unit and all neighboring units within given radius.</p>
 <dt id="biosteam.units.StorageTank.simulate">
 <code class="sig-name descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements. No design specifications are solved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.StorageTank.take_place_of">
+<code class="sig-name descname">take_place_of</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.take_place_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace inlets and outlets from this unit with that of another unit.</p>
 </dd></dl>
 
 <dl class="method">

@@ -222,7 +222,7 @@ class Flowsheet:
         ----------
         ID : str, optional
             Name of system.
-        ends : Iterable[Stream]
+        ends : Iterable[:class:`~thermosteam.Stream`]
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.
@@ -239,7 +239,7 @@ class Flowsheet:
         
         Parameters
         ----------
-        ends : Iterable[Stream]
+        ends : Iterable[:class:`~thermosteam.Stream`]
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.

@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -369,7 +369,7 @@
 <span class="sd">         registered in flowsheet.</span>
 <span class="sd">    path : tuple[Unit, function and/or System]</span>
 <span class="sd">        A path that is run element by element until the recycle converges.</span>
-<span class="sd">    recycle=None : Stream, optional</span>
+<span class="sd">    recycle=None : :class:`~thermosteam.Stream`, optional</span>
 <span class="sd">        A tear stream for the recycle loop.</span>
 <span class="sd">    facilities=() : tuple[Unit, function, and/or System], optional</span>
 <span class="sd">        Offsite facilities that are simulated only after</span>
@@ -399,14 +399,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        ID : str</span>
 <span class="sd">            Name of system.</span>
-<span class="sd">        feedstock : Stream</span>
+<span class="sd">        feedstock : :class:`~thermosteam.Stream`</span>
 <span class="sd">            Main feedstock of the process.</span>
-<span class="sd">        feeds : Iterable[Stream]</span>
+<span class="sd">        feeds : Iterable[:class:`~thermosteam.Stream`]</span>
 <span class="sd">            Additional feeds to the process.</span>
 <span class="sd">        facilities : Iterable[Facility]</span>
 <span class="sd">            Offsite facilities that are simulated only after </span>
 <span class="sd">            completing the path simulation.</span>
-<span class="sd">        ends : Iterable[Stream]</span>
+<span class="sd">        ends : Iterable[:class:`~thermosteam.Stream`]</span>
 <span class="sd">            Streams that not products, but are ultimately specified through</span>
 <span class="sd">            process requirements and not by its unit source.</span>
 <span class="sd">        </span>
@@ -531,7 +531,7 @@
                 <span class="n">costunits</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_costunits</span><span class="p">)</span>
         
     <span class="k">def</span> <span class="nf">_load_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#: set[Stream] All streams within the system</span>
+        <span class="c1">#: set[:class:`~thermosteam.Stream`] All streams within the system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">streams</span> <span class="o">=</span> <span class="n">streams</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
@@ -540,10 +540,10 @@
             <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">streams</span><span class="p">)</span>
         <span class="n">streams</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">MissingStream</span><span class="p">)</span>
         
-        <span class="c1">#: set[Stream] All feed streams in the system.</span>
+        <span class="c1">#: set[:class:`~thermosteam.Stream`] All feed streams in the system.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">feeds_from_streams</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
         
-        <span class="c1">#: set[Stream] All product streams in the system.</span>
+        <span class="c1">#: set[:class:`~thermosteam.Stream`] All product streams in the system.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="n">products_from_streams</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
         
     <span class="nd">@property</span>
@@ -554,7 +554,7 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">recycle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Stream] A tear stream for the recycle loop&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;[:class:`~thermosteam.Stream`] A tear stream for the recycle loop&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recycle</span>
 
     <span class="nd">@property</span>

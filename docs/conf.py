@@ -55,6 +55,11 @@ extensions = [
     'sphinx.ext.autosummary',
     'nbsphinx']
 
+# Specify the baseurls for the projects I want to link to
+intersphinx_mapping = {
+    'thermosteam':  ('https://thermosteam.readthedocs.io/en/latest/', None),
+}
+
 # Do not show all members of the class
 numpydoc_show_class_members = False
 

@@ -76,7 +76,7 @@ class UtilityAgent(Stream):
     
     def to_stream(self, ID=None):
         """
-        Return a copy as a Stream object.
+        Return a copy as a :class:`~thermosteam.Stream` object.
 
         Examples
         --------
@@ -217,8 +217,8 @@ class HeatUtility:
         Whether the utility is cooling the process.
     agent : UtilityAgent
         Utility agent being used.
-    inlet_utility_stream : Stream
-    outlet_utility_stream : Stream
+    inlet_utility_stream : :class:`~thermosteam.Stream`
+    outlet_utility_stream : :class:`~thermosteam.Stream`
     
     Examples
     --------

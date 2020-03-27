@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -202,10 +202,23 @@
 <dl class="class">
 <dt id="biosteam.CombinedTEA">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">CombinedTEA</code><span class="sig-paren">(</span><em class="sig-param">TEAs</em>, <em class="sig-param">IRR</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Create a CombinedTEA object that performs techno-economic analysis by
+using data from many TEA objects that correspond to different areas
+of a biorefinery. A CombinedTEA object serves to accomodate for areas of
+a biorefinery with different assumptions. For example, an area of a
+biorefinery may not operate the same days a year, may have different
+depreciation schedules, and may even be taxed differently than other
+areas. Ultimately, a CombinedTEA object is an aggregation of TEA objects
+that work together to conduct techno-economic analysis of a whole biorefinery.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>TEAs</strong> (<em>Iterable</em><em>[</em><a class="reference internal" href="TEA.html#biosteam.TEA" title="biosteam.TEA"><em>TEA</em></a><em>]</em>) – TEA objects used to conduct techno-economic analysis.</p>
+</dd>
+</dl>
+<dl class="attribute">
 <dt id="biosteam.CombinedTEA.TEAs">
 <code class="sig-name descname">TEAs</code><a class="headerlink" href="#biosteam.CombinedTEA.TEAs" title="Permalink to this definition">¶</a></dt>
-<dd><p>iterable[TEA] All TEA objects for cashflow calculation</p>
+<dd><p>Iterable[TEA] All TEA objects for cashflow calculation</p>
 </dd></dl>
 
 <dl class="method">
@@ -329,7 +342,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>products</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Main products of the system</p></li>
+<li><p><strong>products</strong> (Iterable[<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>]) – Main products of the system</p></li>
 <li><p><strong>with_annual_depreciation=True</strong> (<em>bool</em><em>, </em><em>optional</em>) – </p></li>
 </ul>
 </dd>
@@ -354,7 +367,7 @@ determined by the annual production multiplied by its selling price.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>stream</strong> (<em>Stream</em>) – Stream with variable selling price.</p></li>
+<li><p><strong>stream</strong> (<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>) – Stream with variable selling price.</p></li>
 <li><p><strong>TEA</strong> (<a class="reference internal" href="TEA.html#biosteam.TEA" title="biosteam.TEA"><em>TEA</em></a><em>, </em><em>optional</em>) – Stream should belong here.</p></li>
 </ul>
 </dd>

@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -213,7 +213,7 @@ inner System object, it converges/solves it in each loop/iteration.</p>
 <li><p><strong>ID</strong> (<em>str</em>) – A unique identification. If ID is None, instance will not be
 registered in flowsheet.</p></li>
 <li><p><strong>path</strong> (<em>tuple</em><em>[</em><a class="reference internal" href="Unit.html#biosteam.Unit" title="biosteam.Unit"><em>Unit</em></a><em>, </em><em>function and/or System</em><em>]</em>) – A path that is run element by element until the recycle converges.</p></li>
-<li><p><strong>recycle=None</strong> (<em>Stream</em><em>, </em><em>optional</em>) – A tear stream for the recycle loop.</p></li>
+<li><p><strong>recycle=None</strong> (<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>, optional) – A tear stream for the recycle loop.</p></li>
 <li><p><strong>facilities=</strong><strong>(</strong><strong>)</strong> (<em>tuple</em><em>[</em><a class="reference internal" href="Unit.html#biosteam.Unit" title="biosteam.Unit"><em>Unit</em></a><em>, </em><em>function</em><em>, </em><em>and/or System</em><em>]</em><em>, </em><em>optional</em>) – Offsite facilities that are simulated only after
 completing the path simulation.</p></li>
 </ul>
@@ -245,11 +245,11 @@ completing the path simulation.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ID</strong> (<em>str</em>) – Name of system.</p></li>
-<li><p><strong>feedstock</strong> (<em>Stream</em>) – Main feedstock of the process.</p></li>
-<li><p><strong>feeds</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Additional feeds to the process.</p></li>
+<li><p><strong>feedstock</strong> (<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>) – Main feedstock of the process.</p></li>
+<li><p><strong>feeds</strong> (Iterable[<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>]) – Additional feeds to the process.</p></li>
 <li><p><strong>facilities</strong> (<em>Iterable</em><em>[</em><a class="reference internal" href="units/facilities.html#biosteam.units.facilities.Facility" title="biosteam.units.facilities.Facility"><em>Facility</em></a><em>]</em>) – Offsite facilities that are simulated only after
 completing the path simulation.</p></li>
-<li><p><strong>ends</strong> (<em>Iterable</em><em>[</em><em>Stream</em><em>]</em>) – Streams that not products, but are ultimately specified through
+<li><p><strong>ends</strong> (Iterable[<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>]) – Streams that not products, but are ultimately specified through
 process requirements and not by its unit source.</p></li>
 </ul>
 </dd>
@@ -301,7 +301,7 @@ completing the path simulation.</p></li>
 <dl class="method">
 <dt id="biosteam.System.recycle">
 <em class="property">property </em><code class="sig-name descname">recycle</code><a class="headerlink" href="#biosteam.System.recycle" title="Permalink to this definition">¶</a></dt>
-<dd><p>[Stream] A tear stream for the recycle loop</p>
+<dd><p>[<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>] A tear stream for the recycle loop</p>
 </dd></dl>
 
 <dl class="method">

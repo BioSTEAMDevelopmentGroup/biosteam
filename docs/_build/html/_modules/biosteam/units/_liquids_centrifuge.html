@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -202,19 +202,27 @@
       <span class="n">n</span><span class="o">=</span><span class="mf">0.574</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">3.66</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">2.03</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;Number of centrifuges&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">LiquidsCentrifuge</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a liquids centrifuge.</span>
-
-<span class="sd">    The f.o.b purchase cost is given by [1]_:</span>
-
-<span class="sd">    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})` </span>
+<span class="sd">    Abstract class for liquid centrifuges.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ins : stream</span>
 <span class="sd">        Inlet fluid.</span>
-<span class="sd">    outs : </span>
+<span class="sd">    outs : stream sequence</span>
 <span class="sd">        * [0] &#39;liquid&#39; phase fluid</span>
 <span class="sd">        * [1] &#39;LIQUID&#39; phase fluid</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The f.o.b purchase cost is given by [1]_:</span>
+
+<span class="sd">    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})` </span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, </span>
+<span class="sd">        K. C. Techno-Economic Analysis of a Biodiesel Production Process </span>
+<span class="sd">        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
@@ -232,15 +240,11 @@
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a liquids centrifuge simulated by component splits.</span>
 
-<span class="sd">    The f.o.b purchase cost is given by [1]_:</span>
-
-<span class="sd">    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})` </span>
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ins : stream</span>
 <span class="sd">        Inlet fluid.</span>
-<span class="sd">    outs : </span>
+<span class="sd">    outs : stream sequence</span>
 <span class="sd">        * [0] &#39;liquid&#39; phase fluid</span>
 <span class="sd">        * [1] &#39;LIQUID&#39; phase fluid</span>
 <span class="sd">    split : Should be one of the following</span>
@@ -249,6 +253,18 @@
 <span class="sd">            * [dict] ID-split pairs of feed to 0th outlet stream</span>
 <span class="sd">    order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs</span>
 <span class="sd">        Chemical order of split.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The f.o.b purchase cost is given by [1]_:</span>
+
+<span class="sd">    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})` </span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, </span>
+<span class="sd">        K. C. Techno-Economic Analysis of a Biodiesel Production Process </span>
+<span class="sd">        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Liquids centrifuge&#39;</span>
@@ -261,15 +277,11 @@
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a liquids centrifuge simulated by liquid-liquid equilibrium.</span>
 
-<span class="sd">    The f.o.b purchase cost is given by [1]_:</span>
-
-<span class="sd">    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})` </span>
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ins : stream</span>
 <span class="sd">        Inlet fluid.</span>
-<span class="sd">    outs : </span>
+<span class="sd">    outs : stream sequence</span>
 <span class="sd">        * [0] &#39;liquid&#39; phase fluid</span>
 <span class="sd">        * [1] &#39;LIQUID&#39; phase fluid</span>
 <span class="sd">    top_chemical : str, optional</span>
@@ -277,11 +289,17 @@
 <span class="sd">        If none given, the &quot;liquid&quot; phase will the lightest and the &quot;LIQUID&quot;</span>
 <span class="sd">        phase will be the heaviest.</span>
 <span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The f.o.b purchase cost is given by [1]_:</span>
+
+<span class="sd">    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})` </span>
+<span class="sd">    </span>
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos,</span>
-<span class="sd">671 K. C. Techno-Economic Analysis of a Biodiesel Production Process</span>
-<span class="sd">672 from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</span>
+<span class="sd">    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, </span>
+<span class="sd">        K. C. Techno-Economic Analysis of a Biodiesel Production Process </span>
+<span class="sd">        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</span>
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>

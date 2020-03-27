@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -245,10 +245,10 @@
 <span class="sd">    ID=&#39;&#39; : str, defaults to a unique ID</span>
 <span class="sd">        A unique identification. If ID is None, unit will not be</span>
 <span class="sd">        registered in flowsheet.</span>
-<span class="sd">    ins=None : Iterable[Stream, or str], Stream, or str</span>
+<span class="sd">    ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str</span>
 <span class="sd">        Input streams or IDs to initialize input streams.</span>
 <span class="sd">        If empty, default IDs will be given. If None, defaults to missing streams.</span>
-<span class="sd">    outs=() : Iterable[Stream, or str], Stream, or str</span>
+<span class="sd">    outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str</span>
 <span class="sd">        Output streams or IDs to initialize output streams.</span>
 <span class="sd">        If empty, default IDs will be given.</span>
 <span class="sd">        If None, leave streams missing.</span>
@@ -258,9 +258,9 @@
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ins : Ins[Stream]</span>
+<span class="sd">    ins : Ins[:class:`~thermosteam.Stream`]</span>
 <span class="sd">        Input streams.</span>
-<span class="sd">    outs : Outs[Stream]</span>
+<span class="sd">    outs : Outs[:class:`~thermosteam.Stream`]</span>
 <span class="sd">        Output streams.</span>
 <span class="sd">    power_utility : PowerUtility</span>
 <span class="sd">        Electricity rate requirements are stored here.</span>
@@ -342,11 +342,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
-        <span class="c1"># Ins[Stream] Input streams</span>
+        <span class="c1"># Ins[:class:`~thermosteam.Stream`] Input streams</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins_size_is_fixed</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_init_outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
-        <span class="c1"># Outs[Stream] Output streams</span>
+        <span class="c1"># Outs[:class:`~thermosteam.Stream`] Output streams</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs_size_is_fixed</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_init_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

@@ -446,7 +446,7 @@ class TEA:
         
         Parameters
         ----------
-        products : Iterable[Stream]
+        products : Iterable[:class:`~thermosteam.Stream`]
                     Main products of the system
         with_annual_depreciation=True : bool, optional
         
@@ -467,7 +467,7 @@ class TEA:
         
         Parameters
         ----------
-        products : Iterable[Stream]
+        products : Iterable[:class:`~thermosteam.Stream`]
                     Main products of the system
         with_annual_depreciation=True : bool, optional
         
@@ -555,7 +555,7 @@ class TEA:
         
         Parameters
         ----------
-        stream : Stream
+        stream : :class:`~thermosteam.Stream`
             Stream with variable selling price.
             
         """
@@ -768,7 +768,7 @@ class CombinedTEA(TEA):
         
         Parameters
         ----------
-        products : Iterable[Stream]
+        products : Iterable[:class:`~thermosteam.Stream`]
                     Main products of the system
         with_annual_depreciation=True : bool, optional
         
@@ -808,7 +808,7 @@ class CombinedTEA(TEA):
         
         Parameters
         ----------
-        stream : Stream
+        stream : :class:`~thermosteam.Stream`
                  Stream with variable selling price.
         TEA : TEA, optional
               Stream should belong here.

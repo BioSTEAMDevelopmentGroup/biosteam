@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -229,33 +229,35 @@
 <dl class="class">
 <dt id="biosteam.units.LLECentrifuge">
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">LLECentrifuge</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">top_chemical=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_liquids_centrifuge.html#LLECentrifuge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.LLECentrifuge" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Create a liquids centrifuge simulated by liquid-liquid equilibrium.</p>
-<p>The f.o.b purchase cost is given by <a class="footnote-reference brackets" href="#id2" id="id1">1</a>:</p>
-<p><img class="math" src="../_images/math/8cd72290fef359894c42810ce624d5b3e4ffca49.png" alt="C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})"/></p>
-<dl class="simple">
-<dt>ins<span class="classifier">stream</span></dt><dd><p>Inlet fluid.</p>
-</dd>
-<dt>outs :</dt><dd><ul class="simple">
+<dd><p>Create a liquids centrifuge simulated by liquid-liquid equilibrium.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ins</strong> (<em>stream</em>) – Inlet fluid.</p></li>
+<li><p><strong>outs</strong> (<em>stream sequence</em>) – <ul>
 <li><p>[0] ‘liquid’ phase fluid</p></li>
 <li><p>[1] ‘LIQUID’ phase fluid</p></li>
 </ul>
-</dd>
-<dt>top_chemical<span class="classifier">str, optional</span></dt><dd><p>Identifier of chemical that will be favored in the “liquid” phase.
+</p></li>
+<li><p><strong>top_chemical</strong> (<em>str</em><em>, </em><em>optional</em>) – Identifier of chemical that will be favored in the “liquid” phase.
 If none given, the “liquid” phase will the lightest and the “LIQUID”
-phase will be the heaviest.</p>
+phase will be the heaviest.</p></li>
+</ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The f.o.b purchase cost is given by <a class="footnote-reference brackets" href="#id2" id="id1">1</a>:</p>
+<p><img class="math" src="../_images/math/8cd72290fef359894c42810ce624d5b3e4ffca49.png" alt="C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})"/></p>
+<p class="rubric">References</p>
 <dl class="footnote brackets">
 <dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos,</p>
+<dd><p>Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos,
+K. C. Techno-Economic Analysis of a Biodiesel Production Process
+from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</p>
 </dd>
 </dl>
-</div></blockquote>
-<p>671 K. C. Techno-Economic Analysis of a Biodiesel Production Process
-672 from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</p>
-<blockquote>
-<div><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane.chemicals</span> <span class="kn">import</span> <span class="n">lipidcane_chemicals</span>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane.chemicals</span> <span class="kn">import</span> <span class="n">lipidcane_chemicals</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">lipidcane_chemicals</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">333.15</span><span class="p">,</span>
@@ -295,7 +297,6 @@ phase will be the heaviest.</p>
 <span class="go">Utility cost                               USD/hr     3.55</span>
 </pre></div>
 </div>
-</div></blockquote>
 </dd></dl>
 
 </div>

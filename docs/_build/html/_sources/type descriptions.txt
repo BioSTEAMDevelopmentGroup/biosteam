@@ -1,0 +1,29 @@
+Type descriptions
+-----------------
+
+.. _stream:
+
+.. data:: stream
+   
+   Stream object, or ID to initialize stream.
+   
+   :type: :class:`~thermosteam.Stream`, or str
+
+
+.. _streams:
+   
+.. data:: streams
+   
+   Stream objects and/or IDs to initialize streams. Order of streams do not matter.
+   
+   :type: Iterable[:class:`~thermosteam.Stream`, str], :type: :class:`~thermosteam.Stream`, or str
+
+
+.. _stream sequence:
+   
+.. data:: stream sequence
+   
+   Ordered sequence of Stream objects and/or IDs to initialize streams. 
+   
+   :type: Iterable[:class:`~thermosteam.Stream`, str]
+

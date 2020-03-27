@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -623,7 +623,7 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        products : Iterable[Stream]</span>
+<span class="sd">        products : Iterable[:class:`~thermosteam.Stream`]</span>
 <span class="sd">                    Main products of the system</span>
 <span class="sd">        with_annual_depreciation=True : bool, optional</span>
 <span class="sd">        </span>
@@ -644,7 +644,7 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        products : Iterable[Stream]</span>
+<span class="sd">        products : Iterable[:class:`~thermosteam.Stream`]</span>
 <span class="sd">                    Main products of the system</span>
 <span class="sd">        with_annual_depreciation=True : bool, optional</span>
 <span class="sd">        </span>
@@ -732,7 +732,7 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        stream : Stream</span>
+<span class="sd">        stream : :class:`~thermosteam.Stream`</span>
 <span class="sd">            Stream with variable selling price.</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -778,13 +778,28 @@
                 
     
 <div class="viewcode-block" id="CombinedTEA"><a class="viewcode-back" href="../../CombinedTEA.html#biosteam.CombinedTEA">[docs]</a><span class="k">class</span> <span class="nc">CombinedTEA</span><span class="p">(</span><span class="n">TEA</span><span class="p">):</span>
-    
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a CombinedTEA object that performs techno-economic analysis by </span>
+<span class="sd">    using data from many TEA objects that correspond to different areas</span>
+<span class="sd">    of a biorefinery. A CombinedTEA object serves to accomodate for areas of</span>
+<span class="sd">    a biorefinery with different assumptions. For example, an area of a</span>
+<span class="sd">    biorefinery may not operate the same days a year, may have different </span>
+<span class="sd">    depreciation schedules, and may even be taxed differently than other </span>
+<span class="sd">    areas. Ultimately, a CombinedTEA object is an aggregation of TEA objects</span>
+<span class="sd">    that work together to conduct techno-economic analysis of a whole biorefinery.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    TEAs : Iterable[TEA]</span>
+<span class="sd">        TEA objects used to conduct techno-economic analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_TDC</span> <span class="o">=</span> <span class="n">_FCI</span> <span class="o">=</span> <span class="n">_FOC</span> <span class="o">=</span> <span class="bp">NotImplemented</span>
     
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TEAs&#39;</span><span class="p">,)</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TEAs</span><span class="p">,</span> <span class="n">IRR</span><span class="p">):</span>
-        <span class="c1">#: iterable[TEA] All TEA objects for cashflow calculation</span>
+        <span class="c1">#: Iterable[TEA] All TEA objects for cashflow calculation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">TEAs</span> <span class="o">=</span> <span class="n">TEAs</span>
         
         <span class="c1">#: [float] Internal rate of return (fraction)</span>
@@ -930,7 +945,7 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        products : Iterable[Stream]</span>
+<span class="sd">        products : Iterable[:class:`~thermosteam.Stream`]</span>
 <span class="sd">                    Main products of the system</span>
 <span class="sd">        with_annual_depreciation=True : bool, optional</span>
 <span class="sd">        </span>
@@ -970,7 +985,7 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        stream : Stream</span>
+<span class="sd">        stream : :class:`~thermosteam.Stream`</span>
 <span class="sd">                 Stream with variable selling price.</span>
 <span class="sd">        TEA : TEA, optional</span>
 <span class="sd">              Stream should belong here.</span>
