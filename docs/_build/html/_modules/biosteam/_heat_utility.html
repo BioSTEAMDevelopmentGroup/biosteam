@@ -236,7 +236,6 @@
                  <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">heat_transfer_price</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
                  <span class="n">regeneration_price</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">heat_transfer_efficiency</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">chemical_flows</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">path_priority</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_TP</span> <span class="o">=</span> <span class="n">ThermalCondition</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
         <span class="n">thermo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_thermo</span><span class="p">(</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_indexer</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">thermo</span><span class="o">.</span><span class="n">chemicals</span><span class="p">,</span> <span class="n">chemical_flows</span><span class="p">)</span>
@@ -269,7 +268,6 @@
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Stream</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">path_priority</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">new</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">new</span><span class="o">.</span><span class="n">_thermo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thermo</span>
         <span class="n">new</span><span class="o">.</span><span class="n">_imol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imol</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>

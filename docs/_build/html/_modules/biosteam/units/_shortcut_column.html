@@ -183,7 +183,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log10</span><span class="p">,</span> <span class="n">ceil</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">floor</span>
 <span class="kn">from</span> <span class="nn">._binary_distillation</span> <span class="kn">import</span> <span class="n">BinaryDistillation</span>
-<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">wegstein</span><span class="p">,</span> <span class="n">bisection</span>
+<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">wegstein</span><span class="p">,</span> <span class="n">find_bracket</span><span class="p">,</span> <span class="n">bounded_wegstein</span>
 <span class="kn">from</span> <span class="nn">thermosteam.equilibrium</span> <span class="kn">import</span> <span class="n">DewPoint</span><span class="p">,</span> <span class="n">BubblePoint</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ShortcutColumn&#39;</span><span class="p">,)</span>
@@ -329,8 +329,6 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    Binary distillation assuming 100% separation on non-keys:</span>
-<span class="sd">    </span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units import ShortcutColumn</span>
 <span class="sd">    &gt;&gt;&gt; from biosteam import Stream, settings</span>
 <span class="sd">    &gt;&gt;&gt; settings.set_thermo([&#39;Water&#39;, &#39;Methanol&#39;, &#39;Glycerol&#39;])</span>
@@ -397,6 +395,7 @@
 <span class="sd">    Utility cost                                   USD/hr     78.6</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Distillation&#39;</span>
+    <span class="n">_ins_size_is_fixed</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>     
      
@@ -409,7 +408,7 @@
         <span class="n">equilibrium_chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feed</span><span class="o">.</span><span class="n">equilibrium_chemicals</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span> <span class="o">=</span> <span class="n">DewPoint</span><span class="p">(</span><span class="n">equilibrium_chemicals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span> <span class="o">=</span> <span class="n">BubblePoint</span><span class="p">(</span><span class="n">equilibrium_chemicals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermo</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span> <span class="o">=</span> <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span><span class="o">.</span><span class="n">IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IDs_equilibrium</span> <span class="o">=</span> <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span><span class="o">.</span><span class="n">IDs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_equilibrium_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">IDs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">LHK</span><span class="p">]</span>
         
         <span class="c1"># Solve for new recoveries</span>
@@ -421,7 +420,7 @@
         <span class="k">pass</span>
 
 <div class="viewcode-block" id="ShortcutColumn.plot_stages"><a class="viewcode-back" href="../../../units/ShortcutColumn.html#biosteam.units.ShortcutColumn.plot_stages">[docs]</a>    <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;cannot plot stages for shortcut column&#39;</span><span class="p">)</span></div>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run_FenskeUnderwoodGilliland</span><span class="p">()</span>
@@ -439,7 +438,7 @@
                                                        <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">],</span>
                                                        <span class="n">alpha_LK</span><span class="p">)</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve_Underwood_constant</span><span class="p">(</span><span class="n">alpha_mean</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">)</span>
-        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs_equilibrium</span>
         <span class="n">z_d</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
         <span class="n">Rm</span> <span class="o">=</span> <span class="n">compute_minimum_reflux_ratio_Underwood</span><span class="p">(</span><span class="n">alpha_mean</span><span class="p">,</span> <span class="n">z_d</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">Rm</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span> <span class="n">Rm</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -497,9 +496,12 @@
     
     <span class="k">def</span> <span class="nf">_solve_Underwood_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_mean</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">):</span>
         <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_feed_quality</span><span class="p">()</span>
-        <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
-        <span class="n">theta</span> <span class="o">=</span> <span class="n">bisection</span><span class="p">(</span><span class="n">objective_function_Underwood_constant</span><span class="p">,</span>
-                          <span class="mi">1</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">z_f</span><span class="p">,</span> <span class="n">alpha_mean</span><span class="p">))</span>
+        <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_IDs_equilibrium</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">z_f</span><span class="p">,</span> <span class="n">alpha_mean</span><span class="p">)</span>
+        <span class="n">bracket</span> <span class="o">=</span> <span class="n">find_bracket</span><span class="p">(</span><span class="n">objective_function_Underwood_constant</span><span class="p">,</span>
+                                <span class="mi">1</span><span class="p">,</span> <span class="n">alpha_LK</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">bounded_wegstein</span><span class="p">(</span><span class="n">objective_function_Underwood_constant</span><span class="p">,</span>
+                                  <span class="o">*</span><span class="n">bracket</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">theta</span>
         
     <span class="k">def</span> <span class="nf">_add_trace_heavy_and_light_non_keys_in_products</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -516,7 +518,7 @@
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">dew_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span>
         <span class="n">bubble_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span>
-        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs_equilibrium</span>
         <span class="n">z_distillate</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
         <span class="n">z_bottoms</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">get_normalized_mol</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
         <span class="n">dp</span> <span class="o">=</span> <span class="n">dew_point</span><span class="p">(</span><span class="n">z_distillate</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
@@ -532,22 +534,21 @@
     <span class="k">def</span> <span class="nf">_estimate_distillate_recoveries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Use Hengsteback and Geddes equations</span>
         <span class="n">alpha_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_mean_volatilities_relative_to_heavy_key</span><span class="p">()</span>
-        <span class="n">feed</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feed</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
         <span class="n">LK_index</span><span class="p">,</span> <span class="n">HK_index</span> <span class="o">=</span> <span class="n">LHK_index</span>
         <span class="n">d_Lr</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span> <span class="o">/</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LK_index</span><span class="p">]</span>
         <span class="n">b_Hr</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span> <span class="o">/</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HK_index</span><span class="p">]</span>
         <span class="n">LHK_equilibrium_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_equilibrium_index</span>
-        <span class="n">LK_index</span> <span class="o">=</span> <span class="n">LHK_equilibrium_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">compute_distillate_recoveries_Hengsteback_and_Gaddes</span><span class="p">(</span><span class="n">d_Lr</span><span class="p">,</span> <span class="n">b_Hr</span><span class="p">,</span>
                                                                     <span class="n">alpha_mean</span><span class="p">,</span>
                                                                     <span class="n">LHK_equilibrium_index</span><span class="p">)</span>
         
     <span class="k">def</span> <span class="nf">_update_distillate_recoveries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distillate_recoveries</span><span class="p">):</span>
-        <span class="n">feed</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feed</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs_equilibrium</span>
         <span class="n">feed_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span>
         <span class="n">distillate</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">distillate_mol</span> <span class="o">=</span> <span class="n">distillate_recoveries</span> <span class="o">*</span> <span class="n">feed_mol</span>
         <span class="n">bottoms</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span> <span class="o">-</span> <span class="n">distillate_mol</span>

@@ -1,5 +1,5 @@
 IPython==7.9.0
-biorefineries>=2.6.3
-thermosteam>=0.6.9
+biorefineries>=2.7.0
+thermosteam>=0.7.0
 graphviz==0.8.3
 chaospy==3.0.11

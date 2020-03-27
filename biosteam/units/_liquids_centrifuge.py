@@ -111,7 +111,7 @@ class LLECentrifuge(LiquidsCentrifuge):
     >>> from biorefineries.lipidcane.chemicals import lipidcane_chemicals
     >>> from biosteam import units, settings, Stream
     >>> settings.set_thermo(lipidcane_chemicals)
-    >>> feed = Stream('feed',
+    >>> feed = Stream('feed', T=333.15,
     ...               Lipid=0.996, Biodiesel=26.9,
     ...               Methanol=32.9, Glycerol=8.97)
     >>> C1 = units.LLECentrifuge('C1', ins=feed, outs=('light', 'heavy'))
@@ -120,32 +120,32 @@ class LLECentrifuge(LiquidsCentrifuge):
     LLECentrifuge: C1
     ins...
     [0] feed
-        phase: 'l', T: 298.15 K, P: 101325 Pa
+        phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   32.9
                         Glycerol   8.97
                         Biodiesel  26.9
                         Lipid      0.996
     outs...
     [0] light
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   25.9
-                        Glycerol   8.97
-                        Biodiesel  0.00198
+        phase: 'l', T: 333.15 K, P: 101325 Pa
+        flow (kmol/hr): Methanol   24.1
+                        Glycerol   8.96
+                        Biodiesel  0.00772
     [1] heavy
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   7.02
-                        Glycerol   0.0036
+        phase: 'l', T: 333.15 K, P: 101325 Pa
+        flow (kmol/hr): Methanol   8.75
+                        Glycerol   0.013
                         Biodiesel  26.9
                         Lipid      0.996
     >>> C1.results()
     Liquids centrifuge                          Units       C1
-    Power               Rate                       kW     44.5
-                        Cost                   USD/hr     3.48
-    Design              Flow rate              m^3/hr     12.2
+    Power               Rate                       kW     45.4
+                        Cost                   USD/hr     3.55
+    Design              Flow rate              m^3/hr     12.4
                         Number of centrifuges                1
-    Purchase cost       Liquids centrifuge        USD 1.27e+05
-    Total purchase cost                           USD 1.27e+05
-    Utility cost                               USD/hr     3.48
+    Purchase cost       Liquids centrifuge        USD 1.29e+05
+    Total purchase cost                           USD 1.29e+05
+    Utility cost                               USD/hr     3.55
     
     """
     line = 'Liquids centrifuge'

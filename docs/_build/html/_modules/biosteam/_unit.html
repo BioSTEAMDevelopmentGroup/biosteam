@@ -381,6 +381,11 @@
         <span class="n">factor</span> <span class="o">=</span> <span class="n">units_of_measure</span><span class="o">.</span><span class="n">conversion_factor</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="n">factor</span>
     
+<div class="viewcode-block" id="Unit.take_place_of"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.take_place_of">[docs]</a>    <span class="k">def</span> <span class="nf">take_place_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replace inlets and outlets from this unit with that of another unit.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">ins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">outs</span></div>
+    
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Source streams.&quot;&quot;&quot;</span>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>LiquidsSplitCentrifuge &mdash; BioSTEAM 0.1 documentation</title>
+  <title>LLECentrifuge &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="LLECentrifuge" href="LLECentrifuge.html" />
-    <link rel="prev" title="Junction" href="Junction.html" /> 
+    <link rel="next" title="MassBalance" href="MassBalance.html" />
+    <link rel="prev" title="LiquidsSplitCentrifuge" href="LiquidsSplitCentrifuge.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -118,8 +118,8 @@
 <li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">LiquidsSplitCentrifuge</a></li>
-<li class="toctree-l2"><a class="reference internal" href="LLECentrifuge.html">LLECentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">LLECentrifuge</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
@@ -186,13 +186,13 @@
         
           <li><a href="units.html">units</a> &raquo;</li>
         
-      <li>LiquidsSplitCentrifuge</li>
+      <li>LLECentrifuge</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/units/LiquidsSplitCentrifuge.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/units/LLECentrifuge.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -224,39 +224,78 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="liquidssplitcentrifuge">
-<h1>LiquidsSplitCentrifuge<a class="headerlink" href="#liquidssplitcentrifuge" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="llecentrifuge">
+<h1>LLECentrifuge<a class="headerlink" href="#llecentrifuge" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.units.LiquidsSplitCentrifuge">
-<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">LiquidsSplitCentrifuge</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">*</em>, <em class="sig-param">split</em>, <em class="sig-param">order=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_liquids_centrifuge.html#LiquidsSplitCentrifuge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.LiquidsSplitCentrifuge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a liquids centrifuge simulated by component splits.</p>
-<p>The f.o.b purchase cost is given by <a href="#id2"><span class="problematic" id="id1">[1]_</span></a>:</p>
+<dt id="biosteam.units.LLECentrifuge">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">LLECentrifuge</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em>, <em class="sig-param">top_chemical=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_liquids_centrifuge.html#LLECentrifuge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.LLECentrifuge" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a liquids centrifuge simulated by liquid-liquid equilibrium.</p>
+<p>The f.o.b purchase cost is given by <a class="footnote-reference brackets" href="#id2" id="id1">1</a>:</p>
 <p><img class="math" src="../_images/math/8cd72290fef359894c42810ce624d5b3e4ffca49.png" alt="C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q &lt; 100 \frac{m^3}{h})"/></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ins</strong> (<em>stream</em>) – Inlet fluid.</p></li>
-<li><p><strong>outs</strong> – <ul>
+<dl class="simple">
+<dt>ins<span class="classifier">stream</span></dt><dd><p>Inlet fluid.</p>
+</dd>
+<dt>outs :</dt><dd><ul class="simple">
 <li><p>[0] ‘liquid’ phase fluid</p></li>
 <li><p>[1] ‘LIQUID’ phase fluid</p></li>
 </ul>
-</p></li>
-<li><p><strong>split</strong> (<em>Should be one of the following</em>) – <ul>
-<li><p>[float] The fraction of net feed in the 0th outlet stream</p></li>
-<li><p>[array_like] Componentwise split of feed to 0th outlet stream</p></li>
-<li><p>[dict] ID-split pairs of feed to 0th outlet stream</p></li>
-</ul>
-</p></li>
-<li><p><strong>order=None</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em><em>, </em><em>defaults to biosteam.settings.chemicals.IDs</em>) – Chemical order of split.</p></li>
-</ul>
+</dd>
+<dt>top_chemical<span class="classifier">str, optional</span></dt><dd><p>Identifier of chemical that will be favored in the “liquid” phase.
+If none given, the “liquid” phase will the lightest and the “LIQUID”
+phase will be the heaviest.</p>
 </dd>
 </dl>
-<dl class="method">
-<dt id="biosteam.units.LiquidsSplitCentrifuge.split">
-<em class="property">property </em><code class="sig-name descname">split</code><a class="headerlink" href="#biosteam.units.LiquidsSplitCentrifuge.split" title="Permalink to this definition">¶</a></dt>
-<dd><p>[Array] Componentwise split of feed to 0th outlet stream.</p>
-</dd></dl>
-
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos,</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>671 K. C. Techno-Economic Analysis of a Biodiesel Production Process
+672 from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</p>
+<blockquote>
+<div><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biorefineries.lipidcane.chemicals</span> <span class="kn">import</span> <span class="n">lipidcane_chemicals</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">lipidcane_chemicals</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">333.15</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="n">Lipid</span><span class="o">=</span><span class="mf">0.996</span><span class="p">,</span> <span class="n">Biodiesel</span><span class="o">=</span><span class="mf">26.9</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="n">Methanol</span><span class="o">=</span><span class="mf">32.9</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mf">8.97</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">LLECentrifuge</span><span class="p">(</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="s1">&#39;heavy&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">LLECentrifuge: C1</span>
+<span class="go">ins...</span>
+<span class="go">[0] feed</span>
+<span class="go">    phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Methanol   32.9</span>
+<span class="go">                    Glycerol   8.97</span>
+<span class="go">                    Biodiesel  26.9</span>
+<span class="go">                    Lipid      0.996</span>
+<span class="go">outs...</span>
+<span class="go">[0] light</span>
+<span class="go">    phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Methanol   24.1</span>
+<span class="go">                    Glycerol   8.96</span>
+<span class="go">                    Biodiesel  0.00772</span>
+<span class="go">[1] heavy</span>
+<span class="go">    phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Methanol   8.75</span>
+<span class="go">                    Glycerol   0.013</span>
+<span class="go">                    Biodiesel  26.9</span>
+<span class="go">                    Lipid      0.996</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="go">Liquids centrifuge                          Units       C1</span>
+<span class="go">Power               Rate                       kW     45.4</span>
+<span class="go">                    Cost                   USD/hr     3.55</span>
+<span class="go">Design              Flow rate              m^3/hr     12.4</span>
+<span class="go">                    Number of centrifuges                1</span>
+<span class="go">Purchase cost       Liquids centrifuge        USD 1.29e+05</span>
+<span class="go">Total purchase cost                           USD 1.29e+05</span>
+<span class="go">Utility cost                               USD/hr     3.55</span>
+</pre></div>
+</div>
+</div></blockquote>
 </dd></dl>
 
 </div>
@@ -269,10 +308,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="LLECentrifuge.html" class="btn btn-neutral float-right" title="LLECentrifuge" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="MassBalance.html" class="btn btn-neutral float-right" title="MassBalance" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Junction.html" class="btn btn-neutral float-left" title="Junction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="LiquidsSplitCentrifuge.html" class="btn btn-neutral float-left" title="LiquidsSplitCentrifuge" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

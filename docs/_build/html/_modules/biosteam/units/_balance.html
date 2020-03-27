@@ -253,7 +253,7 @@
 <span class="sd">    ...                   variable_inlets=[water, ethanol],</span>
 <span class="sd">    ...                   constant_inlets=[S1-0],</span>
 <span class="sd">    ...                   constant_outlets=[target],</span>
-<span class="sd">    ...                   chemical_IDs=[&#39;Ethanol&#39;, &#39;Water&#39;],</span>
+<span class="sd">    ...                   chemical_IDs=(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
 <span class="sd">    ...                   description=&#39;Adjust flow rate of feed to mixer&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; # Connect units</span>
 <span class="sd">    &gt;&gt;&gt; water-T1-P1</span>
@@ -293,7 +293,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">variable_inlets</span> <span class="o">=</span> <span class="n">variable_inlets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constant_inlets</span> <span class="o">=</span> <span class="n">constant_inlets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constant_outlets</span> <span class="o">=</span> <span class="n">constant_outlets</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">chemical_IDs</span> <span class="o">=</span> <span class="n">chemical_IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chemical_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chemical_IDs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_exact</span> <span class="o">=</span> <span class="n">is_exact</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">balance</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>

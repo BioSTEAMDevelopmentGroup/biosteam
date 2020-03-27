@@ -579,12 +579,6 @@ the minumum temperature.</p></li>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.UtilityAgent.equilibrium_chemicals">
-<em class="property">property </em><code class="sig-name descname">equilibrium_chemicals</code><a class="headerlink" href="#biosteam.UtilityAgent.equilibrium_chemicals" title="Permalink to this definition">¶</a></dt>
-<dd><p>list[Chemical] Chemicals cabable of vapor-liquid equilibrium.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="biosteam.UtilityAgent.flow_proxy">
 <code class="sig-name descname">flow_proxy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.flow_proxy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new stream that shares flow rate data with this one.</p>
@@ -658,13 +652,13 @@ the minumum temperature.</p></li>
 
 <dl class="method">
 <dt id="biosteam.UtilityAgent.get_flow">
-<code class="sig-name descname">get_flow</code><span class="sig-paren">(</span><em class="sig-param">units</em>, <em class="sig-param">IDs=Ellipsis</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_flow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_flow</code><span class="sig-paren">(</span><em class="sig-param">units</em>, <em class="sig-param">key=Ellipsis</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.get_flow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an flow rates in requested units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
-<li><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>] or </em><em>str</em><em>, </em><em>optional</em>) – Chemical identifiers.</p></li>
+<li><p><strong>key</strong> (<em>Iterable</em><em>[</em><em>str</em><em>] or </em><em>str</em><em>, </em><em>optional</em>) – Chemical identifiers.</p></li>
 </ul>
 </dd>
 </dl>
@@ -889,6 +883,18 @@ the minumum temperature.</p></li>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.UtilityAgent.lle">
+<em class="property">property </em><code class="sig-name descname">lle</code><a class="headerlink" href="#biosteam.UtilityAgent.lle" title="Permalink to this definition">¶</a></dt>
+<dd><p>[LLE] An object that can perform liquid-liquid equilibrium on the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.lle_chemicals">
+<em class="property">property </em><code class="sig-name descname">lle_chemicals</code><a class="headerlink" href="#biosteam.UtilityAgent.lle_chemicals" title="Permalink to this definition">¶</a></dt>
+<dd><p>list[Chemical] Chemicals cabable of vapor-liquid equilibrium.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.UtilityAgent.mass">
 <em class="property">property </em><code class="sig-name descname">mass</code><a class="headerlink" href="#biosteam.UtilityAgent.mass" title="Permalink to this definition">¶</a></dt>
 <dd><p>[property_array] Mass flow rates in kg/hr.</p>
@@ -993,14 +999,14 @@ the minumum temperature.</p></li>
 
 <dl class="method">
 <dt id="biosteam.UtilityAgent.set_flow">
-<code class="sig-name descname">set_flow</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">units</em>, <em class="sig-param">IDs=Ellipsis</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.set_flow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_flow</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">units</em>, <em class="sig-param">key=Ellipsis</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.UtilityAgent.set_flow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set flow rates in given units.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>1d ndarray</em><em> or </em><em>float</em>) – Flow rate data.</p></li>
 <li><p><strong>units</strong> (<em>str</em>) – Units of measure.</p></li>
-<li><p><strong>IDs</strong> (<em>Iterable</em><em>[</em><em>str</em><em>] or </em><em>str</em><em>, </em><em>optional</em>) – Chemical identifiers.</p></li>
+<li><p><strong>key</strong> (<em>Iterable</em><em>[</em><em>str</em><em>] or </em><em>str</em><em>, </em><em>optional</em>) – Chemical identifiers.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1094,7 +1100,8 @@ the minumum temperature.</p></li>
 the split fraction or an array of split fractions.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">thermosteam</span> <span class="k">as</span> <span class="nn">tmo</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chemicals</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Chemicals</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmo</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">set_thermo</span><span class="p">(</span><span class="n">chemicals</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">tmo</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">)</span>
@@ -1143,6 +1150,12 @@ the split fraction or an array of split fractions.</p>
 <dt id="biosteam.UtilityAgent.vle">
 <em class="property">property </em><code class="sig-name descname">vle</code><a class="headerlink" href="#biosteam.UtilityAgent.vle" title="Permalink to this definition">¶</a></dt>
 <dd><p>[VLE] An object that can perform vapor-liquid equilibrium on the stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.UtilityAgent.vle_chemicals">
+<em class="property">property </em><code class="sig-name descname">vle_chemicals</code><a class="headerlink" href="#biosteam.UtilityAgent.vle_chemicals" title="Permalink to this definition">¶</a></dt>
+<dd><p>list[Chemical] Chemicals cabable of vapor-liquid equilibrium.</p>
 </dd></dl>
 
 <dl class="method">

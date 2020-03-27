@@ -537,9 +537,8 @@ objects with additional attributes to describe a utility agent:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cw</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_cooling_agent</span><span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">)</span>
-<span class="n">cw</span> <span class="c1"># A UtilityAgent</span>
-
+<span></span><span class="n">cooling_water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">get_cooling_agent</span><span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">)</span>
+<span class="n">cooling_water</span> <span class="c1"># A UtilityAgent</span>
 </pre></div>
 </div>
 </div>
@@ -564,7 +563,7 @@ UtilityAgent: cooling_water
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Price of regenerating the utility in USD/kmol</span>
-<span class="n">cw</span><span class="o">.</span><span class="n">regeneration_price</span>
+<span class="n">cooling_water</span><span class="o">.</span><span class="n">regeneration_price</span>
 </pre></div>
 </div>
 </div>
@@ -606,7 +605,7 @@ UtilityAgent: cooling_water
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cw</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">302</span> <span class="c1"># Change the temperature of cooling water (K)</span>
+<span></span><span class="n">cooling_water</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">302</span> <span class="c1"># Change the temperature of cooling water (K)</span>
 </pre></div>
 </div>
 </div>
