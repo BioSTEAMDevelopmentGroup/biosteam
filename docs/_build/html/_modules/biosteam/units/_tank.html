@@ -247,7 +247,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;{type(self).__name__}(f_Cp=</span><span class="si">{self.f_Cp.__name__}</span><span class="s2">, V_min=</span><span class="si">{self.V_min}</span><span class="s2">, V_max=</span><span class="si">{self.V_max}</span><span class="s2">, CE=</span><span class="si">{self.CE}</span><span class="s2">, material=</span><span class="si">{self.material}</span><span class="s2">, V_units=</span><span class="si">{self.V_units}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(f_Cp=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">f_Cp</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">, V_min=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_min</span><span class="si">}</span><span class="s2">, V_max=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_max</span><span class="si">}</span><span class="s2">, CE=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">CE</span><span class="si">}</span><span class="s2">, material=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="si">}</span><span class="s2">, V_units=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_units</span><span class="si">}</span><span class="s2">)&quot;</span>
 
 
 <span class="k">def</span> <span class="nf">field_erected_vessel_purchase_cost</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
@@ -370,13 +370,13 @@
                 <span class="n">F_M_new</span> <span class="o">=</span> <span class="n">vessel_material_factors</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no material factor available for &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;vessel construction material &#39;</span><span class="si">{material}</span><span class="s2">&#39;;&quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;vessel construction material &#39;</span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s2">&#39;;&quot;</span>
                                  <span class="s2">&quot;only the following materials are &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;available: {&#39;, &#39;.join(vessel_material_factors)}&quot;</span><span class="p">)</span>
+                                <span class="sa">f</span><span class="s2">&quot;available: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vessel_material_factors</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">F_M_old</span> <span class="o">=</span> <span class="n">vessel_material_factors</span><span class="p">[</span><span class="n">default_material</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;only &#39;</span><span class="si">{default_material}</span><span class="s2">&#39; is a valid &quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;only &#39;</span><span class="si">{</span><span class="n">default_material</span><span class="si">}</span><span class="s2">&#39; is a valid &quot;</span>
                                     <span class="s2">&quot;material for given vessel type&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">F_M_new</span> <span class="o">/</span> <span class="n">F_M_old</span>        
     
@@ -389,10 +389,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithms</span><span class="p">[</span><span class="n">vessel_type</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;vessel type &#39;</span><span class="si">{vessel_type}</span><span class="s2">&#39;&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;vessel type &#39;</span><span class="si">{</span><span class="n">vessel_type</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
                              <span class="s2">&quot;is not avaiable; only the following vessel &quot;</span>
                              <span class="s2">&quot;types are available: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(self.purchase_cost_algorithms)}&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithms</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">design_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
@@ -405,8 +405,8 @@
         <span class="n">V_units</span> <span class="o">=</span> <span class="n">Cp_algorithm</span><span class="o">.</span><span class="n">V_units</span>
         <span class="n">V_total</span> <span class="o">/=</span> <span class="n">V_units</span><span class="o">.</span><span class="n">conversion_factor</span><span class="p">(</span><span class="s1">&#39;m^3&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">debug</span> <span class="ow">and</span> <span class="n">V_total</span> <span class="o">&lt;</span> <span class="n">Cp_algorithm</span><span class="o">.</span><span class="n">V_min</span><span class="p">:</span>
-            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;volume of </span><span class="si">{self}</span><span class="s2"> (</span><span class="si">{V_total:.5g}</span><span class="s2"> </span><span class="si">{V_units}</span><span class="s2">) is below &quot;</span>
-                 <span class="sa">f</span><span class="s2">&quot;the lower bound (</span><span class="si">{self.V_min:.5g}</span><span class="s2"> </span><span class="si">{V_units}</span><span class="s2">) for purchase &quot;</span>
+            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;volume of </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">V_total</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">V_units</span><span class="si">}</span><span class="s2">) is below &quot;</span>
+                 <span class="sa">f</span><span class="s2">&quot;the lower bound (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_min</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">V_units</span><span class="si">}</span><span class="s2">) for purchase &quot;</span>
                   <span class="s2">&quot;cost estimation&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">V_total</span> <span class="o">/</span> <span class="n">Cp_algorithm</span><span class="o">.</span><span class="n">V_max</span><span class="p">)</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">V_total</span> <span class="o">/</span> <span class="n">N</span>
@@ -627,7 +627,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

@@ -265,7 +265,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mab</span> <span class="o">=</span> <span class="n">shell_and_tube_material_factor_coefficients</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;material must be one of the following: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(shell_and_tube_material_factor_coefficients)}&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">shell_and_tube_material_factor_coefficients</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_material</span> <span class="o">=</span> <span class="n">material</span>  
     
     <span class="nd">@property</span>
@@ -278,7 +278,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_Cb_func</span> <span class="o">=</span> <span class="n">Cb_dict</span><span class="p">[</span><span class="n">shell_and_tube_type</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;heat exchange type must be one of the following: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(Cb_dict)}&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Cb_dict</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shell_and_tube_type</span> <span class="o">=</span> <span class="n">shell_and_tube_type</span>     
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -745,7 +745,7 @@
     <span class="nd">@fluid_type</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">fluid_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fluid_type</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">fluid_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ss&#39;</span><span class="p">,</span> <span class="s1">&#39;ls&#39;</span><span class="p">,</span> <span class="s1">&#39;ll&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fluid type must be either &#39;ss&#39;, &#39;ls&#39;, or &#39;ll&#39;, not {repr(fluid_type)}&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fluid type must be either &#39;ss&#39;, &#39;ls&#39;, or &#39;ll&#39;, not </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">fluid_type</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fluid_type</span> <span class="o">=</span> <span class="n">fluid_type</span>
         
     <span class="k">def</span> <span class="nf">get_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -892,7 +892,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

@@ -227,7 +227,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">efficiency</span><span class="p">,</span> <span class="n">methanol2lipid</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">catalyst_molfrac</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
-        <span class="c1">#: [ParallelReaction] Transesterification and catalyst consumption reaction</span>
+        <span class="c1">#: [:class:~thermosteam.ParallelReaction] Transesterification and catalyst consumption reaction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction</span> <span class="o">=</span> <span class="n">ParallelReaction</span><span class="p">([</span>
           <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Lipid + 3Methanol -&gt; 3Biodiesel + Glycerol&#39;</span><span class="p">,</span>
                    <span class="n">reactant</span><span class="o">=</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span>  <span class="n">X</span><span class="o">=</span><span class="n">efficiency</span><span class="p">),</span>
@@ -240,7 +240,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lipid_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_methanol_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_catalyst_index</span> <span class="o">=</span> \
                 <span class="n">chemicals</span><span class="o">.</span><span class="n">get_index</span><span class="p">((</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;NaOCH3&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_methanol2lipid</span> <span class="o">=</span> <span class="n">methanol2lipid</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Operation temperature (K).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Operating temperature (K).</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -307,7 +307,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

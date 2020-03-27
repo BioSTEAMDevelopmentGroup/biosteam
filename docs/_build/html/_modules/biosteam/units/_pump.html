@@ -305,7 +305,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">pump_material_factors</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;material must be one of the following: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(pump_material_factors)}&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pump_material_factors</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
         
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">thermo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
@@ -393,9 +393,9 @@
                 <span class="n">NPSH</span> <span class="o">=</span> <span class="n">calculate_NPSH</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">P_vapor</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s1">&#39;no pump type available at current power &#39;</span>
-                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head &#39;</span>
-                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), &#39;</span>
-                    <span class="sa">f</span><span class="s1">&#39;and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">power</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> hp), flow rate (</span><span class="si">{</span><span class="n">q</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> gpm), and head &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">head</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{</span><span class="n">nu</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> m2/s), &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;and NPSH (</span><span class="si">{</span><span class="n">NPSH</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
                 
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pump_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="n">N</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span> <span class="c1"># Set power in kW</span>
@@ -435,7 +435,7 @@
             <span class="k">elif</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1450</span> <span class="ow">and</span> <span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">q</span> <span class="o">&lt;=</span> <span class="mi">1500</span> <span class="ow">and</span> <span class="mi">650</span> <span class="o">&lt;=</span> <span class="n">h</span> <span class="o">&lt;=</span> <span class="mi">3200</span><span class="p">:</span>
                 <span class="n">F_T</span> <span class="o">=</span> <span class="n">F_Tdict</span><span class="p">[</span><span class="s1">&#39;2+HSC3600&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no centrifugal pump available at current power (</span><span class="si">{p:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{h:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no centrifugal pump available at current power (</span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> hp), flow rate (</span><span class="si">{</span><span class="n">q</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> gpm), and head (</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">.3g</span><span class="si">}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
             <span class="n">S</span> <span class="o">=</span> <span class="n">q</span><span class="o">*</span><span class="n">h</span><span class="o">**</span><span class="mf">0.5</span> <span class="c1"># Size factor</span>
             <span class="n">S_new</span> <span class="o">=</span> <span class="n">S</span> <span class="k">if</span> <span class="n">S</span> <span class="o">&gt;</span> <span class="mi">400</span> <span class="k">else</span> <span class="mi">400</span>
             <span class="n">lnS</span> <span class="o">=</span> <span class="n">ln</span><span class="p">(</span><span class="n">S_new</span><span class="p">)</span>
@@ -475,7 +475,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

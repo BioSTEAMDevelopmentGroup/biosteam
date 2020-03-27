@@ -266,12 +266,12 @@
         <span class="n">defaults</span> <span class="o">=</span> <span class="n">_default_vacuum_systems</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">preference</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">preference</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preference have at least one of the following: </span><span class="si">{defaults}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preference have at least one of the following: </span><span class="si">{</span><span class="n">defaults</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">preference</span> <span class="o">=</span> <span class="p">(</span><span class="n">preference</span><span class="p">,)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">preference</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preference have at least one of the following: </span><span class="si">{defaults}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;preference have at least one of the following: </span><span class="si">{</span><span class="n">defaults</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         
         <span class="n">vacuum_systems</span> <span class="o">=</span> <span class="p">[</span><span class="n">_default_vacuum_systems</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">preference</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">vacuum_systems</span>
@@ -403,7 +403,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

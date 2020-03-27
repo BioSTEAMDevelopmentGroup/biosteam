@@ -24,16 +24,20 @@ BioSTEAM is a fast and flexible package for the design, simulation, and techno-e
 Installation
 ------------
 
-Get the latest version of BioSTEAM from
-https://pypi.python.org/pypi/biosteam/
+Get the latest version of BioSTEAM from `PyPI <https://pypi.python.org/pypi/biosteam/>`__. If you have an installation of Python with pip, simple install it with:
 
-If you have an installation of Python with pip, simple install it with:
+.. code-block:: bash
 
-    $ pip install biosteam
+   $ pip install biosteam
+
 
 To get the git version, run:
 
-    $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam.git
+.. code-block:: bash
+   
+   $ git clone git://github.com/yoelcortes/biosteam
+
+For help on common installtion issues, please visit the `documentation <file:///C:/Users/yoelr/OneDrive/Code/biosteam/docs/_build/html/Installation.html>_.
 
 Documentation
 -------------

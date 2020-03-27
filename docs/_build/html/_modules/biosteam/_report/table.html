@@ -268,7 +268,7 @@
         <span class="c1"># Cash flow</span>
         <span class="n">tea</span><span class="o">.</span><span class="n">get_cashflow_table</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot find TEA object in </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">system</span><span class="p">)</span><span class="si">}</span><span class="s1">. Ignoring TEA sheets.&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     
     
     <span class="c1"># Stream tables</span>
@@ -501,10 +501,10 @@
     
     <span class="c1"># Set the right units</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">prop_molar_keys</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{attr}</span><span class="s1"> (</span><span class="si">{unit}</span><span class="s1">)&#39;</span> <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">prop_molar_keys</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s1">)&#39;</span> <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
     
     <span class="c1"># Make data frame object</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prop_molar_keys</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;flow (</span><span class="si">{flow}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="s1">&#39;Composition:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chemical_IDs</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prop_molar_keys</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;flow (</span><span class="si">{</span><span class="n">flow</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="s1">&#39;Composition:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chemical_IDs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
 
 
@@ -520,7 +520,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

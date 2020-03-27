@@ -503,7 +503,7 @@ Boiler class:</p>
         <span class="n">T_operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multistream</span><span class="o">.</span><span class="n">T</span>
         <span class="n">duty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_in</span>
         <span class="k">if</span> <span class="n">duty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;{repr(self)} is cooling.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s1"> is cooling.&#39;</span><span class="p">)</span>
         <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hu</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_operation</span><span class="p">)</span>
 
@@ -898,7 +898,7 @@ is not suggested; best to keep diagrams simple.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>

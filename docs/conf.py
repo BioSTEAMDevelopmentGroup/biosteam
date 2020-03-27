@@ -22,7 +22,7 @@ for p in new_path:
 # -- Project information -----------------------------------------------------
 
 project = 'BioSTEAM'
-copyright = '2018, Yoel Cortes-Pena and Jeremy Guest'
+copyright = '2018-2020, Yoel Cortes-Pena and Jeremy Guest'
 author = 'Yoel Cortes-Pena'
 
 # The short X.Y version

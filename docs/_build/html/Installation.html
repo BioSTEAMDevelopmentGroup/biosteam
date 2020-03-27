@@ -83,7 +83,10 @@
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">2. Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#common-issues">2.1. Common Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
@@ -200,18 +203,38 @@
 <div class="section" id="installation">
 <h1><span class="section-number">2. </span>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Get the latest version of BioSTEAM from <a class="reference external" href="https://pypi.python.org/pypi/biosteam/">PyPI</a>. If you have an installation of Python with pip, simple install it with:</p>
-<blockquote>
-<div><p>$ pip install biosteam</p>
-</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install biosteam
+</pre></div>
+</div>
 <p>To get the git version, run:</p>
-<blockquote>
-<div><p>$ git clone git://github.com/yoelcortes/biosteam</p>
-</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone git://github.com/yoelcortes/biosteam
+</pre></div>
+</div>
+<div class="section" id="common-issues">
+<h2><span class="section-number">2.1. </span>Common Issues<a class="headerlink" href="#common-issues" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p><strong>Unit and system diagrams are not displayed:</strong></p>
 <p>BioSTEAM uses <a class="reference external" href="http://www.graphviz.org/">Graphviz</a> to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:</p>
-<blockquote>
-<div><p>$ conda install graphviz</p>
-</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda install graphviz
+</pre></div>
+</div>
 <p>You may also need to add Graphviz to your system path on Windows by following these <a class="reference external" href="https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz+software">instructions</a>.</p>
+</li>
+<li><p><strong>Cannot install/update BioSTEAM:</strong></p>
+<p>If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. You can bypass these using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install --user --ignore-installed biosteam
+</pre></div>
+</div>
+</li>
+<li><p><strong>BioSTEAM version is not the latest:</strong></p>
+<p>You can make sure you install the right version with the following line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install <span class="nv">biosteam</span><span class="o">==</span>&lt;version&gt;
+</pre></div>
+</div>
+<p>Where <cite>&lt;version&gt;</cite> is the version number.</p>
+</li>
+</ul>
+</div>
 </div>
 
 
@@ -234,7 +257,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
 
     </p>
   </div>
