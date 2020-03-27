@@ -15,6 +15,7 @@ units
    HXutility
    Junction
    LiquidsSplitCentrifuge
+   LLECentrifuge
    MassBalance
    MixTank
    Mixer

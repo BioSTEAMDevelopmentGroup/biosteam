@@ -204,6 +204,11 @@ class Unit:
         factor = units_of_measure.conversion_factor(units)
         return value * factor
     
+    def take_place_of(self, other):
+        """Replace inlets and outlets from this unit with that of another unit."""
+        self.ins[:] = other.ins
+        self.outs[:] = other.outs
+    
     # Forward pipping
     def __sub__(self, other):
         """Source streams."""

@@ -10,6 +10,7 @@ import doctest
 __all__ = ('test_binary_distillation',
            'test_mixer',
            'test_splitter',
+           'test_liquids_centrifuge',
            'test_fermentation',
            'test_heat_exchanger',
            'test_pump',
@@ -31,6 +32,9 @@ def test_mixer():
 
 def test_splitter():
     doctest.testmod(units._splitter)
+    
+def test_liquids_centrifuge():
+    doctest.testmod(units._liquids_centrifuge)
     
 def test_tank():
     doctest.testmod(units._tank)
@@ -61,6 +65,7 @@ def test_unit_operations():
     test_shortcut_column
     test_mixer()
     test_splitter()
+    test_liquids_centrifuge()
     test_tank()
     test_fermentation()
     test_heat_exchanger()
