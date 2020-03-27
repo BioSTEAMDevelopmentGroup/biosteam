@@ -99,7 +99,7 @@ class BinaryDistillation(Unit):
     methods, such as the Fenske-Underwood-Gilliland method, are more suitable
     for hydrocarbons. The Murphree efficiency is based on the modified
     O'Connell correlation [2]_. The diameter is based on tray separation
-    and flooding velocity [1, 3]_. Purchase costs are based on correlations
+    and flooding velocity [1]_[3]_. Purchase costs are based on correlations
     compiled by Warren et. al. [4]_.
 
     Parameters
