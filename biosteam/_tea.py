@@ -601,13 +601,28 @@ class TEA:
                 
     
 class CombinedTEA(TEA):
+    """
+    Create a CombinedTEA object that performs techno-economic analysis by 
+    using data from many TEA objects that correspond to different areas
+    of a biorefinery. A CombinedTEA object serves to accomodate for areas of
+    a biorefinery with different assumptions. For example, an area of a
+    biorefinery may not operate the same days a year, may have different 
+    depreciation schedules, and may even be taxed differently than other 
+    areas. Ultimately, a CombinedTEA object is an aggregation of TEA objects
+    that work together to conduct techno-economic analysis of a whole biorefinery.
     
+    Parameters
+    ----------
+    TEAs : Iterable[TEA]
+        TEA objects used to conduct techno-economic analysis.
+    
+    """
     _TDC = _FCI = _FOC = NotImplemented
     
     __slots__ = ('TEAs',)
     
     def __init__(self, TEAs, IRR):
-        #: iterable[TEA] All TEA objects for cashflow calculation
+        #: Iterable[TEA] All TEA objects for cashflow calculation
         self.TEAs = TEAs
         
         #: [float] Internal rate of return (fraction)

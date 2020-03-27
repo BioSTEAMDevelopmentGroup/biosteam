@@ -73,6 +73,12 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
         Chemical order of split.
     
+    References
+    ----------
+    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
+        K. C. Techno-Economic Analysis of a Biodiesel Production Process 
+        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
+    
     """
     line = 'Liquids centrifuge'
     __init__ = Splitter.__init__
@@ -102,9 +108,9 @@ class LLECentrifuge(LiquidsCentrifuge):
     
     References
     ----------
-    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos,
-671 K. C. Techno-Economic Analysis of a Biodiesel Production Process
-672 from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
+    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
+        K. C. Techno-Economic Analysis of a Biodiesel Production Process 
+        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
     
     Examples
     --------

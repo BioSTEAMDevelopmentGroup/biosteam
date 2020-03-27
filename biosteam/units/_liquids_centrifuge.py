@@ -25,19 +25,27 @@ __all__ = ('LiquidsCentrifuge',
       n=0.574, kW=3.66, ub=100, BM=2.03, N='Number of centrifuges')
 class LiquidsCentrifuge(Unit, isabstract=True):
     r"""
-    Create a liquids centrifuge.
-
-    The f.o.b purchase cost is given by [1]_:
-
-    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
+    Abstract class for liquid centrifuges.
 
     Parameters
     ----------
     ins : stream
         Inlet fluid.
-    outs : 
+    outs : stream sequence
         * [0] 'liquid' phase fluid
         * [1] 'LIQUID' phase fluid
+    
+    Notes
+    -----
+    The f.o.b purchase cost is given by [1]_:
+
+    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
+    
+    References
+    ----------
+    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
+        K. C. Techno-Economic Analysis of a Biodiesel Production Process 
+        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
     
     """
     _N_outs = 2
@@ -55,15 +63,11 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     r"""
     Create a liquids centrifuge simulated by component splits.
 
-    The f.o.b purchase cost is given by [1]_:
-
-    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
-
     Parameters
     ----------
     ins : stream
         Inlet fluid.
-    outs : 
+    outs : stream sequence
         * [0] 'liquid' phase fluid
         * [1] 'LIQUID' phase fluid
     split : Should be one of the following
@@ -72,6 +76,12 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
             * [dict] ID-split pairs of feed to 0th outlet stream
     order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
         Chemical order of split.
+    
+    Notes
+    -----
+    The f.o.b purchase cost is given by [1]_:
+
+    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
     
     References
     ----------
@@ -90,21 +100,23 @@ class LLECentrifuge(LiquidsCentrifuge):
     r"""
     Create a liquids centrifuge simulated by liquid-liquid equilibrium.
 
-    The f.o.b purchase cost is given by [1]_:
-
-    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
-
     Parameters
     ----------
     ins : stream
         Inlet fluid.
-    outs : 
+    outs : stream sequence
         * [0] 'liquid' phase fluid
         * [1] 'LIQUID' phase fluid
     top_chemical : str, optional
         Identifier of chemical that will be favored in the "liquid" phase.
         If none given, the "liquid" phase will the lightest and the "LIQUID"
         phase will be the heaviest.
+    
+    Notes
+    -----
+    The f.o.b purchase cost is given by [1]_:
+
+    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
     
     References
     ----------
