@@ -109,7 +109,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools/design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryDistillation.html">BinaryDistillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Duplicator.html">Duplicator</a></li>
@@ -275,20 +275,21 @@
 </dd></dl>
 
 <p class="rubric">Notes</p>
-<p>The total volume [m^3] is given by:</p>
+<p>The total volume [<img class="math" src="../_images/math/bce9a3aa4f7d97363bb2d078601f14b605c5a671.png" alt="m^3"/>] is given by:</p>
 <p><img class="math" src="../_images/math/a3ad7a8e6e678af2da94d53128c8b58be4c87f4f.png" alt="V_{total} = \frac{\tau \cdot Q }{V_{wf}}"/></p>
-<p>Where <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> is the residence time [hr], <img class="math" src="../_images/math/90cab5ae70bdb6e45756490226ba488f522c4c4e.png" alt="Q"/> is the flow rate [m^3/hr],
+<p>Where <img class="math" src="../_images/math/914b2d4b6659b86d3153d5510839dfb254dfc8a3.png" alt="\tau"/> is the residence time [<img class="math" src="../_images/math/1e67002f7073463be653a02b700680092beda673.png" alt="hr"/>],
+<img class="math" src="../_images/math/90cab5ae70bdb6e45756490226ba488f522c4c4e.png" alt="Q"/> is the flow rate [<img class="math" src="../_images/math/d00cc1db840d81418f51079429f4de896cf34387.png" alt="\frac{m^3}{hr}"/>],
 and <img class="math" src="../_images/math/03bebf4d682b8d3e23b3b84f73031c22748bb7f5.png" alt="V_{wf}"/> is the fraction of working volume over total volume.</p>
 <p>The number of tanks is given by:</p>
 <p><img class="math" src="../_images/math/d148d1d41ad55b272320ea442f7ab69c4be00f2e.png" alt="N = Ceil \left( \frac{V_{total}}{V_{max}} \right)"/></p>
-<p>Where <img class="math" src="../_images/math/74d89955ba639a9a198efa069a5da094554b9ce3.png" alt="V_{max}"/> is the maximum volume of a tank as given by the cost
-algorithm of the vessel type.</p>
-<p>The volume [m^3] of each tank is given by:</p>
+<p>Where <img class="math" src="../_images/math/74d89955ba639a9a198efa069a5da094554b9ce3.png" alt="V_{max}"/> is the maximum volume of a tank depends on the
+vessel type.</p>
+<p>The volume [<img class="math" src="../_images/math/bce9a3aa4f7d97363bb2d078601f14b605c5a671.png" alt="m^3"/>] of each tank is given by:</p>
 <p><img class="math" src="../_images/math/d47043fd7ae556bc5997a3d829e63bcf0a4b36c2.png" alt="V = \frac{V_{total}}{N}"/></p>
-<p>The purchase cost will depend on the cost algorithm of the vessel type.</p>
+<p>The purchase cost will depend on the vessel type.</p>
 <p>Child classes should implement the following class attributes and methods:</p>
 <dl class="simple">
-<dt>purchase_cost_algorithms<span class="classifier">dict[str: VesselPurchaseCostAlgorithm]</span></dt><dd><p>All purchase cost algorithms available for vessel types.</p>
+<dt>purchase_cost_algorithms<span class="classifier">dict[str: VesselPurchaseCostAlgorithm]</span></dt><dd><p>All purchase cost algorithms options for selected vessel types.</p>
 </dd>
 </dl>
 </dd></dl>

@@ -109,7 +109,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">Flowsheet</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design_tools.html">design_tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design_tools/design_tools.html">design_tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">BinaryDistillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Duplicator.html">Duplicator</a></li>
@@ -232,7 +232,7 @@
 <dd><p>Create a binary distillation column that assumes all light and heavy non keys
 separate to the top and bottoms product respectively. McCabe-Thiele
 analysis is used to find both the number of stages and the reflux ratio
-given a ratio of actual reflux to minimum reflux <a class="footnote-reference brackets" href="#id6" id="id1">1</a>. This assumption
+given a ratio of actual reflux to minimum reflux <a class="footnote-reference brackets" href="#id8" id="id1">1</a>. This assumption
 is good for both binary distillation of highly polar compounds and
 ternary distillation assuming complete separation of light non-keys
 and heavy non-keys with large differences in boiling points. Preliminary
@@ -240,9 +240,9 @@ analysis showed that the theoretical number of stages using this method
 on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other
 methods, such as the Fenske-Underwood-Gilliland method, are more suitable
 for hydrocarbons. The Murphree efficiency is based on the modified
-O’Connell correlation <a class="footnote-reference brackets" href="#id7" id="id2">2</a>. The diameter is based on tray separation
-and flooding velocity [1]_[3]_. Purchase costs are based on correlations
-compiled by Warren et. al. <a class="footnote-reference brackets" href="#id9" id="id3">4</a>.</p>
+O’Connell correlation <a class="footnote-reference brackets" href="#id9" id="id2">2</a>. The diameter is based on tray separation
+and flooding velocity <a class="footnote-reference brackets" href="#id8" id="id3">1</a> <a class="footnote-reference brackets" href="#id10" id="id4">3</a>. Purchase costs are based on correlations
+compiled by Warren et. al. <a class="footnote-reference brackets" href="#id11" id="id5">4</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -268,32 +268,32 @@ If recovery is used, <cite>Lr</cite> and <cite>Hr</cite> must be specified.</p><
 <li><p><strong>tray_type='Sieve'</strong> (<em>'Sieve'</em><em>, </em><em>'Valve'</em><em>, or </em><em>'Bubble cap'</em>) – Tray type.</p></li>
 <li><p><strong>tray_spacing=450</strong> (<em>float</em>) – Typically between 152 to 915 mm.</p></li>
 <li><p><strong>stage_efficiency=None</strong> – User enforced stage efficiency. If None, stage efficiency is
-calculated by the O’Connell correlation <a class="footnote-reference brackets" href="#id7" id="id4">2</a>.</p></li>
+calculated by the O’Connell correlation <a class="footnote-reference brackets" href="#id9" id="id6">2</a>.</p></li>
 <li><p><strong>velocity_fraction=0.8</strong> (<em>float</em>) – Fraction of actual velocity to maximum velocity allowable before
 flooding.</p></li>
 <li><p><strong>foaming_factor=1.0</strong> (<em>float</em>) – Must be between 0 to 1.</p></li>
 <li><p><strong>open_tray_area_fraction=0.1</strong> (<em>float</em>) – Fraction of open area to active area of a tray.</p></li>
 <li><p><strong>downcomer_area_fraction=None</strong> (<em>float</em>) – Enforced fraction of downcomer area to net (total) area of a tray.
-If None, estimate ratio based on Oliver’s estimation <a class="footnote-reference brackets" href="#id6" id="id5">1</a>.</p></li>
+If None, estimate ratio based on Oliver’s estimation <a class="footnote-reference brackets" href="#id8" id="id7">1</a>.</p></li>
 <li><p><strong>is_divided=False</strong> (<em>bool</em>) – True if the stripper and rectifier are two separate columns.</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">References</p>
 <dl class="footnote brackets">
-<dt class="label" id="id6"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id5">2</a>)</span></dt>
+<dt class="label" id="id8"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id3">2</a>,<a href="#id7">3</a>)</span></dt>
 <dd><p>J.D. Seader, E.J. Henley, D.K. Roper. (2011)
 Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc.</p>
 </dd>
-<dt class="label" id="id7"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id4">2</a>)</span></dt>
+<dt class="label" id="id9"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id6">2</a>)</span></dt>
 <dd><p>M. Duss, R. Taylor. (2018)
 Predict Distillation Tray Efficiency. AICHE</p>
 </dd>
-<dt class="label" id="id8"><span class="brackets">3</span></dt>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
 <dd><p>Green, D. W. Distillation. In Perry’s Chemical Engineers’
 Handbook, 9 ed.; McGraw-Hill Education, 2018.</p>
 </dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id3">4</a></span></dt>
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
 <dd><p>Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
 &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.
 Cost Accounting and Capital Cost Estimation (Chapter 16)</p>

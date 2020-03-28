@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam.units.design_tools.tank_design &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam.units.design_tools.tank_design</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam.units.design_tools.tank_design</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Design and cost algorithms from ordinary vessels.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">.. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.</span>
+<span class="sd">    (2009). Techno-economic analysis of a biodiesel production process from</span>
+<span class="sd">    vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.</span>
+<span class="sd">    https://doi.org/10.1016/j.fuproc.2009.04.017</span>
+<span class="sd">.. [2] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; </span>
+<span class="sd">    Ng, M. K. Cost Accounting and Capital Cost Estimation.</span>
+<span class="sd">    In Product and Process Design Principles; Wiley, 2017; pp 426–485.</span>
+<span class="sd">    </span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">thermosteam.base</span> <span class="kn">import</span> <span class="n">UnitsOfMeasure</span>
+<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">ExponentialFunctor</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TankPurchaseCostAlgorithm&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;field_erected_tank_purchase_cost&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;compute_number_of_tanks_and_total_purchase_cost&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;storage_tank_purchase_cost_algorithms&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;mix_tank_purchase_cost_algorithms&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TankPurchaseCostAlgorithm"><a class="viewcode-back" href="../../../../units/design_tools/tank_design.html#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm">[docs]</a><span class="k">class</span> <span class="nc">TankPurchaseCostAlgorithm</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a TankPurchaseCostAlgorithm for vessel costing.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_Cp : function</span>
+<span class="sd">        Should return the purchase cost given the volume.</span>
+<span class="sd">    V_min : float</span>
+<span class="sd">        Minimum volume at which cost is considered accurate.</span>
+<span class="sd">    V_max : float</span>
+<span class="sd">        Maximum volume of a vessel.</span>
+<span class="sd">    V_units : str</span>
+<span class="sd">        Units of measure for volume.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_Cp : function</span>
+<span class="sd">        Returns the purchase cost given the volume.</span>
+<span class="sd">    V_min : float</span>
+<span class="sd">        Minimum volume at which cost is considered accurate.</span>
+<span class="sd">    V_max : float</span>
+<span class="sd">        Maximum volume of a vessel.</span>
+<span class="sd">    V_units : UnitsOfMeasure</span>
+<span class="sd">        Units of measure for volume.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Find the number of mixing tanks and the total purchase cost </span>
+<span class="sd">    at a volume of 1 m^3 using the purchase cost equation from [1]_:</span>
+<span class="sd">        </span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units._tank import TankPurchaseCostAlgorithm</span>
+<span class="sd">    &gt;&gt;&gt; TankPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,</span>
+<span class="sd">    ...                             V_min=0.1, V_max=30, V_units=&#39;m^3&#39;,</span>
+<span class="sd">    ...                             CE=525.4, material=&#39;Stainless steel&#39;)</span>
+<span class="sd">    TankPurchaseCostAlgorithm(f_Cp=&lt;lambda&gt;, V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;f_Cp&#39;</span><span class="p">,</span> <span class="s1">&#39;V_min&#39;</span><span class="p">,</span> <span class="s1">&#39;V_max&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;CE&#39;</span><span class="p">,</span> <span class="s1">&#39;material&#39;</span><span class="p">,</span> <span class="s1">&#39;V_units&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_Cp</span><span class="p">,</span>  <span class="n">V_min</span><span class="p">,</span> <span class="n">V_max</span><span class="p">,</span> <span class="n">V_units</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_Cp</span> <span class="o">=</span> <span class="n">f_Cp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_min</span> <span class="o">=</span> <span class="n">V_min</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_max</span> <span class="o">=</span> <span class="n">V_max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_units</span> <span class="o">=</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="n">V_units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CE</span> <span class="o">=</span> <span class="n">CE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(f_Cp=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">f_Cp</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">, V_min=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_min</span><span class="si">}</span><span class="s2">, V_max=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_max</span><span class="si">}</span><span class="s2">, CE=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">CE</span><span class="si">}</span><span class="s2">, material=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="si">}</span><span class="s2">, V_units=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_units</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+    
+    
+<div class="viewcode-block" id="compute_number_of_tanks_and_total_purchase_cost"><a class="viewcode-back" href="../../../../units/design_tools/tank_design.html#biosteam.units.design_tools.tank_design.compute_number_of_tanks_and_total_purchase_cost">[docs]</a><span class="k">def</span> <span class="nf">compute_number_of_tanks_and_total_purchase_cost</span><span class="p">(</span><span class="n">total_volume</span><span class="p">,</span>
+                                                    <span class="n">purchase_cost_algorithm</span><span class="p">,</span>
+                                                    <span class="n">material_factor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return number of tanks and total purchase cost of all tanks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    total_volume : float</span>
+<span class="sd">        Total volume required [m^3].</span>
+<span class="sd">    purchase_cost_algorithm : TankPurchaseCostAlgorithm</span>
+<span class="sd">        All costing options.</span>
+<span class="sd">    material_factor : float</span>
+<span class="sd">        Material purchase cost factor.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">V_total</span> <span class="o">=</span> <span class="n">total_volume</span>
+    <span class="n">F_M</span> <span class="o">=</span> <span class="n">material_factor</span>
+    <span class="n">V_units</span> <span class="o">=</span> <span class="n">purchase_cost_algorithm</span><span class="o">.</span><span class="n">V_units</span>
+    <span class="n">V_total</span> <span class="o">/=</span> <span class="n">V_units</span><span class="o">.</span><span class="n">conversion_factor</span><span class="p">(</span><span class="s1">&#39;m^3&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">debug</span> <span class="ow">and</span> <span class="n">V_total</span> <span class="o">&lt;</span> <span class="n">purchase_cost_algorithm</span><span class="o">.</span><span class="n">V_min</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+             <span class="sa">f</span><span class="s2">&quot;volume (</span><span class="si">{</span><span class="n">V_total</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">V_units</span><span class="si">}</span><span class="s2">) is below &quot;</span>
+             <span class="sa">f</span><span class="s2">&quot;the lower bound (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">V_min</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">V_units</span><span class="si">}</span><span class="s2">) for purchase &quot;</span>
+              <span class="s2">&quot;cost estimation&quot;</span><span class="p">)</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">V_total</span> <span class="o">/</span> <span class="n">purchase_cost_algorithm</span><span class="o">.</span><span class="n">V_max</span><span class="p">)</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">V_total</span> <span class="o">/</span> <span class="n">N</span>
+    <span class="n">F_CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="o">/</span> <span class="n">purchase_cost_algorithm</span><span class="o">.</span><span class="n">CE</span>
+    <span class="n">Cp</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_M</span> <span class="o">*</span> <span class="n">F_CE</span> <span class="o">*</span> <span class="n">purchase_cost_algorithm</span><span class="o">.</span><span class="n">f_Cp</span><span class="p">(</span><span class="n">V</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">N</span><span class="p">,</span> <span class="n">Cp</span></div>
+    
+<div class="viewcode-block" id="field_erected_tank_purchase_cost"><a class="viewcode-back" href="../../../../units/design_tools/tank_design.html#biosteam.units.design_tools.tank_design.field_erected_tank_purchase_cost">[docs]</a><span class="k">def</span> <span class="nf">field_erected_tank_purchase_cost</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the purchase cost [USD] of a single, field-erected vessel assuming</span>
+<span class="sd">    stainless steel construction material.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    V : float</span>
+<span class="sd">        Volume of tank [m^3].</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Cp : float</span>
+<span class="sd">        Purchase cost [USD].</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The purchase cost is given by [1]_.</span>
+<span class="sd">    </span>
+<span class="sd">    If :math:`V &lt; 2 \cdot 10^3`:</span>
+<span class="sd">   </span>
+<span class="sd">        :math:`C_p^{2007} = 32500.0 + 79.35 V`</span>
+<span class="sd">   </span>
+<span class="sd">    Otherwise:</span>
+
+<span class="sd">        :math:`C_p^{2007} = 125000.0 + 47.1 V`</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from biosteam.units._tank import field_erected_vessel_purchase_cost</span>
+<span class="sd">    &gt;&gt;&gt; field_erected_vessel_purchase_cost(300)</span>
+<span class="sd">    112610.0</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">2e3</span><span class="p">:</span>
+        <span class="n">Cp</span> <span class="o">=</span> <span class="mf">65000.0</span> <span class="o">+</span> <span class="mf">158.7</span> <span class="o">*</span> <span class="n">V</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Cp</span> <span class="o">=</span> <span class="mf">250000.0</span> <span class="o">+</span> <span class="mf">94.2</span> <span class="o">*</span> <span class="n">V</span>
+    <span class="k">return</span> <span class="n">Cp</span></div>
+
+<span class="c1">#: Cost algorithms for storage tank vessel types as in [1]_ [2]_.</span>
+<span class="n">storage_tank_purchase_cost_algorithms</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;Field erected&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">field_erected_tank_purchase_cost</span><span class="p">,</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">50e3</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;m^3&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">),</span>
+<span class="s2">&quot;Floating roof&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">ExponentialFunctor</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mi">475</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.507</span><span class="p">),</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mf">3e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+<span class="s2">&quot;Cone roof&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">ExponentialFunctor</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mi">265</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.513</span><span class="p">),</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+<span class="s2">&quot;Spherical; 0-30 psig&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">ExponentialFunctor</span><span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mf">0.72</span> <span class="p">),</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+<span class="s2">&quot;Spherical; 30–200 psig&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">ExponentialFunctor</span><span class="p">(</span><span class="mi">53</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">),</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">7.5e5</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;gal&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">),</span>
+<span class="s2">&quot;Gas holder&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">ExponentialFunctor</span><span class="p">(</span><span class="mi">3595</span><span class="p">,</span> <span class="mf">0.43</span><span class="p">),</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mf">4e3</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mf">4e5</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;ft^3&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Carbon steel&#39;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">#: Cost algorithms for mix tank vessel types as in [2]_.</span>
+<span class="n">mix_tank_purchase_cost_algorithms</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;Conventional&quot;</span><span class="p">:</span> <span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span>
+    <span class="n">ExponentialFunctor</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">),</span>
+    <span class="n">V_min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;m^3&#39;</span><span class="p">,</span>
+    <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

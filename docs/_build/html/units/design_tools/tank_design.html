@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank_design &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="vacuum" href="vacuum.html" />
+    <link rel="prev" title="specification_factors" href="specification_factors.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">decorators</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="design_tools.html">design_tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="batch.html">batch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="column_design.html">column_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cost_index.html">cost_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flash_vessel_design.html">flash_vessel_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="heat_transfer.html">heat_transfer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mechanical.html">mechanical</a></li>
+<li class="toctree-l3"><a class="reference internal" href="specification_factors.html">specification_factors</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">tank_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vacuum.html">vacuum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Duplicator.html">Duplicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LLECentrifuge.html">LLECentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ShortcutColumn.html">ShortcutColumn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Tank.html">Tank</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../units.html">units</a> &raquo;</li>
+        
+          <li><a href="design_tools.html">design_tools</a> &raquo;</li>
+        
+      <li>tank_design</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/units/design_tools/tank_design.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units.design_tools.tank_design">
+<span id="tank-design"></span><h1>tank_design<a class="headerlink" href="#module-biosteam.units.design_tools.tank_design" title="Permalink to this headline">¶</a></h1>
+<p>Design and cost algorithms from ordinary vessels.</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id1"><span class="brackets">1</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id4">2</a>,<a href="#id5">3</a>)</span></dt>
+<dd><p>Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
+(2009). Techno-economic analysis of a biodiesel production process from
+vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
+<a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></p>
+</dd>
+<dt class="label" id="id2"><span class="brackets">2</span><span class="fn-backref">(<a href="#id6">1</a>,<a href="#id7">2</a>)</span></dt>
+<dd><p>Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
+Ng, M. K. Cost Accounting and Capital Cost Estimation.
+In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
+</dd>
+</dl>
+<dl class="class">
+<dt id="biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.design_tools.tank_design.</code><code class="sig-name descname">TankPurchaseCostAlgorithm</code><span class="sig-paren">(</span><em class="sig-param">f_Cp</em>, <em class="sig-param">V_min</em>, <em class="sig-param">V_max</em>, <em class="sig-param">V_units</em>, <em class="sig-param">CE</em>, <em class="sig-param">material</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/tank_design.html#TankPurchaseCostAlgorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a TankPurchaseCostAlgorithm for vessel costing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_Cp</strong> (<em>function</em>) – Should return the purchase cost given the volume.</p></li>
+<li><p><strong>V_min</strong> (<em>float</em>) – Minimum volume at which cost is considered accurate.</p></li>
+<li><p><strong>V_max</strong> (<em>float</em>) – Maximum volume of a vessel.</p></li>
+<li><p><strong>V_units</strong> (<em>str</em>) – Units of measure for volume.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.f_Cp">
+<code class="sig-name descname">f_Cp</code><a class="headerlink" href="#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.f_Cp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the purchase cost given the volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.V_min">
+<code class="sig-name descname">V_min</code><a class="headerlink" href="#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.V_min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum volume at which cost is considered accurate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.V_max">
+<code class="sig-name descname">V_max</code><a class="headerlink" href="#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.V_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum volume of a vessel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.V_units">
+<code class="sig-name descname">V_units</code><a class="headerlink" href="#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm.V_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Units of measure for volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>UnitsOfMeasure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<p>Find the number of mixing tanks and the total purchase cost
+at a volume of 1 m^3 using the purchase cost equation from <a class="footnote-reference brackets" href="#id1" id="id3">1</a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units._tank</span> <span class="kn">import</span> <span class="n">TankPurchaseCostAlgorithm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TankPurchaseCostAlgorithm</span><span class="p">(</span><span class="k">lambda</span> <span class="n">V</span><span class="p">:</span> <span class="mi">12080</span> <span class="o">*</span> <span class="n">V</span> <span class="o">**</span><span class="mf">0.525</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="n">V_min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">V_max</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">V_units</span><span class="o">=</span><span class="s1">&#39;m^3&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Stainless steel&#39;</span><span class="p">)</span>
+<span class="go">TankPurchaseCostAlgorithm(f_Cp=&lt;lambda&gt;, V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.tank_design.compute_number_of_tanks_and_total_purchase_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.tank_design.</code><code class="sig-name descname">compute_number_of_tanks_and_total_purchase_cost</code><span class="sig-paren">(</span><em class="sig-param">total_volume</em>, <em class="sig-param">purchase_cost_algorithm</em>, <em class="sig-param">material_factor</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/tank_design.html#compute_number_of_tanks_and_total_purchase_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.tank_design.compute_number_of_tanks_and_total_purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of tanks and total purchase cost of all tanks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total_volume</strong> (<em>float</em>) – Total volume required [m^3].</p></li>
+<li><p><strong>purchase_cost_algorithm</strong> (<a class="reference internal" href="#biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm" title="biosteam.units.design_tools.tank_design.TankPurchaseCostAlgorithm"><em>TankPurchaseCostAlgorithm</em></a>) – All costing options.</p></li>
+<li><p><strong>material_factor</strong> (<em>float</em>) – Material purchase cost factor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.tank_design.field_erected_tank_purchase_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.tank_design.</code><code class="sig-name descname">field_erected_tank_purchase_cost</code><span class="sig-paren">(</span><em class="sig-param">V</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/tank_design.html#field_erected_tank_purchase_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.tank_design.field_erected_tank_purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the purchase cost [USD] of a single, field-erected vessel assuming
+stainless steel construction material.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>V</strong> (<em>float</em>) – Volume of tank [m^3].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Cp</strong> – Purchase cost [USD].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The purchase cost is given by <a class="footnote-reference brackets" href="#id1" id="id4">1</a>.</p>
+<p>If <img class="math" src="../../_images/math/698464acadda4bd89a20a5cad86cc118294ff980.png" alt="V &lt; 2 \cdot 10^3"/>:</p>
+<blockquote>
+<div><p><img class="math" src="../../_images/math/c895b8734343eb0faa24f6cda16f65e657565b93.png" alt="C_p^{2007} = 32500.0 + 79.35 V"/></p>
+</div></blockquote>
+<p>Otherwise:</p>
+<blockquote>
+<div><p><img class="math" src="../../_images/math/776bd798ddba00e435b31a48e448a3470d01a2aa.png" alt="C_p^{2007} = 125000.0 + 47.1 V"/></p>
+</div></blockquote>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units._tank</span> <span class="kn">import</span> <span class="n">field_erected_vessel_purchase_cost</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">field_erected_vessel_purchase_cost</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+<span class="go">112610.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.tank_design.storage_tank_purchase_cost_algorithms">
+<code class="sig-prename descclassname">biosteam.units.design_tools.tank_design.</code><code class="sig-name descname">storage_tank_purchase_cost_algorithms</code><a class="headerlink" href="#biosteam.units.design_tools.tank_design.storage_tank_purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cost algorithms for storage tank vessel types as in <a class="footnote-reference brackets" href="#id1" id="id5">1</a> <a class="footnote-reference brackets" href="#id2" id="id6">2</a>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.tank_design.mix_tank_purchase_cost_algorithms">
+<code class="sig-prename descclassname">biosteam.units.design_tools.tank_design.</code><code class="sig-name descname">mix_tank_purchase_cost_algorithms</code><a class="headerlink" href="#biosteam.units.design_tools.tank_design.mix_tank_purchase_cost_algorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cost algorithms for mix tank vessel types as in <a class="footnote-reference brackets" href="#id2" id="id7">2</a>.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="vacuum.html" class="btn btn-neutral float-right" title="vacuum" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="specification_factors.html" class="btn btn-neutral float-left" title="specification_factors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

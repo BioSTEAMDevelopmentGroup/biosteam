@@ -155,7 +155,7 @@ class State:
         ----------    
         setter : function
                  Should set parameter in the element.
-        element : Unit or Stream
+        element : Unit or :class:`~thermosteam.Stream`
                   Element in the system being altered.
         kind : {'coupled', 'isolated', 'design', 'cost'}
             * 'coupled': parameter is coupled to the system.

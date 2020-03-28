@@ -4,125 +4,19 @@ Created on Thu Aug 23 15:47:26 2018
 
 @author: yoelr
 """
-from .design_tools import vessel_material_factors
+from .design_tools.specification_factors import vessel_material_factors
+from .design_tools.tank_design import (
+    compute_number_of_tanks_and_total_purchase_cost,
+    storage_tank_purchase_cost_algorithms,
+    mix_tank_purchase_cost_algorithms)
+from ..utils import ExponentialFunctor
 from .._unit import Unit
 from ._mixer import Mixer
-from math import ceil
 import biosteam as bst
-from thermosteam import settings
-from thermosteam.base import UnitsOfMeasure
+
 from warnings import warn
 
 __all__ = ('Tank', 'MixTank', 'StorageTank')
-
-# %% Cost classes for tanks
-
-ExponentialFunctor = bst.utils.ExponentialFunctor
-
-class VesselPurchaseCostAlgorithm:
-    r"""
-    Create a VesselPurchaseCostAlgorithm for vessel costing.
-    
-    Parameters
-    ----------
-    f_Cp : function
-        Should return the purchase cost given the volume.
-    V_min : float
-        Minimum volume at which cost is considered accurate.
-    V_max : float
-        Maximum volume of a vessel.
-    V_units : str
-        Units of measure for volume.
-        
-    Attributes
-    ----------
-    f_Cp : function
-        Returns the purchase cost given the volume.
-    V_min : float
-        Minimum volume at which cost is considered accurate.
-    V_max : float
-        Maximum volume of a vessel.
-    V_units : UnitsOfMeasure
-        Units of measure for volume.
-    
-    Examples
-    --------
-    Find the number of mixing tanks and the total purchase cost 
-    at a volume of 1 m^3 using the purchase cost equation from [1]_:
-        
-    >>> from biosteam.units._tank import VesselPurchaseCostAlgorithm
-    >>> VesselPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,
-    ...                             V_min=0.1, V_max=30, V_units='m^3',
-    ...                             CE=525.4, material='Stainless steel')
-    VesselPurchaseCostAlgorithm(f_Cp=<lambda>, V_min=0.1, V_max=30, CE=525.4, material=Stainless steel, V_units=m^3)
-    
-    
-    """
-    __slots__ = ('f_Cp', 'V_min', 'V_max',
-                 'CE', 'material', 'V_units')
-
-    def __init__(self, f_Cp,  V_min, V_max, V_units, CE, material):
-        self.f_Cp = f_Cp
-        self.V_min = V_min
-        self.V_max = V_max
-        self.V_units = UnitsOfMeasure(V_units)
-        self.CE = CE
-        self.material = material
-
-    def __repr__(self):
-        return f"{type(self).__name__}(f_Cp={self.f_Cp.__name__}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
-
-
-def field_erected_vessel_purchase_cost(V):
-    r"""
-    Return the purchase cost [USD] of a single, field-erected vessel assuming
-    stainless steel construction material.
-
-    Parameters
-    ----------
-    V : float
-        Volume of tank [m^3].
-
-    Returns
-    -------
-    Cp : float
-        Purchase cost [USD].
-
-    Notes
-    -----
-    The purchase cost is given by [1]_.
-
-    .. math::
-
-        If V < 2 \cdot 10^3:
-   
-            C_p^{2007} &= 32500.0 + 79.35 V
-   
-        Otherwise:
-    
-            C_p^{2007} &= 125000.0 + 47.1 V
-
-    Examples
-    --------
-    >>> from biosteam.units._tank import field_erected_vessel_purchase_cost
-    >>> field_erected_vessel_purchase_cost(300)
-    112610.0
-
-    References
-    ----------
-    .. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
-        (2009). Techno-economic analysis of a biodiesel production process from
-        vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
-        https://doi.org/10.1016/j.fuproc.2009.04.017
-
-    """
-    if V < 2e3:
-        Cp = 65000.0 + 158.7 * V
-    else:
-        Cp = 250000.0 + 94.2 * V
-    return Cp
-
-
 
 # %%
 
@@ -143,30 +37,31 @@ class Tank(Unit, isabstract=True):
 
     Notes
     -----
-    The total volume [m^3] is given by:
+    The total volume [:math:`m^3`] is given by:
 
     :math:`V_{total} = \frac{\tau \cdot Q }{V_{wf}}`
 
-    Where :math:`\tau` is the residence time [hr], :math:`Q` is the flow rate [m^3/hr],
+    Where :math:`\tau` is the residence time [:math:`hr`], 
+    :math:`Q` is the flow rate [:math:`\frac{m^3}{hr}`],
     and :math:`V_{wf}` is the fraction of working volume over total volume.
 
     The number of tanks is given by:
 
     :math:`N = Ceil \left( \frac{V_{total}}{V_{max}} \right)`
 
-    Where :math:`V_{max}` is the maximum volume of a tank as given by the cost
-    algorithm of the vessel type.
+    Where :math:`V_{max}` is the maximum volume of a tank depends on the 
+    vessel type.
 
-    The volume [m^3] of each tank is given by:
+    The volume [:math:`m^3`] of each tank is given by:
 
     :math:`V = \frac{V_{total}}{N}`
 
-    The purchase cost will depend on the cost algorithm of the vessel type. 
+    The purchase cost will depend on the vessel type. 
 
     Child classes should implement the following class attributes and methods:
     
     purchase_cost_algorithms : dict[str: VesselPurchaseCostAlgorithm]
-        All purchase cost algorithms available for vessel types.
+        All purchase cost algorithms options for selected vessel types.
 
     """
     _units = {'Total volume': 'm^3'}
@@ -223,20 +118,12 @@ class Tank(Unit, isabstract=True):
         design_results['Total volume'] = tau * self.F_vol_out / self.V_wf
 
     def _cost(self):
-        V_total = self.design_results['Total volume']
-        Cp_algorithm = self.purchase_cost_algorithm
-        V_units = Cp_algorithm.V_units
-        V_total /= V_units.conversion_factor('m^3')
-        if settings.debug and V_total < Cp_algorithm.V_min:
-            warn(f"volume of {self} ({V_total:.5g} {V_units}) is below "
-                 f"the lower bound ({self.V_min:.5g} {V_units}) for purchase "
-                  "cost estimation", RuntimeWarning)
-        N = ceil(V_total / Cp_algorithm.V_max)
-        V = V_total / N
-        Cp = Cp_algorithm.f_Cp(V)
-        F_CE = bst.CE / Cp_algorithm.CE
+        N, Cp = compute_number_of_tanks_and_total_purchase_cost(
+            self.design_results['Total volume'],
+            self.purchase_cost_algorithm,
+            self._F_M)
         self.design_results['Number of tanks'] = N
-        self.purchase_costs['Tanks'] = N * self._F_M * F_CE * Cp
+        self.purchase_costs['Tanks'] = Cp
 
 
 # %% Storage tank purchase costs    
@@ -335,32 +222,7 @@ class StorageTank(Tank):
         self.vessel_material = vessel_material
     
     #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
-    purchase_cost_algorithms = {
-    "Field erected": VesselPurchaseCostAlgorithm(
-        field_erected_vessel_purchase_cost,
-        V_min=0, V_max=50e3, V_units='m^3',
-        CE=525.4, material='Stainless steel'),
-    "Floating roof": VesselPurchaseCostAlgorithm(
-        ExponentialFunctor(A=475, n=0.507),
-        V_min=3e4, V_max=1e6, V_units='gal',
-        CE=567, material='Carbon steel'),
-    "Cone roof": VesselPurchaseCostAlgorithm(
-        ExponentialFunctor(A=265, n=0.513),
-        V_min=1e4, V_max=1e6, V_units='gal',
-        CE=567, material='Carbon steel'),
-    "Spherical; 0-30 psig": VesselPurchaseCostAlgorithm(
-        ExponentialFunctor(68, 0.72 ),
-        V_min=1e4, V_max=1e6, V_units='gal',
-        CE=567, material='Carbon steel'),
-    "Spherical; 30–200 psig": VesselPurchaseCostAlgorithm(
-        ExponentialFunctor(53, 0.78),
-        V_min=1e4, V_max=7.5e5, V_units='gal',
-        CE=567, material='Carbon steel'),
-    "Gas holder": VesselPurchaseCostAlgorithm(
-        ExponentialFunctor(3595, 0.43),
-        V_min=4e3, V_max=4e5, V_units='ft^3',
-        CE=567, material='Carbon steel')
-    }
+    purchase_cost_algorithms = storage_tank_purchase_cost_algorithms
 
 
 class MixTank(Tank):
@@ -424,12 +286,7 @@ class MixTank(Tank):
         self.vessel_material = vessel_material
     
     #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
-    purchase_cost_algorithms = {
-    "Conventional": VesselPurchaseCostAlgorithm(
-        ExponentialFunctor(A=12080, n=0.525),
-        V_min=0.1, V_max=30, V_units='m^3',
-        CE=525.4, material='Stainless steel')
-    }
+    purchase_cost_algorithms = mix_tank_purchase_cost_algorithms
 
     def _cost(self):
         super()._cost()
@@ -437,4 +294,3 @@ class MixTank(Tank):
 
 MixTank._graphics.edge_in *= 3
 MixTank._graphics.edge_out *= 3
-del ExponentialFunctor

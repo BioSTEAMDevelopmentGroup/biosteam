@@ -25,7 +25,7 @@ __all__ = ('vessel_material_factors',
 
 # %% Vessels
 
-#: dict[str: float]
+#: Material factors for pressure vessels
 pressure_vessel_material_factors = {
     'Carbon steel': 1.0,
     'Low-alloy steel': 1.2,
@@ -38,7 +38,7 @@ pressure_vessel_material_factors = {
     'Incoloy-825': 3.7,
     'Titanium': 7.7}
 
-#: dict[str: float]
+#: Material factors for ordinary vessels
 vessel_material_factors = {
     'Carbon steel': 1.0,
     'Copper': 1.2,
@@ -47,7 +47,7 @@ vessel_material_factors = {
     'Titanium clad': 3.0,
     'Titanium': 6.0}
 
-#: dict[str: float]
+#: Material densities in lb/ft^3
 material_densities_lb_per_ft3 = {
     'Carbon steel': 490,
     'Low-alloy steel': None,
@@ -60,7 +60,7 @@ material_densities_lb_per_ft3 = {
     'Incoloy-825': None,
     'Titanium': None}
 
-#: dict[str: float]
+#: Material densities in lb/in^3
 material_densities_lb_per_in3 = {
     'Carbon steel': 0.284 ,
     'Low-alloy steel': None,
@@ -75,7 +75,7 @@ material_densities_lb_per_in3 = {
 
 # %% Pumps
 
-#: dict[str: float]
+#: Material factors for pumps
 pump_material_factors = {
     'Cast iron':       1,
     'Ductile iron':    1.15,
@@ -87,13 +87,14 @@ pump_material_factors = {
     'Nickel':          3.5,
     'Titanium':        9.7}
 
-#: dict[str: float]
+#: Gear-type cost factors for pumps
 pump_gear_factors = {
     'OpenDripProof':           1,
     'EnclosedFanCooled':       1.4,
     'ExplosionProofEnclosure': 1.8}
 
-#: dict[str: float] Keys are case-split orientation and shaft rpm.
+#: Centrifugal-type cost factors for pumps.
+#: Keys are case-split orientation and shaft rpm.
 pump_centrifugal_factors = {
     'VSC3600':   1,
     'VSC1800':   1.5,
@@ -105,7 +106,7 @@ pump_centrifugal_factors = {
 
 # %% Distillation
 
-#: dict[str: float]
+#: Tray-type cost factors for distillation columns.
 distillation_tray_type_factor = {
     'Sieve': 1,
     'Valve': 1.18,
@@ -127,7 +128,7 @@ def compute_carpenter_20CB3_material_factor(Di):
 def compute_monel_material_factor(Di):
     return 2.306 + 0.112*Di
 
-#: dict[str: function(Di)]
+#: Material cost factors for distillation column trays.
 tray_material_factor_functions = {
     'Carbon steel': compute_carbon_steel_material_factor,
     'Stainless steel 304': compute_stainless_steel_304_material_factor,
@@ -135,7 +136,7 @@ tray_material_factor_functions = {
     'Carpenter 20CB-3': compute_carpenter_20CB3_material_factor,
     'Monel': compute_monel_material_factor}
 
-#: dict[str: float]
+#: Material cost factors for distillation columns.
 distillation_column_material_factors = {
     'Carbon steel': 1.0,
     'Low-alloy steel': 1.2,
@@ -150,7 +151,9 @@ distillation_column_material_factors = {
 
 # %% Shell & tube heat exchangers
 
-#: dict[str: tuple[float, float]] Keys are materials of construction of shell/tube and coefficients are `a` and `b` in Eq. (16.44).
+#: dict[str, tuple[float, float]] Material factor coefficients of shell and 
+#: tube heat exchangers. Keys are materials of construction of
+#: shell/tube and coefficients are `a` and `b` in Eq. (16.44).
 shell_and_tube_material_factor_coefficients =  {
     'Carbon steel/carbon steel':        (0,    0),
     'Carbon steel/brass':	            (1.08, 0.05),
@@ -174,11 +177,5 @@ def compute_shell_and_tube_material_factor(A, a, b):
     
     :math:`F_M = a + \left(\frac{A}{100.0}\right)^b`
     
-    
-    References
-    ----------
-    .. [1] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
-        Ng, M. K. Cost Accounting and Capital Cost Estimation.
-        In Product and Process Design Principles; Wiley, 2017; pp 426–485.
     """
     return a + (A/100.0)**b

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Feb 15 10:38:41 2020
+General functional algorithms for the design of heat exchangers.
 
-@author: yoelr
 """
 from math import log as ln
 
@@ -145,7 +144,8 @@ def order_streams(in_a, in_b, out_a, out_b):
         return in_b, in_a, out_b, out_a
 
 def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
-    """Return LMTF correction factor using the fallback equation for `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed."""
+    """Return LMTF correction factor using the fallback equation for
+    `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed."""
     # A, J, and K are dummy variables
     A = N_shells - N_shells*P
     W = A/(A + P)

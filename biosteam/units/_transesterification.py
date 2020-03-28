@@ -50,7 +50,7 @@ class Transesterification(Unit):
     def __init__(self, ID='', ins=None, outs=(), *,
                  efficiency, methanol2lipid, T, catalyst_molfrac):
         Unit.__init__(self, ID, ins, outs)
-        #: [:class:~thermosteam.ParallelReaction] Transesterification and catalyst consumption reaction
+        #: [:class:`~thermosteam.ParallelReaction`] Transesterification and catalyst consumption reaction
         self.reaction = ParallelReaction([
           Reaction('Lipid + 3Methanol -> 3Biodiesel + Glycerol',
                    reactant='Lipid',  X=efficiency),

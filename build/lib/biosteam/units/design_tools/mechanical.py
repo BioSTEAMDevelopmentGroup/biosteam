@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan  2 01:14:00 2020
+General functional algorithms for the design of pumps and motors.
 
-@author: yoelr
 """
 from math import log as ln
 from fluids.pump import nema_sizes_hp

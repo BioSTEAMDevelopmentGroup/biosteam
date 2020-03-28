@@ -82,7 +82,7 @@ class ShortcutColumn(BinaryDistillation,
     of the distillation column and the separation of non-keys [1]_.The Murphree
     efficiency (i.e. column efficiency) is based on the modified O'Connell
     correlation [2]_. The diameter is based on tray separation and flooding 
-    velocity [1, 3]_. Purchase costs are based on correlations compiled by
+    velocity [1]_ [3]_. Purchase costs are based on correlations compiled by
     Warren et. al. [4]_.
 
     Parameters
@@ -385,33 +385,5 @@ class ShortcutColumn(BinaryDistillation,
         self._update_distillate_recoveries(distillate_recoveries)
         return self._estimate_distillate_recoveries()
         
-
-# if __name__ == '__main__':
-    # from biosteam import Stream, settings, ShortcutColumn, BinaryDistillation
-    # settings.set_thermo(['Water', 'Ethanol', 'Methanol', 'Glycerol'])
-    # feed = Stream('feed', flow=(1, 80, 80, 1))
-    # bp = feed.bubble_point_at_P()
-    # feed.T = bp.T
-    
-    # D1 = ShortcutColumn('D1', ins=feed,
-    #                     outs=('distillate', 'bottoms_product'),
-    #                     LHK=('Methanol', 'Ethanol'),
-    #                     Lr=0.80, Hr=0.80, k=1.2,
-    #                     product_specification_format='Recovery',                        
-    #                     is_divided=True)
-    # D1.simulate()
-    # D1.show(T='degC', P='atm', composition=True)
-    # print(D1.results())
-    # print('\n')
-    # feed2 = feed.copy('feed2')
-    # D2 = BinaryDistillation('D2', ins=feed2,
-    #                         outs=('distillate2', 'bottoms_product2'),
-    #                         LHK=('Methanol', 'Ethanol'),
-    #                         Lr=0.80, Hr=0.80, k=1.2,
-    #                         product_specification_format='Recovery',                        
-    #                         is_divided=True)
-    # D2.simulate()
-    # D2.show(T='degC', P='atm', composition=True)
-    # print(D2.results())
     
     

@@ -1,4 +1,15 @@
 """
+General functional algorithms for the design and purchase cost estimation
+of flash vessels.
+
+References
+----------
+.. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+    Cost Accounting and Capital Cost Estimation (Chapter 16)
+.. [2] "Design Two-Phase Separators Within the Right Limits", Chemical
+    Engineering Progress Oct, 1993.
+
 """
 from math import log as ln, pi, exp
 import biosteam as bst
@@ -28,12 +39,6 @@ def compute_horizontal_vessel_purchase_cost(W, D, F_M):
     The purchase cost is scaled according to BioSTEAM's Chemical
     Plant Cost Index, `biosteam.CE`.
     
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-    
     """
     # C_v: Vessel cost
     # C_pl: Platforms and ladders cost
@@ -62,12 +67,6 @@ def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
     The purchase cost is given by [1]_. See source code for details.
     The purchase cost is scaled according to BioSTEAM's Chemical
     Plant Cost Index, `biosteam.CE`.
-    
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     # C_v: Vessel cost
@@ -196,12 +195,7 @@ def HNATable(Type, X):
     
     Notes
     -----
-    Equations are given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
-        Engineering Progress Oct, 1993.
+    Equations are given by [2]_. See source code for details.
     
     """
     # Type = 1 is where H/D is known, find A/At, Type = 2 is where A/At is known, find H/D
@@ -251,12 +245,7 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     
     Notes
     -----
-    Equations are given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
-        Engineering Progress Oct, 1993.
+    Equations are given by [2]_. See source code for details.
     
     """
     S = 15000.0     # Vessel material stress value (assume carbon-steel)
@@ -329,12 +318,7 @@ def compute_low_liq_level_height(Type, P, D):
     
     Notes
     -----
-    Equations are given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
-        Engineering Progress Oct, 1993.
+    Equations are given by [2]_. See source code for details.
     
     """
     if Type == 1:
@@ -370,13 +354,8 @@ def compute_Stokes_law_York_Demister_K_value(P):
         
     Notes
     -----
-    Equations are given by [1]_. See source code for details.
+    Equations are given by [2]_. See source code for details.
     
-    References
-    ----------
-    .. [1] "Design Two-Phase Separators Within the Right Limits", Chemical
-        Engineering Progress Oct, 1993.
-        
     """
     if P >= 0 and P <= 15.0:
         K = 0.1821+(0.0029*P)+(0.046*ln(P))

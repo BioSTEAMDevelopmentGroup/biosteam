@@ -11,4 +11,5 @@ design_tools
    heat_transfer
    mechanical
    specification_factors
+   tank_design
    vacuum

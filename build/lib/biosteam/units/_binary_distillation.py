@@ -37,10 +37,11 @@ def compute_stages_McCabeThiele(P, operating_line,
                                 x_stages, y_stages, T_stages,
                                 x_limit, solve_Ty):
     """
-    Find the specifications at every stage of the of the operating line before
-    the maximum liquid molar fraction. Append the light key liquid molar
-    fraction, light key vapor molar fraction, and stage temperatures to
-    x_stages, y_stages and T_stages respectively.
+    Use the McCabe-Thiele method to find the specifications at every stage of
+    the operating line before the maximum liquid molar fraction, `x_limit`. 
+    Append the light key liquid molar fraction, light key vapor molar
+    fraction, and stage temperatures to `x_stages`, `y_stages` and `T_stages`
+    respectively.
     
     Parameters
     ----------
@@ -99,7 +100,7 @@ class BinaryDistillation(Unit):
     methods, such as the Fenske-Underwood-Gilliland method, are more suitable
     for hydrocarbons. The Murphree efficiency is based on the modified
     O'Connell correlation [2]_. The diameter is based on tray separation
-    and flooding velocity [1]_[3]_. Purchase costs are based on correlations
+    and flooding velocity [1]_ [3]_. Purchase costs are based on correlations
     compiled by Warren et. al. [4]_.
 
     Parameters

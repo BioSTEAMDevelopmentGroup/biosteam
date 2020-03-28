@@ -27,19 +27,16 @@ def size_batch(F_vol, tau_reaction, tau_turnaround, N_reactors, V_wf) -> dict:
     dict
         * 'Reactor volume': float
         * 'Batch time': float
-        * 'Cycle time': float
         * 'Loading time': float
        
     Notes
     -----
-    Units of measure may vary so long as they are consistent.
+    Units of measure may vary so long as they are consistent. The loading time
+    can be considered the cycle time.
         
     """
-    # Cycle time assuming no down time.
-    tau_cycle = tau_reaction + tau_turnaround
-    
-    # Total volume of all reactors.
-    V_T = F_vol * tau_cycle / (1 - 1 / N_reactors)
+    # Total volume of all reactors, assuming no downtime
+    V_T = F_vol * (tau_reaction + tau_turnaround) / (1 - 1 / N_reactors)
     
     # Volume of an individual reactor
     V_i = V_T/N_reactors
@@ -48,14 +45,13 @@ def size_batch(F_vol, tau_reaction, tau_turnaround, N_reactors, V_wf) -> dict:
     tau_loading = V_i/F_vol
     
     # Total batch time
-    tau_batch = tau_cycle + tau_loading
+    tau_batch = tau_reaction + tau_turnaround + tau_loading
     
     # Account for excess volume
     V_i /= V_wf 
     
     return {'Reactor volume': V_i,
             'Batch time': tau_batch,
-            'Cycle time': tau_cycle,
             'Loading time': tau_loading}
         
         
