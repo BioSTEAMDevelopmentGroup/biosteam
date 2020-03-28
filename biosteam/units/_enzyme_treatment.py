@@ -19,10 +19,8 @@ class EnzymeTreatment(MixTank):
         MixTank.__init__(self, ID, ins, outs, thermo, vessel_type=vessel_type,
                          tau=tau, V_wf=V_wf, vessel_material=vessel_material)
         self.T = T #: Operating temperature
-        self.heat_exchanger = hx = HXutility(None, None, T=T) 
+        self.heat_exchanger = hx = HXutility(None, None, None, T=T) 
         self.heat_utilities = hx.heat_utilities
-        hx._ins = self._ins
-        hx._outs = self._outs
     
     def _run(self):
         feed = self.ins[0]
@@ -34,11 +32,9 @@ class EnzymeTreatment(MixTank):
         
     def _design(self):
         super()._design()
-        self.heat_exchanger._design()
+        self.heat_exchanger.simulate_as_auxiliary_exchanger(self.Hnet, self.outs[0])
         
     def _cost(self):
         super()._cost()
-        hx = self.heat_exchanger
-        hx._cost()
-        self.purchase_costs['Heat exchanger'] = hx.purchase_costs['Heat exchanger'] 
+        self.purchase_costs['Heat exchanger'] = self.heat_exchanger.purchase_costs['Heat exchanger'] 
     

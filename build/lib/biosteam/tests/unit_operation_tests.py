@@ -62,7 +62,7 @@ def test_process_specification():
     
 def test_unit_operations():
     test_binary_distillation()
-    test_shortcut_column
+    test_shortcut_column()
     test_mixer()
     test_splitter()
     test_liquids_centrifuge()

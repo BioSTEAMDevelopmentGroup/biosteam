@@ -285,6 +285,7 @@ class Fermentation(Unit):
     @property
     def N_at_minimum_capital_cost(self):
         cost_old = np.inf
+        self.autoselect_N = False
         self._N, N = 2, self._N
         cost_new = self.purchase_cost
         self._summary()
@@ -294,6 +295,7 @@ class Fermentation(Unit):
             cost_old = cost_new
             cost_new = self.purchase_cost
         self._N, N = N, self._N
+        self.autoselect_N = True
         return N - 1
         
     def _design(self):
@@ -303,9 +305,7 @@ class Fermentation(Unit):
         tau_0 = self.tau_0
         Design = self.design_results
         if self.autoselect_N:
-            self.autoselect_N = False
             self._N = self.N_at_minimum_capital_cost
-            self.autoselect_N = True
         N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
         hx_effluent = effluent.copy()

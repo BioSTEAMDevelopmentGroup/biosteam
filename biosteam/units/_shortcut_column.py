@@ -70,7 +70,6 @@ def compute_feed_stage_Kirkbride(N, B, D,
     m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2) ** 0.206
     return floor(N / (m_over_p + 1))
     
-    
 
 # %%
 
@@ -231,8 +230,8 @@ class ShortcutColumn(BinaryDistillation,
         vle_chemicals = self.feed.vle_chemicals
         self._dew_point = DewPoint(vle_chemicals, self.thermo)
         self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
-        self._IDs_equilibrium = IDs = self._dew_point.IDs
-        self._LHK_equilibrium_index = [IDs.index(i) for i in self.LHK]
+        self._IDs_vle = IDs = self._dew_point.IDs
+        self._LHK_vle_index = [IDs.index(i) for i in self.LHK]
         
         # Solve for new recoveries
         distillate_recoveries = self._solve_distillate_recoveries()
@@ -253,7 +252,7 @@ class ShortcutColumn(BinaryDistillation,
     def _run_FenskeUnderwoodGilliland(self):
         LHK_index = self._LHK_index
         alpha_mean = self._estimate_mean_volatilities_relative_to_heavy_key()
-        LK_index = self._LHK_equilibrium_index[0]
+        LK_index = self._LHK_vle_index[0]
         alpha_LK = alpha_mean[LK_index]
         feed, = self.ins
         distillate, bottoms = self.outs
@@ -319,7 +318,7 @@ class ShortcutColumn(BinaryDistillation,
     
     def _solve_Underwood_constant(self, alpha_mean, alpha_LK):
         q = self._get_feed_quality()
-        z_f = self.ins[0].get_normalized_mol(self._IDs_equilibrium)
+        z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
         bracket = find_bracket(objective_function_Underwood_constant,
                                 1, alpha_LK, args=args)
@@ -341,14 +340,14 @@ class ShortcutColumn(BinaryDistillation,
         distillate, bottoms = self.outs
         dew_point = self._dew_point
         bubble_point = self._bubble_point
-        IDs = self._IDs_equilibrium
+        IDs = self._IDs_vle
         z_distillate = distillate.get_normalized_mol(IDs)
         z_bottoms = bottoms.get_normalized_mol(IDs)
         dp = dew_point(z_distillate, P=self.P)
         bp = bubble_point(z_bottoms, P=self.P)
         K_distillate = compute_partition_coefficients(dp.z, dp.x)
         K_bottoms = compute_partition_coefficients(bp.y, bp.z)
-        HK_index = self._LHK_equilibrium_index[1]
+        HK_index = self._LHK_vle_index[1]
         alpha_mean = compute_mean_volatilities_relative_to_heavy_key(K_distillate,
                                                                      K_bottoms,
                                                                      HK_index)
@@ -363,15 +362,15 @@ class ShortcutColumn(BinaryDistillation,
         LK_index, HK_index = LHK_index
         d_Lr = distillate.mol[LK_index] / feed.mol[LK_index]
         b_Hr = bottoms.mol[HK_index] / feed.mol[HK_index]
-        LHK_equilibrium_index = self._LHK_equilibrium_index
+        LHK_vle_index = self._LHK_vle_index
         return compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
                                                                     alpha_mean,
-                                                                    LHK_equilibrium_index)
+                                                                    LHK_vle_index)
         
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.feed
         distillate, bottoms = self.outs
-        IDs = self._IDs_equilibrium
+        IDs = self._IDs_vle
         feed_mol = feed.imol[IDs]
         distillate.imol[IDs] = distillate_mol = distillate_recoveries * feed_mol
         bottoms.imol[IDs] = feed_mol - distillate_mol
