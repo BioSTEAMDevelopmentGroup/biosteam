@@ -260,7 +260,7 @@ class ShortcutColumn(BinaryDistillation,
                                                        bottoms.mol[LHK_index],
                                                        alpha_LK)
         theta = self._solve_Underwood_constant(alpha_mean, alpha_LK)
-        IDs = self._IDs_equilibrium
+        IDs = self._IDs_vle
         z_d = distillate.get_normalized_mol(IDs)
         Rm = compute_minimum_reflux_ratio_Underwood(alpha_mean, z_d, theta)
         if Rm < 0.1: Rm = 0.1

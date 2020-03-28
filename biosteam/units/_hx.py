@@ -313,9 +313,8 @@ class HXutility(HX):
         self.shell_and_tube_type = shell_and_tube_type
     
     def simulate_as_auxiliary_exchanger(self, duty, stream):
-        outlet = self.outs[0]
-        outlet.copy_like(stream)
-        self.ins[0] = outlet.proxy()
+        self.outs[0] = stream.proxy()
+        self.ins[0] = stream.proxy()
         self.heat_utilities[0](duty, stream.T)
         self.Q = duty
         super()._design()
