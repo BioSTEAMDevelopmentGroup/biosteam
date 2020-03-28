@@ -101,7 +101,8 @@ class Fermentation(Unit):
                         Flow                         kmol/hr  1.95e+03
                         Cost                          USD/hr      14.5
     Design              Reactor volume                    m3       243
-                        Cycle time                        hr      12.6
+                        Batch time                        hr      12.6
+                        Cycle time                        hr        11
                         Loading time                      hr      1.57
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
@@ -112,6 +113,7 @@ class Fermentation(Unit):
                         Cleaning in place                USD  7.05e+05
     Total purchase cost                                  USD  2.72e+06
     Utility cost                                      USD/hr      15.4
+**********************************************************************
     
     
     References
@@ -129,6 +131,7 @@ class Fermentation(Unit):
     """
     _units = {'Reactor volume': 'm3',
               'Cycle time': 'hr',
+              'Batch time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr'}
     _N_ins = _N_outs = 2
