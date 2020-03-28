@@ -1,0 +1,417 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>flash_vessel_design &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="heat_transfer" href="heat_transfer.html" />
+    <link rel="prev" title="cost_index" href="cost_index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">decorators</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="design_tools.html">design_tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="batch.html">batch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="column_design.html">column_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cost_index.html">cost_index</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">flash_vessel_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="heat_transfer.html">heat_transfer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mechanical.html">mechanical</a></li>
+<li class="toctree-l3"><a class="reference internal" href="specification_factors.html">specification_factors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vacuum.html">vacuum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Duplicator.html">Duplicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LLECentrifuge.html">LLECentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ShortcutColumn.html">ShortcutColumn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Tank.html">Tank</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../units.html">units</a> &raquo;</li>
+        
+          <li><a href="design_tools.html">design_tools</a> &raquo;</li>
+        
+      <li>flash_vessel_design</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/units/design_tools/flash_vessel_design.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units.design_tools.flash_vessel_design">
+<span id="flash-vessel-design"></span><h1>flash_vessel_design<a class="headerlink" href="#module-biosteam.units.design_tools.flash_vessel_design" title="Permalink to this headline">¶</a></h1>
+<p>General functional algorithms for the design and purchase cost estimation
+of flash vessels.</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id1"><span class="brackets">1</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id4">2</a>)</span></dt>
+<dd><p>Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+&amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
+</dd>
+<dt class="label" id="id2"><span class="brackets">2</span><span class="fn-backref">(<a href="#id5">1</a>,<a href="#id6">2</a>,<a href="#id7">3</a>)</span></dt>
+<dd><p>“Design Two-Phase Separators Within the Right Limits”, Chemical
+Engineering Progress Oct, 1993.</p>
+</dd>
+</dl>
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.compute_horizontal_vessel_purchase_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">compute_horizontal_vessel_purchase_cost</code><span class="sig-paren">(</span><em class="sig-param">W</em>, <em class="sig-param">D</em>, <em class="sig-param">F_M</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#compute_horizontal_vessel_purchase_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.compute_horizontal_vessel_purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the purchase cost [Cp; in USD] of a horizontal vessel,
+including thes cost of platforms and ladders.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>W</strong> (<em>float</em>) – Weight [lb].</p></li>
+<li><p><strong>D</strong> (<em>float</em>) – Diameter [ft].</p></li>
+<li><p><strong>F_M</strong> (<em>float</em>) – Vessel material factor.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The purchase cost is given by <a class="footnote-reference brackets" href="#id1" id="id3">1</a>. See source code for details.
+The purchase cost is scaled according to BioSTEAM’s Chemical
+Plant Cost Index, <cite>biosteam.CE</cite>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.compute_vertical_vessel_purchase_cost">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">compute_vertical_vessel_purchase_cost</code><span class="sig-paren">(</span><em class="sig-param">W</em>, <em class="sig-param">D</em>, <em class="sig-param">L</em>, <em class="sig-param">F_M</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#compute_vertical_vessel_purchase_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.compute_vertical_vessel_purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the purchase cost [Cp; in USD] of a horizontal vessel,
+including thes cost of platforms and ladders.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>W</strong> (<em>float</em>) – Weight [lb].</p></li>
+<li><p><strong>D</strong> (<em>float</em>) – Diameter [ft].</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Length [ft].</p></li>
+<li><p><strong>F_M</strong> (<em>float</em>) – Vessel material factor.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The purchase cost is given by <a class="footnote-reference brackets" href="#id1" id="id4">1</a>. See source code for details.
+The purchase cost is scaled according to BioSTEAM’s Chemical
+Plant Cost Index, <cite>biosteam.CE</cite>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.GTable">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">GTable</code><span class="sig-paren">(</span><em class="sig-param">DRho</em>, <em class="sig-param">Hlr</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#GTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.GTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DRho</strong> (<em>float</em>) – Density difference between light liquid and vapor [lb/ft^3 ?]</p></li>
+<li><p><strong>Hlr</strong> (<em>float</em>) – Height of liquid level above the interphase of light liquid and heavy liquid [ft]</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function is not currently in use, nor has it been tested.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.HNATable">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">HNATable</code><span class="sig-paren">(</span><em class="sig-param">Type</em>, <em class="sig-param">X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#HNATable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.HNATable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table for cylindrical height and area conversions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Type</strong> (<em>int</em>) – 1 if given H/D and find A/At, 2 if given A/At and find H/D.</p></li>
+<li><p><strong>X</strong> (<em>float</em>) – H/D or A/At.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Equations are given by <a class="footnote-reference brackets" href="#id2" id="id5">2</a>. See source code for details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.compute_vessel_weight_and_wall_thickness">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">compute_vessel_weight_and_wall_thickness</code><span class="sig-paren">(</span><em class="sig-param">P</em>, <em class="sig-param">D</em>, <em class="sig-param">L</em>, <em class="sig-param">rho_M</em>, <em class="sig-param">Je=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#compute_vessel_weight_and_wall_thickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.compute_vessel_weight_and_wall_thickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return vessel weight and wall thickness.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>P</strong> (<em>float</em>) – Pressure [psia].</p></li>
+<li><p><strong>D</strong> (<em>float</em>) – Diameter [ft].</p></li>
+<li><p><strong>L</strong> (<em>float</em>) – Vessel length [ft].</p></li>
+<li><p><strong>rho_M</strong> (<em>float</em>) – Density of Material [lb/ft^3].</p></li>
+<li><p><strong>Je</strong> (<em>float</em>) – Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel),</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Equations are given by <a class="footnote-reference brackets" href="#id2" id="id6">2</a>. See source code for details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.compute_Stokes_law_York_Demister_K_value">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">compute_Stokes_law_York_Demister_K_value</code><span class="sig-paren">(</span><em class="sig-param">P</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#compute_Stokes_law_York_Demister_K_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.compute_Stokes_law_York_Demister_K_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return K-constant in Stoke’s Law using the York-Demister equation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>P</strong> (<em>float</em>) – Pressure [psia].</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Equations are given by <a class="footnote-reference brackets" href="#id2" id="id7">2</a>. See source code for details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.flash_vessel_design.ceil_half_step">
+<code class="sig-prename descclassname">biosteam.units.design_tools.flash_vessel_design.</code><code class="sig-name descname">ceil_half_step</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/flash_vessel_design.html#ceil_half_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.flash_vessel_design.ceil_half_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return value to the next/highest 0.5 units</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="heat_transfer.html" class="btn btn-neutral float-right" title="heat_transfer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cost_index.html" class="btn btn-neutral float-left" title="cost_index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

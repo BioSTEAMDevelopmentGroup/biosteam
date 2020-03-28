@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 13 09:45:49 2020
+General functional algorithms for the design and purchase cost estimation
+of distillation columns.
 
-@author: yoelr
+References
+----------
+.. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+    Cost Accounting and Capital Cost Estimation (Chapter 16)
+.. [2] M. Duss, R. Taylor. (2018)
+    Predict Distillation Tray Efficiency. AICHE 
+.. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+    674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+
 """
 import numpy as np
 from ...utils import approx2step
@@ -50,12 +60,6 @@ def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
     The purchase cost is scaled according to BioSTEAM's Chemical
     Plant Cost Index, `biosteam.CE`.
     
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-    
     """
     F_CE = bst.CE/500
     C_BT = compute_tray_base_purchase_cost(Di)
@@ -83,12 +87,6 @@ def compute_purchase_cost_of_tower(Di, L, W, F_VM):
     The purchase cost is scaled according to BioSTEAM's Chemical
     Plant Cost Index, `biosteam.CE`.
     
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-    
     """
     F_CE = bst.CE/500
     C_V = compute_empty_tower_cost(W)
@@ -109,12 +107,6 @@ def compute_empty_tower_cost(W):
     -----
     The purchase cost is given by [1]_. See source code for details.
     
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-    
     """
     return np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
 
@@ -132,12 +124,6 @@ def compute_plaform_ladder_cost(Di, L):
     Notes
     -----
     The purchase cost is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     return 300.9*Di**0.63316*L**0.80161
@@ -160,12 +146,6 @@ def compute_tower_weight(Di, L, tv, rho_M):
     Notes
     -----
     The tower weight is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     Di = Di*12
@@ -195,12 +175,6 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     Notes
     -----
     The wall thickness is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     # TODO: Incorporate temperature for choosing S and M
@@ -272,12 +246,6 @@ def compute_tray_base_purchase_cost(Di):
     -----
     The purchase cost is given by [1]_. See source code for details.
     
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-    
     """
     return 412.6985 * np.exp(0.1482*Di)
 
@@ -292,12 +260,6 @@ def compute_n_trays_factor(N_T):
     Notes
     -----
     The cost factor is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     if N_T < 20:
@@ -323,12 +285,7 @@ def compute_murphree_stage_efficiency(mu, alpha, L, V):
     
     Notes
     -----
-    The efficiency is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
+    The efficiency is given by [2]_. See source code for details.
     
     """
     S = alpha*V/L # Stripping factor
@@ -353,12 +310,7 @@ def compute_flow_parameter(L, V, rho_V, rho_L):
     
     Notes
     -----
-    The flow parameter is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    The flow parameter is given by [3]_. See source code for details.
     
     """
     return L/V*(rho_V/rho_L)**0.5
@@ -375,12 +327,7 @@ def compute_max_capacity_parameter(TS, F_LV):
     
     Notes
     -----
-    The max capacity parameter is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    The max capacity parameter is given by [3]_. See source code for details.
     
     """
     return 0.0105 + 8.127e-4*TS**0.755*np.exp(-1.463*F_LV**0.842)
@@ -407,12 +354,7 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     
     Notes
     -----
-    The max vapor velocity is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    The max vapor velocity is given by [3]_. See source code for details.
     
     """
     F_ST = (sigma/20)**0.2 # Surface tension factor
@@ -438,12 +380,7 @@ def compute_downcomer_area_fraction(F_LV):
 
     Notes
     -----
-    The fraction of downcomer area is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    The fraction of downcomer area is given by [3]_. See source code for details.
 
     """
     if F_LV < 0.1:
@@ -470,12 +407,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
     
     Notes
     -----
-    The tower diameter is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    The tower diameter is given by [3]_. See source code for details.
     
     """
     Di = (4*V_vol/(f*U_f*np.pi*(1-A_dn)))**0.5
@@ -486,7 +418,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
 
 def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     """
-    Return the height of a tower [H; m].
+    Return the height of a tower [H; in meter].
     
     Parameters
     ----------
@@ -497,12 +429,7 @@ def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     
     Notes
     -----
-    The tower height is given by [1]_. See source code for details.
-    
-    References
-    ----------
-    .. [1] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        674 Handbook, 9 ed.; McGraw-Hill Education, 2018.
+    The tower height is given by [3]_. See source code for details.
     
     """
     # 3 m bottoms surge capacity, 1.25 m above top tray to remove entrained liquid

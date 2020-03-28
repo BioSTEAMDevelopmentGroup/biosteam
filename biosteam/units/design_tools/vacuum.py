@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Feb 22 17:31:50 2019
+Functional algorithms for the design and purchase cost estimation of
+vacuum systems.
 
-@author: yoelr
+References
+----------
+.. [1] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
+    Ng, M. K. Cost Accounting and Capital Cost Estimation.
+    In Product and Process Design Principles; Wiley, 2017; pp 426–485.
+
+
 """
 from math import log as ln
 from .mechanical import motor_efficiency
@@ -41,7 +48,8 @@ _air_density = 1.2041 # kg/m3 dry air
 def compute_vacuum_system_power_and_cost(
         F_mass, F_vol, P_suction, vessel_volume,
         vacuum_system_preference=None):
-    """Return power (kW) and cost (USD) of vacuum system.
+    """
+    Return power (kW) and cost (USD) of vacuum system.
     
     Parameters
     ----------
@@ -101,7 +109,8 @@ def get_prefered_vacuum_systems(preference):
 
 
 def get_available_vacuum_systems(F_vol_cfm, P_suction):
-    """Return available vacuum type and grade
+    """
+    Return available vacuum type and grade
     
     Parameters
     ----------
@@ -119,7 +128,8 @@ def get_available_vacuum_systems(F_vol_cfm, P_suction):
     return types
 
 def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
-    """Return a heuristic vacuum type and grade
+    """
+    Return a heuristic vacuum type and grade
     
     Parameters
     ----------
@@ -136,7 +146,8 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
     raise DesignError('no vacuum system available at current flow and suction pressure')
 
 def calculate_heuristic_air_inleakage(V, P):
-    """Return air in-leakage in kg/hr through a heuristic calculation.
+    """
+    Return air in-leakage in kg/hr through a heuristic calculation.
     
     Parameters
     ----------
@@ -144,6 +155,7 @@ def calculate_heuristic_air_inleakage(V, P):
         Vacuum volume in m3
     P : float
         Suction pressure in Pa
+    
     """
     if P > 11999.013: k = 0.2
     elif P > 4132.993: k = 0.15
@@ -153,7 +165,8 @@ def calculate_heuristic_air_inleakage(V, P):
     return k*V**0.667
 
 def calculate_air_inleakage(V, P):
-    """Return air in-leakage in kg/hr.
+    """
+    Return air in-leakage in kg/hr.
     
     Parameters
     ----------
@@ -165,7 +178,8 @@ def calculate_air_inleakage(V, P):
     return 5 + (0.0298 + 0.03088*ln(P) - 5.733e-4*ln(P)**2)*V**0.66
     
 def calculate_vacuum_power(F_mass,  P_suction):
-    """Return vacuum power (after accounting for motor efficiency) in kW.
+    """
+    Return vacuum power (after accounting for motor efficiency) in kW.
     
     Parameters
     ----------
@@ -173,6 +187,7 @@ def calculate_vacuum_power(F_mass,  P_suction):
         Total mass flow rate entering vacuum system in kg/hr (including inleakage).
     P_suction : float
         Suction pressure in Torr
+    
     """
     SF = F_mass/P_suction # Size factor
     if SF < 0.2: SF = 0.2

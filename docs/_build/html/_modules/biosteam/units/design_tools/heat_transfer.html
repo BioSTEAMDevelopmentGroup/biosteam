@@ -177,9 +177,8 @@
   <h1>Source code for biosteam.units.design_tools.heat_transfer</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Sat Feb 15 10:38:41 2020</span>
+<span class="sd">General functional algorithms for the design of heat exchangers.</span>
 
-<span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">ln</span>
 
@@ -191,7 +190,7 @@
            <span class="s1">&#39;compute_heat_transfer_area&#39;</span><span class="p">,</span>
            <span class="s1">&#39;compute_LMTD&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="heuristic_overall_heat_transfer_coefficient"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.heuristic_overall_heat_transfer_coefficient">[docs]</a><span class="k">def</span> <span class="nf">heuristic_overall_heat_transfer_coefficient</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">):</span>
+<div class="viewcode-block" id="heuristic_overall_heat_transfer_coefficient"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.heuristic_overall_heat_transfer_coefficient">[docs]</a><span class="k">def</span> <span class="nf">heuristic_overall_heat_transfer_coefficient</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a heuristic estimate of the overall heat transfer coefficient</span>
 <span class="sd">    [U; in kW/m^2/K]. Assume `U` is 0.5 kW/m^2/K if heat exchange is sensible </span>
@@ -225,7 +224,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.5</span></div>
 
-<div class="viewcode-block" id="heuristic_pressure_drop"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.heuristic_pressure_drop">[docs]</a><span class="k">def</span> <span class="nf">heuristic_pressure_drop</span><span class="p">(</span><span class="n">inlet_phase</span><span class="p">,</span> <span class="n">outlet_phase</span><span class="p">):</span>
+<div class="viewcode-block" id="heuristic_pressure_drop"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.heuristic_pressure_drop">[docs]</a><span class="k">def</span> <span class="nf">heuristic_pressure_drop</span><span class="p">(</span><span class="n">inlet_phase</span><span class="p">,</span> <span class="n">outlet_phase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a heuristic estimate of the pressure drop [dP; in psi]. If the fluid </span>
 <span class="sd">    changes phase, `dP` is 1.5 psi. If the fluid remains a liquid, `dP` is 5 psi.</span>
@@ -253,7 +252,7 @@
         <span class="n">dP</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="k">return</span> <span class="n">dP</span></div>
 
-<div class="viewcode-block" id="heuristic_tubeside_and_shellside_pressure_drops"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.heuristic_tubeside_and_shellside_pressure_drops">[docs]</a><span class="k">def</span> <span class="nf">heuristic_tubeside_and_shellside_pressure_drops</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span>
+<div class="viewcode-block" id="heuristic_tubeside_and_shellside_pressure_drops"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.heuristic_tubeside_and_shellside_pressure_drops">[docs]</a><span class="k">def</span> <span class="nf">heuristic_tubeside_and_shellside_pressure_drops</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span>
                                                     <span class="n">tubeside_iscooling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return an estimate of tubeside and shellside pressure drops.</span>
@@ -289,7 +288,7 @@
         <span class="n">dP_shell</span> <span class="o">=</span> <span class="n">dP_h</span>
     <span class="k">return</span> <span class="n">dP_tube</span><span class="p">,</span> <span class="n">dP_shell</span></div>
 
-<div class="viewcode-block" id="order_streams"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.order_streams">[docs]</a><span class="k">def</span> <span class="nf">order_streams</span><span class="p">(</span><span class="n">in_a</span><span class="p">,</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">out_a</span><span class="p">,</span> <span class="n">out_b</span><span class="p">):</span>
+<div class="viewcode-block" id="order_streams"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.order_streams">[docs]</a><span class="k">def</span> <span class="nf">order_streams</span><span class="p">(</span><span class="n">in_a</span><span class="p">,</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">out_a</span><span class="p">,</span> <span class="n">out_b</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return cold and hot inlet and outlet streams.</span>
 <span class="sd">    </span>
@@ -322,7 +321,8 @@
         <span class="k">return</span> <span class="n">in_b</span><span class="p">,</span> <span class="n">in_a</span><span class="p">,</span> <span class="n">out_b</span><span class="p">,</span> <span class="n">out_a</span></div>
 
 <span class="k">def</span> <span class="nf">compute_fallback_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return LMTF correction factor using the fallback equation for `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Return LMTF correction factor using the fallback equation for</span>
+<span class="sd">    `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed.&quot;&quot;&quot;</span>
     <span class="c1"># A, J, and K are dummy variables</span>
     <span class="n">A</span> <span class="o">=</span> <span class="n">N_shells</span> <span class="o">-</span> <span class="n">N_shells</span><span class="o">*</span><span class="n">P</span>
     <span class="n">W</span> <span class="o">=</span> <span class="n">A</span><span class="o">/</span><span class="p">(</span><span class="n">A</span> <span class="o">+</span> <span class="n">P</span><span class="p">)</span>
@@ -337,7 +337,7 @@
             <span class="n">Ft</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mf">0.5</span><span class="o">*</span><span class="n">J</span><span class="p">)</span><span class="o">/</span><span class="n">ln</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">Ft</span>
 
-<div class="viewcode-block" id="compute_Fahkeri_LMTD_correction_factor"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_Fahkeri_LMTD_correction_factor">[docs]</a><span class="k">def</span> <span class="nf">compute_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_Fahkeri_LMTD_correction_factor"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.compute_Fahkeri_LMTD_correction_factor">[docs]</a><span class="k">def</span> <span class="nf">compute_Fahkeri_LMTD_correction_factor</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">N_shells</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the log-mean temperature difference correction factor `Ft` </span>
 <span class="sd">    for a shell-and-tube heat exchanger with one or an even number of tube </span>
@@ -426,7 +426,7 @@
         <span class="n">Ft</span> <span class="o">=</span> <span class="mf">0.5</span>
     <span class="k">return</span> <span class="n">Ft</span></div>
 
-<div class="viewcode-block" id="compute_heat_transfer_area"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_heat_transfer_area">[docs]</a><span class="k">def</span> <span class="nf">compute_heat_transfer_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_heat_transfer_area"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.compute_heat_transfer_area">[docs]</a><span class="k">def</span> <span class="nf">compute_heat_transfer_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return required heat transfer area by LMTD correction factor method.</span>
 <span class="sd">    </span>
@@ -442,7 +442,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Q</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">LMTD</span><span class="o">*</span><span class="n">ft</span><span class="p">)</span>   </div>
 
-<div class="viewcode-block" id="compute_LMTD"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.compute_LMTD">[docs]</a><span class="k">def</span> <span class="nf">compute_LMTD</span><span class="p">(</span><span class="n">Thi</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">Tci</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">counterflow</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_LMTD"><a class="viewcode-back" href="../../../../units/design_tools/heat_transfer.html#biosteam.units.design_tools.heat_transfer.compute_LMTD">[docs]</a><span class="k">def</span> <span class="nf">compute_LMTD</span><span class="p">(</span><span class="n">Thi</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="n">Tci</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">counterflow</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Return the log-mean temperature difference of an ideal counterflow</span>
 <span class="sd">    or co-current heat exchanger.</span>

@@ -1,5 +1,0 @@
-design_tools
-============
-
-.. automodule:: biosteam.units.design_tools
-   :members:

@@ -177,47 +177,63 @@
   <h1>Source code for biosteam.units.design_tools.batch</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Thu Aug 23 22:56:55 2018</span>
-
-<span class="sd">@author: yoelr</span>
+<span class="sd">General functional algorithms for batch design.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;size_batch&#39;</span><span class="p">,)</span>
 
-<div class="viewcode-block" id="size_batch"><a class="viewcode-back" href="../../../../units/design_tools.html#biosteam.units.design_tools.size_batch">[docs]</a><span class="k">def</span> <span class="nf">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N_reactors</span><span class="p">,</span> <span class="n">V_wf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="size_batch"><a class="viewcode-back" href="../../../../units/design_tools/batch.html#biosteam.units.design_tools.batch.size_batch">[docs]</a><span class="k">def</span> <span class="nf">size_batch</span><span class="p">(</span><span class="n">F_vol</span><span class="p">,</span> <span class="n">tau_reaction</span><span class="p">,</span> <span class="n">tau_turnaround</span><span class="p">,</span> <span class="n">N_reactors</span><span class="p">,</span> <span class="n">V_wf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Solve for batch reactor volume, cycle time, and loading time</span>
+<span class="sd">    Solve for batch reactor volume, cycle time, and loading time.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    v_0 </span>
-<span class="sd">        Flow rate</span>
-<span class="sd">    tau</span>
-<span class="sd">        Reaction time</span>
-<span class="sd">    tau_0</span>
-<span class="sd">        Turnaround time</span>
-<span class="sd">    N_reactors</span>
-<span class="sd">        Number of reactors</span>
-<span class="sd">    V_wf</span>
-<span class="sd">        Fraction of working volume</span>
+<span class="sd">    F_vol : float</span>
+<span class="sd">        Volumetric flow rate.</span>
+<span class="sd">    tau_reaction : float</span>
+<span class="sd">        Reaction time.</span>
+<span class="sd">    tau_turnaround : float</span>
+<span class="sd">        Turnaround time.</span>
+<span class="sd">    N_reactors : int</span>
+<span class="sd">        Number of reactors.</span>
+<span class="sd">    V_wf : float</span>
+<span class="sd">        Fraction of working volume.</span>
 <span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dict[str: float]</span>
-<span class="sd">        * &#39;Reactor volume&#39;</span>
-<span class="sd">        * &#39;Cycle time&#39;</span>
-<span class="sd">        * &#39;Loading time&#39;</span>
+<span class="sd">    dict</span>
+<span class="sd">        * &#39;Reactor volume&#39;: float</span>
+<span class="sd">        * &#39;Batch time&#39;: float</span>
+<span class="sd">        * &#39;Cycle time&#39;: float</span>
+<span class="sd">        * &#39;Loading time&#39;: float</span>
+<span class="sd">       </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Units of measure may vary so long as they are consistent.</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">V_T</span> <span class="o">=</span> <span class="n">v_0</span><span class="o">*</span><span class="p">(</span><span class="n">tau</span> <span class="o">+</span> <span class="n">tau_0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">N_reactors</span><span class="p">)</span> <span class="c1"># Reacting volume</span>
+    <span class="c1"># Cycle time assuming no down time.</span>
+    <span class="n">tau_cycle</span> <span class="o">=</span> <span class="n">tau_reaction</span> <span class="o">+</span> <span class="n">tau_turnaround</span>
+    
+    <span class="c1"># Total volume of all reactors.</span>
+    <span class="n">V_T</span> <span class="o">=</span> <span class="n">F_vol</span> <span class="o">*</span> <span class="n">tau_cycle</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">N_reactors</span><span class="p">)</span>
+    
+    <span class="c1"># Volume of an individual reactor</span>
     <span class="n">V_i</span> <span class="o">=</span> <span class="n">V_T</span><span class="o">/</span><span class="n">N_reactors</span>
-    <span class="n">t_L</span> <span class="o">=</span> <span class="n">V_i</span><span class="o">/</span><span class="n">v_0</span>
-    <span class="n">t_B</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">+</span> <span class="n">tau_0</span> <span class="o">+</span> <span class="n">t_L</span>
-    <span class="n">V_i</span> <span class="o">/=</span> <span class="n">V_wf</span>
+    
+    <span class="c1"># Time required to load a reactor</span>
+    <span class="n">tau_loading</span> <span class="o">=</span> <span class="n">V_i</span><span class="o">/</span><span class="n">F_vol</span>
+    
+    <span class="c1"># Total batch time</span>
+    <span class="n">tau_batch</span> <span class="o">=</span> <span class="n">tau_cycle</span> <span class="o">+</span> <span class="n">tau_loading</span>
+    
+    <span class="c1"># Account for excess volume</span>
+    <span class="n">V_i</span> <span class="o">/=</span> <span class="n">V_wf</span> 
     
     <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">:</span> <span class="n">V_i</span><span class="p">,</span>
-            <span class="s1">&#39;Cycle time&#39;</span><span class="p">:</span> <span class="n">t_B</span><span class="p">,</span> 
-            <span class="s1">&#39;Loading time&#39;</span><span class="p">:</span> <span class="n">t_L</span><span class="p">}</span></div>
+            <span class="s1">&#39;Batch time&#39;</span><span class="p">:</span> <span class="n">tau_batch</span><span class="p">,</span>
+            <span class="s1">&#39;Cycle time&#39;</span><span class="p">:</span> <span class="n">tau_cycle</span><span class="p">,</span>
+            <span class="s1">&#39;Loading time&#39;</span><span class="p">:</span> <span class="n">tau_loading</span><span class="p">}</span></div>
         
         
 </pre></div>

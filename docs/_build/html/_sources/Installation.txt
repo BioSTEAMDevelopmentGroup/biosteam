@@ -17,7 +17,7 @@ To get the git version, run:
 Common Issues
 -------------
 
-* **Unit and system diagrams are not displayed:**
+* **Unit and system diagrams are not displaying:**
 
   BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:
   
@@ -36,14 +36,9 @@ Common Issues
 
      $ pip install --user --ignore-installed biosteam
 
-
-* **BioSTEAM version is not the latest:**
-
-  You can make sure you install the right version with the following line:
+  You can make sure you install the right version by including the version number:
 
   .. code-block:: bash
 
      $ pip install biosteam==<version>
-
-  Where `<version>` is the version number.
 

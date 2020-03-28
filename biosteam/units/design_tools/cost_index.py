@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun  6 01:25:26 2019
-
-@author: yoelr
+Cost indices.
 """
 
 __all__ = ('CEPCI_by_year',)
 
-#: dict[int: int] 
+#: Chemical Engineering Plant Cost Index by year
 CEPCI_by_year = {1980: 261,
                  1981: 297,
                  1982: 314,

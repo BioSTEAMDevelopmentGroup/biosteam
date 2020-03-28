@@ -2,10 +2,10 @@ units
 =====
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    decorators
-   design_tools
+   design_tools/design_tools
    facilities
    BinaryDistillation
    Duplicator

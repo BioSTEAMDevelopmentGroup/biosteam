@@ -214,10 +214,11 @@
                                 <span class="n">x_stages</span><span class="p">,</span> <span class="n">y_stages</span><span class="p">,</span> <span class="n">T_stages</span><span class="p">,</span>
                                 <span class="n">x_limit</span><span class="p">,</span> <span class="n">solve_Ty</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Find the specifications at every stage of the of the operating line before</span>
-<span class="sd">    the maximum liquid molar fraction. Append the light key liquid molar</span>
-<span class="sd">    fraction, light key vapor molar fraction, and stage temperatures to</span>
-<span class="sd">    x_stages, y_stages and T_stages respectively.</span>
+<span class="sd">    Use the McCabe-Thiele method to find the specifications at every stage of</span>
+<span class="sd">    the operating line before the maximum liquid molar fraction, `x_limit`. </span>
+<span class="sd">    Append the light key liquid molar fraction, light key vapor molar</span>
+<span class="sd">    fraction, and stage temperatures to `x_stages`, `y_stages` and `T_stages`</span>
+<span class="sd">    respectively.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

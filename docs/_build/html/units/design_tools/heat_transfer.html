@@ -1,0 +1,508 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>heat_transfer &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="mechanical" href="mechanical.html" />
+    <link rel="prev" title="flash_vessel_design" href="flash_vessel_design.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">decorators</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="design_tools.html">design_tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="batch.html">batch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="column_design.html">column_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cost_index.html">cost_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flash_vessel_design.html">flash_vessel_design</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">heat_transfer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mechanical.html">mechanical</a></li>
+<li class="toctree-l3"><a class="reference internal" href="specification_factors.html">specification_factors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vacuum.html">vacuum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Duplicator.html">Duplicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LLECentrifuge.html">LLECentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ShortcutColumn.html">ShortcutColumn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Tank.html">Tank</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../units.html">units</a> &raquo;</li>
+        
+          <li><a href="design_tools.html">design_tools</a> &raquo;</li>
+        
+      <li>heat_transfer</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/units/design_tools/heat_transfer.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units.design_tools.heat_transfer">
+<span id="heat-transfer"></span><h1>heat_transfer<a class="headerlink" href="#module-biosteam.units.design_tools.heat_transfer" title="Permalink to this headline">¶</a></h1>
+<p>General functional algorithms for the design of heat exchangers.</p>
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.heuristic_overall_heat_transfer_coefficient">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">heuristic_overall_heat_transfer_coefficient</code><span class="sig-paren">(</span><em class="sig-param">ci</em>, <em class="sig-param">hi</em>, <em class="sig-param">co</em>, <em class="sig-param">ho</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#heuristic_overall_heat_transfer_coefficient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.heuristic_overall_heat_transfer_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a heuristic estimate of the overall heat transfer coefficient
+[U; in kW/m^2/K]. Assume <cite>U</cite> is 0.5 kW/m^2/K if heat exchange is sensible
+and 1.0 kW/m^2/K otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ci</strong> (<em>Stream</em>) – Cold inlet stream.</p></li>
+<li><p><strong>hi</strong> (<em>Stream</em>) – Hot inlet stream.</p></li>
+<li><p><strong>co</strong> (<em>Stream</em>) – Cold outlet stream.</p></li>
+<li><p><strong>ho</strong> (<em>Stream</em>) – Hot outlet stream.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>U</strong> – overall heat transfer coefficient [kW/m^2/K].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.heuristic_pressure_drop">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">heuristic_pressure_drop</code><span class="sig-paren">(</span><em class="sig-param">inlet_phase</em>, <em class="sig-param">outlet_phase</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#heuristic_pressure_drop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.heuristic_pressure_drop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a heuristic estimate of the pressure drop [dP; in psi]. If the fluid
+changes phase, <cite>dP</cite> is 1.5 psi. If the fluid remains a liquid, <cite>dP</cite> is 5 psi.
+If the fluid remains a gas, <cite>dP</cite> is 3 psi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inlet_phase</strong> (<em>str</em>) – </p></li>
+<li><p><strong>outlet_phase</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dP</strong> – Pressure drop [psi].</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.heuristic_tubeside_and_shellside_pressure_drops">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">heuristic_tubeside_and_shellside_pressure_drops</code><span class="sig-paren">(</span><em class="sig-param">ci</em>, <em class="sig-param">hi</em>, <em class="sig-param">co</em>, <em class="sig-param">ho</em>, <em class="sig-param">tubeside_iscooling=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#heuristic_tubeside_and_shellside_pressure_drops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.heuristic_tubeside_and_shellside_pressure_drops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an estimate of tubeside and shellside pressure drops.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ci</strong> (<em>Stream</em>) – Cold inlet stream.</p></li>
+<li><p><strong>hi</strong> (<em>Stream</em>) – Hot inlet stream.</p></li>
+<li><p><strong>co</strong> (<em>Stream</em>) – Cold outlet stream.</p></li>
+<li><p><strong>ho</strong> (<em>Stream</em>) – Hot outlet stream.</p></li>
+<li><p><strong>tubeside_iscooling</strong> (<em>bool</em>) – True of tubeside fluid is cooling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>dP_tube</strong> (<em>float</em>) – Tubeside pressure drop (psi)</p></li>
+<li><p><strong>dP_shell</strong> (<em>float</em>) – Shellside pressure drop (psi)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.order_streams">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">order_streams</code><span class="sig-paren">(</span><em class="sig-param">in_a</em>, <em class="sig-param">in_b</em>, <em class="sig-param">out_a</em>, <em class="sig-param">out_b</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#order_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.order_streams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cold and hot inlet and outlet streams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_a</strong> (<em>Stream</em>) – Inlet a.</p></li>
+<li><p><strong>in_b</strong> (<em>Stream</em>) – Inlet b.</p></li>
+<li><p><strong>out_a</strong> (<em>Stream</em>) – Outlet a.</p></li>
+<li><p><strong>out_b</strong> (<em>Stream</em>) – Outlet b.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>ci</strong> (<em>Stream</em>) – Cold inlet.</p></li>
+<li><p><strong>hi</strong> (<em>Stream</em>) – Hot inlet.</p></li>
+<li><p><strong>co</strong> (<em>Stream</em>) – Cold outlet.</p></li>
+<li><p><strong>ho</strong> (<em>Stream</em>) – Hot outlet.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.compute_Fahkeri_LMTD_correction_factor">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">compute_Fahkeri_LMTD_correction_factor</code><span class="sig-paren">(</span><em class="sig-param">Tci</em>, <em class="sig-param">Thi</em>, <em class="sig-param">Tco</em>, <em class="sig-param">Tho</em>, <em class="sig-param">N_shells</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#compute_Fahkeri_LMTD_correction_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.compute_Fahkeri_LMTD_correction_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-mean temperature difference correction factor <cite>Ft</cite>
+for a shell-and-tube heat exchanger with one or an even number of tube
+passes, and a given number of shell passes, with the expression given in
+<a class="footnote-reference brackets" href="#id3" id="id1">1</a> and also shown in <a class="footnote-reference brackets" href="#id4" id="id2">2</a>.</p>
+<div class="math">
+<p><img src="../../_images/math/e7f58aff64654fd5c0067211e2ee5e073fb69cc7.png" alt="F_t=\frac{S\ln W}{\ln \frac{1+W-S+SW}{1+W+S-SW}}
+
+S = \frac{\sqrt{R^2+1}}{R-1}
+
+W = \left(\frac{1-PR}{1-P}\right)^{1/N}
+
+R = \frac{T_{in}-T_{out}}{t_{out}-t_{in}}
+
+P = \frac{t_{out}-t_{in}}{T_{in}-t_{in}}"/></p>
+</div><p>If R = 1 and logarithms cannot be evaluated:</p>
+<div class="math">
+<p><img src="../../_images/math/4fe70798dba9928b570c0b6bfd6b562ff9f42ecf.png" alt="W' = \frac{N-NP}{N-NP+P}
+
+F_t = \frac{\sqrt{2}\frac{1-W'}{W'}}{\ln\frac{\frac{W'}{1-W'}+\frac{1}
+{\sqrt{2}}}{\frac{W'}{1-W'}-\frac{1}{\sqrt{2}}}}"/></p>
+</div><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Tci</strong> (<em>float</em>) – Inlet temperature of cold fluid, [K]</p></li>
+<li><p><strong>Thi</strong> (<em>float</em>) – Inlet temperature of hot fluid, [K]</p></li>
+<li><p><strong>Tco</strong> (<em>float</em>) – Outlet temperature of cold fluid, [K]</p></li>
+<li><p><strong>Tho</strong> (<em>float</em>) – Outlet temperature of hot fluid, [K]</p></li>
+<li><p><strong>shells</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of shell-side passes, [-]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Ft</strong> – Log-mean temperature difference correction factor, [-]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This expression is symmetric - the same result is calculated if the cold
+side values are swapped with the hot side values. It also does not
+depend on the units of the temperature given.</p>
+<p class="rubric">Examples</p>
+<p>compute_Fahkeri_LMTD_correction_factor(Tci=15, Tco=85, Thi=130, Tho=110, N_shells=1)
+0.9438358829645933</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Fakheri, Ahmad. “A General Expression for the Determination of the
+Log Mean Temperature Correction Factor for Shell and Tube Heat
+Exchangers.” Journal of Heat Transfer 125, no. 3 (May 20, 2003): 527-30.
+doi:10.1115/1.1571078.</p>
+</dd>
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Hall, Stephen. Rules of Thumb for Chemical Engineers, Fifth Edition.
+Oxford; Waltham, MA: Butterworth-Heinemann, 2012.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.compute_heat_transfer_area">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">compute_heat_transfer_area</code><span class="sig-paren">(</span><em class="sig-param">LMTD</em>, <em class="sig-param">U</em>, <em class="sig-param">Q</em>, <em class="sig-param">ft</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#compute_heat_transfer_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.compute_heat_transfer_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return required heat transfer area by LMTD correction factor method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>LMTD</strong> (<em>float</em>) – Log mean temperature difference</p></li>
+<li><p><strong>U</strong> (<em>float</em>) – Heat transfer coefficient</p></li>
+<li><p><strong>Q</strong> (<em>float</em>) – Duty</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.design_tools.heat_transfer.compute_LMTD">
+<code class="sig-prename descclassname">biosteam.units.design_tools.heat_transfer.</code><code class="sig-name descname">compute_LMTD</code><span class="sig-paren">(</span><em class="sig-param">Thi</em>, <em class="sig-param">Tho</em>, <em class="sig-param">Tci</em>, <em class="sig-param">Tco</em>, <em class="sig-param">counterflow=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/design_tools/heat_transfer.html#compute_LMTD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.heat_transfer.compute_LMTD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-mean temperature difference of an ideal counterflow
+or co-current heat exchanger.</p>
+<div class="math">
+<p><img src="../../_images/math/1a663aa0988de00ab733259d7126a46de8f61ee6.png" alt="\Delta T_{LMTD}=\frac{\Delta T_1-\Delta T_2}{\ln(\Delta T_1/\Delta T_2)}
+
+\text{For countercurrent:      } \\
+\Delta T_1=T_{h,i}-T_{c,o}\\
+\Delta T_2=T_{h,o}-T_{c,i}
+
+\text{Parallel Flow Only:} \\
+{\Delta T_1=T_{h,i}-T_{c,i}}\\
+{\Delta T_2=T_{h,o}-T_{c,o}}"/></p>
+</div><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Thi</strong> (<em>float</em>) – Inlet temperature of hot fluid [K].</p></li>
+<li><p><strong>Tho</strong> (<em>float</em>) – Outlet temperature of hot fluid [K].</p></li>
+<li><p><strong>Tci</strong> (<em>float</em>) – Inlet temperature of cold fluid [K].</p></li>
+<li><p><strong>Tco</strong> (<em>float</em>) – Outlet temperature of cold fluid [K].</p></li>
+<li><p><strong>counterflow</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the exchanger is counterflow or co-current.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>LMTD</strong> – Log-mean temperature difference [K]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Any consistent set of units produces a consistent output.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">LMTD</span><span class="p">(</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">60.</span><span class="p">,</span> <span class="mf">30.</span><span class="p">,</span> <span class="mf">40.2</span><span class="p">)</span>
+<span class="go">43.200409294131525</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">LMTD</span><span class="p">(</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">60.</span><span class="p">,</span> <span class="mf">30.</span><span class="p">,</span> <span class="mf">40.2</span><span class="p">,</span> <span class="n">counterflow</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">39.75251118049003</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mechanical.html" class="btn btn-neutral float-right" title="mechanical" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="flash_vessel_design.html" class="btn btn-neutral float-left" title="flash_vessel_design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

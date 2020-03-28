@@ -24,7 +24,7 @@ class Block:
     
     Parameters
     ----------
-    element : Unit or Stream
+    element : Unit or :class:`~thermosteam.Stream`
         Element in the system.  
     system=None : System, optional
         System affected by element. In other words, element should affect

@@ -1,0 +1,370 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>specification_factors &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="vacuum" href="vacuum.html" />
+    <link rel="prev" title="mechanical" href="mechanical.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">decorators</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="design_tools.html">design_tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="batch.html">batch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="column_design.html">column_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cost_index.html">cost_index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flash_vessel_design.html">flash_vessel_design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="heat_transfer.html">heat_transfer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mechanical.html">mechanical</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">specification_factors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vacuum.html">vacuum</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Duplicator.html">Duplicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LLECentrifuge.html">LLECentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ShortcutColumn.html">ShortcutColumn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Tank.html">Tank</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../units.html">units</a> &raquo;</li>
+        
+          <li><a href="design_tools.html">design_tools</a> &raquo;</li>
+        
+      <li>specification_factors</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/units/design_tools/specification_factors.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units.design_tools.specification_factors">
+<span id="specification-factors"></span><h1>specification_factors<a class="headerlink" href="#module-biosteam.units.design_tools.specification_factors" title="Permalink to this headline">¶</a></h1>
+<p>Material and specification factors as compiled by <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.;
+Ng, M. K. Cost Accounting and Capital Cost Estimation.
+In Product and Process Design Principles; Wiley, 2017; pp 426–485.</p>
+</dd>
+</dl>
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.pressure_vessel_material_factors">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">pressure_vessel_material_factors</code><em class="property"> = {'Carbon steel': 1.0, 'Carpenter 20CB-3': 3.2, 'Incoloy-825': 3.7, 'Inconel-600': 3.9, 'Low-alloy steel': 1.2, 'Monel-400': 3.6, 'Nickel-200': 5.4, 'Stainless steel 304': 1.7, 'Stainless steel 316': 2.1, 'Titanium': 7.7}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.pressure_vessel_material_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material factors for pressure vessels</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.vessel_material_factors">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">vessel_material_factors</code><em class="property"> = {'Carbon steel': 1.0, 'Copper': 1.2, 'Nickel': 2.5, 'Stainless steel': 2.0, 'Titanium': 6.0, 'Titanium clad': 3.0}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.vessel_material_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material factors for ordinary vessels</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.material_densities_lb_per_ft3">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">material_densities_lb_per_ft3</code><em class="property"> = {'Carbon steel': 490, 'Carpenter 20CB-3': None, 'Incoloy-825': None, 'Inconel-600': None, 'Low-alloy steel': None, 'Monel-400': None, 'Nickel-200': None, 'Stainless steel 304': 499.4, 'Stainless steel 316': 499.4, 'Titanium': None}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.material_densities_lb_per_ft3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material densities in lb/ft^3</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.material_densities_lb_per_in3">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">material_densities_lb_per_in3</code><em class="property"> = {'Carbon steel': 0.284, 'Carpenter 20CB-3': None, 'Incoloy-825': None, 'Inconel-600': None, 'Low-alloy steel': None, 'Monel-400': None, 'Nickel-200': None, 'Stainless steel 304': 0.289, 'Stainless steel 316': 0.289, 'Titanium': None}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.material_densities_lb_per_in3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material densities in lb/in^3</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.pump_material_factors">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">pump_material_factors</code><em class="property"> = {'Bronze': 1.9, 'Cast iron': 1, 'Cast steel': 1.35, 'Ductile iron': 1.15, 'Hastelloy C': 2.95, 'Monel': 3.3, 'Nickel': 3.5, 'Stainless steel': 2, 'Titanium': 9.7}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.pump_material_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material factors for pumps</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.pump_gear_factors">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">pump_gear_factors</code><em class="property"> = {'EnclosedFanCooled': 1.4, 'ExplosionProofEnclosure': 1.8, 'OpenDripProof': 1}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.pump_gear_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gear-type cost factors for pumps</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.pump_centrifugal_factors">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">pump_centrifugal_factors</code><em class="property"> = {'2+HSC3600': 8.9, '2HSC3600': 2.7, 'HSC1800': 2, 'HSC3600': 1.7, 'VSC1800': 1.5, 'VSC3600': 1}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.pump_centrifugal_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Centrifugal-type cost factors for pumps.
+Keys are case-split orientation and shaft rpm.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.distillation_tray_type_factor">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">distillation_tray_type_factor</code><em class="property"> = {'Bubble cap': 1.87, 'Sieve': 1, 'Valve': 1.18}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.distillation_tray_type_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tray-type cost factors for distillation columns.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.tray_material_factor_functions">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">tray_material_factor_functions</code><em class="property"> = {'Carbon steel': &lt;function compute_carbon_steel_material_factor&gt;, 'Carpenter 20CB-3': &lt;function compute_carpenter_20CB3_material_factor&gt;, 'Monel': &lt;function compute_monel_material_factor&gt;, 'Stainless steel 304': &lt;function compute_stainless_steel_304_material_factor&gt;, 'Stainless steel 316': &lt;function compute_stainless_steel_316_material_factor&gt;}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.tray_material_factor_functions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material cost factors for distillation column trays.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.distillation_column_material_factors">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">distillation_column_material_factors</code><em class="property"> = {'Carbon steel': 1.0, 'Carpenter 20CB-3': 3.2, 'Incoloy-825': 3.7, 'Inconel-600': 3.9, 'Low-alloy steel': 1.2, 'Monel-400': 3.6, 'Nickel-200': 5.4, 'Stainless steel 304': 1.7, 'Stainless steel 316': 2.1, 'Titanium': 7.7}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.distillation_column_material_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Material cost factors for distillation columns.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="biosteam.units.design_tools.specification_factors.shell_and_tube_material_factor_coefficients">
+<code class="sig-prename descclassname">biosteam.units.design_tools.specification_factors.</code><code class="sig-name descname">shell_and_tube_material_factor_coefficients</code><em class="property"> = {'Carbon steel/Cr-Mo steel': (1.55, 0.05), 'Carbon steel/Monel': (2.1, 0.13), 'Carbon steel/brass': (1.08, 0.05), 'Carbon steel/carbon steel': (0, 0), 'Carbon steel/stainles steel': (1.75, 0.13), 'Carbon steel/titanium': (5.2, 0.16), 'Cr-Mo steel/Cr-Mo steel': (1.7, 0.07), 'Monel/Monel': (3.3, 0.08), 'Stainless steel/stainless steel': (2.7, 0.07), 'Titanium/titanium': (9.6, 0.06)}</em><a class="headerlink" href="#biosteam.units.design_tools.specification_factors.shell_and_tube_material_factor_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict[str, tuple[float, float]] Material factor coefficients of shell and
+tube heat exchangers. Keys are materials of construction of
+shell/tube and coefficients are <cite>a</cite> and <cite>b</cite> in Eq. (16.44).</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="vacuum.html" class="btn btn-neutral float-right" title="vacuum" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mechanical.html" class="btn btn-neutral float-left" title="mechanical" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
