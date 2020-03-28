@@ -228,9 +228,9 @@ class ShortcutColumn(BinaryDistillation,
         self._add_trace_heavy_and_light_non_keys_in_products()
         
         # Initialize objects to calculate bubble and dew points
-        equilibrium_chemicals = self.feed.equilibrium_chemicals
-        self._dew_point = DewPoint(equilibrium_chemicals, self.thermo)
-        self._bubble_point = BubblePoint(equilibrium_chemicals, self.thermo)
+        vle_chemicals = self.feed.vle_chemicals
+        self._dew_point = DewPoint(vle_chemicals, self.thermo)
+        self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
         self._IDs_equilibrium = IDs = self._dew_point.IDs
         self._LHK_equilibrium_index = [IDs.index(i) for i in self.LHK]
         
