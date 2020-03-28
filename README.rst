@@ -30,7 +30,7 @@ Get the latest version of BioSTEAM from `PyPI <https://pypi.python.org/pypi/bios
 
 To get the git version, run:
 
-    $ git clone git://github.com/yoelcortes/biosteam
+    $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
 For help on common installtion issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/Installation.html>`__.
 
