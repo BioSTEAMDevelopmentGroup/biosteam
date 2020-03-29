@@ -3,3 +3,4 @@ biorefineries>=2.7.1
 thermosteam>=0.7.2
 graphviz==0.8.3
 chaospy==3.0.11
+PyQt5

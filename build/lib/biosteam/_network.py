@@ -6,7 +6,7 @@ Created on Tue Sep 10 09:01:47 2019
 """
 from ._unit import Unit
 from ._facility import Facility
-from ._flowsheet_digraph import make_digraph, save_digraph
+from ._viz._digraph import make_digraph, save_digraph
     
 
 # %% Path tools

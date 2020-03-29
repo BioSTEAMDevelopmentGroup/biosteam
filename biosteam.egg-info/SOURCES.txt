@@ -4,7 +4,6 @@ biosteam/__init__.py
 biosteam/_exceptions.py
 biosteam/_facility.py
 biosteam/_flowsheet.py
-biosteam/_flowsheet_digraph.py
 biosteam/_graphics.py
 biosteam/_heat_utility.py
 biosteam/_network.py
