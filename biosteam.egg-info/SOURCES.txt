@@ -19,6 +19,9 @@ biosteam.egg-info/top_level.txt
 biosteam/_report/__init__.py
 biosteam/_report/plot.py
 biosteam/_report/table.py
+biosteam/_viz/__init__.py
+biosteam/_viz/_digraph.py
+biosteam/_viz/_widget.py
 biosteam/evaluation/__init__.py
 biosteam/evaluation/_block.py
 biosteam/evaluation/_metric.py
