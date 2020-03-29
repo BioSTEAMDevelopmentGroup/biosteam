@@ -12,7 +12,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.8.0',
+    version='2.8.1',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
@@ -22,6 +22,7 @@ setup(
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_report/*',
+                      '_viz/*',
                       'utils/*',
                       'compounds/*',
                       'reaction/*',
