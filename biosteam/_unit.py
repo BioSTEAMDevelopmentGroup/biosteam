@@ -14,7 +14,7 @@ from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
-from ._digraph import save_digraph
+from ._gui._digraph import save_digraph
 from thermosteam.utils import thermo_user, registered
 from thermosteam.base import UnitsOfMeasure
 import biosteam as bst

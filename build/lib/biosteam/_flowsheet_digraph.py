@@ -17,7 +17,8 @@ def make_digraph(units, streams, format='svg',
     # Set up unit nodes
     UD = {}  # Contains full description (ID and line) by unit
     for u in units:
-        u._load_stream_links()
+        try: u._load_stream_links()
+        except: pass
         graphics = u._graphics
         
         # Initialize graphics and make Unit node with attributes

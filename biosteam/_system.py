@@ -5,7 +5,7 @@ Created on Sat Aug 18 15:04:55 2018
 @author: yoelr
 """
 from flexsolve import SolverError, conditional_wegstein, conditional_aitken
-from ._digraph import make_digraph, save_digraph
+from ._gui._digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from thermosteam.utils import registered
 from ._graphics import system_unit, stream_unit

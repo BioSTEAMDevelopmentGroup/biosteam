@@ -3,13 +3,16 @@
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 
 """
+import sys
+from PyQt5.QtWidgets import QApplication
 from thermosteam.utils import Registry
-from ._digraph import make_digraph, save_digraph
+from ._gui import FlowsheetWidget, make_digraph, save_digraph
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
 from ._system import System
 from ._network import Network
+from PyQt5 import QtCore
 
 __all__ = ('main_flowsheet', 'Flowsheet')
 
@@ -259,6 +262,11 @@ class Flowsheet:
         isa = isinstance
         return [i for i in self.unit if isa(i, Facility)]
     
+    def view(self, autorefresh=True):
+        widget = FlowsheetWidget(self, autorefresh)
+        widget.show()
+        return widget
+    
     def __call__(self, ID):
         """Return requested biosteam item.
     
@@ -292,8 +300,7 @@ class MainFlowsheet(Flowsheet):
 	:doc:`tutorial/Managing flowsheets` 
 	
 	"""
-    __slots__ = ()
-    
+        
     def set_flowsheet(self, flowsheet):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):
@@ -328,40 +335,3 @@ class MainFlowsheet(Flowsheet):
 #: [main_flowsheet] Main flowsheet where objects are registered by ID.
 main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet('default')
-    
-
-# %% Attempt at contantly rendered digraph
-
-# #: [bool] True if flowsheet is contantly rendered
-# self.live = True
-
-# def _show_once(self):
-    #     fig = plt.figure()
-    #     plt.axis('off')
-    #     f = open('diagram.png', 'wb')
-    #     diagram = make_digraph(self.unit.values()).pipe(format='png')
-    #     f.write(diagram)
-    #     img = mpimg.imread('diagram.png')
-    #     plt.imshow(img, interpolation='spline36')
-    #     fig.show()
-    #     # img = Image.open('diagram.png')
-    #     # img.show() 
-    
-    # def _show(self):
-    #     fig = plt.figure()
-    #     plt.axis('off')
-    #     f = open('diagram.png', 'wb')
-    #     for i in range(3):
-    #         diagram = make_digraph(self.unit.values()).pipe(format='png')
-    #         f.write(diagram)
-    #         img = mpimg.imread('diagram.png')
-    #         plt.clf() 
-    #         plt.imshow(img, interpolation='spline36')
-    #         fig.show()
-    #         time.sleep(10)
-    #     f.close()
-    #     os.remove('diagram.png')
-    
-    # def show(self):
-    #     t1 = threading.Thread(target=self._show())
-    #     t1.start()

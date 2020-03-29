@@ -12,7 +12,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.7.7',
+    version='2.7.9',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
@@ -20,7 +20,7 @@ setup(
     author='Yoel Cortes-Pena',
     install_requires=['IPython==7.9.0', 'biorefineries>=2.7.1',
                       'thermosteam>=0.7.2', 'graphviz==0.8.3',
-                      'chaospy==3.0.11'],
+                      'chaospy==3.0.11', 'PyQt5==5.11.2'],
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_report/*',

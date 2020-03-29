@@ -4,7 +4,7 @@ As BioSTEAM objects are created, they are automatically registered. The `main_fl
 
 """
 from thermosteam.utils import Registry
-from ._digraph import make_digraph, save_digraph
+from ._flowsheet_digraph import make_digraph, save_digraph
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
