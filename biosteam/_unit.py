@@ -14,7 +14,7 @@ from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
-from ._gui._digraph import save_digraph
+from ._viz._digraph import save_digraph
 from thermosteam.utils import thermo_user, registered
 from thermosteam.base import UnitsOfMeasure
 import biosteam as bst
@@ -108,6 +108,9 @@ class Unit:
     :doc:`tutorial/Unit decorators`
     
     """ 
+    # Settings
+    IPYTHON_DISPLAY_UNIT_OPERATIONS = True
+    
     
     def __init_subclass__(cls,
                           isabstract=False,
@@ -721,8 +724,9 @@ class Unit:
         print(self._info(T, P, flow, composition, N))
     
     def _ipython_display_(self):
-        try: self.diagram()
-        except: pass
+        if self.IPYTHON_DISPLAY_UNIT_OPERATIONS:
+            try: self.diagram()
+            except: pass
         self.show()
 
     def __repr__(self):

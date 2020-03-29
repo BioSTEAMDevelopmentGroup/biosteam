@@ -6,7 +6,7 @@ As BioSTEAM objects are created, they are automatically registered. The `main_fl
 import sys
 from PyQt5.QtWidgets import QApplication
 from thermosteam.utils import Registry
-from ._gui import FlowsheetWidget, make_digraph, save_digraph
+from ._viz import FlowsheetWidget, make_digraph, save_digraph
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
@@ -58,6 +58,7 @@ class Flowsheet:
 	:doc:`tutorial/Managing flowsheets` 
 	
 	"""
+    line = "Flowsheet"
     
     #: [Register] All flowsheets.
     flowsheet = Flowsheets()
@@ -263,6 +264,8 @@ class Flowsheet:
         return [i for i in self.unit if isa(i, Facility)]
     
     def view(self, autorefresh=True):
+        """Create an interactive process flowsheet diagram that autorefreshes
+        itself."""
         widget = FlowsheetWidget(self, autorefresh)
         widget.show()
         return widget
@@ -300,6 +303,7 @@ class MainFlowsheet(Flowsheet):
 	:doc:`tutorial/Managing flowsheets` 
 	
 	"""
+    line = "Main flowsheet"
         
     def set_flowsheet(self, flowsheet):
         """Set main flowsheet that is updated with new biosteam objects."""

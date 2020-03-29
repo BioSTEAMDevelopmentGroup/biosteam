@@ -4,26 +4,22 @@ Created on Sat Mar 28 21:59:13 2020
 
 @author: yoelr
 """
-import os
 from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
                              QLabel, QWidget, QMainWindow, QMenu,
                              QMessageBox, QScrollArea, QSizePolicy, 
-                             QGridLayout, QSizePolicy)
+                             QGridLayout, QSizePolicy, QFrame)
 from PyQt5.QtCore import QSize, QTimer, Qt
-from PyQt5.QtGui import QPixmap, QPalette, QImage
+from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
 from ._digraph import new_digraph, get_connections, update_digraph
 
 __all__ = ('FlowsheetWidget',)
-
-# image_path = os.path.join(os.path.dirname(__file__), "flowsheet_digraph.png") 
-image_format = 'png'
 
 class FlowsheetWidget(QMainWindow):
 
     def __init__(self, flowsheet, autorefresh):
         super().__init__()
         self._autorefresh = False
-        self.qtimer = QTimer(self)
+        self.moveScale = 1
         self.scaleFactor = 1
         self.flowsheet = flowsheet
         self.connections = ()
@@ -32,9 +28,13 @@ class FlowsheetWidget(QMainWindow):
         # Set main window
         minsize = QSize(400, 200)
         self.setMinimumSize(minsize) 
-        self.imageLabel = imageLabel = QLabel()
-        imageLabel.setAlignment(Qt.AlignCenter)
-        imageLabel.setScaledContents(True)
+        self.flowsheetLabel = flowsheetLabel = QLabel()
+        flowsheetLabel.setAlignment(Qt.AlignCenter)
+        flowsheetLabel.setScaledContents(True)
+        flowsheetLabel.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        
+        self.notificationLabel = notificationLabel = QLabel()
+        self.lastScrollPosition = None
         
         # Scroll Area
         scrollArea = QScrollArea(self)
@@ -43,12 +43,12 @@ class FlowsheetWidget(QMainWindow):
         
         # Flowsheet content
         self.content = content = QWidget(self)
-        scrollArea.ensureWidgetVisible(imageLabel)
+        scrollArea.ensureWidgetVisible(flowsheetLabel)
         content.setFocusPolicy(Qt.NoFocus)
         
         # Layout which will contain the flowsheet
-        gridLayout = QGridLayout(self)
-        gridLayout.addWidget(imageLabel, 0, 0)
+        self.gridLayout = gridLayout = QGridLayout(self)
+        gridLayout.addWidget(flowsheetLabel, 0, 0)
         content.setLayout(gridLayout)
         
         scrollArea.setWidget(content)
@@ -59,21 +59,29 @@ class FlowsheetWidget(QMainWindow):
         self.refresh()
         self.autorefresh = autorefresh
 
+        from biosteam import Unit
+        Unit.IPYTHON_DISPLAY_UNIT_OPERATIONS = False
+
+    def close(self):
+        super().close()
+        from biosteam import Unit
+        Unit.IPYTHON_DISPLAY_UNIT_OPERATIONS = True
+
     def moveUp(self):
         bar = self.scrollArea.verticalScrollBar()
-        bar.setValue(bar.value() - bar.singleStep())
+        bar.setValue(bar.value() - self.moveScale * bar.singleStep())
     
     def moveDown(self):
         bar = self.scrollArea.verticalScrollBar()
-        bar.setValue(bar.value() + bar.singleStep())
+        bar.setValue(bar.value() + self.moveScale * bar.singleStep())
     
     def moveLeft(self):
         bar = self.scrollArea.horizontalScrollBar()
-        bar.setValue(bar.value() - bar.singleStep())
+        bar.setValue(bar.value() - self.moveScale * bar.singleStep())
     
     def moveRight(self):
         bar = self.scrollArea.horizontalScrollBar()
-        bar.setValue(bar.value() + bar.singleStep())
+        bar.setValue(bar.value() + self.moveScale * bar.singleStep())
 
     def zoomIn(self):
         self.scaleImage(1.10)
@@ -83,20 +91,20 @@ class FlowsheetWidget(QMainWindow):
         
     def normalSize(self):
         self.scaleFactor = 1.0
-        imageLabel = self.imageLabel
-        imageLabel.adjustSize()
+        flowsheetLabel = self.flowsheetLabel
+        flowsheetLabel.adjustSize()
         
         width = self.width()
         height = self.height()
-        label_width = imageLabel.width()
-        label_height = imageLabel.height()
+        label_width = flowsheetLabel.width()
+        label_height = flowsheetLabel.height()
         min_width = label_width + 50
         min_height = label_height + 50
         self.resize(min_width, min_height)
         
     def scaleImage(self, factor):
         self.scaleFactor *= factor
-        self.imageLabel.resize(self.scaleFactor * self.imageLabel.pixmap().size())
+        self.flowsheetLabel.resize(self.scaleFactor * self.flowsheetLabel.pixmap().size())
 
         self.adjustScrollBar(self.scrollArea.horizontalScrollBar(), factor)
         self.adjustScrollBar(self.scrollArea.verticalScrollBar(), factor)
@@ -113,8 +121,44 @@ class FlowsheetWidget(QMainWindow):
         self.refresh()
         system = self.flowsheet.create_system()
         system.simulate()
-        print("SIMULATION WAS SUCCESSFUL\n")
+        self.successfulSimulation()
 
+    def successfulSimulation(self):
+        notificationLabel = self.notificationLabel
+        notificationLabel.setParent(self)
+        notificationLabel.setAlignment(Qt.AlignCenter)
+        notificationLabel.setAutoFillBackground(True)
+        notificationLabel.setText("SIMULATION WAS SUCCESSFUL")
+        font = QFont("Times", 18, QFont.Bold)
+        notificationLabel.setFont(font)
+        self.gridLayout.addWidget(notificationLabel, 0, 0)
+        self.centerScrollArea()
+        qtimer = QTimer()
+        qtimer.singleShot(2000, self.removeNotification)
+        
+    def centerScrollArea(self):
+        scrollArea = self.scrollArea
+        hbar = scrollArea.horizontalScrollBar()
+        vbar = scrollArea.verticalScrollBar()
+        self.lastScrollPosition = (vbar.value(), hbar.value())
+        vbar = scrollArea.verticalScrollBar()
+        hbar = scrollArea.horizontalScrollBar()
+        vbar.setValue((vbar.minimum() + vbar.maximum()) / 2)
+        hbar.setValue((hbar.minimum() + hbar.maximum()) / 2)
+        
+    def removeNotification(self):
+        notificationLabel = self.notificationLabel
+        notificationLabel.setParent(None)
+        lastScrollPosition = self.lastScrollPosition
+        if lastScrollPosition:
+            vval, hval = lastScrollPosition
+            scrollArea = self.scrollArea
+            vbar = scrollArea.verticalScrollBar()
+            vbar.setValue(vval)
+            hbar = scrollArea.horizontalScrollBar()
+            hbar.setValue(hval)
+            self.lastScrollPosition = None
+        
     def createActions(self):
         self.exitAct = QAction("E&xit", self, shortcut="Ctrl+Q",
                                triggered=self.close)
@@ -124,18 +168,21 @@ class FlowsheetWidget(QMainWindow):
                                  enabled=True, triggered=self.zoomIn)
         self.zoomOutAct = QAction("Zoom &out (10%)", self, shortcut="Ctrl+-",
                                   enabled=True, triggered=self.zoomOut)
-        self.moveUpAct = QAction("&Move up", self, shortcut="Up",
+        self.moveUpAct = QAction("Move &up", self, shortcut="Up",
                                  triggered=self.moveUp)
-        self.moveDownAct = QAction("&Move down", self, shortcut="Down",
+        self.moveDownAct = QAction("Move &down", self, shortcut="Down",
                                    triggered=self.moveDown)
-        self.moveLeftAct = QAction("&Move down", self, shortcut="Left",
+        self.moveLeftAct = QAction("Move &down", self, shortcut="Left",
                                    triggered=self.moveLeft)
-        self.moveRightAct = QAction("&Move down", self, shortcut="Right",
+        self.moveRightAct = QAction("Move &down", self, shortcut="Right",
                                    triggered=self.moveRight)
-        self.normalSizeAct = QAction("&Normal size", self, shortcut="Ctrl+N",
+
+        self.normalSizeAct = QAction("Normal &size", self, shortcut="Ctrl+N",
                                      triggered=self.normalSize)
         self.simulateAct = QAction("&Simulate", self, shortcut="Shift+Return",
                                    triggered=self.simulate)
+        self.removeNotificationAct = QAction("&Remove notification", self, shortcut="Space",
+                                   triggered=self.removeNotification)
 
     def createMenus(self):
         self.fileMenu = fileMenu = QMenu("&File", self)
@@ -164,9 +211,10 @@ class FlowsheetWidget(QMainWindow):
 
     @property
     def title(self):
-        ID = self.flowsheet.ID
+        flowsheet = self.flowsheet
+        ID = flowsheet.ID
         ID = ID.replace('_', ' ').capitalize()
-        return f"Main flowsheet - {ID}"
+        return f"{flowsheet.line} - {ID}"
 
     @property
     def autorefresh(self):
@@ -174,11 +222,12 @@ class FlowsheetWidget(QMainWindow):
     @autorefresh.setter
     def autorefresh(self, autorefresh):
         autorefresh = bool(autorefresh)
-        qtimer = self.qtimer
         if autorefresh and not self._autorefresh:
+            self.qtimer = qtimer = QTimer(self)
             qtimer.timeout.connect(self.refresh)
             qtimer.start(self.refresh_rate)
         elif not autorefresh and self._autorefresh:
+            qtimer = self.qtimer
             qtimer.stop()
         self._autorefresh = autorefresh    
 
@@ -190,11 +239,11 @@ class FlowsheetWidget(QMainWindow):
             self.connections = connections
             digraph = new_digraph()
             update_digraph(digraph, flowsheet.unit, connections)
-            img_data = digraph.pipe(image_format)
+            img_data = digraph.pipe('png')
             img = QImage.fromData(img_data)
             pixmap = QPixmap.fromImage(img)
             if not pixmap.isNull():
-                self.imageLabel.setPixmap(pixmap)
+                self.flowsheetLabel.setPixmap(pixmap)
                 self.normalSize()
 
 
