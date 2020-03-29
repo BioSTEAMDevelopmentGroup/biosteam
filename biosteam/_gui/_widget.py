@@ -94,8 +94,6 @@ class FlowsheetWidget(QMainWindow):
         min_height = label_height + 50
         self.resize(min_width, min_height)
         
-        imageLabel.adjustSize()
-        
     def scaleImage(self, factor):
         self.scaleFactor *= factor
         self.imageLabel.resize(self.scaleFactor * self.imageLabel.pixmap().size())
