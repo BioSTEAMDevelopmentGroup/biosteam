@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
-
 """
 import sys
 from PyQt5.QtWidgets import QApplication
@@ -51,12 +50,8 @@ class Flowsheets:
 class Flowsheet:
     """
     Create a Flowsheet object which stores references to all stream, unit,
-    and system objects.
-	
-	Examples
-	--------
-	:doc:`tutorial/Managing flowsheets` 
-	
+    and system objects. For a tutorial on flowsheets, visit
+    :doc:`tutorial/Managing flowsheets.ipynb`.
 	"""
     line = "Flowsheet"
     
@@ -264,14 +259,14 @@ class Flowsheet:
         return [i for i in self.unit if isa(i, Facility)]
     
     def view(self, autorefresh=True):
-        """Create an interactive process flowsheet diagram that autorefreshes
-        itself."""
+        """Create an interactive process flowsheet diagram that autorefreshes itself."""
         widget = FlowsheetWidget(self, autorefresh)
         widget.show()
         return widget
     
     def __call__(self, ID):
-        """Return requested biosteam item.
+        """
+		Return requested biosteam item.
     
         Parameters
         ----------
@@ -296,12 +291,8 @@ class Flowsheet:
 class MainFlowsheet(Flowsheet):
     """
 	Create a MainFlowsheet object which automatically registers 
-    biosteam objects as they are created.
-	
-	Examples
-	--------
-	:doc:`tutorial/Managing flowsheets` 
-	
+    biosteam objects as they are created. For a tutorial on flowsheets,
+    visit :doc:`tutorial/Managing flowsheets.ipynb`.
 	"""
     line = "Main flowsheet"
         

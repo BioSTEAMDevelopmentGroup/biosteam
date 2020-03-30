@@ -1,5 +1,5 @@
 CoolingTower
 ============
 
-.. automodule:: biosteam.units.facilities.CoolingTower
+.. autoclass:: biosteam.units.facilities.CoolingTower
    :members:

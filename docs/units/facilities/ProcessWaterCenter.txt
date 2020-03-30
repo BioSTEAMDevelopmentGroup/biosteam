@@ -1,5 +1,5 @@
 ProcessWaterCenter
 ==================
 
-.. automodule:: biosteam.units.facilities.ProcessWaterCenter
+.. autoclass:: biosteam.units.facilities.ProcessWaterCenter
    :members:
