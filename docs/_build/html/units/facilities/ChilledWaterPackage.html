@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ChilledWaterPackage &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="CoolingTower" href="CoolingTower.html" />
+    <link rel="prev" title="BoilerTurbogenerator" href="BoilerTurbogenerator.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit operation results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Process specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../UtilityAgent.html">UtilityAgent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../decorators.html">decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../design_tools/design_tools.html">design_tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="facilities.html">facilities</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="AirDistributionPackage.html">AirDistributionPackage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="BoilerTurbogenerator.html">BoilerTurbogenerator</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ChilledWaterPackage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CoolingTower.html">CoolingTower</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ProcessWaterCenter.html">ProcessWaterCenter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../BinaryDistillation.html">BinaryDistillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Duplicator.html">Duplicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LiquidsSplitCentrifuge.html">LiquidsSplitCentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LLECentrifuge.html">LLECentrifuge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ProcessSpecification.html">ProcessSpecification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ShortcutColumn.html">ShortcutColumn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Transesterification.html">Transesterification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Tank.html">Tank</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer's guide/Code of conduct.html">Code of conduct</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../units.html">units</a> &raquo;</li>
+        
+          <li><a href="facilities.html">facilities</a> &raquo;</li>
+        
+      <li>ChilledWaterPackage</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/units/facilities/ChilledWaterPackage.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units.facilities.ChilledWaterPackage">
+<span id="chilledwaterpackage"></span><h1>ChilledWaterPackage<a class="headerlink" href="#module-biosteam.units.facilities.ChilledWaterPackage" title="Permalink to this headline">¶</a></h1>
+<p>Create a chilled water package with capital cost and power based on the flow rate
+of chilled water as in <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">param ID</dt>
+<dd class="field-odd"><p>Unit ID.</p>
+</dd>
+<dt class="field-even">type ID</dt>
+<dd class="field-even"><p>str, optional</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.F_mass_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.F_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going in [kg/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.F_mass_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.F_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow going out [kg/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.F_mol_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.F_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going in [kmol/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.F_mol_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.F_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow going out [kmol/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.F_vol_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.F_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going in [m3/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.F_vol_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.F_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow going out [m3/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.H_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.H_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going in [kJ/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.H_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.H_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow going out [kJ/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.Hf_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.Hf_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going in [kJ/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.Hf_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.Hf_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy of formation flow going out [kJ/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.Hnet">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.Hnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net enthalpy flow, including enthalpies of formation [kJ/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.ID">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.ins">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.ins" title="Permalink to this definition">¶</a></dt>
+<dd><p>All input streams.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.mass_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going in [kg/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.mass_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flows going out [kg/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.mol_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going in [kmol/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.mol_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flows going out [kmol/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.numerical_specification">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">numerical_specification</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.numerical_specification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numerical design or process specification.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.outs">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.outs" title="Permalink to this definition">¶</a></dt>
+<dd><p>All output streams.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.purchase_cost">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total purchase cost [USD].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.utility_cost">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.utility_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total utility cost [USD/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.vol_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going in [m3/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.vol_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flows going out [m3/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.z_mass_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.z_mass_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.z_mass_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.z_mass_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions going out.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.z_mol_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.z_mol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in [kmol/hr].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.z_mol_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.z_mol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions going in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.z_vol_in">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.z_vol_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.facilities.ChilledWaterPackage.z_vol_out">
+<code class="sig-prename descclassname">biosteam.units.facilities.ChilledWaterPackage.</code><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage.z_vol_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions going out.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="CoolingTower.html" class="btn btn-neutral float-right" title="CoolingTower" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="BoilerTurbogenerator.html" class="btn btn-neutral float-left" title="BoilerTurbogenerator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

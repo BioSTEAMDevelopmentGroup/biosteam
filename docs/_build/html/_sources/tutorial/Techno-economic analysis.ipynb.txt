@@ -11,7 +11,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "TEA objects can perform cashflow analysis on a System object and arguments for cashflow analysis. These include arguments such as operating days, lang factor, and income tax, as well as arguments for taking into account startup operation, construction schedule, and capital cost financing."
+    "[TEA](../TEA.txt) objects can perform cashflow analysis on a [System](../System.txt) object and arguments for cashflow analysis. These include arguments such as operating days, lang factor, and income tax, as well as arguments for taking into account startup operation, construction schedule, and capital cost financing."
    ]
   },
   {

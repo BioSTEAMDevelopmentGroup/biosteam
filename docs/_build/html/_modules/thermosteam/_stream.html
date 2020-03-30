@@ -1116,7 +1116,8 @@
     <span class="n">__copy__</span> <span class="o">=</span> <span class="n">copy</span>
     
     <span class="k">def</span> <span class="nf">flow_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a new stream that shares flow rate data with this one.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a new stream that shares flow rate data with this one.</span>
 <span class="sd">        </span>
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1140,7 +1141,8 @@
         <span class="k">return</span> <span class="n">new</span>
     
     <span class="k">def</span> <span class="nf">proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a new stream that shares all data with this one.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a new stream that shares all data with this one.</span>
 <span class="sd">        </span>
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1196,7 +1198,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vle_chemicals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;list[Chemical] Chemicals cabable of vapor-liquid equilibrium.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;list[Chemical] Chemicals cabable of liquid-liquid equilibrium.&quot;&quot;&quot;</span>
         <span class="n">chemicals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemicals</span>
         <span class="n">chemicals_tuple</span> <span class="o">=</span> <span class="n">chemicals</span><span class="o">.</span><span class="n">tuple</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">chemicals</span><span class="o">.</span><span class="n">get_vle_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>

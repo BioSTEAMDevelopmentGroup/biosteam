@@ -279,7 +279,6 @@
 <span class="sd">                        Cost                          USD/hr      14.5</span>
 <span class="sd">    Design              Reactor volume                    m3       243</span>
 <span class="sd">                        Batch time                        hr      12.6</span>
-<span class="sd">                        Cycle time                        hr        11</span>
 <span class="sd">                        Loading time                      hr      1.57</span>
 <span class="sd">                        Cleaning and unloading time       hr         3</span>
 <span class="sd">                        Working volume fraction                    0.9</span>
@@ -463,6 +462,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">N_at_minimum_capital_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cost_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_N</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
         <span class="n">cost_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span>
@@ -472,6 +472,7 @@
             <span class="n">cost_old</span> <span class="o">=</span> <span class="n">cost_new</span>
             <span class="n">cost_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_N</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">N</span> <span class="o">-</span> <span class="mi">1</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -481,9 +482,7 @@
         <span class="n">tau_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_0</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_at_minimum_capital_cost</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
         <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
         <span class="n">hx_effluent</span> <span class="o">=</span> <span class="n">effluent</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>

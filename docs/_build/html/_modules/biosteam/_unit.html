@@ -191,7 +191,7 @@
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">NotImplementedMethod</span><span class="p">,</span> \
                    <span class="n">format_unit_line</span><span class="p">,</span> <span class="n">static</span>
 <span class="kn">from</span> <span class="nn">._power_utility</span> <span class="kn">import</span> <span class="n">PowerUtility</span>
-<span class="kn">from</span> <span class="nn">._digraph</span> <span class="kn">import</span> <span class="n">save_digraph</span>
+<span class="kn">from</span> <span class="nn">._viz._digraph</span> <span class="kn">import</span> <span class="n">save_digraph</span>
 <span class="kn">from</span> <span class="nn">thermosteam.utils</span> <span class="kn">import</span> <span class="n">thermo_user</span><span class="p">,</span> <span class="n">registered</span>
 <span class="kn">from</span> <span class="nn">thermosteam.base</span> <span class="kn">import</span> <span class="n">UnitsOfMeasure</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
@@ -285,6 +285,9 @@
 <span class="sd">    :doc:`tutorial/Unit decorators`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="c1"># Settings</span>
+    <span class="n">IPYTHON_DISPLAY_UNIT_OPERATIONS</span> <span class="o">=</span> <span class="kc">True</span>
+    
     
     <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span>
                           <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -898,8 +901,9 @@
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span></div>
     
     <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IPYTHON_DISPLAY_UNIT_OPERATIONS</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

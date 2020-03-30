@@ -6,7 +6,7 @@ units
 
    decorators
    design_tools/design_tools
-   facilities
+   facilities/facilities
    BinaryDistillation
    Duplicator
    Fermentation
@@ -21,6 +21,7 @@ units
    Mixer
    MolecularSieve
    MultiEffectEvaporator
+   ProcessSpecification
    Pump
    ShortcutColumn
    Splitter

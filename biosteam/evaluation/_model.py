@@ -25,7 +25,8 @@ varcolumns = lambda vars: pd.MultiIndex.from_tuples(
 # %% Grid of simulation blocks
 
 class Model(State):
-    """Create a Model object that allows for evaluation over a sample space.
+    """
+    Create a Model object that allows for evaluation over a sample space.
     
     Parameters
     ----------
@@ -38,7 +39,7 @@ class Model(State):
     
     Examples
     --------
-    :doc:`../tutorial/Monte Carlo`
+    :doc:`../tutorial/Monte Carlo.ipynb`
     
     """
     __slots__ = ('_table',   # [DataFrame] All arguments and results

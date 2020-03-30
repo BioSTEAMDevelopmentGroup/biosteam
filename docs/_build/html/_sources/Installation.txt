@@ -12,7 +12,7 @@ To get the git version, run:
 
 .. code-block:: bash
    
-   $ git clone git://github.com/yoelcortes/biosteam
+   $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
 Common Issues
 -------------

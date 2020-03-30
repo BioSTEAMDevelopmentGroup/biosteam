@@ -347,11 +347,10 @@
 
 <div class="viewcode-block" id="TEA.like"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.like">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">like</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a Cashflow object from `system` with the same settings as `other`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Create a TEA object from `system` with the same settings as `other`.&quot;&quot;&quot;</span>
         <span class="bp">self</span> <span class="o">=</span> <span class="n">copy_</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">_costunits</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">system</span>
-        <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>

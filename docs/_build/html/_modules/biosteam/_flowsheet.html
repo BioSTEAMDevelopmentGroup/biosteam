@@ -178,15 +178,17 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. </span>
-
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="kn">import</span> <span class="n">QApplication</span>
 <span class="kn">from</span> <span class="nn">thermosteam.utils</span> <span class="kn">import</span> <span class="n">Registry</span>
-<span class="kn">from</span> <span class="nn">._digraph</span> <span class="kn">import</span> <span class="n">make_digraph</span><span class="p">,</span> <span class="n">save_digraph</span>
+<span class="kn">from</span> <span class="nn">._viz</span> <span class="kn">import</span> <span class="n">FlowsheetWidget</span><span class="p">,</span> <span class="n">make_digraph</span><span class="p">,</span> <span class="n">save_digraph</span>
 <span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">._unit</span> <span class="kn">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">._facility</span> <span class="kn">import</span> <span class="n">Facility</span>
 <span class="kn">from</span> <span class="nn">._system</span> <span class="kn">import</span> <span class="n">System</span>
 <span class="kn">from</span> <span class="nn">._network</span> <span class="kn">import</span> <span class="n">Network</span>
+<span class="kn">from</span> <span class="nn">PyQt5</span> <span class="kn">import</span> <span class="n">QtCore</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;main_flowsheet&#39;</span><span class="p">,</span> <span class="s1">&#39;Flowsheet&#39;</span><span class="p">)</span>
 
@@ -225,13 +227,10 @@
 <div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a Flowsheet object which stores references to all stream, unit,</span>
-<span class="sd">    and system objects.</span>
-<span class="sd">	</span>
-<span class="sd">	Examples</span>
-<span class="sd">	--------</span>
-<span class="sd">	:doc:`tutorial/Managing flowsheets` </span>
-<span class="sd">	</span>
+<span class="sd">    and system objects. For a tutorial on flowsheets, visit</span>
+<span class="sd">    :doc:`tutorial/Managing flowsheets.ipynb`.</span>
 <span class="sd">	&quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;Flowsheet&quot;</span>
     
     <span class="c1">#: [Register] All flowsheets.</span>
     <span class="n">flowsheet</span> <span class="o">=</span> <span class="n">Flowsheets</span><span class="p">()</span>
@@ -436,8 +435,15 @@
         <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Facility</span><span class="p">)]</span>
     
+<div class="viewcode-block" id="Flowsheet.view"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.view">[docs]</a>    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autorefresh</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an interactive process flowsheet diagram that autorefreshes itself.&quot;&quot;&quot;</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">FlowsheetWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autorefresh</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">widget</span></div>
+    
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return requested biosteam item.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Return requested biosteam item.</span>
 <span class="sd">    </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -462,15 +468,11 @@
 <span class="k">class</span> <span class="nc">MainFlowsheet</span><span class="p">(</span><span class="n">Flowsheet</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Create a MainFlowsheet object which automatically registers </span>
-<span class="sd">    biosteam objects as they are created.</span>
-<span class="sd">	</span>
-<span class="sd">	Examples</span>
-<span class="sd">	--------</span>
-<span class="sd">	:doc:`tutorial/Managing flowsheets` </span>
-<span class="sd">	</span>
+<span class="sd">    biosteam objects as they are created. For a tutorial on flowsheets,</span>
+<span class="sd">    visit :doc:`tutorial/Managing flowsheets.ipynb`.</span>
 <span class="sd">	&quot;&quot;&quot;</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
-    
+    <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;Main flowsheet&quot;</span>
+        
     <span class="k">def</span> <span class="nf">set_flowsheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set main flowsheet that is updated with new biosteam objects.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flowsheet</span><span class="p">,</span> <span class="n">Flowsheet</span><span class="p">):</span>
@@ -505,43 +507,6 @@
 <span class="c1">#: [main_flowsheet] Main flowsheet where objects are registered by ID.</span>
 <span class="n">main_flowsheet</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">MainFlowsheet</span><span class="p">)</span>
 <span class="n">main_flowsheet</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
-    
-
-<span class="c1"># %% Attempt at contantly rendered digraph</span>
-
-<span class="c1"># #: [bool] True if flowsheet is contantly rendered</span>
-<span class="c1"># self.live = True</span>
-
-<span class="c1"># def _show_once(self):</span>
-    <span class="c1">#     fig = plt.figure()</span>
-    <span class="c1">#     plt.axis(&#39;off&#39;)</span>
-    <span class="c1">#     f = open(&#39;diagram.png&#39;, &#39;wb&#39;)</span>
-    <span class="c1">#     diagram = make_digraph(self.unit.values()).pipe(format=&#39;png&#39;)</span>
-    <span class="c1">#     f.write(diagram)</span>
-    <span class="c1">#     img = mpimg.imread(&#39;diagram.png&#39;)</span>
-    <span class="c1">#     plt.imshow(img, interpolation=&#39;spline36&#39;)</span>
-    <span class="c1">#     fig.show()</span>
-    <span class="c1">#     # img = Image.open(&#39;diagram.png&#39;)</span>
-    <span class="c1">#     # img.show() </span>
-    
-    <span class="c1"># def _show(self):</span>
-    <span class="c1">#     fig = plt.figure()</span>
-    <span class="c1">#     plt.axis(&#39;off&#39;)</span>
-    <span class="c1">#     f = open(&#39;diagram.png&#39;, &#39;wb&#39;)</span>
-    <span class="c1">#     for i in range(3):</span>
-    <span class="c1">#         diagram = make_digraph(self.unit.values()).pipe(format=&#39;png&#39;)</span>
-    <span class="c1">#         f.write(diagram)</span>
-    <span class="c1">#         img = mpimg.imread(&#39;diagram.png&#39;)</span>
-    <span class="c1">#         plt.clf() </span>
-    <span class="c1">#         plt.imshow(img, interpolation=&#39;spline36&#39;)</span>
-    <span class="c1">#         fig.show()</span>
-    <span class="c1">#         time.sleep(10)</span>
-    <span class="c1">#     f.close()</span>
-    <span class="c1">#     os.remove(&#39;diagram.png&#39;)</span>
-    
-    <span class="c1"># def show(self):</span>
-    <span class="c1">#     t1 = threading.Thread(target=self._show())</span>
-    <span class="c1">#     t1.start()</span>
 </pre></div>
 
            </div>

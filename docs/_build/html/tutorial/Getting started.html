@@ -85,10 +85,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. Getting started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Initialize-streams">3.1. Initialize streams</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Process-settings">3.2. Process settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Find-design-requirements-and-cost-with-Unit-objects">3.3. Find design requirements and cost with Unit objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Solve-recycle-loops-and-process-specifications-with-System-objects">3.4. Solve recycle loops and process specifications with System objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Dynamic-flowsheets">3.1. Dynamic flowsheets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Initialize-streams">3.2. Initialize streams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Process-settings">3.3. Process settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Find-design-requirements-and-cost-with-Unit-objects">3.4. Find design requirements and cost with Unit objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Solve-recycle-loops-and-process-specifications-with-System-objects">3.5. Solve recycle loops and process specifications with System objects</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
@@ -369,8 +370,23 @@ div.nboutput div.output_area.stderr {
 </style>
 <div class="section" id="Getting-started">
 <h1><span class="section-number">3. </span>Getting started<a class="headerlink" href="#Getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="Dynamic-flowsheets">
+<h2><span class="section-number">3.1. </span>Dynamic flowsheets<a class="headerlink" href="#Dynamic-flowsheets" title="Permalink to this headline">¶</a></h2>
+<p>In this tutorial, diagrams are generated as needed. When building a
+biorefinery, however, it may be useful to view a dynamic flowsheet that
+is always up to date with all units and their connections. This can be
+done by running:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">main_flowsheet</span>
+<span class="n">main_flowsheet</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This method is not supported on Jupyter notebooks yet. Please use the
+<a class="reference external" href="https://www.spyder-ide.org/">Spyder IDE</a> to create dynamic
+flowsheets. A spyder-biosteam plugin is also under development to fully
+integrate flowsheets as part of the development environment.</p>
+</div>
 <div class="section" id="Initialize-streams">
-<h2><span class="section-number">3.1. </span>Initialize streams<a class="headerlink" href="#Initialize-streams" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.2. </span>Initialize streams<a class="headerlink" href="#Initialize-streams" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html">Stream</a>
 objects define material flow rates along with its thermodynamic state.
 Before creating streams, a
@@ -434,7 +450,7 @@ Stream: s1
 </div>
 </div>
 <div class="section" id="Process-settings">
-<h2><span class="section-number">3.2. </span>Process settings<a class="headerlink" href="#Process-settings" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.3. </span>Process settings<a class="headerlink" href="#Process-settings" title="Permalink to this headline">¶</a></h2>
 <p><strong>Process settings include price of feeds and products, conditions of
 utilities, and the chemical engineering plant cost index. These should
 be set before simulating a system.</strong></p>
@@ -469,9 +485,7 @@ be set before simulating a system.</strong></p>
 </pre></div>
 </div>
 </div>
-<p>Set
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/PowerUtility.html">PowerUtility</a>
-options:</p>
+<p>Set <a class="reference internal" href="../PowerUtility.html"><span class="doc">PowerUtility</span></a> options:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [5]:
@@ -502,11 +516,8 @@ options:</p>
 </pre></div>
 </div>
 </div>
-<p>Set
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
-options via
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/UtilityAgent.html">UtilityAgent</a>
-objects, which are
+<p>Set <a class="reference internal" href="../HeatUtility.html"><span class="doc">HeatUtility</span></a> options via
+<a class="reference internal" href="../UtilityAgent.html"><span class="doc">UtilityAgent</span></a> objects, which are
 <a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html">Stream</a>
 objects with additional attributes to describe a utility agent:</p>
 <div class="nbinput docutils container">
@@ -668,17 +679,13 @@ UtilityAgent: low_pressure_steam
 </div>
 </div>
 <div class="section" id="Find-design-requirements-and-cost-with-Unit-objects">
-<h2><span class="section-number">3.3. </span>Find design requirements and cost with Unit objects<a class="headerlink" href="#Find-design-requirements-and-cost-with-Unit-objects" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Creating%20a%20Unit.html">Creating a
-Unit</a>
-can be flexible. But in summary, a
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Unit.html">Unit</a> object is
-initialized with an ID, and unit-specific arguments. BioSTEAM includes
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/units.html">essential unit
-operations</a>
-with rigorous modeling and design algorithms. Here we create a
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/Flash.html">Flash</a>
-object as an example:</p>
+<h2><span class="section-number">3.4. </span>Find design requirements and cost with Unit objects<a class="headerlink" href="#Find-design-requirements-and-cost-with-Unit-objects" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="Creating a Unit.html"><span class="doc">Creating a Unit</span></a> can be flexible. But
+in summary, a <a class="reference internal" href="../Unit.html"><span class="doc">Unit</span></a> object is initialized with an ID,
+and unit-specific arguments. BioSTEAM includes <a class="reference internal" href="../units/units.html"><span class="doc">essential unit
+operations</span></a> with rigorous modeling and design
+algorithms. Here we create a <a class="reference internal" href="../units/Flash.html"><span class="doc">Flash</span></a> object as an
+example:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [15]:
@@ -697,7 +704,7 @@ object as an example:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_25_0.png" src="../_images/tutorial_Getting_started_25_0.png" />
+<img alt="../_images/tutorial_Getting_started_27_0.png" src="../_images/tutorial_Getting_started_27_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -775,7 +782,7 @@ outs...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_30_0.png" src="../_images/tutorial_Getting_started_30_0.png" />
+<img alt="../_images/tutorial_Getting_started_32_0.png" src="../_images/tutorial_Getting_started_32_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -997,14 +1004,11 @@ Name: F1, dtype: object
 </div>
 </div>
 <div class="section" id="Solve-recycle-loops-and-process-specifications-with-System-objects">
-<h2><span class="section-number">3.4. </span>Solve recycle loops and process specifications with System objects<a class="headerlink" href="#Solve-recycle-loops-and-process-specifications-with-System-objects" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.5. </span>Solve recycle loops and process specifications with System objects<a class="headerlink" href="#Solve-recycle-loops-and-process-specifications-with-System-objects" title="Permalink to this headline">¶</a></h2>
 <p><strong>Designing a chemical process is no easy task. A simple recycle process
 consisting of a flash with a partial liquid recycle is presented here.</strong></p>
-<p>Create a
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Mixer.html">Mixer</a> object
-and a
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Splitter.html">Splitter</a>
-object:</p>
+<p>Create a <a class="reference internal" href="../units/Mixer.html"><span class="doc">Mixer</span></a> object and a
+<a class="reference internal" href="../units/Splitter.html"><span class="doc">Splitter</span></a> object:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [22]:
@@ -1019,9 +1023,9 @@ object:</p>
 </pre></div>
 </div>
 </div>
-<p>You can <a class="reference external" href="https://biosteam.readthedocs.io/en/master/tutorial/Managing%20flowsheets.html">find unit operations and manage
-flowsheets</a>
-with the <code class="docutils literal notranslate"><span class="pre">main_flowsheet</span></code>:</p>
+<p>You can <a class="reference internal" href="Managing flowsheets.html"><span class="doc">find unit operations and manage
+flowsheets</span></a> with the
+<code class="docutils literal notranslate"><span class="pre">main_flowsheet</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [23]:
@@ -1036,10 +1040,10 @@ with the <code class="docutils literal notranslate"><span class="pre">main_flows
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_42_0.svg" src="../_images/tutorial_Getting_started_42_0.svg" /></div>
+<img alt="../_images/tutorial_Getting_started_44_0.svg" src="../_images/tutorial_Getting_started_44_0.svg" /></div>
 </div>
-<p>Connect streams and make a recycle loop using <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Using%20-pipe-%20notation.html">-pipe-
-notation</a>:</p>
+<p>Connect streams and make a recycle loop using <a class="reference internal" href="Using -pipe- notation.html"><span class="doc">-pipe-
+notation</span></a>:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [24]:
@@ -1073,11 +1077,11 @@ notation</a>:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_46_0.png" src="../_images/tutorial_Getting_started_46_0.png" />
+<img alt="../_images/tutorial_Getting_started_48_0.png" src="../_images/tutorial_Getting_started_48_0.png" />
 </div>
 </div>
-<p>A <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/System.html">System</a>
-object can be created directly from the flowsheet:</p>
+<p>A <a class="reference internal" href="../System.html"><span class="doc">System</span></a> object can be created directly from the
+flowsheet:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [26]:
@@ -1093,7 +1097,7 @@ object can be created directly from the flowsheet:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_48_0.png" src="../_images/tutorial_Getting_started_48_0.png" />
+<img alt="../_images/tutorial_Getting_started_50_0.png" src="../_images/tutorial_Getting_started_50_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1109,10 +1113,9 @@ System: SYS1
  iterations: 0
 </pre></div></div>
 </div>
-<p>Alternatively, create a
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/System.html">System</a>
-object by specifying an ID, a <code class="docutils literal notranslate"><span class="pre">recycle</span></code> stream and a <code class="docutils literal notranslate"><span class="pre">path</span></code> of units
-to run element by element:</p>
+<p>Alternatively, create a <a class="reference internal" href="../System.html"><span class="doc">System</span></a> object by specifying
+an ID, a <code class="docutils literal notranslate"><span class="pre">recycle</span></code> stream and a <code class="docutils literal notranslate"><span class="pre">path</span></code> of units to run element by
+element:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [27]:
@@ -1128,7 +1131,7 @@ to run element by element:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_50_0.png" src="../_images/tutorial_Getting_started_50_0.png" />
+<img alt="../_images/tutorial_Getting_started_52_0.png" src="../_images/tutorial_Getting_started_52_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1144,28 +1147,10 @@ System: sys1
  iterations: 0
 </pre></div></div>
 </div>
-<p>View the System object as a Graphviz diagram:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [28]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">sys1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_Getting_started_52_0.png" src="../_images/tutorial_Getting_started_52_0.png" />
-</div>
-</div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [29]:
+<span></span>In [28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1198,7 +1183,7 @@ C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:314: CostWarning:
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [30]:
+<span></span>In [29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1230,7 +1215,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [31]:
+<span></span>In [30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1240,7 +1225,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[31]:
+<span></span>Out[30]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1344,14 +1329,14 @@ outs...
 </div>
 <p>Although BioSTEAM includes a large set of essential unit operations,
 many process specific unit operations are not yet available. In this
-case, you can create new <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Inheriting%20from%20Unit.html">Unit
-subclasses</a>
-to model unit operations not yet available in BioSTEAM.</p>
+case, you can create new <a class="reference internal" href="Inheriting from Unit.html"><span class="doc">Unit
+subclasses</span></a> to model unit
+operations not yet available in BioSTEAM.</p>
 <p>Once your system has been simulated, you can save a system report to
 view all results in an excel spreadsheet:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [32]:
+<span></span>In [31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1369,11 +1354,10 @@ C:\ProgramData\Anaconda3\lib\site-packages\ipykernel_launcher.py:1: RuntimeWarni
 </pre></div></div>
 </div>
 <p>Once process settings are set and the system is simulated, it is
-possible to perform <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Techno-economic%20analysis.html">techno-economic
-analysis</a>.
-If a <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/TEA.html">TEA</a> object
-of the system was initialized, TEA results would also appear in the
-report.</p>
+possible to perform <a class="reference internal" href="Techno-economic analysis.html"><span class="doc">techno-economic
+analysis</span></a>. If a
+<a class="reference internal" href="../TEA.html"><span class="doc">TEA</span></a> object of the system was initialized,
+techno-economic analysis results would also appear in the report.</p>
 </div>
 </div>
 

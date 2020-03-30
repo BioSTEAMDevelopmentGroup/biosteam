@@ -370,34 +370,28 @@ div.nboutput div.output_area.stderr {
 <h1><span class="section-number">7. </span>Unit operation results<a class="headerlink" href="#Unit-operation-results" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="A-note-on-design-and-modeling">
 <h2><span class="section-number">7.1. </span>A note on design and modeling<a class="headerlink" href="#A-note-on-design-and-modeling" title="Permalink to this headline">¶</a></h2>
-<p>BioSTEAM includes a wide range of <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/units.html">unit
-operation</a>
-models and cost correlations adapted from design textbooks and
-literature <a class="reference external" href="#References">[1-5]</a>. Essential unit operations such as
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/Pump.html">pumps</a>,
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/HXutility.html">heat
-exchangers</a>,
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/HXutility.html">flash
-vessels</a>,
-and <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/Distillation.html">distillation
-columns</a>
-are some of the most rigorously modeled and designed. Design
-requirements for these essential units are calculated based on design
-specifications such as operating temperature and pressure, feed
-conditions, construction material, and degree of separation. These
-design requirements include, but are not limited to, the heat-transfer
-area of heat exchangers, the size and thickness of pressure vessels, and
-number of stages in a distillation column. Other unit operation models
-are modeled as
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/Splitter.html">splitters</a>
-(i.e., a specified fraction of each component entering a unit is
-separated), and the purchase price is estimated using size factor
-correlations that are ultimately a function of material flow rates.
-BioSTEAM chooses purchase price correlations and construction factors
-based on the design specifications and requirements for each unit
-operation. For detailed documentation and examples of each unit
-operation, visit the <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/units/units.html">units subpackage
-documentation</a>.</p>
+<p>BioSTEAM includes a wide range of <a class="reference internal" href="../units/units.html"><span class="doc">unit
+operation</span></a> models and cost correlations adapted
+from design textbooks and literature <a class="reference external" href="#References">[1-5]</a>. Essential
+unit operations such as <a class="reference internal" href="../units/Pump.html"><span class="doc">pumps</span></a>, <a class="reference internal" href="../units/HXutility.html"><span class="doc">heat
+exchangers</span></a>, <a class="reference internal" href="../units/Flash.html"><span class="doc">flash
+vessels</span></a>, and <a class="reference internal" href="../units/BinaryDistillation.html"><span class="doc">distillation
+columns</span></a> are some of the most
+rigorously modeled and designed. Design requirements for these essential
+units are calculated based on design specifications such as operating
+temperature and pressure, feed conditions, construction material, and
+degree of separation. These design requirements include, but are not
+limited to, the heat-transfer area of heat exchangers, the size and
+thickness of pressure vessels, and number of stages in a distillation
+column. Other unit operation models are modeled as
+<a class="reference internal" href="../units/Splitter.html"><span class="doc">splitters</span></a> (i.e., a specified fraction of
+each component entering a unit is separated), and the purchase price is
+estimated using size factor correlations that are ultimately a function
+of material flow rates. BioSTEAM chooses purchase price correlations and
+construction factors based on the design specifications and requirements
+for each unit operation. For detailed documentation and examples of each
+unit operation, visit the <a class="reference internal" href="../units/units.html"><span class="doc">units subpackage
+documentation</span></a>.</p>
 </div>
 <div class="section" id="A-good-example">
 <h2><span class="section-number">7.2. </span>A good example<a class="headerlink" href="#A-good-example" title="Permalink to this headline">¶</a></h2>
@@ -537,11 +531,10 @@ streams are empty, and the components are initialized but empty as well:</p>
 <p>All unit operations have the <code class="docutils literal notranslate"><span class="pre">design_results</span></code>, <code class="docutils literal notranslate"><span class="pre">purchase_costs</span></code>,
 <code class="docutils literal notranslate"><span class="pre">heat_utilities</span></code>, and <code class="docutils literal notranslate"><span class="pre">power_utility</span></code> attributes. The
 <code class="docutils literal notranslate"><span class="pre">heat_utilities</span></code> attribute is a tuple of
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
-objects and the <code class="docutils literal notranslate"><span class="pre">power_utility</span></code> attribute is a either
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/PowerUtility.html">PowerUtility</a>
-object or <code class="docutils literal notranslate"><span class="pre">None</span></code>. Unit operations may also have attributes and
-components specific to that unit operation. For example, here are few
+<a class="reference internal" href="../HeatUtility.html"><span class="doc">HeatUtility</span></a> objects and the <code class="docutils literal notranslate"><span class="pre">power_utility</span></code>
+attribute is a either <a class="reference internal" href="../PowerUtility.html"><span class="doc">PowerUtility</span></a> object or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>. Unit operations may also have attributes and components
+specific to that unit operation. For example, here are few
 distillation-specific components:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>

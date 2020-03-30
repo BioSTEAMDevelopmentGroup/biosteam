@@ -490,9 +490,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">shell_and_tube_type</span> <span class="o">=</span> <span class="n">shell_and_tube_type</span>
     
     <span class="k">def</span> <span class="nf">simulate_as_auxiliary_exchanger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
-        <span class="n">outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">outlet</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">outlet</span><span class="o">.</span><span class="n">proxy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">duty</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
