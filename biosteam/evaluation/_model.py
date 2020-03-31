@@ -39,7 +39,7 @@ class Model(State):
     
     Examples
     --------
-    :doc:`../tutorial/Monte Carlo.ipynb`
+    :doc:`../tutorial/Monte Carlo`
     
     """
     __slots__ = ('_table',   # [DataFrame] All arguments and results
