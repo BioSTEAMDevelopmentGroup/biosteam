@@ -5,4 +5,5 @@ colorpalette==0.3.0
 chaospy==3.0.11
 graphviz==0.8.3
 sphinx_rtd_theme
+ipykernel
 nbsphinx
