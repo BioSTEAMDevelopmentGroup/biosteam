@@ -25,6 +25,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -183,18 +184,23 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
 }
 </style>
 <div class="section" id="unit">
@@ -335,6 +341,12 @@ If None, leave streams missing.</p></li>
 <p><a class="reference internal" href="tutorial/Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
 <p><a class="reference internal" href="tutorial/Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
 <p><a class="reference internal" href="tutorial/Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
+<dl class="method">
+<dt id="biosteam.Unit.get_node">
+<code class="sig-name descname">get_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.get_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return unit node attributes for graphviz.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="biosteam.Unit.take_place_of">
 <code class="sig-name descname">take_place_of</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.take_place_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.take_place_of" title="Permalink to this definition">¶</a></dt>

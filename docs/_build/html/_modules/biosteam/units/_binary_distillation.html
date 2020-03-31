@@ -25,6 +25,7 @@
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script src="../../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -539,7 +540,7 @@
         <span class="k">if</span> <span class="n">Tb_light</span> <span class="o">&gt;</span> <span class="n">Tb_heavy</span><span class="p">:</span>
             <span class="n">LK</span><span class="p">,</span> <span class="n">HK</span> <span class="o">=</span> <span class="n">LHK</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;light key must be lighter than heavy key &quot;</span>
-                             <span class="sa">f</span><span class="s2">&quot;(i.e. </span><span class="si">{</span><span class="n">LK</span><span class="si">}</span><span class="s2">.Tb must be lower than </span><span class="si">{</span><span class="n">HK</span><span class="si">}</span><span class="s2">.Tb)&quot;</span><span class="p">)</span>
+                             <span class="sa">f</span><span class="s2">&quot;(i.e. </span><span class="si">{LK}</span><span class="s2">.Tb must be lower than </span><span class="si">{HK}</span><span class="s2">.Tb)&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">chemical</span> <span class="ow">in</span> <span class="n">chemicals</span><span class="p">:</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">chemical</span><span class="o">.</span><span class="n">ID</span>
             <span class="n">Tb</span> <span class="o">=</span> <span class="n">chemical</span><span class="o">.</span><span class="n">Tb</span>
@@ -646,7 +647,7 @@
     <span class="nd">@foaming_factor</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">foaming_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F_F</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">F_F</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;foaming_factor must be between 0 and 1, (</span><span class="si">{</span><span class="n">F_F</span><span class="si">}</span><span class="s2"> given).&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;foaming_factor must be between 0 and 1, (</span><span class="si">{F_F}</span><span class="s2"> given).&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_F</span> <span class="o">=</span> <span class="n">F_F</span>
     
     <span class="nd">@property</span>
@@ -677,7 +678,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_TT</span> <span class="o">=</span> <span class="n">distillation_tray_type_factor</span><span class="p">[</span><span class="n">tray_type</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;tray type must be one of the following: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">distillation_tray_type_factor</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(distillation_tray_type_factor)}&quot;</span><span class="p">)</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tray_material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -690,7 +691,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_TM_function</span> <span class="o">=</span> <span class="n">tray_material_factor_functions</span><span class="p">[</span><span class="n">tray_material</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;tray material must be one of the following: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tray_material_factor_functions</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(tray_material_factor_functions)}&quot;</span><span class="p">)</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vessel_material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -703,7 +704,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_VM</span> <span class="o">=</span> <span class="n">distillation_column_material_factors</span><span class="p">[</span><span class="n">vessel_material</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;vessel material must be one of the following: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">distillation_column_material_factors</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(distillation_column_material_factors)}&quot;</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -744,8 +745,8 @@
         <span class="n">intermediate_flows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_in</span><span class="p">[</span><span class="n">intemediates_index</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">flow</span><span class="p">,</span> <span class="n">chemical</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">intermediate_flows</span><span class="p">,</span> <span class="n">intermediate_chemicals</span><span class="p">):</span>
             <span class="k">assert</span> <span class="n">flow</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;intermediate volatile chemical,&quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">chemical</span><span class="si">}</span><span class="s2">&#39;, between light and heavy &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;key, </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LHK</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{chemical}</span><span class="s2">&#39;, between light and heavy &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;key, {&#39;, &#39;.join(LHK)}&quot;</span><span class="p">)</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">LHK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK</span>
         <span class="n">LHK_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_index</span>
@@ -1204,8 +1205,8 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_m</span><span class="p">,</span> <span class="n">x_m2</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_m</span><span class="p">,</span> <span class="n">x_m2</span><span class="p">])</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_m</span><span class="p">,</span> <span class="n">y_top</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_m</span><span class="p">,</span> <span class="n">y_top</span><span class="p">])</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">x_bot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_m</span><span class="p">],</span> <span class="p">[</span><span class="n">x_bot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_m</span><span class="p">])</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;Stages: </span><span class="si">{</span><span class="n">stages</span><span class="si">}</span><span class="s1">, Feed: </span><span class="si">{</span><span class="n">feed_stage</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;Graphical aid&#39;</span><span class="p">,</span> <span class="s1">&#39;eq-line&#39;</span><span class="p">,</span> <span class="s1">&#39;q-line&#39;</span><span class="p">,</span> <span class="s1">&#39;ROL&#39;</span><span class="p">,</span> <span class="s1">&#39;SOL&#39;</span><span class="p">],</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;McCabe Thiele Diagram (Rmin = </span><span class="si">{</span><span class="n">Rmin</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">, R = </span><span class="si">{</span><span class="n">R</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;Stages: </span><span class="si">{stages}</span><span class="s1">, Feed: </span><span class="si">{feed_stage}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;Graphical aid&#39;</span><span class="p">,</span> <span class="s1">&#39;eq-line&#39;</span><span class="p">,</span> <span class="s1">&#39;q-line&#39;</span><span class="p">,</span> <span class="s1">&#39;ROL&#39;</span><span class="p">,</span> <span class="s1">&#39;SOL&#39;</span><span class="p">],</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;McCabe Thiele Diagram (Rmin = </span><span class="si">{Rmin:.2f}</span><span class="s1">, R = </span><span class="si">{R:.2f}</span><span class="s1">)&#39;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">plt</span></div></div>
 </pre></div>

@@ -25,6 +25,7 @@
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script src="../../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -265,13 +266,13 @@
                 <span class="n">F_M_new</span> <span class="o">=</span> <span class="n">vessel_material_factors</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no material factor available for &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;vessel construction material &#39;</span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s2">&#39;;&quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;vessel construction material &#39;</span><span class="si">{material}</span><span class="s2">&#39;;&quot;</span>
                                  <span class="s2">&quot;only the following materials are &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;available: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vessel_material_factors</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                <span class="sa">f</span><span class="s2">&quot;available: {&#39;, &#39;.join(vessel_material_factors)}&quot;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">F_M_old</span> <span class="o">=</span> <span class="n">vessel_material_factors</span><span class="p">[</span><span class="n">default_material</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;only &#39;</span><span class="si">{</span><span class="n">default_material</span><span class="si">}</span><span class="s2">&#39; is a valid &quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;only &#39;</span><span class="si">{default_material}</span><span class="s2">&#39; is a valid &quot;</span>
                                     <span class="s2">&quot;material for given vessel type&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">F_M_new</span> <span class="o">/</span> <span class="n">F_M_old</span>        
     
@@ -284,10 +285,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_type</span> <span class="o">=</span> <span class="n">vessel_type</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithms</span><span class="p">[</span><span class="n">vessel_type</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;vessel type &#39;</span><span class="si">{</span><span class="n">vessel_type</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;vessel type &#39;</span><span class="si">{vessel_type}</span><span class="s2">&#39;&quot;</span>
                              <span class="s2">&quot;is not avaiable; only the following vessel &quot;</span>
                              <span class="s2">&quot;types are available: &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost_algorithms</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="sa">f</span><span class="s2">&quot;{&#39;, &#39;.join(self.purchase_cost_algorithms)}&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">design_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span>

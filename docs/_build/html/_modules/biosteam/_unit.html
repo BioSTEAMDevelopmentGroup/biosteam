@@ -25,6 +25,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -185,13 +186,13 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="kn">import</span> <span class="n">Digraph</span>
-<span class="kn">from</span> <span class="nn">._graphics</span> <span class="kn">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">box_graphics</span>
+<span class="kn">from</span> <span class="nn">._graphics</span> <span class="kn">import</span> <span class="n">UnitGraphics</span><span class="p">,</span> <span class="n">box_graphics</span>
 <span class="kn">from</span> <span class="nn">thermosteam</span> <span class="kn">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">._heat_utility</span> <span class="kn">import</span> <span class="n">HeatUtility</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">NotImplementedMethod</span><span class="p">,</span> \
                    <span class="n">format_unit_line</span><span class="p">,</span> <span class="n">static</span>
 <span class="kn">from</span> <span class="nn">._power_utility</span> <span class="kn">import</span> <span class="n">PowerUtility</span>
-<span class="kn">from</span> <span class="nn">._viz._digraph</span> <span class="kn">import</span> <span class="n">save_digraph</span>
+<span class="kn">from</span> <span class="nn">._digraph</span> <span class="kn">import</span> <span class="n">finalize_digraph</span>
 <span class="kn">from</span> <span class="nn">thermosteam.utils</span> <span class="kn">import</span> <span class="n">thermo_user</span><span class="p">,</span> <span class="n">registered</span>
 <span class="kn">from</span> <span class="nn">thermosteam.base</span> <span class="kn">import</span> <span class="n">UnitsOfMeasure</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
@@ -297,7 +298,7 @@
             <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">format_unit_line</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="n">new_graphics</span><span class="p">:</span>
             <span class="c1"># Set new graphics for specified line</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">UnitGraphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">isabstract</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_run</span><span class="p">):</span> <span class="n">static</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         
     <span class="c1">### Abstract Attributes ###</span>
@@ -378,6 +379,16 @@
             <span class="s2">&quot;try using the `thermo` keyword argument to initialize unit operation &quot;</span>
             <span class="s2">&quot;with a compatible thermodynamic property package&quot;</span><span class="p">)</span>
     
+    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">()</span>
+    
+<div class="viewcode-block" id="Unit.get_node"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.get_node">[docs]</a>    <span class="k">def</span> <span class="nf">get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return unit node attributes for graphviz.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_stream_links</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">get_node_taylored_to_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+    
     <span class="k">def</span> <span class="nf">get_design_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="n">units_of_measure</span> <span class="o">=</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
@@ -435,7 +446,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span>
                     <span class="k">return</span> <span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cannot pipe &#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object into unit&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cannot pipe &#39;{type(other).__name__}&#39; object into unit&quot;</span><span class="p">)</span>
 
     <span class="c1"># Backwards pipping</span>
     <span class="fm">__pow__</span> <span class="o">=</span> <span class="fm">__sub__</span>
@@ -675,6 +686,55 @@
             <span class="n">neighborhood</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">direct_neighborhood</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">neighborhood</span>
 
+    <span class="k">def</span> <span class="nf">get_digraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">):</span>
+        <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
+        <span class="n">outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">graphics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span>
+
+        <span class="c1"># Make a Digraph handle</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">splines</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="n">outputorder</span><span class="o">=</span><span class="s1">&#39;edgesfirst&#39;</span><span class="p">,</span>
+               <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;1.1&#39;</span><span class="p">,</span> <span class="n">ranksep</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="s1">&#39;1000&#39;</span><span class="p">)</span>  <span class="c1"># Specifications</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="n">rankdir</span><span class="o">=</span><span class="s1">&#39;LR&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>  <span class="c1"># Left to right</span>
+
+        <span class="c1"># If many streams, keep streams close</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;0.4&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Initialize node arguments based on unit and make node</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">get_node_taylored_to_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="o">**</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="c1"># Set stream node attributes</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;rarrow&#39;</span><span class="p">,</span> <span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;#79dae8&#39;</span><span class="p">,</span>
+               <span class="n">style</span><span class="o">=</span><span class="s1">&#39;filled&#39;</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span>
+               <span class="n">height</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">peripheries</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Make nodes and edges for input streams</span>
+        <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">ins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+            <span class="n">edge_in</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_in</span>
+            <span class="k">if</span> <span class="n">di</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_in</span><span class="p">):</span> <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                   <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">])</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+            <span class="n">di</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Make nodes and edges for output streams</span>
+        <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Origin position of stream</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> 
+            <span class="n">edge_out</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_out</span>  
+            <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_out</span><span class="p">):</span> <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                   <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+            <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">f</span>
+
 <div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
                 <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -701,52 +761,8 @@
             <span class="n">neighborhood</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">sys</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>
-        
-        <span class="n">graphics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span>
-
-        <span class="c1"># Make a Digraph handle</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">splines</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="n">outputorder</span><span class="o">=</span><span class="s1">&#39;edgesfirst&#39;</span><span class="p">,</span>
-               <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;1.1&#39;</span><span class="p">,</span> <span class="n">ranksep</span><span class="o">=</span><span class="s1">&#39;0.8&#39;</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="s1">&#39;1000&#39;</span><span class="p">)</span>  <span class="c1"># Specifications</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="n">rankdir</span><span class="o">=</span><span class="s1">&#39;LR&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>  <span class="c1"># Left to right</span>
-
-        <span class="c1"># If many streams, keep streams close</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">):</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;0.4&#39;</span><span class="p">)</span>
-
-        <span class="c1"># Initialize node arguments based on unit and make node</span>
-        <span class="n">node</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">get_node_taylored_to_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="o">**</span><span class="n">node</span><span class="p">)</span>
-
-        <span class="c1"># Set stream node attributes</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;rarrow&#39;</span><span class="p">,</span> <span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;#79dae8&#39;</span><span class="p">,</span>
-               <span class="n">style</span><span class="o">=</span><span class="s1">&#39;filled&#39;</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span>
-               <span class="n">height</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">peripheries</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
-
-        <span class="c1"># Make nodes and edges for input streams</span>
-        <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
-        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
-            <span class="n">edge_in</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_in</span>
-            <span class="k">if</span> <span class="n">di</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_in</span><span class="p">):</span> <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
-                   <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">])</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
-            <span class="n">di</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="c1"># Make nodes and edges for output streams</span>
-        <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Origin position of stream</span>
-        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> 
-            <span class="n">edge_out</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_out</span>  
-            <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_out</span><span class="p">):</span> <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
-                   <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
-            <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_digraph</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="o">*</span><span class="n">graph_attrs</span><span class="p">)</span>
+        <span class="n">finalize_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
     
     <span class="c1">### Net input and output flows ###</span>
     
@@ -864,34 +880,34 @@
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Information on unit.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;{type(self).__name__}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;ins...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">stream</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
             <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">source_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  from  </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">source_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">source_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">source_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;outs...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">stream</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream}</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
             <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">sink_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  to  </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">sink_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">sink_info</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">sink_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">info</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -908,9 +924,9 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="s1">&gt;&#39;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&gt;&#39;</span></div>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
 
 <span class="k">del</span> <span class="n">thermo_user</span><span class="p">,</span> <span class="n">registered</span>
 </pre></div>

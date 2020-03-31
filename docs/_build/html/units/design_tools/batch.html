@@ -25,6 +25,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -121,7 +122,7 @@
 <li class="toctree-l3"><a class="reference internal" href="vacuum.html">vacuum</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../facilities/facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../BinaryDistillation.html">BinaryDistillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../Duplicator.html">Duplicator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../Fermentation.html">Fermentation</a></li>
@@ -224,18 +225,23 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
 }
 </style>
 <div class="section" id="module-biosteam.units.design_tools.batch">
@@ -243,14 +249,14 @@
 <p>General functional algorithms for batch design.</p>
 <dl class="function">
 <dt id="biosteam.units.design_tools.batch.size_batch">
-<code class="sig-prename descclassname">biosteam.units.design_tools.batch.</code><code class="sig-name descname">size_batch</code><span class="sig-paren">(</span><em class="sig-param">F_vol</em>, <em class="sig-param">tau_reaction</em>, <em class="sig-param">tau_turnaround</em>, <em class="sig-param">N_reactors</em>, <em class="sig-param">V_wf</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../_modules/biosteam/units/design_tools/batch.html#size_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.batch.size_batch" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.design_tools.batch.</code><code class="sig-name descname">size_batch</code><span class="sig-paren">(</span><em class="sig-param">F_vol</em>, <em class="sig-param">tau_reaction</em>, <em class="sig-param">tau_cleaning</em>, <em class="sig-param">N_reactors</em>, <em class="sig-param">V_wf</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../_modules/biosteam/units/design_tools/batch.html#size_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.design_tools.batch.size_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve for batch reactor volume, cycle time, and loading time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>F_vol</strong> (<em>float</em>) – Volumetric flow rate.</p></li>
 <li><p><strong>tau_reaction</strong> (<em>float</em>) – Reaction time.</p></li>
-<li><p><strong>tau_turnaround</strong> (<em>float</em>) – Turnaround time.</p></li>
+<li><p><strong>tau_cleaning</strong> (<em>float</em>) – Cleaning in place time.</p></li>
 <li><p><strong>N_reactors</strong> (<em>int</em>) – Number of reactors.</p></li>
 <li><p><strong>V_wf</strong> (<em>float</em>) – Fraction of working volume.</p></li>
 </ul>

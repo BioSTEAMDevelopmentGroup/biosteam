@@ -60,6 +60,9 @@ intersphinx_mapping = {
     'thermosteam':  ('https://thermosteam.readthedocs.io/en/latest/', None),
 }
 
+# Allow exceptions to occur in notebooks
+nbsphinx_allow_errors = True
+
 # Do not show all members of the class
 numpydoc_show_class_members = False
 

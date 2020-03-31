@@ -25,6 +25,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -220,30 +221,35 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
 </style>
-<div class="section" id="module-biosteam.units.facilities.CoolingTower">
-<span id="coolingtower"></span><h1>CoolingTower<a class="headerlink" href="#module-biosteam.units.facilities.CoolingTower" title="Permalink to this headline">¶</a></h1>
-<p>Create a cooling tower with capital cost and power based on the flow rate
+<div class="section" id="coolingtower">
+<h1>CoolingTower<a class="headerlink" href="#coolingtower" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.facilities.CoolingTower">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">CoolingTower</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a cooling tower with capital cost and power based on the flow rate
 of cooling water as in <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">param ID</dt>
-<dd class="field-odd"><p>Unit ID.</p>
-</dd>
-<dt class="field-even">type ID</dt>
-<dd class="field-even"><p>str, optional</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Unit ID.</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
@@ -256,178 +262,6 @@ Pretreatment and Enzymatic Hydrolysis of Corn Stover
 (No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
 </dd>
 </dl>
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.F_mass_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.F_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going in [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.F_mass_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.F_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going out [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.F_mol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.F_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going in [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.F_mol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.F_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going out [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.F_vol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.F_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going in [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.F_vol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.F_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going out [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.H_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.H_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going in [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.H_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.H_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going out [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.Hf_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.Hf_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going in [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.Hf_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.Hf_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going out [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.Hnet">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.Hnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net enthalpy flow, including enthalpies of formation [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.ID">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.ins">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.ins" title="Permalink to this definition">¶</a></dt>
-<dd><p>All input streams.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.mass_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going in [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.mass_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going out [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.mol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going in [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.mol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going out [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.numerical_specification">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">numerical_specification</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.numerical_specification" title="Permalink to this definition">¶</a></dt>
-<dd><p>Numerical design or process specification.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.outs">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.outs" title="Permalink to this definition">¶</a></dt>
-<dd><p>All output streams.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.purchase_cost">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.purchase_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total purchase cost [USD].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.utility_cost">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.utility_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total utility cost [USD/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.vol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going in [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.vol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going out [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.z_mass_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.z_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass fractions going in.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.z_mass_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.z_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass fractions going out.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.z_mol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.z_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.z_mol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.z_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.z_vol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.z_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric fractions going in.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTower.z_vol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.CoolingTower.</code><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.z_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric fractions going out.</p>
 </dd></dl>
 
 </div>

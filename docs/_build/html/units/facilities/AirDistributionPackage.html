@@ -25,6 +25,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -220,42 +221,39 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
 </style>
-<div class="section" id="module-biosteam.units.facilities.AirDistributionPackage">
-<span id="airdistributionpackage"></span><h1>AirDistributionPackage<a class="headerlink" href="#module-biosteam.units.facilities.AirDistributionPackage" title="Permalink to this headline">¶</a></h1>
-<p>Create a AirDistributionPackage object that accounts for the capital cost
+<div class="section" id="airdistributionpackage">
+<h1>AirDistributionPackage<a class="headerlink" href="#airdistributionpackage" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.facilities.AirDistributionPackage">
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.facilities.</code><code class="sig-name descname">AirDistributionPackage</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">thermo=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/biosteam/units/facilities/_air_distribution_package.html#AirDistributionPackage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a AirDistributionPackage object that accounts for the capital cost
 and power of air distribution based on flow rate correlations from <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">param ID</dt>
-<dd class="field-odd"><p>Unit ID.</p>
-</dd>
-<dt class="field-even">type ID</dt>
-<dd class="field-even"><p>str, optional</p>
-</dd>
-<dt class="field-odd">param ins</dt>
-<dd class="field-odd"><p>Air flow to be distributed.</p>
-</dd>
-<dt class="field-even">type ins</dt>
-<dd class="field-even"><p>stream</p>
-</dd>
-<dt class="field-odd">param outs</dt>
-<dd class="field-odd"><p>Distributed air flow.</p>
-</dd>
-<dt class="field-even">type outs</dt>
-<dd class="field-even"><p>stream</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ID</strong> (<em>str</em><em>, </em><em>optional</em>) – Unit ID.</p></li>
+<li><p><strong>ins</strong> (<em>stream</em>) – Air flow to be distributed.</p></li>
+<li><p><strong>outs</strong> (<em>stream</em>) – Distributed air flow.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">References</p>
@@ -268,178 +266,6 @@ Pretreatment and Enzymatic Hydrolysis of Corn Stover
 (No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p>
 </dd>
 </dl>
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.F_mass_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">F_mass_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.F_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going in [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.F_mass_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">F_mass_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.F_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net mass flow going out [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.F_mol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">F_mol_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.F_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going in [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.F_mol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">F_mol_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.F_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net molar flow going out [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.F_vol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">F_vol_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.F_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going in [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.F_vol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">F_vol_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.F_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow going out [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.H_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">H_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.H_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going in [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.H_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">H_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.H_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow going out [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.Hf_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">Hf_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.Hf_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going in [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.Hf_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">Hf_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.Hf_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy of formation flow going out [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.Hnet">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">Hnet</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.Hnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net enthalpy flow, including enthalpies of formation [kJ/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.ID">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.ins">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.ins" title="Permalink to this definition">¶</a></dt>
-<dd><p>All input streams.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.mass_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">mass_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going in [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.mass_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">mass_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass flows going out [kg/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.mol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">mol_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going in [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.mol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">mol_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar flows going out [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.numerical_specification">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">numerical_specification</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.numerical_specification" title="Permalink to this definition">¶</a></dt>
-<dd><p>Numerical design or process specification.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.outs">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.outs" title="Permalink to this definition">¶</a></dt>
-<dd><p>All output streams.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.purchase_cost">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.purchase_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total purchase cost [USD].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.utility_cost">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.utility_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total utility cost [USD/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.vol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">vol_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going in [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.vol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">vol_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric flows going out [m3/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.z_mass_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">z_mass_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.z_mass_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass fractions going in.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.z_mass_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">z_mass_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.z_mass_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mass fractions going out.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.z_mol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">z_mol_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.z_mol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in [kmol/hr].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.z_mol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">z_mol_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.z_mol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar fractions going in.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.z_vol_in">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">z_vol_in</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.z_vol_in" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric fractions going in.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.facilities.AirDistributionPackage.z_vol_out">
-<code class="sig-prename descclassname">biosteam.units.facilities.AirDistributionPackage.</code><code class="sig-name descname">z_vol_out</code><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage.z_vol_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volumetric fractions going out.</p>
 </dd></dl>
 
 </div>

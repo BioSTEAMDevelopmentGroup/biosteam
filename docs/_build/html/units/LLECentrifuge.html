@@ -25,6 +25,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -110,7 +111,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="design_tools/design_tools.html">design_tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="facilities/facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryDistillation.html">BinaryDistillation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Duplicator.html">Duplicator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
@@ -211,18 +212,23 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
 }
 </style>
 <div class="section" id="llecentrifuge">
@@ -281,6 +287,7 @@ from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031</p>
 <span class="go">    flow (kmol/hr): Methanol   24.1</span>
 <span class="go">                    Glycerol   8.96</span>
 <span class="go">                    Biodiesel  0.00772</span>
+<span class="go">                    Lipid      1.11e-16</span>
 <span class="go">[1] heavy</span>
 <span class="go">    phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
 <span class="go">    flow (kmol/hr): Methanol   8.75</span>

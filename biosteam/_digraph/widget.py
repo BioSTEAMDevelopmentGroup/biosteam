@@ -4,6 +4,7 @@ Created on Sat Mar 28 21:59:13 2020
 
 @author: yoelr
 """
+from warnings import warn
 try:
 	from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
 								 QLabel, QWidget, QMainWindow, QMenu,
@@ -12,7 +13,7 @@ try:
 	from PyQt5.QtCore import QSize, QTimer, Qt
 	from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
 except:
-	raise ImportWarning("install PyQt5 to enable dynamic flowsheets")
+	warn(ImportWarning("install PyQt5 to enable dynamic flowsheets"))
 from .digraph import (get_all_connections,
                       digraph_from_units_and_connections,
                       surface_digraph,

@@ -25,6 +25,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -183,18 +184,23 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
 }
 </style>
 <div class="section" id="system">
@@ -247,7 +253,7 @@ completing the path simulation.</p></li>
 <li><p><strong>ID</strong> (<em>str</em>) – Name of system.</p></li>
 <li><p><strong>feedstock</strong> (<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>) – Main feedstock of the process.</p></li>
 <li><p><strong>feeds</strong> (Iterable[<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>]) – Additional feeds to the process.</p></li>
-<li><p><strong>facilities</strong> (<em>Iterable</em><em>[</em><a class="reference internal" href="units/facilities.html#biosteam.units.facilities.Facility" title="biosteam.units.facilities.Facility"><em>Facility</em></a><em>]</em>) – Offsite facilities that are simulated only after
+<li><p><strong>facilities</strong> (<em>Iterable</em><em>[</em><em>Facility</em><em>]</em>) – Offsite facilities that are simulated only after
 completing the path simulation.</p></li>
 <li><p><strong>ends</strong> (Iterable[<a class="reference external" href="https://thermosteam.readthedocs.io/en/latest/Stream.html#thermosteam.Stream" title="(in Thermosteam)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>]) – Streams that not products, but are ultimately specified through
 process requirements and not by its unit source.</p></li>
@@ -265,7 +271,7 @@ process requirements and not by its unit source.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ID</strong> (<em>str</em>) – Name of system.</p></li>
 <li><p><strong>network</strong> (<em>Network</em>) – Network that defines the simulation path.</p></li>
-<li><p><strong>facilities</strong> (<em>Iterable</em><em>[</em><a class="reference internal" href="units/facilities.html#biosteam.units.facilities.Facility" title="biosteam.units.facilities.Facility"><em>Facility</em></a><em>]</em>) – Offsite facilities that are simulated only after
+<li><p><strong>facilities</strong> (<em>Iterable</em><em>[</em><em>Facility</em><em>]</em>) – Offsite facilities that are simulated only after
 completing the path simulation.</p></li>
 </ul>
 </dd>

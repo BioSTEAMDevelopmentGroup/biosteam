@@ -25,6 +25,7 @@
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script src="../../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -267,9 +268,9 @@
             <span class="n">N_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="n">size</span>
             <span class="n">N_outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="n">size</span>
             <span class="k">if</span> <span class="n">N_ins</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;a Junction object must have 1 input stream, not </span><span class="si">{</span><span class="n">N_ins</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;a Junction object must have 1 input stream, not </span><span class="si">{N_ins}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">N_outs</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;a Junction object must have 1 output stream, not </span><span class="si">{</span><span class="n">N_outs</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;a Junction object must have 1 output stream, not </span><span class="si">{N_outs}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">error</span>
         <span class="k">return</span> <span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span>

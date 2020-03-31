@@ -25,6 +25,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -105,7 +106,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#Add-isolated-parameters">14.7. Add isolated parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Add-coupled-parameters">14.8. Add coupled parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-given-a-sample">14.9. Evaluate metric given a sample</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Monte-Carlo">14.10. Monte Carlo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">14.10. Monte Carlo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Behind-the-scenes">14.11. Behind the scenes</a></li>
 </ul>
 </li>
@@ -196,16 +197,16 @@
 /* CSS for nbsphinx extension */
 
 /* remove conflicting styling from Sphinx themes */
-div.nbinput,
-div.nbinput div.prompt,
-div.nbinput div.input_area,
-div.nbinput div[class*=highlight],
-div.nbinput div[class*=highlight] pre,
-div.nboutput,
-div.nbinput div.prompt,
-div.nbinput div.output_area,
-div.nboutput div[class*=highlight],
-div.nboutput div[class*=highlight] pre {
+div.nbinput.container,
+div.nbinput.container div.prompt,
+div.nbinput.container div.input_area,
+div.nbinput.container div[class*=highlight],
+div.nbinput.container div[class*=highlight] pre,
+div.nboutput.container,
+div.nboutput.container div.prompt,
+div.nboutput.container div.output_area,
+div.nboutput.container div[class*=highlight],
+div.nboutput.container div[class*=highlight] pre {
     background: none;
     border: none;
     padding: 0 0;
@@ -214,13 +215,13 @@ div.nboutput div[class*=highlight] pre {
 }
 
 /* avoid gaps between output lines */
-div.nboutput div[class*=highlight] pre {
+div.nboutput.container div[class*=highlight] pre {
     line-height: normal;
 }
 
 /* input/output containers */
-div.nbinput,
-div.nboutput {
+div.nbinput.container,
+div.nboutput.container {
     display: -webkit-flex;
     display: flex;
     align-items: flex-start;
@@ -228,92 +229,91 @@ div.nboutput {
     width: 100%;
 }
 @media (max-width: 540px) {
-    div.nbinput,
-    div.nboutput {
+    div.nbinput.container,
+    div.nboutput.container {
         flex-direction: column;
     }
 }
 
 /* input container */
-div.nbinput {
+div.nbinput.container {
     padding-top: 5px;
 }
 
 /* last container */
-div.nblast {
+div.nblast.container {
     padding-bottom: 5px;
 }
 
 /* input prompt */
-div.nbinput div.prompt pre {
-    color: #303F9F;
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
 }
 
 /* output prompt */
-div.nboutput div.prompt pre {
-    color: #D84315;
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
 }
 
 /* all prompts */
-div.nbinput div.prompt,
-div.nboutput div.prompt {
-    min-width: 8ex;
-    padding-top: 0.4em;
-    padding-right: 0.4em;
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    min-width: 5ex;
+    padding-top: 0.3rem;
+    padding-right: 0.3rem;
     text-align: right;
     flex: 0;
 }
 @media (max-width: 540px) {
-    div.nbinput div.prompt,
-    div.nboutput div.prompt {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
         text-align: left;
         padding: 0.4em;
     }
-    div.nboutput div.prompt.empty {
+    div.nboutput.container div.prompt.empty {
         padding: 0;
     }
 }
 
 /* disable scrollbars on prompts */
-div.nbinput div.prompt pre,
-div.nboutput div.prompt pre {
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
     overflow: hidden;
 }
 
 /* input/output area */
-div.nbinput div.input_area,
-div.nboutput div.output_area {
-    padding: 0.4em;
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
     -webkit-flex: 1;
     flex: 1;
     overflow: auto;
 }
 @media (max-width: 540px) {
-    div.nbinput div.input_area,
-    div.nboutput div.output_area {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
         width: 100%;
     }
 }
 
 /* input area */
-div.nbinput div.input_area {
-    border: 1px solid #cfcfcf;
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
     border-radius: 2px;
-    background: #f7f7f7;
+    background: #f5f5f5;
 }
 
 /* override MathJax center alignment in output cells */
-div.nboutput div[class*=MathJax] {
+div.nboutput.container div[class*=MathJax] {
     text-align: left !important;
 }
 
-/* override sphinx.ext.pngmath center alignment in output cells */
-div.nboutput div.math p {
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
     text-align: left;
 }
 
 /* standard error */
-div.nboutput div.output_area.stderr {
+div.nboutput.container div.output_area.stderr {
     background: #fdd;
 }
 
@@ -357,52 +357,97 @@ div.nboutput div.output_area.stderr {
 .ansi-bold { font-weight: bold; }
 .ansi-underline { text-decoration: underline; }
 
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 0.3rem;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
 </style>
 <div class="section" id="Monte-Carlo">
-<h1><span class="section-number">14.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">14. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Model-objects">
 <h2><span class="section-number">14.1. </span>Model objects<a class="headerlink" href="#Model-objects" title="Permalink to this headline">¶</a></h2>
-<p>BioSTEAM streamlines uncertainty analysis with an object-oriented
-framework where a <a class="reference internal" href="../evaluation/Model.html"><span class="doc">Model</span></a> object samples
-from parameter distributions and reevaluates biorefinery metrics at each
-new condition. In essence, a Model object sets parameter values,
-simulates the biorefinery system, and evaluates metrics across an array
-of samples.</p>
-<div class="figure align-default" id="id2">
-<img alt="Model Simple UML" src="../_images/Model_Simple_UML.png" />
-<p class="caption"><span class="caption-text">Simple Model</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
-<p>Model objects are able to cut down simulation time by sorting the
-samples to minimize perturbations to the system between simulations.
-This decreases the number of iterations required to solve recycle
-systems. The following examples show how Model objects can be used.</p>
+<p>BioSTEAM streamlines uncertainty analysis with an object-oriented framework where a <a class="reference internal" href="../evaluation/Model.html"><span class="doc">Model</span></a> object samples from parameter distributions and reevaluates biorefinery metrics at each new condition. In essence, a Model object sets parameter values, simulates the biorefinery system, and evaluates metrics across an array of samples.</p>
+<p><img alt="Simple Model" src="../_images/Model_Simple_UML.png" /></p>
+<p>Model objects are able to cut down simulation time by sorting the samples to minimize perturbations to the system between simulations. This decreases the number of iterations required to solve recycle systems. The following examples show how Model objects can be used.</p>
 </div>
 <div class="section" id="Create-parameter-distributions">
 <h2><span class="section-number">14.2. </span>Create parameter distributions<a class="headerlink" href="#Create-parameter-distributions" title="Permalink to this headline">¶</a></h2>
-<p><strong>Let’s first learn how to create common parameter distributions using</strong>
-<a class="reference external" href="https://chaospy.readthedocs.io/en/master/tutorial.html">chaospy</a>.</p>
-<p>A triangular distribution is typically used when the parameter is
-uncertain within given limits, but is heuristically known to take a
-particular value. Create a triangular distribution:</p>
+<p><strong>Let’s first learn how to create common parameter distributions using</strong> <a class="reference external" href="https://chaospy.readthedocs.io/en/master/tutorial.html">chaospy</a>.</p>
+<p>A triangular distribution is typically used when the parameter is uncertain within given limits, but is heuristically known to take a particular value. Create a triangular distribution:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -423,12 +468,9 @@ particular value. Create a triangular distribution:</p>
 Triangle(lower=0, midpoint=0.5, upper=1)
 </pre></div></div>
 </div>
-<p>A uniform distribution is used when the theoretical limits of the
-parameter is known, but no information is available to discern which
-values are more probable. Create a uniform distribution:</p>
+<p>A uniform distribution is used when the theoretical limits of the parameter is known, but no information is available to discern which values are more probable. Create a uniform distribution:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -448,29 +490,14 @@ values are more probable. Create a uniform distribution:</p>
 Uniform(lower=0, upper=1)
 </pre></div></div>
 </div>
-<p>A large set of distributions are available through chaospy, but
-generally triangular and uniform distributions are the most widely used
-to describe the uncertainty of parameters in Monte Carlo analyses.</p>
+<p>A large set of distributions are available through chaospy, but generally triangular and uniform distributions are the most widely used to describe the uncertainty of parameters in Monte Carlo analyses.</p>
 </div>
 <div class="section" id="Parameter-objects">
 <h2><span class="section-number">14.3. </span>Parameter objects<a class="headerlink" href="#Parameter-objects" title="Permalink to this headline">¶</a></h2>
-<p><strong>Parameter objects are simply structures BioSTEAM uses to manage
-parameter values and distributions.</strong></p>
-<p>This section is just to get you familiar with Parameter objects. All the
-fields that a Parameter object can have are described below. Don’t worry
-if you don’t fully understand what each field does. The main idea is
-that we need to define the <code class="docutils literal notranslate"><span class="pre">setter</span></code> function that the Parameter object
-uses to set the parameter value to the <code class="docutils literal notranslate"><span class="pre">element</span></code> (e.g. unit operation,
-stream, etc.) it pertains to. We can also pass a <code class="docutils literal notranslate"><span class="pre">distribution</span></code>
-(i.e. a chaospy distribution) that will be accessible for Model objects
-to sample from. As for the <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">units</span></code> of measure, and the
-<code class="docutils literal notranslate"><span class="pre">baseline</span></code> value, these are all for bookkeeping purposes. BioSTEAM
-incorporates the <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">units</span></code> of measure when creating a
-DataFrame of Monte Carlo results and parameter distributions. Parameter
-objects are created by Model objects which implicitly pass both the
-<code class="docutils literal notranslate"><span class="pre">system</span></code> affected by the parameter, and the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> function. So
-don’t worry about these last two fields, they are automatically added by
-the Model object when creating the parameter.</p>
+<p><strong>Parameter objects are simply structures BioSTEAM uses to manage parameter values and distributions.</strong></p>
+<p>This section is just to get you familiar with Parameter objects. All the fields that a Parameter object can have are described below. Don’t worry if you don’t fully understand what each field does. The main idea is that we need to define the <code class="docutils literal notranslate"><span class="pre">setter</span></code> function that the Parameter object uses to set the parameter value to the <code class="docutils literal notranslate"><span class="pre">element</span></code> (e.g. unit operation, stream, etc.) it pertains to. We can also pass a <code class="docutils literal notranslate"><span class="pre">distribution</span></code> (i.e. a chaospy distribution) that will be accessible for Model objects
+to sample from. As for the <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">units</span></code> of measure, and the <code class="docutils literal notranslate"><span class="pre">baseline</span></code> value, these are all for bookkeeping purposes. BioSTEAM incorporates the <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">units</span></code> of measure when creating a DataFrame of Monte Carlo results and parameter distributions. Parameter objects are created by Model objects which implicitly pass both the <code class="docutils literal notranslate"><span class="pre">system</span></code> affected by the parameter, and the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> function. So don’t worry about these last two fields, they are automatically added by the Model
+object when creating the parameter.</p>
 <p><strong>simulate:</strong> [function] Should simulate parameter effects.</p>
 <p><strong>system:</strong> [System] System associated to parameter.</p>
 <p><strong>name:</strong> [str] Name of parameter.</p>
@@ -479,18 +506,14 @@ the Model object when creating the parameter.</p>
 <p><strong>element:</strong> [object] Element associated to parameter.</p>
 <p><strong>setter:</strong> [function] Should set the parameter.</p>
 <p><strong>distribution:</strong> [chaospy.Dist] Parameter distribution.</p>
-<p>Hopefully things will be become clearer as we start to create the
-parameter objects in the following sections…</p>
+<p>Hopefully things will be become clearer as we start to create the parameter objects in the following sections…</p>
 </div>
 <div class="section" id="Create-a-model-object">
 <h2><span class="section-number">14.4. </span>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
-<p><strong>Model objects are used to evaluate metrics around multiple parameters
-of a system.</strong></p>
-<p>Create a Model object of the lipidcane biorefinery with internal rate of
-return and utility cost as metrics:</p>
+<p><strong>Model objects are used to evaluate metrics around multiple parameters of a system.</strong></p>
+<p>Create a Model object of the lipidcane biorefinery with internal rate of return and utility cost as metrics:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -507,8 +530,7 @@ return and utility cost as metrics:</p>
 </div>
 <p>The Model object begins with no parameters:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -529,12 +551,10 @@ Model: Biorefinery internal rate of return (%)
 </div>
 <div class="section" id="Add-design-parameters">
 <h2><span class="section-number">14.5. </span>Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
-<p><strong>A design parameter is a Unit attribute that changes design
-requirements but does not affect mass and energy balances.</strong></p>
+<p><strong>A design parameter is a Unit attribute that changes design requirements but does not affect mass and energy balances.</strong></p>
 <p>Add number of fermentation reactors as a “design” parameter:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -547,11 +567,9 @@ requirements but does not affect mass and energy balances.</strong></p>
 </pre></div>
 </div>
 </div>
-<p>The decorator uses the function to create a Parameter object and add it
-to the model:</p>
+<p>The decorator uses the function to create a Parameter object and add it to the model:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -561,27 +579,25 @@ to the model:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>(&lt;Parameter: [Fermentation-R301] Number of reactors&gt;,)
-</pre></div>
-</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&lt;Parameter: [Fermentation-R301] Number of reactors&gt;,)
+</pre></div></div>
 </div>
 <p>Calling a Parameter object will update the parameter and results:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">set_N_reactors_parameter</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">set_N_reactors_parameter</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 5 reactors: $</span><span class="si">{</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="si">:</span><span class="s1">,.0f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 5 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">set_N_reactors_parameter</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 8 reactors: $</span><span class="si">{</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="si">:</span><span class="s1">,.0f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 8 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -594,18 +610,14 @@ Puchase cost at 5 reactors: $2,411,642
 Puchase cost at 8 reactors: $2,879,540
 </pre></div></div>
 </div>
-<p>The distribution will come into play later, when creating samples for
-Monte Carlo simulations.</p>
+<p>The distribution will come into play later, when creating samples for Monte Carlo simulations.</p>
 </div>
 <div class="section" id="Add-cost-parameters">
 <h2><span class="section-number">14.6. </span>Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
-<p><strong>A cost parameter is a Unit attribute that affects cost but does not
-change design requirements.</strong></p>
-<p>Add the fermentation unit base cost as a “cost” parameter with a
-triangular distribution:</p>
+<p><strong>A cost parameter is a Unit attribute that affects cost but does not change design requirements.</strong></p>
+<p>Add the fermentation unit base cost as a “cost” parameter with a triangular distribution:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -620,11 +632,9 @@ triangular distribution:</p>
 </pre></div>
 </div>
 </div>
-<p>Note that if the name was not defined, it defaults to the setter’s
-signature:</p>
+<p>Note that if the name was not defined, it defaults to the setter’s signature:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -633,15 +643,14 @@ signature:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>(&lt;Parameter: [Fermentation-R301] Number of reactors&gt;,
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&lt;Parameter: [Fermentation-R301] Number of reactors&gt;,
  &lt;Parameter: [Fermentation-R301] Exponential cost coefficient&gt;)
-</pre></div>
-</div>
+</pre></div></div>
 </div>
 </div>
 <div class="section" id="Add-isolated-parameters">
@@ -649,8 +658,7 @@ signature:</p>
 <p><strong>An isolated parameter should not affect Unit objects in any way.</strong></p>
 <p>Add feedstock price as a “isolated” parameter:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -670,8 +678,7 @@ signature:</p>
 <p><strong>A coupled parameter affects mass and energy balances of the system.</strong></p>
 <p>Add lipid fraction as a “coupled” parameter:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -685,8 +692,7 @@ signature:</p>
 </div>
 <p>Add fermentation efficiency as a “coupled” parameter:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -701,11 +707,9 @@ signature:</p>
 <div class="section" id="Evaluate-metric-given-a-sample">
 <h2><span class="section-number">14.9. </span>Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
 <p><strong>The model can be called to evaluate a sample of parameters.</strong></p>
-<p>Note that all parameters are stored in the model with highly coupled
-parameters first:</p>
+<p>Note that all parameters are stored in the model with highly coupled parameters first:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -728,11 +732,9 @@ Model: Biorefinery internal rate of return (%)
  Stream-lipid cane  Feedstock price
 </pre></div></div>
 </div>
-<p>Get dictionary that contain DataFrame objects of parameter
-distributions:</p>
+<p>Get dictionary that contain DataFrame objects of parameter distributions:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -742,11 +744,10 @@ distributions:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="output_area docutils container">
+<div class="output_area rendered_html docutils container">
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -806,8 +807,7 @@ distributions:</p>
 </div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -816,11 +816,10 @@ distributions:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="output_area docutils container">
+<div class="output_area rendered_html docutils container">
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -875,8 +874,7 @@ distributions:</p>
 </div>
 <p>Evaluate sample:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -885,22 +883,20 @@ distributions:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[0.10408652018694081, -14.71299957809741]
-</pre></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[0.10408652018694081, -14.71299957809741]
+</pre></div></div>
 </div>
 </div>
-</div>
-<div class="section" id="Monte-Carlo">
-<h2><span class="section-number">14.10. </span>Monte Carlo<a class="headerlink" href="#Monte-Carlo" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h2><span class="section-number">14.10. </span>Monte Carlo<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Sample from a joint distribution, and simulate samples:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -914,11 +910,10 @@ distributions:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="output_area docutils container">
+<div class="output_area rendered_html docutils container">
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1069,23 +1064,12 @@ distributions:</p>
 <p>100 rows × 7 columns</p>
 </div></div>
 </div>
-<p>Note that coupled parameters are on the left most columns, and are
-ordered from upstream to downstream (e.g. &lt;Stream: Lipid cane&gt; is
-upstream from &lt;Fermentation: R301&gt;)</p>
+<p>Note that coupled parameters are on the left most columns, and are ordered from upstream to downstream (e.g. &lt;Stream: Lipid cane&gt; is upstream from &lt;Fermentation: R301&gt;)</p>
 </div>
 <div class="section" id="Behind-the-scenes">
 <h2><span class="section-number">14.11. </span>Behind the scenes<a class="headerlink" href="#Behind-the-scenes" title="Permalink to this headline">¶</a></h2>
-<div class="figure align-default" id="id3">
-<img alt="Model UML" src="../_images/Model_UML.png" />
-<p class="caption"><span class="caption-text">Model UML Diagram</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
-</div>
-<p>Model objects work with the help of Block and Parameter objects that are
-able to tell the relative importance of parameters through the
-<code class="docutils literal notranslate"><span class="pre">element</span></code> it affects and the <code class="docutils literal notranslate"><span class="pre">kind</span></code> (how it affects the system).
-Before a new parameter is made, if its <code class="docutils literal notranslate"><span class="pre">kind</span></code> is “coupled”, then the
-Model object creates a Block object that simulates only the objects
-affected by the parameter. The Block object, in turn, helps to create a
-Parameter object by passing its simulation method.</p>
+<p><img alt="Model UML Diagram" src="../_images/Model_UML.png" /></p>
+<p>Model objects work with the help of Block and Parameter objects that are able to tell the relative importance of parameters through the <code class="docutils literal notranslate"><span class="pre">element</span></code> it affects and the <code class="docutils literal notranslate"><span class="pre">kind</span></code> (how it affects the system). Before a new parameter is made, if its <code class="docutils literal notranslate"><span class="pre">kind</span></code> is “coupled”, then the Model object creates a Block object that simulates only the objects affected by the parameter. The Block object, in turn, helps to create a Parameter object by passing its simulation method.</p>
 </div>
 </div>
 

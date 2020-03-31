@@ -25,6 +25,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -183,18 +184,23 @@
 /* CSS overrides for sphinx_rtd_theme */
 
 /* 24px margin */
-.nbinput.nblast,
-.nboutput.nblast {
+.nbinput.nblast.container,
+.nboutput.nblast.container {
     margin-bottom: 19px;  /* padding has already 5px */
 }
 
 /* ... except between code cells! */
-.nblast + .nbinput {
+.nblast.container + .nbinput.container {
     margin-top: -19px;
 }
 
 .admonition > p:before {
     margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
 }
 </style>
 <div class="section" id="flowsheet">
@@ -204,7 +210,7 @@
 <em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">Flowsheet</code><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Flowsheet object which stores references to all stream, unit,
 and system objects. For a tutorial on flowsheets, visit
-<span class="xref std std-doc">tutorial/Managing flowsheets.ipynb</span>.</p>
+<a class="reference internal" href="tutorial/Managing flowsheets.html"><span class="doc">Managing flowsheets</span></a>.</p>
 <dl class="attribute">
 <dt id="biosteam.Flowsheet.flowsheet">
 <code class="sig-name descname">flowsheet</code><em class="property"> = Register:  &lt;Flowsheet: default&gt;</em><a class="headerlink" href="#biosteam.Flowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>

@@ -25,6 +25,7 @@
         <script src="../../../../_static/underscore.js"></script>
         <script src="../../../../_static/doctools.js"></script>
         <script src="../../../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -541,7 +542,7 @@
     <span class="k">elif</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mf">40.0</span> <span class="ow">and</span> <span class="n">P</span> <span class="o">&lt;=</span> <span class="mf">5500.0</span><span class="p">:</span>
         <span class="n">K</span> <span class="o">=</span> <span class="mf">0.43</span> <span class="o">-</span> <span class="mf">0.023</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid Pressure </span><span class="si">{</span><span class="n">P</span><span class="si">}</span><span class="s1"> psia&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid Pressure </span><span class="si">{P}</span><span class="s1"> psia&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">K</span></div>
 
 

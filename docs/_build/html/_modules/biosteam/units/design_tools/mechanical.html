@@ -25,6 +25,7 @@
         <script src="../../../../_static/underscore.js"></script>
         <script src="../../../../_static/doctools.js"></script>
         <script src="../../../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -215,7 +216,7 @@
 <span class="k">def</span> <span class="nf">nearest_NEMA_motor_size</span><span class="p">(</span><span class="n">power</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">nearest_power</span> <span class="ow">in</span> <span class="n">nema_sizes_hp</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">nearest_power</span> <span class="o">&gt;=</span> <span class="n">power</span><span class="p">:</span> <span class="k">return</span> <span class="n">nearest_power</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no NEMA motor size bigger than </span><span class="si">{</span><span class="n">power</span><span class="si">}</span><span class="s1"> hp&#39;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no NEMA motor size bigger than </span><span class="si">{power}</span><span class="s1"> hp&#39;</span><span class="p">)</span>
     
 <span class="k">def</span> <span class="nf">calculate_NPSH</span><span class="p">(</span><span class="n">P_suction</span><span class="p">,</span> <span class="n">P_vapor</span><span class="p">,</span> <span class="n">rho_liq</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return NPSH in ft given suction and vapor pressure in Pa and density in kg/m^3.&quot;&quot;&quot;</span>

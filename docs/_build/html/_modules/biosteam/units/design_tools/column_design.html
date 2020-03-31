@@ -25,6 +25,7 @@
         <script src="../../../../_static/underscore.js"></script>
         <script src="../../../../_static/doctools.js"></script>
         <script src="../../../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -542,7 +543,7 @@
     <span class="k">elif</span> <span class="n">A_ha</span> <span class="o">&gt;=</span> <span class="mf">0.06</span><span class="p">:</span>
         <span class="n">F_HA</span> <span class="o">=</span> <span class="mi">5</span><span class="o">*</span><span class="n">A_ha</span> <span class="o">+</span> <span class="mf">0.5</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ratio of open to active area, &#39;A&#39;, must be between 0.06 and 1 (</span><span class="si">{</span><span class="n">A_ha</span><span class="si">}</span><span class="s2"> given)&quot;</span><span class="p">)</span> 
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ratio of open to active area, &#39;A&#39;, must be between 0.06 and 1 (</span><span class="si">{A_ha}</span><span class="s2"> given)&quot;</span><span class="p">)</span> 
     
     <span class="k">return</span> <span class="n">C_sbf</span> <span class="o">*</span> <span class="n">F_HA</span> <span class="o">*</span> <span class="n">F_ST</span> <span class="o">*</span> <span class="p">((</span><span class="n">rho_L</span><span class="o">-</span><span class="n">rho_V</span><span class="p">)</span><span class="o">/</span><span class="n">rho_V</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span></div>
 
