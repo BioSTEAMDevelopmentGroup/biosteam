@@ -27,7 +27,7 @@ class DigraphWidget(QMainWindow):
         self.scaleFactor = 1
         self.flowsheet = flowsheet
         self.connections = ()
-        self.refresh_rate = 3 * 1000
+        self.refresh_rate = 1000 # once per second
         
         # Set main window
         minsize = QSize(400, 200)
@@ -62,6 +62,7 @@ class DigraphWidget(QMainWindow):
         self.createMenus()
         self.refresh()
         self.autorefresh = autorefresh
+        self.fitContents()
 
         from biosteam import Unit
         Unit.IPYTHON_DISPLAY_UNIT_OPERATIONS = False
@@ -189,9 +190,9 @@ class DigraphWidget(QMainWindow):
                                  triggered=self.moveUp)
         self.moveDownAct = QAction("Move &down", self, shortcut="Down",
                                    triggered=self.moveDown)
-        self.moveLeftAct = QAction("Move &down", self, shortcut="Left",
+        self.moveLeftAct = QAction("Move &left", self, shortcut="Left",
                                    triggered=self.moveLeft)
-        self.moveRightAct = QAction("Move &down", self, shortcut="Right",
+        self.moveRightAct = QAction("Move &right", self, shortcut="Right",
                                     triggered=self.moveRight)
         self.fitContentsAct = QAction("Fit contents", self, shortcut="Ctrl+F",
                                       triggered=self.fitContents)
@@ -218,10 +219,15 @@ class DigraphWidget(QMainWindow):
         viewMenu.addAction(self.zoomInAct)
         viewMenu.addAction(self.zoomOutAct)
         viewMenu.addSeparator()
+        viewMenu.addAction(self.moveUpAct)
+        viewMenu.addAction(self.moveDownAct)
+        viewMenu.addAction(self.moveLeftAct)
+        viewMenu.addAction(self.moveRightAct)
+        viewMenu.addSeparator()
         viewMenu.addAction(self.thoroughDiagramAct)
         viewMenu.addAction(self.surfaceDiagramAct)
         viewMenu.addAction(self.minimalDiagramAct)
-        viewMenu.addAction(self.moveRightAct)
+        
         
         self.simulationMenu = simulationMenu = QMenu("&Simulation", self)
         simulationMenu.addAction(self.simulateAct)
@@ -281,7 +287,6 @@ class DigraphWidget(QMainWindow):
             pixmap = QPixmap.fromImage(img)
             if not pixmap.isNull():
                 self.flowsheetLabel.setPixmap(pixmap)
-                self.fitContents()
         
 
 

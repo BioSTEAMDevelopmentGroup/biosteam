@@ -31,7 +31,7 @@ def find_paths_with_and_without_recycle(feed, ends):
 def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
-    unit = feed.sink
+    unit = feed.sink if feed else None
     if not unit or isinstance(unit, Facility) or feed in ends:
         paths_without_recycle.add(tuple(path))
     elif unit in path: 
