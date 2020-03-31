@@ -10,14 +10,18 @@ from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
                              QGridLayout, QSizePolicy, QFrame)
 from PyQt5.QtCore import QSize, QTimer, Qt
 from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
-from ._digraph import new_digraph, get_connections, update_digraph
+from .digraph import (get_all_connections,
+                      digraph_from_units_and_connections,
+                      surface_digraph,
+                      minimal_digraph)
 
-__all__ = ('FlowsheetWidget',)
+__all__ = ('DigraphWidget',)
 
-class FlowsheetWidget(QMainWindow):
+class DigraphWidget(QMainWindow):
 
     def __init__(self, flowsheet, autorefresh):
         super().__init__()
+        self.kind = 'thorough'
         self._autorefresh = False
         self.moveScale = 1
         self.scaleFactor = 1
@@ -31,9 +35,8 @@ class FlowsheetWidget(QMainWindow):
         self.flowsheetLabel = flowsheetLabel = QLabel()
         flowsheetLabel.setAlignment(Qt.AlignCenter)
         flowsheetLabel.setScaledContents(True)
-        flowsheetLabel.setFrameStyle(QFrame.Panel | QFrame.Sunken)
-        
-        self.notificationLabel = notificationLabel = QLabel()
+        flowsheetLabel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.notificationLabel = QLabel()
         self.lastScrollPosition = None
         
         # Scroll Area
@@ -43,7 +46,8 @@ class FlowsheetWidget(QMainWindow):
         
         # Flowsheet content
         self.content = content = QWidget(self)
-        scrollArea.ensureWidgetVisible(flowsheetLabel)
+        scrollArea.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        scrollArea.ensureWidgetVisible(content)
         content.setFocusPolicy(Qt.NoFocus)
         
         # Layout which will contain the flowsheet
@@ -89,18 +93,20 @@ class FlowsheetWidget(QMainWindow):
     def zoomOut(self):
         self.scaleImage(0.9)
         
-    def normalSize(self):
+    def fitContents(self):
         self.scaleFactor = 1.0
         flowsheetLabel = self.flowsheetLabel
         flowsheetLabel.adjustSize()
-        
-        width = self.width()
-        height = self.height()
         label_width = flowsheetLabel.width()
         label_height = flowsheetLabel.height()
         min_width = label_width + 50
         min_height = label_height + 50
-        self.resize(min_width, min_height)
+        size = self.size()
+        old_width = size.width()
+        width = max(min_width, old_width)
+        old_height = size.height()
+        height = max(min_height, old_height)
+        self.resize(width, height)
         
     def scaleImage(self, factor):
         self.scaleFactor *= factor
@@ -119,8 +125,7 @@ class FlowsheetWidget(QMainWindow):
 
     def simulate(self):
         self.refresh()
-        system = self.flowsheet.create_system()
-        system.simulate()
+        self.system.simulate()
         self.successfulSimulation()
 
     def successfulSimulation(self):
@@ -159,6 +164,18 @@ class FlowsheetWidget(QMainWindow):
             hbar.setValue(hval)
             self.lastScrollPosition = None
         
+    def minimalDiagram(self):
+        self.kind = 'minimal'
+        self.refresh(True)
+    
+    def surfaceDiagram(self):
+        self.kind = 'surface'
+        self.refresh(True)
+    
+    def thoroughDiagram(self):
+        self.kind = 'thorough'
+        self.refresh(True)
+    
     def createActions(self):
         self.exitAct = QAction("E&xit", self, shortcut="Ctrl+Q",
                                triggered=self.close)
@@ -175,14 +192,19 @@ class FlowsheetWidget(QMainWindow):
         self.moveLeftAct = QAction("Move &down", self, shortcut="Left",
                                    triggered=self.moveLeft)
         self.moveRightAct = QAction("Move &down", self, shortcut="Right",
-                                   triggered=self.moveRight)
-
-        self.normalSizeAct = QAction("Normal &size", self, shortcut="Ctrl+N",
-                                     triggered=self.normalSize)
+                                    triggered=self.moveRight)
+        self.fitContentsAct = QAction("Fit contents", self, shortcut="Ctrl+F",
+                                      triggered=self.fitContents)
         self.simulateAct = QAction("&Simulate", self, shortcut="Shift+Return",
                                    triggered=self.simulate)
         self.removeNotificationAct = QAction("&Remove notification", self, shortcut="Space",
-                                   triggered=self.removeNotification)
+                                             triggered=self.removeNotification)
+        self.thoroughDiagramAct = QAction("Thorough &diagram", self, shortcut="Shift+T",
+                                          triggered=self.thoroughDiagram)
+        self.surfaceDiagramAct = QAction("Surface &diagram", self, shortcut="Shift+S",
+                                         triggered=self.surfaceDiagram)
+        self.minimalDiagramAct = QAction("Minimal &diagram", self, shortcut="Shift+M",
+                                         triggered=self.minimalDiagram)
 
     def createMenus(self):
         self.fileMenu = fileMenu = QMenu("&File", self)
@@ -191,14 +213,14 @@ class FlowsheetWidget(QMainWindow):
 
         self.viewMenu = viewMenu = QMenu("&View", self)
         viewMenu.addAction(self.refreshAct)
+        viewMenu.addAction(self.fitContentsAct)
         viewMenu.addSeparator()
-        viewMenu.addAction(self.normalSizeAct)
         viewMenu.addAction(self.zoomInAct)
         viewMenu.addAction(self.zoomOutAct)
         viewMenu.addSeparator()
-        viewMenu.addAction(self.moveUpAct)
-        viewMenu.addAction(self.moveDownAct)
-        viewMenu.addAction(self.moveLeftAct)
+        viewMenu.addAction(self.thoroughDiagramAct)
+        viewMenu.addAction(self.surfaceDiagramAct)
+        viewMenu.addAction(self.minimalDiagramAct)
         viewMenu.addAction(self.moveRightAct)
         
         self.simulationMenu = simulationMenu = QMenu("&Simulation", self)
@@ -231,20 +253,36 @@ class FlowsheetWidget(QMainWindow):
             qtimer.stop()
         self._autorefresh = autorefresh    
 
-    def refresh(self):
+    def get_digraph(self, system, connections):
+        kind = self.kind
+        if kind == 'thorough':
+            digraph = digraph_from_units_and_connections(system.units,
+                                                         connections)
+        elif kind == 'surface':
+            digraph = surface_digraph(system.path)
+        elif kind == 'minimal':
+            digraph = minimal_digraph(system.ID, 
+                                      system.units,
+                                      system.streams)
+        else:
+            raise RuntimeError("no digram checked")
+        return digraph
+
+    def refresh(self, force_refresh=False):
         self.setWindowTitle(self.title)
         flowsheet = self.flowsheet
-        connections = get_connections(flowsheet.stream)
-        if self.connections != connections:
+        connections = get_all_connections(flowsheet.stream)
+        if force_refresh or self.connections != connections:
+            self.system = system = flowsheet.create_system(flowsheet.ID)
             self.connections = connections
-            digraph = new_digraph()
-            update_digraph(digraph, flowsheet.unit, connections)
+            digraph = self.get_digraph(system, connections)
             img_data = digraph.pipe('png')
             img = QImage.fromData(img_data)
             pixmap = QPixmap.fromImage(img)
             if not pixmap.isNull():
                 self.flowsheetLabel.setPixmap(pixmap)
-                self.normalSize()
+                self.fitContents()
+        
 
 
 # def moveUpLeft(self):

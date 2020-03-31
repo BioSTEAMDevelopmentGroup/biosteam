@@ -22,7 +22,7 @@ setup(
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_report/*',
-                      '_viz/*',
+                      '_vizual/*',
                       'utils/*',
                       'compounds/*',
                       'reaction/*',

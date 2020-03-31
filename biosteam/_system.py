@@ -5,10 +5,12 @@ Created on Sat Aug 18 15:04:55 2018
 @author: yoelr
 """
 from flexsolve import SolverError, conditional_wegstein, conditional_aitken
-from ._viz._digraph import make_digraph, save_digraph
+from ._digraph import (digraph_from_units_and_streams,
+                       minimal_digraph,
+                       surface_digraph,
+                       finalize_digraph)
 from thermosteam import Stream
 from thermosteam.utils import registered
-from ._graphics import system_unit, stream_unit
 from ._exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
@@ -32,6 +34,9 @@ def streams_from_path(path):
     streams.discard(MissingStream)
     return streams
     
+def streams_from_units(units):
+    return set(sum([i._ins + i._outs for i in units] , []))
+
 def feeds_from_streams(streams):
     return {s for s in streams if s and not s._source}
 
@@ -129,32 +134,6 @@ def _notify_run_wrapper(self, func):
     wrapper.__doc__ = func.__doc__
     wrapper._original = func
     return wrapper
-    
-# %% System node for diagram
-
-class DiagramOnlyUnit(Unit, isabstract=True):
-    _ID = ID = None
-    _N_ins = _N_outs = 1
-    _ins_size_is_fixed = _outs_size_is_fixed = False
-    
-    def __init__(self, ID='', ins=None, outs=(), thermo=None):
-        self._load_thermo(thermo)
-        self._init_ins(ins)
-        self._init_outs(outs)
-        self._register(ID)
-    
-    def _register(self, ID): 
-        self.ID = self._ID = ID
-    
-class SystemUnit(DiagramOnlyUnit, isabstract=True):
-    """Dummy unit for displaying a system as a unit."""
-    line = 'System'
-    _graphics = system_unit
-
-class StreamUnit(DiagramOnlyUnit, isabstract=True):
-    """Dummy unit for displaying a streams as a unit."""
-    line = ''
-    _graphics = stream_unit
 
 
 # %% Process flow
@@ -456,85 +435,16 @@ class System(metaclass=system):
         self._cached_downstream_systems[unit] = system
         return system
     
-    def _minimal_diagram(self, file, format, **graph_attrs):
-        """Minimally display the path as a box."""
-        outs = []
-        ins = []
-        for s in self.streams:
-            source = s._source
-            sink = s._sink
-            if source in self.units and sink not in self.units:
-                outs.append(s)
-            elif sink in self.units and source not in self.units:
-                ins.append(s)
-        product = Stream(None)
-        product._ID = ''
-        feed = Stream(None)
-        feed._ID = ''
-        StreamUnit('\n'.join([i.ID for i in ins]),
-                    None, feed)
-        StreamUnit('\n'.join([i.ID for i in outs]),
-                    product, None)
-        unit = SystemUnit(self.ID, feed, product)
-        unit.diagram(1, file=file, format=format, **graph_attrs)
+    def _minimal_digraph(self, **graph_attrs):
+        """Return digraph of the path as a box."""
+        return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
 
-    def _surface_diagram(self, file, format, **graph_attrs):
-        """Display only surface elements listed in the path."""
-        # Get surface items to make nodes and edges
-        units = set()  
-        refresh_units = set()
-        for i in self.path:
-            if isinstance(i, Unit):
-                units.add(i)
-            elif isinstance(i, System):
-                outs = []
-                ins = []
-                feeds = []
-                products = []
-                for s in i.streams:
-                    source = s._source
-                    sink = s._sink
-                    if source in i.units and sink not in i.units:
-                        if sink: outs.append(s)
-                        else: products.append(s)
-                        u_io = (source, tuple(source.ins), tuple(source.outs))
-                        refresh_units.add(u_io)
-                    elif sink in i.units and source not in i.units:
-                        if source: ins.append(s)
-                        else: feeds.append(s)
-                        u_io = (sink, tuple(sink.ins), tuple(sink.outs))
-                        refresh_units.add(u_io)
-                
-                if len(feeds) > 1:
-                    feed = Stream(None)
-                    feed._ID = ''
-                    units.add(StreamUnit('\n'.join([i.ID for i in feeds]),
-                                          None, feed))
-                    ins.append(feed)
-                else: ins += feeds
-                
-                if len(products) > 1:
-                    product = Stream(None)
-                    product._ID = ''
-                    units.add(StreamUnit('\n'.join([i.ID for i in products]),
-                                          product, None))
-                    outs.append(product)
-                else: outs += products
-                
-                subsystem_unit = SystemUnit(i.ID, ins, outs)
-                units.add(subsystem_unit)
-                
-        System(None, units)._thorough_diagram(file, format, **graph_attrs)
-        # Reconnect how it was
-        for u, ins, outs in refresh_units:
-            u._ins[:] = ins
-            u._outs[:] = outs
-      
-    def _thorough_diagram(self, file, format, **graph_attrs):
-        """Thoroughly display every unit within the path."""
-        # Create a digraph and set direction left to right
-        f = make_digraph(self.units, self.streams, format=format, **graph_attrs)
-        save_digraph(f, file, format)
+    def _surface_digraph(self, **graph_attrs):
+        return surface_digraph(self.path)
+
+    def _thorough_digraph(self, **graph_attrs):
+        return digraph_from_units_and_streams(self.units, self.streams, 
+                                              **graph_attrs)
         
     def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
@@ -552,13 +462,14 @@ class System(metaclass=system):
         
         """
         if kind == 'thorough':
-            return self._thorough_diagram(file, format, **graph_attrs)
+            f = self._thorough_digraph(file, format=format, **graph_attrs)
         elif kind == 'surface':
-            return self._surface_diagram(file, format, **graph_attrs)
+            f = self._surface_digraph(file, format=format, **graph_attrs)
         elif kind == 'minimal':
-            return self._minimal_diagram(file, format, **graph_attrs)
+            f = self._minimal_digraph(file, format=format, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
+        finalize_digraph(f, file=file, format=format, **graph_attrs)
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
@@ -750,12 +661,13 @@ class System(metaclass=system):
         print(self._info())
     
     def to_network(self):
-        path = [(i.to_network() if hasattr(i, 'path') else i) for i in self.path]
+        isa = isinstance
+        path = [(i.to_network() if isa(i, System) else i) for i in self.path]
         network = Network.__new__(Network)    
         network.path = path
         network.recycle = self.recycle
         network.units = self.units
-        network.subnetworks = [i for i in path if isinstance(i, Network)]
+        network.subnetworks = [i for i in path if isa(i, Network)]
         network.feeds = self.feeds
         network.products = self.products
         return network

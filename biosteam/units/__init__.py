@@ -17,8 +17,10 @@ from . import (
     _balance, _shredder, _screw_feeder,
     decorators, design_tools, facilities,
     _process_specification, _duplicator,
+    _diagram_only_units,
 )
-__all__ = (*_flash.__all__,
+__all__ = (*_diagram_only_units.__all__,
+           *_flash.__all__,
            *_liquids_centrifuge.__all__,
            *_shortcut_column.__all__,
            *_mixer.__all__,
@@ -84,5 +86,6 @@ from ._crushing_mill import *
 from ._balance import *
 from ._shredder import *
 from ._screw_feeder import *
+from ._diagram_only_units import *
 from .facilities import *
 

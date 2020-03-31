@@ -2,16 +2,18 @@
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
-import sys
-from PyQt5.QtWidgets import QApplication
 from thermosteam.utils import Registry
-from ._viz import FlowsheetWidget, make_digraph, save_digraph
+from ._digraph import (DigraphWidget, 
+                       digraph_from_units,
+                       digraph_from_units_and_streams, 
+                       finalize_digraph,
+                       minimal_digraph,
+                       update_surface_units)
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
 from ._system import System
 from ._network import Network
-from PyQt5 import QtCore
 
 __all__ = ('main_flowsheet', 'Flowsheet')
 
@@ -100,6 +102,12 @@ class Flowsheet:
     def registries(self):
         return (self.stream, self.unit, self.system)
     
+    def discard(self, ID):
+        for registry in self.registries:
+            if ID in registry: 
+                registry.discard(ID)
+                break
+    
     def update(self, flowsheet):
         for registry, other_registry in zip(self.registries, flowsheet.registries):
             registry.__dict__.update(other_registry.__dict__)
@@ -127,91 +135,30 @@ class Flowsheet:
         
         """
         if kind == 'thorough':
-            return self._thorough_diagram(file, format, **graph_attrs)
+            f = digraph_from_units_and_streams(self.unit, self.stream, 
+                                               format=format, **graph_attrs)
         elif kind == 'surface':
-            return self._surface_diagram(file, format, **graph_attrs)
+            f = self._surface_digraph(file, format, **graph_attrs)
         elif kind == 'minimal':
-            return self._minimal_diagram(file, format, **graph_attrs)
+            f = minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
+        finalize_digraph(f, file, format)
     
-    def _thorough_diagram(self, file, format, **graph_attrs):
-        units = list(self.unit)
-        units.reverse()
-        streams = set()
-        for u in units:
-            streams.update(u._ins)
-            streams.update(u._outs)
-        f = make_digraph(units, streams, format=format, **graph_attrs)
-        save_digraph(f, file, format)
-    
-    def _minimal_diagram(self, file, format, **graph_attrs):
-        from . import _system
-        streams = list(self.stream)
-        feeds = set(filter(_system._isfeed, streams))
-        products = set(filter(_system._isproduct, streams))
-        product = Stream(None)
-        product._ID = ''
-        feed = Stream(None)
-        feed._ID = ''
-        _system.StreamUnit('\n'.join([i.ID for i in feeds]),
-                           None, feed)
-        _system.StreamUnit('\n'.join([i.ID for i in products]),
-                           product, None)
-        unit = _system.SystemUnit(self.ID, feed, product)
-        unit.line = 'flowsheet'
-        unit.diagram(1, file, format, **graph_attrs)
-        
-    def _surface_diagram(self, file, format, **graph_attrs):
-        from . import _system
-        units = set(self.unit)
-        StrUnit = _system.StreamUnit
-        refresh_units = set()
+    def _surface_digraph(self, file, format, **graph_attrs):
+        surface_units = set(self.unit)
+        old_unit_connections = set()
         for i in self.system:
             if i.recycle and not any(sub.recycle for sub in i.subsystems):
-                outs = []
-                ins = []
-                feeds = []
-                products = []
-                for s in i.streams:
-                    source = s._source
-                    sink = s._sink
-                    if source in i.units and sink not in i.units:
-                        if sink: outs.append(s)
-                        else: products.append(s)
-                        u_io = (source, tuple(source.ins), tuple(source.outs))
-                        refresh_units.add(u_io)
-                    elif sink in i.units and source not in i.units:
-                        if source: ins.append(s)
-                        else: feeds.append(s)
-                        u_io = (sink, tuple(sink.ins), tuple(sink.outs))
-                        refresh_units.add(u_io)
-                
-                if len(feeds) > 1:
-                    feed = Stream(None)
-                    feed._ID = ''
-                    units.add(StrUnit('\n'.join([i.ID for i in feeds]),
-                                      None, feed))
-                    ins.append(feed)
-                else: ins += feeds
-                
-                if len(products) > 1:
-                    product = Stream(None)
-                    product._ID = ''
-                    units.add(StrUnit('\n'.join([i.ID for i in products]),
-                                      product, None))
-                    outs.append(product)
-                else: outs += products
-                
-                subsystem_unit = _system.SystemUnit(i.ID, ins, outs)
-                units.difference_update(i.units)
-                units.add(subsystem_unit)
+                surface_units.difference_update(i.units)
+                update_surface_units(i.ID, i.streams, i.units,
+                                     surface_units, old_unit_connections)
         
-        sys = _system.System(None, units)
-        sys._thorough_diagram(file, format, **graph_attrs)
-        for u, ins, outs in refresh_units:
+        f = digraph_from_units(surface_units)
+        for u, ins, outs in old_unit_connections:
             u._ins[:] = ins
             u._outs[:] = outs
+        return f
     
     def create_system(self, ID="", feeds=None, ends=()):
         """
@@ -260,7 +207,7 @@ class Flowsheet:
     
     def view(self, autorefresh=True):
         """Create an interactive process flowsheet diagram that autorefreshes itself."""
-        widget = FlowsheetWidget(self, autorefresh)
+        widget = DigraphWidget(self, autorefresh)
         widget.show()
         return widget
     
