@@ -6,12 +6,12 @@ Created on Sat Mar 28 21:59:13 2020
 """
 from warnings import warn
 try:
-	from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
-								 QLabel, QWidget, QMainWindow, QMenu,
-								 QMessageBox, QScrollArea, QSizePolicy, 
-								 QGridLayout, QSizePolicy, QFrame)
-	from PyQt5.QtCore import QSize, QTimer, Qt
-	from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
+    from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
+                                 QLabel, QWidget, QMainWindow, QMenu,
+                                 QMessageBox, QScrollArea, QSizePolicy, 
+                                 QGridLayout, QSizePolicy, QFrame)
+    from PyQt5.QtCore import QSize, QTimer, Qt
+    from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
 except:
     QMainWindow = object
     warn(ImportWarning("install PyQt5 to enable dynamic flowsheets"))    

@@ -13,7 +13,9 @@ try:
 	from PyQt5.QtCore import QSize, QTimer, Qt
 	from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
 except:
-	warn(ImportWarning("install PyQt5 to enable dynamic flowsheets"))
+    QMainWindow = object
+    warn(ImportWarning("install PyQt5 to enable dynamic flowsheets"))    
+
 from .digraph import (get_all_connections,
                       digraph_from_units_and_connections,
                       surface_digraph,
