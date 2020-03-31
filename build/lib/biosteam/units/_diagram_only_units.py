@@ -4,7 +4,7 @@ Created on Mon Mar 30 23:25:42 2020
 
 @author: yoelr
 """
-from biosteam._unit import Unit
+from .._unit import Unit
 from .._graphics import system_unit, stream_unit
 
 __all__ = ('DiagramOnlyUnit',
