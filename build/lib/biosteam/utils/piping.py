@@ -134,7 +134,8 @@ class StreamSequence:
         all_streams = self._streams
         for stream in all_streams[slice]: self._undock(stream)
         all_streams[slice] = streams
-        for stream in all_streams: self._redock(stream)
+        for stream in all_streams:
+            if stream: self._redock(stream)
         if self._fixed_size:
             size = self._size
             N_streams = len(all_streams)
@@ -152,7 +153,7 @@ class StreamSequence:
     
     def _set_stream(self, int, stream):
         self._undock(self._streams[int])
-        self._redock(stream)
+        if stream: self._redock(stream)
         self._streams[int] = stream
 
     def index(self, stream):
@@ -190,15 +191,23 @@ class StreamSequence:
             
     def __setitem__(self, index, item):
         if isa(index, int):
-            assert isa(item, Stream), (
-                f"'{type(self).__name__}' object can only contain "
-                f"'Stream' objects; not '{type(item).__name__}'")
+            if item:
+                assert isa(item, Stream), (
+                    f"'{type(self).__name__}' object can only contain "
+                    f"'Stream' objects; not '{type(item).__name__}'")
+            else:
+                item = MissingStream
             self._set_stream(index, item)
         elif isa(index, slice):
+            streams = []
             for i in item:
-                assert isa(i, Stream), (
-                    f"'{type(self).__name__}' object can only contain "
-                    f"'Stream' objects; not '{type(i).__name__}'")
+                if i:
+                    assert isa(i, Stream), (
+                        f"'{type(self).__name__}' object can only contain "
+                        f"'Stream' objects; not '{type(i).__name__}'")
+                    streams.append(i)
+                else:
+                    streams.append(MissingStream)
             self._set_streams(index, item)
         else:
             raise TypeError(f"Only intergers and slices are valid indices for '{type(self).__name__}' objects")
@@ -319,7 +328,7 @@ class Sink:
     """
     __slots__ = ('stream', 'index')
     def __init__(self, stream, index):
-        self.stream = stream
+        self.stream = stream or MissingStream
         self.index = index
 
     # Forward pipping
@@ -378,7 +387,7 @@ class Source:
     """
     __slots__ = ('stream', 'index')
     def __init__(self, stream, index):
-        self.stream = stream
+        self.stream = stream or MissingStream
         self.index = index
 
     # Forward pipping

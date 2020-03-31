@@ -149,6 +149,7 @@ class LLECentrifuge(LiquidsCentrifuge):
         flow (kmol/hr): Methanol   24.1
                         Glycerol   8.96
                         Biodiesel  0.00772
+                        Lipid      1.11e-16
     [1] heavy
         phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   8.75

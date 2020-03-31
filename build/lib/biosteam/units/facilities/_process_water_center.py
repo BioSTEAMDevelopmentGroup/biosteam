@@ -28,9 +28,13 @@ class ProcessWaterCenter(Facility):
         
         [1] Make-up water.
     outs : stream
-        Process water.
-    update_recycled_process_water : callable, optional
-        Function to update recycled water (ins[0]).
+        [0] Process water.
+        
+        [1] Waste.
+    makeup_water_streams : streams, optional
+        All fresh makeup water streams (must be a subset of `process_water_streams`).
+    process_water_streams : streams, optional
+        All process water streams (including makeup water streams).
     
     References
     ----------
@@ -43,26 +47,46 @@ class ProcessWaterCenter(Facility):
     """
     network_priority = 2
     _N_ins = 2
-    _N_outs = 1
+    _N_outs = 2
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(), update_recycled_process_water=None):
+    def __init__(self, ID='', ins=None, outs=(),
+                 makeup_water_streams=None,
+                 process_water_streams=None):
         Facility.__init__(self, ID, ins, outs)
-        self.update_recycled_process_water = update_recycled_process_water
+        self.makeup_water_streams = makeup_water_streams
+        self.process_water_streams = process_water_streams
     
     def _assert_compatible_property_package(self): pass
     
+    def update_process_water(self):
+        process_water_streams = self.process_water_streams
+        s_process, _ = self.outs
+        process_water = sum([stream.imol['7732-18-5'] 
+                             for stream in process_water_streams])
+        s_process.imol['7732-18-5'] = process_water
+
+    def update_makeup_water(self):
+        makeup_water_streams = self.makeup_water_streams
+        _, s_makeup = self.ins
+        s_makeup.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] 
+                                          for stream in makeup_water_streams])
+
     def _run(self):
-        if self.update_recycled_process_water: self.update_recycled_process_water()
+        self.update_process_water()
+        self.update_makeup_water()
         s_recycle, s_makeup = self._ins
-        s_process, = self.outs
-        process_water = s_process.F_mol
+        s_process, s_waste = self.outs
+        makeup_water = s_makeup.F_mol
         recycle_water = s_recycle.F_mol
-        process_loss = process_water - recycle_water
-        makeup_water = process_loss if process_loss > 0 else 0
-        s_makeup.imol['7732-18-5'] = makeup_water
+        process_water = s_process.F_mol
+        waste_water = recycle_water + makeup_water - process_water
+        if waste_water < 0:
+            s_makeup.imol['7732-18-5'] -= waste_water
+            waste_water = 0
+        s_waste.imol['7732-18-5'] = waste_water
         Design = self.design_results
-        Design['Process water flow rate'] = process_water * 18.015
+        Design['Process water flow rate'] = (process_water + waste_water) * 18.015
         Design['Makeup water flow rate'] = makeup_water * 18.015
         
         

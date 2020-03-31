@@ -138,14 +138,14 @@ class Flowsheet:
             f = digraph_from_units_and_streams(self.unit, self.stream, 
                                                format=format, **graph_attrs)
         elif kind == 'surface':
-            f = self._surface_digraph(file, format, **graph_attrs)
+            f = self._surface_digraph(format, **graph_attrs)
         elif kind == 'minimal':
             f = minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
         finalize_digraph(f, file, format)
     
-    def _surface_digraph(self, file, format, **graph_attrs):
+    def _surface_digraph(self, format, **graph_attrs):
         surface_units = set(self.unit)
         old_unit_connections = set()
         for i in self.system:

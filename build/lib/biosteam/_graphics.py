@@ -4,14 +4,25 @@ Created on Sat Aug 18 14:36:58 2018
 
 @author: yoelr
 """
-from biosteam.utils import colors
+from .utils import colors
 
-__all__ = ('Graphics',)
+__all__ = ('UnitGraphics',
+           'box_graphics',
+           'mixer_graphics',
+           'splitter_graphics',
+           'vertical_column_graphics',
+           'vertical_vessel_graphics',
+           'utility_heat_exchanger_graphics',
+           'process_heat_exchanger_graphics',
+           'process_specification_graphics',
+           'system_unit',
+           'stream_unit',
+           'junction_graphics')
 
 # %% Base class for unit graphics
     
-class Graphics:
-    """Create a Graphics object that contains specifications for 
+class UnitGraphics:
+    """Create a UnitGraphics object that contains specifications for 
     Graphviz node and edge styles."""
     __slots__ = ('node', 'edge_in', 'edge_out', 'taylor_node_to_unit')
     
@@ -47,7 +58,7 @@ class Graphics:
         return f'{type(self).__name__}(node={self.node}, edge_in={self.edge_in}, edge_out={self.edge_out})'
 
 
-# %% Graphics components
+# %% UnitGraphics components
 
 single_edge_in = ({'headport': 'c'},)
 single_edge_out = ({'tailport': 'c'},)
@@ -68,7 +79,7 @@ box_node = {'shape': 'box',
             'peripheries': '1',
             'margin': 'default'}
 
-box_graphics = Graphics(single_edge_in, single_edge_out, box_node)
+box_graphics = UnitGraphics(single_edge_in, single_edge_out, box_node)
 
 
 # %% All graphics objects used in BioSTEAM
@@ -77,25 +88,25 @@ box_graphics = Graphics(single_edge_in, single_edge_out, box_node)
 node = box_node.copy()
 node['shape'] = 'triangle'
 node['orientation'] = '270'
-mixer_graphics = Graphics(6 * single_edge_in, right_edge_out, node)
+mixer_graphics = UnitGraphics(6 * single_edge_in, right_edge_out, node)
 
 # Create splitter graphics
 node = box_node.copy()
 node['shape'] = 'triangle'
 node['orientation'] = '90'
 node['fillcolor'] = "#bfbfbf:white"
-splitter_graphics = Graphics(left_edge_in, 6 * single_edge_out, node)
+splitter_graphics = UnitGraphics(left_edge_in, 6 * single_edge_out, node)
 
 # Create distillation column graphics
 node = box_node.copy()
 node['width'] = '1'
 node['height'] = '1.2'
-vertical_column_graphics = Graphics(single_edge_in, top_bottom_edge_out, node)
+vertical_column_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
 
 # Create flash column graphics
 node = node.copy()
 node['height'] = '1.1'
-vertical_vessel_graphics = Graphics(single_edge_in, top_bottom_edge_out, node)
+vertical_vessel_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
 
 # Single stream heat exchanger node
 node = box_node.copy()
@@ -124,7 +135,7 @@ def taylor_utility_heat_exchanger_node(node, unit):
         line = 'Heat exchanger'
     node['name'] = unit.ID + "\n" + line
 
-utility_heat_exchanger_graphics = Graphics(single_edge_in, single_edge_out, node,
+utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                            taylor_utility_heat_exchanger_node)
 
 # Process heat exchanger network
@@ -137,7 +148,7 @@ node['fillcolor'] = '#cfecf0:#fad6d8'
 def taylor_process_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n Heat exchanger"
 
-process_heat_exchanger_graphics = Graphics(2 * single_edge_in, 2 *single_edge_out, node,
+process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
                                            taylor_process_heat_exchanger_node)
 
 # Process specification graphics
@@ -151,17 +162,17 @@ def taylor_process_specification_node(node, unit):
     node['name'] = (f"{unit.ID} - {unit.description}\n"
                     f"{unit.line}")
 
-process_specification_graphics = Graphics(single_edge_in, single_edge_out, node,
+process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                           taylor_process_specification_node)
 
 # System unit for creating diagrams
 node = box_node.copy()
 node['peripheries'] = '2'    
-system_unit = Graphics(multi_edge_in, multi_edge_out, node)
+system_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 node = box_node.copy()
 node['fillcolor'] = 'white:#79dae8'
-stream_unit = Graphics(multi_edge_in, multi_edge_out, node)
+stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 
 node = box_node.copy()
@@ -175,5 +186,5 @@ def taylor_junction_node(node, unit):
         node['shape'] = 'point'
         node['color'] = node['fillcolor'] = 'black'
 
-junction_graphics = Graphics(single_edge_in, single_edge_out, node,
+junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                              taylor_junction_node)

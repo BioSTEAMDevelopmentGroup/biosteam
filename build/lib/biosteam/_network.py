@@ -6,7 +6,7 @@ Created on Tue Sep 10 09:01:47 2019
 """
 from ._unit import Unit
 from ._facility import Facility
-from ._viz._digraph import make_digraph, save_digraph
+from ._digraph import digraph_from_units_and_streams, finalize_digraph
     
 
 # %% Path tools
@@ -31,7 +31,7 @@ def find_paths_with_and_without_recycle(feed, ends):
 def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
-    unit = feed.sink
+    unit = feed.sink if feed else None
     if not unit or isinstance(unit, Facility) or feed in ends:
         paths_without_recycle.add(tuple(path))
     elif unit in path: 
@@ -165,14 +165,18 @@ class Network:
                 new_ends = streams
             upstream_network = cls.from_feedstock(feed, (), new_ends)
             connections = upstream_network.streams.intersection(streams)
-            try:
-                connecting_unit, = {stream._sink for stream in connections
-                                    if stream._source and stream._sink}
-            except:
-                network._append_network(upstream_network)
-            else:
+            connecting_units = {stream._sink for stream in connections
+                                if stream._source and stream._sink}
+            N_connections = len(connecting_units)
+            if N_connections == 1:
+                connecting_unit, = connecting_units
                 network.join_network_at_unit(upstream_network,
                                              connecting_unit)
+            elif N_connections == 0:
+                network._append_network(upstream_network)
+            else:
+                raise RuntimeError('path creation failed; multiple recycle '
+                                   'connections found for a given path')
         return network
 
     def copy_like(self, other):
@@ -310,9 +314,8 @@ class Network:
 
     def diagram(self, file=None, format='png'):
         units = self.units
-        streams = sum([i.ins + i.outs for i in units], [])
-        f = make_digraph(units, set(streams))
-        save_digraph(f, file, format)
+        f = digraph_from_units_and_streams(units, self.streams)
+        finalize_digraph(f, file, format)
 
     def __repr__(self):
         return f"{type(self).__name__}(path={self.path}, recycle={self.recycle})"

@@ -14,7 +14,7 @@ from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
-from ._digraph import save_digraph
+from ._digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
 from thermosteam.base import UnitsOfMeasure
 import biosteam as bst
@@ -584,7 +584,7 @@ class Unit:
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
         f = self.get_digraph(format, *graph_attrs)
-        save_digraph(f, file, format)
+        finalize_digraph(f, file, format)
     
     ### Net input and output flows ###
     

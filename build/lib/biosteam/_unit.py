@@ -8,13 +8,13 @@ Created on Wed Dec 18 07:18:50 2019
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
-from ._graphics import Graphics, box_graphics
+from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
-from ._viz._digraph import save_digraph
+from ._digraph import save_digraph
 from thermosteam.utils import thermo_user, registered
 from thermosteam.base import UnitsOfMeasure
 import biosteam as bst
@@ -120,7 +120,7 @@ class Unit:
             cls.line = format_unit_line(cls.__name__)
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
-            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+            cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
         if not (isabstract or cls._run): static(cls)
         
     ### Abstract Attributes ###
@@ -200,6 +200,16 @@ class Unit:
             "unit operation chemicals are incompatible with inlet and outlet streams; "
             "try using the `thermo` keyword argument to initialize unit operation "
             "with a compatible thermodynamic property package")
+    
+    def disconnect(self):
+        self._ins[:] = ()
+        self._outs[:] = ()
+    
+    def get_node(self):
+        """Return unit node attributes for graphviz."""
+        try: self._load_stream_links()
+        except: pass
+        return self._graphics.get_node_taylored_to_unit(self)
     
     def get_design_result(self, key, units):
         value = self.design_results[key]
@@ -498,6 +508,55 @@ class Unit:
             neighborhood.update(direct_neighborhood)
         return neighborhood
 
+    def get_digraph(self, format='png', **graph_attrs):
+        ins = self.ins
+        outs = self.outs
+        graphics = self._graphics
+
+        # Make a Digraph handle
+        f = Digraph(name='unit', filename='unit', format=format)
+        f.attr('graph', ratio='0.5', splines='normal', outputorder='edgesfirst',
+               nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
+        f.attr(rankdir='LR', **graph_attrs)  # Left to right
+
+        # If many streams, keep streams close
+        if (len(ins) >= 3) or (len(outs) >= 3):
+            f.attr('graph', nodesep='0.4')
+
+        # Initialize node arguments based on unit and make node
+        node = graphics.get_node_taylored_to_unit(self)
+        f.node(**node)
+
+        # Set stream node attributes
+        f.attr('node', shape='rarrow', fillcolor='#79dae8',
+               style='filled', orientation='0', width='0.6',
+               height='0.6', color='black', peripheries='1')
+
+        # Make nodes and edges for input streams
+        di = 0  # Destination position of stream
+        for stream in ins:
+            if not stream: continue
+            f.node(stream.ID)
+            edge_in = graphics.edge_in
+            if di >= len(edge_in): di = 0
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   tailport='e', **edge_in[di])
+            f.edge(stream.ID, node['name'])
+            di += 1
+
+        # Make nodes and edges for output streams
+        oi = 0  # Origin position of stream
+        for stream in outs:
+            if not stream: continue
+            f.node(stream.ID) 
+            edge_out = graphics.edge_out  
+            if oi >= len(edge_out): oi = 0
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   headport='w', **edge_out[oi])
+            f.edge(node['name'], stream.ID)
+            oi += 1
+        return f
+
     def diagram(self, radius=0, upstream=True, downstream=True, 
                 file=None, format='png', **graph_attrs):
         """
@@ -524,51 +583,7 @@ class Unit:
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
-        
-        graphics = self._graphics
-
-        # Make a Digraph handle
-        f = Digraph(name='unit', filename='unit', format=format)
-        f.attr('graph', ratio='0.5', splines='normal', outputorder='edgesfirst',
-               nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
-        f.attr(rankdir='LR', **graph_attrs)  # Left to right
-
-        # If many streams, keep streams close
-        if (len(self.ins) >= 3) or (len(self.outs) >= 3):
-            f.attr('graph', nodesep='0.4')
-
-        # Initialize node arguments based on unit and make node
-        node = graphics.get_node_taylored_to_unit(self)
-        f.node(**node)
-
-        # Set stream node attributes
-        f.attr('node', shape='rarrow', fillcolor='#79dae8',
-               style='filled', orientation='0', width='0.6',
-               height='0.6', color='black', peripheries='1')
-
-        # Make nodes and edges for input streams
-        di = 0  # Destination position of stream
-        for stream in self.ins:
-            if not stream: continue
-            f.node(stream.ID)
-            edge_in = graphics.edge_in
-            if di >= len(edge_in): di = 0
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[di])
-            f.edge(stream.ID, node['name'])
-            di += 1
-
-        # Make nodes and edges for output streams
-        oi = 0  # Origin position of stream
-        for stream in self.outs:
-            if not stream: continue
-            f.node(stream.ID) 
-            edge_out = graphics.edge_out  
-            if oi >= len(edge_out): oi = 0
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **edge_out[oi])
-            f.edge(node['name'], stream.ID)
-            oi += 1
+        f = self.get_digraph(format, *graph_attrs)
         save_digraph(f, file, format)
     
     ### Net input and output flows ###

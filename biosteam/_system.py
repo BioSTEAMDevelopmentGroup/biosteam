@@ -462,11 +462,11 @@ class System(metaclass=system):
         
         """
         if kind == 'thorough':
-            f = self._thorough_digraph(file, format=format, **graph_attrs)
+            f = self._thorough_digraph(format=format, **graph_attrs)
         elif kind == 'surface':
-            f = self._surface_digraph(file, format=format, **graph_attrs)
+            f = self._surface_digraph(format=format, **graph_attrs)
         elif kind == 'minimal':
-            f = self._minimal_digraph(file, format=format, **graph_attrs)
+            f = self._minimal_digraph(format=format, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
         finalize_digraph(f, file=file, format=format, **graph_attrs)

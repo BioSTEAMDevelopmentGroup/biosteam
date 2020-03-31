@@ -9,7 +9,6 @@ from ._hx import HXutility
 from .. import Unit
 from scipy.integrate import odeint
 from .decorators import cost
-from ._tank import MixTank
 from .design_tools import size_batch
 from thermosteam.reaction import Reaction
 

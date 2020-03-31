@@ -16,12 +16,12 @@ biosteam.egg-info/SOURCES.txt
 biosteam.egg-info/dependency_links.txt
 biosteam.egg-info/requires.txt
 biosteam.egg-info/top_level.txt
+biosteam/_digraph/__init__.py
+biosteam/_digraph/digraph.py
+biosteam/_digraph/widget.py
 biosteam/_report/__init__.py
 biosteam/_report/plot.py
 biosteam/_report/table.py
-biosteam/_viz/__init__.py
-biosteam/_viz/_digraph.py
-biosteam/_viz/_widget.py
 biosteam/evaluation/__init__.py
 biosteam/evaluation/_block.py
 biosteam/evaluation/_metric.py
@@ -45,6 +45,7 @@ biosteam/units/_binary_distillation.py
 biosteam/units/_clarifier.py
 biosteam/units/_conveying_belt.py
 biosteam/units/_crushing_mill.py
+biosteam/units/_diagram_only_units.py
 biosteam/units/_duplicator.py
 biosteam/units/_enzyme_treatment.py
 biosteam/units/_fermentation.py
