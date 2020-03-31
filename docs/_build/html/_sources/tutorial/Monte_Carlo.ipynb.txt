@@ -1,0 +1,1006 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Monte Carlo"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Model objects"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "BioSTEAM streamlines uncertainty analysis with an object-oriented framework where a [Model](../evaluation/Model.txt) object samples from parameter distributions and reevaluates biorefinery metrics at each new condition. In essence, a Model object sets parameter values, simulates the biorefinery system, and evaluates metrics across an array of samples."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![Simple Model](Model_Simple_UML.png \"Model Simple UML\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Model objects are able to cut down simulation time by sorting the samples to minimize perturbations to the system between simulations. This decreases the number of iterations required to solve recycle systems. The following examples show how Model objects can be used.\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Create parameter distributions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Let's first learn how to create common parameter distributions using** [chaospy](https://chaospy.readthedocs.io/en/master/tutorial.html)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A triangular distribution is typically used when the parameter is uncertain within given limits, but is heuristically known to take a particular value. Create a triangular distribution:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Triangle(lower=0, midpoint=0.5, upper=1)\n"
+     ]
+    }
+   ],
+   "source": [
+    "from chaospy import distributions as shape\n",
+    "lower_bound = 0\n",
+    "most_probable = 0.5\n",
+    "upper_bound = 1\n",
+    "triang = shape.Triangle(lower_bound, most_probable, upper_bound)\n",
+    "print(triang)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A uniform distribution is used when the theoretical limits of the parameter is known, but no information is available to discern which values are more probable. Create a uniform distribution:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Uniform(lower=0, upper=1)\n"
+     ]
+    }
+   ],
+   "source": [
+    "from chaospy import distributions as shape\n",
+    "lower_bound = 0\n",
+    "upper_bound = 1\n",
+    "unif = shape.Uniform(lower_bound, upper_bound)\n",
+    "print(unif)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A large set of distributions are available through chaospy, but generally triangular and uniform distributions are the most widely used to describe the uncertainty of parameters in Monte Carlo analyses."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Parameter objects"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Parameter objects are simply structures BioSTEAM uses to manage parameter values and distributions.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "This section is just to get you familiar with Parameter objects. All the fields that a Parameter object can have are described below. Don't worry if you don't fully understand what each field does. The main idea is that we need to define the `setter` function that the Parameter object uses to set the parameter value to the `element` (e.g. unit operation, stream, etc.) it pertains to. We can also pass a `distribution` (i.e. a chaospy distribution) that will be accessible for Model objects to sample from. As for the `name`, `units` of measure, and the `baseline` value, these are all for bookkeeping purposes. BioSTEAM incorporates the `name` and `units` of measure when creating a DataFrame of Monte Carlo results and parameter distributions. Parameter objects are created by Model objects which implicitly pass both the `system` affected by the parameter, and the `simulate` function. So don't worry about these last two fields, they are automatically added by the Model object when creating the parameter."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**simulate:** [function] Should simulate parameter effects.\n",
+    "\n",
+    "**system:** [System] System associated to parameter.\n",
+    "\n",
+    "**name:** [str] Name of parameter.\n",
+    "\n",
+    "**units:** [str] Units of measure.\n",
+    "\n",
+    "**baseline:** [float] Baseline value of parameter.\n",
+    "\n",
+    "**element:** [object] Element associated to parameter.\n",
+    "\n",
+    "**setter:** [function] Should set the parameter.\n",
+    "\n",
+    "**distribution:** [chaospy.Dist] Parameter distribution."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Hopefully things will be become clearer as we start to create the parameter objects in the following sections...\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Create a model object"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Model objects are used to evaluate metrics around multiple parameters of a system.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Create a Model object of the lipidcane biorefinery with internal rate of return and utility cost as metrics:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from biorefineries import lipidcane as lc\n",
+    "import biosteam as bst\n",
+    "solve_IRR = lc.lipidcane_tea.solve_IRR\n",
+    "total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr\n",
+    "metrics = (bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR, '%'),\n",
+    "           bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))\n",
+    "model = bst.Model(lc.lipidcane_sys, metrics)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The Model object begins with no parameters: "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Model: Biorefinery internal rate of return (%)\n",
+      "       Biorefinery utility cost (10^6 USD/yr)\n",
+      " (No parameters)\n"
+     ]
+    }
+   ],
+   "source": [
+    "model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Add design parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**A design parameter is a Unit attribute that changes design requirements but does not affect mass and energy balances.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add number of fermentation reactors as a \"design\" parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "R301 = bst.main_flowsheet.unit.R301 # The Fermentation Unit\n",
+    "@model.parameter(name='Number of reactors',\n",
+    "                 element=R301, kind='design',\n",
+    "                 distribution=shape.Uniform(4, 10))\n",
+    "def set_N_reactors(N):\n",
+    "    R301.N = round(N)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The decorator uses the function to create a Parameter object and add it to the model:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(<Parameter: [Fermentation-R301] Number of reactors>,)"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "parameters = model.get_parameters()\n",
+    "parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Calling a Parameter object will update the parameter and results:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Puchase cost at 5 reactors: $2,411,642\n",
+      "Puchase cost at 8 reactors: $2,879,540\n"
+     ]
+    }
+   ],
+   "source": [
+    "set_N_reactors_parameter = parameters[0]\n",
+    "set_N_reactors_parameter(5)\n",
+    "print(f'Puchase cost at 5 reactors: ${R301.purchase_cost:,.0f}')\n",
+    "set_N_reactors_parameter(8)\n",
+    "print(f'Puchase cost at 8 reactors: ${R301.purchase_cost:,.0f}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The distribution will come into play later, when creating samples for Monte Carlo simulations."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Add cost parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**A cost parameter is a Unit attribute that affects cost but does not change design requirements.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add the fermentation unit base cost as a \"cost\" parameter with a triangular distribution:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "reactors_cost_coefficients = R301.cost_items['Reactors']\n",
+    "mid = reactors_cost_coefficients.n # Most probable at baseline value\n",
+    "lb = mid - 0.1 # Minimum\n",
+    "ub = mid + 0.1 # Maximum\n",
+    "@model.parameter(element=R301, kind='cost',\n",
+    "                 distribution=shape.Triangle(lb, mid, ub))\n",
+    "def set_exponential_cost_coefficient(exponential_cost_coefficient):\n",
+    "    reactors_cost_coefficients.n = exponential_cost_coefficient"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that if the name was not defined, it defaults to the setter's signature:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(<Parameter: [Fermentation-R301] Number of reactors>,\n",
+       " <Parameter: [Fermentation-R301] Exponential cost coefficient>)"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.get_parameters()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Add isolated parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**An isolated parameter should not affect Unit objects in any way.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add feedstock price as a \"isolated\" parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "lipid_cane = lc.lipid_cane # The feedstock stream\n",
+    "lb = lipid_cane.price * 0.9 # Minimum price\n",
+    "ub = lipid_cane.price * 1.1 # Maximum price\n",
+    "@model.parameter(element=lipid_cane, kind='isolated', units='USD/kg',\n",
+    "                 distribution=shape.Uniform(lb, ub))\n",
+    "def set_feed_price(feedstock_price):\n",
+    "    lipid_cane.price = feedstock_price"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Add coupled parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**A coupled parameter affects mass and energy balances of the system.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add lipid fraction as a \"coupled\" parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Note that if the setter function is already made,\n",
+    "# you can pass it as the first argument\n",
+    "set_lipid_fraction = model.parameter(lc.set_lipid_fraction,\n",
+    "                                     element=lipid_cane, kind='coupled',\n",
+    "                                     distribution=shape.Uniform(0.05, 0.10))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add fermentation efficiency as a \"coupled\" parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@model.parameter(element=R301, kind='coupled',\n",
+    "                 distribution=shape.Triangle(0.85, 0.90, 0.95))\n",
+    "def set_fermentation_efficiency(efficiency):\n",
+    "    R301.efficiency = efficiency"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Evaluate metric given a sample"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**The model can be called to evaluate a sample of parameters.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that all parameters are stored in the model with highly coupled parameters first:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Model: Biorefinery internal rate of return (%)\n",
+      "       Biorefinery utility cost (10^6 USD/yr)\n",
+      " Element:           Parameter:\n",
+      " Stream-lipid cane  Lipid fraction\n",
+      " Fermentation-R301  Efficiency\n",
+      "                    Number of reactors\n",
+      "                    Exponential cost coefficient\n",
+      " Stream-lipid cane  Feedstock price\n"
+     ]
+    }
+   ],
+   "source": [
+    "model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Get dictionary that contain DataFrame objects of parameter distributions:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Element</th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Units</th>\n",
+       "      <th>Shape</th>\n",
+       "      <th>lower</th>\n",
+       "      <th>upper</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Stream-lipid cane</td>\n",
+       "      <td>Lipid fraction</td>\n",
+       "      <td></td>\n",
+       "      <td>Uniform</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Fermentation-R301</td>\n",
+       "      <td>Number of reactors</td>\n",
+       "      <td></td>\n",
+       "      <td>Uniform</td>\n",
+       "      <td>4</td>\n",
+       "      <td>10</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Stream-lipid cane</td>\n",
+       "      <td>Feedstock price</td>\n",
+       "      <td>USD/kg</td>\n",
+       "      <td>Uniform</td>\n",
+       "      <td>0.0311</td>\n",
+       "      <td>0.038</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "             Element                Name   Units    Shape  lower  upper\n",
+       "0  Stream-lipid cane      Lipid fraction          Uniform   0.05    0.1\n",
+       "1  Fermentation-R301  Number of reactors          Uniform      4     10\n",
+       "2  Stream-lipid cane     Feedstock price  USD/kg  Uniform 0.0311  0.038"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df_dct = model.get_distribution_summary()\n",
+    "df_dct['Uniform']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Element</th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Units</th>\n",
+       "      <th>Shape</th>\n",
+       "      <th>lower</th>\n",
+       "      <th>midpoint</th>\n",
+       "      <th>upper</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Fermentation-R301</td>\n",
+       "      <td>Efficiency</td>\n",
+       "      <td></td>\n",
+       "      <td>Triangle</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.95</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Fermentation-R301</td>\n",
+       "      <td>Exponential cost coefficient</td>\n",
+       "      <td></td>\n",
+       "      <td>Triangle</td>\n",
+       "      <td>0.4</td>\n",
+       "      <td>0.5</td>\n",
+       "      <td>0.6</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "             Element                          Name Units     Shape  lower  \\\n",
+       "0  Fermentation-R301                    Efficiency        Triangle   0.85   \n",
+       "1  Fermentation-R301  Exponential cost coefficient        Triangle    0.4   \n",
+       "\n",
+       "   midpoint  upper  \n",
+       "0       0.9   0.95  \n",
+       "1       0.5    0.6  "
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df_dct['Triangle']"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Evaluate sample:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[0.10408652018694081, -14.71299957809741]"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model([0.05, 0.85, 8, 100000, 0.040]) # Returns metrics (IRR and utility cost)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Monte Carlo"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Sample from a joint distribution, and simulate samples:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead tr th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr>\n",
+       "      <th>Element</th>\n",
+       "      <th>Stream-lipid cane</th>\n",
+       "      <th colspan=\"3\" halign=\"left\">Fermentation-R301</th>\n",
+       "      <th>Stream-lipid cane</th>\n",
+       "      <th colspan=\"2\" halign=\"left\">Biorefinery</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Variable</th>\n",
+       "      <th>Lipid fraction</th>\n",
+       "      <th>Efficiency</th>\n",
+       "      <th>Number of reactors</th>\n",
+       "      <th>Exponential cost coefficient</th>\n",
+       "      <th>Feedstock price [USD/kg]</th>\n",
+       "      <th>Internal rate of return [%]</th>\n",
+       "      <th>Utility cost [10^6 USD/yr]</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.0714</td>\n",
+       "      <td>0.875</td>\n",
+       "      <td>7.04</td>\n",
+       "      <td>0.475</td>\n",
+       "      <td>0.0321</td>\n",
+       "      <td>0.171</td>\n",
+       "      <td>-18.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.0672</td>\n",
+       "      <td>0.91</td>\n",
+       "      <td>8.6</td>\n",
+       "      <td>0.512</td>\n",
+       "      <td>0.0371</td>\n",
+       "      <td>0.147</td>\n",
+       "      <td>-17.2</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.0608</td>\n",
+       "      <td>0.903</td>\n",
+       "      <td>5.06</td>\n",
+       "      <td>0.493</td>\n",
+       "      <td>0.0319</td>\n",
+       "      <td>0.17</td>\n",
+       "      <td>-16.1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.0589</td>\n",
+       "      <td>0.88</td>\n",
+       "      <td>6.53</td>\n",
+       "      <td>0.488</td>\n",
+       "      <td>0.0346</td>\n",
+       "      <td>0.149</td>\n",
+       "      <td>-15.9</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.0904</td>\n",
+       "      <td>0.908</td>\n",
+       "      <td>4.21</td>\n",
+       "      <td>0.516</td>\n",
+       "      <td>0.0376</td>\n",
+       "      <td>0.163</td>\n",
+       "      <td>-21.1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>95</th>\n",
+       "      <td>0.0964</td>\n",
+       "      <td>0.93</td>\n",
+       "      <td>5.49</td>\n",
+       "      <td>0.486</td>\n",
+       "      <td>0.0321</td>\n",
+       "      <td>0.196</td>\n",
+       "      <td>-22</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>96</th>\n",
+       "      <td>0.0613</td>\n",
+       "      <td>0.892</td>\n",
+       "      <td>6.21</td>\n",
+       "      <td>0.48</td>\n",
+       "      <td>0.0366</td>\n",
+       "      <td>0.141</td>\n",
+       "      <td>-16.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>97</th>\n",
+       "      <td>0.0627</td>\n",
+       "      <td>0.915</td>\n",
+       "      <td>5.23</td>\n",
+       "      <td>0.528</td>\n",
+       "      <td>0.0352</td>\n",
+       "      <td>0.156</td>\n",
+       "      <td>-16.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>98</th>\n",
+       "      <td>0.0928</td>\n",
+       "      <td>0.92</td>\n",
+       "      <td>5.62</td>\n",
+       "      <td>0.451</td>\n",
+       "      <td>0.0345</td>\n",
+       "      <td>0.18</td>\n",
+       "      <td>-21.5</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>99</th>\n",
+       "      <td>0.0922</td>\n",
+       "      <td>0.904</td>\n",
+       "      <td>9.1</td>\n",
+       "      <td>0.542</td>\n",
+       "      <td>0.0323</td>\n",
+       "      <td>0.188</td>\n",
+       "      <td>-21.5</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>100 rows × 7 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Element  Stream-lipid cane Fermentation-R301                     \\\n",
+       "Variable    Lipid fraction        Efficiency Number of reactors   \n",
+       "0                   0.0714             0.875               7.04   \n",
+       "1                   0.0672              0.91                8.6   \n",
+       "2                   0.0608             0.903               5.06   \n",
+       "3                   0.0589              0.88               6.53   \n",
+       "4                   0.0904             0.908               4.21   \n",
+       "..                     ...               ...                ...   \n",
+       "95                  0.0964              0.93               5.49   \n",
+       "96                  0.0613             0.892               6.21   \n",
+       "97                  0.0627             0.915               5.23   \n",
+       "98                  0.0928              0.92               5.62   \n",
+       "99                  0.0922             0.904                9.1   \n",
+       "\n",
+       "Element                                      Stream-lipid cane  \\\n",
+       "Variable Exponential cost coefficient Feedstock price [USD/kg]   \n",
+       "0                               0.475                   0.0321   \n",
+       "1                               0.512                   0.0371   \n",
+       "2                               0.493                   0.0319   \n",
+       "3                               0.488                   0.0346   \n",
+       "4                               0.516                   0.0376   \n",
+       "..                                ...                      ...   \n",
+       "95                              0.486                   0.0321   \n",
+       "96                               0.48                   0.0366   \n",
+       "97                              0.528                   0.0352   \n",
+       "98                              0.451                   0.0345   \n",
+       "99                              0.542                   0.0323   \n",
+       "\n",
+       "Element                  Biorefinery                             \n",
+       "Variable Internal rate of return [%] Utility cost [10^6 USD/yr]  \n",
+       "0                              0.171                      -18.3  \n",
+       "1                              0.147                      -17.2  \n",
+       "2                               0.17                      -16.1  \n",
+       "3                              0.149                      -15.9  \n",
+       "4                              0.163                      -21.1  \n",
+       "..                               ...                        ...  \n",
+       "95                             0.196                        -22  \n",
+       "96                             0.141                      -16.3  \n",
+       "97                             0.156                      -16.3  \n",
+       "98                              0.18                      -21.5  \n",
+       "99                             0.188                      -21.5  \n",
+       "\n",
+       "[100 rows x 7 columns]"
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "N_samples = 100\n",
+    "rule = 'L' # For Latin-Hypercube sampling\n",
+    "samples = model.sample(N_samples, rule)\n",
+    "model.load_samples(samples)\n",
+    "model.evaluate()\n",
+    "model.table # All evaluations are stored as a pandas DataFrame"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that coupled parameters are on the left most columns, and are ordered from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Behind the scenes"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![Model UML Diagram](Model_UML.png \"Model UML\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Model objects work with the help of Block and Parameter objects that are able to tell the relative importance of parameters through the `element` it affects and the `kind` (how it affects the system). Before a new parameter is made, if its `kind` is \"coupled\", then the Model object creates a Block object that simulates only the objects affected by the parameter. The Block object, in turn, helps to create a Parameter object by passing its simulation method."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

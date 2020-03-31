@@ -26,18 +26,18 @@ Key Features & Capabilities
    
    Overview
    Installation
-   tutorial/Getting started
-   tutorial/Creating a Unit
-   tutorial/Managing flowsheets
-   tutorial/Using -pipe- notation
-   tutorial/Unit operation results
-   tutorial/Process specifications
-   tutorial/Importing biorefineries
-   tutorial/Techno-economic analysis
-   tutorial/Building a biorefinery
-   tutorial/Inheriting from Unit
-   tutorial/Unit decorators
-   tutorial/Monte Carlo
+   tutorial/Getting_started
+   tutorial/Creating_a_Unit
+   tutorial/Managing_flowsheets
+   tutorial/Using_-pipe-_notation
+   tutorial/Unit_operation_results
+   tutorial/Process_specifications
+   tutorial/Importing_biorefineries
+   tutorial/Techno-economic_analysis
+   tutorial/Building_a_biorefinery
+   tutorial/Inheriting_from_Unit
+   tutorial/Unit_decorators
+   tutorial/Monte_Carlo
 
 
 .. toctree::
@@ -60,8 +60,8 @@ Key Features & Capabilities
    :maxdepth: 1
    :caption: Developer's guide
    
-   developer's guide/Contributing to BioSTEAM
-   developer's guide/Code of conduct
+   developer's_guide/Contributing_to_BioSTEAM
+   developer's_guide/Code_of_conduct
 
 Licence
 -------

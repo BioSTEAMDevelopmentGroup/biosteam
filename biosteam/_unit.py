@@ -99,13 +99,13 @@ class Unit:
     
     Examples
     --------
-    :doc:`tutorial/Creating a Unit`
+    :doc:`tutorial/Creating_a_Unit`
     
-    :doc:`tutorial/Using -pipe- notation`
+    :doc:`tutorial/Using_-pipe-_notation`
     
-    :doc:`tutorial/Inheriting from Unit`
+    :doc:`tutorial/Inheriting_from_Unit`
     
-    :doc:`tutorial/Unit decorators`
+    :doc:`tutorial/Unit_decorators`
     
     """ 
     # Settings
