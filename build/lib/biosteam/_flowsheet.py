@@ -53,7 +53,7 @@ class Flowsheet:
     """
     Create a Flowsheet object which stores references to all stream, unit,
     and system objects. For a tutorial on flowsheets, visit
-    :doc:`tutorial/Managing flowsheets.ipynb`.
+    :doc:`tutorial/Managing flowsheets`.
 	"""
     line = "Flowsheet"
     
@@ -239,7 +239,7 @@ class MainFlowsheet(Flowsheet):
     """
 	Create a MainFlowsheet object which automatically registers 
     biosteam objects as they are created. For a tutorial on flowsheets,
-    visit :doc:`tutorial/Managing flowsheets.ipynb`.
+    visit :doc:`tutorial/Managing flowsheets`.
 	"""
     line = "Main flowsheet"
         
