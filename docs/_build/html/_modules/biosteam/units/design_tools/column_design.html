@@ -543,7 +543,7 @@
     <span class="k">elif</span> <span class="n">A_ha</span> <span class="o">&gt;=</span> <span class="mf">0.06</span><span class="p">:</span>
         <span class="n">F_HA</span> <span class="o">=</span> <span class="mi">5</span><span class="o">*</span><span class="n">A_ha</span> <span class="o">+</span> <span class="mf">0.5</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ratio of open to active area, &#39;A&#39;, must be between 0.06 and 1 (</span><span class="si">{A_ha}</span><span class="s2"> given)&quot;</span><span class="p">)</span> 
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ratio of open to active area, &#39;A&#39;, must be between 0.06 and 1 (</span><span class="si">{</span><span class="n">A_ha</span><span class="si">}</span><span class="s2"> given)&quot;</span><span class="p">)</span> 
     
     <span class="k">return</span> <span class="n">C_sbf</span> <span class="o">*</span> <span class="n">F_HA</span> <span class="o">*</span> <span class="n">F_ST</span> <span class="o">*</span> <span class="p">((</span><span class="n">rho_L</span><span class="o">-</span><span class="n">rho_V</span><span class="p">)</span><span class="o">/</span><span class="n">rho_V</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span></div>
 

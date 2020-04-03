@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="3. Getting started" href="tutorial/Getting started.html" />
+    <link rel="next" title="3. Getting started" href="tutorial/Getting_started.html" />
     <link rel="prev" title="1. Overview" href="Overview.html" /> 
 </head>
 
@@ -88,18 +88,18 @@
 <li class="toctree-l2"><a class="reference internal" href="#common-issues">2.1. Common Issues</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit operation results.html">7. Unit operation results</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Process specifications.html">8. Process specifications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Importing biorefineries.html">9. Importing bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Building a biorefinery.html">11. Building a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">12. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">13. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte Carlo.html">14. Monte Carlo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting_started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating_a_Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing_flowsheets.html">5. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using_-pipe-_notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit_operation_results.html">7. Unit operation results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Process_specifications.html">8. Process specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Importing_biorefineries.html">9. Importing bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic_analysis.html">10. Techno-economic analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Building_a_biorefinery.html">11. Building a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting_from_Unit.html">12. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit_decorators.html">13. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Monte_Carlo.html">14. Monte Carlo</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -116,8 +116,8 @@
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="developer's guide/Contributing to BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developer's guide/Code of conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
 </ul>
 
             
@@ -219,13 +219,6 @@
 <div class="section" id="common-issues">
 <h2><span class="section-number">2.1. </span>Common Issues<a class="headerlink" href="#common-issues" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p><strong>Unit and system diagrams are not displaying:</strong></p>
-<p>BioSTEAM uses <a class="reference external" href="http://www.graphviz.org/">Graphviz</a> to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda install graphviz
-</pre></div>
-</div>
-<p>You may also need to add Graphviz to your system path on Windows by following these <a class="reference external" href="https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz+software">instructions</a>.</p>
-</li>
 <li><p><strong>Cannot install/update BioSTEAM:</strong></p>
 <p>If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. You can bypass these using:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install --user --ignore-installed biosteam
@@ -235,6 +228,23 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install <span class="nv">biosteam</span><span class="o">==</span>&lt;version&gt;
 </pre></div>
 </div>
+</li>
+<li><p><strong>Unit and system diagrams are not displaying:</strong></p>
+<p>BioSTEAM uses <a class="reference external" href="http://www.graphviz.org/">Graphviz</a> to make flowsheet diagrams. To properly install Graphviz in an anaconda distribution, please run the following line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ conda install graphviz
+</pre></div>
+</div>
+<p>You may also need to add Graphviz to your system path on Windows by following these <a class="reference external" href="https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz+software">instructions</a>.</p>
+</li>
+<li><p><strong>Dynamic flowsheet GUI is not displaying:</strong></p>
+<p>The dynamic flowsheet is built on PyQt5, so double check that your backend of your IDE is suitable for PyQt5. For the Spyder-IDE, set your backend to “Automatic” and restart Spyder:</p>
+<div class="figure align-default">
+<img alt="_images/Spyder-IDE_Automatic_Backend.jpg" src="_images/Spyder-IDE_Automatic_Backend.jpg" />
+</div>
+<p>In Jupyter notebook, run the following line at the start of your first cell:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">%gui</span> <span class="pre">qt5</span>
+<span class="pre">`</span></code></p>
 </li>
 </ul>
 </div>
@@ -248,7 +258,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorial/Getting started.html" class="btn btn-neutral float-right" title="3. Getting started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="tutorial/Getting_started.html" class="btn btn-neutral float-right" title="3. Getting started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Overview.html" class="btn btn-neutral float-left" title="1. Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

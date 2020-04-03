@@ -153,7 +153,7 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
         
     Examples
     --------
-    :doc:`../../tutorial/Unit decorators`
+    :doc:`../../tutorial/Unit_decorators`
     
     """
     

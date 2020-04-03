@@ -49,6 +49,7 @@ Common Issues
 
   In Jupyter notebook, run the following line at the start of your first cell:
   
-  ```python
-  %gui qt5
-  ```
+  .. code-block:: python
+     
+     %gui qt5
+  

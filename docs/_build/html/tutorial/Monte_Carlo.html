@@ -124,6 +124,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Developer's guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+</ul>
 
             
           
@@ -590,9 +595,9 @@ Model: Biorefinery internal rate of return (%)
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">set_N_reactors_parameter</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">set_N_reactors_parameter</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 5 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 5 reactors: $</span><span class="si">{</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="si">:</span><span class="s1">,.0f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">set_N_reactors_parameter</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 8 reactors: $</span><span class="si">{R301.purchase_cost:,.0f}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Puchase cost at 8 reactors: $</span><span class="si">{</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="si">:</span><span class="s1">,.0f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

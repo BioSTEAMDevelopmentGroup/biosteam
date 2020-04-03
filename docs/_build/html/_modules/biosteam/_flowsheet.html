@@ -181,7 +181,7 @@
 <span class="sd">As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. </span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">thermosteam.utils</span> <span class="kn">import</span> <span class="n">Registry</span>
-<span class="kn">from</span> <span class="nn">._digraph</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DigraphWidget</span><span class="p">,</span> 
+<span class="kn">from</span> <span class="nn">._digraph</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FlowsheetWidget</span><span class="p">,</span>
                        <span class="n">digraph_from_units</span><span class="p">,</span>
                        <span class="n">digraph_from_units_and_streams</span><span class="p">,</span> 
                        <span class="n">finalize_digraph</span><span class="p">,</span>
@@ -197,13 +197,14 @@
 
 <span class="c1"># %% Functions</span>
 
-<span class="k">def</span> <span class="nf">get_feeds_big_to_small</span><span class="p">(</span><span class="n">streams</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_feeds_from_streams</span><span class="p">(</span><span class="n">streams</span><span class="p">):</span>
     <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
-    <span class="n">feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">streams</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_sink</span> <span class="ow">and</span> <span class="ow">not</span> 
-             <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_source</span> <span class="ow">or</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_sink</span><span class="p">,</span> <span class="n">Facility</span><span class="p">))]</span>
-    <span class="n">feeds_negflows</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="n">i</span><span class="o">.</span><span class="n">F_mass</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">]</span>
-    <span class="n">feeds_negflows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">feeds_negflows</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds_negflows</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">streams</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_sink</span> <span class="ow">and</span> <span class="ow">not</span> 
+            <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_source</span> <span class="ow">or</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_sink</span><span class="p">,</span> <span class="n">Facility</span><span class="p">))]</span>
+
+<span class="k">def</span> <span class="nf">sort_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span><span class="p">):</span>
+    <span class="n">feeds</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">feed</span><span class="p">:</span> <span class="o">-</span><span class="n">feed</span><span class="o">.</span><span class="n">F_mass</span><span class="p">)</span>
+    
 
 <span class="c1"># %% Flowsheet search      </span>
 
@@ -211,7 +212,7 @@
     <span class="fm">__getattribute__</span> <span class="o">=</span> <span class="fm">__getitem__</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span>
     
     <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;{type(self).__name__}&#39; object does not support attribute assignment&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object does not support attribute assignment&quot;</span><span class="p">)</span>
     <span class="fm">__setitem__</span> <span class="o">=</span> <span class="fm">__setattr__</span>
     
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -260,9 +261,18 @@
     
     <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_ID&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;{type(self).__name__}&#39; object does not support attribute assignment&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object does not support attribute assignment&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Flowsheet.view"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.view">[docs]</a>    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an interactive process flowsheet diagram</span>
+<span class="sd">        that autorefreshes itself.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">FlowsheetWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">widget</span></div>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -352,10 +362,16 @@
 <span class="sd">			ignored.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">feedstock</span><span class="p">,</span> <span class="o">*</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">get_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
-        <span class="n">facilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_facilities</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">System</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span>
-                                     <span class="n">facilities</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span></div>
+        <span class="n">feeds</span> <span class="o">=</span> <span class="n">get_feeds_from_streams</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feeds</span><span class="p">:</span>
+            <span class="n">sort_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span><span class="p">)</span>
+            <span class="n">feedstock</span><span class="p">,</span> <span class="o">*</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">feeds</span>
+            <span class="n">facilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_facilities</span><span class="p">()</span>
+            <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span>
+                                           <span class="n">facilities</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="p">())</span>
+        <span class="k">return</span> <span class="n">system</span></div>
     
 <div class="viewcode-block" id="Flowsheet.create_network"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.create_network">[docs]</a>    <span class="k">def</span> <span class="nf">create_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -369,8 +385,14 @@
 <span class="sd">			ignored.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">feedstock</span><span class="p">,</span> <span class="o">*</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">get_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Network</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span></div>
+        <span class="n">feeds</span> <span class="o">=</span> <span class="n">get_feeds_from_streams</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">feeds</span><span class="p">:</span>
+            <span class="n">sort_feeds_big_to_small</span><span class="p">(</span><span class="n">feeds</span><span class="p">)</span>
+            <span class="n">feedstock</span><span class="p">,</span> <span class="o">*</span><span class="n">feeds</span> <span class="o">=</span> <span class="n">feeds</span>
+            <span class="n">network</span> <span class="o">=</span> <span class="n">Network</span><span class="o">.</span><span class="n">from_feedstock</span><span class="p">(</span><span class="n">feedstock</span><span class="p">,</span> <span class="n">feeds</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">network</span> <span class="o">=</span> <span class="n">Network</span><span class="p">([])</span>
+        <span class="k">return</span> <span class="n">network</span></div>
     
     <span class="k">def</span> <span class="nf">create_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ends</span><span class="o">=</span><span class="p">()):</span>
         <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
@@ -382,12 +404,6 @@
     <span class="k">def</span> <span class="nf">get_facilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">isa</span> <span class="o">=</span> <span class="nb">isinstance</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">isa</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Facility</span><span class="p">)]</span>
-    
-<div class="viewcode-block" id="Flowsheet.view"><a class="viewcode-back" href="../../Flowsheet.html#biosteam.Flowsheet.view">[docs]</a>    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autorefresh</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create an interactive process flowsheet diagram that autorefreshes itself.&quot;&quot;&quot;</span>
-        <span class="n">widget</span> <span class="o">=</span> <span class="n">DigraphWidget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autorefresh</span><span class="p">)</span>
-        <span class="n">widget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">widget</span></div>
     
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -403,14 +419,14 @@
         <span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">ID</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no registered item &#39;</span><span class="si">{ID}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no registered item &#39;</span><span class="si">{</span><span class="n">ID</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">obj</span>
     
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
     
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="s1">&gt;&#39;</span></div>
 
 
 <span class="k">class</span> <span class="nc">MainFlowsheet</span><span class="p">(</span><span class="n">Flowsheet</span><span class="p">):</span>
@@ -449,7 +465,7 @@
         <span class="k">return</span> <span class="n">main_flowsheet</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="s1">&gt;&#39;</span>
     
     
 <span class="c1">#: [main_flowsheet] Main flowsheet where objects are registered by ID.</span>
