@@ -45,7 +45,7 @@ Common Issues
 
   The dynamic flowsheet is built on PyQt5, so double check that your backend of your IDE is suitable for PyQt5. For the Spyder-IDE, set your backend to "Automatic" and restart Spyder:
   
-  .. figure:: ./images/Spyder-IDE_Automatic_Backend.jpgs
+  .. figure:: ./images/Spyder-IDE_Automatic_Backend.jpg
 
   In Jupyter notebook, run the following line at the start of your first cell:
   
