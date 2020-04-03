@@ -9,7 +9,8 @@ This module includes classes and functions relating Stream objects.
 from thermosteam import Stream, MultiStream
 
 __all__ = ('MissingStream', 'Ins', 'Outs', 'Sink', 'Source',
-           'as_stream', 'as_upstream', 'as_downstream')
+           'as_stream', 'as_upstream', 'as_downstream', 
+           'materialize_connections')
 
 isa = isinstance
 
@@ -34,7 +35,7 @@ def as_stream(stream):
     elif isa(stream, str):
         return Stream(stream)
     elif stream is None:
-        return MissingStream()
+        return MissingStream(None, None)
     
 def as_upstream(stream, sink):
     stream = as_stream(stream)
@@ -46,21 +47,52 @@ def as_downstream(stream, source):
     stream._source = source
     return stream
 
+def materialize_connections(streams):
+    for stream in streams:
+        if not stream: stream.materialize_connection()
 
 # %% Dummy Stream object
 
 class MissingStream:
-    """Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object."""
+    """
+    Create a MissingStream object that acts as a dummy in Ins and Outs
+    objects until replaced by an actual Stream object.
+    """
     __slots__ = ('_source', '_sink')
+    
+    def __init__(self, source, sink):
+        self._source = source
+        self._sink = sink
+    
+    def materialize_connection(self, ID=""):
+        """
+        Disconnect this missing stream from any unit operations and 
+        replace it with a material stream. 
+        """
+        source = self._source
+        sink = self._sink
+        assert source and sink, (
+            "both a source and a sink is required to materialize connection")
+        material_stream = Stream(ID, thermo=source.thermo)
+        source._outs.replace(self, material_stream)
+        sink._ins.replace(self, material_stream)
+    
+    def isempty(self):
+        return True
+    
+    @property
+    def source(self):
+        self._source
+    
+    @property
+    def sink(self):
+        self._sink
     
     def __bool__(self):
         return False
-    
-    def __getattr__(self, key):
-        raise AttributeError(str(self))
 
     def __repr__(self):
-        return f'<MissingStream>'
+        return f'MissingStream(source={self.source}, sink={self.sink})'
     
     def __str__(self):
         return 'missing stream'
@@ -71,8 +103,6 @@ class MissingStream:
 def n_missing(ub, N):
     assert ub >= N, f"size of streams exceeds {ub}"
     return ub - N
-
-MissingStream = MissingStream()
 
 # %% List objects for input and output streams
 
@@ -98,7 +128,7 @@ class StreamSequence:
                 self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
             if fixed_size:
-                self._streams = [MissingStream] * size #: All input streams
+                self._initialize_missing_streams()
                 if streams:
                     if isa(streams, str):
                         self._streams[0] = dock(Stream(streams, thermo=thermo))
@@ -117,9 +147,20 @@ class StreamSequence:
                         self._streams = [redock(streams)]
                     else:
                         self._streams = [redock(i) if isa(i, Stream)
-                                         else dock(Stream(i, thermo=thermo)) for i in streams]
+                                         else dock(Stream(i, thermo=thermo)) 
+                                         for i in streams]
                 else:
-                    self._streams = size * [MissingStream]
+                    self._initialize_missing_streams()
+        
+    def _create_missing_stream(self):
+        return MissingStream(None, None)
+        
+    def _create_N_missing_streams(self, N):
+        return [self._create_missing_stream() for i in range(N)]
+    
+    def _initialize_missing_streams(self):
+        #: All input streams
+        self._streams = self._create_N_missing_streams(self._size)
         
     def __add__(self, other):
         return self._streams + other
@@ -135,14 +176,14 @@ class StreamSequence:
         for stream in all_streams[slice]: self._undock(stream)
         all_streams[slice] = streams
         for stream in all_streams:
-            if stream: self._redock(stream)
+            self._redock(stream)
         if self._fixed_size:
             size = self._size
             N_streams = len(all_streams)
             if N_streams < size:
                 N_missing = n_missing(size, N_streams)
                 if N_missing:
-                    all_streams[N_streams: size] = (MissingStream,) * N_missing   
+                    all_streams[N_streams: size] = self._create_N_missing_streams(N_missing)
             
     @property
     def size(self):
@@ -153,8 +194,12 @@ class StreamSequence:
     
     def _set_stream(self, int, stream):
         self._undock(self._streams[int])
-        if stream: self._redock(stream)
+        self._redock(stream)
         self._streams[int] = stream
+    
+    def replace(self, stream, other_stream):
+        index = self.index(stream)
+        self[index] = other_stream
 
     def index(self, stream):
         return self._streams.index(stream)
@@ -163,7 +208,8 @@ class StreamSequence:
         streams = self._streams
         if self._fixed_size:
             stream = streams[index]
-            streams[index] = MissingStream
+            missing_stream = self._create_missing_stream()
+            self.replace(stream, missing_stream)
         else:
             stream = streams.pop(index)
         return stream
@@ -172,14 +218,14 @@ class StreamSequence:
         streams = self._streams
         self._undock(stream)
         if self._fixed_size:
-            index = streams.index(stream)
-            streams[index] = MissingStream
+            missing_stream = self._create_missing_stream()
+            self.replace(stream, missing_stream)
         else:
             streams.remove(stream)
         
     def clear(self):
         if self._fixed_size:
-            self._streams = [MissingStream] * self.size
+            self._initialize_missing_streams()
         else:
             self._streams.clear()
     
@@ -196,21 +242,22 @@ class StreamSequence:
                     f"'{type(self).__name__}' object can only contain "
                     f"'Stream' objects; not '{type(item).__name__}'")
             else:
-                item = MissingStream
+                item = self._create_missing_stream()
             self._set_stream(index, item)
         elif isa(index, slice):
             streams = []
-            for i in item:
-                if i:
-                    assert isa(i, Stream), (
+            for stream in item:
+                if stream:
+                    assert isa(stream, Stream), (
                         f"'{type(self).__name__}' object can only contain "
-                        f"'Stream' objects; not '{type(i).__name__}'")
-                    streams.append(i)
+                        f"'Stream' objects; not '{type(stream).__name__}'")
                 else:
-                    streams.append(MissingStream)
+                    stream = self._create_missing_stream()
+                streams.append(stream)
             self._set_streams(index, item)
         else:
-            raise TypeError(f"Only intergers and slices are valid indices for '{type(self).__name__}' objects")
+            raise TypeError("Only intergers and slices are valid "
+                           f"indices for '{type(self).__name__}' objects")
     
     def __repr__(self):
         return repr(self._streams)
@@ -227,6 +274,9 @@ class Ins(StreamSequence):
     @property
     def sink(self):
         return self._sink
+    
+    def _create_missing_stream(self):
+        return MissingStream(None, self._sink)
     
     def _dock(self, stream): 
         stream._sink = self._sink
@@ -259,6 +309,9 @@ class Outs(StreamSequence):
     def source(self):
         return self._source
     
+    def _create_missing_stream(self):
+        return MissingStream(self._source, None)
+    
     def _dock(self, stream): 
         stream._source = self._source
         return stream
@@ -284,7 +337,8 @@ class Outs(StreamSequence):
 
 class Sink:
     """
-    Create a Sink object that connects a stream to a unit using piping notation:
+    Create a Sink object that connects a stream to a unit using piping
+    notation:
     
     Parameters
     ----------
@@ -328,7 +382,7 @@ class Sink:
     """
     __slots__ = ('stream', 'index')
     def __init__(self, stream, index):
-        self.stream = stream or MissingStream
+        self.stream = stream
         self.index = index
 
     # Forward pipping
@@ -345,7 +399,8 @@ class Sink:
 
 class Source:
     """
-    Create a Source object that connects a stream to a unit using piping notation:
+    Create a Source object that connects a stream to a unit using piping
+    notation:
     
     Parameters
     ----------
@@ -387,7 +442,7 @@ class Source:
     """
     __slots__ = ('stream', 'index')
     def __init__(self, stream, index):
-        self.stream = stream or MissingStream
+        self.stream = stream
         self.index = index
 
     # Forward pipping

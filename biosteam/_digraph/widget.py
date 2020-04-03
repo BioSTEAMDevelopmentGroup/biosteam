@@ -5,28 +5,25 @@ Created on Sat Mar 28 21:59:13 2020
 @author: yoelr
 """
 from warnings import warn
-try:
-    from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
-                                 QLabel, QWidget, QMainWindow, QMenu,
-                                 QMessageBox, QScrollArea, QSizePolicy, 
-                                 QGridLayout, QSizePolicy, QFrame)
-    from PyQt5.QtCore import QSize, QTimer, Qt
-    from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
-except:
-    QMainWindow = object
-    warn(ImportWarning("install PyQt5 to enable dynamic flowsheets"))    
-
+from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
+                             QLabel, QWidget, QMainWindow, QMenu,
+                             QMessageBox, QScrollArea, QSizePolicy, 
+                             QGridLayout, QSizePolicy, QFrame)
+from PyQt5.QtCore import QSize, QTimer, Qt
+from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
 from .digraph import (get_all_connections,
                       digraph_from_units_and_connections,
+                      update_digraph_from_units_and_connections,
                       surface_digraph,
                       minimal_digraph)
 
-__all__ = ('DigraphWidget',)
+__all__ = ('FlowsheetWidget',)
 
-class DigraphWidget(QMainWindow):
+class FlowsheetWidget(QMainWindow):
 
-    def __init__(self, flowsheet, autorefresh):
+    def __init__(self, flowsheet):
         super().__init__()
+        type(flowsheet).widget = flowsheet
         self.kind = 'thorough'
         self._autorefresh = False
         self.moveScale = 1
@@ -57,7 +54,7 @@ class DigraphWidget(QMainWindow):
         content.setFocusPolicy(Qt.NoFocus)
         
         # Layout which will contain the flowsheet
-        self.gridLayout = gridLayout = QGridLayout(self)
+        self.gridLayout = gridLayout = QGridLayout()
         gridLayout.addWidget(flowsheetLabel, 0, 0)
         content.setLayout(gridLayout)
         
@@ -67,7 +64,7 @@ class DigraphWidget(QMainWindow):
         self.createActions()
         self.createMenus()
         self.refresh()
-        self.autorefresh = autorefresh
+        self.autorefresh = True
         self.fitContents()
 
         from biosteam import Unit
@@ -132,15 +129,21 @@ class DigraphWidget(QMainWindow):
 
     def simulate(self):
         self.refresh()
-        self.system.simulate()
-        self.successfulSimulation()
-
-    def successfulSimulation(self):
+        try:
+            self.system.simulate()
+        except Exception as Error:
+            text = (f"SIMULATION SUCCESSFUL!\n"
+                    f"{type(self).__name__}: {Error}")
+        else:
+            text = "SIMULATION SUCCESSFUL!"
+        self.printNotification(text)
+        
+    def printNotification(self, text):
         notificationLabel = self.notificationLabel
         notificationLabel.setParent(self)
         notificationLabel.setAlignment(Qt.AlignCenter)
         notificationLabel.setAutoFillBackground(True)
-        notificationLabel.setText("SIMULATION WAS SUCCESSFUL")
+        notificationLabel.setText(text)
         font = QFont("Times", 18, QFont.Bold)
         notificationLabel.setFont(font)
         self.gridLayout.addWidget(notificationLabel, 0, 0)
@@ -212,6 +215,20 @@ class DigraphWidget(QMainWindow):
                                          triggered=self.surfaceDiagram)
         self.minimalDiagramAct = QAction("Minimal &diagram", self, shortcut="Shift+M",
                                          triggered=self.minimalDiagram)
+        self.actions = [self.exitAct,
+                        self.refreshAct,
+                        self.zoomInAct,
+                        self.zoomOutAct,
+                        self.moveUpAct,
+                        self.moveDownAct,
+                        self.moveLeftAct,
+                        self.moveRightAct,
+                        self.fitContentsAct,
+                        self.simulateAct,
+                        self.removeNotificationAct,
+                        self.thoroughDiagramAct,
+                        self.surfaceDiagramAct,
+                        self.minimalDiagramAct]
 
     def createMenus(self):
         self.fileMenu = fileMenu = QMenu("&File", self)
@@ -265,19 +282,27 @@ class DigraphWidget(QMainWindow):
             qtimer.stop()
         self._autorefresh = autorefresh    
 
-    def get_digraph(self, system, connections):
+    def get_digraph(self, system, flowsheet, connections):
         kind = self.kind
         if kind == 'thorough':
-            digraph = digraph_from_units_and_connections(system.units,
+            digraph = digraph_from_units_and_connections(flowsheet.unit,
                                                          connections)
         elif kind == 'surface':
             digraph = surface_digraph(system.path)
+            streams = flowsheet.stream.to_set()
+            units = flowsheet.unit.to_set()
+            other_units = units.difference(system.units)
+            other_streams = streams.difference(system.streams)
+            other_connections = get_all_connections(other_streams)
+            update_digraph_from_units_and_connections(digraph,
+                                                      other_units,
+                                                      other_connections)
         elif kind == 'minimal':
-            digraph = minimal_digraph(system.ID, 
-                                      system.units,
-                                      system.streams)
+            digraph = minimal_digraph(flowsheet.ID, 
+                                      flowsheet.unit,
+                                      flowsheet.stream)
         else:
-            raise RuntimeError("no digram checked")
+            raise RuntimeError("no diagram checked")
         return digraph
 
     def refresh(self, force_refresh=False):
@@ -287,7 +312,7 @@ class DigraphWidget(QMainWindow):
         if force_refresh or self.connections != connections:
             self.system = system = flowsheet.create_system(flowsheet.ID)
             self.connections = connections
-            digraph = self.get_digraph(system, connections)
+            digraph = self.get_digraph(system, flowsheet, connections)
             img_data = digraph.pipe('png')
             img = QImage.fromData(img_data)
             pixmap = QPixmap.fromImage(img)

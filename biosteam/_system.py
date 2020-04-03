@@ -16,7 +16,7 @@ from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from .utils import colors, MissingStream, strtuple
+from .utils import colors, strtuple
 import biosteam as bst
 
 __all__ = ('System',)
@@ -31,17 +31,16 @@ def streams_from_path(path):
             streams.add(i.streams)
         elif isa(i, Unit):
             streams.update(i._ins + i._outs)
-    streams.discard(MissingStream)
     return streams
-    
-def streams_from_units(units):
-    return set(sum([i._ins + i._outs for i in units] , []))
 
 def feeds_from_streams(streams):
-    return {s for s in streams if s and not s._source}
+    return {s for s in streams if not s._source}
 
 def products_from_streams(streams):
-    return {s for s in streams if s and not s._sink}
+    return {s for s in streams if not s._sink}
+
+def filter_out_missing_streams(streams):
+    streams.intersection_update([i for i in streams if i])
 
 # %% Functions for taking care of numerical specifications within a system path
     
@@ -233,6 +232,9 @@ class System(metaclass=system):
         
         """
         facilities = Facility.ordered_facilities(facilities)
+        isa = isinstance
+        path = tuple([(cls.from_network('', i) if isa(i, Network) else i)
+                      for i in network.path])
         self = cls.__new__(cls)
         self.units = network.units
         self.streams = streams = network.streams
@@ -240,7 +242,7 @@ class System(metaclass=system):
         self.products = products = network.products
         self._numerical_specification = None
         self._reset_errors()
-        self._set_path(network.path)
+        self._set_path(path)
         self._set_facilities(facilities)
         self._set_recycle(network.recycle)
         self._register(ID)
@@ -251,6 +253,7 @@ class System(metaclass=system):
             streams.update(f_streams)
             feeds.update(f_feeds)
             products.update(f_products)
+        self._finalize_streams()
         return self
         
     def __init__(self, ID, path, recycle=None, facilities=()):
@@ -261,6 +264,7 @@ class System(metaclass=system):
         self._load_units()
         self._set_facilities(facilities)
         self._load_streams()
+        self._finalize_streams()
         self._set_recycle(recycle)
         self._register(ID)
     
@@ -280,13 +284,9 @@ class System(metaclass=system):
         self._recycle = recycle
     
     def _set_path(self, path):
-        isa = isinstance
-        
         #: tuple[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
-        net2sys = System.from_network
-        self.path = path = tuple([(net2sys('', i) if isa(i, Network) else i)
-                                  for i in path])
+        self.path = path
         
         #: set[System] All subsystems in the system
         self.subsystems = subsystems = set()
@@ -294,6 +294,7 @@ class System(metaclass=system):
         #: list[Unit] Network of only unit operations
         self._unit_path = unit_path = []
         
+        isa = isinstance
         for i in path:
             if i in unit_path: continue
             if isa(i, Unit): 
@@ -301,7 +302,6 @@ class System(metaclass=system):
             elif isa(i, System):
                 unit_path.extend(i._unit_path)
                 subsystems.add(i)
-        for u in unit_path: u._load_stream_links()
     
         #: set[Unit] All units in the path that have costs
         self._path_costunits = costunits = {i for i in unit_path
@@ -340,13 +340,23 @@ class System(metaclass=system):
             streams.update(u._ins + u._outs)
         for sys in self.subsystems:
             streams.update(sys.streams)
-        streams.discard(MissingStream)
         
         #: set[:class:`~thermosteam.Stream`] All feed streams in the system.
         self.feeds = feeds_from_streams(streams)
         
         #: set[:class:`~thermosteam.Stream`] All product streams in the system.
         self.products = products_from_streams(streams)
+        
+    def _load_stream_links(self):
+        for u in self._unit_path: u._load_stream_links()
+        
+    def _filter_out_missing_streams(self):
+        for stream_set in (self.streams, self.feeds, self.products):
+            filter_out_missing_streams(stream_set)
+        
+    def _finalize_streams(self):
+        self._load_stream_links()
+        self._filter_out_missing_streams()
         
     @property
     def TEA(self):

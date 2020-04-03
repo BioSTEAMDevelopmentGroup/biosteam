@@ -17,17 +17,6 @@ To get the git version, run:
 Common Issues
 -------------
 
-* **Unit and system diagrams are not displaying:**
-
-  BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:
-  
-  .. code-block:: bash
-
-     $ conda install graphviz
-
-  You may also need to add Graphviz to your system path on Windows by following these `instructions <https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz  +software>`__.
-
-
 * **Cannot install/update BioSTEAM:**
 
   If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. You can bypass these using:
@@ -42,3 +31,24 @@ Common Issues
 
      $ pip install biosteam==<version>
 
+* **Unit and system diagrams are not displaying:**
+
+  BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. To properly install Graphviz in an anaconda distribution, please run the following line:
+  
+  .. code-block:: bash
+
+     $ conda install graphviz
+
+  You may also need to add Graphviz to your system path on Windows by following these `instructions <https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz  +software>`__.
+
+* **Dynamic flowsheet GUI is not displaying:**
+
+  The dynamic flowsheet is built on PyQt5, so double check that your backend of your IDE is suitable for PyQt5. For the Spyder-IDE, set your backend to "Automatic" and restart Spyder:
+  
+  .. figure:: ./images/Spyder-IDE_Automatic_Backend.png
+
+  In Jupyter notebook, run the following line at the start of your first cell:
+  
+  ```python
+  %gui qt5
+  ```

@@ -1227,7 +1227,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Although BioSTEAM includes a large set of essential unit operations, many process specific unit operations are not yet available. In this case, you can create new [Unit subclasses](./Inheriting from Unit.ipynb) to model unit operations not yet available in BioSTEAM."
+    "Although BioSTEAM includes a large set of essential unit operations, many process specific unit operations are not yet available. In this case, you can create new [Unit subclasses](./Inheriting_from_Unit.ipynb) to model unit operations not yet available in BioSTEAM."
    ]
   },
   {

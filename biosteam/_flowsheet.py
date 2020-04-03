@@ -3,7 +3,7 @@
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
 from thermosteam.utils import Registry
-from ._digraph import (DigraphWidget, 
+from ._digraph import (FlowsheetWidget,
                        digraph_from_units,
                        digraph_from_units_and_streams, 
                        finalize_digraph,
@@ -19,13 +19,14 @@ __all__ = ('main_flowsheet', 'Flowsheet')
 
 # %% Functions
 
-def get_feeds_big_to_small(streams):
+def get_feeds_from_streams(streams):
     isa = isinstance
-    feeds = [i for i in streams if i._sink and not 
-             (i._source or isa(i._sink, Facility))]
-    feeds_negflows = [(i, -i.F_mass) for i in feeds]
-    feeds_negflows = sorted(feeds_negflows, key=lambda x: x[1])
-    return [i[0] for i in feeds_negflows]
+    return [i for i in streams if i._sink and not 
+            (i._source or isa(i._sink, Facility))]
+
+def sort_feeds_big_to_small(feeds):
+    feeds.sort(key=lambda feed: -feed.F_mass)
+    
 
 # %% Flowsheet search      
 
@@ -85,6 +86,15 @@ class Flowsheet:
             raise TypeError(f"'{type(self).__name__}' object does not support attribute assignment")
         else:
             super().__setattr__(key, value)
+    
+    def view(self):
+        """
+        Create an interactive process flowsheet diagram
+        that autorefreshes itself.
+        """
+        widget = FlowsheetWidget(self)
+        widget.show()
+        return widget
     
     @property
     def ID(self):
@@ -174,10 +184,16 @@ class Flowsheet:
 			ignored.
         
         """
-        feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
-        facilities = self.get_facilities()
-        return System.from_feedstock(ID, feedstock, feeds,
-                                     facilities, ends)
+        feeds = get_feeds_from_streams(self.stream)
+        if feeds:
+            sort_feeds_big_to_small(feeds)
+            feedstock, *feeds = feeds
+            facilities = self.get_facilities()
+            system = System.from_feedstock(ID, feedstock, feeds,
+                                           facilities, ends)
+        else:
+            system = System(ID, ())
+        return system
     
     def create_network(self, feeds=None, ends=()):
         """
@@ -191,8 +207,14 @@ class Flowsheet:
 			ignored.
         
         """
-        feedstock, *feeds = get_feeds_big_to_small(feeds or self.stream)
-        return Network.from_feedstock(feedstock, feeds, ends)
+        feeds = get_feeds_from_streams(self.stream)
+        if feeds:
+            sort_feeds_big_to_small(feeds)
+            feedstock, *feeds = feeds
+            network = Network.from_feedstock(feedstock, feeds, ends)
+        else:
+            network = Network([])
+        return network
     
     def create_path(self, feeds=None, ends=()):
         isa = isinstance
@@ -204,12 +226,6 @@ class Flowsheet:
     def get_facilities(self):
         isa = isinstance
         return [i for i in self.unit if isa(i, Facility)]
-    
-    def view(self, autorefresh=True):
-        """Create an interactive process flowsheet diagram that autorefreshes itself."""
-        widget = DigraphWidget(self, autorefresh)
-        widget.show()
-        return widget
     
     def __call__(self, ID):
         """

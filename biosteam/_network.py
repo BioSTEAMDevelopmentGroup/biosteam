@@ -7,7 +7,6 @@ Created on Tue Sep 10 09:01:47 2019
 from ._unit import Unit
 from ._facility import Facility
 from ._digraph import digraph_from_units_and_streams, finalize_digraph
-    
 
 # %% Path tools
 
@@ -31,7 +30,7 @@ def find_paths_with_and_without_recycle(feed, ends):
 def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
-    unit = feed.sink if feed else None
+    unit = feed.sink
     if not unit or isinstance(unit, Facility) or feed in ends:
         paths_without_recycle.add(tuple(path))
     elif unit in path: 
@@ -84,8 +83,8 @@ def load_network_components(path, units, streams, feeds,
         if isa(i, Unit): 
             units.add(i)
             streams.update(i._ins + i._outs)
-            feeds.update([i for i in i._ins if i and not i.source])
-            products.update([i for i in i._outs if i and not i.sink])
+            feeds.update([i for i in i._ins if not i._source])
+            products.update([i for i in i._outs if not i._sink])
         elif isa(i, Network):
             feeds.update(i.feeds)
             streams.update(i.streams)

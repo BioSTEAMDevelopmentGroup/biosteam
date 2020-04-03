@@ -195,7 +195,7 @@ class Unit:
     
     def _assert_compatible_property_package(self):
         chemical_IDs = self.chemicals.IDs
-        streams = self.ins + self.outs
+        streams = self._ins + self._outs
         assert all([s.chemicals.IDs == chemical_IDs for s in streams if s]), (
             "unit operation chemicals are incompatible with inlet and outlet streams; "
             "try using the `thermo` keyword argument to initialize unit operation "
@@ -282,12 +282,12 @@ class Unit:
     
     def _get_design_info(self):
         return ()
-    
+        
     def _load_stream_links(self):
         options = self._stream_link_options
         if options:
-            s_in = self.ins[0]
-            s_out = self.outs[0]
+            s_in = self._ins[0]
+            s_out = self._outs[0]
             s_out.link_with(s_in, options.flow, options.phase, options.TP)
     
     def _summary(self):
