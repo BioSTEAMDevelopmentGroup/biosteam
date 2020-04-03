@@ -717,7 +717,7 @@ class Evaporator_PQ(Unit):
         
         # Optional if Q also comes from condensing a side stream
         Q = self.Q
-        if utility_liquid:
+        if not utility_vapor.isempty():
             utility_liquid.copy_like(utility_vapor)
             utility_liquid.phase = 'l'
             Q += utility_vapor.Hvap

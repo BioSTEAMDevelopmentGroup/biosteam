@@ -13,6 +13,7 @@ from thermosteam import Stream
 __all__ = ('digraph_from_units',
            'digraph_from_units_and_streams',
            'digraph_from_units_and_connections',
+           'update_digraph_from_units_and_connections',
            'blank_digraph',
            'minimal_digraph',
            'surface_digraph',
@@ -42,6 +43,7 @@ def blank_digraph(format='svg', **graph_attrs):
 def get_section_inlets_and_outlets(units, streams):
     outs = []
     ins = []
+    units = tuple(units)
     for s in streams:
         source = s._source
         sink = s._sink
@@ -81,7 +83,6 @@ def surface_digraph(path):
         u._ins[:] = ins
         u._outs[:] = outs    
     return f
-
 
 def update_surface_units(ID, streams, units, surface_units, old_unit_connections):
     outs = []
@@ -134,14 +135,17 @@ def digraph_from_units_and_streams(units, streams, **graph_attrs):
 
 def digraph_from_units_and_connections(units, connections, **graph_attrs):
     f = blank_digraph(**graph_attrs)
+    update_digraph_from_units_and_connections(f, units, connections)
+    return f
+
+def update_digraph_from_units_and_connections(f: Digraph, units, connections):
     # Set up unit nodes
     unit_names = {}  # Contains full description (ID and line) by unit
     for u in units:
         node = u.get_node()
         f.node(**node)
         unit_names[u] = node['name']
-    add_connections(f, connections, unit_names)
-    return f
+    add_connections(f, connections, unit_names)    
 
 def get_stream_connection(stream):
     source = stream._source
@@ -151,7 +155,9 @@ def get_stream_connection(stream):
     return Connection(source, source_index, stream, sink_index, sink)
 
 def get_all_connections(streams):
-    return {get_stream_connection(s) for s in streams if s and (s._source or s._sink)}
+    return {get_stream_connection(s)
+            for s in streams 
+            if (s._source or s._sink)}
 
 def add_connection(f: Digraph, connection, unit_names=None):
     source, source_index, stream, sink_index, sink = connection
@@ -161,28 +167,39 @@ def add_connection(f: Digraph, connection, unit_names=None):
     else:
         has_source = source in unit_names
         has_sink = sink in unit_names
-    # Make stream nodes / unit-stream edges / unit-unit edges
-    if has_sink and not has_source:
-        # Feed stream case
-        f.node(stream.ID)
-        edge_in = sink._graphics.edge_in
-        f.attr('edge', arrowtail='none', arrowhead='none',
-               tailport='e', **edge_in[sink_index])
-        f.edge(stream.ID, unit_names[sink])
-    elif has_source and not has_sink:
-        # Product stream case
-        f.node(stream.ID)
-        edge_out = source._graphics.edge_out
-        f.attr('edge', arrowtail='none', arrowhead='none',
-               headport='w', **edge_out[source_index])
-        f.edge(unit_names[source], stream.ID)
+    
+    if stream:
+        # Make stream nodes / unit-stream edges / unit-unit edges
+        if has_sink and not has_source:
+            # Feed stream case
+            f.node(stream.ID)
+            edge_in = sink._graphics.edge_in
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   tailport='e', **edge_in[sink_index])
+            f.edge(stream.ID, unit_names[sink])
+        elif has_source and not has_sink:
+            # Product stream case
+            f.node(stream.ID)
+            edge_out = source._graphics.edge_out
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   headport='w', **edge_out[source_index])
+            f.edge(unit_names[source], stream.ID)
+        elif has_sink and has_source:
+            # Process stream case
+            edge_in = sink._graphics.edge_in
+            edge_out = source._graphics.edge_out
+            f.attr('edge', arrowtail='none', arrowhead='normal',
+                   **edge_in[sink_index], **edge_out[source_index])
+            f.edge(unit_names[source], unit_names[sink], label=stream.ID)
+        else:
+            f.node(stream.ID)
     elif has_sink and has_source:
-        # Process stream case
+        # Missing process stream case
         edge_in = sink._graphics.edge_in
         edge_out = source._graphics.edge_out
         f.attr('edge', arrowtail='none', arrowhead='normal',
                **edge_in[sink_index], **edge_out[source_index])
-        f.edge(unit_names[source], unit_names[sink], label=stream.ID)
+        f.edge(unit_names[source], unit_names[sink], style='dashed')
 
 def add_connections(f: Digraph, connections, unit_names=None):
     # Set attributes for graph and streams

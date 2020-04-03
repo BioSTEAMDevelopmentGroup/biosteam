@@ -112,7 +112,7 @@ class BoilerTurbogenerator(Facility):
             H_steam += self.side_steam.H
         LHV_feed = 0
         for feed in (feed_solids, feed_gas):
-            if feed: LHV_feed -= feed.LHV
+            if not feed.isempty(): LHV_feed -= feed.LHV
         
         # This is simply for the mass balance (no special purpose)
         # TODO: In reality, this should be CO2

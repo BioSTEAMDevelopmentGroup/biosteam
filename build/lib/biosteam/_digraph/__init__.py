@@ -9,7 +9,7 @@ from . import (digraph,
                widget)
 
 __all__ = (*digraph.__all__,
-           *widget.__all__)
+           *widget.__all__,)
 
 from .digraph import *
 from .widget import *
