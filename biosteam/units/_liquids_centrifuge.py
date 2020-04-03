@@ -146,14 +146,14 @@ class LLECentrifuge(LiquidsCentrifuge):
     outs...
     [0] light
         phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   24.1
-                        Glycerol   8.96
-                        Biodiesel  0.00772
-                        Lipid      1.11e-16
+        flow (kmol/hr): Methanol   24.2
+                        Glycerol   8.95
+                        Biodiesel  0.0163
+                        Lipid      0.000205
     [1] heavy
         phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   8.75
-                        Glycerol   0.013
+                        Glycerol   0.0207
                         Biodiesel  26.9
                         Lipid      0.996
     >>> C1.results()
