@@ -60,8 +60,8 @@ Key Features & Capabilities
    :maxdepth: 1
    :caption: Developer's guide
    
-   ../CONTRIBUTING
-   ../CODE_OF_CONDUCT
+   developer's_guide/CONTRIBUTING
+   developer's_guide/CODE_OF_CONDUCT
 
 Licence
 -------
