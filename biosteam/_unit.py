@@ -198,7 +198,7 @@ class Unit:
         streams = self._ins + self._outs
         assert all([s.chemicals.IDs == chemical_IDs for s in streams if s]), (
             "unit operation chemicals are incompatible with inlet and outlet streams; "
-            "try using the `thermo` keyword argument to initialize unit operation "
+            "try using the `thermo` keyword argument to initialize the unit operation "
             "with a compatible thermodynamic property package")
     
     def disconnect(self):
