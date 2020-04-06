@@ -17,4 +17,4 @@ The BioSTEAM Project Contributors is composed of:
   * Yalin Li
 
 * All other developers that have contributed to the biosteam repository:
-  https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors
+  <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>
