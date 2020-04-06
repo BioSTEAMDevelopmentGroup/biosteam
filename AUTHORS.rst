@@ -1,6 +1,6 @@
 The BioSTEAM Project Contributors is composed of:
 
-* Yoel Cortes-Pena <yoelcortes@gmail.com> (Main BioSTEAM author and maintainer)
+* Yoel Cortes-Pena (Main BioSTEAM author and maintainer)
 
 * Developers who have contributed in person and through email, including:
 
@@ -17,5 +17,4 @@ The BioSTEAM Project Contributors is composed of:
   * Yalin Li
 
 * All other developers that have contributed to the biosteam repository:
-  
-  <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>
+  https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors
