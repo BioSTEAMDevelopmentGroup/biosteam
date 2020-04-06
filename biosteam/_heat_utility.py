@@ -461,7 +461,10 @@ class HeatUtility:
         cost_units = cost or su.cost
         
         # Change units and return info string
-        flow = self.inlet_utility_stream.get_total_flow(flow_units)
+        if flow_units == 'kmol/hr':
+            flow = self.flow
+        else:
+            flow = self.inlet_utility_stream.get_total_flow(flow_units)
         duty = convert(self.duty, 'kJ/hr', duty_units)
         cost = convert(self.cost, 'USD/hr', cost_units)
         return duty, flow, cost, duty_units, flow_units, cost_units
