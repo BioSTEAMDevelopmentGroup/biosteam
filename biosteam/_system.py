@@ -479,7 +479,7 @@ class System(metaclass=system):
             f = self._minimal_digraph(format=format, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
-        finalize_digraph(f, file=file, format=format, **graph_attrs)
+        finalize_digraph(f, file, format)
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):

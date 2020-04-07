@@ -583,7 +583,7 @@ class Unit:
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
-        f = self.get_digraph(format, *graph_attrs)
+        f = self.get_digraph(format, **graph_attrs)
         finalize_digraph(f, file, format)
     
     ### Net input and output flows ###
