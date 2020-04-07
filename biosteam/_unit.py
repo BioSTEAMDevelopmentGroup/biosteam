@@ -69,15 +69,15 @@ class Unit:
         A unique identification. If ID is None, unit will not be
         registered in flowsheet.
     ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
-        Input streams or IDs to initialize input streams.
+        Inlet streams or IDs to initialize input streams.
         If empty, default IDs will be given. If None, defaults to missing streams.
     outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
-        Output streams or IDs to initialize output streams.
+        Outlet streams or IDs to initialize output streams.
         If empty, default IDs will be given.
         If None, leave streams missing.
     thermo=None : Thermo
-        Thermo object to initialize input and output streams. Defaults to
-        `biosteam.settings.thermo`.
+        Thermo object to initialize inlet and outlet streams. Defaults to
+        `biosteam.settings.get_thermo()`.
     
     Attributes
     ----------

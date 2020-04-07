@@ -243,7 +243,7 @@ class State:
     def __call__(self, sample):
         """Update state given sample of parameters."""
         if not self._update: self._loadparams()
-        return self._update(np.asarray(sample, dtype=float))
+        self._update(np.asarray(sample, dtype=float))
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'

@@ -149,10 +149,8 @@ class BoilerTurbogenerator(Facility):
             electricity = H_electricity * TG_eff
             cooling = electricity - H_electricity
         hu_cooling(cooling, steam.T)
-        hu_steam.agent = self.agent
-        hu_steam.flow = -sum([i.flow for i in steam_utilities])
-        hu_steam.duty = -sum([i.duty for i in steam_utilities])
-        hu_steam.cost = -sum([i.cost for i in steam_utilities])
+        hu_steam.mix_from(steam_utilities)
+        hu_steam.reverse()
         Design['Work'] = electricity/3600
 
     def _end_decorated_cost_(self):

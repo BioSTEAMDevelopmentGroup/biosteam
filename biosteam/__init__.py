@@ -25,10 +25,10 @@ from . import evaluation
 __all__ = ['Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
            'main_flowsheet', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
-           'MultiStream', 'settings', 'Network',
+           'MultiStream', 'settings', 'Network', 'speed_up',
            *units.__all__, *evaluation.__all__]
 
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
+from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, speed_up
 from .evaluation import *
 from .units import *
 

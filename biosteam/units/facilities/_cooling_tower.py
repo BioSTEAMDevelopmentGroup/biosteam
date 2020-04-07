@@ -59,16 +59,16 @@ class CoolingTower(Facility):
                         cwu.add(hu)
         used = self._ins[0]
         
-        #: Cooling water flow rate (kmol/hr)
-        used.mol[0] = \
-        self.design_results['Flow rate'] = \
-        self.cooling_water = sum([i.flow for i in cwu])
         hu = self.heat_utilities[0]
-        cw = hu.get_cooling_agent('cooling_water')
-        self._outs[0].T = cw.T
-        hu.ID = 'cooling_water'
-        hu.cost = -self.cooling_water*cw.regeneration_price
+        hu.mix_from(cwu)
+        
+        used.imol['7732-18-5'] = \
+        self.design_results['Flow rate'] = \
+        self.cooling_water = hu.flow 
+        
+        self._outs[0].T = hu.inlet_utility_stream.T
         self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)
+        hu.reverse()
 
 CoolingTower._N_outs = CoolingTower._N_ins = 2
     

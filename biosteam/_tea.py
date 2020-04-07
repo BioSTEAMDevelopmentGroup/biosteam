@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from flexsolve import wegstein_secant, aitken_secant, secant
 from copy import copy as copy_
-from numba import njit
+from thermosteam.utils import njitable
 
 __all__ = ('TEA', 'CombinedTEA')
 
@@ -48,7 +48,6 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
 
 # %% Utilities
     
-@njit    
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
@@ -57,7 +56,7 @@ def initial_loan_principal(loan, interest):
         principal *= k
     return principal
 
-@njit
+@njitable
 def final_loan_principal(payment, principal, interest, years):
     for iter in range(years):
         principal += principal * interest - payment
@@ -69,7 +68,7 @@ def solve_payment(payment, loan, interest, years):
                            payment, payment+10., 1e-4, 1e-4,
                            args=(principal, interest, years))
 
-@njit
+@njitable
 def net_earnings(D, C, S, start,
                  FCI, TDC, VOC, FOC, sales,
                  income_tax,

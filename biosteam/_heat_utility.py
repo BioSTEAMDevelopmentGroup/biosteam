@@ -419,6 +419,31 @@ class HeatUtility:
         self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
         self.agent = agent
 
+    def mix_from(self, heat_utilities):
+        N_heat_utilities = len(heat_utilities)
+        if N_heat_utilities == 0:
+            self.empty()
+        elif N_heat_utilities == 1:
+            self.copy_like(heat_utilities[0])
+        else:
+            heat_utility, *other_heat_utilities = heat_utilities
+            agent = heat_utility.agent
+            assert all([i.agent is agent for i in other_heat_utilities]), (
+                "utility agent must be the same to mix heat utilities")
+            self.load_agent(agent)
+            self.flow = self.inlet_utility_stream.F_mol = sum([i.flow for i in heat_utilities])
+            self.duty = sum([i.duty for i in heat_utilities])
+            self.cost = sum([i.cost for i in heat_utilities])
+            self.heat_transfer_efficiency = None
+            self.T_pinch = None
+            self.iscooling = None
+
+    def reverse(self):
+        self.flow *= -1
+        self.duty *= -1
+        self.cost *= -1
+        self.inlet_utility_stream, self.outlet_utility_stream = self.outlet_utility_stream, self.inlet_utility_stream
+
     # Subcalculations
 
     @staticmethod
@@ -461,10 +486,7 @@ class HeatUtility:
         cost_units = cost or su.cost
         
         # Change units and return info string
-        if flow_units == 'kmol/hr':
-            flow = self.flow
-        else:
-            flow = self.inlet_utility_stream.get_total_flow(flow_units)
+        flow = self.inlet_utility_stream.get_total_flow(flow_units)
         duty = convert(self.duty, 'kJ/hr', duty_units)
         cost = convert(self.cost, 'USD/hr', cost_units)
         return duty, flow, cost, duty_units, flow_units, cost_units
