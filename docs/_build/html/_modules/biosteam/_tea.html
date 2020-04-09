@@ -106,13 +106,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -187,7 +188,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">flexsolve</span> <span class="kn">import</span> <span class="n">wegstein_secant</span><span class="p">,</span> <span class="n">aitken_secant</span><span class="p">,</span> <span class="n">secant</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span> <span class="k">as</span> <span class="n">copy_</span>
-<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span>
+<span class="kn">from</span> <span class="nn">thermosteam.utils</span> <span class="kn">import</span> <span class="n">njitable</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TEA&#39;</span><span class="p">,</span> <span class="s1">&#39;CombinedTEA&#39;</span><span class="p">)</span>
 
@@ -226,7 +227,6 @@
 
 <span class="c1"># %% Utilities</span>
     
-<span class="nd">@njit</span>    
 <span class="k">def</span> <span class="nf">initial_loan_principal</span><span class="p">(</span><span class="n">loan</span><span class="p">,</span> <span class="n">interest</span><span class="p">):</span>
     <span class="n">principal</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">k</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">+</span> <span class="n">interest</span>
@@ -235,7 +235,7 @@
         <span class="n">principal</span> <span class="o">*=</span> <span class="n">k</span>
     <span class="k">return</span> <span class="n">principal</span>
 
-<span class="nd">@njit</span>
+<span class="nd">@njitable</span>
 <span class="k">def</span> <span class="nf">final_loan_principal</span><span class="p">(</span><span class="n">payment</span><span class="p">,</span> <span class="n">principal</span><span class="p">,</span> <span class="n">interest</span><span class="p">,</span> <span class="n">years</span><span class="p">):</span>
     <span class="k">for</span> <span class="nb">iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">years</span><span class="p">):</span>
         <span class="n">principal</span> <span class="o">+=</span> <span class="n">principal</span> <span class="o">*</span> <span class="n">interest</span> <span class="o">-</span> <span class="n">payment</span>
@@ -247,7 +247,7 @@
                            <span class="n">payment</span><span class="p">,</span> <span class="n">payment</span><span class="o">+</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span>
                            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">interest</span><span class="p">,</span> <span class="n">years</span><span class="p">))</span>
 
-<span class="nd">@njit</span>
+<span class="nd">@njitable</span>
 <span class="k">def</span> <span class="nf">net_earnings</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span>
                  <span class="n">FCI</span><span class="p">,</span> <span class="n">TDC</span><span class="p">,</span> <span class="n">VOC</span><span class="p">,</span> <span class="n">FOC</span><span class="p">,</span> <span class="n">sales</span><span class="p">,</span>
                  <span class="n">income_tax</span><span class="p">,</span>
@@ -327,7 +327,7 @@
 <span class="sd">    </span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    :doc:`tutorial/Techno-economic analysis` </span>
+<span class="sd">    :doc:`tutorial/Techno-economic_analysis` </span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     

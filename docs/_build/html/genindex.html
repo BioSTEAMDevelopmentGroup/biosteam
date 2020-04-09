@@ -107,13 +107,14 @@
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -258,6 +259,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/BinaryDistillation.html#biosteam.units.BinaryDistillation">BinaryDistillation (class in biosteam.units)</a>
 </li>
+      <li><a href="exceptions.html#module-biosteam.exceptions">biosteam.exceptions (module)</a>
+</li>
       <li><a href="units/decorators.html#module-biosteam.units.decorators">biosteam.units.decorators (module)</a>
 </li>
       <li><a href="units/design_tools/batch.html#module-biosteam.units.design_tools.batch">biosteam.units.design_tools.batch (module)</a>
@@ -272,10 +275,10 @@
 </li>
       <li><a href="units/design_tools/mechanical.html#module-biosteam.units.design_tools.mechanical">biosteam.units.design_tools.mechanical (module)</a>
 </li>
-      <li><a href="units/design_tools/specification_factors.html#module-biosteam.units.design_tools.specification_factors">biosteam.units.design_tools.specification_factors (module)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="units/design_tools/specification_factors.html#module-biosteam.units.design_tools.specification_factors">biosteam.units.design_tools.specification_factors (module)</a>
+</li>
       <li><a href="units/design_tools/tank_design.html#module-biosteam.units.design_tools.tank_design">biosteam.units.design_tools.tank_design (module)</a>
 </li>
       <li><a href="units/design_tools/vacuum.html#module-biosteam.units.design_tools.vacuum">biosteam.units.design_tools.vacuum (module)</a>
@@ -422,6 +425,8 @@
 </li>
       <li><a href="Unit.html#biosteam.Unit.design_results">design_results (biosteam.Unit attribute)</a>
 </li>
+      <li><a href="exceptions.html#biosteam.exceptions.DesignError">DesignError</a>
+</li>
       <li><a href="UtilityAgent.html#biosteam.UtilityAgent.dew_point_at_P">dew_point_at_P() (biosteam.UtilityAgent method)</a>
 </li>
       <li><a href="UtilityAgent.html#biosteam.UtilityAgent.dew_point_at_T">dew_point_at_T() (biosteam.UtilityAgent method)</a>
@@ -438,14 +443,16 @@
         <li><a href="units/StorageTank.html#biosteam.units.StorageTank.diagram">(biosteam.units.StorageTank method)</a>
 </li>
       </ul></li>
+      <li><a href="exceptions.html#biosteam.exceptions.DimensionError">DimensionError</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="HeatUtility.html#biosteam.HeatUtility.display_units">display_units (biosteam.HeatUtility attribute)</a>
 
       <ul>
         <li><a href="PowerUtility.html#biosteam.PowerUtility.display_units">(biosteam.PowerUtility attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="units/design_tools/specification_factors.html#biosteam.units.design_tools.specification_factors.distillation_column_material_factors">distillation_column_material_factors (in module biosteam.units.design_tools.specification_factors)</a>
 </li>
       <li><a href="units/design_tools/specification_factors.html#biosteam.units.design_tools.specification_factors.distillation_tray_type_factor">distillation_tray_type_factor (in module biosteam.units.design_tools.specification_factors)</a>
@@ -1428,6 +1435,12 @@
         <li><a href="units/HXutility.html#biosteam.units.HXutility.U">(biosteam.units.HXutility attribute)</a>
 </li>
       </ul></li>
+      <li><a href="exceptions.html#biosteam.exceptions.UndefinedChemical">UndefinedChemical</a>
+</li>
+      <li><a href="exceptions.html#biosteam.exceptions.UndefinedPhase">UndefinedPhase</a>
+</li>
+      <li><a href="exceptions.html#biosteam.exceptions.UndefinedPhaseOrChemical">UndefinedPhaseOrChemical</a>
+</li>
       <li><a href="Unit.html#biosteam.Unit">Unit (class in biosteam)</a>
 </li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable.units">units (biosteam.evaluation.Variable attribute)</a>
@@ -1436,10 +1449,10 @@
         <li><a href="TEA.html#biosteam.TEA.units">(biosteam.TEA attribute)</a>
 </li>
       </ul></li>
-      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.unlink">unlink() (biosteam.UtilityAgent method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.unlink">unlink() (biosteam.UtilityAgent method)</a>
+</li>
       <li><a href="CombinedTEA.html#biosteam.CombinedTEA.utility_cost">utility_cost() (biosteam.CombinedTEA property)</a>
 
       <ul>
@@ -1487,6 +1500,8 @@
 </li>
       </ul></li>
       <li><a href="units/Flash.html#biosteam.units.Flash.vacuum_system_preference">vacuum_system_preference (biosteam.units.Flash attribute)</a>
+</li>
+      <li><a href="UtilityAgent.html#biosteam.UtilityAgent.vapor_fraction">vapor_fraction() (biosteam.UtilityAgent property)</a>
 </li>
       <li><a href="evaluation/Variable.html#biosteam.evaluation.Variable">Variable (class in biosteam.evaluation)</a>
 </li>

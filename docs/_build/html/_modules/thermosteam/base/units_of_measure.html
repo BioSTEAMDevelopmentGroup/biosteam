@@ -106,13 +106,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -186,7 +187,7 @@
            <span class="s1">&#39;stream_units_of_measure&#39;</span><span class="p">,</span>
            <span class="s1">&#39;ureg&#39;</span><span class="p">,</span> <span class="s1">&#39;get_dimensionality&#39;</span><span class="p">,</span>
            <span class="s1">&#39;DisplayUnits&#39;</span><span class="p">,</span> <span class="s1">&#39;UnitsOfMeasure&#39;</span><span class="p">,</span> <span class="s1">&#39;convert&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;Quantity&#39;</span><span class="p">)</span>
+           <span class="s1">&#39;Quantity&#39;</span><span class="p">,</span> <span class="s1">&#39;format_plot_units&#39;</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">..exceptions</span> <span class="kn">import</span> <span class="n">DimensionError</span>
 
@@ -204,12 +205,43 @@
 <span class="n">Quantity</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span>
 <span class="k">del</span> <span class="n">os</span><span class="p">,</span> <span class="n">UnitRegistry</span>
 
+<span class="c1"># %% Functions</span>
+
+<span class="k">def</span> <span class="nf">format_degrees</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">units</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;deg&#39;</span><span class="p">):</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;^\circ &#39;</span> <span class="o">+</span> <span class="n">units</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">units</span>
+
+<span class="k">def</span> <span class="nf">format_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">isnumerator</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s1">&#39;^&#39;</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="n">units</span><span class="p">,</span> <span class="n">power</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;^&#39;</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">format_degrees</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;\mathrm{&#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
+        <span class="n">units</span> <span class="o">+=</span> <span class="s1">&#39;^{&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">power</span> <span class="k">if</span> <span class="n">isnumerator</span> <span class="k">else</span> <span class="o">-</span><span class="n">power</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">format_degrees</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;\mathrm{&#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
+    <span class="k">return</span> <span class="n">units</span>
+
+<span class="k">def</span> <span class="nf">format_plot_units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">all_numerators</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_denominators</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">unprocessed_denominators</span> <span class="ow">in</span> <span class="n">units</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">denominator</span><span class="p">,</span> <span class="o">*</span><span class="n">numerators</span> <span class="o">=</span> <span class="n">unprocessed_denominators</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+        <span class="n">all_denominators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">denominator</span><span class="p">)</span>
+        <span class="n">all_numerators</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">numerators</span><span class="p">)</span>
+    <span class="n">all_numerators</span> <span class="o">=</span> <span class="p">[</span><span class="n">format_units</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_numerators</span><span class="p">]</span>
+    <span class="n">all_denominators</span> <span class="o">=</span> <span class="p">[</span><span class="n">format_units</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_denominators</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s1">&#39;$&#39;</span> <span class="o">+</span> <span class="s1">&#39; \cdot &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_numerators</span> <span class="o">+</span> <span class="n">all_denominators</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;$&#39;</span>
+
 <span class="c1"># %% Manage conversion factors</span>
 
 <span class="k">class</span> <span class="nc">UnitsOfMeasure</span><span class="p">:</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_units&#39;</span><span class="p">,</span> <span class="s1">&#39;_units_container&#39;</span><span class="p">,</span> <span class="s1">&#39;_dimensionality&#39;</span><span class="p">,</span> <span class="s1">&#39;_factor_cache&#39;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_units&#39;</span><span class="p">,</span> <span class="s1">&#39;_units_container&#39;</span><span class="p">,</span> 
+                 <span class="s1">&#39;_dimensionality&#39;</span><span class="p">,</span> <span class="s1">&#39;_factor_cache&#39;</span><span class="p">)</span>
     <span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">units</span>
         <span class="n">cache</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cache</span>
@@ -315,17 +347,18 @@
                              <span class="s1">&#39;Pc&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;Pa&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;Psat&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;Pa&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;Pt&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">),</span>
-                             <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">),</span>
+                             <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">,),</span>
                              <span class="s1">&#39;Vc&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">),</span>
-                             <span class="s1">&#39;Cp&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/g/K&#39;</span><span class="p">),</span>
-                             <span class="s1">&#39;Cn&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol/K&#39;</span><span class="p">),</span>
-                             <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">),</span> 
+                             <span class="s1">&#39;Cp&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/g/K&#39;</span><span class="p">,),</span>
+                             <span class="s1">&#39;Cn&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol/K&#39;</span><span class="p">,),</span>
+                             <span class="s1">&#39;R&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol/K&#39;</span><span class="p">),</span>
+                             <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;rhoc&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;nu&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">),</span>
+                             <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;Pa*s&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;N/m&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;kappa&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;W/m/K&#39;</span><span class="p">),</span>
-                             <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">),</span> 
                              <span class="s1">&#39;Hvap&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol&#39;</span><span class="p">),</span>  
                              <span class="s1">&#39;Hf&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol&#39;</span><span class="p">),</span> 
@@ -338,7 +371,6 @@
                              <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;H_excess&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol&#39;</span><span class="p">),</span> 
                              <span class="s1">&#39;S_excess&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol&#39;</span><span class="p">),</span>
-                             <span class="s1">&#39;R&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;J/mol/K&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;dipole&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;Debye&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;delta&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;Pa^0.5&#39;</span><span class="p">),</span>
                              <span class="s1">&#39;epsilon&#39;</span><span class="p">:</span> <span class="n">UnitsOfMeasure</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">),</span>
@@ -419,15 +451,17 @@
 <span class="c1"># Synonyms</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;ω&#39;</span><span class="p">,</span> <span class="s1">&#39;omega&#39;</span><span class="p">)]:</span>
     <span class="n">definitions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">definitions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">chemical_units_of_measure</span><span class="p">:</span> <span class="n">chemical_units_of_measure</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">chemical_units_of_measure</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">chemical_units_of_measure</span><span class="p">:</span>
+        <span class="n">chemical_units_of_measure</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">chemical_units_of_measure</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
 <span class="c1"># Phase properties</span>
 <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Cn&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;kappa&#39;</span><span class="p">,</span> <span class="s1">&#39;H_excess&#39;</span><span class="p">,</span> <span class="s1">&#39;S_excess&#39;</span><span class="p">):</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">chemical_units_of_measure</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
     <span class="n">definition</span> <span class="o">=</span> <span class="n">definitions</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">phase</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Solid &#39;</span><span class="p">,</span> <span class="s1">&#39;Liquid &#39;</span><span class="p">,</span> <span class="s1">&#39;Gas &#39;</span><span class="p">)):</span>
-        <span class="n">phasevar</span> <span class="o">=</span> <span class="n">var</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span><span class="n">tag</span>
-        <span class="n">definitions</span><span class="p">[</span><span class="n">phasevar</span><span class="p">]</span> <span class="o">=</span> <span class="n">phase</span> <span class="o">+</span> <span class="n">definition</span>
+        <span class="n">phase_var</span> <span class="o">=</span> <span class="n">var</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">tag</span>
+        <span class="n">phase_var2</span> <span class="o">=</span> <span class="n">var</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">tag</span>
+        <span class="n">definitions</span><span class="p">[</span><span class="n">phase_var</span><span class="p">]</span> <span class="o">=</span> <span class="n">definitions</span><span class="p">[</span><span class="n">phase_var2</span><span class="p">]</span> <span class="o">=</span> <span class="n">phase</span> <span class="o">+</span> <span class="n">definition</span>
 </pre></div>
 
            </div>

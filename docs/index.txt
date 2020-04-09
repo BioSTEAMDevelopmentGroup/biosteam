@@ -52,6 +52,7 @@ Key Features & Capabilities
    TEA
    CombinedTEA
    Flowsheet
+   exceptions
    units/units
    evaluation/evaluation
 

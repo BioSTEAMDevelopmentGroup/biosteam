@@ -106,13 +106,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -247,15 +248,15 @@
 <span class="sd">        A unique identification. If ID is None, unit will not be</span>
 <span class="sd">        registered in flowsheet.</span>
 <span class="sd">    ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str</span>
-<span class="sd">        Input streams or IDs to initialize input streams.</span>
+<span class="sd">        Inlet streams or IDs to initialize input streams.</span>
 <span class="sd">        If empty, default IDs will be given. If None, defaults to missing streams.</span>
 <span class="sd">    outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str</span>
-<span class="sd">        Output streams or IDs to initialize output streams.</span>
+<span class="sd">        Outlet streams or IDs to initialize output streams.</span>
 <span class="sd">        If empty, default IDs will be given.</span>
 <span class="sd">        If None, leave streams missing.</span>
 <span class="sd">    thermo=None : Thermo</span>
-<span class="sd">        Thermo object to initialize input and output streams. Defaults to</span>
-<span class="sd">        `biosteam.settings.thermo`.</span>
+<span class="sd">        Thermo object to initialize inlet and outlet streams. Defaults to</span>
+<span class="sd">        `biosteam.settings.get_thermo()`.</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -376,7 +377,7 @@
         <span class="n">streams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">chemicals</span><span class="o">.</span><span class="n">IDs</span> <span class="o">==</span> <span class="n">chemical_IDs</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span> <span class="k">if</span> <span class="n">s</span><span class="p">]),</span> <span class="p">(</span>
             <span class="s2">&quot;unit operation chemicals are incompatible with inlet and outlet streams; &quot;</span>
-            <span class="s2">&quot;try using the `thermo` keyword argument to initialize unit operation &quot;</span>
+            <span class="s2">&quot;try using the `thermo` keyword argument to initialize the unit operation &quot;</span>
             <span class="s2">&quot;with a compatible thermodynamic property package&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -761,7 +762,7 @@
             <span class="n">neighborhood</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">sys</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_digraph</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="o">*</span><span class="n">graph_attrs</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_digraph</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_attrs</span><span class="p">)</span>
         <span class="n">finalize_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
     
     <span class="c1">### Net input and output flows ###</span>

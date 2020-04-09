@@ -52,6 +52,7 @@ Key Features & Capabilities
    TEA
    CombinedTEA
    Flowsheet
+   exceptions
    units/units
    evaluation/evaluation
 
@@ -60,8 +61,8 @@ Key Features & Capabilities
    :maxdepth: 1
    :caption: Developer's guide
    
-   developer's_guide/Contributing_to_BioSTEAM
-   developer's_guide/Code_of_conduct
+   CONTRIBUTING
+   CODE_OF_CONDUCT
 
 Licence
 -------

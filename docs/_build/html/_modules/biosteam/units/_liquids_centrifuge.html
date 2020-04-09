@@ -106,13 +106,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -324,25 +325,25 @@
 <span class="sd">    outs...</span>
 <span class="sd">    [0] light</span>
 <span class="sd">        phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
-<span class="sd">        flow (kmol/hr): Methanol   24.2</span>
-<span class="sd">                        Glycerol   8.95</span>
-<span class="sd">                        Biodiesel  0.0163</span>
-<span class="sd">                        Lipid      0.000205</span>
-<span class="sd">    [1] heavy</span>
-<span class="sd">        phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Methanol   8.75</span>
-<span class="sd">                        Glycerol   0.0207</span>
+<span class="sd">                        Glycerol   0.013</span>
 <span class="sd">                        Biodiesel  26.9</span>
 <span class="sd">                        Lipid      0.996</span>
+<span class="sd">    [1] heavy</span>
+<span class="sd">        phase: &#39;l&#39;, T: 333.15 K, P: 101325 Pa</span>
+<span class="sd">        flow (kmol/hr): Methanol   24.1</span>
+<span class="sd">                        Glycerol   8.96</span>
+<span class="sd">                        Biodiesel  0.00772</span>
+<span class="sd">                        Lipid      5.22e-15</span>
 <span class="sd">    &gt;&gt;&gt; C1.results()</span>
 <span class="sd">    Liquids centrifuge                          Units       C1</span>
-<span class="sd">    Power               Rate                       kW     45.4</span>
-<span class="sd">                        Cost                   USD/hr     3.55</span>
-<span class="sd">    Design              Flow rate              m^3/hr     12.4</span>
+<span class="sd">    Power               Rate                       kW       44</span>
+<span class="sd">                        Cost                   USD/hr     3.44</span>
+<span class="sd">    Design              Flow rate              m^3/hr       12</span>
 <span class="sd">                        Number of centrifuges                1</span>
-<span class="sd">    Purchase cost       Liquids centrifuge        USD 1.29e+05</span>
-<span class="sd">    Total purchase cost                           USD 1.29e+05</span>
-<span class="sd">    Utility cost                               USD/hr     3.55</span>
+<span class="sd">    Purchase cost       Liquids centrifuge        USD 1.27e+05</span>
+<span class="sd">    Total purchase cost                           USD 1.27e+05</span>
+<span class="sd">    Utility cost                               USD/hr     3.44</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Liquids centrifuge&#39;</span>

@@ -106,13 +106,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -237,16 +238,16 @@
                         <span class="n">cwu</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hu</span><span class="p">)</span>
         <span class="n">used</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         
-        <span class="c1">#: Cooling water flow rate (kmol/hr)</span>
-        <span class="n">used</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">])</span>
         <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">cw</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">get_cooling_agent</span><span class="p">(</span><span class="s1">&#39;cooling_water&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">cw</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;cooling_water&#39;</span>
-        <span class="n">hu</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span><span class="o">*</span><span class="n">cw</span><span class="o">.</span><span class="n">regeneration_price</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaporation</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">blowdown</span><span class="p">)</span></div>
+        <span class="n">hu</span><span class="o">.</span><span class="n">mix_from</span><span class="p">(</span><span class="n">cwu</span><span class="p">)</span>
+        
+        <span class="n">used</span><span class="o">.</span><span class="n">imol</span><span class="p">[</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_results</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">flow</span> 
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">inlet_utility_stream</span><span class="o">.</span><span class="n">T</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaporation</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">blowdown</span><span class="p">)</span>
+        <span class="n">hu</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span></div>
 
 <span class="n">CoolingTower</span><span class="o">.</span><span class="n">_N_outs</span> <span class="o">=</span> <span class="n">CoolingTower</span><span class="o">.</span><span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     

@@ -106,13 +106,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">Flowsheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../exceptions.html">exceptions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer's guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../developer's_guide/Contributing_to_BioSTEAM.html">Contributing to BioSTEAM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../developer's_guide/Code_of_conduct.html">Code of conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CONTRIBUTING.html">Contributing to BioSTEAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CODE_OF_CONDUCT.html">Code of conduct</a></li>
 </ul>
 
             
@@ -327,8 +328,8 @@
             <span class="n">electricity</span> <span class="o">=</span> <span class="n">H_electricity</span> <span class="o">*</span> <span class="n">TG_eff</span>
             <span class="n">cooling</span> <span class="o">=</span> <span class="n">electricity</span> <span class="o">-</span> <span class="n">H_electricity</span>
         <span class="n">hu_cooling</span><span class="p">(</span><span class="n">cooling</span><span class="p">,</span> <span class="n">steam</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">hu_steam</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span>
-        <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">steam_utilities</span><span class="p">])</span>
+        <span class="n">hu_steam</span><span class="o">.</span><span class="n">mix_from</span><span class="p">(</span><span class="n">steam_utilities</span><span class="p">)</span>
+        <span class="n">hu_steam</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Work&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span>
 
     <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

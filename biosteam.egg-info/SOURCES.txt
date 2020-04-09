@@ -1,7 +1,6 @@
 README.rst
 setup.py
 biosteam/__init__.py
-biosteam/_exceptions.py
 biosteam/_facility.py
 biosteam/_flowsheet.py
 biosteam/_graphics.py
@@ -11,6 +10,7 @@ biosteam/_power_utility.py
 biosteam/_system.py
 biosteam/_tea.py
 biosteam/_unit.py
+biosteam/exceptions.py
 biosteam.egg-info/PKG-INFO
 biosteam.egg-info/SOURCES.txt
 biosteam.egg-info/dependency_links.txt
@@ -91,7 +91,6 @@ biosteam/units/facilities/_chilled_water_package.py
 biosteam/units/facilities/_cooling_tower.py
 biosteam/units/facilities/_process_water_center.py
 biosteam/utils/__init__.py
-biosteam/utils/biosteam_colors.py
 biosteam/utils/bounded_numerical_specification.py
 biosteam/utils/functors.py
 biosteam/utils/misc.py
