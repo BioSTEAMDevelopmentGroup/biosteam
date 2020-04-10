@@ -119,19 +119,19 @@ class Flash(Unit):
                         Glycerol  298
     >>> F1.results()
     Flash                                   Units            F1
-    Medium pressure steam Duty              kJ/hr      5.06e+07
-                          Flow            kmol/hr       1.4e+03
-                          Cost             USD/hr           385
+    Medium pressure steam Duty              kJ/hr      5.05e+07
+                          Flow            kmol/hr      1.39e+03
+                          Cost             USD/hr           384
     Design                Vessel type                  Vertical
-                          Length               ft          20.5
-                          Diameter             ft           5.5
-                          Weight               lb      5.17e+03
-                          Wall thickness       in         0.312
+                          Length               ft          26.5
+                          Diameter             ft           6.5
+                          Weight               lb      9.38e+03
+                          Wall thickness       in         0.375
                           Material                 Carbon steel
-    Purchase cost         Flash               USD      4.45e+04
+    Purchase cost         Flash               USD      6.24e+04
                           Heat exchanger      USD      4.04e+04
-    Total purchase cost                       USD      8.48e+04
-    Utility cost                           USD/hr           385
+    Total purchase cost                       USD      1.03e+05
+    Utility cost                           USD/hr           384
 
 
     References
