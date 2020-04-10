@@ -20,7 +20,7 @@ def test_lipidcane():
 def test_cornstover():
     from biorefineries.cornstover import system
     MESP = system.cornstover_tea.solve_price(system.ethanol)
-    assert 0.68 < MESP < 0.72, ("MESP of the corn stover biorefinery changed significantly "
+    assert 0.69 < MESP < 0.73, ("MESP of the corn stover biorefinery changed significantly "
                                f"from 0.700 to {MESP} USD/kg")
     
 if __name__ == '__main__':

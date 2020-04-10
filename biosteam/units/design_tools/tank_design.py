@@ -16,7 +16,7 @@ References
 import biosteam as bst
 from math import ceil
 from thermosteam import settings
-from thermosteam.base import UnitsOfMeasure
+from thermosteam.base import AbsoluteUnitsOfMeasure
 from ...utils import ExponentialFunctor
 
 __all__ = ('TankPurchaseCostAlgorithm',
@@ -48,7 +48,7 @@ class TankPurchaseCostAlgorithm:
         Minimum volume at which cost is considered accurate.
     V_max : float
         Maximum volume of a vessel.
-    V_units : UnitsOfMeasure
+    V_units : AbsoluteUnitsOfMeasure
         Units of measure for volume.
     
     Examples
@@ -71,7 +71,7 @@ class TankPurchaseCostAlgorithm:
         self.f_Cp = f_Cp
         self.V_min = V_min
         self.V_max = V_max
-        self.V_units = UnitsOfMeasure(V_units)
+        self.V_units = AbsoluteUnitsOfMeasure(V_units)
         self.CE = CE
         self.material = material
 
@@ -99,10 +99,11 @@ def compute_number_of_tanks_and_total_purchase_cost(total_volume,
     F_M = material_factor
     V_units = purchase_cost_algorithm.V_units
     V_total /= V_units.conversion_factor('m^3')
-    if settings.debug and V_total < purchase_cost_algorithm.V_min:
+    V_min = purchase_cost_algorithm.V_min
+    if settings.debug and V_total < V_min:
         raise RuntimeError(
              f"volume ({V_total:.5g} {V_units}) is below "
-             f"the lower bound ({self.V_min:.5g} {V_units}) for purchase "
+             f"the lower bound ({V_min:.5g} {V_units}) for purchase "
               "cost estimation")
     N = ceil(V_total / purchase_cost_algorithm.V_max)
     V = V_total / N
