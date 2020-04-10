@@ -16,7 +16,7 @@ from .utils import Ins, Outs, NotImplementedMethod, \
 from ._power_utility import PowerUtility
 from ._digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
-from thermosteam.base import UnitsOfMeasure
+from thermosteam.base import convert
 import biosteam as bst
 
 __all__ = ('Unit',)
@@ -212,10 +212,7 @@ class Unit:
         return self._graphics.get_node_taylored_to_unit(self)
     
     def get_design_result(self, key, units):
-        value = self.design_results[key]
-        units_of_measure = UnitsOfMeasure(self._units[key])
-        factor = units_of_measure.conversion_factor(units)
-        return value * factor
+        return convert(self.design_results[key], self._units[key], units)
     
     def take_place_of(self, other):
         """Replace inlets and outlets from this unit with that of another unit."""

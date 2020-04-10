@@ -307,7 +307,7 @@ class HeatUtility:
         self.cost = self.flow = self.duty = 0
         self.iscooling = self.agent = self.T_pinch = None
         
-    def __call__(self, duty, T_in, T_out=None):
+    def __call__(self, duty, T_in, T_out=None, agent=None):
         """Calculate utility requirements given the essential parameters.
         
         Parameters
@@ -318,6 +318,9 @@ class HeatUtility:
                Inlet process stream temperature (K)
         T_out : float, optional
                Outlet process stream temperature (K)
+        agent : UtilityAgent, optional
+                Utility agent to use. Defaults to a suitable agent from 
+                predefined heating/cooling utility agents.
         
         """
         if duty == 0:
@@ -331,7 +334,9 @@ class HeatUtility:
         T_pinch_in, T_pinch_out = self.get_inlet_and_outlet_T_pinch(iscooling, T_in, T_out)
 
         ## Select heat transfer agent ##
-        if self.iscooling == iscooling and self.T_pinch == T_pinch_in:
+        if agent:
+            self.load_agent(agent)
+        elif self.iscooling == iscooling and self.T_pinch == T_pinch_in:
             agent = self.agent
         else:
             self.iscooling = iscooling

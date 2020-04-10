@@ -183,7 +183,7 @@ class System(metaclass=system):
     maxiter = 100
 
     #: Molar tolerance (kmol/hr)
-    molar_tolerance = 1.0
+    molar_tolerance = 0.50
     
     #: Temperature tolerance (K)
     T_tolerance = 0.10

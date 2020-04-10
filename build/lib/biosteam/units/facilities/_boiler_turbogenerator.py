@@ -61,7 +61,8 @@ class BoilerTurbogenerator(Facility):
     network_priority = 0
     
     # TODO: Make this a whole system instead of approximating duty per mol values
-    duty_over_mol = 40000 # Superheat steam with 40000 kJ/kmol
+    duty_over_mol = 35000
+    
     boiler_blowdown = 0.03
     RO_rejection = 0
     _N_ins = 3
@@ -95,7 +96,8 @@ class BoilerTurbogenerator(Facility):
         TG_eff = self.turbogenerator_efficiency
         steam = self.steam_demand
         steam_utilities = self.steam_utilities
-        agent_ID = self.agent.ID
+        agent = self.agent
+        agent_ID = agent.ID
         if not steam_utilities:
             for u in self.system.units:
                 if u is self: continue
