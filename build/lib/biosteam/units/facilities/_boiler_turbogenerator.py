@@ -91,20 +91,22 @@ class BoilerTurbogenerator(Facility):
     
     def _run(self): pass
     
+    def _load_utility_agents(self):
+        steam_utilities = self.steam_utilities
+        steam_utilities.clear()
+        agent = self.agent
+        for u in self.system.units:
+            if u is self: continue
+            for hu in u.heat_utilities:
+                if hu.agent is agent:
+                    steam_utilities.add(hu)
+
     def _design(self):
         B_eff = self.boiler_efficiency
         TG_eff = self.turbogenerator_efficiency
         steam = self.steam_demand
-        steam_utilities = self.steam_utilities
-        agent = self.agent
-        agent_ID = agent.ID
-        if not steam_utilities:
-            for u in self.system.units:
-                if u is self: continue
-                for hu in u.heat_utilities:
-                    if hu.ID == agent_ID:
-                        steam_utilities.add(hu)
-        steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in steam_utilities])
+        self._load_utility_agents()
+        steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in self.steam_utilities])
         duty_over_mol = self.duty_over_mol
         feed_solids, feed_gas, _ = self.ins
         emissions, _ = self.outs
@@ -151,7 +153,7 @@ class BoilerTurbogenerator(Facility):
             electricity = H_electricity * TG_eff
             cooling = electricity - H_electricity
         hu_cooling(cooling, steam.T)
-        hu_steam.mix_from(steam_utilities)
+        hu_steam.mix_from(self.steam_utilities)
         hu_steam.reverse()
         Design['Work'] = electricity/3600
 

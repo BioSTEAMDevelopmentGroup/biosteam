@@ -308,7 +308,7 @@ class BinaryDistillation(Unit):
         thermo = self.thermo
         
         #: [MultiStream] Overall feed to the distillation column
-        self.feed = tmo.MultiStream(None)
+        self.feed = tmo.MultiStream(None, thermo=thermo)
         
         #: [HXutility] Condenser.
         self.condenser = HXutility(None,
@@ -680,12 +680,12 @@ class BinaryDistillation(Unit):
         # Cache
         old_args = self._McCabeThiele_args
         args = np.array([P, k, y_top, x_bot, q, zf])
-        tol = np.array([50, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6], float)
+        tol = np.array([50, 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
         if (abs(old_args - args) < tol).all(): return
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
-        if q == 1:
+        if abs(q - 1) < 1e-6:
             q = 1 - 1e-5
         q_line = lambda x: q*x/(q-1) - zf/(q-1)
         self._q_line_args = dict(q=q, zf=zf)
@@ -696,10 +696,9 @@ class BinaryDistillation(Unit):
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
         Rmin = m/(1-m)
-        if Rmin <= 0:
-            R = 0.0001*k
-        else:
-            R = Rmin*k
+        if Rmin <= 0.05:
+            Rmin = 0.05
+        R = Rmin*k
 
         # Rectifying section: Inntersects q_line with slope given by R/(R+1)
         m1 = R/(R+1)
@@ -753,6 +752,7 @@ class BinaryDistillation(Unit):
         dp = self._condensate_dew_point
         condensate_x_mol = dp.x
         condensate = self.condensate
+        condensate.empty()
         condensate.imol[dp.IDs] = condensate_x_mol * F_mol_condensate
         condensate.T = dp.T
         condensate.P = dp.P

@@ -11,6 +11,9 @@ from ... import HeatUtility
 
 __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
 
+
+# %%
+
 @cost('Flow rate', 'Cooling water pump',
       S=557183, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
 @cost('Flow rate', 'Cooling tower',
@@ -48,20 +51,26 @@ class CoolingTower(Facility):
         super().__init__(ID, ('return_cooling_water', makeup_water),
                          (cooling_water.to_stream(), loss), thermo=cooling_water.thermo)
         self.cooling_water_utilities = set()
+        self.agent = cooling_water
+        
+    def _load_utility_agents(self):
+        cwu = self.cooling_water_utilities
+        agent = self.agent
+        cwu.clear()
+        for u in self.system.units:
+            if u is self: continue
+            for hu in u.heat_utilities:
+                if hu.agent is agent:
+                    cwu.add(hu)
         
     def _design(self):
         cwu = self.cooling_water_utilities
-        if not cwu:
-            for u in self.system.units:
-                if u is self: continue
-                for hu in u.heat_utilities:
-                    if hu.ID == 'cooling_water':
-                        cwu.add(hu)
+        if not cwu: self._load_utility_agents()
         used = self._ins[0]
-        
         hu = self.heat_utilities[0]
+        self._load_utility_agents()
         hu.mix_from(cwu)
-        
+            
         used.imol['7732-18-5'] = \
         self.design_results['Flow rate'] = \
         self.cooling_water = hu.flow 

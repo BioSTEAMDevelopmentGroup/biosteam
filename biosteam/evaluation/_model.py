@@ -10,7 +10,6 @@ from ._state import State
 from ._metric import Metric
 from biosteam.utils import TicToc
 from scipy.stats import spearmanr
-import multiprocessing as mp
 
 __all__ = ('Model',)
 
