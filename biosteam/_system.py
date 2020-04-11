@@ -671,6 +671,7 @@ class System(metaclass=system):
         print(self._info())
     
     def to_network(self):
+        """Return network that defines the system path."""
         isa = isinstance
         path = [(i.to_network() if isa(i, System) else i) for i in self.path]
         network = Network.__new__(Network)    
