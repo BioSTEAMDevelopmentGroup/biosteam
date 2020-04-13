@@ -352,7 +352,7 @@ class BinaryDistillation(Unit):
         self._LHK = LHK = tuple(LHK)
         intermediate_volatile_chemicals = []
         chemicals = self.chemicals
-        LHK_chemicals = LK_chemical, HK_chemical = self.chemicals.retrieve(LHK)
+        LHK_chemicals = LK_chemical, HK_chemical = self.chemicals[LHK]
         Tb_light = LK_chemical.Tb
         Tb_heavy = HK_chemical.Tb
         LNK = []
