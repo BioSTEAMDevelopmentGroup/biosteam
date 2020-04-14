@@ -5,7 +5,6 @@ colorpalette>=0.3.0
 chaospy>=3.0.11
 graphviz>=0.8.3
 sphinx>=2.4.0
-pyqt5>=5.12
 sphinx_rtd_theme
 ipykernel
 nbsphinx
