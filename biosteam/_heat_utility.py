@@ -59,7 +59,7 @@ class UtilityAgent(Stream):
                  thermo=None, T_limit=None, heat_transfer_price=0.0,
                  regeneration_price=0.0, heat_transfer_efficiency=1.0,
                  **chemical_flows):
-        self._TP = ThermalCondition(T, P)
+        self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
         if units != 'kmol/hr':
@@ -94,7 +94,7 @@ class UtilityAgent(Stream):
         new._sink = new._source = None
         new._thermo = self._thermo
         new._imol = self._imol.copy()
-        new._TP = self._TP.copy()
+        new._thermal_condition = self._thermal_condition.copy()
         new._init_cache()
         new.price = 0
         new.ID = ID
