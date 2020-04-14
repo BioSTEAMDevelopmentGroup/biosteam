@@ -268,6 +268,7 @@ class BinaryDistillation(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                 P=101325, *, LHK, k,
+                Rmin=0.6,
                 Lr=None,
                 Hr=None,
                 y_top=None,
@@ -288,6 +289,7 @@ class BinaryDistillation(Unit):
         # Operation specifications
         self.k = k
         self.P = P
+        self.Rmin = Rmin
         self.LHK = LHK
         self._set_distillation_product_specifications(product_specification_format,
                                                       x_bot, y_top, Lr, Hr)
@@ -387,6 +389,15 @@ class BinaryDistillation(Unit):
         self._gases_index = get_index(gases)
         self._solids_index = get_index(solids)
         self._intermediate_volatile_chemicals = tuple(intermediate_volatile_chemicals)
+    
+    @property
+    def Rmin(self):
+        """User enforced reflux ratio."""
+        return self._Rmin
+    @Rmin.setter
+    def Rmin(self, Rmin):
+        """User enforced minimum reflux ratio."""
+        self._Rmin = Rmin
     
     @property
     def y_top(self):
@@ -685,8 +696,8 @@ class BinaryDistillation(Unit):
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
-        if abs(q - 1) < 1e-6:
-            q = 1 - 1e-5
+        if abs(q - 1) < 1e-4:
+            q = 1 - 1e-4
         q_line = lambda x: q*x/(q-1) - zf/(q-1)
         self._q_line_args = dict(q=q, zf=zf)
         
@@ -696,9 +707,9 @@ class BinaryDistillation(Unit):
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
         Rmin = m/(1-m)
-        if Rmin <= 0.05:
-            Rmin = 0.05
-        R = Rmin*k
+        if Rmin < self._Rmin:
+            Rmin = self._Rmin
+        R = k * Rmin
 
         # Rectifying section: Inntersects q_line with slope given by R/(R+1)
         m1 = R/(R+1)

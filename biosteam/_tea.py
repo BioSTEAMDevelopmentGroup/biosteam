@@ -398,9 +398,9 @@ class TEA:
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
-            end = start+years
+            end = start + years
             L[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
-            f_interest = (1.+interest)
+            f_interest = (1. + interest)
             LP[start:end] = solve_payment(loan.sum()/years * f_interest,
                                            loan, interest, years)
             loan_principal = 0

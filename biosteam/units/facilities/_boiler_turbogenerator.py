@@ -61,7 +61,7 @@ class BoilerTurbogenerator(Facility):
     network_priority = 0
     
     # TODO: Make this a whole system instead of approximating duty per mol values
-    duty_over_mol = 35000
+    duty_over_mol = 40000
     
     boiler_blowdown = 0.03
     RO_rejection = 0
@@ -152,6 +152,7 @@ class BoilerTurbogenerator(Facility):
         else:
             electricity = H_electricity * TG_eff
             cooling = electricity - H_electricity
+        
         hu_cooling(cooling, steam.T)
         hu_steam.mix_from(self.steam_utilities)
         hu_steam.reverse()
