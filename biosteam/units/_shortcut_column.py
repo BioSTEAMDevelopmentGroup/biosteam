@@ -105,6 +105,8 @@ class ShortcutColumn(BinaryDistillation,
         Recovery of the heavy key in the bottoms product.
     k : float
         Ratio of reflux to minimum reflux.
+    Rmin : float, optional
+        User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`. This enforced value is ignored. Defaults to 0.6.
     specification="Composition" : "Composition" or "Recovery"
         If composition is used, `y_top` and `x_bot` must be specified.
         If recovery is used, `Lr` and `Hr` must be specified.
@@ -263,7 +265,7 @@ class ShortcutColumn(BinaryDistillation,
         IDs = self._IDs_vle
         z_d = distillate.get_normalized_mol(IDs)
         Rm = compute_minimum_reflux_ratio_Underwood(alpha_mean, z_d, theta)
-        if Rm < 0.1: Rm = 0.1
+        if Rm < self.Rmin: Rm = self.Rmin
         R = self.k * Rm
         N = compute_theoretical_stages_Gilliland(Nm, Rm, R)
         feed_HK, feed_LK = feed.mol[LHK_index]

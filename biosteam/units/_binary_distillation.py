@@ -124,6 +124,8 @@ class BinaryDistillation(Unit):
         Recovery of the heavy key in the bottoms product.
     k : float
         Ratio of reflux to minimum reflux.
+    Rmin : float, optional
+        User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`. This enforced value is ignored. Defaults to 0.6.
     specification="Composition" : "Composition" or "Recovery"
         If composition is used, `y_top` and `x_bot` must be specified.
         If recovery is used, `Lr` and `Hr` must be specified.
@@ -392,11 +394,10 @@ class BinaryDistillation(Unit):
     
     @property
     def Rmin(self):
-        """User enforced reflux ratio."""
+        """User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`. This enforced value is ignored."""
         return self._Rmin
     @Rmin.setter
     def Rmin(self, Rmin):
-        """User enforced minimum reflux ratio."""
         self._Rmin = Rmin
     
     @property
