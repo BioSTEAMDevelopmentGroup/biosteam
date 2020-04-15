@@ -1,6 +1,0 @@
-MixTank
-=======
-
-.. autoclass:: biosteam.units.MixTank
-   :inherited-members: Tank
-   :members:

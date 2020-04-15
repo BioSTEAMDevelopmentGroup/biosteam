@@ -1,5 +1,0 @@
-HXutility
-=========
-
-.. autoclass:: biosteam.units.HXutility
-   :members:

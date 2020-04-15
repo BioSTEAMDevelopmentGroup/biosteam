@@ -1,5 +1,0 @@
-HXprocess
-=========
-
-.. autoclass:: biosteam.units.HXprocess
-   :members:

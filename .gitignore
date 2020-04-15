@@ -1,0 +1,9 @@
+build
+dist
+biosteam.egg-info
+**/__pycache__
+docs/tutorial/.ipynb_checkpoints
+docs/.ipynb_checkpoints
+docs/_build/*
+docs/_static/*
+docs/_templates/*

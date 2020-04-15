@@ -1,5 +1,0 @@
-PowerUtility
-============
-
-.. autoclass:: biosteam.PowerUtility
-   :members:

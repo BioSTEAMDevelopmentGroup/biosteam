@@ -1,6 +1,0 @@
-UtilityAgent
-============
-
-.. autoclass:: biosteam.UtilityAgent
-   :members:
-   :inherited-members:

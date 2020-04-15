@@ -1,5 +1,0 @@
-ShortcutColumn
-==============
-
-.. autoclass:: biosteam.units.ShortcutColumn
-   :members:
