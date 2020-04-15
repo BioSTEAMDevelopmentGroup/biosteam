@@ -125,7 +125,7 @@ class BinaryDistillation(Unit):
     k : float
         Ratio of reflux to minimum reflux.
     Rmin : float, optional
-        User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`. This enforced value is ignored. Defaults to 0.6.
+        User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`, this enforced value is ignored. Defaults to 0.6.
     specification="Composition" : "Composition" or "Recovery"
         If composition is used, `y_top` and `x_bot` must be specified.
         If recovery is used, `Lr` and `Hr` must be specified.

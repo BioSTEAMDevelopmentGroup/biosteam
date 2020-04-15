@@ -3,8 +3,7 @@
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
 from thermosteam.utils import Registry
-from ._digraph import (FlowsheetWidget,
-                       digraph_from_units,
+from ._digraph import (digraph_from_units,
                        digraph_from_units_and_streams, 
                        finalize_digraph,
                        minimal_digraph,
@@ -14,6 +13,11 @@ from ._unit import Unit
 from ._facility import Facility
 from ._system import System
 from ._network import Network
+
+try:
+	from ._digraph.widget import FlowsheetWidget
+except:
+	pass
 
 __all__ = ('main_flowsheet', 'Flowsheet')
 
