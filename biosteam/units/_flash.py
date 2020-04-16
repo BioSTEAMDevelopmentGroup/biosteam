@@ -255,7 +255,7 @@ class Flash(Unit):
         return self._P
     @P.setter
     def P(self, P):
-        if P < 101325 and not self.power_utility:
+        if P and P < 101325 and not self.power_utility:
             self.power_utility = PowerUtility()
         self._P = P
     
@@ -301,7 +301,10 @@ class Flash(Unit):
         vessel_type = self.vessel_type
         if vessel_type == 'Default':
             vap, liq = self.outs
-            isVertical = vap.F_mass/liq.F_mass > 0.2
+            F_mass_vap = vap.F_mass
+            F_mass_liq = liq.F_mass 
+            assert F_mass_liq, "no liquid effluent; flash vessel must have liquid"
+            isVertical = F_mass_vap / F_mass_liq > 0.2
         elif vessel_type == 'Vertical':
             isVertical = True
         elif vessel_type == 'Horizontal':
