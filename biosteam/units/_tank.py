@@ -186,10 +186,10 @@ class StorageTank(Tank):
     >>> T1.results()
     Storage tank                          Units       T1
     Design              Residence time               168
-                        Total volume        m^3 5.19e+03
+                        Total volume        m^3 4.92e+03
                         Number of tanks                2
-    Purchase cost       Tanks               USD 8.65e+05
-    Total purchase cost                     USD 8.65e+05
+    Purchase cost       Tanks               USD 8.41e+05
+    Total purchase cost                     USD 8.41e+05
     Utility cost                         USD/hr        0
     
     

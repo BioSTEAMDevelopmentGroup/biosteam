@@ -123,14 +123,14 @@ class Flash(Unit):
                           Flow            kmol/hr      1.39e+03
                           Cost             USD/hr           384
     Design                Vessel type                  Vertical
-                          Length               ft          26.5
-                          Diameter             ft           6.5
-                          Weight               lb      9.38e+03
-                          Wall thickness       in         0.375
+                          Length               ft          21.5
+                          Diameter             ft           5.5
+                          Weight               lb      5.39e+03
+                          Wall thickness       in         0.312
                           Material                 Carbon steel
-    Purchase cost         Flash               USD      6.24e+04
+    Purchase cost         Flash               USD      4.57e+04
                           Heat exchanger      USD      4.04e+04
-    Total purchase cost                       USD      1.03e+05
+    Total purchase cost                       USD       8.6e+04
     Utility cost                           USD/hr           384
 
 

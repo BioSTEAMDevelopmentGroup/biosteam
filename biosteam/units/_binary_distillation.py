@@ -225,18 +225,18 @@ class BinaryDistillation(Unit):
                         Rectifier height               ft      34.7
                         Stripper height                ft      31.7
                         Rectifier diameter             ft      3.93
-                        Stripper diameter              ft       3.6
+                        Stripper diameter              ft      3.21
                         Rectifier wall thickness       in      0.25
                         Stripper wall thickness        in      0.25
                         Rectifier weight               lb   4.8e+03
-                        Stripper weight                lb  4.03e+03
+                        Stripper weight                lb  3.56e+03
     Purchase cost       Rectifier trays               USD   1.5e+04
-                        Stripper trays                USD  1.33e+04
-                        Rectifier tower               USD  7.63e+04
-                        Stripper tower                USD  6.82e+04
+                        Stripper trays                USD  1.25e+04
+                        Rectifier tower               USD  7.62e+04
+                        Stripper tower                USD  6.35e+04
                         Condenser                     USD  2.02e+04
                         Boiler                        USD  4.27e+03
-    Total purchase cost                               USD  1.97e+05
+    Total purchase cost                               USD  1.92e+05
     Utility cost                                   USD/hr      59.8
     
     """

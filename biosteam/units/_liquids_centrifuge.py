@@ -146,24 +146,24 @@ class LLECentrifuge(LiquidsCentrifuge):
     outs...
     [0] light
         phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   22.7
-                        Glycerol   8.95
-                        Biodiesel  0.0031
-    [1] heavy
-        phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   10.2
                         Glycerol   0.0239
                         Biodiesel  26.9
                         Lipid      0.996
+    [1] heavy
+        phase: 'l', T: 333.15 K, P: 101325 Pa
+        flow (kmol/hr): Methanol   22.7
+                        Glycerol   8.95
+                        Biodiesel  0.0031
     >>> C1.results()
     Liquids centrifuge                          Units       C1
-    Power               Rate                       kW     46.8
-                        Cost                   USD/hr     3.66
-    Design              Flow rate              m^3/hr     12.8
+    Power               Rate                       kW     44.2
+                        Cost                   USD/hr     3.46
+    Design              Flow rate              m^3/hr     12.1
                         Number of centrifuges                1
-    Purchase cost       Liquids centrifuge        USD 1.31e+05
-    Total purchase cost                           USD 1.31e+05
-    Utility cost                               USD/hr     3.66
+    Purchase cost       Liquids centrifuge        USD 1.27e+05
+    Total purchase cost                           USD 1.27e+05
+    Utility cost                               USD/hr     3.46
     
     """
     line = 'Liquids centrifuge'

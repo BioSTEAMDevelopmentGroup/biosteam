@@ -94,12 +94,12 @@ class Fermentation(Unit):
                         DryYeast  1.03e+04
     >>> F1.results()
     Fermentation                                       Units        F1
-    Power               Rate                              kW      11.7
-                        Cost                          USD/hr     0.912
+    Power               Rate                              kW      11.6
+                        Cost                          USD/hr     0.908
     Chilled water       Duty                           kJ/hr -2.91e+06
                         Flow                         kmol/hr  1.95e+03
                         Cost                          USD/hr      14.5
-    Design              Reactor volume                    m3       247
+    Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Cleaning and unloading time       hr         3
@@ -107,9 +107,9 @@ class Fermentation(Unit):
                         Number of reactors                           8
     Purchase cost       Coolers                          USD   3.7e+04
                         Reactors                         USD  1.87e+06
-                        Agitators                        USD  1.17e+05
-                        Cleaning in place                USD  7.12e+05
-    Total purchase cost                                  USD  2.74e+06
+                        Agitators                        USD  1.16e+05
+                        Cleaning in place                USD   7.1e+05
+    Total purchase cost                                  USD  2.73e+06
     Utility cost                                      USD/hr      15.4
     
     References
