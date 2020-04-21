@@ -186,12 +186,9 @@ def plot_montecarlo_across_coordinate(xs, ys,
     plt.plot(xs, q50, '-',
              color=dark_color,
              linewidth=1.5) # Median
-    plt.fill_between(xs, q25, q50,
+    plt.fill_between(xs, q25, q75,
                      color=light_color,
-                     linewidth=1.0) # Lower quartile
-    plt.fill_between(xs, q75, q50,
-                     color=light_color,
-                     linewidth=1.0) # Upper quartile
+                     linewidth=1.0)
     plt.plot(xs, q05, '-.',
              color=dark_color,
              linewidth=1.0) # Lower whisker

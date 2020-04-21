@@ -4,12 +4,11 @@ Created on Mon Feb  4 19:38:37 2019
 
 @author: Guest Group
 """
-
 import pandas as pd
 import numpy as np
-from flexsolve import wegstein_secant, aitken_secant, secant
+from flexsolve import aitken_secant, secant
 from copy import copy as copy_
-from thermosteam.utils import njitable
+from flexsolve import njitable
 
 __all__ = ('TEA', 'CombinedTEA')
 
@@ -47,12 +46,13 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
 
 
 # %% Utilities
-    
+
+@njitable   
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
-    for loan_i in loan:
-        principal += loan_i 
+    for i in loan:
+        principal += i
         principal *= k
     return principal
 
@@ -64,7 +64,7 @@ def final_loan_principal(payment, principal, interest, years):
 
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
-    return wegstein_secant(final_loan_principal,
+    return aitken_secant(final_loan_principal,
                            payment, payment+10., 1e-4, 1e-4,
                            args=(principal, interest, years))
 
@@ -533,7 +533,7 @@ class TEA:
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         try:
-            self._IRR = wegstein_secant(self._NPV_at_IRR,
+            self._IRR = aitken_secant(self._NPV_at_IRR,
                                         self._IRR, self._IRR+1e-6,
                                         xtol=1e-6, maxiter=200,
                                         args=(self.cashflow,))
@@ -567,7 +567,7 @@ class TEA:
         w0 = self._startup_time
         coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         try:
-            self._sales = wegstein_secant(self._NPV_with_sales,
+            self._sales = aitken_secant(self._NPV_with_sales,
                                           self._sales, self._sales+1e-6,
                                           xtol=1e-6, maxiter=200,
                                           args=(NPV, coefficients, discount_factors))

@@ -6,7 +6,7 @@ Created on Thu Mar 19 09:22:08 2020
 """
 from math import log10, ceil, exp, floor
 from ._binary_distillation import BinaryDistillation
-from flexsolve import wegstein, find_bracket, bounded_wegstein
+from flexsolve import wegstein, find_bracket, IQ_interpolation
 from thermosteam.equilibrium import DewPoint, BubblePoint
 
 __all__ = ('ShortcutColumn',)
@@ -323,9 +323,9 @@ class ShortcutColumn(BinaryDistillation,
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
         bracket = find_bracket(objective_function_Underwood_constant,
-                                1, alpha_LK, args=args)
-        theta = bounded_wegstein(objective_function_Underwood_constant,
-                                  *bracket, args=args)
+                               1, alpha_LK, args=args)
+        theta = IQ_interpolation(objective_function_Underwood_constant,
+                                 *bracket, args=args)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):

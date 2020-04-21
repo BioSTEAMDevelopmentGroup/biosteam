@@ -11,6 +11,7 @@ CE = 567.5
 
 # %% Initialize BioSTEAM 
 
+from flexsolve import speed_up
 from ._heat_utility import HeatUtility, UtilityAgent
 from ._power_utility import PowerUtility
 from ._unit import Unit
@@ -26,10 +27,10 @@ from . import exceptions
 __all__ = ['Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
            'main_flowsheet', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
-           'MultiStream', 'settings', 'Network', 'speed_up', 'exceptions',
+           'MultiStream', 'settings', 'Network', 'exceptions', 'speed_up',
            *units.__all__, *evaluation.__all__]
 
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, speed_up
+from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
 from .evaluation import *
 from .units import *
 
