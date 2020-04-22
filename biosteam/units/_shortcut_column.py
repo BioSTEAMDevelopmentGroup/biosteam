@@ -203,7 +203,7 @@ class ShortcutColumn(BinaryDistillation,
                         Stripper stages                         26
                         Rectifier height               ft     31.7
                         Stripper height                ft     50.9
-                        Rectifier diameter             ft     4.53
+                        Rectifier diameter             ft     4.52
                         Stripper diameter              ft     3.67
                         Rectifier wall thickness       in    0.312
                         Stripper wall thickness        in     0.25

@@ -174,8 +174,9 @@ class Network:
             elif N_connections == 0:
                 network._append_network(upstream_network)
             else:
-                raise RuntimeError('path creation failed; multiple recycle '
-                                   'connections found for a given path')
+                network.join_network(upstream_network)
+                # raise RuntimeError('path creation failed; multiple recycle '
+                #                    'connections found for a given path')
         return network
 
     def copy_like(self, other):
