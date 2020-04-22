@@ -182,15 +182,19 @@ class Flowsheet:
         ----------
         ID : str, optional
             Name of system.
+        feeds : Iterable[:class:`thermosteam.Stream`], optional
+            Feeds to the process ordered in decreasing priority. The 
+            first feed should be your feedstock.
         ends : Iterable[:class:`~thermosteam.Stream`]
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.
         
         """
-        feeds = get_feeds_from_streams(self.stream)
-        if feeds:
+        if not feeds:
+            feeds = get_feeds_from_streams(self.stream)
             sort_feeds_big_to_small(feeds)
+        if feeds:
             feedstock, *feeds = feeds
             facilities = self.get_facilities()
             system = System.from_feedstock(ID, feedstock, feeds,
