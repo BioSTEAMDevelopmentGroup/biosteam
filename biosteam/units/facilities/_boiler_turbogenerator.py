@@ -114,9 +114,9 @@ class BoilerTurbogenerator(Facility):
         H_steam = steam_mol * duty_over_mol
         if self.side_steam: 
             H_steam += self.side_steam.H
-        LHV_feed = 0
+        HHV_feed = 0
         for feed in (feed_solids, feed_gas):
-            if not feed.isempty(): LHV_feed -= feed.LHV
+            if not feed.isempty(): HHV_feed -= feed.HHV
         
         # This is simply for the mass balance (no special purpose)
         # TODO: In reality, this should be CO2
@@ -132,8 +132,7 @@ class BoilerTurbogenerator(Facility):
         emissions.T = 373.15
         emissions.P = 101325
         emissions.phase = 'g'
-        H_content = LHV_feed*B_eff - emissions.H
-        
+        H_content = B_eff * HHV_feed - emissions.H
         #: [float] Total steam produced by the boiler (kmol/hr)
         self.total_steam = H_content / duty_over_mol 
         
