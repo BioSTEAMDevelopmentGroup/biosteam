@@ -157,13 +157,13 @@ class LLECentrifuge(LiquidsCentrifuge):
                         Biodiesel  0.0031
     >>> C1.results()
     Liquids centrifuge                          Units       C1
-    Power               Rate                       kW     44.2
-                        Cost                   USD/hr     3.46
-    Design              Flow rate              m^3/hr     12.1
+    Power               Rate                       kW     44.7
+                        Cost                   USD/hr      3.5
+    Design              Flow rate              m^3/hr     12.2
                         Number of centrifuges                1
-    Purchase cost       Liquids centrifuge        USD 1.27e+05
-    Total purchase cost                           USD 1.27e+05
-    Utility cost                               USD/hr     3.46
+    Purchase cost       Liquids centrifuge        USD 1.28e+05
+    Total purchase cost                           USD 1.28e+05
+    Utility cost                               USD/hr      3.5
     
     """
     line = 'Liquids centrifuge'
