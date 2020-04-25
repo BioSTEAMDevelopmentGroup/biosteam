@@ -4,7 +4,7 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-from flexsolve import SolverError, conditional_wegstein, conditional_aitken
+from flexsolve import conditional_wegstein, conditional_aitken
 from ._digraph import (digraph_from_units_and_streams,
                        minimal_digraph,
                        surface_digraph,
@@ -510,7 +510,7 @@ class System(metaclass=system):
         if mol_error < self.molar_tolerance and T_error < self.T_tolerance:
             unconverged = False
         elif self._iter > self.maxiter:
-            raise SolverError(f'{repr(self)} could not converge' + self._error_info())
+            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
         else:
             unconverged = True
         self._T_error = T_error
@@ -550,7 +550,7 @@ class System(metaclass=system):
             if (self._mol_error < self.molar_tolerance
                 and self._T_error < self.T_tolerance): break
             if self._iter > self.maxiter:
-                raise SolverError(f'{repr(self)} could not converge' + self._error_info())
+                raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
