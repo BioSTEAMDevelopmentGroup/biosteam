@@ -35,8 +35,7 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     A_dummy = (1 - b_Hr) / b_Hr
     A = log10(A_dummy)
     B = log10(d_Lr / (1 - d_Lr) / A_dummy) / log10(alpha_LK)
-    if B > 20: B = 20
-    elif B < 0: B = 0
+    if B < 0: B = 0
     dummy = 10**A * alpha_mean**B
     distillate_recoveries = dummy / (1 + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1 - b_Hr]
