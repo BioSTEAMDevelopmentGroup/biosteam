@@ -6,7 +6,7 @@ Created on Thu Mar 19 09:22:08 2020
 """
 from math import log10, ceil, exp, floor
 from ._binary_distillation import BinaryDistillation
-from flexsolve import wegstein, find_bracket, IQ_interpolation
+from flexsolve import wegstein, find_bracket, IQ_interpolation, aitken, SolverError
 from thermosteam.equilibrium import DewPoint, BubblePoint
 
 __all__ = ('ShortcutColumn',)
@@ -24,7 +24,7 @@ def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_
     return alpha_mean
     
 def compute_partition_coefficients(y, x):
-    x[(y == 0) & (x == 0)] = 1
+    x[x <= 1e-16] = 1e-16
     return y / x
     
 def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
@@ -35,6 +35,8 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     A_dummy = (1 - b_Hr) / b_Hr
     A = log10(A_dummy)
     B = log10(d_Lr / (1 - d_Lr) / A_dummy) / log10(alpha_LK)
+    if B > 20: B = 20
+    elif B < 0: B = 0
     dummy = 10**A * alpha_mean**B
     distillate_recoveries = dummy / (1 + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1 - b_Hr]
@@ -379,8 +381,11 @@ class ShortcutColumn(BinaryDistillation,
         
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._estimate_distillate_recoveries()
-        return wegstein(self._recompute_distillate_recovery,
-                        distillate_recoveries, 1e-4)
+        try:
+            return wegstein(self._recompute_distillate_recovery,
+                            distillate_recoveries, 1e-4)
+        except SolverError as error: 
+            return self._recompute_distillate_recovery(error.x)
     
     def _recompute_distillate_recovery(self, distillate_recoveries):
         self._update_distillate_recoveries(distillate_recoveries)
