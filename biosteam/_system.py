@@ -504,8 +504,8 @@ class System(metaclass=system):
         rmol[:] = mol
         T = recycle.T
         self._run()
-        mol_error = abs(mol - recycle.mol).sum()
-        T_error = abs(T - recycle.T)
+        self._mol_error = mol_error = abs(mol - recycle.mol).sum()
+        self._T_error = T_error = abs(T - recycle.T)
         self._iter += 1
         if mol_error < self.molar_tolerance and T_error < self.T_tolerance:
             unconverged = False
@@ -513,8 +513,6 @@ class System(metaclass=system):
             raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
         else:
             unconverged = True
-        self._T_error = T_error
-        self._mol_error = mol_error
         return rmol.copy(), unconverged
             
         

@@ -4,37 +4,41 @@ Created on Thu Mar 19 09:22:08 2020
 
 @author: yoelr
 """
-from math import log10, ceil, exp, floor
 from ._binary_distillation import BinaryDistillation
-from flexsolve import wegstein, find_bracket, IQ_interpolation, aitken, SolverError
+import flexsolve as flx
 from thermosteam.equilibrium import DewPoint, BubblePoint
+import numpy as np
 
 __all__ = ('ShortcutColumn',)
 
 # %% Functions
 
+@flx.njitable
 def geometric_mean(a, b):
     return (a * b) ** (0.5)
 
+@flx.njitable
 def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_index):
     alpha_distillate = K_distillate / K_distillate[HK_index]
     alpha_bottoms = K_bottoms / K_bottoms[HK_index]
     alpha_mean = geometric_mean(alpha_distillate,
                                 alpha_bottoms)
     return alpha_mean
-    
+
+@flx.njitable    
 def compute_partition_coefficients(y, x):
     x[x <= 1e-16] = 1e-16
     return y / x
-    
+
+@flx.njitable    
 def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
                                                          alpha_mean,
                                                          LHK_index):
     LK_index = LHK_index[0]
     alpha_LK = alpha_mean[LK_index]
     A_dummy = (1 - b_Hr) / b_Hr
-    A = log10(A_dummy)
-    B = log10(d_Lr / (1 - d_Lr) / A_dummy) / log10(alpha_LK)
+    A = np.log10(A_dummy)
+    B = np.log10(d_Lr / (1 - d_Lr) / A_dummy) / np.log10(alpha_LK)
     if B < 0: B = 0
     dummy = 10**A * alpha_mean**B
     distillate_recoveries = dummy / (1 + dummy)
@@ -42,35 +46,39 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     distillate_recoveries[distillate_recoveries < 1e-12] = 0.
     return distillate_recoveries
 
+@flx.njitable
 def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha_LK):
     LK, HK = LHK_distillate
     LHK_ratio_distillate = LK / HK
     LK, HK = LHK_bottoms
     HLK_ratio_bottoms = HK / LK
-    N = log10(LHK_ratio_distillate * HLK_ratio_bottoms) / log10(alpha_LK)
+    N = np.log10(LHK_ratio_distillate * HLK_ratio_bottoms) / np.log10(alpha_LK)
     return N
 
-def objective_function_Underwood_constant(theta, q, z_f,
-                                          alpha_mean):
+@flx.njitable
+def objective_function_Underwood_constant(theta, q, z_f, alpha_mean):
     return (alpha_mean * z_f / (alpha_mean - theta)).sum() - 1 + q
 
+@flx.njitable
 def compute_minimum_reflux_ratio_Underwood(alpha_mean, z_d, theta):
     Rm = (alpha_mean * z_d / (alpha_mean - theta)).sum() - 1
     return Rm
 
+@flx.njitable
 def compute_theoretical_stages_Gilliland(Nm, Rm, R):
     X = (R - Rm) / (R + 1)
-    Y = 1 - exp((1 + 54.4*X) / (11 + 117.2*X) * (X - 1) / X**0.5)
+    Y = 1 - np.exp((1 + 54.4*X) / (11 + 117.2*X) * (X - 1) / X**0.5)
     N = (Y + Nm) / (1 - Y)
-    return ceil(N)
+    return np.ceil(N)
 
+@flx.njitable
 def compute_feed_stage_Kirkbride(N, B, D,
                                  feed_HK_over_LK,
                                  z_LK_bottoms,
                                  z_HK_distillate):
     m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2) ** 0.206
-    return floor(N / (m_over_p + 1))
-    
+    return np.floor(N / (m_over_p + 1))
+
 
 # %%
 
@@ -207,16 +215,16 @@ class ShortcutColumn(BinaryDistillation,
                         Rectifier diameter             ft     4.53
                         Stripper diameter              ft     3.67
                         Rectifier wall thickness       in    0.312
-                        Stripper wall thickness        in     0.25
-                        Rectifier weight               lb 5.16e+03
-                        Stripper weight                lb 6.37e+03
+                        Stripper wall thickness        in    0.312
+                        Rectifier weight               lb 6.46e+03
+                        Stripper weight                lb 7.98e+03
     Purchase cost       Rectifier trays               USD 1.52e+04
                         Stripper trays                USD 2.02e+04
-                        Rectifier tower               USD 7.86e+04
-                        Stripper tower                USD 9.43e+04
+                        Rectifier tower               USD 8.44e+04
+                        Stripper tower                USD 1.01e+05
                         Condenser                     USD 2.09e+04
                         Boiler                        USD 4.45e+03
-    Total purchase cost                               USD 2.34e+05
+    Total purchase cost                               USD 2.46e+05
     Utility cost                                   USD/hr     78.6
     """
     line = 'Distillation'
@@ -234,7 +242,8 @@ class ShortcutColumn(BinaryDistillation,
         self._dew_point = DewPoint(vle_chemicals, self.thermo)
         self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
         self._IDs_vle = IDs = self._dew_point.IDs
-        self._LHK_vle_index = [IDs.index(i) for i in self.LHK]
+        LHK = [i.ID for i in self.chemicals[self.LHK]]
+        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
         # Solve for new recoveries
         distillate_recoveries = self._solve_distillate_recoveries()
@@ -323,10 +332,10 @@ class ShortcutColumn(BinaryDistillation,
         q = self._get_feed_quality()
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
-        bracket = find_bracket(objective_function_Underwood_constant,
-                               1, alpha_LK, args=args)
-        theta = IQ_interpolation(objective_function_Underwood_constant,
-                                 *bracket, args=args)
+        bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
+                                        1, alpha_LK, -np.inf, np.inf, args=args)
+        theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
+                                          *bracket, args=args)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
@@ -381,9 +390,9 @@ class ShortcutColumn(BinaryDistillation,
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._estimate_distillate_recoveries()
         try:
-            return wegstein(self._recompute_distillate_recovery,
-                            distillate_recoveries, 1e-4)
-        except SolverError as error: 
+            return flx.wegstein(self._recompute_distillate_recovery,
+                                distillate_recoveries, 1e-4)
+        except flx.SolverError as error: 
             return self._recompute_distillate_recovery(error.x)
     
     def _recompute_distillate_recovery(self, distillate_recoveries):

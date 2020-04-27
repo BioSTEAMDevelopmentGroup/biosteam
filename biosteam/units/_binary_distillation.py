@@ -13,18 +13,7 @@ from .design_tools.specification_factors import  (
     tray_material_factor_functions,
     distillation_tray_type_factor,
     material_densities_lb_per_in3)
-from .design_tools.column_design import (
-    compute_tower_height,
-    compute_tower_diameter,
-    compute_tower_weight,
-    compute_tower_wall_thickness,
-    compute_flow_parameter,
-    compute_max_vapor_velocity,
-    compute_max_capacity_parameter,
-    compute_downcomer_area_fraction,
-    compute_murphree_stage_efficiency,
-    compute_purchase_cost_of_trays,
-    compute_purchase_cost_of_tower)
+from .design_tools import column_design as design
 from .. import Unit
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
@@ -226,17 +215,17 @@ class BinaryDistillation(Unit):
                         Stripper height                ft      31.7
                         Rectifier diameter             ft      3.93
                         Stripper diameter              ft      3.21
-                        Rectifier wall thickness       in      0.25
-                        Stripper wall thickness        in      0.25
-                        Rectifier weight               lb   4.8e+03
-                        Stripper weight                lb  3.56e+03
+                        Rectifier wall thickness       in     0.312
+                        Stripper wall thickness        in     0.312
+                        Rectifier weight               lb  6.01e+03
+                        Stripper weight                lb  4.46e+03
     Purchase cost       Rectifier trays               USD   1.5e+04
                         Stripper trays                USD  1.25e+04
-                        Rectifier tower               USD  7.62e+04
-                        Stripper tower                USD  6.35e+04
+                        Rectifier tower               USD  8.18e+04
+                        Stripper tower                USD  6.81e+04
                         Condenser                     USD  2.02e+04
                         Boiler                        USD  4.27e+03
-    Total purchase cost                               USD  1.92e+05
+    Total purchase cost                               USD  2.02e+05
     Utility cost                                   USD/hr      59.8
     
     """
@@ -840,7 +829,7 @@ class BinaryDistillation(Unit):
             F_mol_distillate = self._F_mol_distillate
             L_Rmol = self._F_mol_condensate
             V_Rmol = (R+1) * F_mol_distillate
-            E_rectifier = compute_murphree_stage_efficiency(mu,
+            E_rectifier = design.compute_murphree_stage_efficiency(mu,
                                                             alpha_LHK_distillate,
                                                             L_Rmol, V_Rmol)
             
@@ -848,7 +837,7 @@ class BinaryDistillation(Unit):
             mu = liq.get_property('mu', 'mPa*s')
             V_Smol = self._F_mol_boilup
             L_Smol = R*F_mol_distillate + feed.imol['g'].sum()
-            E_stripper = compute_murphree_stage_efficiency(mu,
+            E_stripper = design.compute_murphree_stage_efficiency(mu,
                                                            alpha_LHK_bottoms,
                                                            L_Smol, V_Smol)
             
@@ -881,16 +870,16 @@ class BinaryDistillation(Unit):
         vap = self.condenser.ins[0]
         V_vol = vap.get_total_flow('m^3/s')
         rho_V = distillate.rho
-        F_LV = compute_flow_parameter(L, V, rho_V, rho_L)
-        C_sbf = compute_max_capacity_parameter(TS, F_LV)
+        F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
+        C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
         F_F = self._F_F
         A_ha = self._A_ha
-        U_f = compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
+        U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
-           self._A_dn = A_dn = compute_downcomer_area_fraction(F_LV)
+           self._A_dn = A_dn = design.compute_downcomer_area_fraction(F_LV)
         f = self._f
-        R_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
+        R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         
         ### Get diameter of stripping section based on feed plate ###
         rho_L = bottoms_product.rho
@@ -899,34 +888,34 @@ class BinaryDistillation(Unit):
         V_vol = boilup.get_total_flow('m^3/s')
         rho_V = boilup.rho
         L = bottoms_product.F_mass # To get liquid going down
-        F_LV = compute_flow_parameter(L, V, rho_V, rho_L)
-        C_sbf = compute_max_capacity_parameter(TS, F_LV)
+        F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
+        C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
         sigma = condensate.get_property('sigma', 'dyn/cm')
-        U_f = compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
+        U_f = design.compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
-            A_dn = compute_downcomer_area_fraction(F_LV)
-        S_diameter = compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
+            A_dn = design.compute_downcomer_area_fraction(F_LV)
+        S_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         Po = self.P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
         
         if is_divided:
             Design['Rectifier stages'] = Rstages
             Design['Stripper stages'] =  Sstages
-            Design['Rectifier height'] = H_R = compute_tower_height(TS, Rstages-1) * 3.28
-            Design['Stripper height'] = H_S = compute_tower_height(TS, Sstages-1) * 3.28
+            Design['Rectifier height'] = H_R = design.compute_tower_height(TS, Rstages-1) * 3.28
+            Design['Stripper height'] = H_S = design.compute_tower_height(TS, Sstages-1) * 3.28
             Design['Rectifier diameter'] = R_diameter
             Design['Stripper diameter'] = S_diameter
-            Design['Rectifier wall thickness'] = tv = compute_tower_wall_thickness(Po, R_diameter, H_R)
-            Design['Stripper wall thickness'] = tv = compute_tower_wall_thickness(Po, S_diameter, H_S)
-            Design['Rectifier weight'] = compute_tower_weight(R_diameter, H_R, tv, rho_M)
-            Design['Stripper weight'] = compute_tower_weight(S_diameter, H_S, tv, rho_M)
+            Design['Rectifier wall thickness'] = tv = design.compute_tower_wall_thickness(Po, R_diameter, H_R)
+            Design['Stripper wall thickness'] = tv = design.compute_tower_wall_thickness(Po, S_diameter, H_S)
+            Design['Rectifier weight'] = design.compute_tower_weight(R_diameter, H_R, tv, rho_M)
+            Design['Stripper weight'] = design.compute_tower_weight(S_diameter, H_S, tv, rho_M)
         else:
             Design['Actual stages'] = Rstages + Sstages
-            Design['Height'] = H = compute_tower_height(TS, Rstages+Sstages-2) * 3.28
+            Design['Height'] = H = design.compute_tower_height(TS, Rstages+Sstages-2) * 3.28
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
-            Design['Wall thickness'] = tv = compute_tower_wall_thickness(Po, Di, H)
-            Design['Weight'] = compute_tower_weight(Di, H, tv, rho_M)
+            Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
+            Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
         
     def _cost(self):
         Design = self.design_results
@@ -938,30 +927,30 @@ class BinaryDistillation(Unit):
             N_RT = Design['Rectifier stages'] - 1
             Di_R = Design['Rectifier diameter']
             F_TM = self._F_TM_function(Di_R)
-            Cost['Rectifier trays'] = compute_purchase_cost_of_trays(N_RT, Di_R, F_TT, F_TM)
+            Cost['Rectifier trays'] = design.compute_purchase_cost_of_trays(N_RT, Di_R, F_TT, F_TM)
             N_ST = Design['Stripper stages'] - 1
             Di_S = Design['Stripper diameter']
             F_TM = self._F_TM_function(Di_R)
-            Cost['Stripper trays'] = compute_purchase_cost_of_trays(N_ST, Di_S, F_TT, F_TM)
+            Cost['Stripper trays'] = design.compute_purchase_cost_of_trays(N_ST, Di_S, F_TT, F_TM)
             
             # Cost vessel assuming T < 800 F
             W_R = Design['Rectifier weight'] # in lb
             H_R = Design['Rectifier height']*3.28 # in ft
-            Cost['Rectifier tower'] = compute_purchase_cost_of_tower(Di_R, H_R, W_R, F_VM)
+            Cost['Rectifier tower'] = design.compute_purchase_cost_of_tower(Di_R, H_R, W_R, F_VM)
             W_S = Design['Stripper weight'] # in lb
             H_S = Design['Stripper height']*3.28 # in ft
-            Cost['Stripper tower'] = compute_purchase_cost_of_tower(Di_S, H_S, W_S, F_VM)
+            Cost['Stripper tower'] = design.compute_purchase_cost_of_tower(Di_S, H_S, W_S, F_VM)
         else:
             # Cost trays assuming a partial condenser
             N_T = Design['Actual stages'] - 1
             Di = Design['Diameter']
             F_TM = self._F_TM_function(Di)
-            Cost['Trays'] = compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM)
+            Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM)
             
             # Cost vessel assuming T < 800 F
             W = Design['Weight'] # in lb
             L = Design['Height']*3.28 # in ft
-            Cost['Tower'] = compute_purchase_cost_of_tower(Di, L, W, F_VM)
+            Cost['Tower'] = design.compute_purchase_cost_of_tower(Di, L, W, F_VM)
         self._simulate_components()
     
     def _plot_stages(self):

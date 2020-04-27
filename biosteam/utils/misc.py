@@ -8,7 +8,7 @@ This module includes arbitrary classes and functions.
 """
 import biosteam as bst
 
-__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple',
+__all__ = ('factor', 'checkbounds', 'strtuple',
            'format_unit_line', 'format_unit_name')
 
 # %% Number functions
@@ -19,14 +19,6 @@ def factor(base_units, new_units):
 
 def checkbounds(x, bounds):
     return bounds[0] < x < bounds[1]
-
-def approx2step(val, x0, dx):
-    """Approximate value, val, to closest increment/step, dx, starting from x0."""
-    while True:
-        if x0 > val: break
-        x0 += dx
-    return x0
-
 
 # %% String functions
 

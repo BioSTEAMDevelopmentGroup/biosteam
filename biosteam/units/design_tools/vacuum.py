@@ -11,10 +11,11 @@ References
 
 
 """
-from math import log as ln
-from .mechanical import motor_efficiency
+from numpy import log as ln
+from . import mechanical as mch
 from biosteam.utils import checkbounds
 from biosteam.exceptions import DesignError
+from flexsolve import njitable
 import biosteam as bst
 
 __all__ = ('compute_vacuum_system_power_and_cost',)
@@ -164,6 +165,7 @@ def calculate_heuristic_air_inleakage(V, P):
     else: raise ValueError('cannot calculate air inleakage at pressures lower than 133.32 Pascal')
     return k*V**0.667
 
+@njitable
 def calculate_air_inleakage(V, P):
     """
     Return air in-leakage in kg/hr.
@@ -176,7 +178,7 @@ def calculate_air_inleakage(V, P):
         Suction pressure in Torr
     """
     return 5 + (0.0298 + 0.03088*ln(P) - 5.733e-4*ln(P)**2)*V**0.66
-    
+
 def calculate_vacuum_power(F_mass,  P_suction):
     """
     Return vacuum power (after accounting for motor efficiency) in kW.
@@ -193,7 +195,7 @@ def calculate_vacuum_power(F_mass,  P_suction):
     if SF < 0.2: SF = 0.2
     elif SF > 16: SF = 16
     Pb = 21.4*SF**0.924 # Break power assuming Liquid-ring (NASH)
-    mu_m = motor_efficiency(Pb)
+    mu_m = mch.motor_efficiency(Pb)
     return Pb/mu_m
 
 def calculate_vacuum_cost(vacuum_sys, grade, F_mass_lbph, F_vol_cfm, P_suction):

@@ -3,7 +3,8 @@
 General functional algorithms for the design of heat exchangers.
 
 """
-from math import log as ln
+from numpy import log as ln
+from flexsolve import njitable
 
 __all__ = ('heuristic_overall_heat_transfer_coefficient',
            'heuristic_pressure_drop',
@@ -143,6 +144,7 @@ def order_streams(in_a, in_b, out_a, out_b):
     else:
         return in_b, in_a, out_b, out_a
 
+@njitable
 def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
     """Return LMTF correction factor using the fallback equation for
     `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed."""
@@ -160,6 +162,7 @@ def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
             Ft = (2**0.5*J)/ln(K)
     return Ft
 
+@njitable
 def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     r"""
     Return the log-mean temperature difference correction factor `Ft` 
@@ -249,6 +252,7 @@ def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
         Ft = 0.5
     return Ft
 
+@njitable
 def compute_heat_transfer_area(LMTD, U, Q, ft):
     """
     Return required heat transfer area by LMTD correction factor method.
@@ -265,6 +269,7 @@ def compute_heat_transfer_area(LMTD, U, Q, ft):
     """
     return Q/(U*LMTD*ft)   
 
+@njitable
 def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     r'''
     Return the log-mean temperature difference of an ideal counterflow

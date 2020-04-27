@@ -6,16 +6,12 @@ Created on Thu Aug 23 16:21:56 2018
 """
 from .. import Unit, PowerUtility
 from thermosteam import MultiStream
-from math import pi, ceil
+from math import pi
 import numpy as np
-from .design_tools import (compute_vacuum_system_power_and_cost,
-                           HNATable, ceil_half_step,
-                           compute_vertical_vessel_purchase_cost,
-                           compute_horizontal_vessel_purchase_cost,
-                           compute_vessel_weight_and_wall_thickness,
-                           compute_Stokes_law_York_Demister_K_value,
-                           pressure_vessel_material_factors,
-                           material_densities_lb_per_ft3,)
+from .design_tools.specification_factors import (
+    pressure_vessel_material_factors,
+    material_densities_lb_per_ft3)
+from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
@@ -326,9 +322,9 @@ class Flash(Unit):
         L = Design['Length']
         F_M = self._F_M
         if self._isVertical:
-            Cp = compute_vertical_vessel_purchase_cost(W, D, L, F_M)
+            Cp = design.compute_vertical_vessel_purchase_cost(W, D, L, F_M)
         else:
-            Cp = compute_horizontal_vessel_purchase_cost(W, D, F_M)
+            Cp = design.compute_horizontal_vessel_purchase_cost(W, D, F_M)
         self.purchase_costs['Flash'] = Cp
         if self.heat_exchanger:
             hx = self.heat_exchanger
@@ -364,7 +360,7 @@ class Flash(Unit):
             F_mass = vapor.F_mass
             F_vol = vapor.F_vol
         
-        power, cost = compute_vacuum_system_power_and_cost(
+        power, cost = design.compute_vacuum_system_power_and_cost(
                           F_mass, F_vol, P, volume, self.vacuum_system_preference)
         self.purchase_costs['Liquid-ring pump'] = cost
         self.power_utility(power)
@@ -386,7 +382,7 @@ class Flash(Unit):
         Qll = liq.get_total_flow('ft^3 / min')
 
         # Calculate Ut and set Uv
-        K = compute_Stokes_law_York_Demister_K_value(P)
+        K = design.compute_Stokes_law_York_Demister_K_value(P)
 
         # Adjust K value
         if not has_mist_eliminator and vessel_type == 'Vertical': K /= 2
@@ -409,9 +405,9 @@ class Flash(Unit):
         # Calculate internal diameter, Dvd
         Dvd = (4.0*Qv/(pi*Uv))**0.5
         if has_mist_eliminator:
-            D = ceil_half_step(Dvd + 0.4)
+            D = design.ceil_half_step(Dvd + 0.4)
         else:
-            D = ceil_half_step(Dvd)
+            D = design.ceil_half_step(Dvd)
 
         # Obtaining low liquid level height, Hlll
         Hlll = 0.5
@@ -431,7 +427,7 @@ class Flash(Unit):
         lamda = Qll/Qm
         rhoM = rhol*lamda + rhov*(1-lamda)
         dN = (4*Qm/(pi*60.0/(rhoM**0.5)))**0.5
-        dN = ceil_half_step(dN)
+        dN = design.ceil_half_step(dN)
 
         # Calculate Hlin, assume with inlet diverter
         Hlin = 1.0 + dN
@@ -445,11 +441,11 @@ class Flash(Unit):
         # Calculate total height, Ht
         Hme = 1.5 if has_mist_eliminator else 0.0
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
-        Ht = ceil_half_step(Ht)
+        Ht = design.ceil_half_step(Ht)
 
         # Calculate Vessel weight and wall thickness
-        rho_M = material_densities_lb_per_ft3[self._vessel_material]
-        VW, VWT = compute_vessel_weight_and_wall_thickness(P, D, Ht, rho_M)
+        rho_M = design.material_densities_lb_per_ft3[self._vessel_material]
+        VW, VWT = design.compute_vessel_weight_and_wall_thickness(P, D, Ht, rho_M)
 
         # Find maximum and normal liquid level
         # Hhll = Hs + Hh + Hlll
@@ -483,7 +479,7 @@ class Flash(Unit):
         if D <= 4.0:
             D = 4.0
         else:
-            D = ceil_half_step(D)
+            D = design.ceil_half_step(D)
 
         for outerIter in range(50):
             At = pi*(D**2)/4.0 # Total area
@@ -492,15 +488,15 @@ class Flash(Unit):
             Hlll = round(0.5*D + 7.0)  
             Hlll = Hlll/12.0 # D is in ft but Hlll is in inches
             X = Hlll/D
-            Y = HNATable(1, X)
+            Y = design.HNATable(1, X)
             Alll = Y*At
 
             # Calculate the Vapor disengagement area, Av
             Hv = 0.2*D
             if has_mist_eliminator and Hv <= 2.0: Hv = 2.0
             elif Hv <= 1.0: Hv = 1.0
-            else: Hv = ceil_half_step(Hv)
-            Av = HNATable(1, Hv/D)*At
+            else: Hv = design.ceil_half_step(Hv)
+            Av = design.HNATable(1, Hv/D)*At
             
             # Calculate minimum length for surge and holdup
             L = (Vh + Vs)/(At - Av - Alll)
@@ -519,8 +515,8 @@ class Flash(Unit):
                     elif not has_mist_eliminator and Hv <= 1.0: Hv = 1.0
                     else: Hv -= 0.5
                 else: break
-                Av = HNATable(1, Hv/D)*At
-                Alll = HNATable(1, Hlll/D)*At
+                Av = design.HNATable(1, Hv/D)*At
+                Alll = design.HNATable(1, Hlll/D)*At
                 Li = (Vh + Vs)/(At - Av - Alll)
                 Phi = Hv/Uv
                 Uva = Qv/Av
@@ -547,7 +543,7 @@ class Flash(Unit):
 
         # Calculate vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
-        VW, VWT = compute_vessel_weight_and_wall_thickness(P, D, L, rho_M)
+        VW, VWT = design.compute_vessel_weight_and_wall_thickness(P, D, L, rho_M)
 
         # # To check minimum Hv value
         # if int(has_mist_eliminator) == 1 and Hv <= 2.0:

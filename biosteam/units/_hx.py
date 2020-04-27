@@ -9,8 +9,6 @@ from .._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_
 from .design_tools.specification_factors import (
     shell_and_tube_material_factor_coefficients,
     compute_shell_and_tube_material_factor)
-from thermosteam import Stream
-from fluids import nearest_pipe
 from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
