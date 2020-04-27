@@ -137,6 +137,7 @@ class HX(Unit, isabstract=True):
         P = max((ci.P, hi.P))
         Design['Area'] = 10.763 * ht.compute_heat_transfer_area(abs(LMTD), U, abs(Q), ft)
         Design['Overall heat transfer coefficient'] = U
+        Design['Log-mean temperature difference'] = LMTD
         Design['Fouling correction factor'] = ft
         Design['Tube side pressure drop'] = dP_tube
         Design['Shell side pressure drop'] = dP_shell

@@ -326,5 +326,5 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     if log_factor < 0.0001:
         LMTD = dTF1
     else:
-        LMTD = (dTF2 - dTF1)/ln(log_factor)
+        LMTD = (dTF2 - dTF1)/log_factor
     return LMTD

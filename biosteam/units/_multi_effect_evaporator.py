@@ -14,7 +14,7 @@ from .design_tools import (
     compute_vacuum_system_power_and_cost,
     compute_heat_transfer_area
 )    
-from thermosteam import Stream, settings
+from thermosteam import MultiStream, Stream, settings
 from flexsolve import IQ_interpolation
 from warnings import warn
 import ht
@@ -184,6 +184,12 @@ class MultiEffectEvaporator(Unit):
         mixer.ins[:] = outs_liq
         mixer._run()
         liq.copy_like(mixer.outs[0])
+        
+        mixed_stream = MultiStream(thermo=self.thermo)
+        mixed_stream.copy_flow(self.ins[0])
+        mixed_stream.vle(P=evaporators[-1].P, V=self.V)
+        out_wt_solids.mol = mixed_stream.imol['l']
+        liq.mol = mixed_stream.imol['g']
         
     def _design(self):
         # This functions also finds the cost
