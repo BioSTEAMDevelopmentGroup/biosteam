@@ -16,7 +16,6 @@ from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
 from ..utils import bounds_warning
-from ._CAS import H2O_CAS
 
 exp = np.exp
 ln = np.log
@@ -125,8 +124,8 @@ class Flash(Unit):
                           Wall thickness       in         0.312
                           Material                 Carbon steel
     Purchase cost         Flash               USD      4.57e+04
-                          Heat exchanger      USD      4.04e+04
-    Total purchase cost                       USD       8.6e+04
+                          Heat exchanger      USD      4.36e+04
+    Total purchase cost                       USD      8.92e+04
     Utility cost                           USD/hr           384
 
 
@@ -687,7 +686,7 @@ class Evaporator_PQ(Unit):
         return self._P
     @P.setter
     def P(self, P):
-        water = getattr(self.chemicals, H2O_CAS)
+        water = getattr(self.chemicals, '7732-18-5')
         self._T = T = water.Tsat(P)
         self._Hvap = water.Hvap(T)
         self._P = P
@@ -696,7 +695,7 @@ class Evaporator_PQ(Unit):
         return self._T
     @T.setter
     def T(self, T):
-        water = getattr(self.chemicals, H2O_CAS)
+        water = getattr(self.chemicals, '7732-18-5')
         self._P = water.Psat(T)
         self._Hvap = water.Hvap(T)
         self._T = T
@@ -727,10 +726,10 @@ class Evaporator_PQ(Unit):
         vapor.P = liquid.P = self.P
         liquid.phase = 'l'
         vapor.phase = 'g'
-        liquid.copy_flow(feed, IDs=H2O_CAS, exclude=True)
+        liquid.copy_flow(feed, IDs='7732-18-5', exclude=True)
         
         # Energy balance to find vapor fraction
-        f = feed.imol[H2O_CAS]
+        f = feed.imol['7732-18-5']
         H = feed_H + Q - liquid.H
         if f:
             V = H/(f * self._Hvap)
@@ -741,8 +740,8 @@ class Evaporator_PQ(Unit):
         else:
             V = 0
         evaporated = f * V
-        vapor.imol[H2O_CAS] = evaporated
-        liquid.imol[H2O_CAS] = (1-V)*f
+        vapor.imol['7732-18-5'] = evaporated
+        liquid.imol['7732-18-5'] = (1-V)*f
         self._Q = Q
         self._V = V
 
@@ -755,7 +754,7 @@ class Evaporator_PV(Unit):
         return self._P
     @P.setter
     def P(self, P):
-        water = getattr(self.chemicals, H2O_CAS)
+        water = getattr(self.chemicals, '7732-18-5')
         self._T = water.Tsat(P)
         self._P = P
     @property
@@ -763,7 +762,7 @@ class Evaporator_PV(Unit):
         return self._T
     @T.setter
     def T(self, T):
-        water = getattr(self.chemicals, H2O_CAS)
+        water = getattr(self.chemicals, '7732-18-5')
         self._P = water.Psat(T)
         self._T = T
     
@@ -776,7 +775,7 @@ class Evaporator_PV(Unit):
         feed = self.ins[0]
         vapor, liquid = self.outs
         vapor.T = liquid.T = self.T
-        H2O_index = self.chemicals.index(H2O_CAS)
+        H2O_index = self.chemicals.index('7732-18-5')
         water_mol = feed.mol[H2O_index]
         vapor.mol[H2O_index] = self.V * water_mol
         liquid_mol = liquid.mol

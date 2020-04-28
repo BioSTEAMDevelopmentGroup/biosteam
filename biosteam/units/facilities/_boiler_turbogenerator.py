@@ -59,10 +59,6 @@ class BoilerTurbogenerator(Facility):
     
     """
     network_priority = 0
-    
-    # TODO: Make this a whole system instead of approximating duty per mol values
-    duty_over_mol = 40000
-    
     boiler_blowdown = 0.03
     RO_rejection = 0
     _N_ins = 3
@@ -106,17 +102,17 @@ class BoilerTurbogenerator(Facility):
         TG_eff = self.turbogenerator_efficiency
         steam = self.steam_demand
         self._load_utility_agents()
-        steam.imol['7732-18-5'] = steam_mol = sum([i.flow for i in self.steam_utilities])
-        duty_over_mol = self.duty_over_mol
+        steam.imol['7732-18-5'] = mol_steam = sum([i.flow for i in self.steam_utilities])
         feed_solids, feed_gas, _ = self.ins
         emissions, _ = self.outs
         hu_cooling, hu_steam = self.heat_utilities
-        H_steam = steam_mol * duty_over_mol
+        H_steam =  sum([i.duty for i in self.steam_utilities])
+        duty_over_mol = H_steam / mol_steam
         if self.side_steam: 
             H_steam += self.side_steam.H
-        HHV_feed = 0
+        H_combustion = 0
         for feed in (feed_solids, feed_gas):
-            if not feed.isempty(): HHV_feed -= feed.HHV
+            if not feed.isempty(): H_combustion += feed.H - feed.HHV
         
         # This is simply for the mass balance (no special purpose)
         # TODO: In reality, this should be CO2
@@ -132,7 +128,7 @@ class BoilerTurbogenerator(Facility):
         emissions.T = 373.15
         emissions.P = 101325
         emissions.phase = 'g'
-        H_content = B_eff * HHV_feed - emissions.H
+        H_content = B_eff * H_combustion - emissions.H
         #: [float] Total steam produced by the boiler (kmol/hr)
         self.total_steam = H_content / duty_over_mol 
         

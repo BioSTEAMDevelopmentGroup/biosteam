@@ -59,6 +59,7 @@ class HX(Unit, isabstract=True):
     line = 'Heat Exchanger'
     _units = {'Area': 'ft^2',
               'Overall heat transfer coefficient': 'kW/m^2/K',
+              'Log-mean temperature difference': 'K',
               'Tube side pressure drop': 'psi',
               'Shell side pressure drop': 'psi',
               'Operating pressure': 'psi',
@@ -234,15 +235,16 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
                         Flow                                kmol/hr     26.1
                         Cost                                 USD/hr     6.21
-    Design              Area                                   ft^2      320
+    Design              Area                                   ft^2     57.4
                         Overall heat transfer coefficient  kW/m^2/K      0.5
+                        Log-mean temperature difference           K      100
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi        5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.19e+04
-    Total purchase cost                                         USD 2.19e+04
+    Purchase cost       Heat exchanger                          USD 4.75e+03
+    Total purchase cost                                         USD 4.75e+03
     Utility cost                                             USD/hr     6.21
     
     Run heat exchanger by vapor fraction:
@@ -268,15 +270,16 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 2.07e+07
                         Flow                                kmol/hr      532
                         Cost                                 USD/hr      126
-    Design              Area                                   ft^2      297
+    Design              Area                                   ft^2      733
                         Overall heat transfer coefficient  kW/m^2/K        1
+                        Log-mean temperature difference           K     80.1
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.16e+04
-    Total purchase cost                                         USD 2.16e+04
+    Purchase cost       Heat exchanger                          USD 2.67e+04
+    Total purchase cost                                         USD 2.67e+04
     Utility cost                                             USD/hr      126
     
     """
@@ -438,6 +441,7 @@ class HXprocess(HX):
     Heat Exchanger                                            Units       hx
     Design              Area                                   ft^2      207
                         Overall heat transfer coefficient  kW/m^2/K      0.5
+                        Log-mean temperature difference           K     20.4
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi        5
                         Shell side pressure drop                psi        5
@@ -473,15 +477,16 @@ class HXprocess(HX):
         flow (kmol/hr): Water  200
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      228
+    Design              Area                                   ft^2      625
                         Overall heat transfer coefficient  kW/m^2/K      0.5
+                        Log-mean temperature difference           K     20.4
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.07e+04
-    Total purchase cost                                         USD 2.07e+04
+    Purchase cost       Heat exchanger                          USD 2.53e+04
+    Total purchase cost                                         USD 2.53e+04
     Utility cost                                             USD/hr        0
     
     Latent fluids case:
@@ -512,6 +517,7 @@ class HXprocess(HX):
     Heat Exchanger                                            Units       hx
     Design              Area                                   ft^2      293
                         Overall heat transfer coefficient  kW/m^2/K        1
+                        Log-mean temperature difference           K     21.7
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi      1.5

@@ -105,11 +105,11 @@ class Fermentation(Unit):
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
                         Number of reactors                           8
-    Purchase cost       Coolers                          USD   3.7e+04
+    Purchase cost       Coolers                          USD  1.62e+05
                         Reactors                         USD  1.87e+06
                         Agitators                        USD  1.16e+05
                         Cleaning in place                USD   7.1e+05
-    Total purchase cost                                  USD  2.73e+06
+    Total purchase cost                                  USD  2.86e+06
     Utility cost                                      USD/hr      15.4
     
     References

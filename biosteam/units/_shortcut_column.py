@@ -222,9 +222,9 @@ class ShortcutColumn(BinaryDistillation,
                         Stripper trays                USD 2.02e+04
                         Rectifier tower               USD 8.44e+04
                         Stripper tower                USD 1.01e+05
-                        Condenser                     USD 2.09e+04
-                        Boiler                        USD 4.45e+03
-    Total purchase cost                               USD 2.46e+05
+                        Condenser                     USD 4.19e+04
+                        Boiler                        USD 2.41e+04
+    Total purchase cost                               USD 2.87e+05
     Utility cost                                   USD/hr     78.6
     """
     line = 'Distillation'
