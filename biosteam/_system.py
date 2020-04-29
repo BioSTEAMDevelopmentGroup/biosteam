@@ -4,7 +4,7 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-from flexsolve import conditional_wegstein, conditional_aitken
+import flexsolve as flx
 from ._digraph import (digraph_from_units_and_streams,
                        minimal_digraph,
                        surface_digraph,
@@ -19,7 +19,7 @@ from ._report import save_report
 from .utils import colors, strtuple
 import biosteam as bst
 
-__all__ = ('System',)
+__all__ = ('System',)    
 
 # %% Functions for building systems
 
@@ -186,7 +186,11 @@ class System(metaclass=system):
     molar_tolerance = 0.50
     
     #: Temperature tolerance (K)
-    T_tolerance = 0.10
+    temperature_tolerance = 0.10
+
+    #: Whether to use the least-squares solution of tear stream
+    #: iterations during fixed-point iteration for better convergence.
+    use_least_squares_solution = True
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
@@ -507,9 +511,9 @@ class System(metaclass=system):
         self._mol_error = mol_error = abs(mol - recycle.mol).sum()
         self._T_error = T_error = abs(T - recycle.T)
         self._iter += 1
-        if mol_error < self.molar_tolerance and T_error < self.T_tolerance:
+        if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
             unconverged = False
-        elif self._iter > self.maxiter:
+        elif self._iter == self.maxiter:
             raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
         else:
             unconverged = True
@@ -533,33 +537,22 @@ class System(metaclass=system):
                 converge_system_in_path(i)
             else: i() # Assume it is a function
     
-    # Methods for convering the recycle stream
+    # Methods for convering the recycle stream    
     def _fixed_point(self):
-        """Converge system recycle using inner and outer loops with fixed-point iteration."""
-        r = self.recycle
-        rmol = r.mol
-        while True:
-            mol = rmol.copy()
-            T = r.T
-            self._run()
-            self._mol_error = abs(mol - rmol).sum()
-            self._T_error = abs(T - r.T)
-            self._iter += 1
-            if (self._mol_error < self.molar_tolerance
-                and self._T_error < self.T_tolerance): break
-            if self._iter > self.maxiter:
-                raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
-            
+        """Converge system recycle iteratively using fixed-point iteration."""
+        flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy(), 
+                                    self.use_least_squares_solution)
+        
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
-        conditional_wegstein(self._iter_run, self.recycle.mol.copy())
+        flx.conditional_wegstein(self._iter_run, self.recycle.mol.copy())
     
     def _aitken(self):
         """Converge the system recycle iteratively using Aitken's method."""
-        conditional_aitken(self._iter_run, self.recycle.mol.copy())
+        flx.conditional_aitken(self._iter_run, self.recycle.mol.copy())
     
     # Default converge method
-    _converge = _aitken
+    _converge = _wegstein
 
     def _reset_iter(self):
         self._iter = 0

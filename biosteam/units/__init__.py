@@ -17,7 +17,7 @@ from . import (
     _balance, _shredder, _screw_feeder,
     decorators, design_tools, facilities,
     _process_specification, _duplicator,
-    _diagram_only_units,
+    _diagram_only_units, _bioreactor,
 )
 __all__ = (*_diagram_only_units.__all__,
            *_flash.__all__,
@@ -51,6 +51,7 @@ __all__ = (*_diagram_only_units.__all__,
            *facilities.__all__,
            *_process_specification.__all__,
            *_duplicator.__all__,
+           *_bioreactor.__all__,
            'facilities',
            'decorators',
            'design_tools',
@@ -88,4 +89,5 @@ from ._shredder import *
 from ._screw_feeder import *
 from ._diagram_only_units import *
 from .facilities import *
+from ._bioreactor import *
 

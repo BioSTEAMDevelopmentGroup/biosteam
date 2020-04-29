@@ -342,9 +342,9 @@ class ShortcutColumn(BinaryDistillation,
         distillate, bottoms = self.outs
         LNK_index = self._LNK_index
         HNK_index = self._HNK_index
-        bottoms.mol[LNK_index] = LNK_trace = 0.001 * distillate.mol[LNK_index]
+        bottoms.mol[LNK_index] = LNK_trace = 0.0001 * distillate.mol[LNK_index]
         distillate.mol[LNK_index] -= LNK_trace
-        distillate.mol[HNK_index] = HNK_trace = 0.001 * bottoms.mol[HNK_index]
+        distillate.mol[HNK_index] = HNK_trace = 0.0001 * bottoms.mol[HNK_index]
         bottoms.mol[HNK_index] -= HNK_trace
         
     def _estimate_mean_volatilities_relative_to_heavy_key(self):

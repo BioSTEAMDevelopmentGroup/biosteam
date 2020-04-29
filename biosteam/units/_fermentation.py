@@ -5,22 +5,13 @@ Created on Thu Aug 23 22:45:47 2018
 @author: yoelr
 """
 import numpy as np
-from ._hx import HXutility
-from .. import Unit
+from ._bioreactor import Bioreactor
 from scipy.integrate import odeint
-from .decorators import cost
-from .design_tools import size_batch
 from thermosteam.reaction import Reaction
 
 __all__ = ('Fermentation',)
 
-@cost('Reactor volume', 'Cleaning in place', CE=521.9,
-      cost=421e3, S=3785, n=0.6, BM=1.8, N='N')
-@cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
-      S=3785, n=0.5, kW=22.371, BM=1.5, N='N')
-@cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
-      S=3785, n=0.5, BM=1.5, N='N')
-class Fermentation(Unit):
+class Fermentation(Bioreactor):
     """
     Create a Fermentation object which models large-scale batch fermentation
     for the production of 1st generation ethanol using yeast
@@ -125,24 +116,7 @@ class Fermentation(Unit):
     .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
     
     """
-    _units = {'Reactor volume': 'm3',
-              'Cycle time': 'hr',
-              'Batch time': 'hr',
-              'Loading time': 'hr',
-              'Total dead time': 'hr'}
-    _N_ins = _N_outs = 2
-    _N_heat_utilities = 1
-    _has_power_utility = True
     line = 'Fermentation'    
-    
-    #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
-    autoselect_N = False
-    
-    #: [float] Cleaning and unloading time (hr)
-    tau_0 = 3
-    
-    #: [float] Fraction of filled tank to total tank volume
-    V_wf = 0.9
     
     #: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
@@ -155,28 +129,14 @@ class Fermentation(Unit):
                          0.45,  # Y_PS
                          0.18)  # a
     
-    def _get_design_info(self):
-        return (('Cleaning and unloading time', self.tau_0, 'hr'),
-                ('Working volume fraction', self.V_wf, ''),
-                ('Number of reactors', self.N, ''))
-    
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  tau,  N, efficiency=0.9, iskinetic=False, T=305.15):
-        Unit.__init__(self, ID, ins, outs, thermo)
+        Bioreactor.__init__(self, ID, ins, outs, thermo, tau=tau, N=N, T=T)
         self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
         self.iskinetic = iskinetic
         self.efficiency = efficiency
-        self.tau = tau
-        self.N = N
-        self.T = T
-        self.cooler = HXutility(None)
         
-    def _setup(self):
-        vent, effluent = self.outs
-        vent.phase = 'g'
-        self.cooler._outs[0].T = effluent.T = vent.T = self.T
-
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
         y, e, s, w = feed.indices(['Yeast',
@@ -246,16 +206,6 @@ class Fermentation(Unit):
         dPdt = (mu_P * X)
         dSdt =  - mu_S * X
         return (dXdt, dPdt, dSdt)
-       
-    @property
-    def N(self):
-        """[int] Number of reactors"""
-        return self._N
-    @N.setter
-    def N(self, N):
-        if N <= 1:
-            raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
-        self._N = N
 
     @property
     def efficiency(self):
@@ -263,13 +213,6 @@ class Fermentation(Unit):
     @efficiency.setter
     def efficiency(self, efficiency):
         self.fermentation.X = efficiency
-
-    @property
-    def tau(self):
-        return self._tau
-    @tau.setter
-    def tau(self, tau):
-        self._tau = tau
 
     def _run(self):
         vent, effluent = self.outs
@@ -280,41 +223,3 @@ class Fermentation(Unit):
             self.fermentation.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation(effluent_mol)
         vent.receive_vent(effluent)
-    
-    @property
-    def N_at_minimum_capital_cost(self):
-        cost_old = np.inf
-        self.autoselect_N = False
-        self._N, N = 2, self._N
-        cost_new = self.purchase_cost
-        self._summary()
-        while cost_new < cost_old:
-            self._N += 1
-            self._summary()
-            cost_old = cost_new
-            cost_new = self.purchase_cost
-        self._N, N = N, self._N
-        self.autoselect_N = True
-        return N - 1
-        
-    def _design(self):
-        effluent = self.outs[1]
-        v_0 = effluent.F_vol
-        tau = self._tau
-        tau_0 = self.tau_0
-        Design = self.design_results
-        if self.autoselect_N:
-            self._N = self.N_at_minimum_capital_cost
-        N = self._N
-        Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
-        hx_effluent = effluent.copy()
-        hx_effluent.mol[:] /= N
-        cooler = self.cooler
-        cooler.simulate_as_auxiliary_exchanger(self.Hnet/N, hx_effluent)
-        hu_fermentation, = self.heat_utilities
-        hu_cooler, = cooler.heat_utilities
-        hu_fermentation.copy_like(hu_cooler)
-        hu_fermentation.scale(N)
-        self.purchase_costs['Coolers'] = self.cooler.purchase_costs['Heat exchanger'] * N
-        
-    
