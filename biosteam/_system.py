@@ -147,11 +147,11 @@ class system(type):
     def converge_method(self, method):
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' == method:
-            self._converge = self._wegstein
+            self._converge_method = self._wegstein
         elif 'fixedpoint' == method:
-            self._converge = self._fixed_point
+            self._converge_method = self._fixed_point
         elif 'aitken' == method:
-            self._converge = self._aitken
+            self._converge_method = self._aitken
         else:
             raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
 
@@ -188,7 +188,7 @@ class System(metaclass=system):
     #: Temperature tolerance (K)
     temperature_tolerance = 0.10
 
-    #: Whether to use the least-squares solution of tear stream
+    #: Whether to use the least-squares solution of prior tear stream
     #: iterations during fixed-point iteration for better convergence.
     use_least_squares_solution = True
 
@@ -385,11 +385,11 @@ class System(metaclass=system):
                 "cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' == method:
-            self._converge = self._wegstein
+            self._converge_method = self._wegstein
         elif 'fixedpoint' == method:
-            self._converge = self._fixed_point
+            self._converge_method = self._fixed_point
         elif 'aitken' == method:
-            self._converge = self._aitken
+            self._converge_method = self._aitken
         else:
             raise ValueError(
                 f"only 'wegstein', 'aitken', and 'fixed point' methods "
@@ -552,7 +552,11 @@ class System(metaclass=system):
         flx.conditional_aitken(self._iter_run, self.recycle.mol.copy())
     
     # Default converge method
-    _converge = _wegstein
+    _converge_method = _wegstein
+
+    def _converge(self):
+        self._reset_iter()
+        self._converge_method()
 
     def _reset_iter(self):
         self._iter = 0
@@ -581,9 +585,6 @@ class System(metaclass=system):
         
         #: Temperature error (K)
         self._T_error = 0
-        
-        #: Specification error
-        self._spec_error = 0
         
         #: Number of iterations
         self._iter = 0
