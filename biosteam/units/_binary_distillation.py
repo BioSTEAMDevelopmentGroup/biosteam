@@ -18,6 +18,7 @@ from .. import Unit
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from ._hx import HXutility
+from ..exceptions import InfeasibleRegion
 import matplotlib.pyplot as plt
 
 __all__ = ('BinaryDistillation',)
@@ -567,18 +568,20 @@ class BinaryDistillation(Unit):
         LHK_index = self._LHK_index
         LK_distillate, HK_distillate = distillate.mol[LHK_index]
         LK_bottoms, HK_bottoms = bottoms_product.mol[LHK_index]
-        assert LK_distillate >= 0 and LK_bottoms >= 0, (
-            "Light key composition is infeasible")
-        assert HK_distillate >= 0 and HK_bottoms >= 0, (
-            "heavy key composition is infeasible")
-        intermediate_chemicals = self._intermediate_volatile_chemicals
-        intemediates_index = self.chemicals.get_index(intermediate_chemicals)
-        intermediate_flows = self.mol_in[intemediates_index]
-        minflow = min(LK_distillate, HK_bottoms)
-        for flow, chemical in zip(intermediate_flows, intermediate_chemicals):
-            assert flow > minflow, ("significant intermediate volatile chemical,"
-                                    f"'{chemical}', between light and heavy "
-                                    f"key, {', '.join(LHK)}")
+        if self.product_specification_format == 'Composition':
+            if LK_distillate < 0. or LK_bottoms < 0.:
+                raise InfeasibleRegion("light key composition")
+            if HK_distillate < 0. or HK_bottoms < 0.:
+                raise InfeasibleRegion("heavy key composition")
+        if tmo.settings.debug:
+            intermediate_chemicals = self._intermediate_volatile_chemicals
+            intemediates_index = self.chemicals.get_index(intermediate_chemicals)
+            intermediate_flows = self.mol_in[intemediates_index]
+            minflow = min(LK_distillate, HK_bottoms)
+            for flow, chemical in zip(intermediate_flows, intermediate_chemicals):
+                assert flow > minflow, ("significant intermediate volatile chemical,"
+                                        f"'{chemical}', between light and heavy "
+                                        f"key, {', '.join(LHK)}")
     
     def _run_binary_distillation_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
@@ -623,8 +626,7 @@ class BinaryDistillation(Unit):
         bottoms_product.mol[LHK_index] = LHK_mol - distillate_LHK_mol
         distillate.mol[intemediates_index] = \
         bottoms_product.mol[intemediates_index] = mol[intemediates_index] / 2
-        if tmo.settings.debug:
-            self._check_mass_balance()
+        self._check_mass_balance()
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs

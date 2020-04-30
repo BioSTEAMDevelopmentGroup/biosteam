@@ -16,6 +16,7 @@ from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
+from .exceptions import ConvergenceError, InfeasibleRegion
 from .utils import colors, strtuple
 import biosteam as bst
 
@@ -503,6 +504,8 @@ class System(metaclass=system):
                       True if recycle has not converged.
             
         """
+        if (mol < 0.).any():
+            raise InfeasibleRegion('material flow')
         recycle = self.recycle
         rmol = recycle.mol
         rmol[:] = mol
@@ -514,7 +517,7 @@ class System(metaclass=system):
         if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
             unconverged = False
         elif self._iter == self.maxiter:
-            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+            raise ConvergenceError(f'{repr(self)} could not converge' + self._error_info())
         else:
             unconverged = True
         return rmol.copy(), unconverged
@@ -552,7 +555,7 @@ class System(metaclass=system):
         flx.conditional_aitken(self._iter_run, self.recycle.mol.copy())
     
     # Default converge method
-    _converge_method = _wegstein
+    _converge_method = _aitken
 
     def _converge(self):
         self._reset_iter()

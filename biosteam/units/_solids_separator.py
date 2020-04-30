@@ -5,6 +5,7 @@ Created on Thu Aug 23 22:14:01 2018
 @author: yoelr
 """
 from ._splitter import Splitter, run_split_with_mixing
+from ..exceptions import InfeasibleRegion
 
 __all__ = ('SolidsSeparator',)
 
@@ -40,6 +41,6 @@ class SolidsSeparator(Splitter):
         mc = self.mositure_content
         retentate.imol['7732-18-5'] = water = (solids * mc/(1-mc))/18.01528
         permeate.imol['7732-18-5'] -= water
-        if permeate.imol['7732-18-5'] < water:
-            raise ValueError(f'not enough water for {repr(self)}')
+        if permeate.imol['7732-18-5'] < 0:
+            raise InfeasibleRegion('not enough water; permeate moisture content')
     

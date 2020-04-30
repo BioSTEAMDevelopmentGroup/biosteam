@@ -6,6 +6,7 @@ Created on Sat Aug 18 14:25:34 2018
 """
 from thermosteam.base.units_of_measure import convert, DisplayUnits
 from thermosteam import Thermo, Stream, ThermalCondition
+from math import copysign
 
 __all__ = ('HeatUtility', 'UtilityAgent')
 
@@ -367,6 +368,39 @@ class HeatUtility:
         self.duty = duty
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
 
+
+    @staticmethod
+    def heat_utilities_by_agent(cls, heat_utilities):
+        """Return a dictionary of heat utilities sorted by agent."""
+        heat_utilities_by_agent = {}
+        for heat_utility in heat_utilities:
+            agent = heat_utility.agent
+            if not agent: continue
+            if agent in heat_utilities_by_agent:
+                heat_utilities_by_agent[agent].append(heat_utility)
+            else:
+                heat_utilities_by_agent[agent] = [heat_utility]
+        return heat_utilities_by_agent
+
+    @classmethod
+    def sum(cls, heat_utilities):
+        """
+        Return a HeatUtility object that reflects the sum of heat
+        utilities.
+        """
+        heat_utility = cls()
+        heat_utility.mix_from(heat_utilities)
+        return heat_utility    
+
+    @classmethod
+    def sum_by_agent(cls, heat_utilities):
+        """
+        Return a list heat utilities that reflects the sum of heat utilities
+        by agent.
+        """
+        heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
+        return [cls.reduce(i) for i in heat_utilities_by_agent.values()]
+
     @classmethod
     def get_agent(cls, ID):
         """Return utility agent with given ID."""
@@ -494,7 +528,7 @@ class HeatUtility:
         flow = self.inlet_utility_stream.get_total_flow(flow_units)
         duty = convert(self.duty, 'kJ/hr', duty_units)
         cost = convert(self.cost, 'USD/hr', cost_units)
-        return duty, flow, cost, duty_units, flow_units, cost_units
+        return duty, copysign(flow, self.flow), cost, duty_units, flow_units, cost_units
         
     def __repr__(self):
         if self.agent:

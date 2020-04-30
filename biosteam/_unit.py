@@ -209,7 +209,7 @@ class Unit:
         """Return unit node attributes for graphviz."""
         try: self._load_stream_links()
         except: pass
-        return self._graphics.get_node_taylored_to_unit(self)
+        return self._graphics.get_node_tailored_to_unit(self)
     
     def get_design_result(self, key, units):
         return convert(self.design_results[key], self._units[key], units)
@@ -521,7 +521,7 @@ class Unit:
             f.attr('graph', nodesep='0.4')
 
         # Initialize node arguments based on unit and make node
-        node = graphics.get_node_taylored_to_unit(self)
+        node = graphics.get_node_tailored_to_unit(self)
         f.node(**node)
 
         # Set stream node attributes

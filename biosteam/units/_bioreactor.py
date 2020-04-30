@@ -23,7 +23,7 @@ class Bioreactor(Unit, isabstract=True):
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
     Cleaning and unloading time,`tau_0`, fraction of working volume, `V_wf`,
     and number of reactors, `N_reactors`, are attributes that can be changed.
-    Cost of a reactoris based on the NREL batch fermentation tank cost
+    Cost of a reactor is based on the NREL batch fermentation tank cost
     assuming volumetric scaling with a 6/10th exponent [1]_. 
     
     **Abstract methods**
@@ -71,10 +71,10 @@ class Bioreactor(Unit, isabstract=True):
     #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
     autoselect_N = False
     
-    #: [float] Cleaning and unloading time (hr)
+    #: [float] Cleaning and unloading time (hr).
     tau_0 = 3
     
-    #: [float] Fraction of filled tank to total tank volume
+    #: [float] Fraction of filled tank to total tank volume.
     V_wf = 0.9
     
     def _get_design_info(self):

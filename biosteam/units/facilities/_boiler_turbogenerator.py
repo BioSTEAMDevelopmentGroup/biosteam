@@ -108,8 +108,11 @@ class BoilerTurbogenerator(Facility):
         hu_cooling, hu_steam = self.heat_utilities
         H_steam =  sum([i.duty for i in self.steam_utilities])
         duty_over_mol = H_steam / mol_steam
-        if self.side_steam: 
-            H_steam += self.side_steam.H
+        side_steam = self.side_steam
+        if side_steam: 
+            H_steam += side_steam.H
+            mol_steam += side_steam.F_mol
+        steam.imol['7732-18-5'] = mol_steam 
         H_combustion = 0
         for feed in (feed_solids, feed_gas):
             if not feed.isempty(): H_combustion += feed.H - feed.HHV
@@ -123,7 +126,7 @@ class BoilerTurbogenerator(Facility):
         if feed_gas: 
             emissions_mol += feed_gas.mol
         combustion_rxns = self.chemicals.get_combustion_reactions()
-        combustion_rxns(emissions_mol)
+        combustion_rxns(emissions_mol, check_feasibility=False)
         emissions.imol['O2'] = 0
         emissions.T = 373.15
         emissions.P = 101325

@@ -24,9 +24,9 @@ __all__ = ('UnitGraphics',
 class UnitGraphics:
     """Create a UnitGraphics object that contains specifications for 
     Graphviz node and edge styles."""
-    __slots__ = ('node', 'edge_in', 'edge_out', 'taylor_node_to_unit')
+    __slots__ = ('node', 'edge_in', 'edge_out', 'tailor_node_to_unit')
     
-    def __init__(self, edge_in, edge_out, node, taylor_node_to_unit=None):
+    def __init__(self, edge_in, edge_out, node, tailor_node_to_unit=None):
         # [dict] Input stream edge settings
         self.edge_in = edge_in
         
@@ -36,8 +36,8 @@ class UnitGraphics:
         #: [dict] Node settings
         self.node = node
         
-        # [function(node, unit)] Taylor node to unit.
-        self.taylor_node_to_unit = taylor_node_to_unit
+        # [function(node, unit)] tailor node to unit.
+        self.tailor_node_to_unit = tailor_node_to_unit
     
     @classmethod
     def box(cls, N_ins, N_outs):
@@ -45,13 +45,13 @@ class UnitGraphics:
         edge_out = [{'tailport': 'c'} for i in range(N_outs)]
         return cls(edge_in, edge_out, box_node)
     
-    def get_node_taylored_to_unit(self, unit):
-        """Return node taylored to unit specifications"""
+    def get_node_tailored_to_unit(self, unit):
+        """Return node tailored to unit specifications"""
         node = self.node
         node['name'] = unit.ID + '\n' + unit.line
-        taylor_node_to_unit = self.taylor_node_to_unit
-        if taylor_node_to_unit:
-            taylor_node_to_unit(node, unit)
+        tailor_node_to_unit = self.tailor_node_to_unit
+        if tailor_node_to_unit:
+            tailor_node_to_unit(node, unit)
         return node
         
     def __repr__(self):
@@ -113,7 +113,7 @@ node = box_node.copy()
 node['shape'] = 'circle'
 node['color'] = 'none'
 node['margin'] = '0'
-def taylor_utility_heat_exchanger_node(node, unit):
+def tailor_utility_heat_exchanger_node(node, unit):
     try:
         si = unit.ins[0]
         so = unit.outs[0]
@@ -136,7 +136,7 @@ def taylor_utility_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n" + line
 
 utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
-                                           taylor_utility_heat_exchanger_node)
+                                           tailor_utility_heat_exchanger_node)
 
 # Process heat exchanger network
 node = node.copy()
@@ -145,11 +145,11 @@ node['color'] = 'none'
 node['margin'] = '0'
 node['gradientangle'] = '90'
 node['fillcolor'] = '#cfecf0:#fad6d8'
-def taylor_process_heat_exchanger_node(node, unit):
+def tailor_process_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n Heat exchanger"
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
-                                           taylor_process_heat_exchanger_node)
+                                           tailor_process_heat_exchanger_node)
 
 # Process specification graphics
 orange = colors.orange_tint.tint(50)
@@ -158,12 +158,12 @@ node = box_node.copy()
 node['fillcolor'] = orange_tint.HEX + ':' + orange.HEX
 node['shape'] = 'note'
 node['margin'] = '0.2'
-def taylor_process_specification_node(node, unit):
+def tailor_process_specification_node(node, unit):
     node['name'] = (f"{unit.ID} - {unit.description}\n"
                     f"{unit.line}")
 
 process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
-                                          taylor_process_specification_node)
+                                          tailor_process_specification_node)
 
 # System unit for creating diagrams
 node = box_node.copy()
@@ -176,7 +176,7 @@ stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 
 node = box_node.copy()
-def taylor_junction_node(node, unit):
+def tailor_junction_node(node, unit):
     if not any(unit._get_streams()):
         node['fontsize'] = '18'
         node['shape'] = 'plaintext'
@@ -187,4 +187,4 @@ def taylor_junction_node(node, unit):
         node['color'] = node['fillcolor'] = 'black'
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
-                             taylor_junction_node)
+                             tailor_junction_node)
