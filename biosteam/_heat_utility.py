@@ -370,7 +370,7 @@ class HeatUtility:
 
 
     @staticmethod
-    def heat_utilities_by_agent(cls, heat_utilities):
+    def heat_utilities_by_agent(heat_utilities):
         """Return a dictionary of heat utilities sorted by agent."""
         heat_utilities_by_agent = {}
         for heat_utility in heat_utilities:
@@ -395,11 +395,11 @@ class HeatUtility:
     @classmethod
     def sum_by_agent(cls, heat_utilities):
         """
-        Return a list heat utilities that reflects the sum of heat utilities
+        Return a list heat utilities that reflect the sum of heat utilities
         by agent.
         """
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
-        return [cls.reduce(i) for i in heat_utilities_by_agent.values()]
+        return [cls.sum(i) for i in heat_utilities_by_agent.values()]
 
     @classmethod
     def get_agent(cls, ID):
