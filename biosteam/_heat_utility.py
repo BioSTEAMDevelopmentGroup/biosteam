@@ -256,7 +256,7 @@ class HeatUtility:
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
                  'flow', 'cost', 'heat_transfer_efficiency', 'T_pinch',
-                 'iscooling', 'agent')
+                 'heat_exchanger', 'iscooling', 'agent')
     dT = 5  #: [float] Pinch temperature difference
     
     #: [DisplayUnits] Units of measure for IPython display
@@ -265,8 +265,9 @@ class HeatUtility:
     cooling_agents = [cooling_water, chilled_water, chilled_brine]
     heating_agents = [low_pressure_steam, medium_pressure_steam, high_pressure_steam]
 
-    def __init__(self, heat_transfer_efficiency=None):
+    def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
+        self.heat_exchanger = heat_exchanger
         self.empty()
 
     def __bool__(self):
@@ -332,7 +333,8 @@ class HeatUtility:
         
         # Note: These are pinch temperatures at the utility inlet and outlet. 
         # Not to be confused with the inlet and outlet of the process stream.
-        T_pinch_in, T_pinch_out = self.get_inlet_and_outlet_T_pinch(iscooling, T_in, T_out)
+        T_pinch_in, T_pinch_out = self.get_inlet_and_outlet_pinch_temperature(
+                                        iscooling, T_in, T_out)
 
         ## Select heat transfer agent ##
         if agent:
@@ -353,7 +355,8 @@ class HeatUtility:
         duty = duty/heat_transfer_efficiency
         if agent.T_limit:
             # Temperature change
-            self.outlet_utility_stream.T = self.get_T_outlet(T_pinch_out, agent.T_limit, iscooling)
+            self.outlet_utility_stream.T = self.get_outlet_temperature(
+                T_pinch_out, agent.T_limit, iscooling)
             dH = self.inlet_utility_stream.H - self.outlet_utility_stream.H
         else:
             # Phase change
@@ -368,7 +371,28 @@ class HeatUtility:
         self.duty = duty
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
 
+    @property
+    def inlet_process_stream(self):
+        """[:class`~thermosteam.Stream`] If a heat exchanger is available,
+        this stream is the inlet process stream to the heat exchanger."""
+        heat_exchanger = self.heat_exchanger
+        if heat_exchanger:
+            return heat_exchanger.ins[0]
+        else:
+            raise AttributeError('no heat exchanger available '
+                                 'to retrieve process stream')
 
+    @property
+    def outlet_process_stream(self):
+        """[:class`~thermosteam.Stream`] If a heat exchanger is available,
+        this stream is the outlet process stream to the heat exchanger."""
+        heat_exchanger = self.heat_exchanger
+        if heat_exchanger:
+            return heat_exchanger.outs[0]
+        else:
+            raise AttributeError('no heat exchanger available '
+                                 'to retrieve process stream')
+    
     @staticmethod
     def heat_utilities_by_agent(heat_utilities):
         """Return a dictionary of heat utilities sorted by agent."""
@@ -395,7 +419,7 @@ class HeatUtility:
     @classmethod
     def sum_by_agent(cls, heat_utilities):
         """
-        Return a list heat utilities that reflect the sum of heat utilities
+        Return a list of heat utilities that reflect the sum of heat utilities
         by agent.
         """
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
@@ -486,7 +510,7 @@ class HeatUtility:
     # Subcalculations
 
     @staticmethod
-    def get_T_outlet(T_pinch, T_limit, iscooling):
+    def get_outlet_temperature(T_pinch, T_limit, iscooling):
         """
         Return outlet temperature of the utility in a counter current heat exchanger
 
@@ -504,7 +528,7 @@ class HeatUtility:
             return T_limit if T_limit and T_limit > T_pinch else T_pinch
         
     @classmethod
-    def get_inlet_and_outlet_T_pinch(cls, iscooling, T_in, T_out):
+    def get_inlet_and_outlet_pinch_temperature(cls, iscooling, T_in, T_out):
         """Return pinch inlet and outlet temperature of utility."""
         dT = cls.dT
         if iscooling:

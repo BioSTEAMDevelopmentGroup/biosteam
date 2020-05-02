@@ -131,7 +131,6 @@ class MultiEffectEvaporator(Unit):
                            'condenser': condenser,
                            'mixer': mixer}
         
-
     def _run(self):
         out_wt_solids, liq = self.outs
         ins = self.ins

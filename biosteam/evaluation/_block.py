@@ -45,15 +45,15 @@ class Block:
         return self
     
     def __init__(self, element, system=None):
-        inst = isinstance
-        if inst(element, Stream): unit = element.sink
-        elif inst(element, Unit): unit = element
+        isa = isinstance
+        if isa(element, Stream): unit = element.sink
+        elif isa(element, Unit): unit = element
         if system and element:
             subsys = system._downstream_system(unit)
             simulate = subsys.simulate
         else:
             subsys = system
-            simulate = unit.simulate if inst(element, Unit) else do_nothing
+            simulate = unit.simulate if isa(element, Unit) else do_nothing
         self._system = subsys
         self._simulate = simulate
         self._element = element

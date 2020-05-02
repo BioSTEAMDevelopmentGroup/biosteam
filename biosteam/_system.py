@@ -444,8 +444,10 @@ class System(metaclass=system):
                     unit_found = True
                     break
             assert unit_found, f'{unit} not found in system'
+        original_system = self
         system = System(None, path,
                         facilities=downstream_facilities)
+        for facility in downstream_facilities: facility._system = original_system
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
         self._cached_downstream_systems[unit] = system
         return system

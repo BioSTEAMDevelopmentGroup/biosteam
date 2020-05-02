@@ -92,7 +92,7 @@ class Model(State):
         samples : numpy.ndarray, dim=2
         
         """
-        if not self._update: self._loadparams()
+        if not self._update: self._load_params()
         params = self._params
         paramlen = len(params)
         if not isinstance(samples, np.ndarray):
@@ -149,6 +149,10 @@ class Model(State):
         
         cols = varindices(self._metrics)
         for k, v in zip_(cols, zip_(*values)): self.table[k] = v
+    
+    def metrics_at_baseline(self):
+        baseline = self.get_baseline_sample()
+        return self(baseline)
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=True,
@@ -250,7 +254,7 @@ class Model(State):
     def __call__(self, sample):
         """Return list of metric values."""
         super().__call__(sample)
-        return [i.getter() for i in self._metrics]
+        return {i.index: i.getter() for i in self._metrics}
     
     def _repr(self):
         clsname = type(self).__name__

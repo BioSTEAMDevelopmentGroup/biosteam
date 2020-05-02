@@ -23,12 +23,14 @@ from . import utils
 from . import units
 from . import evaluation
 from . import exceptions
+from . import process_tools
 
-__all__ = ['Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
+__all__ = ('Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
            'main_flowsheet', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
            'MultiStream', 'settings', 'Network', 'exceptions', 'speed_up',
-           *units.__all__, *evaluation.__all__]
+           'process_tools', *units.__all__, *evaluation.__all__
+)
 
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
 from .evaluation import *

@@ -24,7 +24,7 @@ def param_unit(param):
 def parameter(system, element, setter, kind, name, distribution, units, baseline):
     if kind == 'coupled':
         return Block(element, system).parameter(setter, name=name,
-                    distribution=distribution, units=units, baseline=baseline)
+                     distribution=distribution, units=units, baseline=baseline)
     elif kind == 'isolated':
         return Block(element, None).parameter(setter, name=name,
                     distribution=distribution, units=units, baseline=baseline)
@@ -115,7 +115,7 @@ class State:
     
     def get_parameters(self):
         """Return parameters."""
-        if not self._update: self._loadparams()
+        if not self._update: self._load_params()
         return tuple(self._params)
     
     def get_distribution_summary(self):
@@ -225,14 +225,14 @@ class State:
         +-------+-------------------------------------------------+
             
         """
-        if not self._update: self._loadparams()
+        if not self._update: self._load_params()
         return J(*[i.distribution for i in self._params]).sample(N, rule).transpose()
     
     def _erase(self):
         """Erase cached data."""
         self._update = None
     
-    def _loadparams(self):
+    def _load_params(self):
         """Load parameters."""
         length = len(self._system._unit_path)
         index =  self._system._unit_path.index
@@ -242,7 +242,7 @@ class State:
     
     def __call__(self, sample):
         """Update state given sample of parameters."""
-        if not self._update: self._loadparams()
+        if not self._update: self._load_params()
         self._update(np.asarray(sample, dtype=float))
     
     def _repr(self):
@@ -252,7 +252,7 @@ class State:
         return '<' + self._repr() + '>'
     
     def _info(self):
-        if not self._update: self._loadparams()
+        if not self._update: self._load_params()
         if not self._params: return f'{self._repr()}\n (No parameters)'
         lines = []
         lenghts_block = []

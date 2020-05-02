@@ -314,6 +314,22 @@ class HXutility(HX):
         self.material = material
         self.shell_and_tube_type = shell_and_tube_type
     
+    def _init_utils(self):
+        # tuple[HeatUtility] All heat utilities associated to unit
+        self._heat_utilities = tuple([bst.HeatUtility(heat_exchanger=self)
+                                      for i in range(self._N_heat_utilities)])
+        
+        # [PowerUtility] Electric utility associated to unit
+        self.power_utility = bst.PowerUtility()
+    
+    @property
+    def heat_utilities(self):
+        return self._heat_utilities
+    @heat_utilities.setter
+    def heat_utilities(self, heat_utilities):
+        self._heat_utilities = heat_utilities = tuple(heat_utilities)
+        for i in heat_utilities: i.heat_exchanger = self
+    
     def simulate_as_auxiliary_exchanger(self, duty, stream):
         self.outs[0] = stream.proxy()
         self.ins[0] = stream.proxy()
