@@ -246,8 +246,7 @@ class ShortcutColumn(BinaryDistillation,
         self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
         # Solve for new recoveries
-        distillate_recoveries = self._solve_distillate_recoveries()
-        self._update_distillate_recoveries(distillate_recoveries)
+        self._solve_distillate_recoveries()
         self._update_distillate_and_bottoms_temperature()
         
     def _setup_cache(self):
@@ -342,10 +341,13 @@ class ShortcutColumn(BinaryDistillation,
         distillate, bottoms = self.outs
         LNK_index = self._LNK_index
         HNK_index = self._HNK_index
-        bottoms.mol[LNK_index] = LNK_trace = 0.0001 * distillate.mol[LNK_index]
-        distillate.mol[LNK_index] -= LNK_trace
-        distillate.mol[HNK_index] = HNK_trace = 0.0001 * bottoms.mol[HNK_index]
-        bottoms.mol[HNK_index] -= HNK_trace
+        feed_mol = self.feed.mol
+        LNK_mol = feed_mol[LNK_index]
+        HNK_mol = feed_mol[HNK_index]
+        bottoms.mol[LNK_index] = LNK_trace = 0.0001 * LNK_mol
+        distillate.mol[LNK_index] = LNK_mol - LNK_trace
+        distillate.mol[HNK_index] = HNK_trace = 0.0001 * HNK_mol
+        bottoms.mol[HNK_index] = HNK_mol - HNK_trace
         
     def _estimate_mean_volatilities_relative_to_heavy_key(self):
         # Mean volatilities taken at distillate and bottoms product
@@ -390,10 +392,12 @@ class ShortcutColumn(BinaryDistillation,
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._estimate_distillate_recoveries()
         try:
-            return flx.wegstein(self._recompute_distillate_recovery,
-                                distillate_recoveries, 1e-4)
+            distillate_recoveries = flx.aitken(self._recompute_distillate_recovery,
+                                               distillate_recoveries, 1e-4)
         except flx.SolverError as error: 
-            return self._recompute_distillate_recovery(error.x)
+            distillate_recoveries = self._estimate_distillate_recoveries(error.x)
+        self._update_distillate_recoveries(distillate_recoveries)
+        return distillate_recoveries
     
     def _recompute_distillate_recovery(self, distillate_recoveries):
         self._update_distillate_recoveries(distillate_recoveries)

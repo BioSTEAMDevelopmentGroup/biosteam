@@ -10,6 +10,7 @@ from ._state import State
 from ._metric import Metric
 from biosteam.utils import TicToc
 from scipy.stats import spearmanr
+from biosteam import speed_up
 
 __all__ = ('Model',)
 
@@ -123,6 +124,7 @@ class Model(State):
             If False, simulate only the affected parts of the system.
         
         """
+        speed_up()
         # Setup before simulation
         funcs = [i.getter for i in self._metrics]
         samples = self._samples

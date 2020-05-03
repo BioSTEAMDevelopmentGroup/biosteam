@@ -128,18 +128,21 @@ class UtilityAgent(Stream):
     
     def _info_phaseTP(self, phase, T_units, P_units):
         T_limit = convert(self.T_limit, 'K', T_units)
+        T_limit = f"{T_limit:.3g} K" if T_limit else "None"
         T = convert(self.T, 'K', T_units)
         P = convert(self.P, 'Pa', P_units)
         s = '' if isinstance(phase, str) else 's'
         ht_price = self.heat_transfer_price
         rg_price = self.regeneration_price
         ht_eff = self.heat_transfer_efficiency
-        return (f" phase{s}: {repr(phase)}, T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
+        return (f" heat_transfer_efficiency: {ht_eff:.3f}\n"
                 f" heat_transfer_price: {ht_price:.3g} USD/kJ\n"
                 f" regeneration_price: {rg_price:.3g} USD/kmol\n"
-                f" heat_transfer_efficiency: {ht_eff:.3f}\n"
-                 " T_limit: " + (f"{T_limit:.3g} K\n" if T_limit else "None\n"))
-    
+                f" T_limit: {T_limit}\n"
+                f" phase{s}: {repr(phase)}\n"
+                f" T: {T:.5g} {T_units}\n"
+                f" P: {P:.6g} {P_units}\n"
+        )
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
 
@@ -201,7 +204,8 @@ class HeatUtility:
     heating_agents : list[UtilityAgent]
         All heating utilities available.
     dT : float
-        Maximum temperature approach of utilities.
+        Minimum approach temperature difference. Used to assign
+        pinch temperature of the utility stream.
     duty : float
         Energy transfered from utility to the process [kJ/hr].
     flow : float
@@ -334,7 +338,7 @@ class HeatUtility:
         # Note: These are pinch temperatures at the utility inlet and outlet. 
         # Not to be confused with the inlet and outlet of the process stream.
         T_pinch_in, T_pinch_out = self.get_inlet_and_outlet_pinch_temperature(
-                                        iscooling, T_in, T_out)
+            iscooling, T_in, T_out)
 
         ## Select heat transfer agent ##
         if agent:
@@ -483,6 +487,7 @@ class HeatUtility:
         self.agent = agent
 
     def mix_from(self, heat_utilities):
+        """Mix all heat utilities to this heat utility."""
         N_heat_utilities = len(heat_utilities)
         if N_heat_utilities == 0:
             self.empty()
@@ -502,6 +507,8 @@ class HeatUtility:
             self.iscooling = None
 
     def reverse(self):
+        """Reverse direction of utility. If utility is being consumed,
+        the utility is produced instead, and vice-versa."""
         self.flow *= -1
         self.duty *= -1
         self.cost *= -1

@@ -138,6 +138,7 @@ class Bioreactor(Unit, isabstract=True):
         N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
         hx_effluent = effluent.copy()
+        hx_effluent.phase = 'l'
         hx_effluent.mol[:] /= N
         cooler = self.cooler
         cooler.simulate_as_auxiliary_exchanger(self.Hnet/N, hx_effluent)

@@ -126,7 +126,7 @@ class BoilerTurbogenerator(Facility):
         if feed_gas: 
             emissions_mol += feed_gas.mol
         combustion_rxns = self.chemicals.get_combustion_reactions()
-        combustion_rxns(emissions_mol, check_feasibility=False)
+        combustion_rxns.force_reaction(emissions_mol)
         emissions.imol['O2'] = 0
         emissions.T = 373.15
         emissions.P = 101325

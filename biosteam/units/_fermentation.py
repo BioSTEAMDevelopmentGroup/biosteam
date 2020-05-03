@@ -87,21 +87,21 @@ class Fermentation(Bioreactor):
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
                         Cost                          USD/hr     0.908
-    Chilled water       Duty                           kJ/hr -2.91e+06
-                        Flow                         kmol/hr  1.95e+03
-                        Cost                          USD/hr      14.5
+    Chilled water       Duty                           kJ/hr -1.05e+07
+                        Flow                         kmol/hr  7.06e+03
+                        Cost                          USD/hr      52.7
     Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
                         Number of reactors                           8
-    Purchase cost       Coolers                          USD  1.62e+05
+    Purchase cost       Coolers                          USD  2.04e+05
                         Reactors                         USD  1.87e+06
                         Agitators                        USD  1.16e+05
                         Cleaning in place                USD   7.1e+05
-    Total purchase cost                                  USD  2.86e+06
-    Utility cost                                      USD/hr      15.4
+    Total purchase cost                                  USD   2.9e+06
+    Utility cost                                      USD/hr      53.6
     
     References
     ----------
