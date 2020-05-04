@@ -142,8 +142,7 @@ class system(type):
     @property
     def converge_method(self):
         """Iterative convergence method ('wegstein', 'aitken', or 'fixed point')."""
-        return self._converge.__name__[1:]
-
+        return self._converge_method.__name__[1:]
     @converge_method.setter
     def converge_method(self, method):
         method = method.lower().replace('-', '').replace(' ', '')
@@ -190,7 +189,8 @@ class System(metaclass=system):
     temperature_tolerance = 0.10
 
     #: Whether to use the least-squares solution of prior tear stream
-    #: iterations during fixed-point iteration for better convergence.
+    #: iterations during fixed-point iteration for better convergence 
+    #: (possibly).
     use_least_squares_solution = False
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
@@ -280,12 +280,10 @@ class System(metaclass=system):
         self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
     
     def _set_recycle(self, recycle):
-        if recycle is None:
-            self._converge = self._run
-        else:
-            assert isinstance(recycle, Stream), (
+        assert recycle is None or isinstance(recycle, Stream), (
              "recycle must be a Stream instance or None, not "
-            f"{type(recycle).__name__}")
+            f"{type(recycle).__name__}"
+        )
         self._recycle = recycle
     
     def _set_path(self, path):
@@ -321,7 +319,8 @@ class System(metaclass=system):
     
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
-        self.facilities = facilities = tuple(facilities)
+        self._facilities = facilities = tuple(facilities)
+        self._facility_recycles = facility_recycle_streams = set()
         subsystems = self.subsystems
         costunits = self._costunits
         units = self.units
@@ -331,7 +330,11 @@ class System(metaclass=system):
                 i._load_stream_links()
                 units.add(i)
                 if i._cost: costunits.add(i)
-                if isa(i, Facility): i._system = self
+                if isa(i, Facility):
+                    facility_recycle_streams.update(
+                        [stream for stream in i.outs if stream.sink in units]
+                    )
+                    i._system = self
             elif isa(i, System):
                 units.update(i.units)
                 subsystems.add(i)
@@ -370,6 +373,11 @@ class System(metaclass=system):
         except AttributeError: return None
     
     @property
+    def facilities(self):
+        """tuple[Facility] All system facilities."""
+        return self._facilities
+    
+    @property
     def recycle(self):
         """[:class:`~thermosteam.Stream`] A tear stream for the recycle loop"""
         return self._recycle
@@ -377,8 +385,7 @@ class System(metaclass=system):
     @property
     def converge_method(self):
         """Iterative convergence method ('wegstein', 'aitken', or 'fixed point')."""
-        return self._converge.__name__[1:]
-
+        return self._converge_method.__name__[1:]
     @converge_method.setter
     def converge_method(self, method):
         if self.recycle is None:
@@ -434,13 +441,13 @@ class System(metaclass=system):
         if system: return system
         path = self._downstream_path(unit)
         if path:
-            downstream_facilities = self.facilities            
+            downstream_facilities = self._facilities            
         else:
             unit_found = False
             isa = isinstance
-            for pos, i in enumerate(self.facilities):
+            for pos, i in enumerate(self._facilities):
                 if unit is i or (isa(i, System) and unit in i.units):
-                    downstream_facilities = self.facilities[pos:]
+                    downstream_facilities = self._facilities[pos:]
                     unit_found = True
                     break
             assert unit_found, f'{unit} not found in system'
@@ -544,23 +551,60 @@ class System(metaclass=system):
     # Methods for convering the recycle stream    
     def _fixed_point(self):
         """Converge system recycle iteratively using fixed-point iteration."""
+        self._reset_iter()
         flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy(), 
                                     self.use_least_squares_solution)
         
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
+        self._reset_iter()
         flx.conditional_wegstein(self._iter_run, self.recycle.mol.copy())
     
     def _aitken(self):
         """Converge the system recycle iteratively using Aitken's method."""
+        self._reset_iter()
         flx.conditional_aitken(self._iter_run, self.recycle.mol.copy())
     
     # Default converge method
     _converge_method = _aitken
 
+    def _converge_with_facilities(self):
+        x0 = 0
+        facility_recycle_streams = self._facility_recycles
+        converge_units = self._converge_units
+        design_and_cost = self._design_and_cost
+        need_to_design_and_cost = True
+        x0 = sum([i.F_mass for i in facility_recycle_streams])
+        for i in range(50):
+            converge_units()
+            design_and_cost()
+            x1 = sum([i.F_mass for i in facility_recycle_streams])
+            error = (x1 - x0) / (x0 + 1)
+            if abs(error) < 0.00001: 
+                need_to_design_and_cost = False
+                break
+            x0 = x1
+        return need_to_design_and_cost
+
+    @property
+    def _converge_units(self):
+        return self._converge_method if self._recycle else self._run
+   
+    @property
     def _converge(self):
-        self._reset_iter()
-        self._converge_method()
+        return self._converge_with_facilities if self._facility_recycles else self._converge_units
+        
+    def _design_and_cost(self):
+        for i in self._path_costunits:
+            try_method_with_object_stamp(i, i._summary)
+        isa = isinstance
+        for i in self._facilities:
+            if isa(i, Unit):
+                simulate_unit_in_path(i)
+            elif isa(i, System):
+                simulate_system_in_path(i)
+            else:
+                i() # Assume it is a function
 
     def _reset_iter(self):
         self._iter = 0
@@ -602,19 +646,9 @@ class System(metaclass=system):
 
     def simulate(self):
         """Converge the path and simulate all units."""
-        self._reset_iter()
         self._setup()
-        self._converge()
-        for i in self._path_costunits:
-            try_method_with_object_stamp(i, i._summary)
-        isa = isinstance
-        for i in self.facilities:
-            if isa(i, Unit):
-                simulate_unit_in_path(i)
-            elif isa(i, System):
-                simulate_system_in_path(i)
-            else:
-                i() # Assume it is a function
+        need_to_design_and_cost = self._converge_with_facilities()
+        if need_to_design_and_cost: self._design_and_cost()
         
     # Debugging
     def _debug_on(self):
