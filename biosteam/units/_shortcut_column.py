@@ -392,16 +392,19 @@ class ShortcutColumn(BinaryDistillation,
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._estimate_distillate_recoveries()
         try:
-            distillate_recoveries = flx.aitken(self._recompute_distillate_recovery,
+            distillate_recoveries = flx.aitken(self._recompute_distillate_recoveries,
                                                distillate_recoveries, 1e-4)
         except flx.SolverError as error: 
-            distillate_recoveries = self._estimate_distillate_recoveries(error.x)
+            distillate_recoveries = self._recompute_distillate_recoveries(error.x)
+        except flx.InfeasibleRegion: pass
         self._update_distillate_recoveries(distillate_recoveries)
-        return distillate_recoveries
     
-    def _recompute_distillate_recovery(self, distillate_recoveries):
+    def _recompute_distillate_recoveries(self, distillate_recoveries):
+        if (distillate_recoveries < 0).any():
+            raise flx.InfeasibleRegion('distillate')
         self._update_distillate_recoveries(distillate_recoveries)
-        return self._estimate_distillate_recoveries()
+        distillate_recoveries = self._estimate_distillate_recoveries()
+        return distillate_recoveries
         
     
     
