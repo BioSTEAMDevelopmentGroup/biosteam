@@ -191,7 +191,7 @@ class System(metaclass=system):
 
     #: Whether to use the least-squares solution of prior tear stream
     #: iterations during fixed-point iteration for better convergence.
-    use_least_squares_solution = True
+    use_least_squares_solution = False
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
