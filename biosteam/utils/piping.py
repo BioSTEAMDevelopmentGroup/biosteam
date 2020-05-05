@@ -82,17 +82,17 @@ class MissingStream:
     
     @property
     def source(self):
-        self._source
+        return self._source
     
     @property
     def sink(self):
-        self._sink
+        return self._sink
     
     def __bool__(self):
         return False
 
     def __repr__(self):
-        return f'MissingStream(source={self.source}, sink={self.sink})'
+        return '<MissingStream>'
     
     def __str__(self):
         return 'missing stream'
