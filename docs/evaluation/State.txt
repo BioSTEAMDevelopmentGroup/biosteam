@@ -1,0 +1,6 @@
+State
+=====
+
+.. autoclass:: biosteam.evaluation.State
+   :members:
+   :special-members: __call__

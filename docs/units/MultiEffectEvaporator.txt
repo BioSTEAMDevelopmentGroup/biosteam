@@ -1,0 +1,5 @@
+MultiEffectEvaporator
+=====================
+
+.. autoclass:: biosteam.units.MultiEffectEvaporator
+   :members:

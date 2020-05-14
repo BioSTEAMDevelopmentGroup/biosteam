@@ -1,0 +1,5 @@
+MassBalance
+===========
+
+.. autoclass:: biosteam.units.MassBalance
+   :members:

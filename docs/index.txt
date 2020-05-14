@@ -1,0 +1,96 @@
+BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+=========================================================================
+
+.. figure:: ./images/BioSTEAM_logo.png
+
+BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_ GitHub repository, BioSTEAM's premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
+
+Key Features & Capabilities
+---------------------------
+* **Fast and flexible techno-economic analysis.** 
+  BioSTEAM presents basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, and recycle loops.
+
+* **Clear representation of streams, unit operations, and recycle systems.**
+  Dynamic generation of flowsheets and a clear representation of data allows users to visualize biorefineries in detail. BioSTEAM does not yet have a GUI but we are on our way to building one.
+
+* **Automated process and technology evaluations.**
+  The evaluation of thousands of biorefinery designs is streamlined through smart and efficient management of biorefinery parameters to evaluate sets of design decisions and scenarios.
+
+* **Complete biorefinery examples.**
+  Two complete biorefineries models are included in BioSTEAM: the co-production of ethanol and biodiesel from lipid-cane, and 2nd generation ethanol production from corn stover. Please refer to the tutorial to get started.
+
+.. toctree::
+   :maxdepth: 1
+   :numbered:
+   :caption: Tutorial
+   
+   Overview
+   Installation
+   tutorial/Getting_started
+   tutorial/Creating_a_Unit
+   tutorial/Managing_flowsheets
+   tutorial/Using_-pipe-_notation
+   tutorial/Unit_operation_results
+   tutorial/Process_specifications
+   tutorial/Importing_biorefineries
+   tutorial/Techno-economic_analysis
+   tutorial/Building_a_biorefinery
+   tutorial/Inheriting_from_Unit
+   tutorial/Unit_decorators
+   tutorial/Monte_Carlo
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: BioSTEAM API
+   
+   Unit
+   PowerUtility
+   UtilityAgent
+   HeatUtility
+   System
+   TEA
+   CombinedTEA
+   Flowsheet
+   exceptions
+   units/units
+   evaluation/evaluation
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer's guide
+   
+   CONTRIBUTING
+   CODE_OF_CONDUCT
+
+Licence
+-------
+We intend to keep BioSTEAM perpetually open source with a liberal
+open source license. All of the code in BioSTEAM is available under the
+University of Illinois/NCSA Open Source License, which boils down to this:
+
+* You can freely distribute BioSTEAM.
+* You must retain the copyright notice if you redistribute BioSTEAM.
+* Binaries derived from BioSTEAM must reproduce the copyright notice.
+* You can't use our names to promote your BioSTEAM derived products.
+* There's no warranty on BioSTEAM at all.
+
+Any contributions to the project must be licensed under these terms.
+We believe this fosters the widest adoption of BioSTEAM as it allows
+commercial products to be derived from BioSTEAM with few restrictions and
+without a requirement for making any derived works also open source
+(i.e. not a "copyleft" license). If further clarification is needed,
+we suggest that you read the `License <https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt>`__.
+
+References
+----------
+.. [1] Cortes-Peña, Y.; Kumar, D.; Singh, V.; Guest, J. S. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. https://doi.org/10.1021/acssuschemeng.9b07040.
+
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
