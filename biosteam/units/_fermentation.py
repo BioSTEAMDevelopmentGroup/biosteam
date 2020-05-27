@@ -5,13 +5,13 @@ Created on Thu Aug 23 22:45:47 2018
 @author: yoelr
 """
 import numpy as np
-from ._bioreactor import Bioreactor
+from ._batch_bioreactor import BatchBioreactor
 from scipy.integrate import odeint
 from thermosteam.reaction import Reaction
 
 __all__ = ('Fermentation',)
 
-class Fermentation(Bioreactor):
+class Fermentation(BatchBioreactor):
     """
     Create a Fermentation object which models large-scale batch fermentation
     for the production of 1st generation ethanol using yeast
@@ -87,21 +87,21 @@ class Fermentation(Bioreactor):
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
                         Cost                          USD/hr     0.908
-    Chilled water       Duty                           kJ/hr -6.64e+06
-                        Flow                         kmol/hr  4.45e+03
-                        Cost                          USD/hr      33.2
+    Chilled water       Duty                           kJ/hr -1.08e+07
+                        Flow                         kmol/hr   7.2e+03
+                        Cost                          USD/hr      53.8
     Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
                         Number of reactors                           8
-    Purchase cost       Coolers                          USD  1.81e+05
+    Purchase cost       Heat exchangers                  USD  2.05e+05
                         Reactors                         USD  1.87e+06
                         Agitators                        USD  1.16e+05
-                        Cleaning in place                USD   7.1e+05
-    Total purchase cost                                  USD  2.88e+06
-    Utility cost                                      USD/hr      34.1
+                        Cleaning in place                USD  8.87e+04
+    Total purchase cost                                  USD  2.28e+06
+    Utility cost                                      USD/hr      54.7
     
     References
     ----------
@@ -131,7 +131,7 @@ class Fermentation(Bioreactor):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  tau,  N, efficiency=0.9, iskinetic=False, T=305.15):
-        Bioreactor.__init__(self, ID, ins, outs, thermo, tau=tau, N=N, T=T)
+        BatchBioreactor.__init__(self, ID, ins, outs, thermo, tau=tau, N=N, T=T)
         self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
         self.iskinetic = iskinetic

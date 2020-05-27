@@ -331,8 +331,14 @@ class ShortcutColumn(BinaryDistillation,
         q = self._get_feed_quality()
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
+        if alpha_LK < 1:
+            ub = -np.inf
+            lb = np.inf
+        else:
+            ub = np.inf
+            lb = -np.inf
         bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
-                                        1, alpha_LK, -np.inf, np.inf, args=args)
+                                        1, alpha_LK, lb, ub, args=args)
         theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
                                           *bracket, args=args)
         return theta
@@ -396,7 +402,9 @@ class ShortcutColumn(BinaryDistillation,
                                                distillate_recoveries, 1e-4)
         except flx.SolverError as error: 
             distillate_recoveries = self._recompute_distillate_recoveries(error.x)
-        except flx.InfeasibleRegion: pass
+        except flx.InfeasibleRegion:
+            for i in range(3):
+                distillate_recoveries = self._recompute_distillate_recoveries(distillate_recoveries)
         self._update_distillate_recoveries(distillate_recoveries)
     
     def _recompute_distillate_recoveries(self, distillate_recoveries):

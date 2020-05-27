@@ -14,6 +14,7 @@ from .design_tools.specification_factors import (
     pump_centrifugal_factors)
 from .._unit import Unit
 from ..utils import static_flow_and_phase
+from math import ceil
 import biosteam as bst
 
 __all__ = ('Pump',)
@@ -167,29 +168,32 @@ class Pump(Unit):
         nu = si.nu
         dP = Po - Pi
         if dP < 1: dP = self.P_design - Pi
-        Design['Ideal power'] = power_ideal = Qi*dP*3.725e-7 # hp
-        Design['Flow rate'] = q = Qi*4.403 # gpm
-        if power_ideal <= max_hp:
-            Design['Efficiency'] = efficiency = pump_efficiency(q, power_ideal)
-            Design['Actual power'] = power = power_ideal/efficiency
-            Design['Pump power'] = nearest_NEMA_motor_size(power)
-            Design['N'] = N = 1
-            Design['Head'] = head = power/mass*897806 # ft
-            # Note that:
-            # head = power / (mass * gravity)
-            # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
-            # and 897806 = (conversion_factor/9.81)
-        else:
-            power_ideal /= 2
-            q /= 2
-            if power_ideal <= max_hp:
-                Design['Efficiency'] = efficiency = pump_efficiency(q, power_ideal)
-                Design['Actual power'] = power = power_ideal/efficiency
-                Design['Pump power'] = nearest_NEMA_motor_size(power)
-                Design['N'] = N = 2
-                Design['Head'] = head = power/mass*897806 # ft
-            else:
-                raise NotImplementedError('more than 2 pump required, but not yet implemented')
+        power_ideal = Qi*dP*3.725e-7 # hp
+        q = Qi*4.403 # gpm
+        # Assume 100% efficiency to estimate the number of pumps
+        # Note: i subscript refers to an individual pump
+        N_min = ceil(q / 5000)
+        N_guess = -1
+        N = max(ceil(power_ideal / max_hp), N_min)
+        while N != N_guess: 
+            N_guess = N
+            power_ideal_i = power_ideal / N_guess
+            q_i = q / N_guess
+            # Recalculate number of pumps given true efficiency
+            efficiency = pump_efficiency(q_i, power_ideal_i)
+            power = power_ideal / efficiency
+            N = max(ceil(power / max_hp), N_min)
+        Design['Ideal power'] = power_ideal_i
+        Design['Flow rate'] = q_i
+        Design['Efficiency'] = efficiency = pump_efficiency(q_i, power_ideal_i) 
+        Design['Actual power'] = power_i = power_ideal_i/efficiency
+        Design['Pump power'] = nearest_NEMA_motor_size(power_i)
+        Design['N'] = N
+        Design['Head'] = head = power / mass*897806 # ft
+        # Note that:
+        # head = power / (mass * gravity)
+        # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
+        # and 897806 = (conversion_factor/9.81)
         
         if self.ignore_NPSH:
             NPSH_satisfied = True
@@ -200,25 +204,25 @@ class Pump(Unit):
         # Get type
         pump_type = self.pump_type
         if pump_type == 'Default':
-            if (0.00278 < q < 5000
-                and 15.24 < head < 3200
-                and nu < 0.00002
+            if (0.00278 <= q_i <= 5000
+                and 15.24 <= head <= 3200
+                and nu <= 0.00002
                 and NPSH_satisfied):
                 pump_type = 'Centrifugal'
-            elif (q < 1500
-                  and head < 914.4
-                  and 0.00001 < nu < 0.252):
+            elif (q_i <= 1500
+                  and head <= 914.4
+                  and 0.00001 <= nu <= 0.252):
                 pump_type = 'Gear'
-            elif (head < 20000
-                  and q < 500
-                  and power < 200
-                  and nu < 0.01):
+            elif (head <= 20000
+                  and q_i <= 500
+                  and power <= 200
+                  and nu <= 0.01):
                 pump_type = 'MeteringPlunger'
             else:
                 NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
                 raise NotImplementedError(
                     f'no pump type available at current power '
-                    f'({power:.3g} hp), flow rate ({q:.3g} gpm), and head '
+                    f'({power:.3g} hp), flow rate ({q_i:.3g} gpm), and head '
                     f'({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), '
                     f'and NPSH ({NPSH:.3g} ft)')
                 
@@ -258,6 +262,12 @@ class Pump(Unit):
             elif p < 250 and 50 <= q <= 1100 and 300 <= h <= 1100:
                 F_T = F_Tdict['2HSC3600']
             elif p < 1450 and 100 <= q <= 1500 and 650 <= h <= 3200:
+                F_T = F_Tdict['2+HSC3600']
+            elif p < 1450 and 1500 <= q <= 5000 and 650 <= h <= 3200:
+                # TODO: This flow rate is allowable in the design section
+                # but not in the estimation of purchase cost.
+                # For now, we ignore this problem, but additional code on
+                # selecting number of pumps should be added.
                 F_T = F_Tdict['2+HSC3600']
             else:
                 raise NotImplementedError(f'no centrifugal pump available at current power ({p:.3g} hp), flow rate ({q:.3g} gpm), and head ({h:.3g} ft)')

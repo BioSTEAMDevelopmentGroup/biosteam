@@ -6,10 +6,11 @@ Created on Sat Jul 13 02:24:35 2019
 """
 from .._unit import Unit
 from .._graphics import process_specification_graphics
-from ..utils import format_unit_line
+from ..utils import format_unit_line, static
 
 __all__ = ('ProcessSpecification',)
 
+@static
 class ProcessSpecification(Unit):
     """
     Create a ProcessSpecification object that runs a function when simulated
@@ -59,21 +60,13 @@ class ProcessSpecification(Unit):
     
     """
     _graphics = process_specification_graphics
-    _N_ins = _N_outs = 1
-    power_utility = None
-    results = None
-    heat_utilities = ()
+    _N_heat_utilities = 0
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  specification, description=None):
-        self._numerical_specification = None
-        self._load_thermo(thermo)
-        self._init_ins(ins)
-        self._init_outs(outs)
-        self._assert_compatible_property_package()
-        self._register(ID)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.specification = specification
-        self.description = format_unit_line(description or specification.__name__)
+        self.description = description or format_unit_line(specification.__name__)
         
     @property
     def specification(self):
@@ -81,6 +74,9 @@ class ProcessSpecification(Unit):
     @specification.setter
     def specification(self, specification):
         assert callable(specification), "specification must be a function"
-        self._run = self._specification = specification
+        self._specification = specification
+        
+    def _run(self):
+        self._specification()
         
 

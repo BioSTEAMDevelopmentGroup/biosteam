@@ -8,9 +8,6 @@ from .. import Unit, PowerUtility
 from thermosteam import MultiStream
 from math import pi
 import numpy as np
-from .design_tools.specification_factors import (
-    pressure_vessel_material_factors,
-    material_densities_lb_per_ft3)
 from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
@@ -30,7 +27,7 @@ __all__ = ('Flash', 'SplitFlash', 'RatioFlash')
 
 # %% Flash
 
-class Flash(Unit):
+class Flash(design.PressureVessel, Unit):
     """
     Create an equlibrium based flash drum with the option of having light
     non-keys and heavy non-keys completly separate into their respective
@@ -66,8 +63,8 @@ class Flash(Unit):
         True if glycol groups are present in the mixture.
     has_amine_groups=False : bool
         True if amine groups are present in the mixture.
-    vessel_type='Default' : 'Horizontal', 'Vertical', or 'Default'
-        Vessel separation type. If 'Default', the vessel type will be chosen
+    vessel_type=None : 'Horizontal' or 'Vertical', optional
+        Vessel separation type. If not specified, the vessel type will be chosen
         according to heuristics.
     holdup_time=15.0 : float
         Time it takes to raise liquid to half full [min].
@@ -118,14 +115,14 @@ class Flash(Unit):
                           Flow            kmol/hr      1.39e+03
                           Cost             USD/hr           384
     Design                Vessel type                  Vertical
-                          Length               ft          21.5
-                          Diameter             ft           5.5
-                          Weight               lb      5.39e+03
-                          Wall thickness       in         0.312
+                          Length               ft          16.5
+                          Diameter             ft           8.5
+                          Weight               lb         1e+04
+                          Wall thickness       in         0.438
                           Material                 Carbon steel
-    Purchase cost         Flash               USD      4.57e+04
+    Purchase cost         Flash               USD      6.22e+04
                           Heat exchanger      USD      4.36e+04
-    Total purchase cost                       USD      8.92e+04
+    Total purchase cost                       USD      1.06e+05
     Utility cost                           USD/hr           384
 
 
@@ -154,39 +151,6 @@ class Flash(Unit):
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
     _N_heat_utilities = 0
-    
-    # Bare module factor
-    BM_horizontal = 3.05
-    BM_vertical = 4.16
-    @property
-    def BM(self):
-        vessel_type = self.vessel_type
-        if vessel_type == 'Vertical':
-            return self.BM_vertical
-        elif vessel_type == 'Horizontal':
-            return self.BM_horizontal
-        elif vessel_type == 'Default':
-            return self.BM_vertical if self._isVertical else self.BM_horizontal 
-        else:
-            raise AttributeError('vessel_type not defined')
-    
-    _bounds = {'Vertical vessel weight': (4200, 1e6),
-               'Horizontal vessel weight': (1e3, 9.2e5),
-               'Diameter': (3, 21),
-               'Vertical vessel length': (12, 40)}
-
-    @property
-    def vessel_material(self):
-        """Vessel construction material."""
-        return self._vessel_material
-    @vessel_material.setter
-    def vessel_material(self, material):
-        try: self._F_M = pressure_vessel_material_factors[material]
-        except KeyError:
-            raise ValueError(f"no material factor available for '{material}'; "
-                              "only the following materials are available: "
-                             f"{', '.join(pressure_vessel_material_factors)}")
-        self._vessel_material = material  
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  V=None, T=None, Q=None, P=None, y=None, x=None,
@@ -194,7 +158,7 @@ class Flash(Unit):
                  vacuum_system_preference='Liquid-ring pump',
                  has_glycol_groups=False,
                  has_amine_groups=False,
-                 vessel_type='Default',
+                 vessel_type=None,
                  holdup_time=15,
                  surge_time=7.5,
                  has_mist_eliminator=False):
@@ -269,6 +233,13 @@ class Flash(Unit):
             he._outs[0] = self._multistream
         self._Q = Q
 
+    def _default_vessel_type(self):
+        vap, liq = self.outs
+        F_mass_vap = vap.F_mass
+        F_mass_liq = liq.F_mass 
+        assert F_mass_liq, "no liquid effluent; flash vessel must have liquid to default vessel type"
+        return 'Vertical'if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
+
     def _run(self):
         # Unpack
         vap, liq = self.outs
@@ -292,39 +263,19 @@ class Flash(Unit):
         vap.P = liq.P = ms.P
 
     def _design(self):
-        # Set horizontal or vertical vessel
         vessel_type = self.vessel_type
-        if vessel_type == 'Default':
-            vap, liq = self.outs
-            F_mass_vap = vap.F_mass
-            F_mass_liq = liq.F_mass 
-            assert F_mass_liq, "no liquid effluent; flash vessel must have liquid"
-            isVertical = F_mass_vap / F_mass_liq > 0.2
-        elif vessel_type == 'Vertical':
-            isVertical = True
-        elif vessel_type == 'Horizontal':
-            isVertical = False
-        else:
-            raise ValueError( f"vessel_type must be either 'Default', 'Horizontal', 'Vertical', not '{self.vessel_type}'")
-        self._isVertical = isVertical
-
-        # Run vertical or horizontal design
-        if isVertical: self._design_vertical_vessel()
-        else: self._design_horizontal_vessel()
+        if vessel_type == 'Vertical': 
+            args = self._vertical_vessel_pressure_diameter_and_length()
+        elif vessel_type == 'Horizontal': 
+            args = self._horizontal_vessel_pressure_diameter_and_length()
+        else: raise RuntimeError('unknown vessel type')
         if self.heat_exchanger: self.heat_exchanger._design()
+        self.design_results.update(self._vessel_design(*args))
         self.design_results['Material'] = self._vessel_material
 
     def _cost(self):
-        Design = self.design_results
-        W = Design['Weight']
-        D = Design['Diameter']
-        L = Design['Length']
-        F_M = self._F_M
-        if self._isVertical:
-            Cp = design.compute_vertical_vessel_purchase_cost(W, D, L, F_M)
-        else:
-            Cp = design.compute_horizontal_vessel_purchase_cost(W, D, F_M)
-        self.purchase_costs['Flash'] = Cp
+        D = self.design_results
+        self.purchase_costs['Flash'] = self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
         if self.heat_exchanger:
             hx = self.heat_exchanger
             hx._cost()
@@ -398,7 +349,7 @@ class Flash(Unit):
         Vs = Ts*Qll
         return rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs
 
-    def _design_vertical_vessel(self):
+    def _vertical_vessel_pressure_diameter_and_length(self):
         rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Calculate internal diameter, Dvd
@@ -442,28 +393,13 @@ class Flash(Unit):
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = design.ceil_half_step(Ht)
 
-        # Calculate Vessel weight and wall thickness
-        rho_M = design.material_densities_lb_per_ft3[self._vessel_material]
-        VW, VWT = design.compute_vessel_weight_and_wall_thickness(P, D, Ht, rho_M)
-
         # Find maximum and normal liquid level
         # Hhll = Hs + Hh + Hlll
         # Hnll = Hh + Hlll
 
-        Design = self.design_results
-        bounds_warning(self, 'Vertical vessel weight', VW, 'lb',
-                       self._bounds['Vertical vessel weight'],
-                       'cost')
-        bounds_warning(self, 'Vertical vessel length', Ht, 'ft',
-                       self._bounds['Vertical vessel length'],
-                       'cost')
-        Design['Vessel type'] = 'Vertical'
-        Design['Length'] = Ht     # ft
-        Design['Diameter'] = D    # ft
-        Design['Weight'] = VW     # lb
-        Design['Wall thickness'] = VWT  # in
+        return P, D, Ht
         
-    def _design_horizontal_vessel(self):
+    def _horizontal_vessel_pressure_diameter_and_length(self):
         rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Initialize LD
@@ -540,10 +476,6 @@ class Flash(Unit):
             elif (LD > 6.0): D += 0.5
             else: break
 
-        # Calculate vessel weight and wall thickness
-        rho_M = material_densities_lb_per_ft3[self._vessel_material]
-        VW, VWT = design.compute_vessel_weight_and_wall_thickness(P, D, L, rho_M)
-
         # # To check minimum Hv value
         # if int(has_mist_eliminator) == 1 and Hv <= 2.0:
         #     Hv = 2.0
@@ -559,14 +491,7 @@ class Flash(Unit):
         # Y = HNATable(2, X)
         # Hnll = Y*D
         
-        Design = self.design_results
-        bounds_warning(self, 'Horizontal vessel weight', VW, 'lb',
-                       self._bounds['Horizontal vessel weight'], 'cost')
-        Design['Vessel type'] = 'Horizontal'
-        Design['Length'] = L  # ft
-        Design['Diameter'] = D  # ft
-        Design['Weight'] = VW  # lb
-        Design['Wall thickness'] = VWT  # in    
+        return P, D, L
         
     def _end_decorated_cost_(self):
         if self.heat_utilities: self.heat_utilities[0](self.Hnet, self.T)
@@ -583,7 +508,7 @@ class SplitFlash(Flash):
                  vacuum_system_preference='Liquid-ring pump',
                  has_glycol_groups=False,
                  has_amine_groups=False,
-                 vessel_type='Default',
+                 vessel_type=None,
                  holdup_time=15,
                  surge_time=7.5,
                  has_mist_eliminator=False):

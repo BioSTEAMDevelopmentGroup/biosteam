@@ -7,8 +7,8 @@ Created on Thu Aug 23 21:23:56 2018
 from .. import Unit
 from ._flash import RatioFlash
 from ._splitter import Splitter
+from ._lle_unit import LLEUnit
 from .decorators import cost
-import thermosteam as tmo
 
 __all__ = ('LiquidsCentrifuge',
            'LiquidsSplitCentrifuge', 
@@ -96,7 +96,7 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     split = Splitter.split
     
     
-class LLECentrifuge(LiquidsCentrifuge):
+class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     r"""
     Create a liquids centrifuge simulated by liquid-liquid equilibrium.
 
@@ -111,6 +111,9 @@ class LLECentrifuge(LiquidsCentrifuge):
         Identifier of chemical that will be favored in the "liquid" phase.
         If none given, the "liquid" phase will the lightest and the "LIQUID"
         phase will be the heaviest.
+    efficiency : float,
+        Fraction of feed in liquid-liquid equilibrium.
+        The rest of the feed is divided equally between phases.
     
     Notes
     -----
@@ -167,35 +170,3 @@ class LLECentrifuge(LiquidsCentrifuge):
     
     """
     line = 'Liquids centrifuge'
-    
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, top_chemical=None):
-        super().__init__(ID, ins, outs, thermo)
-        self._multistream = tmo.MultiStream(None, phases=('L', 'l'),
-                                            thermo=thermo)
-        self.top_chemical = top_chemical
-        
-    def _run(self):
-        ms = self._multistream
-        feed = self.ins[0]
-        top, bottom = self.outs
-        ms.imol['l'] = feed.mol
-        ms.lle(feed.T)
-        top_chemical = self.top_chemical
-        if top_chemical:
-            F_l = ms.imol['l', top_chemical]
-            F_L = ms.imol['L', top_chemical]
-            top_l = F_l > F_L
-        else:
-            rho_l = ms['l'].rho
-            rho_L = ms['L'].rho
-            top_l = rho_l < rho_L
-        if top_l:
-            top_phase = 'l'
-            bottom_phase = 'L'
-        else:
-            top_phase = 'L'
-            bottom_phase = 'l'
-        top.mol[:] = ms.imol[top_phase]
-        bottom.mol[:] = ms.imol[bottom_phase]
-        top.T = bottom.T = feed.T
-        top.P = bottom.P = feed.P

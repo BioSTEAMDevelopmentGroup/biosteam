@@ -1,6 +1,6 @@
 """
 General functional algorithms for the design and purchase cost estimation
-of flash vessels.
+of flash pressure vessels.
 
 References
 ----------

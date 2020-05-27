@@ -8,6 +8,14 @@ from ._unit import Unit
 from ._facility import Facility
 from ._digraph import digraph_from_units_and_streams, finalize_digraph
 
+# %% Path checking
+
+def is_feed_forward(path, other_path, recycle):
+    path = path[path.index(recycle.sink):]
+    other_path = other_path[other_path.index(recycle.sink):]
+    return path != other_path
+
+
 # %% Path tools
 
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
@@ -31,9 +39,16 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
     unit = feed.sink
-    if not unit or isinstance(unit, Facility) or feed in ends:
+    is_recycle = None
+    if feed in ends:
+        is_recycle = False
+        for other_path, recycle in paths_with_recycle:
+            if recycle is feed:
+                is_recycle = is_feed_forward(path, other_path, recycle)
+                if is_recycle: break
+    if not unit or isinstance(unit, Facility) or is_recycle is False:
         paths_without_recycle.add(tuple(path))
-    elif unit in path: 
+    elif unit in path or is_recycle: 
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
         ends.add(feed)
@@ -150,7 +165,6 @@ class Network:
         network = Network(sum(reversed(linear_paths), []))
         recycle_networks = [Network(path, recycle) for path, recycle
                             in cyclic_paths_with_recycle]
-        
         for recycle_network in recycle_networks:
             network.join_network(recycle_network)
         isa = isinstance
@@ -175,8 +189,6 @@ class Network:
                 network._append_network(upstream_network)
             else:
                 network.join_network(upstream_network)
-                # raise RuntimeError('path creation failed; multiple recycle '
-                #                    'connections found for a given path')
         return network
 
     def copy_like(self, other):
@@ -264,12 +276,28 @@ class Network:
     
     def _add_subnetwork(self, subnetwork):
         path = self.path
-        subunits = subnetwork.units
         isa = isinstance
         index_found = done = False
         subnetworks = self.subnetworks
         has_overlap = True
         path_tuple = tuple(path)
+        recycle = self.recycle
+        if recycle is subnetwork.recycle:
+            # Feed forward scenario
+            subpath = subnetwork.path[1:]
+            for i, item in enumerate(subpath):
+                if item not in path_tuple:
+                    subpath = subpath[i:]
+                    break
+            if not subpath: return # Its the exact same network
+            for i, item in enumerate(reversed(path_tuple)):
+                if item not in subpath:
+                    subpath = subpath[:-i]
+                    break
+            unit = path_tuple[-i]
+            self.join_network_at_unit(Network(subpath), unit)
+            return
+        subunits = subnetwork.units
         for i in path_tuple:
             if isa(i, Unit):
                 continue

@@ -12,6 +12,7 @@ from .design_tools.specification_factors import (
 from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
+import flexsolve as flx
 from math import exp, log as ln
 
 __all__ = ('HXutility', 'HXprocess')
@@ -44,7 +45,32 @@ Cb_dict = {'Floating head': compute_floating_head_purchase_price,
            'U tube': compute_u_tube_purchase_price,
            'Kettle vaporizer': compute_kettle_vaporizer_purchase_price,
            'Double pipe': compute_double_pipe_purchase_price}
-        
+
+# %% Objective functions for solving process heat exchangers
+
+def dT_at_Q_counter_current(Q, dT, s1_in, s2_in, s1_out, s2_out):
+    """
+    Return the temperature difference of the outlet streams assuming counter
+    current operation of a process heat exchanger. The sign of the heat 
+    transfer `Q` is irrevelant; heat will always transfer from high to low
+    temperature.
+    """
+    Q = abs(Q)
+    s1_iscooling = s1_in.T > s2_in.T
+    if s1_iscooling:
+        # s1 is cooling
+        s1_H = s1_in.H - Q
+        s2_H = s2_in.H + Q
+    else:
+        # s1 is heating
+        s1_H = s1_in.H + Q
+        s2_H = s2_in.H - Q
+    s1_out.vle(H=s1_H, P=s1_out.P)
+    s2_out.vle(H=s2_H, P=s1_out.P)
+    dT_at_Q = (s1_out.T - s2_out.T) if s1_iscooling else (s2_out.T - s1_out.T)
+    return dT - dT_at_Q
+
+
 # %% Classes
 
 class HX(Unit, isabstract=True):
@@ -340,7 +366,8 @@ class HXutility(HX):
     def _run(self):
         feed = self.ins[0]
         s = self.outs[0]
-        s.copy_like(feed)
+        s.copy_flow(feed)
+        s.P = feed.P
         T = self.T
         V = self.V
         V_given = V is not None
@@ -417,6 +444,8 @@ class HXprocess(HX):
         * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
         * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
         * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
+    dT=5. : float
+        Pinch temperature difference (i.e. dT = abs(outs[0].T - outs[1].T)).
     shell_and_tube_type : str, optional
         Heat exchanger type. Defaults to 'Floating head'.
     N_shells=2 : int
@@ -426,6 +455,47 @@ class HXprocess(HX):
     
     Examples
     --------
+    Rigorous heat exchange until pinch temperature is reached:
+        
+    >>> from biosteam.units import HXprocess
+    >>> from biosteam import Stream, settings
+    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> in_a = Stream('in_a', Ethanol=50, T=351.43, phase='g')
+    >>> in_b = Stream('in_b', Water=200)
+    >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'))
+    >>> hx.simulate()
+    >>> hx.show()
+    HXprocess: hx
+    ins...
+    [0] in_a
+        phase: 'g', T: 351.43 K, P: 101325 Pa
+        flow (kmol/hr): Ethanol  50
+    [1] in_b
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  200
+    outs...
+    [0] out_a
+        phases: ('g', 'l'), T: 351.39 K, P: 101325 Pa
+        flow (kmol/hr): (g) Ethanol  32.98
+                        (l) Ethanol  17.02
+    [1] out_b
+        phases: ('g', 'l'), T: 346.34 K, P: 101325 Pa
+        flow (kmol/hr): (l) Water  200
+    
+    >>> hx.results()
+    Heat Exchanger                                            Units       hx
+    Design              Area                                   ft^2      359
+                        Overall heat transfer coefficient  kW/m^2/K        1
+                        Log-mean temperature difference           K     20.5
+                        Fouling correction factor                          1
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi      1.5
+                        Operating pressure                      psi     14.7
+                        Total tube length                        ft       20
+    Purchase cost       Heat exchanger                          USD 2.22e+04
+    Total purchase cost                                         USD 2.22e+04
+    Utility cost                                             USD/hr        0
+    
     Sensible fluids case:
         
     >>> from biosteam.units import HXprocess
@@ -548,10 +618,9 @@ class HXprocess(HX):
     _N_heat_utilities = 0
     _N_ins = 2
     _N_outs = 2
-    dT = 5 #: [float] Pinch temperature difference.
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 U=None, fluid_type='ss',
+                 U=None, fluid_type=None, dT=5.,
                  material="Carbon steel/carbon steel",
                  shell_and_tube_type="Floating head",
                  N_shells=2,
@@ -570,6 +639,9 @@ class HXprocess(HX):
         #: User imposed correction factor.
         self.ft = ft
         
+        #: [float] Pinch temperature difference.
+        self.dT = dT 
+        
         self.fluid_type = fluid_type
         self.material = material
         self.shell_and_tube_type = shell_and_tube_type
@@ -586,8 +658,8 @@ class HXprocess(HX):
         return self._fluid_type
     @fluid_type.setter
     def fluid_type(self, fluid_type):
-        if fluid_type not in ('ss', 'ls', 'll'):
-            raise ValueError(f"fluid type must be either 'ss', 'ls', or 'll', not {repr(fluid_type)}")
+        if fluid_type not in ('ss', 'ls', 'll', None):
+            raise ValueError(f"fluid type must be either 'ss', 'ls', 'll', or None; not {repr(fluid_type)}")
         self._fluid_type = fluid_type
         
     def get_streams(self):
@@ -614,6 +686,10 @@ class HXprocess(HX):
                 self._run_ls()
             elif fluid_type == 'll':
                 self._run_ll()
+            elif fluid_type:
+                raise RuntimeError("fluid type must be 'ss', 'ls', 'll', or None")
+            else:
+                self._run_rigorous()
     
     def _run_ss(self):
         dT = self.dT
@@ -721,4 +797,14 @@ class HXprocess(HX):
         sp_out.vle(P=sp_out.P, H=sp_in.H + Q)
         self.Q = abs(Q)
 
+    def _run_rigorous(self):
+        # Initial guess assumes sensible streams
+        self._run_ss()
+        Q = self.Q
+        s1_in, s2_in = self.ins
+        s1_out, s2_out = self.outs
+        flx.aitken_secant(dT_at_Q_counter_current,
+                          Q, Q + min(s1_out.C, s2_out.C),
+                          ytol=0.1, args=(self.dT, s1_in, s2_in, s1_out, s2_out))
+        self.Q = abs(s2_in.H - s1_in.H)
 

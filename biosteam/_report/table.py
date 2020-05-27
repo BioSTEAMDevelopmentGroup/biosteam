@@ -75,7 +75,7 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
         except:
             # Assume xlsx writer is used
             worksheet = writer.book.add_worksheet('Flowsheet')
-            flowsheet.insert_image('A1', 'flowsheet.png')
+            worksheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     
     if system.TEA:
@@ -314,7 +314,7 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
                 phase += 'solid|'
         phase = phase.rstrip('|')
         phases[j] = phase
-        flow_j = s.get_flow(flow)
+        flow_j = s.get_flow(units=flow)
         flows[j] = net_j = sum(flow_j)
         fracs[:,j] = flow_j/net_j if net_j > 0 else 0
         i = 0

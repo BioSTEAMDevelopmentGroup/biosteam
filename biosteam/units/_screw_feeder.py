@@ -26,5 +26,5 @@ class ScrewFeeder(Unit):
         if F_vol < self._minimum_flow:
             lb_warning('Flow rate', F_vol, self._minimum_flow)
         Design['Flow rate'] = F_vol
-        F_mass = feed.F_mass*0.0006124 #lb/s
+        F_mass = 0.0006124 * feed.F_mass # lb/s
         self._power_utility(0.0146*F_mass**0.85*self.length*0.7457)

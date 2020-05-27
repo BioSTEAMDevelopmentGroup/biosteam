@@ -7,23 +7,23 @@ Created on Thu Aug 23 22:45:47 2018
 import numpy as np
 from ._hx import HXutility
 from .. import Unit
-from .decorators import cost
 from .design_tools import size_batch
+from .decorators import cost
 
-__all__ = ('Bioreactor',)
+__all__ = ('BatchBioreactor',)
 
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,
-      cost=421e3, S=3785, n=0.6, BM=1.8, N='N')
+      cost=421e3, S=3785, n=0.6, BM=1.8)
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
       S=3785, n=0.5, kW=22.371, BM=1.5, N='N')
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5, N='N')
-class Bioreactor(Unit, isabstract=True):
+class BatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
     Cleaning and unloading time,`tau_0`, fraction of working volume, `V_wf`,
     and number of reactors, `N_reactors`, are attributes that can be changed.
-    Cost of a reactor is based on the NREL batch fermentation tank cost
+    The cost of a reactor is based on the NREL batch fermentation tank cost 
     assuming volumetric scaling with a 6/10th exponent [1]_. 
     
     **Abstract methods**
@@ -35,6 +35,9 @@ class Bioreactor(Unit, isabstract=True):
     
     _run():
         Must set outlet stream flows.
+        
+    _cost():
+        Must set purchase cost results.
     
     Parameters
     ----------
@@ -45,18 +48,24 @@ class Bioreactor(Unit, isabstract=True):
         * [1] Effluent
     tau : float
         Reaction time.
-    efficiency=0.9 : float, optional
-        User enforced efficiency.
-    iskinetic=False: bool, optional
-        If True, `Fermenation.kinetic_model` will be used.
     N : int
         Number of batch reactors
     T=305.15 : float
-        Temperature of reactor [K].
+        Operating temperature of reactor [K].
+    P=101325 : float
+        Operating pressure of reactor [Pa].
+    iskinetic=False: bool, optional
+        If True, `Fermenation.kinetic_model` will be used.
     
     References
     ----------
-    .. [1] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+    .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A.
+    Aden National. Renewable Energy Laboratory Golden, Colorado. P.
+    Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon.
+    Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process 
+    Design and Economics for Biochemical Conversion of Lignocellulosic
+    Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis 
+    of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
     
     """
     _units = {'Reactor volume': 'm3',
@@ -82,18 +91,21 @@ class Bioreactor(Unit, isabstract=True):
                 ('Working volume fraction', self.V_wf, ''),
                 ('Number of reactors', self.N, ''))
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 tau,  N, iskinetic=False, T=305.15):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 tau, N, T=305.15, P=101325, iskinetic=False):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.tau = tau
         self.N = N
         self.T = T
-        self.cooler = HXutility(None)
+        self.P = P
+        self.heat_exchanger = HXutility(None)
         
     def _setup(self):
         vent, effluent = self.outs
         vent.phase = 'g'
-        self.cooler._outs[0].T = effluent.T = vent.T = self.T
+        hx_effluent = self.heat_exchanger._outs[0]
+        hx_effluent.T = effluent.T = vent.T = self.T
+        hx_effluent.P = effluent.P = vent.P = self.P
        
     @property
     def N(self):
@@ -140,12 +152,12 @@ class Bioreactor(Unit, isabstract=True):
         hx_effluent = effluent.copy()
         hx_effluent.phase = 'l'
         hx_effluent.mol[:] /= N
-        cooler = self.cooler
-        cooler.simulate_as_auxiliary_exchanger(self.Hnet/N, hx_effluent)
+        heat_exchanger = self.heat_exchanger
+        heat_exchanger.simulate_as_auxiliary_exchanger(self.Hnet/N, hx_effluent)
         hu_bioreactor, = self.heat_utilities
-        hu_cooler, = cooler.heat_utilities
-        hu_bioreactor.copy_like(hu_cooler)
+        hu_hx, = heat_exchanger.heat_utilities
+        hu_bioreactor.copy_like(hu_hx)
         hu_bioreactor.scale(N)
-        self.purchase_costs['Coolers'] = self.cooler.purchase_costs['Heat exchanger'] * N
+        self.purchase_costs['Heat exchangers'] = self.heat_exchanger.purchase_costs['Heat exchanger'] * N
         
     

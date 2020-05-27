@@ -7,6 +7,7 @@ Created on Wed Mar  6 16:46:04 2019
 
 
 from . import vacuum
+from . import pressure_vessel
 from . import flash_vessel_design
 from . import cost_index
 from . import batch
@@ -17,6 +18,7 @@ from . import tank_design
 from . import utils
 
 __all__ = (*cost_index.__all__,
+           *pressure_vessel.__all__,
            *vacuum.__all__,
            *flash_vessel_design.__all__,
            *batch.__all__,
@@ -27,6 +29,7 @@ __all__ = (*cost_index.__all__,
            *utils.__all__,
 )
 
+from .pressure_vessel import *
 from .specification_factors import *
 from .column_design import *
 from .vacuum import *

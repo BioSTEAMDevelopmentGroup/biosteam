@@ -160,7 +160,6 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
     return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N)
 
 def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
-    if kW: cls._has_power_utility = True
     if basis in cls._units:
         if fsize:
             raise RuntimeError(f"cost basis '{basis}' already defined in class, cannot pass 'fsize' argument")

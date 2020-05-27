@@ -146,7 +146,7 @@ class Unit:
     # [int] number of heat utilities
     _N_heat_utilities = 0
     
-    # [StreamLinkOptions] Options of linking streams
+    # [StreamLinkOptions] Options for linking streams
     _stream_link_options = None
     
     # [biosteam Graphics] a Graphics object for diagram representation.

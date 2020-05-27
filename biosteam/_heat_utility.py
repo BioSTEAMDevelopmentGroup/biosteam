@@ -167,17 +167,17 @@ chilled_brine = UtilityAgent('chilled_brine',
 
 # Create heating agents
 low_pressure_steam = UtilityAgent('low_pressure_steam',
-                                  Water=1, T=411.494, P=344738.0, phase='g',
+                                  Water=1, T=412.189, P=344738.0, phase='g',
                                   thermo=thermo_water,
                                   regeneration_price = 0.2378,
                                   heat_transfer_efficiency = 0.95)
 medium_pressure_steam = UtilityAgent('medium_pressure_steam',
-                                     Water=1, T=454.484, P=1034214.0, phase='g',
+                                     Water=1, T=454.770, P=1.041e+6, phase='g',
                                      thermo=thermo_water,
                                      regeneration_price = 0.2756,
                                      heat_transfer_efficiency = 0.90) 
 high_pressure_steam = UtilityAgent('high_pressure_steam',
-                                   Water=1, T=508.858, P=3102642.0, phase='g', 
+                                   Water=1, T=508.991, P=3.11e+6, phase='g', 
                                    thermo=thermo_water,
                                    regeneration_price = 0.3171,
                                    heat_transfer_efficiency = 0.85) 
