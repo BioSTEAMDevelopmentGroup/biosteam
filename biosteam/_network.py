@@ -10,8 +10,9 @@ from ._digraph import digraph_from_units_and_streams, finalize_digraph
 
 # %% Path checking
 
-def is_feed_forward(path, other_path, recycle):
-    path = path[path.index(recycle.sink):]
+def feed_forward_recycle(path, other_path, recycle):
+    try: path = path[path.index(recycle.sink):]
+    except: return False
     other_path = other_path[other_path.index(recycle.sink):]
     return path != other_path
 
@@ -39,16 +40,16 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
     unit = feed.sink
-    is_recycle = None
+    has_recycle = None
     if feed in ends:
-        is_recycle = False
+        has_recycle = False
         for other_path, recycle in paths_with_recycle:
             if recycle is feed:
-                is_recycle = is_feed_forward(path, other_path, recycle)
-                if is_recycle: break
-    if not unit or isinstance(unit, Facility) or is_recycle is False:
+                has_recycle = feed_forward_recycle(path, other_path, recycle)
+                if has_recycle: break
+    if not unit or isinstance(unit, Facility) or has_recycle is False:
         paths_without_recycle.add(tuple(path))
-    elif unit in path or is_recycle: 
+    elif unit in path or has_recycle: 
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
         ends.add(feed)
@@ -284,14 +285,14 @@ class Network:
         recycle = self.recycle
         if recycle is subnetwork.recycle:
             # Feed forward scenario
-            subpath = subnetwork.path[1:]
+            subpath = subnetwork.path
             for i, item in enumerate(subpath):
                 if item not in path_tuple:
                     subpath = subpath[i:]
                     break
             if not subpath: return # Its the exact same network
-            for i, item in enumerate(reversed(path_tuple)):
-                if item not in subpath:
+            for i, item in enumerate(reversed(subpath)):
+                if item not in path_tuple:
                     subpath = subpath[:-i]
                     break
             unit = path_tuple[-i]
