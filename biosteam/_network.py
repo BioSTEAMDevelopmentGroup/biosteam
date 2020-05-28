@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Tue Sep 10 09:01:47 2019
-
-@author: yoelr
 """
 from ._unit import Unit
 from ._facility import Facility
@@ -226,16 +229,17 @@ class Network:
     
     def join_network_at_unit(self, network, unit):
         isa = isinstance
-        self._remove_overlap(network)
-        has_overlap = False
         for index, item in enumerate(self.path):
             if isa(item, Network) and unit in item.units:
+                self._remove_overlap(network)
                 item.join_network_at_unit(network, unit)
                 self._update_from_newly_added_network(network)
-                break
+                return
             elif unit == item:
-                self._insert_network(index, network, has_overlap)
-                break
+                self._remove_overlap(network)
+                self._insert_network(index, network, False)
+                return
+        raise RuntimeError('unit not in path')
     
     def _append_unit(self, unit):
         self.units.add(unit)
@@ -287,15 +291,17 @@ class Network:
             # Feed forward scenario
             subpath = subnetwork.path
             for i, item in enumerate(subpath):
-                if item not in path_tuple:
+                if item in path_tuple:
+                    unit = item
+                else:
                     subpath = subpath[i:]
                     break
-            if not subpath: return # Its the exact same network
             for i, item in enumerate(reversed(subpath)):
-                if item not in path_tuple:
+                if item in path_tuple:
+                    unit = item
+                else:
                     subpath = subpath[:-i]
                     break
-            unit = path_tuple[-i]
             self.join_network_at_unit(Network(subpath), unit)
             return
         subunits = subnetwork.units
@@ -326,6 +332,7 @@ class Network:
                         continue
                     else:
                         item._add_subnetwork(subnetwork)
+                        self._update_from_newly_added_network(subnetwork)
                         done = True
                         break
         if has_overlap:
@@ -333,7 +340,7 @@ class Network:
         if not done:
             self._append_network(subnetwork)
         if len(path) == 1 and isa(path[0], Network):
-            self.copy_like(path[0])
+            self.path = path[0].path
 
     def _remove_overlap(self, subnetwork):
         path = self.path

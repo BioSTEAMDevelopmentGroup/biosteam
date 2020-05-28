@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """

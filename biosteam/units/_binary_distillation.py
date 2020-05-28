@@ -1,9 +1,11 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Thu Aug 23 19:33:20 2018
-
-@author: yoelr
 """
 import numpy as np
 from math import ceil
@@ -260,7 +262,7 @@ class BinaryDistillation(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                 P=101325, *, LHK, k,
-                Rmin=0.6,
+                Rmin=0.3,
                 Lr=None,
                 Hr=None,
                 y_top=None,
@@ -353,10 +355,6 @@ class BinaryDistillation(Unit):
         HNK = []
         gases = []
         solids = []
-        if Tb_light > Tb_heavy:
-            LK, HK = LHK
-            raise ValueError(f"light key must be lighter than heavy key "
-                             f"(i.e. {LK}.Tb must be lower than {HK}.Tb)")
         for chemical in chemicals:
             ID = chemical.ID
             Tb = chemical.Tb

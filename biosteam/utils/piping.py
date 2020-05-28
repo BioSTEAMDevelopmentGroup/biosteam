@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Wed Dec  5 16:47:33 2018
+This module includes classes and functions concerning Stream objects.
 
-This module includes classes and functions relating Stream objects.
-
-@author: Yoel Cortes-Pena
 """
 from thermosteam import Stream, MultiStream
 

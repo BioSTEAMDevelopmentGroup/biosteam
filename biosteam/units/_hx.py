@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Thu Aug 23 14:38:34 2018
-
-@author: yoelr
 """
 from .. import Unit
 from .._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_graphics
@@ -649,7 +652,7 @@ class HXprocess(HX):
     @property
     def fluid_type(self):
         """
-        [None, 'ss', 'll', or 'ls']
+        [None, 'ss', 'll', 'ls']
             * **None** Rigorously transfers heat until pinch temperature (not implemented yet).
             * **'ss'** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
             * **'ll'** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
@@ -735,14 +738,14 @@ class HXprocess(HX):
             # Partial boiling if temperature falls below pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
-            delH1 = H0 - s2_out.H
-            s1_out.vle(P=s1_out.P, H=s1_in.H + delH1)
+            Q = H0 - s2_out.H
+            s1_out.vle(P=s1_out.P, H=s1_in.H + Q)
         elif not boiling and T_s2_new > T_pinch:
             # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
-            delH1 = H0 - s2_out.H
-            s1_out.vle(P=s1_out.P, H=s1_in.H + delH1)
+            Q = H0 - s2_out.H
+            s1_out.vle(P=s1_out.P, H=s1_in.H + Q)
         elif boiling:
             s1_out.phase ='g'
             s2_out.T = T_s2_new

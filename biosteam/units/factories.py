@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Sat Jun 15 00:46:41 2019
-
-@author: yoelr
 """
 from .. import Unit, units
-from ..utils import format_unit_name, static_flow_and_phase
+from ..utils import format_unit_name
 from . import decorators
 import pandas as pd
 import numpy as np

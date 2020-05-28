@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Sun Dec  8 02:01:41 2019
-
-@author: yoelr
 """
-
 __all__ = ('test_biorefineries', 'test_lipidcane', 'test_cornstover')
 
 def test_biorefineries():

@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Thu Mar 19 09:22:08 2020
-
-@author: yoelr
 """
 from ._binary_distillation import BinaryDistillation
 import flexsolve as flx
@@ -331,12 +334,8 @@ class ShortcutColumn(BinaryDistillation,
         q = self._get_feed_quality()
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
-        if alpha_LK < 1:
-            ub = -np.inf
-            lb = np.inf
-        else:
-            ub = np.inf
-            lb = -np.inf
+        ub = np.inf
+        lb = -np.inf
         bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
                                         1, alpha_LK, lb, ub, args=args)
         theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,

@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 """
-Created on Sun Apr 15 20:39:46 2018
-
-@author: Yoel Rene Cortes-Pena
 """
 from ._mixer import *
 from ._splitter import *
