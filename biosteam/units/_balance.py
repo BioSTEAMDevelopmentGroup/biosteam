@@ -7,9 +7,9 @@
 # for license details.
 """
 """
-import numpy as np
-from .. import Unit
-from ._process_specification import ProcessSpecification
+from .._unit import Unit
+from ..process_tools import stream_mass_balance
+from .._graphics import process_specification_graphics
 from ..utils import static
 
 __all__ = ('MassBalance',)
@@ -99,10 +99,8 @@ class MassBalance(Unit):
                      Ethanol  500
     
     """
-    _graphics = ProcessSpecification._graphics
-    power_utility = None
-    heat_utilities = ()
-    results = None
+    _graphics = process_specification_graphics
+    _N_heat_utilities = 0
     _N_ins = _N_outs = 1
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
@@ -110,12 +108,7 @@ class MassBalance(Unit):
                  constant_outlets=(), constant_inlets=(),
                  is_exact=True, balance='flow',
                  description=""):
-        self._numerical_specification = None
-        self._load_thermo(thermo)
-        self._init_ins(ins)
-        self._init_outs(outs)
-        self._assert_compatible_property_package()
-        self._register(ID)
+        Unit.__init__(self, ID, ins, outs, thermo)
         self.variable_inlets = variable_inlets
         self.constant_inlets = constant_inlets
         self.constant_outlets = constant_outlets
@@ -125,75 +118,14 @@ class MassBalance(Unit):
         self.description = description
         
     def _run(self):
-        """Solve mass balance by iteration."""
-        # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
-        # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-        balance = self.balance
-        solver = np.linalg.solve if self.is_exact else np.linalg.lstsq
-
-        # Set up constant and variable streams
-        vary = self.variable_inlets # Streams to vary in mass balance
-        constant = self.constant_inlets # Constant streams
-        index = self.chemicals.get_index(self.chemical_IDs)
-        mol_out = sum([s.mol for s in self.constant_outlets])
-
-        if balance == 'flow':
-            # Perform the following calculation: Ax = b = f - g
-            # Where:
-            #    A = flow rate array
-            #    x = factors
-            #    b = target flow rates
-            #    f = output flow rates
-            #    g = constant input flow rates
-
-            # Solve linear equations for mass balance
-            A = np.array([s.mol for s in vary]).transpose()[index, :]
-            f = mol_out[index]
-            g = sum([s.mol[index] for s in constant])
-            b = f - g
-            x = solver(A, b)
-
-            # Set flow rates for input streams
-            for factor, s in zip(x, vary):
-                s.mol[:] = s.mol * factor
-
-        elif balance == 'composition':
-            # Perform the following calculation:
-            # Ax = b
-            #    = sum( A_ * x_guess + g_ )f - g
-            #    = A_ * x_guess * f - O
-            # O  = sum(g_)*f - g
-            # Where:
-            # A_ is flow array for all species
-            # g_ is constant flows for all species
-            # Same variable definitions as in 'flow'
-
-            # Set all variables
-            A_ = np.array([s.mol for s in vary]).transpose()
-            A = np.array([s.mol for s in vary]).transpose()[index, :]
-            F_mol_out = mol_out.sum()
-            z_mol_out = mol_out / F_mol_out if F_mol_out else mol_out
-            f = z_mol_out[index]
-            g_ = sum([s.mol for s in constant])
-            g = g_[index]
-            O = sum(g_) * f - g
-
-            # Solve by iteration
-            x_guess = np.ones_like(index)
-            not_converged = True
-            while not_converged:
-                # Solve linear equations for mass balance
-                b = (A_ * x_guess).sum()*f + O
-                x_new = solver(A, b)
-                not_converged = sum(((x_new - x_guess)/x_new)**2) > 0.0001
-                x_guess = x_new
-
-            # Set flow rates for input streams
-            for factor, s in zip(x_new, vary):
-                s.mol = s.mol * factor
-        
-        else:
-            raise ValueError( "balance type must be one of the following: 'flow', 'composition'")
+        stream_mass_balance(
+            chemical_IDs=self.chemical_IDs,
+            variable_inlets=self.variable_inlets,
+            constant_outlets=self.constant_outlets, 
+            constant_inlets=self.constant_inlets,
+            is_exact=self.is_exact,
+            balance=self.balance
+        )
 
 
 # %% Energy Balance Unit

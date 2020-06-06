@@ -75,7 +75,7 @@ class ProcessWaterCenter(Facility):
         s_makeup.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] 
                                           for stream in makeup_water_streams])
 
-    def _run(self):
+    def _run(self): 
         self.update_process_water()
         self.update_makeup_water()
         s_recycle, s_makeup = self._ins

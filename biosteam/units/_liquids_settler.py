@@ -45,8 +45,9 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
         
     def _cost(self):
         D = self.design_results
-        self.purchase_costs['Settler'] = self._vessel_purchase_cost(
-            D['Weight'], D['Diameter'], D['Length'])
+        self.purchase_costs.update(
+            self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
+        )
         
 class LLESettler(LLEUnit, LiquidsSettler):
     line = 'Settler'

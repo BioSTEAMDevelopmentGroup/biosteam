@@ -66,7 +66,7 @@ class Junction(Unit):
     power_utility = PowerUtility()
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         thermo = self._load_thermo(thermo)
-        self._numerical_specification = None
+        self._specification = None
         self._chemicals_in_common = self._past_streams = ()
         self._ins = Ins(self, self._N_ins, upstream, thermo)
         self._outs = Outs(self, self._N_outs, downstream, thermo)

@@ -73,13 +73,13 @@ class ProcessSpecification(Unit):
         
     @property
     def specification(self):
-        return self._specification
+        return self.__specification
     @specification.setter
     def specification(self, specification):
         assert callable(specification), "specification must be a function"
-        self._specification = specification
+        self.__specification = specification
         
     def _run(self):
-        self._specification()
+        self.__specification()
         
 

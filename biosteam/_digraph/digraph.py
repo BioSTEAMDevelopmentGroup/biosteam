@@ -37,10 +37,11 @@ def has_path(obj):
 def get_streams_from_units(units):
     return set(sum([i._ins + i._outs for i in units], []))
 
-def blank_digraph(format='svg', **graph_attrs):
+def blank_digraph(format='svg', maxiter='10000000', 
+                  Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
-    f.attr(rankdir='LR', **graph_attrs)
+    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, **graph_attrs)
     return f
 
 def get_section_inlets_and_outlets(units, streams):
@@ -209,7 +210,7 @@ def add_connections(f: Digraph, connections, unit_names=None):
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
            height='0.6', color='black', peripheries='1')
-    f.attr('graph', splines='normal', overlap='orthoyx',
+    f.attr('graph', overlap='orthoyx',
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')
     for connection in connections:

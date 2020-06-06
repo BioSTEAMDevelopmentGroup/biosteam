@@ -12,13 +12,108 @@ General functional algorithms for the design of heat exchangers.
 from numpy import log as ln
 from flexsolve import njitable
 
-__all__ = ('heuristic_overall_heat_transfer_coefficient',
+__all__ = ('counter_current_heat_exchange',
+           'heuristic_overall_heat_transfer_coefficient',
            'heuristic_pressure_drop',
            'heuristic_tubeside_and_shellside_pressure_drops',
            'order_streams',
            'compute_Fahkeri_LMTD_correction_factor',
            'compute_heat_transfer_area',
            'compute_LMTD')
+
+# %% Functional heat exchanger
+
+def heat_exchange_to_condition(s_in, s_out, T, phase=None):
+    """
+    Set the outlet stream condition and return duty required to achieve 
+    said condition.
+    """
+    if phase:
+        s_out.T = T
+        s_out.phase = phase
+    else:
+        s_out.vle(T=T, P=s_out.P)
+    return s_out.H - s_in.H
+
+def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
+                                  dT, T_lim0=None, T_lim1=None,
+                                  phase0=None, phase1=None):
+    """
+    Allow outlet streams to exchange heat until either the given temperature 
+    limits or the pinch temperature and return the total heat transfer 
+    [Q; in kJ/hr].
+    """
+    # Counter_current_heat_exchange_setup:
+    # First find the hot inlet, cold inlet, hot outlet and cold outlet streams
+    # along with the maximum temperature approaches for the hotside and the 
+    # cold side.
+    if s0_in.T > s1_in.T:
+        s_hot_in = s0_in
+        s_cold_in = s1_in
+        s_hot_out = s0_out
+        s_cold_out = s1_out
+        T_lim_coldside = T_lim0
+        T_lim_hotside = T_lim1
+        phase_coldside = phase0
+        phase_hotside = phase1
+    else:
+        s_cold_in = s0_in
+        s_hot_in = s1_in
+        s_cold_out = s0_out
+        s_hot_out = s1_out
+        T_lim_hotside = T_lim0
+        T_lim_coldside = T_lim1
+        phase_hotside = phase0
+        phase_coldside = phase1
+    
+    if (s_hot_in.T - s_cold_in.T) <= dT: return 0. # No heat exchange
+    
+    T_pinch_coldside = s_cold_in.T + dT
+    if T_lim_coldside:
+        T_lim_coldside = max(T_pinch_coldside, T_lim_coldside) 
+    else:
+        T_lim_coldside = T_pinch_coldside
+    
+    T_pinch_hotside = s_hot_in.T - dT
+    if T_lim_hotside:
+        T_lim_hotside = min(T_pinch_hotside, T_lim_hotside) 
+    else:
+        T_lim_hotside = T_pinch_hotside
+       
+    # Find which side reaches the pinch first by selecting the side that needs
+    # the least heat transfer to reach the pinch.
+       
+    # Pinch on the cold side
+    Q_hot_stream = heat_exchange_to_condition(s_hot_in, s_hot_out, 
+                                              T_lim_coldside, phase_coldside)
+    
+    # Pinch on the hot side
+    Q_cold_stream = heat_exchange_to_condition(s_cold_in, s_cold_out, 
+                                               T_lim_hotside, phase_hotside)
+    
+    if Q_hot_stream > 0 or Q_cold_stream < 0:
+        # Sanity check
+        raise RuntimeError('inlet stream not in vapor-liquid equilibrium')
+    
+    if Q_cold_stream < -Q_hot_stream:
+        # Pinch on the hot side            
+        Q = Q_cold_stream
+        if phase_coldside:
+            s_hot_out.H = s_hot_in.H - Q
+        else:
+            s_hot_out.vle(H=s_hot_in.H - Q, P=s_hot_out.P)
+    else:
+        # Pinch on the cold side
+        Q = Q_hot_stream
+        if phase_hotside:
+            s_cold_out.H = s_cold_in.H - Q
+        else:
+            s_cold_out.vle(H=s_cold_in.H - Q, P=s_cold_out.P)
+    
+    return abs(Q)
+
+
+# %% Heuristics
 
 def heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho):
     """
@@ -118,6 +213,8 @@ def heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho,
         dP_shell = dP_h
     return dP_tube, dP_shell
 
+# %% General functions
+
 def order_streams(in_a, in_b, out_a, out_b):
     """
     Return cold and hot inlet and outlet streams.
@@ -149,6 +246,8 @@ def order_streams(in_a, in_b, out_a, out_b):
         return in_a, in_b, out_a, out_b
     else:
         return in_b, in_a, out_b, out_a
+
+# %% Computational functions
 
 @njitable
 def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):

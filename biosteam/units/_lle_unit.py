@@ -79,22 +79,17 @@ class LLEUnit(bst.Unit, isabstract=True):
         feed = self.ins[0]
         top, bottom = self.outs
         ms = feed.copy()
-        ms.lle(feed.T)
+        ms.lle(feed.T, top_chemical=self.top_chemical)
         top_chemical = self.top_chemical
-        if top_chemical:
-            C_l = ms['l'].get_concentration(top_chemical)
-            C_L = ms['L'].get_concentration(top_chemical)
-            top_l = C_l > C_L
-        else:
+        top_phase = 'l'
+        bottom_phase = 'L'
+        if not top_chemical:
             rho_l = ms['l'].rho
             rho_L = ms['L'].rho
-            top_l = rho_l < rho_L
-        if top_l:
-            top_phase = 'l'
-            bottom_phase = 'L'
-        else:
-            top_phase = 'L'
-            bottom_phase = 'l'
+            top_L = rho_L < rho_l
+            if top_L:
+                top_phase = 'L'
+                bottom_phase = 'l'
         top.mol[:] = ms.imol[top_phase]
         bottom.mol[:] = ms.imol[bottom_phase]
         top.T = bottom.T = feed.T

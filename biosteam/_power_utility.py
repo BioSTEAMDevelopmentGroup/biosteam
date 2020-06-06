@@ -60,7 +60,8 @@ class PowerUtility:
         return bool(self.rate)
     
     def __call__(self, rate):
-        """Calculate cost and save results. 
+        """
+        Calculate cost and save results. 
         
         Parameters
         ----------
@@ -70,6 +71,22 @@ class PowerUtility:
         """
         self.rate = rate
         self.cost = self.price * rate
+    
+    def mix_from(self, power_utilities):
+        """
+        Mix in requirements of power utilities.
+        """
+        self.rate = sum([i.rate for i in power_utilities])
+        self.cost = sum([i.cost for i in power_utilities])
+    
+    @classmethod
+    def sum(cls, power_utilities):
+        """
+        Return a PowerUtility object that represents the sum of power utilities.
+        """
+        power_utility = cls()
+        power_utility.mix_from(power_utilities)
+        return power_utility
     
     def show(self, rate=None, cost=None):
         # Get units of measure

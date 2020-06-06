@@ -16,7 +16,7 @@ def test_biorefineries():
 def test_lipidcane():
     from biorefineries.lipidcane import system
     IRR = system.lipidcane_tea.IRR
-    assert 0.170 < IRR < 0.185, ("IRR of the lipid-cane biorefinery changed significantly "
+    assert 0.165 < IRR < 0.180, ("IRR of the lipid-cane biorefinery changed significantly "
                                 f"to {IRR}")
     
 def test_cornstover():

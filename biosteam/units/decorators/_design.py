@@ -21,24 +21,29 @@ def _design(self):
     for i, j in self._design_basis_: D[i] = j(self, U[i])
 
 class DesignCenter:
-    """Create a DesignCenter object that manages all design basis functions. When called, it returns a Unit class decorator that adds a design item to the given Unit class."""
+    """
+    Create a DesignCenter object that manages all design basis functions.
+    When called, it returns a Unit class decorator that adds a design item to
+    the given Unit class.
+    """
     __slots__ = ('design_basis_functions',)
     
     def __init__(self):
         self.design_basis_functions = {}
     
     def define(self, design_basis):
-        """Define a new design basis.
+        """
+        Define a new design basis.
         
         Parameters
         ----------
-    
         design_basis : function
-            Should accept the unit_object and the units_of_measure and return design basis value.
+            Should accept two arguments, unit object and the units of measure, and return design basis value.
     
-        .. Note::
-            
-            Design basis is registered with the name of the design basis function.
+        Notes
+        -----
+        Design basis is registered with the name of the design basis function
+        capitalized with underscores replaced by spaces.
         
         """
         name = design_basis.__name__.replace('_', ' ').capitalize()
@@ -58,12 +63,13 @@ class DesignCenter:
         units : str
             Units of measure of design item.            
         fsize : function
-            Should return design item given the Unit object. If None, defaults to function predefined for given name and units.
+            Should return design item given the Unit object.
+            If None, defaults to function predefined for given name and units.
         
         """
-        return lambda cls: self._add_design2cls(cls, name, units, fsize)
+        return lambda cls: self.add_design_basis_to_cls(cls, name, units, fsize)
     
-    def _add_design2cls(self, cls, name, units, fsize):
+    def add_design_basis_to_cls(self, cls, name, units, fsize=None):
         """
         Add size/design requirement to class.
         
@@ -75,7 +81,8 @@ class DesignCenter:
         units : str
             Units of measure of design item.        
         fsize : function
-            Should return design item given the Unit object. If None, defaults to function predefined for given name and units.
+            Should return design item given the Unit object.
+            If None, defaults to function predefined for given name and units.
             
         Examples
         --------
@@ -85,12 +92,6 @@ class DesignCenter:
         """
         f = fsize or self.design_basis_functions[name.capitalize()]
         
-        # Make sure new _units dictionary is defined
-        if not cls._units:
-            cls._units = {}
-        elif '_units' not in cls.__dict__:
-            cls._units = cls._units.copy()
-        
         # Make sure design basis is not defined
         if name in cls._units:
             raise RuntimeError(f"design basis '{name}' already defined in class")
@@ -98,12 +99,12 @@ class DesignCenter:
             cls._units[name] = units
         
         # Add design basis
-        if cls._design is _design:
+        if hasattr(cls, '_decorated_design'):
             cls._design_basis_.append((name, f))
-        elif '_design' in cls.__dict__:
-            raise RuntimeError("'_design' method already implemented")
         else:
             cls._design_basis_ = [(name, f)]
+            cls._decorated_design = _design
+        if '_design' not in cls.__dict__:
             cls._design = _design
         
         return cls

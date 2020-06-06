@@ -289,13 +289,13 @@ class TEA:
         """Total purchase cost (USD)."""
         return sum([u.purchase_cost for u in self.units])
     @property
-    def installation_cost(self):
-        """Total installation cost (USD)."""
-        return sum([u.installation_cost for u in self.units])
+    def installed_cost(self):
+        """Total installed cost (USD)."""
+        return sum([u.installed_cost for u in self.units])
     @property
     def DPI(self):
         """Direct permanent investment."""
-        return self.purchase_cost * self.lang_factor if self.lang_factor else self.installation_cost
+        return self.purchase_cost * self.lang_factor if self.lang_factor else self.installed_cost
     @property
     def TDC(self):
         """Total depreciable capital."""
@@ -561,8 +561,8 @@ class TEA:
             
         """
         price2cost = self._price2cost(stream)
-        discount_factors = (1 + self.IRR)**self._duration_array
         cashflow = self.cashflow
+        discount_factors = (1 + self.IRR)**self._duration_array
         NPV = (cashflow/discount_factors).sum()
         coefficients = np.ones_like(discount_factors)
         start = self._start
@@ -680,9 +680,9 @@ class CombinedTEA(TEA):
         """Total purchase cost (USD)."""
         return sum([i.purchase_cost for i in self.TEAs])
     @property
-    def installation_cost(self):
+    def installed_cost(self):
         """Total installation cost (USD)."""
-        return sum([i.installation_cost for i in self.TEAs])
+        return sum([i.installed_cost for i in self.TEAs])
     @property
     def NPV(self):
         return self._NPV_at_IRR(self.IRR, [(i, i.cashflow) for i in self.TEAs])

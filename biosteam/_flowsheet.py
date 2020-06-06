@@ -41,7 +41,7 @@ def sort_feeds_big_to_small(feeds):
 def find_blowdown_recycle(facilities):
     isa = isinstance
     for i in facilities:
-        if isa(i, bst.BlowdownMixer): return i
+        if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 # %% Flowsheet search      
 

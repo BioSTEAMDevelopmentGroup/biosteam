@@ -21,6 +21,8 @@ __all__ = ('BatchBioreactor',)
       S=3785, n=0.5, kW=22.371, BM=1.5, N='N')
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5, N='N')
+@cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
+      S=5*20920000.0, n=0.7, BM=2.2, N='N') # Based on a similar heat exchanger
 class BatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
@@ -75,10 +77,10 @@ class BatchBioreactor(Unit, isabstract=True):
               'Cycle time': 'hr',
               'Batch time': 'hr',
               'Loading time': 'hr',
-              'Total dead time': 'hr'}
+              'Total dead time': 'hr',
+              'Reactor duty': 'kJ/hr'}
     _N_ins = _N_outs = 2
     _N_heat_utilities = 1
-    _has_power_utility = True
     
     #: [bool] If True, number of reactors (N) is chosen as to minimize installation cost in every simulation. Otherwise, N remains constant.
     autoselect_N = False
@@ -101,15 +103,11 @@ class BatchBioreactor(Unit, isabstract=True):
         self.N = N
         self.T = T
         self.P = P
-        self.heat_exchanger = HXutility(None)
         
     def _setup(self):
         vent, effluent = self.outs
         vent.phase = 'g'
-        hx_effluent = self.heat_exchanger._outs[0]
-        hx_effluent.T = effluent.T = vent.T = self.T
-        hx_effluent.P = effluent.P = vent.P = self.P
-       
+        
     @property
     def N(self):
         """[int] Number of reactors"""
@@ -152,15 +150,8 @@ class BatchBioreactor(Unit, isabstract=True):
         if self.autoselect_N: self._N = self.N_at_minimum_capital_cost
         N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
-        hx_effluent = effluent.copy()
-        hx_effluent.phase = 'l'
-        hx_effluent.mol[:] /= N
-        heat_exchanger = self.heat_exchanger
-        heat_exchanger.simulate_as_auxiliary_exchanger(self.Hnet/N, hx_effluent)
-        hu_bioreactor, = self.heat_utilities
-        hu_hx, = heat_exchanger.heat_utilities
-        hu_bioreactor.copy_like(hu_hx)
-        hu_bioreactor.scale(N)
-        self.purchase_costs['Heat exchangers'] = self.heat_exchanger.purchase_costs['Heat exchanger'] * N
+        duty = self.Hnet
+        Design['Reactor duty'] = abs(duty)
+        self.heat_utilities[0](duty, self.T)
         
     

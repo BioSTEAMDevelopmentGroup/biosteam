@@ -15,7 +15,6 @@ from .design_tools.specification_factors import (
 from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
-import flexsolve as flx
 from math import exp, log as ln
 
 __all__ = ('HXutility', 'HXprocess')
@@ -49,31 +48,6 @@ Cb_dict = {'Floating head': compute_floating_head_purchase_price,
            'Kettle vaporizer': compute_kettle_vaporizer_purchase_price,
            'Double pipe': compute_double_pipe_purchase_price}
 
-# %% Objective functions for solving process heat exchangers
-
-def dT_at_Q_counter_current(Q, dT, s1_in, s2_in, s1_out, s2_out):
-    """
-    Return the temperature difference of the outlet streams assuming counter
-    current operation of a process heat exchanger. The sign of the heat 
-    transfer `Q` is irrevelant; heat will always transfer from high to low
-    temperature.
-    """
-    Q = abs(Q)
-    s1_iscooling = s1_in.T > s2_in.T
-    if s1_iscooling:
-        # s1 is cooling
-        s1_H = s1_in.H - Q
-        s2_H = s2_in.H + Q
-    else:
-        # s1 is heating
-        s1_H = s1_in.H + Q
-        s2_H = s2_in.H - Q
-    s1_out.vle(H=s1_H, P=s1_out.P)
-    s2_out.vle(H=s2_H, P=s1_out.P)
-    dT_at_Q = (s1_out.T - s2_out.T) if s1_iscooling else (s2_out.T - s1_out.T)
-    return dT - dT_at_Q
-
-
 # %% Classes
 
 class HX(Unit, isabstract=True):
@@ -96,16 +70,12 @@ class HX(Unit, isabstract=True):
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
-    BM_douple_pipe = 1.80
-    BM_shell_and_tube = 3.17
+    _BM = {'Double pipe': 1.8,
+           'Floating head': 3.17,
+           'Fixed head': 3.17,
+           'U tube': 3.17,
+           'Kettle vaporizer': 3.17}
     
-    @property
-    def BM(self):
-        if self._shell_and_tube_type == "Double pipe":
-            return self.BM_douple_pipe
-        else:
-            return self.BM_shell_and_tube
-
     @property
     def material(self):
         """Default 'Carbon steel/carbon steel'"""
@@ -120,17 +90,17 @@ class HX(Unit, isabstract=True):
         self._material = material  
     
     @property
-    def shell_and_tube_type(self):
-        """[str] Shell and tube type. Purchase cost depends on this selection."""
-        return self._shell_and_tube_type
-    @shell_and_tube_type.setter
-    def shell_and_tube_type(self, shell_and_tube_type):
+    def heat_exchanger_type(self):
+        """[str] Heat exchanger type. Purchase cost depends on this selection."""
+        return self._heat_exchanger_type
+    @heat_exchanger_type.setter
+    def heat_exchanger_type(self, heat_exchanger_type):
         try:
-            self._Cb_func = Cb_dict[shell_and_tube_type]
+            self._Cb_func = Cb_dict[heat_exchanger_type]
         except KeyError:
             raise ValueError("heat exchange type must be one of the following: "
                             f"{', '.join(Cb_dict)}")
-        self._shell_and_tube_type = shell_and_tube_type     
+        self._heat_exchanger_type = heat_exchanger_type     
 
     def _design(self):
         ###  Use LMTD correction factor method  ###
@@ -191,18 +161,19 @@ class HX(Unit, isabstract=True):
                 A = A_min
             else:    
                 F_l = 1
-            self.shell_and_tube_type = 'Double pipe'
+            heat_exchanger_type = 'Double pipe'
         else: # Shell and tube
             F_m = compute_shell_and_tube_material_factor(A,  *self._F_Mab)
             F_l = 1 if L > 20 else np.polyval(p2, L)
             P = P/100
             F_p = 0.9803 + 0.018*P + 0.0017*P**2
+            heat_exchanger_type = self.heat_exchanger_type
         
         C_b_func = self._Cb_func
         C_b = C_b_func(A, bst.CE)
         
-        # Free on board purchase prize 
-        self.purchase_costs['Heat exchanger'] = F_p * F_l * F_m * C_b
+        # Free on board purchase prize
+        self.purchase_costs[heat_exchanger_type] = F_p * F_l * F_m * C_b
 
 
 class HXutility(HX):
@@ -224,7 +195,7 @@ class HXutility(HX):
         If true, calculate vapor liquid equilibrium
     U=None : float, optional
         Enforced overall heat transfer coefficent [kW/m^2/K].
-    shell_and_tube_type : str, optional
+    heat_exchanger_type : str, optional
         Heat exchanger type. Defaults to "Floating head".
     N_shells=2 : int
         Number of shells.
@@ -316,7 +287,7 @@ class HXutility(HX):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  T=None, V=None, rigorous=False, U=None,
-                 shell_and_tube_type="Floating head",
+                 heat_exchanger_type="Floating head",
                  material="Carbon steel/carbon steel",
                  N_shells=2,
                  ft=None):
@@ -340,7 +311,7 @@ class HXutility(HX):
         self.ft = ft
         
         self.material = material
-        self.shell_and_tube_type = shell_and_tube_type
+        self.heat_exchanger_type = heat_exchanger_type
     
     def _init_utils(self):
         # tuple[HeatUtility] All heat utilities associated to unit
@@ -430,7 +401,8 @@ class HXutility(HX):
 
 class HXprocess(HX):
     """
-    Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.
+    Counter current heat exchanger for process fluids. Rigorously transfers
+    heat until the pinch temperature or a user set temperature limit is reached.
     
     Parameters
     ----------
@@ -442,19 +414,22 @@ class HXprocess(HX):
         * [1] Outlet process fluid b
     U=None : float, optional
         Enforced overall heat transfer coefficent [kW/m^2/K].
-    fluid_type : None, 'ss', 'll', 'ls'
-        * **None:** Rigorously transfers heat until pinch temperature (not implemented yet).
-        * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
-        * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
-        * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
     dT=5. : float
         Pinch temperature difference (i.e. dT = abs(outs[0].T - outs[1].T)).
-    shell_and_tube_type : str, optional
+    T_lim0 : float, optional
+        Temperature limit of outlet stream at index 0.
+    T_lim1 : float, optional
+        Temperature limit of outlet stream at index 1.
+    heat_exchanger_type : str, optional
         Heat exchanger type. Defaults to 'Floating head'.
-    N_shells=2 : int
+    N_shells=2 : int, optional
         Number of shells.
-    ft=None : float
-        User imposed correction factor.
+    ft=None : float, optional
+        User enforced correction factor.
+    phase0=None : 'l' or 'g', optional
+        User enforced phase of outlet stream at index 0.
+    phase1=None : 'l' or 'g', optional
+        User enforced phase of outlet stream at index 1.
     
     Examples
     --------
@@ -479,27 +454,28 @@ class HXprocess(HX):
     outs...
     [0] out_a
         phases: ('g', 'l'), T: 351.39 K, P: 101325 Pa
-        flow (kmol/hr): (g) Ethanol  32.98
-                        (l) Ethanol  17.02
+        flow (kmol/hr): (g) Ethanol  32.94
+                        (l) Ethanol  17.06
     [1] out_b
-        phases: ('g', 'l'), T: 346.34 K, P: 101325 Pa
+        phases: ('g', 'l'), T: 346.43 K, P: 101325 Pa
         flow (kmol/hr): (l) Water  200
     
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      359
+    Design              Area                                   ft^2      107
                         Overall heat transfer coefficient  kW/m^2/K        1
-                        Log-mean temperature difference           K     20.5
+                        Log-mean temperature difference           K     20.4
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.22e+04
-    Total purchase cost                                         USD 2.22e+04
+    Purchase cost       Heat exchanger                          USD 5.19e+03
+    Total purchase cost                                         USD 5.19e+03
     Utility cost                                             USD/hr        0
     
-    Sensible fluids case:
+    Sensible fluids case with user enfored outlet phases 
+    (more computationally efficient):
         
     >>> from biosteam.units import HXprocess
     >>> from biosteam import Stream, settings
@@ -507,7 +483,7 @@ class HXprocess(HX):
     >>> in_a = Stream('in_a', Water=200, T=350)
     >>> in_b = Stream('in_b', Ethanol=200)
     >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'),
-    ...                fluid_type='ss')
+    ...                phase0='l', phase1='l')
     >>> hx.simulate()
     >>> hx.show()
     HXprocess: hx
@@ -539,82 +515,6 @@ class HXprocess(HX):
     Total purchase cost                                         USD 2.05e+04
     Utility cost                                             USD/hr        0
     
-    One latent fluid and one sensible fluid case:
-    
-    >>> in_a = Stream('in_a', Ethanol=50, T=351.43, phase='g')
-    >>> in_b = Stream('in_b', Water=200)
-    >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'),
-    ...                fluid_type='ls')
-    >>> hx.simulate()
-    >>> hx.show()
-    HXprocess: hx
-    ins...
-    [0] in_a
-        phase: 'g', T: 351.43 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  50
-    [1] in_b
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  200
-    outs...
-    [0] out_a
-        phases: ('g', 'l'), T: 351.39 K, P: 101325 Pa
-        flow (kmol/hr): (g) Ethanol  32.94
-                        (l) Ethanol  17.06
-    [1] out_b
-        phase: 'l', T: 346.43 K, P: 101325 Pa
-        flow (kmol/hr): Water  200
-    >>> hx.results()
-    Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      625
-                        Overall heat transfer coefficient  kW/m^2/K      0.5
-                        Log-mean temperature difference           K     20.4
-                        Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi        5
-                        Operating pressure                      psi     14.7
-                        Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.53e+04
-    Total purchase cost                                         USD 2.53e+04
-    Utility cost                                             USD/hr        0
-    
-    Latent fluids case:
-    
-    >>> in_a = Stream('in_a', Ethanol=50, T=351.43, phase='l')
-    >>> in_b = Stream('in_b', Water=200, T=373.15, phase='g')
-    >>> hx = HXprocess('hx', ins=(in_a, in_b), outs=('out_a', 'out_b'),
-    ...                fluid_type='ll')
-    >>> hx.simulate()
-    >>> hx.show()
-    HXprocess: hx
-    ins...
-    [0] in_a
-        phase: 'l', T: 351.43 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  50
-    [1] in_b
-        phase: 'g', T: 373.15 K, P: 101325 Pa
-        flow (kmol/hr): Water  200
-    outs...
-    [0] out_a
-        phase: 'g', T: 351.43 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  50
-    [1] out_b
-        phases: ('g', 'l'), T: 373.12 K, P: 101325 Pa
-        flow (kmol/hr): (g) Water  150.8
-                        (l) Water  49.19
-    >>> hx.results()
-    Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      293
-                        Overall heat transfer coefficient  kW/m^2/K        1
-                        Log-mean temperature difference           K     21.7
-                        Fouling correction factor                          1
-                        Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi      1.5
-                        Operating pressure                      psi     14.7
-                        Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.14e+04
-    Total purchase cost                                         USD 2.14e+04
-    Utility cost                                             USD/hr        0
-    
     """
     line = 'Heat Exchanger'
     _graphics = process_heat_exchanger_graphics
@@ -623,11 +523,12 @@ class HXprocess(HX):
     _N_outs = 2
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 U=None, fluid_type=None, dT=5.,
+                 U=None, dT=5., T_lim0=None, T_lim1=None,
                  material="Carbon steel/carbon steel",
-                 shell_and_tube_type="Floating head",
-                 N_shells=2,
-                 ft=None):
+                 heat_exchanger_type="Floating head",
+                 N_shells=2, ft=None, 
+                 phase0=None,
+                 phase1=None,):
         super().__init__(ID, ins, outs, thermo)
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
@@ -645,25 +546,20 @@ class HXprocess(HX):
         #: [float] Pinch temperature difference.
         self.dT = dT 
         
-        self.fluid_type = fluid_type
+        #: [float] Temperature limit of outlet stream at index 0.
+        self.T_lim0 = T_lim0
+        
+        #: [float] Temperature limit of outlet stream at index 1.
+        self.T_lim1 = T_lim1
+        
+        #: Enforced phase of outlet at index 0
+        self.phase0 = phase0
+        
+        #: Enforced phase of outlet at index 1
+        self.phase1 = phase1
+        
         self.material = material
-        self.shell_and_tube_type = shell_and_tube_type
-    
-    @property
-    def fluid_type(self):
-        """
-        [None, 'ss', 'll', 'ls']
-            * **None** Rigorously transfers heat until pinch temperature (not implemented yet).
-            * **'ss'** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
-            * **'ll'** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
-            * **'ls'** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
-        """
-        return self._fluid_type
-    @fluid_type.setter
-    def fluid_type(self, fluid_type):
-        if fluid_type not in ('ss', 'ls', 'll', None):
-            raise ValueError(f"fluid type must be either 'ss', 'ls', 'll', or None; not {repr(fluid_type)}")
-        self._fluid_type = fluid_type
+        self.heat_exchanger_type = heat_exchanger_type
         
     def get_streams(self):
         s_in_a, s_in_b = self.ins
@@ -671,143 +567,20 @@ class HXprocess(HX):
         return s_in_a, s_in_b, s_out_a, s_out_b
     
     def _run(self):
-        so0, so1 = self._outs
-        si0, si1 = self._ins
-        s0_F_mol = si0.F_mol
-        s1_F_mol = si1.F_mol
-        if not s0_F_mol:
-            so1.copy_like(si1)
-        elif not s1_F_mol:
-            so0.copy_like(si0)
+        s1_in, s2_in = self._ins
+        s1_out, s2_out = self._outs
+        if s1_in.isempty():
+            s2_out.copy_like(s2_in)
+            self.Q = 0.
+        elif s2_in.isempty():
+            s1_out.copy_like(s1_in)
+            self.Q = 0.
         else:
-            fluid_type = self._fluid_type
-            so0.copy_like(si0)
-            so1.copy_like(si1)
-            if fluid_type == 'ss':
-                self._run_ss()
-            elif fluid_type == 'ls':
-                self._run_ls()
-            elif fluid_type == 'll':
-                self._run_ll()
-            elif fluid_type:
-                raise RuntimeError("fluid type must be 'ss', 'ls', 'll', or None")
-            else:
-                self._run_rigorous()
+            s1_out.copy_like(s1_in)
+            s2_out.copy_like(s2_in)
+            self._run_counter_current_heat_exchange()
     
-    def _run_ss(self):
-        dT = self.dT
-        s1f, s2f = self.outs
-        s1, s2 = self.ins
-        s1_hot = s1.T > s2.T  # s2 energy will increase
-        if s1.C < s2.C:
-            s1f.T = (s2.T + dT) if s1_hot else (s2.T - dT)
-            Q = s1.H - s1f.H
-            s2f.T += Q/s2.C
-        else:
-            s2f.T = (s1.T - dT) if s1_hot else (s1.T + dT)
-            Q = s2.H - s2f.H
-            s1f.T += Q/s1.C
-        self.Q = Q
-    
-    def _run_ls(self):
-        s1_in, s2_in = self.ins
-        s1_out, s2_out = self.outs
-        dT = self.dT
-        
-        if s2_out.T > s1_in.T:
-            # Stream s1 is boiling
-            boiling = True
-            s1_out.phase = 'g'
-            dp = s1_out.dew_point_at_P()
-            s1_out.T = dp.T
-            T_pinch = s1_in.T + dT # Minimum
-        else:
-            # Stream s1 is condensing
-            boiling = False
-            s1_out.phase = 'l'
-            bp = s1_out.bubble_point_at_P()
-            s1_out.T = bp.T
-            T_pinch = s1_in.T - dT # Maximum
-        
-        # Calculate maximum latent heat and new temperature of sensible stream
-        Q = s1_in.H - s1_out.H
-        T_s2_new = s2_out.T + Q/s2_out.C
-        s1_out.copy_like(s1_in)
-        
-        if boiling and T_s2_new < T_pinch:
-            # Partial boiling if temperature falls below pinch
-            H0 = s2_in.H
-            s2_out.T = T_pinch
-            Q = H0 - s2_out.H
-            s1_out.vle(P=s1_out.P, H=s1_in.H + Q)
-        elif not boiling and T_s2_new > T_pinch:
-            # Partial condensation if temperature goes above pinch
-            H0 = s2_in.H
-            s2_out.T = T_pinch
-            Q = H0 - s2_out.H
-            s1_out.vle(P=s1_out.P, H=s1_in.H + Q)
-        elif boiling:
-            s1_out.phase ='g'
-            s2_out.T = T_s2_new
-        elif not boiling:
-            s1_out.phase = 'l'
-            s2_out.T = T_s2_new
-        self.Q = Q
-    
-    def _run_ll(self):
-        s1_in, s2_in = self.ins
-        s1_out, s2_out = self.outs
-        
-        if s1_in.T > s2_in.T and ('g' in s1_in.phase) and ('l' in s2_in.phase):
-            for s in self.outs: s.phases = ('g', 'l')
-            # s2 boiling, s1 condensing
-            boiling = s2_out
-            delH1 = s1_out['g'].Hvap
-            delH2 = s2_out['l'].Hvap
-        elif s1_in.T < s2_in.T and ('l' in s1_in.phase) and ('g' in s2_in.phase):
-            for s in self.outs: s.phases = ('g', 'l')
-            # s1 boiling, s2 condensing
-            boiling = s1_out
-            delH1 = s1_out['l'].Hvap
-            delH2 = s2_out['g'].Hvap
-        else:
-            raise ValueError(f"no latent heat streams available for heat exchange with shell_and_tube_type='ll'")
-        
-        # sc: Stream that completely changes phase
-        # sp: Stream that partialy changes phase
-        if delH1 > delH2:
-            sc_in = s2_in
-            sc_out = s2_out
-            sp_in = s1_in
-            sp_out = s1_out
-        else:
-            sc_in = s1_in
-            sc_out = s1_out
-            sp_in = s2_in
-            sp_out = s2_out
-        
-        if sc_out is boiling:
-            sc_out.phase = 'g'
-            dp = sc_out.dew_point_at_P()
-            sc_out.T = dp.T
-        else:
-            sc_out.phase = 'l'
-            bp = sc_out.bubble_point_at_P()
-            sc_out.T = bp.T
-        
-        # VLE
-        Q = (sc_in.H - sc_out.H)
-        sp_out.vle(P=sp_out.P, H=sp_in.H + Q)
-        self.Q = abs(Q)
-
-    def _run_rigorous(self):
-        # Initial guess assumes sensible streams
-        self._run_ss()
-        Q = self.Q
-        s1_in, s2_in = self.ins
-        s1_out, s2_out = self.outs
-        flx.aitken_secant(dT_at_Q_counter_current,
-                          Q, Q + min(s1_out.C, s2_out.C),
-                          ytol=0.1, args=(self.dT, s1_in, s2_in, s1_out, s2_out))
-        self.Q = abs(s2_in.H - s1_in.H)
-
+    def _run_counter_current_heat_exchange(self):
+        self.Q = ht.counter_current_heat_exchange(*self._ins, *self._outs,
+                                                  self.dT, self.T_lim0, self.T_lim1,
+                                                  self.phase0, self.phase1)

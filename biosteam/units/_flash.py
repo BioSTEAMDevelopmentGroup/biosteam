@@ -15,7 +15,6 @@ from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
-from ..utils import bounds_warning
 
 exp = np.exp
 ln = np.log
@@ -145,12 +144,15 @@ class Flash(design.PressureVessel, Unit):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
+    auxiliary_unit_names = ('heat_exchanger',)
     _units = {'Vertical vessel weight': 'lb',
               'Horizontal vessel weight': 'lb',
               'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
+    _BM = {'Liquid-ring pump': 1.0,
+           **design.PressureVessel._BM}
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
     _N_heat_utilities = 0
@@ -166,8 +168,10 @@ class Flash(design.PressureVessel, Unit):
                  surge_time=7.5,
                  has_mist_eliminator=False):
         Unit.__init__(self, ID, ins, outs, thermo)
-        self._multistream = MultiStream(None)
-        self.heat_exchanger = None
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
+        self.heat_utilities = hx.heat_utilities
+        hx._ins = self._ins
         
         #: Enforced molar vapor fraction
         self.V = V
@@ -227,13 +231,6 @@ class Flash(design.PressureVessel, Unit):
         return self._Q
     @Q.setter
     def Q(self, Q):
-        if Q == 0:
-            self.heat_exchanger = None
-        elif not self.heat_exchanger:
-            self.heat_exchanger = he = HXutility(None, outs=None) 
-            self.heat_utilities = he.heat_utilities
-            he._ins = self._ins
-            he._outs[0] = self._multistream
         self._Q = Q
 
     def _default_vessel_type(self):
@@ -249,7 +246,7 @@ class Flash(design.PressureVessel, Unit):
         feed = self.ins[0]
 
         # Vapor Liquid Equilibrium
-        ms = self._multistream
+        ms = self._multi_stream
         ms.empty()
         ms.imol['l'] = feed.mol
         ms.T = feed.T
@@ -272,17 +269,16 @@ class Flash(design.PressureVessel, Unit):
         elif vessel_type == 'Horizontal': 
             args = self._horizontal_vessel_pressure_diameter_and_length()
         else: raise RuntimeError('unknown vessel type')
-        if self.heat_exchanger: self.heat_exchanger._design()
-        self.design_results.update(self._vessel_design(*args))
-        self.design_results['Material'] = self._vessel_material
+        self.heat_exchanger._summary()
+        self.design_results.update(
+            self._vessel_design(*args)
+        )
 
     def _cost(self):
         D = self.design_results
-        self.purchase_costs['Flash'] = self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
-        if self.heat_exchanger:
-            hx = self.heat_exchanger
-            hx._cost()
-            self.purchase_costs.update(hx.purchase_costs)
+        self.purchase_costs.update(
+            self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
+        )
         self._cost_vacuum()
 
     def _cost_vacuum(self):
@@ -495,17 +491,14 @@ class Flash(design.PressureVessel, Unit):
         # Hnll = Y*D
         
         return P, D, L
-        
-    def _end_decorated_cost_(self):
-        if self.heat_utilities: self.heat_utilities[0](self.Hnet, self.T)
-    
+
 
 # %% Special
 
 class SplitFlash(Flash):
     line = 'Flash' 
     
-    def __init__(self, ID='', ins=None, outs=(), *, split,
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split,
                  order=None, T=None, P=None, Q=None,
                  vessel_material='Carbon steel',
                  vacuum_system_preference='Liquid-ring pump',
@@ -515,11 +508,12 @@ class SplitFlash(Flash):
                  holdup_time=15,
                  surge_time=7.5,
                  has_mist_eliminator=False):
-        Splitter.__init__(self, ID, ins, outs, split=split, order=order)
-        self._multistream = MultiStream(None)
+        Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
         
         #: [HXutility] Heat exchanger if needed.
-        self.heat_exchanger = None
+        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo)
+        hx._ins = self._ins
         self.T = T #: Operating temperature (K)
         self.P = P #: Operating pressure (Pa)
         self.Q = Q #: Duty (kJ/hr)
@@ -563,9 +557,8 @@ class SplitFlash(Flash):
         bot.P = top.P = self.P
 
     def _design(self):
-        if self.heat_exchanger:
-            self.heat_exchanger.outs[0] = ms = self._multistream
-            ms.mix_from(self.outs)
+        self.heat_exchanger.outs[0] = ms = self._multi_stream
+        ms.mix_from(self.outs)
         super()._design()
     
 
@@ -576,6 +569,9 @@ class RatioFlash(Flash):
                  K_chemicals, Ks, top_solvents=(), top_split=(),
                  bot_solvents=(), bot_split=()):
         Unit.__init__(self, ID, ins, outs)
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        #: [HXutility] Heat exchanger if needed.
+        self.heat_exchanger = HXutility(None, None, ms, thermo=self.thermo)
         self.K_chemicals = K_chemicals
         self.Ks = Ks
         self.top_solvents = top_solvents
@@ -603,6 +599,10 @@ class RatioFlash(Flash):
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
 
+    def _design(self):
+        self.heat_exchanger.outs[0] = ms = self._multi_stream
+        ms.mix_from(self.outs)
+        super()._design()
 
 # %% Single Component
 
@@ -631,8 +631,8 @@ class Evaporator_PQ(Unit):
     def V(self):
         return self._V
     
-    def __init__(self, ID='', ins=None, outs=(), *, Q=0, P=101325):
-        super().__init__(ID, ins, outs)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, Q=0, P=101325):
+        super().__init__(ID, ins, outs, thermo)
         self.Q = Q
         self.P = P
         self._V = None
@@ -694,8 +694,8 @@ class Evaporator_PV(Unit):
         self._P = water.Psat(T)
         self._T = T
     
-    def __init__(self, ID='', ins=None, outs=(), *, V=0.5, P=101325):
-        super().__init__(ID, ins, outs)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, V=0.5, P=101325):
+        super().__init__(ID, ins, outs, thermo)
         self.V = V
         self.P = P
 

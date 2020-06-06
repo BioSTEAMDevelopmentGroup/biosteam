@@ -68,6 +68,7 @@ class Tank(Unit, isabstract=True):
 
     """
     _units = {'Total volume': 'm^3'}
+    _BM = {'Tanks': 2.3}
     _N_outs = 1
 
     def __init_subclass__(cls, isabstract=False):
@@ -255,6 +256,7 @@ class MixTank(Tank):
     please read the :doc:`Tank` documentation.
     
     The purchase cost algorithm is based on [1]_.
+    The electricity rate is based on [2]_.
 
     References
     ----------
@@ -262,6 +264,10 @@ class MixTank(Tank):
         (2009). Techno-economic analysis of a biodiesel production process from
         vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
         https://doi.org/10.1016/j.fuproc.2009.04.017
+
+    .. [2] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
 
     """
     _N_ins = 2

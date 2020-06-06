@@ -79,12 +79,14 @@ class MultiEffectEvaporator(Unit):
             Liquid pressure after pumping (Pa).
     
     """
+    line = 'Multi-Effect Evaporator'
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
+    _BM = {'Evaporators': 2.45,
+           'Liquid-ring pump': 1.0,
+           'Condenser': 3.17}
     _N_outs = 2
     _N_heat_utilities = 2
-    BM = 2.45
-    line = 'Multi-Effect Evaporator'
 
     #: Residence time (hr)
     tau = 0.30
@@ -219,7 +221,7 @@ class MultiEffectEvaporator(Unit):
         condenser = components['condenser']
         condenser._design()
         condenser._cost()
-        Cost['Condenser'] = condenser.purchase_costs['Heat exchanger']
+        Cost['Condenser'] = condenser.purchase_cost
         
         # Find area and cost of evaporators
         As = [A]
@@ -244,7 +246,7 @@ class MultiEffectEvaporator(Unit):
             F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
             vessel_volume=total_volume,
             vacuum_system_preference='Liquid-ring pump')
-        Cost['Vacuum liquid-ring pump'] = cost
+        Cost['Liquid-ring pump'] = cost
         self.power_utility(power)
         
         

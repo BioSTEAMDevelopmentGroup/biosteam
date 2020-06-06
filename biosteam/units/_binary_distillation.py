@@ -118,7 +118,7 @@ class BinaryDistillation(Unit):
         Ratio of reflux to minimum reflux.
     Rmin : float, optional
         User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`, this enforced value is ignored. Defaults to 0.6.
-    specification="Composition" : "Composition" or "Recovery"
+    product_specification_format=None : "Composition" or "Recovery"
         If composition is used, `y_top` and `x_bot` must be specified.
         If recovery is used, `Lr` and `Hr` must be specified.
     P=101325 : float
@@ -233,6 +233,7 @@ class BinaryDistillation(Unit):
     
     """
     line = 'Distillation'
+    auxiliary_unit_names = ('condenser', 'boiler')
     _graphics = vertical_column_graphics
     _N_heat_utilities = 0
     _ins_size_is_fixed = False
@@ -252,8 +253,12 @@ class BinaryDistillation(Unit):
               'Diameter': 'ft',
               'Wall thickness': 'in',
               'Weight': 'lb'}
-    # Bare module factor
-    BM = 4.3
+    _BM = {'Rectifier tower': 4.3,
+           'Stripper tower': 4.3,
+           'Rectifier trays': 4.3,
+           'Stripper trays': 4.3,
+           'Tower': 4.3,
+           'Trays': 4.3}
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
@@ -267,7 +272,7 @@ class BinaryDistillation(Unit):
                 Hr=None,
                 y_top=None,
                 x_bot=None, 
-                product_specification_format='Composition',
+                product_specification_format=None,
                 vessel_material='Carbon steel',
                 tray_material='Carbon steel',
                 tray_type='Sieve',
@@ -539,6 +544,13 @@ class BinaryDistillation(Unit):
     def _set_distillation_product_specifications(self,
                                                  product_specification_format,
                                                  x_bot, y_top, Lr, Hr):
+        if not product_specification_format:
+            if (x_bot and y_top) and not (Lr or Hr):
+                product_specification_format = 'Composition'
+            elif (Lr or Hr) and not (x_bot or y_top):
+                product_specification_format = 'Recovery'
+            else:
+                raise ValueError("must specify either x_top and y_top, or Lr and Hr")
         self._product_specification_format = product_specification_format
         if product_specification_format == 'Composition':
             self.y_top = y_top
@@ -778,9 +790,7 @@ class BinaryDistillation(Unit):
         liq.mol = bottoms_product.mol + boilup.mol
         
     def _simulate_condenser(self):
-        condenser = self.condenser
-        condenser._design()
-        condenser._cost()
+        self.condenser._summary()
         
     def _simulate_boiler(self):
         boiler = self.boiler
@@ -790,11 +800,9 @@ class BinaryDistillation(Unit):
     def _simulate_components(self): 
         # Cost condenser
         self._simulate_condenser()
-        self.purchase_costs['Condenser'] = self.condenser.purchase_costs['Heat exchanger']
         
         # Cost boiler
         self._simulate_boiler()
-        self.purchase_costs['Boiler'] = self.boiler.purchase_costs['Heat exchanger']
     
     def _get_relative_volatilities_LHK(self):
         x_stages = self._x_stages
@@ -920,6 +928,7 @@ class BinaryDistillation(Unit):
     def _cost(self):
         Design = self.design_results
         Cost = self.purchase_costs
+        Cost.clear() # Prevent having previous results if `is_divided` changed
         F_TT = self._F_TT
         F_VM = self._F_VM
         if self.is_divided:

@@ -203,7 +203,7 @@ def cost_table(tea):
     
     df = DataFrame(array, columns=columns, index=IDs)    
     if not tea.lang_factor:
-        df['Installation cost (10^6 USD)'] = [u.installation_cost for u in units]
+        df['Installation cost (10^6 USD)'] = [u.installation_cost / 1e6 for u in units]
     
     return df
 

@@ -32,20 +32,8 @@ class PressureVessel:
                'Vertical vessel length': (12, 40)}
     
     # Bare module factors
-    BM_horizontal = 3.05
-    BM_vertical = 4.16
-    
-    @property
-    def BM(self):
-        vessel_type = self.vessel_type
-        if not vessel_type:
-            raise AttributeError('vessel_type not defined')
-        elif vessel_type == 'Vertical':
-            return self.BM_vertical
-        elif vessel_type == 'Horizontal':
-            return self.BM_horizontal 
-        else:
-            raise RuntimeError("invalid vessel type")
+    _BM = {'Horizontal pressure vessel': 3.05,
+           'Vertical pressure vessel': 4.16}
     
     @property
     def vessel_type(self):
@@ -72,6 +60,9 @@ class PressureVessel:
                               "only the following materials are available: "
                              f"{', '.join(pressure_vessel_material_factors)}")
         self._vessel_material = material  
+    
+    def _get_design_info(self):
+        return (('Vessel material', self._vessel_material, ''),)
     
     def _default_vessel_type(self):
         return None
@@ -107,7 +98,6 @@ class PressureVessel:
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
         VW, VWT = design.compute_vessel_weight_and_wall_thickness(
             pressure, diameter, length, rho_M)
-
         Design = {}
         bounds_warning(self, 'Vertical vessel weight', VW, 'lb',
                        self._bounds['Vertical vessel weight'],
@@ -122,7 +112,7 @@ class PressureVessel:
         Design['Wall thickness'] = VWT  # in
         return Design
 
-    def _vessel_purchase_cost(self, weight, diameter, length) -> float:
+    def _vessel_purchase_cost(self, weight, diameter, length) -> dict:
         vessel_type = self.vessel_type
         if vessel_type == 'Horizontal':
             method = self._horizontal_vessel_purchase_cost
@@ -132,8 +122,8 @@ class PressureVessel:
             raise RuntimeError('unknown vessel type')
         return method(weight, diameter, length)
 
-    def _horizontal_vessel_purchase_cost(self, weight, diameter, length=None) -> float:
-        return design.compute_horizontal_vessel_purchase_cost(weight, diameter, self._F_M)
+    def _horizontal_vessel_purchase_cost(self, weight, diameter, length=None) -> dict:
+        return {'Horizontal pressure vessel': design.compute_horizontal_vessel_purchase_cost(weight, diameter, self._F_M)}
 
-    def _vertical_vessel_purchase_cost(self, weight, diameter, length) -> float:
-        return design.compute_vertical_vessel_purchase_cost(weight, diameter, length, self._F_M)
+    def _vertical_vessel_purchase_cost(self, weight, diameter, length) -> dict:
+        return {'Vertical pressure vessel': design.compute_vertical_vessel_purchase_cost(weight, diameter, length, self._F_M)}

@@ -30,8 +30,8 @@ class RotaryVacuumFilter(SolidsSeparator):
                        Fraction of water in retentate.
     
     """
-    _has_power_utility = True
-    BM = 2.32
+    _BM = {'Vessels': 2.32,
+           'Liquid-ring pump': 1.0}
     
     #: Revolutions per second
     rps = 20/3600
@@ -67,7 +67,7 @@ class RotaryVacuumFilter(SolidsSeparator):
         Design['Individual area'] = iArea
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
-        self.purchase_costs['Cost of vessels'] = N_vessels*Cost*bst.CE/567
+        self.purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
     
     def _power(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs

@@ -36,15 +36,13 @@ class CostItem:
         Exponential factor.
     kW : float
         Electricity rate.
-    BM : float
-        Bare module factor (installation factor).
     N : str
         Attribute name for number of parallel units.
     
     """
     __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
-                 'cost', 'n', 'kW', 'BM', 'N')
-    def __init__(self, basis, units, S, ub, CE, cost, n, kW, BM, N):
+                 'cost', 'n', 'kW', 'N')
+    def __init__(self, basis, units, S, ub, CE, cost, n, kW, N):
         if ub and not N: N='#'
         self._basis = basis
         self._units = units
@@ -54,7 +52,6 @@ class CostItem:
         self.cost = cost
         self.n = n
         self.kW = kW
-        self.BM = BM
         self.N = N
     
     __getitem__ = object.__getattribute__
@@ -78,11 +75,10 @@ class CostItem:
              +f" cost  {self.cost:.3g}\n"
              +f" n     {self.n:.3g}\n"
              +f" kW    {self.kW:.3g}\n"
-             +f" BM    {self.BM:.3g}\n"
             +(f" N     '{self.N}'" if self.N else ""))
     show = _ipython_display_
 
-def _cost(self):
+def _decorated_cost(self):
     D = self.design_results
     C = self.purchase_costs
     kW = 0
@@ -105,25 +101,8 @@ def _cost(self):
             kW += x.kW*F
     if kW: self.power_utility(kW)
 
-def _extended_cost(self):
-    _cost(self)
-    self._end_decorated_cost_()
-
-@property
-def BM(self):
-    raise AttributeError("can only get installation factor 'BM' through 'cost_items'")
-@BM.setter 
-def BM(self, BM):
-    raise AttributeError("can only set installation factor 'BM' through 'cost_items'")
-BM_property = BM
-del BM
-
-@property
-def installation_cost(self):
-    C = self.purchase_costs
-    return sum([C[i]*j.BM for i,j in self.cost_items.items()])
-
-def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None, N=None):    
+def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
+         units=None, fsize=None, N=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up:
     
@@ -163,6 +142,9 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
     return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N)
 
 def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
+    # Make sure new _units dictionary is defined
+    if '_units' not in cls.__dict__:
+        cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
     if basis in cls._units:
         if fsize:
             raise RuntimeError(f"cost basis '{basis}' already defined in class, cannot pass 'fsize' argument")
@@ -171,7 +153,7 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
         elif units != cls._units[basis]:
             raise RuntimeError(f"cost basis '{basis}' already defined in class with units '{cls._units[basis]}'")
     elif units:
-        design._add_design2cls(cls, basis, units, fsize)
+        design.add_design_basis_to_cls(cls, basis, units, fsize)
     else:
         raise RuntimeError(f"units of cost basis '{basis}' not available in '{cls.__name__}._units' dictionary, must pass units or define in class")
     if hasattr(cls, 'cost_items'):
@@ -181,16 +163,16 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
             raise ValueError("must pass an 'ID' for purchase cost item")
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
-        cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, BM, N)
+        cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, N)
+        cls._BM[ID] = BM
     else:
         ID = ID or cls.line
-        cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, BM, N)}
+        cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, N)}
+        if '_BM' not in cls.__dict__:
+            cls._BM = cls._BM.copy() if hasattr(cls, '_BM') else {}
+        cls._BM[ID] = BM
         if '_cost' not in cls.__dict__:
-            if hasattr(cls, '_end_decorated_cost_'):
-                cls._cost = _extended_cost
-            else:
-                cls._cost = _cost
-        cls.BM = BM_property
-        cls.installation_cost = installation_cost
+            cls._cost = _decorated_cost
+        cls._decorated_cost = _decorated_cost
     return cls
 

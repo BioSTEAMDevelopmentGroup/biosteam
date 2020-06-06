@@ -40,8 +40,11 @@ class SolidsCentrifuge(Splitter):
     .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
     
     """
-    _units = {'Solids loading': 'tonne/hr'}
-    _minimum_solids_loading = 2
+    _units = {'Solids loading': 'ton/hr',
+              'Flow rate': 'm3/hr'}
+    minimum_solids_loading = 2
+    kWhr_per_m3 = 1.40
+
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  split, order=None, solids=None):
@@ -63,7 +66,10 @@ class SolidsCentrifuge(Splitter):
         ts = np.asarray(mass_solids).sum() # Total solids
         ts *= 0.0011023 # To short tons (2000 lbs/hr)
         self.design_results['Solids loading'] = ts
-        lb = self._minimum_solids_loading
+        lb = self.minimum_solids_loading
         if ts < lb:
-            lb_warning('Solids loading', ts, 'tonn/hr', lb, 3, self)
+            lb_warning('Solids loading', ts, 'ton/hr', lb, 3, self)
+        self.design_results['Flow rate'] = F_vol_in = self.F_vol_in
+        self.power_utility(F_vol_in * self.kWhr_per_m3)
+            
     

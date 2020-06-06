@@ -49,33 +49,33 @@ def filter_out_missing_streams(streams):
 # %% Functions for taking care of numerical specifications within a system path
     
 def run_unit_in_path(unit):
-    numerical_specification = unit._numerical_specification
-    if numerical_specification:
-        method = numerical_specification
+    specification = unit._specification
+    if specification:
+        method = specification
     else:
         method = unit._run
     try_method_with_object_stamp(unit, method)
 
 def converge_system_in_path(system):
-    numerical_specification = system._numerical_specification
-    if numerical_specification:
-        method = numerical_specification
+    specification = system._specification
+    if specification:
+        method = specification
     else:
         method = system._converge
     try_method_with_object_stamp(system, method)
 
 def simulate_unit_in_path(unit):
-    numerical_specification = unit._numerical_specification
-    if numerical_specification:
-        method = numerical_specification
+    specification = unit._specification
+    if specification:
+        method = specification
     else:
         method = unit.simulate
     try_method_with_object_stamp(unit, method)
 
 def simulate_system_in_path(system):
-    numerical_specification = system._numerical_specification
-    if numerical_specification:
-        method = numerical_specification
+    specification = system._specification
+    if specification:
+        method = specification
     else:
         method = system.simulate
     try_method_with_object_stamp(system, method)
@@ -83,7 +83,10 @@ def simulate_system_in_path(system):
 # %% Debugging and exception handling
 
 def _evaluate(self, command=None):
-    """Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object."""    
+    """
+    Evaluate a command and request user input for next command.
+    If no command, return. This function is used for debugging a System object.
+    """    
     # Done evaluating if no command, exit debugger if 'exit'
     if command is None:
         Next = colors.next('Next: ') + f'{repr(self)}\n'
@@ -93,7 +96,13 @@ def _evaluate(self, command=None):
     if command == 'exit': raise KeyboardInterrupt()
     if command:
         # Build locals dictionary for evaluating command
-        lcs = {self.ID: self, 'bst': bst} 
+        F = bst.main_flowsheet
+        lcs = {self.ID: self, 'bst': bst,
+               **F.system.__dict__,
+               **F.stream.__dict__,
+               **F.unit.__dict__,
+               **F.flowsheet.__dict__
+        } 
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -253,7 +262,7 @@ class System(metaclass=system):
         self.streams = streams = network.streams
         self.feeds = feeds = network.feeds
         self.products = products = network.products
-        self._numerical_specification = None
+        self._specification = None
         self._set_recycle(network.recycle)
         self._reset_errors()
         self._set_path(path)
@@ -271,7 +280,7 @@ class System(metaclass=system):
         return self
         
     def __init__(self, ID, path, recycle=None, facilities=(), facility_recycle=None):
-        self._numerical_specification = None
+        self._specification = None
         self._set_recycle(recycle)
         self._load_flowsheet()
         self._reset_errors()
@@ -283,7 +292,7 @@ class System(metaclass=system):
         self._finalize_streams()
         self._register(ID)
     
-    numerical_specification = Unit.numerical_specification
+    specification = Unit.specification
     save_report = save_report
     
     def _load_flowsheet(self):
@@ -307,6 +316,9 @@ class System(metaclass=system):
         #: list[Unit] Network of only unit operations
         self._unit_path = unit_path = []
         
+        #: set[Unit] All units that have costs.
+        self._costunits = costunits = set()
+        
         isa = isinstance
         for i in path:
             if i in unit_path: continue
@@ -315,17 +327,17 @@ class System(metaclass=system):
             elif isa(i, System):
                 unit_path.extend(i._unit_path)
                 subsystems.add(i)
+                costunits.update(i._costunits)
     
         #: set[Unit] All units in the path that have costs
-        self._path_costunits = costunits = {i for i in unit_path
-                                            if i._design or i._cost}
+        self._path_costunits = path_costunits = {i for i in unit_path
+                                                 if i._design or i._cost}
+        costunits.update(path_costunits)
         
-        #: set[Unit] All units that have costs.
-        self._costunits = costunits = costunits.copy()
         
     def _load_units(self):
         #: set[Unit] All units within the system
-        self.units = set(self._unit_path)
+        self.units = set(self._unit_path) | self._costunits
     
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
@@ -576,9 +588,8 @@ class System(metaclass=system):
     # Default converge method
     _converge_method = _aitken
    
-    @property
     def _converge(self):
-        return self._converge_method if self._recycle else self._run
+        return self._converge_method() if self._recycle else self._run()
         
     def _design_and_cost(self):
         for i in self._path_costunits:

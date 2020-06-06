@@ -131,16 +131,18 @@ class BoilerTurbogenerator(Facility):
         combustion_rxns = self.chemicals.get_combustion_reactions()
         combustion_rxns.force_reaction(emissions_mol)
         emissions.imol['O2'] = 0
-        emissions.T = 373.15
+        emissions.T = 273.15 + 266
         emissions.P = 101325
         emissions.phase = 'g'
         H_content = B_eff * H_combustion - emissions.H
+        
         #: [float] Total steam produced by the boiler (kmol/hr)
         self.total_steam = H_content / duty_over_mol 
         
         self.makeup_water.imol['7732-18-5'] = (
             self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
         )
+        
         # Heat available for the turbogenerator
         H_electricity = H_content - H_steam
         
@@ -159,7 +161,8 @@ class BoilerTurbogenerator(Facility):
         hu_steam.reverse()
         Design['Work'] = electricity/3600
 
-    def _end_decorated_cost_(self):
+    def _cost(self):
+        self._decorated_cost()
         self.power_utility(self.power_utility.rate - self.design_results['Work'])
 
 # Simulation of ethanol production from sugarcane

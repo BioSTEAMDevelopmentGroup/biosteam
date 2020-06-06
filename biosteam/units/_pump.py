@@ -112,7 +112,8 @@ class Pump(Unit):
               'Head': 'ft',
               'NPSH': 'ft',
               'Flow rate': 'gpm'}
-    BM = 3.3
+    _BM = {'Pump': 3.3,
+           'Motor': 3.3}
 
     @property
     def pump_type(self):
@@ -273,7 +274,12 @@ class Pump(Unit):
                 # selecting number of pumps should be added.
                 F_T = F_Tdict['2+HSC3600']
             else:
-                raise NotImplementedError(f'no centrifugal pump available at current power ({p:.3g} hp), flow rate ({q:.3g} gpm), and head ({h:.3g} ft)')
+                # TODO: This flow rate is allowable in the design section
+                # but not in the estimation of purchase cost.
+                # For now, we ignore this problem, but additional code on
+                # selecting number of pumps should be added.
+                F_T = F_Tdict['2+HSC3600']
+                # raise NotImplementedError(f'no centrifugal pump available at current power ({p:.3g} hp), flow rate ({q:.3g} gpm), and head ({h:.3g} ft)')
             S = q*h**0.5 # Size factor
             S_new = S if S > 400 else 400
             lnS = ln(S_new)

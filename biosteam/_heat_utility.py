@@ -426,11 +426,11 @@ class HeatUtility:
     @classmethod
     def sum_by_agent(cls, heat_utilities):
         """
-        Return a list of heat utilities that reflect the sum of heat utilities
+        Return a tuple of heat utilities that reflect the sum of heat utilities
         by agent.
         """
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
-        return [cls.sum(i) for i in heat_utilities_by_agent.values()]
+        return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
 
     @classmethod
     def get_agent(cls, ID):

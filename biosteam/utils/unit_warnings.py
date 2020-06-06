@@ -39,7 +39,7 @@ def design_warning_with_source(source, msg):
     msg= message_with_object_stamp(source, msg)
     return DesignWarning(msg)
             
-def lb_warning(key, value, units, lb, stacklevel, source):
+def lb_warning(source, key, value, units, lb, stacklevel=2):
     units = ' ' + units if units else ''
     try:
         msg = f"{key} ({value:.4g}{units}) is out of bounds (minimum {lb:.4g}{units})."
@@ -48,7 +48,7 @@ def lb_warning(key, value, units, lb, stacklevel, source):
     
     warn(DesignWarning.from_source(source, msg), stacklevel=stacklevel)
     
-def ub_warning(key, value, units, ub, stacklevel, source):
+def ub_warning(source, key, value, units, ub, stacklevel=2):
     units = ' ' + units if units else ''
     try:
         msg = f"{key} ({value:.4g}{units}) is out of bounds (maximum {ub:.4g}{units})."

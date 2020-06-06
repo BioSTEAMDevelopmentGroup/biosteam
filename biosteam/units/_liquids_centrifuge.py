@@ -25,7 +25,7 @@ __all__ = ('LiquidsCentrifuge',
 # in Microalgae-Based Biofuels and Bioproducts, 2017
 
 @cost('Flow rate', units='m^3/hr', CE=525.4, cost=28100,
-      n=0.574, kW=3.66, ub=100, BM=2.03, N='Number of centrifuges')
+      n=0.574, kW=1.4, ub=100, BM=2.03, N='Number of centrifuges')
 class LiquidsCentrifuge(Unit, isabstract=True):
     r"""
     Abstract class for liquid centrifuges.

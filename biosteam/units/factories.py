@@ -40,6 +40,7 @@ def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
 def df2dct(df):
     dct = {}
     for name_sim in df.columns.levels[0]:
+        if name_sim == 'Unit': continue
         cost_items = df[name_sim]
         if '-' in name_sim:
             sim, name = name_sim.split('-')
