@@ -17,7 +17,7 @@ setup(
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0', 'biorefineries>=2.14.0',
-                      'thermosteam>=0.19.0', 'graphviz>=0.8.3',
+                      'thermosteam>=0.19.1', 'graphviz>=0.8.3',
                       'chaospy>=3.0.11', 'pipeml>=0.1'],
     python_requires=">=3.6",
     package_data=
