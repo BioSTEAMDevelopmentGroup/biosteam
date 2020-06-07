@@ -76,35 +76,36 @@ class Fermentation(BatchBioreactor):
     [1] missing stream
     outs...
     [0] CO2
-        phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    2.5
+        phase: 'g', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    1.66
                         CO2      244
-                        Ethanol  0.582
+                        Ethanol  0.382
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water     6.6e+03
-                        Ethanol   243
+                        Ethanol   244
                         Glucose   13.6
                         DryYeast  1.03e+04
     >>> F1.results()
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
                         Cost                          USD/hr     0.908
-    Chilled water       Duty                           kJ/hr -1.08e+07
-                        Flow                         kmol/hr   7.2e+03
-                        Cost                          USD/hr      53.8
+    Chilled water       Duty                           kJ/hr -1.04e+07
+                        Flow                         kmol/hr  6.95e+03
+                        Cost                          USD/hr      51.8
     Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
+                        Reactor duty                   kJ/hr  1.04e+07
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
                         Number of reactors                           8
-    Purchase cost       Heat exchangers                  USD  2.05e+05
+    Purchase cost       Heat exchangers                  USD  4.12e+04
                         Reactors                         USD  1.87e+06
                         Agitators                        USD  1.16e+05
                         Cleaning in place                USD  8.87e+04
-    Total purchase cost                                  USD  2.28e+06
-    Utility cost                                      USD/hr      54.7
+    Total purchase cost                                  USD  2.12e+06
+    Utility cost                                      USD/hr      52.7
     
     References
     ----------

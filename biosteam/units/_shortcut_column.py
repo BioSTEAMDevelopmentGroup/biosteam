@@ -206,7 +206,7 @@ class ShortcutColumn(BinaryDistillation,
                         Cost                       USD/hr     2.63
     Low pressure steam  Duty                        kJ/hr 1.24e+07
                         Flow                      kmol/hr      320
-                        Cost                       USD/hr       76
+                        Cost                       USD/hr     76.1
     Design              Theoretical feed stage                   8
                         Theoretical stages                      16
                         Minimum reflux              Ratio     1.06
@@ -228,7 +228,7 @@ class ShortcutColumn(BinaryDistillation,
                         Condenser                     USD 4.19e+04
                         Boiler                        USD 2.41e+04
     Total purchase cost                               USD 2.87e+05
-    Utility cost                                   USD/hr     78.6
+    Utility cost                                   USD/hr     78.7
     """
     line = 'Distillation'
     _ins_size_is_fixed = False

@@ -251,14 +251,14 @@ class HeatUtility:
        HeatUtility: low_pressure_steam
         duty: 1.05e+03 kJ/hr
         flow: 0.0271 kmol/hr
-        cost: 0.00644 USD/hr
+        cost: 0.00645 USD/hr
    
     All results are accessible:
         
     .. code-block:: python
     
        >>> hu.ID, hu.duty, hu.flow, hu.cost
-       ('low_pressure_steam', 1052.6315789473686, 0.027090382090408212, 0.006442092861099073)
+       ('low_pressure_steam', 1052.6315789473686, 0.027116986224992628, 0.006448419324303247)
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',

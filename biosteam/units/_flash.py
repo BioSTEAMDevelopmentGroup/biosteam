@@ -112,20 +112,20 @@ class Flash(design.PressureVessel, Unit):
         flow (kmol/hr): Water     42.4
                         Glycerol  298
     >>> F1.results()
-    Flash                                   Units            F1
-    Medium pressure steam Duty              kJ/hr      5.05e+07
-                          Flow            kmol/hr      1.39e+03
-                          Cost             USD/hr           384
-    Design                Vessel type                  Vertical
-                          Length               ft          16.5
-                          Diameter             ft           8.5
-                          Weight               lb         1e+04
-                          Wall thickness       in         0.438
-                          Material                 Carbon steel
-    Purchase cost         Flash               USD      6.22e+04
-                          Heat exchanger      USD      4.36e+04
-    Total purchase cost                       USD      1.06e+05
-    Utility cost                           USD/hr           384
+    Flash                                             Units            F1
+    Medium pressure steam Duty                        kJ/hr      5.05e+07
+                          Flow                      kmol/hr      1.39e+03
+                          Cost                       USD/hr           384
+    Design                Vessel type                            Vertical
+                          Length                         ft          16.5
+                          Diameter                       ft           8.5
+                          Weight                         lb         1e+04
+                          Wall thickness                 in         0.438
+                          Vessel material                    Carbon steel
+    Purchase cost         Vertical pressure vessel      USD      6.22e+04
+                          Heat exchanger                USD      4.35e+04
+    Total purchase cost                                 USD      1.06e+05
+    Utility cost                                     USD/hr           384
 
 
     References

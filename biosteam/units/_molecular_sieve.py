@@ -73,7 +73,7 @@ class MolecularSieve(Splitter):
     Power               Rate            kW      14.2
                         Cost        USD/hr      1.11
     Low pressure steam  Duty         kJ/hr  3.21e+06
-                        Flow       kmol/hr      82.6
+                        Flow       kmol/hr      82.7
                         Cost        USD/hr      19.7
     Chilled water       Duty         kJ/hr -1.18e+05
                         Flow       kmol/hr       123
@@ -82,7 +82,6 @@ class MolecularSieve(Splitter):
     Purchase cost       Column         USD  6.85e+05
     Total purchase cost                USD  6.85e+05
     Utility cost                    USD/hr      21.4
-    
     
     References
     ----------

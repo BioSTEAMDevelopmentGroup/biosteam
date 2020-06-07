@@ -32,7 +32,8 @@ def _stream_key(s):
 # %% Helpful functions
 
 def _save(tables, writer, sheet_name='Sheet1', n_row=1):
-    """Save a list of tables as an excel file.
+    """
+    Save a list of tables as an excel file.
     
     Parameters
     ----------
@@ -51,7 +52,8 @@ def _save(tables, writer, sheet_name='Sheet1', n_row=1):
 # %% Units
 
 def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
-    """Save a system report as an xlsx file.
+    """
+    Save a system report as an xlsx file.
     
     Parameters
     ----------
@@ -131,7 +133,8 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
 save_system_results = save_report
 
 def results_table(units):
-    """Return a list of results tables for each unit type.
+    """
+    Return a list of results tables for each unit type.
 
     Parameters
     ----------
@@ -203,7 +206,7 @@ def cost_table(tea):
     
     df = DataFrame(array, columns=columns, index=IDs)    
     if not tea.lang_factor:
-        df['Installation cost (10^6 USD)'] = [u.installation_cost / 1e6 for u in units]
+        df['Installed cost (10^6 USD)'] = [u.installed_cost / 1e6 for u in units]
     
     return df
 

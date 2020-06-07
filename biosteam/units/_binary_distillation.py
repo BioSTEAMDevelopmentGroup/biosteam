@@ -227,7 +227,7 @@ class BinaryDistillation(Unit):
                         Rectifier tower               USD  8.18e+04
                         Stripper tower                USD  6.81e+04
                         Condenser                     USD  3.41e+04
-                        Boiler                        USD  2.27e+04
+                        Boiler                        USD  2.26e+04
     Total purchase cost                               USD  2.34e+05
     Utility cost                                   USD/hr      59.8
     

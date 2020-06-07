@@ -162,15 +162,14 @@ class HX(Unit, isabstract=True):
             else:    
                 F_l = 1
             heat_exchanger_type = 'Double pipe'
+            C_b = compute_double_pipe_purchase_price(A, bst.CE)
         else: # Shell and tube
             F_m = compute_shell_and_tube_material_factor(A,  *self._F_Mab)
             F_l = 1 if L > 20 else np.polyval(p2, L)
             P = P/100
             F_p = 0.9803 + 0.018*P + 0.0017*P**2
             heat_exchanger_type = self.heat_exchanger_type
-        
-        C_b_func = self._Cb_func
-        C_b = C_b_func(A, bst.CE)
+            C_b = self._Cb_func(A, bst.CE)
         
         # Free on board purchase prize
         self.purchase_costs[heat_exchanger_type] = F_p * F_l * F_m * C_b
@@ -234,16 +233,16 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
                         Flow                                kmol/hr     26.1
                         Cost                                 USD/hr     6.21
-    Design              Area                                   ft^2     57.4
+    Design              Area                                   ft^2       57
                         Overall heat transfer coefficient  kW/m^2/K      0.5
-                        Log-mean temperature difference           K      100
+                        Log-mean temperature difference           K      101
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi        5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 4.75e+03
-    Total purchase cost                                         USD 4.75e+03
+    Purchase cost       Double pipe                             USD 4.74e+03
+    Total purchase cost                                         USD 4.74e+03
     Utility cost                                             USD/hr     6.21
     
     Run heat exchanger by vapor fraction:
@@ -261,25 +260,25 @@ class HXutility(HX):
                         Ethanol  200
     outs...
     [0] product
-        phases: ('g', 'l'), T: 357.45 K, P: 101325 Pa
-        flow (kmol/hr): (g) Water    200
-                            Ethanol  200
+        phase: 'g', T: 357.45 K, P: 101325 Pa
+        flow (kmol/hr): Water    200
+                        Ethanol  200
     >>> hx.results()
     Heat Exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 2.07e+07
                         Flow                                kmol/hr      532
-                        Cost                                 USD/hr      126
-    Design              Area                                   ft^2      733
+                        Cost                                 USD/hr      127
+    Design              Area                                   ft^2      727
                         Overall heat transfer coefficient  kW/m^2/K        1
-                        Log-mean temperature difference           K     80.1
+                        Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.67e+04
+    Purchase cost       Floating head                           USD 2.67e+04
     Total purchase cost                                         USD 2.67e+04
-    Utility cost                                             USD/hr      126
+    Utility cost                                             USD/hr      127
     
     """
     line = 'Heat Exchanger'
@@ -347,9 +346,20 @@ class HXutility(HX):
         V_given = V is not None
         if self.rigorous:
             if T and V_given:
-                raise ValueError("may only define either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
+                raise RuntimeError("may only define either temperature, 'T', or "
+                                   "vapor fraction 'V', in a rigorous simulation")
             if V_given:
-                s.vle(V=V, P=s.P)
+                if V == 0:
+                    s.phase = 'l'
+                    s.T = s.bubble_point_at_P().T
+                elif V == 1:
+                    s.phase = 'g'
+                    s.T = s.dew_point_at_P().T
+                elif 0 < V < 1:
+                    s.vle(V=V, P=s.P)
+                else:
+                    raise RuntimeError("vapor fraction, 'V', must be a "
+                                       "positive fraction")
             else:
                 s.vle(T=T, P=s.P)
         elif (T or V_given):
@@ -359,17 +369,22 @@ class HXutility(HX):
                 elif V == 1:
                     s.phase = 'g'
                 else:
-                    s.phases = ('g', 'l')
-                    mol = s.mol
-                    s.imol['g'] = vap_mol = V * mol
-                    s.imol['l'] = mol - vap_mol
+                    raise RuntimeError("vapor fraction, 'V', must be either "
+                                       "0 or 1 in a non-rigorous simulation")
+            else:
+                s.phase = feed.phase
             if T:
                 s.T = T
+            else:
+                s.T = feed.T
         else:
-            raise ValueError("must define at least one of the following: 'T', 'V'")
+            raise RuntimeError("must define either temperature, 'T', and/or "
+                               "vapor fraction, 'V', in a non-rigorous "
+                               "simulation")
 
     def get_streams(self):
-        """Return inlet and outlet streams.
+        """
+        Return inlet and outlet streams.
         
         Returns
         -------
@@ -470,7 +485,7 @@ class HXprocess(HX):
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 5.19e+03
+    Purchase cost       Double pipe                             USD 5.19e+03
     Total purchase cost                                         USD 5.19e+03
     Utility cost                                             USD/hr        0
     
@@ -499,20 +514,20 @@ class HXprocess(HX):
         phase: 'l', T: 303.15 K, P: 101325 Pa
         flow (kmol/hr): Water  200
     [1] out_b
-        phase: 'l', T: 329.64 K, P: 101325 Pa
+        phase: 'l', T: 327.92 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  200
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      207
+    Design              Area                                   ft^2      191
                         Overall heat transfer coefficient  kW/m^2/K      0.5
-                        Log-mean temperature difference           K     20.4
+                        Log-mean temperature difference           K     22.1
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi        5
                         Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Heat exchanger                          USD 2.05e+04
-    Total purchase cost                                         USD 2.05e+04
+    Purchase cost       Floating head                           USD 2.04e+04
+    Total purchase cost                                         USD 2.04e+04
     Utility cost                                             USD/hr        0
     
     """
