@@ -8,6 +8,7 @@
 """
 """
 import biosteam as bst
+from .design_tools import separations
 
 __all__ = ('LLEUnit',)
 
@@ -76,28 +77,4 @@ class LLEUnit(bst.Unit, isabstract=True):
         self.efficiency = efficiency 
         
     def _run(self):
-        feed = self.ins[0]
-        top, bottom = self.outs
-        ms = feed.copy()
-        ms.lle(feed.T, top_chemical=self.top_chemical)
-        top_chemical = self.top_chemical
-        top_phase = 'l'
-        bottom_phase = 'L'
-        if not top_chemical:
-            rho_l = ms['l'].rho
-            rho_L = ms['L'].rho
-            top_L = rho_L < rho_l
-            if top_L:
-                top_phase = 'L'
-                bottom_phase = 'l'
-        top.mol[:] = ms.imol[top_phase]
-        bottom.mol[:] = ms.imol[bottom_phase]
-        top.T = bottom.T = feed.T
-        top.P = bottom.P = feed.P
-        efficiency = self.efficiency
-        if efficiency < 1.:
-            top.mol *= efficiency
-            bottom.mol *= efficiency
-            mixing = (1 - efficiency) / 2 * feed.mol
-            top.mol += mixing
-            bottom.mol += mixing
+        separations.lle(self.ins[0], *self.outs, self.top_chemical, self.efficiency)

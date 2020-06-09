@@ -267,7 +267,7 @@ class BinaryDistillation(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                 P=101325, *, LHK, k,
-                Rmin=0.3,
+                Rmin=0.1,
                 Lr=None,
                 Hr=None,
                 y_top=None,
@@ -787,6 +787,7 @@ class BinaryDistillation(Unit):
         boilup.P = bp.P
         boilup.imol[bp.IDs] = boilup_flow
         liq = boiler.ins[0]
+        liq.phase = 'l'
         liq.mol = bottoms_product.mol + boilup.mol
         
     def _simulate_condenser(self):
@@ -794,7 +795,13 @@ class BinaryDistillation(Unit):
         
     def _simulate_boiler(self):
         boiler = self.boiler
-        boiler._design(self.H_out - self.H_in - self.condenser.Q)
+        Q_overall = self.H_out - self.H_in - self.condenser.Q
+        Q_local = boiler.outs[0].H - boiler.ins[0].H
+        if Q_local < Q_overall:
+            boiler._design(Q_overall)
+            boiler.ins[0].H = boiler.outs[0].H - Q_overall
+        else:
+            boiler._design(Q_local)
         boiler._cost()
     
     def _simulate_components(self): 

@@ -9,35 +9,11 @@
 """
 from .. import Unit
 from .._graphics import splitter_graphics
-import numpy as np 
-from thermosteam.indexer import ChemicalIndexer
 from ._process_specification import ProcessSpecification
+from .design_tools import separations
 
-__all__ = ('run_split', 'run_split_with_mixing', 'Splitter', 'FakeSplitter',
+__all__ = ('Splitter', 'FakeSplitter',
            'ReversedSplitter', 'ReversedSplit')
-
-
-def run_split(self):
-    """Splitter mass and energy balance function based on one input stream."""
-    top, bot = self.outs
-    feed = self.ins[0]
-    top_mol = top.mol
-    feed_mol = feed.mol
-    top_mol[:] = feed_mol * self.split
-    bot.mol[:] = feed_mol - top_mol
-    bot.T = top.T = feed.T
-    bot.P = top.P = feed.P
-
-def run_split_with_mixing(self):
-    """Splitter mass and energy balance function with mixing all input streams."""
-    top, bot = self.outs
-    ins = self.ins
-    top.mix_from(ins)
-    bot.copy_like(top)
-    top_mol = top.mol
-    top_mol[:] *= self.split
-    bot.mol[:] -= top_mol
-
 
 class Splitter(Unit):
     """
@@ -151,33 +127,10 @@ class Splitter(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split, order=None):
         Unit.__init__(self, ID, ins, outs, thermo)
-        chemicals = self.thermo.chemicals
-        if isinstance(split, dict):
-            assert not order, "cannot pass 'other' key word argument when split is a dictionary"
-            order, split = zip(*split.items())
-        
-        if order:
-            isplit = chemicals.iarray(order, split)
-        elif hasattr(split, '__len__'):
-            isplit = ChemicalIndexer.from_data(np.asarray(split),
-                                               phase=None,
-                                               chemicals=chemicals)
-        else:
-            split = split * np.ones(chemicals.size)
-            isplit = ChemicalIndexer.from_data(split,
-                                               phase=None,
-                                               chemicals=chemicals)
-        self._isplit = isplit
+        self._isplit = self.thermo.chemicals.isplit(split, order)
 
     def _run(self):
-        top, bot = self.outs
-        feed, = self.ins
-        feed_mol = feed.mol
-        bot.T = top.T = feed.T
-        bot.P = top.P = feed.P
-        bot.phase = top.phase = feed.phase
-        top.mol[:] = top_mol = feed_mol * self.split
-        bot.mol[:] = feed_mol - top_mol
+        separations.split(*self.ins, *self.outs, self.split)
 
 
 class FakeSplitter(Unit):

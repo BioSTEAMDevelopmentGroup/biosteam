@@ -448,7 +448,7 @@ class TEA:
         Parameters
         ----------
         products : Iterable[:class:`~thermosteam.Stream`]
-                    Main products of the system
+            Main products of the system
         with_annual_depreciation=True : bool, optional
         
         Notes

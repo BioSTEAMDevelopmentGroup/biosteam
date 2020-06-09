@@ -31,7 +31,7 @@ class SolidsCentrifuge(Splitter):
     split: array_like
            Component splits to 0th output stream
     order=None : Iterable[str]
-        Species order of split. Defaults to Stream.species.IDs.
+        Species order of split. Defaults to Stream.chemicals.IDs.
     solids : tuple[str]
              IDs of solids.
     
@@ -68,7 +68,7 @@ class SolidsCentrifuge(Splitter):
         self.design_results['Solids loading'] = ts
         lb = self.minimum_solids_loading
         if ts < lb:
-            lb_warning('Solids loading', ts, 'ton/hr', lb, 3, self)
+            lb_warning(self, 'Solids loading', ts, 'ton/hr', lb)
         self.design_results['Flow rate'] = F_vol_in = self.F_vol_in
         self.power_utility(F_vol_in * self.kWhr_per_m3)
             

@@ -15,6 +15,7 @@ from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
+from .design_tools import separations
 
 exp = np.exp
 ln = np.log
@@ -241,26 +242,8 @@ class Flash(design.PressureVessel, Unit):
         return 'Vertical'if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
 
     def _run(self):
-        # Unpack
-        vap, liq = self.outs
-        feed = self.ins[0]
-
-        # Vapor Liquid Equilibrium
-        ms = self._multi_stream
-        ms.empty()
-        ms.imol['l'] = feed.mol
-        ms.T = feed.T
-        Q = self.Q
-        H = feed.H + Q if Q is not None else None
-        ms.vle(P=self.P, H=H, T=self.T, V=self.V, x=self.x, y=self.y)
-
-        # Set Values
-        vap.phase = 'g'
-        liq.phase = 'l'
-        vap.mol[:] = ms.imol['g']
-        liq.mol[:] = ms.imol['l']
-        vap.T = liq.T = ms.T
-        vap.P = liq.P = ms.P
+        separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
+                        self.Q, self.x, self.y, self._multi_stream)
 
     def _design(self):
         vessel_type = self.vessel_type

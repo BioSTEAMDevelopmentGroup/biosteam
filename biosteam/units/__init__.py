@@ -24,6 +24,7 @@ from ._multi_effect_evaporator import *
 from ._lle_unit import *
 from ._liquids_settler import *
 from ._liquids_centrifuge import *
+from ._liquids_mixing_tank import *
 from ._solids_separator import *
 from ._solids_centrifuge import *
 from ._rvf import *
@@ -57,7 +58,7 @@ from . import (
     _process_specification, _duplicator,
     _diagram_only_units, _batch_bioreactor,
     _liquids_centrifuge, _liquids_settler,
-    _lle_unit
+    _lle_unit, _liquids_mixing_tank,
 )
 
 __all__ = (*_diagram_only_units.__all__,
@@ -70,6 +71,7 @@ __all__ = (*_diagram_only_units.__all__,
            *_hx.__all__,
            *_multi_effect_evaporator.__all__,
            *_liquids_centrifuge.__all__,
+           *_liquids_mixing_tank.__all__,
            *_binary_distillation.__all__,
            *_tank.__all__,
            *_molecular_sieve.__all__,

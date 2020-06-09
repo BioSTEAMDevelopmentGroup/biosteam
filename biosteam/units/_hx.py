@@ -331,7 +331,9 @@ class HXutility(HX):
     def simulate_as_auxiliary_exchanger(self, duty, stream):
         self.outs[0] = stream.proxy()
         self.ins[0] = stream.proxy()
-        self.heat_utilities[0](duty, stream.T)
+        hu = self.heat_utilities[0]
+        hu.heat_exchanger = None
+        hu(duty, stream.T)
         self.Q = duty
         super()._design()
         self._cost()
