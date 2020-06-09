@@ -789,27 +789,24 @@ class BinaryDistillation(Unit):
         liq = boiler.ins[0]
         liq.phase = 'l'
         liq.mol = bottoms_product.mol + boilup.mol
-        
-    def _simulate_condenser(self):
-        self.condenser._summary()
-        
-    def _simulate_boiler(self):
-        boiler = self.boiler
-        Q_overall = self.H_out - self.H_in - self.condenser.Q
-        Q_local = boiler.outs[0].H - boiler.ins[0].H
-        if Q_local < Q_overall:
-            boiler._design(Q_overall)
-            boiler.ins[0].H = boiler.outs[0].H - Q_overall
-        else:
-            boiler._design(Q_local)
-        boiler._cost()
     
     def _simulate_components(self): 
-        # Cost condenser
-        self._simulate_condenser()
-        
-        # Cost boiler
-        self._simulate_boiler()
+        boiler = self.boiler
+        condenser = self.condenser
+        Q_condenser = condenser.outs[0].H - condenser.ins[0].H
+        H_out = self.H_out
+        H_in = self.H_in
+        Q_overall =  H_out - H_in - Q_condenser
+        Q_boiler = boiler.outs[0].H - boiler.ins[0].H
+        if Q_boiler < Q_overall:
+            boiler._design(Q_overall)
+            condenser._design(Q_condenser)
+            boiler.ins[0].H = boiler.outs[0].H - Q_overall
+        else:
+            boiler._design(Q_boiler)
+            condenser._design(H_out - H_in - Q_boiler)
+        boiler._cost()
+        condenser._cost()
     
     def _get_relative_volatilities_LHK(self):
         x_stages = self._x_stages
