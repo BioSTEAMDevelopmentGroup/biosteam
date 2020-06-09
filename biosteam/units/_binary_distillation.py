@@ -267,7 +267,7 @@ class BinaryDistillation(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                 P=101325, *, LHK, k,
-                Rmin=0.1,
+                Rmin=0.3,
                 Lr=None,
                 Hr=None,
                 y_top=None,
@@ -773,7 +773,7 @@ class BinaryDistillation(Unit):
         condensate.P = dp.P
         vap = condenser.ins[0]
         vap.mol = distillate.mol + condensate.mol
-        vap.T = distillate.T
+        vap.T = vap.dew_point_at_P().T
         vap.P = distillate.P
         
         # Set boiler conditions
@@ -789,6 +789,7 @@ class BinaryDistillation(Unit):
         liq = boiler.ins[0]
         liq.phase = 'l'
         liq.mol = bottoms_product.mol + boilup.mol
+        liq.T = liq.bubble_point_at_P().T
     
     def _simulate_components(self): 
         boiler = self.boiler
