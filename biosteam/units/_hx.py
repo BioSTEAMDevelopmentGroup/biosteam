@@ -587,9 +587,11 @@ class HXprocess(HX):
         s1_in, s2_in = self._ins
         s1_out, s2_out = self._outs
         if s1_in.isempty():
+            s1_out.empty()
             s2_out.copy_like(s2_in)
             self.Q = 0.
         elif s2_in.isempty():
+            s2_out.empty()
             s1_out.copy_like(s1_in)
             self.Q = 0.
         else:

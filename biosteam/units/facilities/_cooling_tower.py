@@ -46,15 +46,14 @@ class CoolingTower(Facility):
     _N_outs = _N_ins = 2
     evaporation = 0.01
     blowdown = 0.001
-    def __init__(self, ID=''):
-        cooling_water = HeatUtility.get_cooling_agent('cooling_water')
+    def __init__(self, ID='', agent=None):
+        self.agent = cooling_water = agent or HeatUtility.get_cooling_agent('cooling_water')
         self.makeup_water = makeup_water = cooling_water.to_stream('cooling_tower_makeup_water')
         loss = makeup_water.flow_proxy()
         loss.ID = 'evaporation_and_blowdown'
         super().__init__(ID, ('return_cooling_water', makeup_water),
                          (cooling_water.to_stream(), loss), thermo=cooling_water.thermo)
         self.cooling_water_utilities = set()
-        self.agent = cooling_water
         
     def _load_utility_agents(self):
         cwu = self.cooling_water_utilities

@@ -202,12 +202,12 @@ class BinaryDistillation(Unit):
                      --------  105 kmol/hr
     >>> D1.results()
     Distillation                                    Units        D1
-    Cooling water       Duty                        kJ/hr -5.11e+06
-                        Flow                      kmol/hr  3.49e+03
-                        Cost                       USD/hr      1.71
-    Low pressure steam  Duty                        kJ/hr  9.49e+06
-                        Flow                      kmol/hr       244
-                        Cost                       USD/hr      58.1
+    Cooling water       Duty                        kJ/hr -6.41e+06
+                        Flow                      kmol/hr  4.38e+03
+                        Cost                       USD/hr      2.14
+    Low pressure steam  Duty                        kJ/hr  1.09e+07
+                        Flow                      kmol/hr       280
+                        Cost                       USD/hr      66.5
     Design              Theoretical feed stage                    9
                         Theoretical stages                       13
                         Minimum reflux              Ratio     0.687
@@ -226,10 +226,10 @@ class BinaryDistillation(Unit):
                         Stripper trays                USD  1.25e+04
                         Rectifier tower               USD  8.18e+04
                         Stripper tower                USD  6.81e+04
-                        Condenser                     USD  3.41e+04
-                        Boiler                        USD  2.26e+04
-    Total purchase cost                               USD  2.34e+05
-    Utility cost                                   USD/hr      59.8
+                        Condenser                     USD  3.76e+04
+                        Boiler                        USD  2.72e+04
+    Total purchase cost                               USD  2.42e+05
+    Utility cost                                   USD/hr      68.6
     
     """
     line = 'Distillation'
@@ -800,12 +800,14 @@ class BinaryDistillation(Unit):
         Q_overall =  H_out - H_in - Q_condenser
         Q_boiler = boiler.outs[0].H - boiler.ins[0].H
         if Q_boiler < Q_overall:
+            boiler.ins[0].H = boiler.outs[0].H - Q_overall
             boiler._design(Q_overall)
             condenser._design(Q_condenser)
-            boiler.ins[0].H = boiler.outs[0].H - Q_overall
         else:
             boiler._design(Q_boiler)
-            condenser._design(H_out - H_in - Q_boiler)
+            Q_overall = H_out - H_in - Q_boiler
+            condenser.ins[0].H = condenser.outs[0].H - Q_overall
+            condenser._design(Q_overall)
         boiler._cost()
         condenser._cost()
     
