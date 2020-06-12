@@ -805,10 +805,10 @@ class BinaryDistillation(Unit):
             condenser._design(Q_condenser)
         else:
             boiler._design(Q_boiler)
-            # Too conservative!
             Q_overall_condenser = H_out - H_in - Q_boiler
+            # TODO: This may be too conservative!
             condenser.ins[0].H = condenser.outs[0].H - Q_overall_condenser
-            condenser._design(Q_condenser)
+            condenser._design(Q_overall_condenser)
         boiler._cost()
         condenser._cost()
     
