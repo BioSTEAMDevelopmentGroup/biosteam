@@ -17,7 +17,7 @@ import numpy as np
 import biosteam as bst
 from math import exp, log as ln
 
-__all__ = ('HXutility', 'HXprocess')
+__all__ = ('HX', 'HXutility', 'HXprocess')
 
 # Lenght factor 
 x = np.array((8, 13, 16, 20)) 

@@ -46,13 +46,13 @@ class ChilledWaterPackage(Facility):
                          thermo=chilled_water.thermo)
         
     def _load_chilled_water_utilities(self):
-        self.chilled_water_utilities = cwu = set()
+        self.chilled_water_utilities = cwu = []
         agent = self.agent
         if not cwu:
             for u in self.system.units:
                 if u is self: continue
                 for hu in u.heat_utilities:
-                    if hu.agent is agent: cwu.add(hu)
+                    if hu.agent is agent: cwu.append(hu)
         
     def _design(self):
         self._load_chilled_water_utilities()

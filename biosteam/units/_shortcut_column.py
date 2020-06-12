@@ -39,13 +39,13 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
                                                          LHK_index):
     LK_index = LHK_index[0]
     alpha_LK = alpha_mean[LK_index]
-    A_dummy = (1 - b_Hr) / b_Hr
+    A_dummy = (1. - b_Hr) / b_Hr
     A = np.log10(A_dummy)
-    B = np.log10(d_Lr / (1 - d_Lr) / A_dummy) / np.log10(alpha_LK)
-    if B < 0: B = 0
-    dummy = 10**A * alpha_mean**B
-    distillate_recoveries = dummy / (1 + dummy)
-    distillate_recoveries[LHK_index] = [d_Lr, 1 - b_Hr]
+    B = np.log10(d_Lr / (1. - d_Lr) / A_dummy) / np.log10(alpha_LK)
+    if B < 0.: B = 0.
+    dummy = 10.**A * alpha_mean**B
+    distillate_recoveries = dummy / (1. + dummy)
+    distillate_recoveries[LHK_index] = [d_Lr, 1. - b_Hr]
     distillate_recoveries[distillate_recoveries < 1e-12] = 0.
     return distillate_recoveries
 
@@ -60,18 +60,18 @@ def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha
 
 @flx.njitable
 def objective_function_Underwood_constant(theta, q, z_f, alpha_mean):
-    return (alpha_mean * z_f / (alpha_mean - theta)).sum() - 1 + q
+    return (alpha_mean * z_f / (alpha_mean - theta)).sum() - 1.0 + q
 
 @flx.njitable
 def compute_minimum_reflux_ratio_Underwood(alpha_mean, z_d, theta):
-    Rm = (alpha_mean * z_d / (alpha_mean - theta)).sum() - 1
+    Rm = (alpha_mean * z_d / (alpha_mean - theta)).sum() - 1.0
     return Rm
 
 @flx.njitable
 def compute_theoretical_stages_Gilliland(Nm, Rm, R):
-    X = (R - Rm) / (R + 1)
-    Y = 1 - np.exp((1 + 54.4*X) / (11 + 117.2*X) * (X - 1) / X**0.5)
-    N = (Y + Nm) / (1 - Y)
+    X = (R - Rm) / (R + 1.)
+    Y = 1. - np.exp((1. + 54.4*X) / (11. + 117.2*X) * (X - 1.) / X**0.5)
+    N = (Y + Nm) / (1. - Y)
     return np.ceil(N)
 
 @flx.njitable
@@ -79,8 +79,8 @@ def compute_feed_stage_Kirkbride(N, B, D,
                                  feed_HK_over_LK,
                                  z_LK_bottoms,
                                  z_HK_distillate):
-    m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2) ** 0.206
-    return np.floor(N / (m_over_p + 1))
+    m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2.) ** 0.206
+    return np.floor(N / (m_over_p + 1.))
 
 
 # %%
@@ -225,9 +225,9 @@ class ShortcutColumn(BinaryDistillation,
                         Stripper trays                USD  2.02e+04
                         Rectifier tower               USD  8.44e+04
                         Stripper tower                USD  1.01e+05
-                        Condenser                     USD  4.64e+04
+                        Condenser                     USD  2.35e+04
                         Boiler                        USD  2.99e+04
-    Total purchase cost                               USD  2.97e+05
+    Total purchase cost                               USD  2.74e+05
     Utility cost                                   USD/hr      90.7
     """
     line = 'Distillation'
@@ -337,9 +337,9 @@ class ShortcutColumn(BinaryDistillation,
         ub = np.inf
         lb = -np.inf
         bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
-                                        1, alpha_LK, lb, ub, args=args)
-        theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
-                                          *bracket, args=args)
+                                        1.0, alpha_LK, lb, ub, args=args)
+        theta = flx.IQ_interpolation(objective_function_Underwood_constant,
+                                     *bracket, args=args)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):

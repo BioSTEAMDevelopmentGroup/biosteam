@@ -31,7 +31,7 @@ __all__ = ('compute_horizontal_vessel_purchase_cost',
 def compute_horizontal_vessel_purchase_cost(W, D, F_M):
     """
     Return the purchase cost [Cp; in USD] of a horizontal vessel,
-    including thes cost of platforms and ladders.
+    including the cost of platforms and ladders.
     
     Parameters
     ----------
@@ -58,8 +58,8 @@ def compute_horizontal_vessel_purchase_cost(W, D, F_M):
 @njitable
 def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
     """
-    Return the purchase cost [Cp; in USD] of a horizontal vessel,
-    including thes cost of platforms and ladders.
+    Return the purchase cost [Cp; in USD] of a vertical vessel,
+    including the cost of platforms and ladders.
     
     Parameters
     ----------
@@ -238,7 +238,8 @@ def HNATable(Type, X):
 
 @njitable
 def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
-    """Return vessel weight and wall thickness.
+    """
+    Return vessel weight and wall thickness.
     
     Parameters
     ----------
@@ -379,7 +380,7 @@ def compute_Stokes_law_York_Demister_K_value(P):
 
 @njitable
 def ceil_half_step(value):
-    """Return value to the next/highest 0.5 units"""
+    """Return value to the next highest 0.5 units"""
     intval = round(value)
     if value > intval:
         return intval + 0.5

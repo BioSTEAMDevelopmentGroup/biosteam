@@ -351,7 +351,7 @@ def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     if Ft > 1.0:
         Ft = 1.0
     elif Ft < 0.5:
-        # Bad design, probably a heat exchanger network with operating
+        # Bad design, probably a heat exchanger network operating
         # too close to the pinch. Fahkeri may not be valid, so give
         # a conservative estimate of the correction factor.
         Ft = 0.5
