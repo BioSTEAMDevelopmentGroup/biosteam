@@ -800,15 +800,14 @@ class BinaryDistillation(Unit):
         Q_overall_boiler =  H_out - H_in - Q_condenser
         Q_boiler = boiler.outs[0].H - boiler.ins[0].H
         if Q_boiler < Q_overall_boiler:
-            boiler.ins[0].H = boiler.outs[0].H - Q_overall_boiler
+            liquid = boiler.ins[0]
+            H_out_boiler = boiler.outs[0].H
+            liquid.H = H_out_boiler - Q_overall_boiler
             boiler._design(Q_overall_boiler)
             condenser._design(Q_condenser)
         else:
             boiler._design(Q_boiler)
-            Q_overall_condenser = H_out - H_in - Q_boiler
-            # TODO: This may be too conservative!
-            condenser.ins[0].H = condenser.outs[0].H - Q_overall_condenser
-            condenser._design(Q_overall_condenser)
+            condenser._design(Q_condenser)
         boiler._cost()
         condenser._cost()
     
