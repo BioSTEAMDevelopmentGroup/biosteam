@@ -202,9 +202,9 @@ class BinaryDistillation(Unit):
                      --------  105 kmol/hr
     >>> D1.results()
     Distillation                                    Units        D1
-    Cooling water       Duty                        kJ/hr -6.41e+06
-                        Flow                      kmol/hr  4.38e+03
-                        Cost                       USD/hr      2.14
+    Cooling water       Duty                        kJ/hr -5.12e+06
+                        Flow                      kmol/hr   3.5e+03
+                        Cost                       USD/hr      1.71
     Low pressure steam  Duty                        kJ/hr  1.09e+07
                         Flow                      kmol/hr       280
                         Cost                       USD/hr      66.5
@@ -226,10 +226,10 @@ class BinaryDistillation(Unit):
                         Stripper trays                USD  1.25e+04
                         Rectifier tower               USD  8.18e+04
                         Stripper tower                USD  6.81e+04
-                        Condenser                     USD  2.18e+04
+                        Condenser                     USD  3.39e+04
                         Boiler                        USD  2.72e+04
-    Total purchase cost                               USD  2.26e+05
-    Utility cost                                   USD/hr      68.6
+    Total purchase cost                               USD  2.39e+05
+    Utility cost                                   USD/hr      68.2
     
     """
     line = 'Distillation'

@@ -200,35 +200,35 @@ class ShortcutColumn(BinaryDistillation,
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
-    Distillation                                    Units        D1
-    Cooling water       Duty                        kJ/hr -9.67e+06
-                        Flow                      kmol/hr  6.61e+03
-                        Cost                       USD/hr      3.22
-    Low pressure steam  Duty                        kJ/hr  1.43e+07
-                        Flow                      kmol/hr       368
-                        Cost                       USD/hr      87.5
-    Design              Theoretical feed stage                    8
-                        Theoretical stages                       16
-                        Minimum reflux              Ratio      1.06
-                        Reflux                      Ratio      2.12
-                        Rectifier stages                         13
-                        Stripper stages                          26
-                        Rectifier height               ft      31.7
-                        Stripper height                ft      50.9
-                        Rectifier diameter             ft      4.53
-                        Stripper diameter              ft      3.67
-                        Rectifier wall thickness       in     0.312
-                        Stripper wall thickness        in     0.312
-                        Rectifier weight               lb  6.46e+03
-                        Stripper weight                lb  7.98e+03
-    Purchase cost       Rectifier trays               USD  1.52e+04
-                        Stripper trays                USD  2.02e+04
-                        Rectifier tower               USD  8.44e+04
-                        Stripper tower                USD  1.01e+05
-                        Condenser                     USD  2.35e+04
-                        Boiler                        USD  2.99e+04
-    Total purchase cost                               USD  2.74e+05
-    Utility cost                                   USD/hr      90.7
+    Distillation                                    Units       D1
+    Cooling water       Duty                        kJ/hr -7.9e+06
+                        Flow                      kmol/hr  5.4e+03
+                        Cost                       USD/hr     2.64
+    Low pressure steam  Duty                        kJ/hr 1.43e+07
+                        Flow                      kmol/hr      368
+                        Cost                       USD/hr     87.5
+    Design              Theoretical feed stage                   8
+                        Theoretical stages                      16
+                        Minimum reflux              Ratio     1.06
+                        Reflux                      Ratio     2.12
+                        Rectifier stages                        13
+                        Stripper stages                         26
+                        Rectifier height               ft     31.7
+                        Stripper height                ft     50.9
+                        Rectifier diameter             ft     4.53
+                        Stripper diameter              ft     3.67
+                        Rectifier wall thickness       in    0.312
+                        Stripper wall thickness        in    0.312
+                        Rectifier weight               lb 6.46e+03
+                        Stripper weight                lb 7.98e+03
+    Purchase cost       Rectifier trays               USD 1.52e+04
+                        Stripper trays                USD 2.02e+04
+                        Rectifier tower               USD 8.44e+04
+                        Stripper tower                USD 1.01e+05
+                        Condenser                     USD 4.17e+04
+                        Boiler                        USD 2.99e+04
+    Total purchase cost                               USD 2.92e+05
+    Utility cost                                   USD/hr     90.1
     """
     line = 'Distillation'
     _ins_size_is_fixed = False
