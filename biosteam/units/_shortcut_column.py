@@ -261,9 +261,10 @@ class ShortcutColumn(BinaryDistillation,
             self._update_distillate_recoveries(distillate_recoveries)
         else:
             distillate_recoveries = self._distillate_recoveries
-            distillate_recoveries[distillate_recoveries == 0] = 1e-6
-            distillate_recoveries[distillate_recoveries == 1] = 1 - 1e-6
-            self._update_distillate_recoveries(self._distillate_recoveries)
+            lb = 1e-6; ub = 1 - 1e-6
+            distillate_recoveries[distillate_recoveries < lb] = lb
+            distillate_recoveries[distillate_recoveries > ub] = ub
+            self._update_distillate_recoveries(distillate_recoveries)
         
         # Solve for new recoveries
         self._solve_distillate_recoveries()
@@ -392,16 +393,9 @@ class ShortcutColumn(BinaryDistillation,
     def _estimate_distillate_recoveries(self):
         # Use Hengsteback and Geddes equations
         alpha_mean = self._estimate_mean_volatilities_relative_to_heavy_key()
-        feed = self.feed
-        distillate, bottoms = self.outs
-        LHK_index = self._LHK_index
-        LK_index, HK_index = LHK_index
-        d_Lr = distillate.mol[LK_index] / feed.mol[LK_index]
-        b_Hr = bottoms.mol[HK_index] / feed.mol[HK_index]
-        LHK_vle_index = self._LHK_vle_index
-        return compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
+        return compute_distillate_recoveries_Hengsteback_and_Gaddes(self.Lr, self.Hr,
                                                                     alpha_mean,
-                                                                    LHK_vle_index)
+                                                                    self._LHK_vle_index)
         
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.feed
