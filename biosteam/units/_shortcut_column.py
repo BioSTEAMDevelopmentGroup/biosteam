@@ -246,6 +246,7 @@ class ShortcutColumn(BinaryDistillation,
             self._dew_point = DewPoint(vle_chemicals, self.thermo)
             self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
             self._IDs_vle = self._dew_point.IDs
+            self._vle_chemicals = vle_chemicals
             
         # Setup light and heavy keys
         LHK = [i.ID for i in self.chemicals[self.LHK]]
