@@ -236,24 +236,40 @@ class ShortcutColumn(BinaryDistillation,
     _N_outs = 2     
      
     def _run(self):
-        # Set starting point for solving column
+        # Initial mass balance
         self._run_binary_distillation_mass_balance()
-        self._add_trace_heavy_and_light_non_keys_in_products()
         
         # Initialize objects to calculate bubble and dew points
         vle_chemicals = self.feed.vle_chemicals
-        self._dew_point = DewPoint(vle_chemicals, self.thermo)
-        self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
-        self._IDs_vle = IDs = self._dew_point.IDs
+        reset_cache = self._vle_chemicals != vle_chemicals
+        if reset_cache:
+            self._dew_point = DewPoint(vle_chemicals, self.thermo)
+            self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
+            self._IDs_vle = self._dew_point.IDs
+            
+        # Setup light and heavy keys
         LHK = [i.ID for i in self.chemicals[self.LHK]]
+        IDs = self._IDs_vle
         self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        
+        # Set starting point for solving column
+        if reset_cache:
+            self._add_trace_heavy_and_light_non_keys_in_products()
+            distillate_recoveries = self._estimate_distillate_recoveries()
+            self._distillate_recoveries = distillate_recoveries
+            self._update_distillate_recoveries(distillate_recoveries)
+        else:
+            distillate_recoveries = self._distillate_recoveries
+            distillate_recoveries[distillate_recoveries == 0] = 1e-6
+            distillate_recoveries[distillate_recoveries == 1] = 1 - 1e-6
+            self._update_distillate_recoveries(self._distillate_recoveries)
         
         # Solve for new recoveries
         self._solve_distillate_recoveries()
         self._update_distillate_and_bottoms_temperature()
         
     def _setup_cache(self):
-        pass
+        self._vle_chemicals = None
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
@@ -395,7 +411,7 @@ class ShortcutColumn(BinaryDistillation,
         bottoms.imol[IDs] = feed_mol - distillate_mol
         
     def _solve_distillate_recoveries(self):
-        distillate_recoveries = self._estimate_distillate_recoveries()
+        distillate_recoveries = self._distillate_recoveries
         try:
             distillate_recoveries = flx.aitken(self._recompute_distillate_recoveries,
                                                distillate_recoveries, 1e-4)

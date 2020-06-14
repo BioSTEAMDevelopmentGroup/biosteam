@@ -48,13 +48,13 @@ class Pump(Unit):
     P=101325 : float, optional
         Pressure of output stream (Pa). If the pressure of the outlet is 
         the same as the inlet, pump is design to increase of pressure
-        to `P_design`.
+        to `dP_design`.
     pump_type='Default' : str
         If 'Default', a pump type is selected based on heuristics.
     material : str, optional
         Contruction material of pump. Defaults to 'Cast iron'.
-    P_design=405300 : float
-        Design pressure for pump.
+    dP_design=405300 : float
+        Design pressure change for pump.
     ignore_NPSH=True : bool
         Whether to take into consideration NPSH in the selection of a
         pump type.
@@ -142,13 +142,13 @@ class Pump(Unit):
                  P=101325,
                  pump_type='Default',
                  material='Cast iron',
-                 P_design=405300,
+                 dP_design=405300,
                  ignore_NPSH=True):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
         self.pump_type = pump_type
         self.material = material
-        self.P_design = P_design
+        self.dP_design = dP_design
         self.ignore_NPSH = ignore_NPSH
     
     def _setup(self):
@@ -171,7 +171,7 @@ class Pump(Unit):
         mass = si.F_mass
         nu = si.nu
         dP = Po - Pi
-        if dP < 1: dP = self.P_design - Pi
+        if dP < 1: dP = self.dP_design
         power_ideal = Qi*dP*3.725e-7 # hp
         q = Qi*4.403 # gpm
         # Assume 100% efficiency to estimate the number of pumps

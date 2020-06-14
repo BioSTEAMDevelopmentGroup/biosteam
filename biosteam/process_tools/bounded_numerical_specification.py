@@ -12,17 +12,13 @@ from scipy.optimize import brentq
 __all__ = ('BoundedNumericalSpecification',)
 
 class BoundedNumericalSpecification:
-    __slots__ = ('f', 'a', 'b', 'kwargs')
+    __slots__ = ('args', 'solver', 'kwargs')
     
-    def __init__(self, f, a, b, **kwargs):
-        self.f = f
-        self.a = a
-        self.b = b
+    def __init__(self, *args, solver=brentq, **kwargs):
+        self.args = args
         self.kwargs = kwargs
+        self.solver = solver
         
     def __call__(self):
-        return brentq(self.f, self.a, self.b, **self.kwargs)
-    
-    def __repr__(self):
-        return f"{type(self).__name__}(f={self.f}, a={self.a}, b={self.b}, kwargs={self.kwargs}"
+        return self.solver(*self.args, **self.kwargs)
     
