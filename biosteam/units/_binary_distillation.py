@@ -332,8 +332,13 @@ class BinaryDistillation(Unit):
         return self._product_specification_format
     @product_specification_format.setter
     def product_specification_format(self, spec):
-        assert spec in ('Composition', 'Recovery'), (
-            "product specification format must be either 'Composition' or 'Recovery'")
+        if spec == 'Composition':
+            self._Lr = self._Hr = None
+        elif spec == 'Recovery':
+            self._y_top = self._x_bot = None
+        else:
+            raise AttributeError("product specification format must be either "
+                                 "'Composition' or 'Recovery'")
         self._product_specification_format = spec
     
     @property

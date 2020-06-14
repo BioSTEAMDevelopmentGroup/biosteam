@@ -42,7 +42,6 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     A_dummy = (1. - b_Hr) / b_Hr
     A = np.log10(A_dummy)
     B = np.log10(d_Lr / (1. - d_Lr) / A_dummy) / np.log10(alpha_LK)
-    if B < 0.: B = 0.
     dummy = 10.**A * alpha_mean**B
     distillate_recoveries = dummy / (1. + dummy)
     distillate_recoveries[LHK_index] = [d_Lr, 1. - b_Hr]
@@ -253,6 +252,16 @@ class ShortcutColumn(BinaryDistillation,
         IDs = self._IDs_vle
         self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
+        # Add temporary specification
+        composition_spec = self.product_specification_format == 'Composition'
+        if composition_spec:
+            feed = self.feed
+            distillate, bottoms = self.outs
+            LK_index, HK_index = LHK_index = self._LHK_index
+            LK_feed, HK_feed = feed.mol[LHK_index]
+            self._Lr = distillate.mol[LK_index] / LK_feed
+            self._Hr = bottoms.mol[HK_index] / HK_feed
+            
         # Set starting point for solving column
         if reset_cache:
             self._add_trace_heavy_and_light_non_keys_in_products()
@@ -269,6 +278,9 @@ class ShortcutColumn(BinaryDistillation,
         # Solve for new recoveries
         self._solve_distillate_recoveries()
         self._update_distillate_and_bottoms_temperature()
+        
+        # Remove temporary data
+        if composition_spec: self._Lr = self._Hr = None
         
     def _setup_cache(self):
         self._vle_chemicals = None
