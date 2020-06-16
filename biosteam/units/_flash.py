@@ -637,7 +637,7 @@ class Evaporator_PQ(Unit):
         vapor.P = liquid.P = self.P
         liquid.phase = 'l'
         vapor.phase = 'g'
-        liquid.copy_flow(feed, IDs='7732-18-5', exclude=True)
+        liquid.copy_flow(feed)
         
         # Energy balance to find vapor fraction
         f = feed.imol['7732-18-5']
@@ -653,7 +653,7 @@ class Evaporator_PQ(Unit):
         evaporated = f * V
         vapor.imol['7732-18-5'] = evaporated
         liquid.imol['7732-18-5'] = (1-V)*f
-        self._Q = Q
+        self.design_results['Heat transfer'] = Q
         self._V = V
 
 
@@ -686,6 +686,7 @@ class Evaporator_PV(Unit):
         feed = self.ins[0]
         vapor, liquid = self.outs
         vapor.T = liquid.T = self.T
+        vapor.P = liquid.P = self.P
         H2O_index = self.chemicals.index('7732-18-5')
         water_mol = feed.mol[H2O_index]
         vapor.mol[H2O_index] = self.V * water_mol

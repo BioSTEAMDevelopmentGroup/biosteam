@@ -68,7 +68,7 @@ def final_loan_principal(payment, principal, interest, years):
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
     return flx.aitken_secant(final_loan_principal,
-                             payment, payment+10., 1e-4, 1e-4,
+                             payment, payment+10., 1., 1.,
                              args=(principal, interest, years))
 
 @njitable

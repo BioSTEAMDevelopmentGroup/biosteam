@@ -18,7 +18,7 @@ from .design_tools import (
     compute_heat_transfer_area
 )    
 from thermosteam import MultiStream, Stream, settings
-from flexsolve import IQ_interpolation
+import flexsolve as flx
 from warnings import warn
 from .design_tools import heat_transfer as ht
 
@@ -169,9 +169,9 @@ class MultiEffectEvaporator(Unit):
         x1 = 0.9990
         y0 = compute_overall_vapor_fraction(x0)
         y1 = compute_overall_vapor_fraction(x1)
-        self._V1 = IQ_interpolation(compute_overall_vapor_fraction,
-                                    x0, x1, y0, y1, self._V1, self.V, 
-                                    xtol=0.0001, ytol=0.001)
+        self._V1 = flx.IQ_interpolation(compute_overall_vapor_fraction,
+                                        x0, x1, y0, y1, self._V1, self.V, 
+                                        xtol=0.0001, ytol=0.001)
         # Condensing vapor from last effector
         outs_vap = evaporators[-1].outs[0]
         condenser.ins[:] = [outs_vap]
@@ -227,7 +227,7 @@ class MultiEffectEvaporator(Unit):
         As = [A]
         A_min, A_max = A_range
         for evap in evaporators[1:]:
-            Q = evap._Q
+            Q = evap.design_results['Heat transfer']
             Tc = evap.outs[0].T
             Th = evap.outs[2].T
             LMTD = Th - Tc
