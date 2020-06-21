@@ -8,7 +8,7 @@ from flexsolve import njitable
 
 __all__ = ('approx2step',)
 
-@njitable
+@njitable(cache=True)
 def approx2step(val, x0, dx):
     """Approximate value, val, to closest increment/step, dx, starting from x0."""
     while True:

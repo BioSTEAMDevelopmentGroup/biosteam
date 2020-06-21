@@ -249,7 +249,7 @@ def order_streams(in_a, in_b, out_a, out_b):
 
 # %% Computational functions
 
-@njitable
+@njitable(cache=True)
 def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
     """Return LMTF correction factor using the fallback equation for
     `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed."""
@@ -267,7 +267,7 @@ def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
             Ft = (2**0.5*J)/ln(K)
     return Ft
 
-@njitable
+@njitable(cache=True)
 def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     r"""
     Return the log-mean temperature difference correction factor `Ft` 
@@ -357,7 +357,7 @@ def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
         Ft = 0.5
     return Ft
 
-@njitable
+@njitable(cache=True)
 def compute_heat_transfer_area(LMTD, U, Q, ft):
     """
     Return required heat transfer area by LMTD correction factor method.
@@ -374,7 +374,7 @@ def compute_heat_transfer_area(LMTD, U, Q, ft):
     """
     return Q/(U*LMTD*ft)   
 
-@njitable
+@njitable(cache=True)
 def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     r'''
     Return the log-mean temperature difference of an ideal counterflow

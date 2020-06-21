@@ -50,7 +50,24 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
 
 # %% Utilities
 
-@njitable   
+@njitable(cache=True)
+def NPV_at_IRR(IRR, cashflow, duration_array):
+    """Return NPV at given IRR and cashflow data."""
+    return (cashflow/(1.+IRR)**duration_array).sum()
+
+@njitable(cache=True)
+def NPV_with_sales(sales, NPV, coefficients, discount_factors):
+    """Return NPV with an additional annualized sales."""
+    return NPV + (sales*coefficients/discount_factors).sum()
+
+@njitable(cache=True)
+def sum_NPV_at_IRR(IRR, cashflows, duration_arrays):
+    NPV = 0.
+    for i in range(len(cashflows)):
+        NPV += NPV_at_IRR(IRR, cashflows[i], duration_arrays[i])
+    return NPV
+
+@njitable(cache=True)
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
@@ -59,7 +76,7 @@ def initial_loan_principal(loan, interest):
         principal *= k
     return principal
 
-@njitable
+@njitable(cache=True)
 def final_loan_principal(payment, principal, interest, years):
     for iter in range(years):
         principal += principal * interest - payment
@@ -67,12 +84,12 @@ def final_loan_principal(payment, principal, interest, years):
 
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
-    payment = flx.aitken_secant(final_loan_principal,
-                                payment, payment+10., 1., 1.,
-                                args=(principal, interest, years))
+    payment = flx.fast.aitken_secant(final_loan_principal,
+                                     payment, payment+10., 1., 1.,
+                                     args=(principal, interest, years))
     return payment
 
-@njitable
+@njitable(cache=True)
 def net_earnings(D, C, S, start,
                  FCI, TDC, VOC, FOC, sales,
                  income_tax,
@@ -406,7 +423,7 @@ class TEA:
             L[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
             f_interest = (1. + interest)
             LP[start:end] = solve_payment(loan.sum()/years * f_interest,
-                                           loan, interest, years)
+                                          loan, interest, years)
             loan_principal = 0
             for i in range(end):
                 LI[i] = li = (loan_principal + L[i]) * interest 
@@ -437,7 +454,7 @@ class TEA:
     @property
     def NPV(self):
         """Net present value."""
-        return self._NPV_at_IRR(self.IRR, self.cashflow)
+        return NPV_at_IRR(self.IRR, self.cashflow, self._duration_array)
     
     def _AOC(self, FCI):
         """Return AOC at given FCI"""
@@ -525,23 +542,15 @@ class TEA:
             return NE + D + Loan - C_FC - C_WC - LP
         else:
             return NE + D - C_FC - C_WC
-    
-    def _NPV_at_IRR(self, IRR, cashflow):
-        """Return NPV at given IRR and cashflow data."""
-        return (cashflow/(1.+IRR)**self._duration_array).sum()
-
-    def _NPV_with_sales(self, sales, NPV, coefficients, discount_factors):
-        """Return NPV with an additional annualized sales."""
-        return NPV + (sales*coefficients/discount_factors).sum()
 
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
-        args = (self.cashflow,)
-        IRR = flx.aitken_secant(self._NPV_at_IRR,
-                                IRR, 1.0001 * IRR + 1e-3,
-                                xtol=1e-6, maxiter=200,
-                                args=args)
+        args = (self.cashflow, self._duration_array)
+        IRR = flx.fast.aitken_secant(NPV_at_IRR,
+                                     IRR, 1.0001 * IRR + 1e-3,
+                                     xtol=1e-6, maxiter=200,
+                                     args=args)
         self._IRR = IRR
         return IRR
     
@@ -569,10 +578,10 @@ class TEA:
         coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
-        sales = flx.aitken_secant(self._NPV_with_sales,
-                                  sales, 1.0001 * sales + 1e-3,
-                                  xtol=1e-6, maxiter=200,
-                                  args=args)
+        sales = flx.fast.aitken_secant(NPV_with_sales,
+                                       sales, 1.0001 * sales + 1e-3,
+                                       xtol=1e-6, maxiter=200,
+                                       args=args)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost
@@ -680,7 +689,9 @@ class CombinedTEA(TEA):
         return sum([i.installed_cost for i in self.TEAs])
     @property
     def NPV(self):
-        return self._NPV_at_IRR(self.IRR, [(i, i.cashflow) for i in self.TEAs])
+        return sum_NPV_at_IRR(self.IRR,
+                              tuple([i.cashflow for i in self.TEAs]),
+                              tuple([i._duration_array for i in self.TEAs]))
     @property
     def DPI(self):
         """Direct permanent investment."""
@@ -755,14 +766,6 @@ class CombinedTEA(TEA):
         DF[:] = DF_data
         for IRR, TEA in zip(IRRs, TEAs): TEA.IRR = IRR
         return table    
-        
-    def _NPV_at_IRR(self, IRR, TEA_cashflows):
-        """Return NPV at given IRR and cashflow data."""
-        return sum([i._NPV_at_IRR(IRR, j) for i, j in TEA_cashflows])
-
-    def _NPV_with_sales(self, sales, NPV, TEA, coefficients, discount_factors):
-        """Return NPV with additional sales."""
-        return TEA._NPV_with_sales(sales, NPV, coefficients, discount_factors)
     
     def production_cost(self, products, with_annual_depreciation=True):
         """Return production cost of products [USD/yr].
@@ -791,12 +794,13 @@ class CombinedTEA(TEA):
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
-        args = ([(i, i.cashflow) for i in self.TEAs],)
-        self._IRR = flx.aitken_secant(self._NPV_at_IRR,
+        args = (tuple([i.cashflow for i in self.TEAs]),
+                tuple([i._duration_array for i in self.TEAs]))
+        self._IRR = flx.aitken_secant(sum_NPV_at_IRR,
                                       IRR, 1.0001 * IRR + 1e-3,
                                       xtol=1e-8, maxiter=200,
                                       args=args)
-        return IRR
+        return self._IRR
     
     def solve_price(self, stream, TEA=None):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
@@ -809,24 +813,25 @@ class CombinedTEA(TEA):
               Stream should belong here.
             
         """
+        TEAs = self.TEAs
         if not TEA:
-            for TEA in self.TEAs:
+            for TEA in TEAs:
                 if stream in TEA.system.feeds or stream in TEA.system.products: break
         price2cost = TEA._price2cost(stream)
         IRR = self.IRR
-        NPV = sum([i._NPV_at_IRR(IRR, i.cashflow) for i in self.TEAs])
+        NPV = self.NPV
         discount_factors = (1.+IRR)**TEA._duration_array
         coefficients = np.ones_like(discount_factors)
         start = TEA._start
         coefficients[:start] = 0
         w0 = TEA._startup_time
         coefficients[TEA._start] =  w0*TEA.startup_VOCfrac + (1-w0)
-        args=(NPV, TEA, coefficients, discount_factors)
+        args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
-        sales = flx.aitken_secant(self._NPV_with_sales,
-                                  sales, 1.0001 * sales + 1e-3,
-                                  xtol=5e-8, maxiter=200,
-                                  args=args)
+        sales = flx.fast.aitken_secant(NPV_with_sales,
+                                       sales, 1.0001 * sales + 1e-3,
+                                       xtol=5e-8, maxiter=200,
+                                       args=args)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost

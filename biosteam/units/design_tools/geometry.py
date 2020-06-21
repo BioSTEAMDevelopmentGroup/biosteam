@@ -13,10 +13,10 @@ from math import pi
 __all__ = ('cylinder_diameter_from_volume', 
            'cylinder_volume_from_diameter')
 
-@njitable
+@njitable(cache=True)
 def cylinder_diameter_from_volume(volume, length_to_diameter):
     return (4. * length_to_diameter * volume / pi)**(1./3.)
 
-@njitable
+@njitable(cache=True)
 def cylinder_volume_from_diameter(diameter, length_to_diameter):
     return pi * (diameter / 2) ** 2 * diameter / length_to_diameter

@@ -17,11 +17,11 @@ __all__ = ('ShortcutColumn',)
 
 # %% Functions
 
-@flx.njitable
+@flx.njitable(cache=True)
 def geometric_mean(a, b):
     return (a * b) ** (0.5)
 
-@flx.njitable
+@flx.njitable(cache=True)
 def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_index):
     alpha_distillate = K_distillate / K_distillate[HK_index]
     alpha_bottoms = K_bottoms / K_bottoms[HK_index]
@@ -29,12 +29,12 @@ def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_
                                 alpha_bottoms)
     return alpha_mean
 
-@flx.njitable    
+@flx.njitable(cache=True)
 def compute_partition_coefficients(y, x):
     x[x <= 1e-16] = 1e-16
     return y / x
 
-@flx.njitable    
+@flx.njitable(cache=True)
 def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
                                                          alpha_mean,
                                                          LHK_index):
@@ -49,7 +49,7 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     distillate_recoveries[distillate_recoveries < 1e-12] = 0.
     return distillate_recoveries
 
-@flx.njitable
+@flx.njitable(cache=True)
 def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha_LK):
     LK, HK = LHK_distillate
     LHK_ratio_distillate = LK / HK
@@ -58,23 +58,23 @@ def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha
     N = np.log10(LHK_ratio_distillate * HLK_ratio_bottoms) / np.log10(alpha_LK)
     return N
 
-@flx.njitable
+@flx.njitable(cache=True)
 def objective_function_Underwood_constant(theta, q, z_f, alpha_mean):
     return (alpha_mean * z_f / (alpha_mean - theta)).sum() - 1.0 + q
 
-@flx.njitable
+@flx.njitable(cache=True)
 def compute_minimum_reflux_ratio_Underwood(alpha_mean, z_d, theta):
     Rm = (alpha_mean * z_d / (alpha_mean - theta)).sum() - 1.0
     return Rm
 
-@flx.njitable
+@flx.njitable(cache=True)
 def compute_theoretical_stages_Gilliland(Nm, Rm, R):
     X = (R - Rm) / (R + 1.)
     Y = 1. - np.exp((1. + 54.4*X) / (11. + 117.2*X) * (X - 1.) / X**0.5)
     N = (Y + Nm) / (1. - Y)
     return np.ceil(N)
 
-@flx.njitable
+@flx.njitable(cache=True)
 def compute_feed_stage_Kirkbride(N, B, D,
                                  feed_HK_over_LK,
                                  z_LK_bottoms,
