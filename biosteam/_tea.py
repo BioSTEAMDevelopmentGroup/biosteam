@@ -67,9 +67,10 @@ def final_loan_principal(payment, principal, interest, years):
 
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
-    return flx.aitken_secant(final_loan_principal,
-                             payment, payment+10., 1., 1.,
-                             args=(principal, interest, years))
+    payment = flx.aitken_secant(final_loan_principal,
+                                payment, payment+10., 1., 1.,
+                                args=(principal, interest, years))
+    return payment
 
 @njitable
 def net_earnings(D, C, S, start,
@@ -537,16 +538,10 @@ class TEA:
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
         args = (self.cashflow,)
-        try:
-            IRR = flx.aitken_secant(self._NPV_at_IRR,
-                                    IRR, IRR + 1e-3,
-                                    xtol=1e-6, maxiter=200,
-                                    args=args)
-        except flx.SolverError as error:
-            IRR = flx.secant(self._NPV_at_IRR,
-                             error.x, error.x + 1e-3,
-                             xtol=1e-4, maxiter=200,
-                             args=args)
+        IRR = flx.aitken_secant(self._NPV_at_IRR,
+                                IRR, 1.0001 * IRR + 1e-3,
+                                xtol=1e-6, maxiter=200,
+                                args=args)
         self._IRR = IRR
         return IRR
     
@@ -574,16 +569,10 @@ class TEA:
         coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
-        try:
-            sales = flx.aitken_secant(self._NPV_with_sales,
-                                      sales, 1.0001 * sales + 1e-3,
-                                      xtol=1e-6, maxiter=200,
-                                      args=args)
-        except flx.SolverError as error:
-            sales = flx.secant(self._NPV_with_sales,
-                               error.x, 1.0001 * error.x + 1e-3,
-                               xtol=1e-6, maxiter=200,
-                               args=args)
+        sales = flx.aitken_secant(self._NPV_with_sales,
+                                  sales, 1.0001 * sales + 1e-3,
+                                  xtol=1e-6, maxiter=200,
+                                  args=args)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost
@@ -803,17 +792,10 @@ class CombinedTEA(TEA):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
         args = ([(i, i.cashflow) for i in self.TEAs],)
-        try:
-            IRR = flx.aitken_secant(self._NPV_at_IRR,
-                                    IRR, IRR + 1e-3,
-                                    xtol=1e-8, maxiter=200,
-                                    args=args)
-        except flx.SolverError as error:
-            IRR = flx.secant(self._NPV_at_IRR,
-                             error.x, error.x + 1e-3,
-                             xtol=5e-8, maxiter=200,
-                             args=args)
-        self._IRR = IRR
+        self._IRR = flx.aitken_secant(self._NPV_at_IRR,
+                                      IRR, 1.0001 * IRR + 1e-3,
+                                      xtol=1e-8, maxiter=200,
+                                      args=args)
         return IRR
     
     def solve_price(self, stream, TEA=None):
@@ -841,16 +823,10 @@ class CombinedTEA(TEA):
         coefficients[TEA._start] =  w0*TEA.startup_VOCfrac + (1-w0)
         args=(NPV, TEA, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
-        try:
-            sales = flx.aitken_secant(self._NPV_with_sales,
-                                      sales, 1.0001 * sales + 1e-3,
-                                      xtol=5e-8, maxiter=200,
-                                      args=args)
-        except flx.SolverError as error:
-            sales = flx.secant(self._NPV_with_sales,
-                               error.x, 1.0001 * error.x + 1e-3,
-                               xtol=5e-8, maxiter=200,
-                               args=args)
+        sales = flx.aitken_secant(self._NPV_with_sales,
+                                  sales, 1.0001 * sales + 1e-3,
+                                  xtol=5e-8, maxiter=200,
+                                  args=args)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost

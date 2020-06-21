@@ -9,7 +9,7 @@
 This module contains unit operation separation methods.
 
 """
-from flexsolve import InfeasibleRegion
+from thermosteam.exceptions import InfeasibleRegion
 
 __all__ = ('lle', 'vle', 'split', 'mix_and_split',
            'adjust_moisture_content', 

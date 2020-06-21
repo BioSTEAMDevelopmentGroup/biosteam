@@ -145,8 +145,17 @@ class Model(State):
             simulate = self._system.simulate
             for i in index:
                 for f, s in zip_(setters, samples[i]): f(s)
-                simulate()
-                values[i] = [i() for i in funcs]
+                try:
+                    simulate()
+                    values[i] = [i() for i in funcs]
+                except:
+                    self._system.empty_recycles()
+                    try:
+                        simulate()
+                        values[i] = [i() for i in funcs]
+                    except:
+                        self._system.empty_recycles()
+                        values[i] = np.nan
         else:
             update = self._update
             for i in index: 

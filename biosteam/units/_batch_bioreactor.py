@@ -12,17 +12,19 @@ from ._hx import HXutility
 from .. import Unit
 from .design_tools import size_batch
 from .decorators import cost
+import flexsolve as flx
+from math import ceil
 
 __all__ = ('BatchBioreactor',)
 
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,
       cost=421e3, S=3785, n=0.6, BM=1.8)
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
-      S=3785, n=0.5, kW=22.371, BM=1.5, N='N')
+      S=3785, n=0.5, kW=22.371, BM=1.5, N='Number of reactors')
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
-      S=3785, n=0.5, BM=1.5, N='N')
+      S=3785, n=0.5, BM=1.5, N='Number of reactors')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
-      S=5*20920000.0, n=0.7, BM=2.2, N='N') # Based on a similar heat exchanger
+      S=5*20920000.0, n=0.7, BM=2.2, N='Number of reactors') # Based on a similar heat exchanger
 class BatchBioreactor(Unit, isabstract=True):
     """
     Abstract Bioreactor class. Conversion is based on reaction time, `tau`.
@@ -47,20 +49,26 @@ class BatchBioreactor(Unit, isabstract=True):
     Parameters
     ----------
     ins : streams
-        Inlet fluids to be mixed into the fermentor.
+        Inlet fluids to be mixed into the reactor.
     outs : stream sequence
         * [0] Vent
         * [1] Effluent
     tau : float
-        Reaction time.
-    N : int
+        Reaction time [hr].
+    N : int, optional
         Number of batch reactors
+    V : float, optional
+        Targe volume of reactors [m^3].
     T=305.15 : float
         Operating temperature of reactor [K].
     P=101325 : float
         Operating pressure of reactor [Pa].
     iskinetic=False: bool, optional
         If True, `Fermenation.kinetic_model` will be used.
+    
+    Notes
+    -----
+    Either N or V must be given.
     
     References
     ----------
@@ -93,16 +101,34 @@ class BatchBioreactor(Unit, isabstract=True):
     
     def _get_design_info(self):
         return (('Cleaning and unloading time', self.tau_0, 'hr'),
-                ('Working volume fraction', self.V_wf, ''),
-                ('Number of reactors', self.N, ''))
+                ('Working volume fraction', self.V_wf, ''))
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 tau, N, T=305.15, P=101325, iskinetic=False):
+                 tau, N=None, V=None, T=305.15, P=101325,
+                 Nmin=2, Nmax=36, iskinetic=False):
         Unit.__init__(self, ID, ins, outs, thermo)
+        self._N = N; self._V = V
+        
+        #: [float] Reaction time [hr].
         self.tau = tau
-        self.N = N
+        
+        #: [int] Number of batch reactors
+        if N: self.N = N
+        
+        #: [float] Maximum volume of a fermentor
+        if V: self.V = V
+        
+        #: [float] Operating temperature of reactor [K].
         self.T = T
+        
+        #: [float] Operating pressure of reactor [Pa].
         self.P = P
+        
+        #: [int] Minimum number of fermentors
+        self.Nmin = Nmin
+        
+        #: [int] Maximum number of fermentors
+        self.Nmax = Nmax
         
     def _setup(self):
         vent, effluent = self.outs
@@ -110,13 +136,25 @@ class BatchBioreactor(Unit, isabstract=True):
         
     @property
     def N(self):
-        """[int] Number of reactors"""
+        """[int] Number of reactor."""
         return self._N
     @N.setter
     def N(self, N):
         if N <= 1:
             raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
-        self._N = N
+        assert not self._V, 'cannot specify both reactor volume and number of reactors'
+        self._N = ceil(N)
+
+    @property
+    def V(self):
+        """[float] Reactor volume."""
+        return self._V
+    @V.setter
+    def V(self, V):
+        if V <= 1:
+            raise ValueError(f"reactor volume must be greater than 1, value {V} is infeasible")
+        assert not self._N, 'cannot specify both reactor volume and number of reactors'
+        self._V = V
 
     @property
     def tau(self):
@@ -146,10 +184,19 @@ class BatchBioreactor(Unit, isabstract=True):
         v_0 = effluent.F_vol
         tau = self._tau
         tau_0 = self.tau_0
+        V_wf = self.V_wf
         Design = self.design_results
-        if self.autoselect_N: self._N = self.N_at_minimum_capital_cost
-        N = self._N
-        Design.update(size_batch(v_0, tau, tau_0, N, self.V_wf))
+        if self.autoselect_N:
+            N = self.N_at_minimum_capital_cost
+        elif self.V:
+            f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - self.V
+            N = flx.IQ_interpolation(f, self.Nmin, self.Nmax,
+                                     xtol=0.01, ytol=1)
+            N = ceil(N)
+        else:
+            N = self._N
+        Design.update(size_batch(v_0, tau, tau_0, N, V_wf))
+        Design['Number of reactors'] = N
         duty = self.Hnet
         Design['Reactor duty'] = abs(duty)
         self.heat_utilities[0](duty, self.T)

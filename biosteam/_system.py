@@ -19,7 +19,7 @@ from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from .exceptions import ConvergenceError, InfeasibleRegion
+from .exceptions import InfeasibleRegion
 from .utils import colors, strtuple
 import biosteam as bst
 
@@ -199,11 +199,6 @@ class System(metaclass=system):
     
     #: Temperature tolerance (K)
     temperature_tolerance = 0.10
-
-    #: Whether to use the least-squares solution of prior tear stream
-    #: iterations during fixed-point iteration for better convergence 
-    #: (possibly).
-    use_least_squares_solution = False
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
@@ -546,7 +541,7 @@ class System(metaclass=system):
         if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
             unconverged = False
         elif self._iter == self.maxiter:
-            raise ConvergenceError(f'{repr(self)} could not converge' + self._error_info())
+            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
         else:
             unconverged = True
         return rmol.copy(), unconverged
@@ -572,8 +567,7 @@ class System(metaclass=system):
     def _fixed_point(self):
         """Converge system recycle iteratively using fixed-point iteration."""
         self._reset_iter()
-        flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy(), 
-                                    self.use_least_squares_solution)
+        flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy())
         
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
@@ -636,10 +630,22 @@ class System(metaclass=system):
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
+        from warning import warn
+        warn(DeprecationWarning("'reset_flows' will be depracated; please use 'empty_process_streams'"))
+        self.empty_process_streams()
+        
+    def empty_process_streams(self):
+        """Reset all process streams to zero flow."""
         self._reset_errors()        
         feeds = self.feeds
         for stream in self.streams:
             if stream not in feeds: stream.empty()
+
+    def empty_recycles(self):
+        self._reset_errors()        
+        if self.recycle: self.recycle.empty()
+        for system in self.subsystems:
+            system.empty_recycles()
 
     def simulate(self):
         """Converge the path and simulate all units."""
@@ -778,11 +784,6 @@ class FacilityLoop(metaclass=system):
     
     #: Temperature tolerance (K)
     temperature_tolerance = 0.10
-    
-    #: Whether to use the least-squares solution of prior tear stream
-    #: iterations during fixed-point iteration for better convergence 
-    #: (possibly).
-    use_least_squares_solution = False
     
     def __init__(self, system, recycle):
         self.system = system

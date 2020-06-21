@@ -91,7 +91,7 @@ def _decorated_cost(self):
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
             kW += x.kW*q
         elif x.N:
-            N = getattr(self, x.N)
+            N = getattr(self, x.N, None) or D[x.N]
             F = S/x.S
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
             kW += N*x.kW*F

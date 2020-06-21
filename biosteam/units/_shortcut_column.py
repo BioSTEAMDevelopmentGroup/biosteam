@@ -9,6 +9,7 @@
 """
 from ._binary_distillation import BinaryDistillation
 import flexsolve as flx
+from thermosteam.exceptions import InfeasibleRegion
 from thermosteam.equilibrium import DewPoint, BubblePoint
 import numpy as np
 
@@ -368,8 +369,8 @@ class ShortcutColumn(BinaryDistillation,
         lb = -np.inf
         bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
                                         1.0, alpha_LK, lb, ub, args=args)
-        theta = flx.IQ_interpolation(objective_function_Underwood_constant,
-                                     *bracket, args=args)
+        theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
+                                          *bracket, args=args)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
@@ -422,16 +423,14 @@ class ShortcutColumn(BinaryDistillation,
         try:
             distillate_recoveries = flx.aitken(self._recompute_distillate_recoveries,
                                                distillate_recoveries, 1e-4)
-        except flx.SolverError as error: 
-            distillate_recoveries = self._recompute_distillate_recoveries(error.x)
-        except flx.InfeasibleRegion:
+        except InfeasibleRegion:
             for i in range(3):
                 distillate_recoveries = self._recompute_distillate_recoveries(distillate_recoveries)
         self._update_distillate_recoveries(distillate_recoveries)
     
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
-            raise flx.InfeasibleRegion('distillate composition')
+            raise InfeasibleRegion('distillate composition')
         self._update_distillate_recoveries(distillate_recoveries)
         distillate_recoveries = self._estimate_distillate_recoveries()
         return distillate_recoveries
