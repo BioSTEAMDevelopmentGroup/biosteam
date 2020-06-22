@@ -84,10 +84,10 @@ def final_loan_principal(payment, principal, interest, years):
 
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
-    payment = flx.fast.aitken_secant(final_loan_principal,
-                                     payment, payment+10., 1., 1.,
-                                     args=(principal, interest, years),
-                                     checkroot=False)
+    payment = flx.aitken_secant(final_loan_principal,
+                                payment, payment+10., 1., 1.,
+                                args=(principal, interest, years),
+                                checkroot=False)
     return payment
 
 @njitable(cache=True)
@@ -548,10 +548,10 @@ class TEA:
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
         args = (self.cashflow, self._duration_array)
-        IRR = flx.fast.aitken_secant(NPV_at_IRR,
-                                     IRR, 1.0001 * IRR + 1e-3,
-                                     xtol=1e-6, maxiter=200,
-                                     args=args, checkroot=False)
+        IRR = flx.aitken_secant(NPV_at_IRR,
+                                IRR, 1.0001 * IRR + 1e-3,
+                                xtol=1e-6, maxiter=200,
+                                args=args, checkroot=False)
         self._IRR = IRR
         return IRR
     
@@ -579,10 +579,10 @@ class TEA:
         coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
-        sales = flx.fast.aitken_secant(NPV_with_sales,
-                                       sales, 1.0001 * sales + 1e-3,
-                                       xtol=1e-6, maxiter=200,
-                                       args=args, checkroot=False)
+        sales = flx.aitken_secant(NPV_with_sales,
+                                  sales, 1.0001 * sales + 1e-3,
+                                  xtol=1e-6, maxiter=200,
+                                  args=args, checkroot=False)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost
@@ -829,10 +829,10 @@ class CombinedTEA(TEA):
         coefficients[TEA._start] =  w0*TEA.startup_VOCfrac + (1-w0)
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
-        sales = flx.fast.aitken_secant(NPV_with_sales,
-                                       sales, 1.0001 * sales + 1e-3,
-                                       xtol=5e-8, maxiter=200,
-                                       args=args, checkroot=False)
+        sales = flx.aitken_secant(NPV_with_sales,
+                                  sales, 1.0001 * sales + 1e-3,
+                                  xtol=5e-8, maxiter=200,
+                                  args=args, checkroot=False)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost

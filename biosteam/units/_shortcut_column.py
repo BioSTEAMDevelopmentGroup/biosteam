@@ -367,10 +367,10 @@ class ShortcutColumn(BinaryDistillation,
         args = (q, z_f, alpha_mean)
         ub = np.inf
         lb = -np.inf
-        bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
-                                        1.0, alpha_LK, lb, ub, args)
-        theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
-                                          *bracket, args=args, checkroot=False)
+        bracket = flx.find_bracket(objective_function_Underwood_constant,
+                                   1.0, alpha_LK, lb, ub, args)
+        theta = flx.IQ_interpolation(objective_function_Underwood_constant,
+                                     *bracket, args=args, checkroot=False)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
