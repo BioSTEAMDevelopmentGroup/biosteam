@@ -19,7 +19,7 @@ __all__ = ('ShortcutColumn',)
 
 @flx.njitable(cache=True)
 def geometric_mean(a, b):
-    return (a * b) ** (0.5)
+    return (a * b) ** 0.5
 
 @flx.njitable(cache=True)
 def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_index):
@@ -370,7 +370,7 @@ class ShortcutColumn(BinaryDistillation,
         bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
                                         1.0, alpha_LK, lb, ub, args)
         theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
-                                          *bracket, args=args)
+                                          *bracket, args=args, checkroot=False)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
@@ -422,7 +422,7 @@ class ShortcutColumn(BinaryDistillation,
         distillate_recoveries = self._distillate_recoveries
         try:
             distillate_recoveries = flx.aitken(self._recompute_distillate_recoveries,
-                                               distillate_recoveries, 1e-4)
+                                               distillate_recoveries, 1e-4, checkroot=False)
         except InfeasibleRegion:
             for i in range(3):
                 distillate_recoveries = self._recompute_distillate_recoveries(distillate_recoveries)

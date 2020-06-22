@@ -86,7 +86,8 @@ def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
     payment = flx.fast.aitken_secant(final_loan_principal,
                                      payment, payment+10., 1., 1.,
-                                     args=(principal, interest, years))
+                                     args=(principal, interest, years),
+                                     checkroot=False)
     return payment
 
 @njitable(cache=True)
@@ -550,7 +551,7 @@ class TEA:
         IRR = flx.fast.aitken_secant(NPV_at_IRR,
                                      IRR, 1.0001 * IRR + 1e-3,
                                      xtol=1e-6, maxiter=200,
-                                     args=args)
+                                     args=args, checkroot=False)
         self._IRR = IRR
         return IRR
     
@@ -581,7 +582,7 @@ class TEA:
         sales = flx.fast.aitken_secant(NPV_with_sales,
                                        sales, 1.0001 * sales + 1e-3,
                                        xtol=1e-6, maxiter=200,
-                                       args=args)
+                                       args=args, checkroot=False)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost
@@ -799,7 +800,7 @@ class CombinedTEA(TEA):
         self._IRR = flx.aitken_secant(sum_NPV_at_IRR,
                                       IRR, 1.0001 * IRR + 1e-3,
                                       xtol=1e-8, maxiter=200,
-                                      args=args)
+                                      args=args, checkroot=False)
         return self._IRR
     
     def solve_price(self, stream, TEA=None):
@@ -831,7 +832,7 @@ class CombinedTEA(TEA):
         sales = flx.fast.aitken_secant(NPV_with_sales,
                                        sales, 1.0001 * sales + 1e-3,
                                        xtol=5e-8, maxiter=200,
-                                       args=args)
+                                       args=args, checkroot=False)
         self._sales = sales
         if stream.sink:
             return stream.price - sales/price2cost
