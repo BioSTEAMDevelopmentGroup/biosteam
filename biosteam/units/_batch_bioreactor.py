@@ -58,13 +58,15 @@ class BatchBioreactor(Unit, isabstract=True):
     N : int, optional
         Number of batch reactors
     V : float, optional
-        Targe volume of reactors [m^3].
+        Target volume of reactors [m^3].
     T=305.15 : float
         Operating temperature of reactor [K].
     P=101325 : float
         Operating pressure of reactor [Pa].
-    iskinetic=False: bool, optional
-        If True, `Fermenation.kinetic_model` will be used.
+    Nmin=2 : int
+        Minimum number of fermentors.
+    Nmax=36: int
+        Maximum number of fermentors.  
     
     Notes
     -----
@@ -105,7 +107,7 @@ class BatchBioreactor(Unit, isabstract=True):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  tau, N=None, V=None, T=305.15, P=101325,
-                 Nmin=2, Nmax=36, iskinetic=False):
+                 Nmin=2, Nmax=36):
         Unit.__init__(self, ID, ins, outs, thermo)
         self._N = N; self._V = V
         

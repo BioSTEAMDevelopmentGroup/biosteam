@@ -35,14 +35,26 @@ class Fermentation(BatchBioreactor):
         * [1] Effluent
     tau : float
         Reaction time.
+    N : int, optional
+        Number of batch reactors
+    V : float, optional
+        Target volume of reactors [m^3].
+    T=305.15 : float
+        Temperature of reactor [K].
+    P=101325 : float
+        Operating pressure of reactor [Pa].
+    Nmin=2 : int
+        Minimum number of fermentors.
+    Nmax=36: int
+        Maximum number of fermentors.  
     efficiency=0.9 : float, optional
         User enforced efficiency.
     iskinetic=False: bool, optional
         If True, `Fermenation.kinetic_model` will be used.
-    N : int
-        Number of batch reactors
-    T=305.15 : float
-        Temperature of reactor [K].
+    
+    Notes
+    -----
+    Either N or V must be given.
     
     Examples
     --------
@@ -96,10 +108,10 @@ class Fermentation(BatchBioreactor):
     Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
+                        Number of reactors                           8
                         Reactor duty                   kJ/hr  1.04e+07
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-                        Number of reactors                           8
     Purchase cost       Heat exchangers                  USD  4.12e+04
                         Reactors                         USD  1.87e+06
                         Agitators                        USD  1.16e+05
@@ -134,8 +146,10 @@ class Fermentation(BatchBioreactor):
                          0.18)  # a
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 tau,  N, efficiency=0.9, iskinetic=False, T=305.15):
-        BatchBioreactor.__init__(self, ID, ins, outs, thermo, tau=tau, N=N, T=T)
+                 tau,  N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
+                 efficiency=0.9, iskinetic=False):
+        BatchBioreactor.__init__(self, ID, ins, outs, thermo,
+                                 tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
         self.iskinetic = iskinetic
