@@ -423,10 +423,12 @@ class ShortcutColumn(BinaryDistillation,
         distillate_recoveries = self._distillate_recoveries
         try:
             distillate_recoveries = flx.aitken(self._recompute_distillate_recoveries,
-                                               distillate_recoveries, 1e-4, checkroot=False)
+                                               distillate_recoveries, 1e-6, checkroot=False)
         except InfeasibleRegion:
             for i in range(3):
                 distillate_recoveries = self._recompute_distillate_recoveries(distillate_recoveries)
+        else:
+            distillate_recoveries = self._recompute_distillate_recoveries(distillate_recoveries)
         self._update_distillate_recoveries(distillate_recoveries)
     
     def _recompute_distillate_recoveries(self, distillate_recoveries):
