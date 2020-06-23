@@ -110,7 +110,7 @@ class Flash(design.PressureVessel, Unit):
                         Glycerol  2.32
     [1] crude_glycerin
         phase: 'l', T: 137 degC, P: 1 atm
-        flow (kmol/hr): Water     42.4
+        flow (kmol/hr): Water     42.5
                         Glycerol  298
     >>> F1.results()
     Flash                                             Units            F1
