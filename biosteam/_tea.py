@@ -85,7 +85,7 @@ def final_loan_principal(payment, principal, interest, years):
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
     payment = flx.aitken_secant(final_loan_principal,
-                                payment, payment+10., 1e-6, 1.,
+                                payment, payment+10., 1., 10.,
                                 args=(principal, interest, years),
                                 maxiter=200,
                                 checkroot=False)
@@ -550,7 +550,7 @@ class TEA:
         IRR = self._IRR
         args = (self.cashflow, self._duration_array)
         IRR = flx.aitken_secant(NPV_at_IRR,
-                                IRR, 1.0001 * IRR + 1e-3,
+                                IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
                                 maxiter=200, args=args, checkroot=False)
         self._IRR = IRR
         return IRR
@@ -580,7 +580,7 @@ class TEA:
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
         sales = flx.aitken_secant(NPV_with_sales,
-                                  sales, 1.0001 * sales + 1e-3,
+                                  sales, 1.0001 * sales + 1e-4, ytol=10.,
                                   maxiter=200, args=args, checkroot=False)
         self._sales = sales
         if stream.sink:
@@ -797,7 +797,7 @@ class CombinedTEA(TEA):
         args = (tuple([i.cashflow for i in self.TEAs]),
                 tuple([i._duration_array for i in self.TEAs]))
         self._IRR = flx.aitken_secant(sum_NPV_at_IRR,
-                                      IRR, 1.0001 * IRR + 1e-3,
+                                      IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
                                       maxiter=200, args=args, checkroot=False)
         return self._IRR
     
@@ -828,7 +828,7 @@ class CombinedTEA(TEA):
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
         sales = flx.aitken_secant(NPV_with_sales,
-                                  sales, 1.0001 * sales + 1e-3,
+                                  sales, 1.0001 * sales + 1e-4, ytol=10.,
                                   maxiter=200, args=args, checkroot=False)
         self._sales = sales
         if stream.sink:
