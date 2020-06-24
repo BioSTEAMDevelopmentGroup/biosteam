@@ -423,12 +423,12 @@ class ShortcutColumn(BinaryDistillation,
         distillate_recoveries = self._distillate_recoveries
         flx.aitken(self._recompute_distillate_recoveries,
                    distillate_recoveries, 1e-8, checkroot=False)
-    
+        
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
             raise InfeasibleRegion('distillate composition')
         self._update_distillate_recoveries(distillate_recoveries)
-        distillate_recoveries = self._estimate_distillate_recoveries()
+        self._distillate_recoveries = distillate_recoveries = self._estimate_distillate_recoveries()
         return distillate_recoveries
         
     
