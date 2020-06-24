@@ -553,7 +553,7 @@ class BinaryDistillation(Unit):
         if not product_specification_format:
             if (x_bot and y_top) and not (Lr or Hr):
                 product_specification_format = 'Composition'
-            elif (Lr or Hr) and not (x_bot or y_top):
+            elif (Lr and Hr) and not (x_bot or y_top):
                 product_specification_format = 'Recovery'
             else:
                 raise ValueError("must specify either x_top and y_top, or Lr and Hr")
