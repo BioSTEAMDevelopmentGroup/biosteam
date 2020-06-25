@@ -370,7 +370,7 @@ class ShortcutColumn(BinaryDistillation,
         bracket = flx.find_bracket(objective_function_Underwood_constant,
                                    1.0, alpha_LK, lb, ub, args)
         theta = flx.IQ_interpolation(objective_function_Underwood_constant,
-                                     *bracket, args=args, checkroot=False,
+                                     *bracket, args=args, checkiter=False,
                                      checkbounds=False)
         return theta
         
@@ -422,7 +422,7 @@ class ShortcutColumn(BinaryDistillation,
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._distillate_recoveries
         flx.aitken(self._recompute_distillate_recoveries,
-                   distillate_recoveries, 1e-8, checkroot=False)
+                   distillate_recoveries, 1e-8, checkiter=False)
         
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():

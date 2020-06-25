@@ -13,7 +13,8 @@ __all__ = ('PowerUtility',)
 
 class PowerUtility:
     """
-    Create an PowerUtility object that, when called, calculates the cost of power (kW) and saves the power and cost.
+    Create an PowerUtility object that, when called, calculates the cost of 
+    power [kW] and saves the rate and cost.
             
     Examples
     --------
@@ -29,7 +30,7 @@ class PowerUtility:
         
     .. code-block:: python
     
-       >>> pu(rate=500)
+       >>> pu(rate=500.)
        >>> pu
        <PowerUtility: 500 kW, 39.1 USD/hr>
        
@@ -38,10 +39,20 @@ class PowerUtility:
     .. code-block:: python
     
        >>> pu.rate, pu.cost
-       (500, 39.1)
+       (500.0, 39.1)
+    
+    Notes
+    -----
+    PowerUtility objects have `consumption` and `production` attributes
+    which are updated when setting the rate with the assumption that
+    a positive rate means no production (only consumption) and a negative
+    rate means no consumption (only consumption).
+    
+    It is possible to have both consumption and production by setting these
+    attributes individually (instead of setting rate)
     
     """
-    __slots__ = ('rate', 'cost')
+    __slots__ = ('consumption', 'production')
     
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(rate='kW', cost='USD/hr')
@@ -50,34 +61,42 @@ class PowerUtility:
     price = 0.0782
     
     def __init__(self):
-        #: Power requirement (kW)
-        self.rate = 0
+        #: Electricity consumption [kW]
+        self.consumption = 0.
         
-        #: Cost (USD/hr)
-        self.cost = 0
+        #: Electricity production [kW]
+        self.production = 0.
+    
+    @property
+    def rate(self):
+        """Power requirement [kW]."""
+        return self.consumption - self.production
+    @rate.setter
+    def rate(self, rate):
+        rate = float(rate)
+        if rate >= 0.:
+            self.consumption = rate
+            self.production = 0.
+        else:
+            self.consumption = 0.
+            self.production = rate
+    
+    @property
+    def cost(self):
+        """Cost [USD/hr]"""
+        return self.price * self.rate
     
     def __bool__(self):
         return bool(self.rate)
     
     def __call__(self, rate):
-        """
-        Calculate cost and save results. 
-        
-        Parameters
-        ----------
-        rate : float
-               Power requirement (kW)
-        
-        """
+        """Set rate in kW."""
         self.rate = rate
-        self.cost = self.price * rate
     
     def mix_from(self, power_utilities):
-        """
-        Mix in requirements of power utilities.
-        """
-        self.rate = sum([i.rate for i in power_utilities])
-        self.cost = sum([i.cost for i in power_utilities])
+        """Mix in requirements of power utilities."""
+        self.consumption = sum([i.consumption for i in power_utilities])
+        self.production = sum([i.production for i in power_utilities])
     
     @classmethod
     def sum(cls, power_utilities):

@@ -88,48 +88,63 @@ class Fermentation(BatchBioreactor):
     [1] missing stream
     outs...
     [0] CO2
-        phase: 'g', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    1.66
+        phase: 'g', T: 305.15 K, P: 101325 Pa
+        flow (kmol/hr): Water    2.5
                         CO2      244
-                        Ethanol  0.382
+                        Ethanol  0.582
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water     6.6e+03
-                        Ethanol   244
+                        Ethanol   243
                         Glucose   13.6
                         DryYeast  1.03e+04
     >>> F1.results()
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
                         Cost                          USD/hr     0.908
-    Chilled water       Duty                           kJ/hr -1.04e+07
-                        Flow                         kmol/hr  6.95e+03
-                        Cost                          USD/hr      51.8
+    Chilled water       Duty                           kJ/hr -1.03e+07
+                        Flow                         kmol/hr  6.87e+03
+                        Cost                          USD/hr      51.3
     Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Number of reactors                           8
-                        Reactor duty                   kJ/hr  1.04e+07
+                        Reactor duty                   kJ/hr  1.03e+07
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers                  USD  4.12e+04
+    Purchase cost       Heat exchangers                  USD  4.09e+04
                         Reactors                         USD  1.87e+06
                         Agitators                        USD  1.16e+05
                         Cleaning in place                USD  8.87e+04
     Total purchase cost                                  USD  2.12e+06
-    Utility cost                                      USD/hr      52.7
+    Utility cost                                      USD/hr      52.2
     
     References
     ----------
-    .. [1] Oliveira, Samuel C., et al. "Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
+    .. [1] Oliveira, Samuel C., et al. "Discrimination between ethanol 
+    inhibition models in a continuous alcoholic fermentation process using
+    flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
     
-    .. [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions." Bioprocess Engineering 20.6 (1999): 525-530.
+    .. [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a
+    tower reactor with flocculating yeast recycle: scale-up effects on process
+    performance, kinetic parameters and model predictions." Bioprocess
+    Engineering 20.6 (1999): 525-530.
     
-    .. [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle." Bioprocess and biosystems engineering 38.3 (2015): 469-479.
+    .. [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous
+    alcoholic fermentation process in a two-stage tower reactor cascade with
+    flocculating yeast recycle." Bioprocess and biosystems engineering 38.3
+    (2015): 469-479.
     
-    .. [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol Fermentations." Fermentation Processes. InTech, 2017.
+    .. [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol
+    Fermentations." Fermentation Processes. InTech, 2017.
     
-    .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+    .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden
+    National. Renewable Energy Laboratory Golden, Colorado. P. Schoen,
+    J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group
+    Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics
+    for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid
+    Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical
+    Report NREL/TP-5100-47764
     
     """
     line = 'Fermentation'    

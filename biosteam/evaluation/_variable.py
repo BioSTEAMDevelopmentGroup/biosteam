@@ -34,6 +34,13 @@ class Variable:
         return element_name(self.element)
     
     @property
+    def name_with_units(self):
+        units = self.units
+        name = self.name
+        if units: name += f" [{units}]"
+        return name
+    
+    @property
     def index(self):
         name = self.name
         if self.include_units_in_index:

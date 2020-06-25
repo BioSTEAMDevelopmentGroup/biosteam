@@ -98,7 +98,7 @@ class BoilerTurbogenerator(Facility):
         self.other_agents = other_agents
     
     def _run(self): pass
-    
+
     def _load_utility_agents(self):
         steam_utilities = self.steam_utilities
         steam_utilities.clear()
@@ -189,7 +189,7 @@ class BoilerTurbogenerator(Facility):
 
     def _cost(self):
         self._decorated_cost()
-        self.power_utility(self.power_utility.rate - self.design_results['Work'])
+        self.power_utility.production = self.design_results['Work']
 
 # Simulation of ethanol production from sugarcane
 # in Brazil: economic study of an autonomous

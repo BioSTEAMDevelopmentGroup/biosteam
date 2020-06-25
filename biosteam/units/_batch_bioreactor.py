@@ -117,7 +117,7 @@ class BatchBioreactor(Unit, isabstract=True):
         #: [int] Number of batch reactors
         if N: self.N = N
         
-        #: [float] Maximum volume of a fermentor
+        #: [float] Target volume of a fermentor
         if V: self.V = V
         
         #: [float] Operating temperature of reactor [K].
@@ -135,6 +135,8 @@ class BatchBioreactor(Unit, isabstract=True):
     def _setup(self):
         vent, effluent = self.outs
         vent.phase = 'g'
+        vent.T = effluent.T = self.T
+        vent.P = effluent.P = self.P
         
     @property
     def N(self):

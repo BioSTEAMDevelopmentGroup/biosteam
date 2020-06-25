@@ -11,7 +11,8 @@ from ._variable import Variable
 __all__ = ('Metric',)
 
 class Metric(Variable):
-    """Create a Metric object that serves as an argument for Model objects.
+    """
+    Create a Metric object that serves as an argument for Model objects.
     
     Parameters
     ----------
@@ -27,7 +28,8 @@ class Metric(Variable):
     """
     __slots__ = ('name', 'units', 'getter', 'element')
     distribution = None
-    def __init__(self, name, getter, units=None, element='Biorefinery'):
+    def __init__(self, name, getter=None, units=None, element='Biorefinery'):
+        if not getter: return lambda getter: Metric(name, getter, units, element)
         self.name = name
         self.units = units
         self.getter = getter

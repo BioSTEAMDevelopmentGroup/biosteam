@@ -172,7 +172,7 @@ class MultiEffectEvaporator(Unit):
         self._V1 = flx.IQ_interpolation(compute_overall_vapor_fraction,
                                         x0, x1, y0, y1, self._V1, 
                                         xtol=0.0001, ytol=0.001,
-                                        checkroot=False)
+                                        checkiter=False)
         
         # Condensing vapor from last effector
         outs_vap = evaporators[-1].outs[0]

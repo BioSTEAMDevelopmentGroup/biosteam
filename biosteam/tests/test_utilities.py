@@ -10,6 +10,11 @@
 import biosteam as bst
 import doctest
 
+__all__ = ('test_heat_utility',
+           'test_power_utility',
+           'test_utilities',
+)
+
 def test_heat_utility():
     from biosteam import _heat_utility
     doctest.testmod(_heat_utility)

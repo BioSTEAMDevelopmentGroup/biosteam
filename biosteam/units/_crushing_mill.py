@@ -15,7 +15,8 @@ __all__ = ('CrushingMill',)
 @cost('Flow rate', units='kg/hr', cost=1.5e6, CE=541.7,
       n=0.6, S=335e3, kW=2010, BM=2.3)
 class CrushingMill(SolidsSeparator):
-    """Create CrushingMill object.
+    """
+    Create CrushingMill object.
     
     Parameters
     ----------
