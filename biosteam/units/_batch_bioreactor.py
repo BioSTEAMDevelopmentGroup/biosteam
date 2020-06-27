@@ -195,7 +195,7 @@ class BatchBioreactor(Unit, isabstract=True):
         elif self.V:
             f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - self.V
             N = flx.IQ_interpolation(f, self.Nmin, self.Nmax,
-                                     xtol=0.01, ytol=1)
+                                     xtol=0.01, ytol=0.5)
             N = ceil(N)
         else:
             N = self._N

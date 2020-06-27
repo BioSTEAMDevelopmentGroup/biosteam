@@ -7,7 +7,6 @@
 # for license details.
 """
 """
-import biosteam as bst
 import doctest
 
 __all__ = ('test_heat_utility',
