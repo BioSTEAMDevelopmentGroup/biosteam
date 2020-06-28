@@ -62,7 +62,7 @@ class TankPurchaseCostAlgorithm:
     Find the number of mixing tanks and the total purchase cost 
     at a volume of 1 m^3 using the purchase cost equation from [1]_:
         
-    >>> from biosteam.units._tank import TankPurchaseCostAlgorithm
+    >>> from biosteam.units.design_tools import TankPurchaseCostAlgorithm
     >>> TankPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,
     ...                             V_min=0.1, V_max=30, V_units='m^3',
     ...                             CE=525.4, material='Stainless steel')
@@ -146,8 +146,7 @@ def field_erected_tank_purchase_cost(V):
     
     Examples
     --------
-    >>> from biosteam.units._tank import field_erected_vessel_purchase_cost
-    >>> field_erected_vessel_purchase_cost(300)
+    >>> field_erected_tank_purchase_cost(300)
     112610.0
     
     """

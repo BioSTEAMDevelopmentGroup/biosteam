@@ -10,18 +10,66 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from . import utils
 from ..evaluation import Metric
+from .._heat_utility import HeatUtility
+from collections.abc import Mapping
 
 __all__ = ('UnitGroup',)
 
+INST_EQUIP_COST = 'Inst. equip. cost'
+ELEC_CONSUMPTION = 'Elec. consumption'
+ELEC_PRODUCTION = 'Elec. production'
+INSTALLED_EQUIPMENT_COST = 'Installed equipment cost'
+COOLING_DUTY = 'Cooling duty'
+HEATING_DUTY = 'Heating duty'
+ELECTRICITY_CONSUMPTION = 'Electricity consumption'
+ELECTRICITY_PRODUCTION = 'Electricity production'
+CAPITAL_UNITS = '[million USD]'
+ELEC_UNITS = '[MW]'
+DUTY_UNITS = '[GJ/hr]'
 
 # %% Unit group for generating results
 
 class UnitGroup:
-    """Create a UnitGroup object for generating biorefinery results."""
+    """
+    Create a UnitGroup object for generating biorefinery results.
+    
+    Parameters
+    ----------
+    name : str
+        Name of group for bookkeeping.
+    units : tuple[Unit]
+        Unit operations.
+    metrics=None : list[Metric], optional
+        Metrics to generate results. These metrics are computed when 
+        generating results as dictionaries, pandas series and data frames,
+        and plots.
+    
+    Examples
+    --------
+    Create a UnitGroup from BioSTEAM's example ethanol subsystem:
+    
+    >>> from biosteam.examples import ethanol_subsystem_example
+    >>> ethanol_sys = ethanol_subsystem_example()
+    >>> group = UnitGroup('Ethanol production', ethanol_sys.units)
+    
+    You can get main process results using UnitGroup methods:
+        
+    >>> group.to_dict(with_electricity_production=True)
+    {'Installed equipment cost [million USD]': 13.57808163192647, 'Cooling duty [GJ/hr]': 104.4639430479312, 'Heating duty [GJ/hr]': 156.88073343258333, 'Electricity consumption [MW]': 0.40116044433570186, 'Electricity production [MW]': 0.0}
+    
+    Each result can be retrieved separately:
+    
+    >>> group.get_installed_cost()
+    13.57808163192647
+    
+    >>> group.get_heating_duty()
+    156.88073343258333
+    
+    """
     __slots__ = ('name', 'units', 'metrics')
     
     def __init__(self, name, units, metrics=None):
-        self.name = str(name) #: [str] Name for group
+        self.name = str(name) #: [str] Name of group for bookkeeping
         self.units = tuple(units) #: tuple[Unit] Unit operations
         self.metrics = metrics or [] #: list[Metric] Metrics to generate results
     
@@ -48,7 +96,7 @@ class UnitGroup:
     @property
     def heat_utilities(self):
         """[tuple] All HeatUtility objects."""
-        return get_heat_utilities(self.units)
+        return utils.get_heat_utilities(self.units)
     
     @property
     def power_utilities(self):
@@ -56,10 +104,34 @@ class UnitGroup:
         return tuple(utils.get_power_utilities(self.units))
     
     @classmethod
-    def group_by_type(cls, name, units, types):
+    def filter_by_types(cls, name, units, types):
         """Create a UnitGroup object of given type(s)."""
-        isa = isinstance
-        return cls(name, [i for i in units if isa(i, types)])
+        return cls(name, utils.filter_by_types(units, types))
+    
+    @classmethod
+    def filter_by_lines(cls, name, units, lines):
+        """Create a UnitGroup object of given line(s)."""
+        return cls(name, utils.filter_by_lines(units, lines))
+    
+    @classmethod
+    def group_by_types(cls, units, name_types=None):
+        """Create a list of UnitGroup object of given iterable of name-type(s) pairs."""
+        if name_types:
+            if isinstance(name_types, Mapping): name_types = name_types.items()
+            return [cls.filter_by_types(name, units, types) for name, types in name_types]
+        else:
+            groups = utils.group_by_types(units)
+            return [cls(i, j) for i, j in groups.items()]
+    
+    @classmethod
+    def group_by_lines(cls, units, name_lines=None):
+        """Create a list of UnitGroup object of given iterable of name-type(s) pairs."""
+        if name_lines:
+            if isinstance(name_lines, Mapping): name_lines = name_lines.items()
+            return [cls.filter_by_lines(name, units, lines) for name, lines in name_lines]
+        else:
+            groups = utils.group_by_lines(units)
+            return [cls(i, j) for i, j in groups.items()]
     
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in GJ/hr"""
@@ -89,26 +161,44 @@ class UnitGroup:
         """Return the total electricity production in MW."""
         return utils.get_electricity_production(self.power_utilities)
     
-    def to_dict(self, with_electricity_production=False):
+    def to_dict(self, with_electricity_production=False, shorthand=False, with_units=True):
         """Return dictionary of results."""
-        dct = {'Installed equipment cost [million USD]': self.get_installed_cost(),
-               'Cooling duty [GJ/hr]': self.get_cooling_duty(),
-               'Heating duty [GJ/hr]': self.get_heating_duty(),
-               'Electricity consumption [MW]': self.get_electricity_consumption()}
+        if shorthand:
+            inst_equip_cost = INST_EQUIP_COST
+            elec_consumption = ELEC_CONSUMPTION
+            elec_production = ELEC_PRODUCTION
+        else:
+            inst_equip_cost = INSTALLED_EQUIPMENT_COST
+            
+            elec_consumption = ELECTRICITY_CONSUMPTION
+            elec_production = ELECTRICITY_PRODUCTION
+        cooling_duty = COOLING_DUTY
+        heating_duty = HEATING_DUTY
+        if with_units:
+            inst_equip_cost += ' ' + CAPITAL_UNITS
+            elec_consumption += ' ' + ELEC_UNITS
+            elec_production += ' ' + ELEC_UNITS
+            cooling_duty += ' ' + DUTY_UNITS
+            heating_duty += ' ' + DUTY_UNITS
+        dct = {inst_equip_cost: self.get_installed_cost(),
+               cooling_duty: self.get_cooling_duty(),
+               heating_duty: self.get_heating_duty(),
+               elec_consumption: self.get_electricity_consumption()}
         if with_electricity_production:
-            dct['Electricity production [MW]'] = self.get_electricity_production()
+            dct[elec_production] = self.get_electricity_production()
         for i in self.metrics:
             dct[i.name_with_units] = i()
         return dct
                 
-    def to_series(self, with_electricity_production=False):
+    def to_series(self, with_electricity_production=False, shorthand=False, with_units=True):
         """Return a pandas.Series object of results."""
-        return pd.Series(self.to_dict(with_electricity_production), name=self.name)
+        return pd.Series(self.to_dict(with_electricity_production, shorthand, with_units), name=self.name)
 
     @classmethod
-    def df_from_groups(cls, unit_groups, *, fraction=False):
+    def df_from_groups(cls, unit_groups, with_electricity_production=False, shorthand=False, fraction=False):
         """Return a pandas.DataFrame object from unit groups."""
-        data = [i.to_series() for i in unit_groups]
+        with_units = not fraction
+        data = [i.to_series(with_electricity_production, shorthand, with_units) for i in unit_groups]
         df = pd.DataFrame(data)
         if fraction:
             values = df.values
@@ -116,14 +206,18 @@ class UnitGroup:
         return df
 
     @classmethod
-    def plot_bars_from_groups(cls, unit_groups, *, fraction=False, colormap='tab10', **kwargs):
+    def plot_bars_from_groups(cls, unit_groups, with_electricity_production=False,
+                              shorthand=True, fraction=True, horizontal_ticks=False, **kwargs):
         """Plot unit groups as a stacked bar chart."""
-        df = cls.create_df(unit_groups, fraction)
-        df.T.plot(kind='bar', stacked=True, 
-                  colormap=colormap, 
-                  **kwargs)
+        df = cls.df_from_groups(unit_groups,
+                                with_electricity_production,
+                                shorthand,
+                                fraction)
+        df.T.plot(kind='bar', stacked=True, **kwargs)
+        locs, labels = plt.xticks()
+        plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
         plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
-        plt.xticks(rotation=0)
+        if horizontal_ticks: plt.xticks(rotation=0)
         if fraction:
             plt.ylabel('[%]')
             plt.ylim(0, 100)

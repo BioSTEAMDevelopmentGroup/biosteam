@@ -22,7 +22,8 @@ chemicals_in_common = lambda upstream, downstream: \
     tuple(set(upstream.chemicals.IDs).intersection(downstream.chemicals.IDs))
 
 class Junction(Unit):
-    """Create a Junction object that copies specifications from `upstream`
+    """
+    Create a Junction object that copies specifications from `upstream`
     to `downstream`. This serves to connect streams with different
     Species object.
     
@@ -42,9 +43,9 @@ class Junction(Unit):
     Create a Junction object and connect streams with different Species objects:
         
     >>> from biosteam import *
-    >>> settings.thermo = Thermo(['Water'])
+    >>> settings.set_thermo(['Water'])
     >>> s1 = Stream('s1', Water=20)
-    >>> settings.thermo = Thermo(['Ethanol', 'Water'])
+    >>> settings.set_thermo(['Ethanol', 'Water'])
     >>> s2 = Stream('s2') # Note that s2 and s1 have different chemicals defined
     >>> J1 = units.Junction('J1', s1, s2)
     >>> J1.simulate()

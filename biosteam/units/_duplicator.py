@@ -34,7 +34,7 @@ class Duplicator(Unit, isabstract=True):
         >>> from biosteam import settings, Stream, units
         >>> settings.set_thermo(['Water', 'Ethanol'])
         >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-        >>> D1 = units.Duplicator('S1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
+        >>> D1 = units.Duplicator('D1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
         >>> D1.simulate()
         >>> D1.show()
         Duplicator: D1

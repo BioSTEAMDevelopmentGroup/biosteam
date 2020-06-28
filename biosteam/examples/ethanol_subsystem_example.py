@@ -1,19 +1,53 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jun 25 00:16:24 2020
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 
-@author: yrc2
-"""
 from biosteam import units
-import biosteam as bst
 from thermosteam import functional as fn
+from biosteam import main_flowsheet
+import biosteam as bst
 import thermosteam as tmo
 
-__all__ = ('test_sugarcane_fermentation_separations',
+__all__ = ('ethanol_subsystem_example',
 )
 
-def test_sugarcane_fermentation_separations():
-    return 
+def ethanol_subsystem_example():
+    """
+    Test BioSTEAM by creating a conventional sugarcane fermentation and ethanol
+    purification process.
+    
+    Examples
+    --------
+    >>> ethanol_sys = ethanol_subsystem_example()
+    >>> # The sugarcane_example_subsystem flowsheet may help for accessing units
+    >>> from biosteam import main_flowsheet as F
+    >>> fs = F.flowsheet['ethanol_subsystem_example']
+    >>> fs.unit # Check unit operation registry
+    Register:
+     <Fermentation: R301>
+     <StorageTank: T301>
+     <VentScrubber: D301>
+     <SolidsCentrifuge: C301>
+     <Mixer: M302>
+     <Pump: P301>
+     <HXprocess: H302>
+     <BinaryDistillation: D302>
+     <Pump: P302>
+     <Mixer: M303>
+     <BinaryDistillation: D303>
+     <Pump: P303>
+     <HXutility: H303>
+     <MolecularSieve: U301>
+    >>> R301 = fs.unit.R301 # Get unit operation
+
+    """
+    original_flowsheet = main_flowsheet.get_flowsheet()
+    main_flowsheet.set_flowsheet('ethanol_subsystem_example')
+    
     ### Create property package ###
     
     chemicals = tmo.Chemicals(
@@ -62,7 +96,7 @@ def test_sugarcane_fermentation_separations():
     
     # Fresh water
     stripping_water = bst.Stream('stripping_water', Water=5000, units='kg/hr')
-    sugar_solution = bst.Stream('sugar_solution', phase='l',
+    fermentation_feed = bst.Stream('fermentation_feed', phase='l',
                                 Glucose=21.11,
                                 Sucrose=125.9,
                                 Water=1370 + 4409,
@@ -124,8 +158,14 @@ def test_sugarcane_fermentation_separations():
                                 split=(2165.14/13356.04, 1280.06/1383.85),
                                 order=('Ethanol', 'Water'))
     
-    sugar_solution-R301-1-T301-0-C301
+    fermentation_feed-R301-1-T301-0-C301
     (C301-0, D301-1)-M302-P301
     (P301-0, P302-0)-H302-0-D302-1-P302
     (D302-0, U301-0)-M303-0-D303-0-H303-U301
     D303-1-P303
+    
+    ethanol_subsystem_example = main_flowsheet.create_system('ethanol_subsystem_example')
+    ethanol_subsystem_example.simulate()
+    main_flowsheet.set_flowsheet(original_flowsheet) 
+    return ethanol_subsystem_example
+    

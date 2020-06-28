@@ -5,17 +5,10 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-"""
-"""
-from . import bounded_numerical_specification
-from . import unit_group
-from . import utils
 
-__all__ = (*bounded_numerical_specification.__all__,
-           *unit_group.__all__,
-           *utils.__all__,
+from . import ethanol_subsystem_example
+
+__all__ = (*ethanol_subsystem_example.__all__,
 )
 
-from .bounded_numerical_specification import *
-from .unit_group import *
-from .utils import *
+from .ethanol_subsystem_example import *

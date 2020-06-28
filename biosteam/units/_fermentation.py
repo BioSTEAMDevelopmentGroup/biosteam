@@ -122,32 +122,32 @@ class Fermentation(BatchBioreactor):
     References
     ----------
     .. [1] Oliveira, Samuel C., et al. "Discrimination between ethanol 
-    inhibition models in a continuous alcoholic fermentation process using
-    flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
+        inhibition models in a continuous alcoholic fermentation process using
+        flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
     
     .. [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a
-    tower reactor with flocculating yeast recycle: scale-up effects on process
-    performance, kinetic parameters and model predictions." Bioprocess
-    Engineering 20.6 (1999): 525-530.
+        tower reactor with flocculating yeast recycle: scale-up effects on process
+        performance, kinetic parameters and model predictions." Bioprocess
+        Engineering 20.6 (1999): 525-530.
     
     .. [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous
-    alcoholic fermentation process in a two-stage tower reactor cascade with
-    flocculating yeast recycle." Bioprocess and biosystems engineering 38.3
-    (2015): 469-479.
+        alcoholic fermentation process in a two-stage tower reactor cascade with
+        flocculating yeast recycle." Bioprocess and biosystems engineering 38.3
+        (2015): 469-479.
     
     .. [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol
-    Fermentations." Fermentation Processes. InTech, 2017.
+        Fermentations." Fermentation Processes. InTech, 2017.
     
     .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden
-    National. Renewable Energy Laboratory Golden, Colorado. P. Schoen,
-    J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group
-    Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics
-    for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid
-    Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical
-    Report NREL/TP-5100-47764
+        National. Renewable Energy Laboratory Golden, Colorado. P. Schoen,
+        J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group
+        Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics
+        for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid
+        Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical
+        Report NREL/TP-5100-47764
     
     """
-    line = 'Fermentation'    
+    line = 'Fermentation'
     
     #: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1

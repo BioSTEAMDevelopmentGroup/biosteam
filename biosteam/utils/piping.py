@@ -354,8 +354,10 @@ class Sink:
     
     .. code-block:: python
     
+        >>> from biosteam import Stream, Mixer, settings
+        >>> settings.set_thermo(['Water'])
         >>> stream = Stream('s1')
-        >>> unit = Mixer('M1')
+        >>> unit = Mixer('M1', outs=('out'))
     
     Sink objects are created using -pipe- notation:
         
@@ -368,17 +370,17 @@ class Sink:
     
     .. code-block:: python
     
-        >>> stream-1-unit
-        >>> M1.show()
-        
+        >>> stream-1-unit # The last unit is returned to continue piping; just ignore this
+        <Mixer: M1>
+        >>> unit.show()
         Mixer: M1
         ins...
-        [0] Missing stream
+        [0] missing stream
         [1] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa
             flow:  0
         outs...
-        [0] d27
+        [0] out
             phase: 'l', T: 298.15 K, P: 101325 Pa
             flow:  0
     
@@ -416,6 +418,8 @@ class Source:
     
     .. code-block:: python
     
+        >>> from biosteam import Stream, Mixer, settings
+        >>> settings.set_thermo(['Water'])
         >>> stream = Stream('s1')
         >>> unit = Mixer('M1')
     
@@ -430,13 +434,13 @@ class Source:
     
     .. code-block:: python
     
-        >>> unit**0**stream
-        >>> M1.show()
-        
+        >>> unit**0**stream # First unit is returned to continue backwards piping; just ignore this
+        <Mixer: M1>
+        >>> unit.show()
         Mixer: M1
         ins...
-        [0] Missing stream
-        [1] Missing stream
+        [0] missing stream
+        [1] missing stream
         outs...
         [0] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa

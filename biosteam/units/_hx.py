@@ -520,16 +520,16 @@ class HXprocess(HX):
         flow (kmol/hr): Ethanol  200
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      191
+    Design              Area                                   ft^2      367
                         Overall heat transfer coefficient  kW/m^2/K      0.5
-                        Log-mean temperature difference           K     22.1
+                        Log-mean temperature difference           K     11.5
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi        5
                         Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Floating head                           USD 2.04e+04
-    Total purchase cost                                         USD 2.04e+04
+    Purchase cost       Floating head                           USD 2.23e+04
+    Total purchase cost                                         USD 2.23e+04
     Utility cost                                             USD/hr        0
     
     """

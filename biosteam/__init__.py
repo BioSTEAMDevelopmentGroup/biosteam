@@ -26,12 +26,13 @@ from . import units
 from . import evaluation
 from . import exceptions
 from . import process_tools
+from . import examples
 
 __all__ = ('Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
            'main_flowsheet', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
            'MultiStream', 'settings', 'Network', 'exceptions', 'speed_up',
-           'process_tools', *units.__all__, *evaluation.__all__
+           'process_tools', 'examples', *units.__all__, *evaluation.__all__
 )
 
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings

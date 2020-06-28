@@ -105,7 +105,6 @@ class Unit:
     thermo : Thermo
         The thermodynamic property package used by the unit.
     
-    
     Examples
     --------
     :doc:`tutorial/Creating_a_Unit`

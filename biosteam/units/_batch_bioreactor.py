@@ -74,13 +74,13 @@ class BatchBioreactor(Unit, isabstract=True):
     
     References
     ----------
-    .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A.
-    Aden National. Renewable Energy Laboratory Golden, Colorado. P.
-    Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon.
-    Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process 
-    Design and Economics for Biochemical Conversion of Lignocellulosic
-    Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis 
-    of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+    .. [1] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A.
+        Aden National. Renewable Energy Laboratory Golden, Colorado. P.
+        Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon.
+        Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process 
+        Design and Economics for Biochemical Conversion of Lignocellulosic
+        Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis 
+        of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
     
     """
     _units = {'Reactor volume': 'm3',

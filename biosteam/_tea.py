@@ -639,6 +639,11 @@ class CombinedTEA(TEA):
         self._sales = 0
     
     @property
+    def units(self):
+        """All unit operations used for TEA."""
+        return tuple(sum([i.units for i in self.TEAs], []))
+    
+    @property
     def operating_days(self):
         v_all = [i.operating_days for i in self.TEAs]
         v0, *vs = v_all
@@ -649,6 +654,7 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = operating_days
         for i, j in zip(self.TEAs, vector): i.operating_days = j
+    
     @property
     def startup_months(self):
         v_all = [i.startup_months for i in self.TEAs]
@@ -660,6 +666,7 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = startup_months
         for i, j in zip(self.TEAs, vector): i.startup_months = j
+    
     @property
     def income_tax(self):
         v_all = [i.income_tax for i in self.TEAs]
@@ -671,77 +678,97 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = income_tax
         for i, j in zip(self.TEAs, vector): i.income_tax = j
+    
     @property
     def cashflow(self):
         return sum([i.cashflow for i in self.TEAs])
+    
     @property
     def utility_cost(self):
         """Total utility cost (USD/yr)."""
         return sum([i.utility_cost for i in self.TEAs])
+    
     @property
     def purchase_cost(self):
         """Total purchase cost (USD)."""
         return sum([i.purchase_cost for i in self.TEAs])
+    
     @property
     def installed_cost(self):
         """Total installation cost (USD)."""
         return sum([i.installed_cost for i in self.TEAs])
+    
     @property
     def NPV(self):
         return sum_NPV_at_IRR(self.IRR,
                               tuple([i.cashflow for i in self.TEAs]),
                               tuple([i._duration_array for i in self.TEAs]))
+    
     @property
     def DPI(self):
         """Direct permanent investment."""
         return sum([i.DPI for i in self.TEAs])
+    
     @property
     def TDC(self):
         """Total depreciable capital."""
         return sum([i.TDC for i in self.TEAs])
+    
     @property
     def FCI(self):
         """Fixed capital investment."""
         return sum([i.FCI for i in self.TEAs])
+    
     @property
     def TCI(self):
         """Total capital investment."""
         return sum([i.TCI for i in self.TEAs])
+    
     @property
     def FOC(self):
         """Fixed operating costs (USD/yr)."""
         return sum([i.FOC for i in self.TEAs])
+    
     @property
     def VOC(self):
         """Variable operating costs (USD/yr)."""
         return self.material_cost + self.utility_cost
+    
     @property
     def AOC(self):
         """Annual operating cost excluding depreciation (USD/yr)."""
         return self.FOC + self.VOC
+    
     @property
     def working_capital(self):
+        """Working capital."""
         return sum([i.working_capital for i in self.TEAs])
+    
     @property
     def material_cost(self):
         """Annual material cost."""
         return sum([i.material_cost for i in self.TEAs])
+    
     @property
     def annual_depreciation(self):
         """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
         return sum([i.annual_depreciation for i in self.TEAs])
+    
     @property
     def sales(self):
         """Annual sales revenue."""
         return sum([i.sales for i in self.TEAs])
+    
     @property
     def net_earnings(self):
         """Net earnings without accounting for annualized depreciation."""
         return sum([i.net_earnings for i in self.TEAs])
+    
     @property
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
         return sum([i.ROI for i in self.TEAs])
+    
     @property
     def PBP(self):
         """Pay back period (yr) without accounting for annualized depreciation."""

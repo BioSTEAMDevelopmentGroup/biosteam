@@ -41,6 +41,7 @@ from ._molecular_sieve import *
 from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
+from ._mixer_settler import *
 from .facilities import *
 
 
@@ -58,7 +59,7 @@ from . import (
     _process_specification, _duplicator,
     _diagram_only_units, _batch_bioreactor,
     _liquids_centrifuge, _liquids_settler,
-    _lle_unit, _liquids_mixing_tank,
+    _lle_unit, _liquids_mixing_tank, _mixer_settler,
 )
 
 __all__ = (*_diagram_only_units.__all__,
@@ -97,6 +98,7 @@ __all__ = (*_diagram_only_units.__all__,
            *_batch_bioreactor.__all__,
            *_liquids_settler.__all__,
            *_lle_unit.__all__,
+           *_mixer_settler.__all__,
            'facilities',
            'decorators',
            'design_tools',

@@ -415,9 +415,9 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
 
     Examples
     --------
-    >>> LMTD(100., 60., 30., 40.2)
+    >>> compute_LMTD(100., 60., 30., 40.2)
     43.200409294131525
-    >>> LMTD(100., 60., 30., 40.2, counterflow=False)
+    >>> compute_LMTD(100., 60., 30., 40.2, counterflow=False)
     39.75251118049003
     
     '''
@@ -427,9 +427,9 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     else:
         dTF1 = Thi-Tci
         dTF2 = Tho-Tco
-    log_factor = ln(dTF2/dTF1)
-    if log_factor < 0.0001:
+    dTF21 = dTF2 - dTF1
+    if abs(dTF21) < 1e-8:
         LMTD = dTF1
     else:
-        LMTD = (dTF2 - dTF1)/log_factor
+        LMTD = dTF21/ln(dTF2/dTF1)
     return LMTD

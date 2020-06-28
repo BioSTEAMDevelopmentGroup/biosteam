@@ -20,36 +20,37 @@ class PowerUtility:
     --------
     Create a PowerUtility object:
     
-    .. code-block:: python
-    
-       >>> pu = PowerUtility()
-       >>> pu
-       <PowerUtility: 0 kW, 0 USD/hr>
+    >>> pu = PowerUtility()
+    >>> pu
+    <PowerUtility: 0 kW, 0 USD/hr>
        
     Call object to calculate cost:
         
-    .. code-block:: python
-    
-       >>> pu(rate=500.)
-       >>> pu
-       <PowerUtility: 500 kW, 39.1 USD/hr>
+    >>> pu(rate=500.)
+    >>> pu
+    <PowerUtility: 500 kW, 39.1 USD/hr>
        
     Results are accessible:
         
-    .. code-block:: python
+    >>> pu.rate, pu.cost
+    (500.0, 39.1)
     
-       >>> pu.rate, pu.cost
-       (500.0, 39.1)
-    
-    Notes
-    -----
     PowerUtility objects have `consumption` and `production` attributes
     which are updated when setting the rate with the assumption that
     a positive rate means no production (only consumption) and a negative
     rate means no consumption (only consumption).
     
+    >>> pu.consumption, pu.production
+    (500.0, 0.0)
+    
     It is possible to have both consumption and production by setting these
     attributes individually (instead of setting rate)
+    
+    >>> pu.production = 100. 
+    >>> pu.rate
+    400.0
+    
+    Notice how the rate is equal the consumption minus the production.
     
     """
     __slots__ = ('consumption', 'production')
@@ -87,7 +88,7 @@ class PowerUtility:
         return self.price * self.rate
     
     def __bool__(self):
-        return bool(self.rate)
+        return bool(self.consumption or self.production)
     
     def __call__(self, rate):
         """Set rate in kW."""
