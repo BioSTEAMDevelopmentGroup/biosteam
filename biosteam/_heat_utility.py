@@ -410,8 +410,10 @@ class HeatUtility:
     @staticmethod
     def heat_utilities_by_agent(heat_utilities):
         """Return a dictionary of heat utilities sorted by agent."""
-        heat_utilities_by_agent = {i.agent: [] for i in heat_utilities if i.agent}
-        for i in heat_utilities: heat_utilities_by_agent[i.agent].append(i)
+        heat_utilities = [i for i in heat_utilities if i.agent]
+        heat_utilities_by_agent = {i.agent: [] for i in heat_utilities}
+        for i in heat_utilities:
+            heat_utilities_by_agent[i.agent].append(i)
         return heat_utilities_by_agent
 
     @classmethod
