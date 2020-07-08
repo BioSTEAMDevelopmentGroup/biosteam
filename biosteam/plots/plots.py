@@ -11,13 +11,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from biosteam.utils import colors
+from ..utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
-           'annotate_line', 'plot_single_points', 'plot_spearman',
-           'plot_horizontal_line')
+           'plot_single_points', 'plot_spearman', 'plot_horizontal_line',
+           'plot_bars', 'plot_vertical_line', 'plot_single_points',
+           'plot_contour_2d', 'plot_contour_across_coordinate')
 
 def plot_spearman(rhos, top=None, name=None):
-    """Display Spearman's rank correlation plot.
+    """
+    Display Spearman's rank correlation plot.
     
     Parameters
     ----------
@@ -121,7 +124,8 @@ def plot_montecarlo(data,
                     positions=None,
                     transpose=False,
                     **kwargs):
-    """Return box plot of Monte Carlo evaluation.
+    """
+    Return box plot of Monte Carlo evaluation.
     
     Parameters
     ----------
@@ -200,64 +204,127 @@ def plot_montecarlo_across_coordinate(xs, ys,
              linewidth=1.0) # Upper whisker
     
     return percentiles
-
-# def estimate_ylim(lower, upper, ylim=()):
-#     if ylim:
-#         ylim[0] = min([ylim[0], min(lower)])
-#         ylim[1] = max([ylim[1], max(upper)])
-#     else:
-#         ylim = (0.95*min(lower), 1.05*max(upper))
-#     return ylim    
     
-def expand(lower, upper, lb, ub):
-    dx = (upper - lower)/12
-    return max(lower-dx, lb), min(upper+dx, ub)
-
-def closest_index(x, xs):
-    if xs[0] < xs[-1]:
-        for i, xi in enumerate(xs):
-            if x < xi: break
-    else:
-        for i, xi in enumerate(xs):
-            if x > xi: break
-    return i
-
-def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under', 
-                  color=colors.brown_shade.RGBn):
-    """Annotate line with text and arrow pointing to text.
-    
-    Parameters
-    ----------
-    text : str
-    x : float
-        Arrow position
-    xs : numpy.ndarray(dim=1)
-    ys : numpy.ndarray(dim=1)
-    dy : float
-        Length of arrow to y-position.
-    dy_text : float
-        Distance of text to arrow.
-    position : {'under', 'over'}
-        Relative position of text to line.
-    color : numpy.ndarray
-        RGB normalized to 1. Defaults to brown.
-    
-    """
-    index = closest_index(x, xs)
-    x = xs[index]
-    y = ys[index]
-    if position == 'under':
-        y *= 0.998
-        y_text = y - dy - dy_text
-    elif position == 'over':
-        y *= 1.002
-        y_text = y + dy + dy_text
-    else:
-        raise ValueError(f"position must be either 'over' or 'under', not '{position}'")
-    dx = 0
-    color = 0.60*color
-    plt.arrow(x, y, dx, dy, linestyle='-', alpha=0.8, color=color, linewidth=1)
-    plt.text(x, y_text, text, color=0.75*color, horizontalalignment='center', fontsize=12)
-    
-
-
+def plot_contour_2d(X_grid, Y_grid, Z_1d, data, 
+                    xlabel, ylabel, xticks, yticks, 
+                    metric_bars, Z_label=None,
+                    Z_value_format=lambda Z: str(Z),
+                    fillblack=True):
+    """Create contour plots and return the figure and the axes."""
+    nrows = len(metric_bars)
+    ncols = len(Z_1d)
+    assert data.shape == (*X_grid.shape, nrows, ncols), (
+        "data shape must be (X, Y, M, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
+        "M is the number of metrics, and Z is the number of elements in Z_1d"
+    )
+    widths = np.ones(ncols + 1)
+    widths[-1] /= 4
+    gs_kw = dict(width_ratios=widths)
+    fig, axes = plt.subplots(ncols=ncols + 1, nrows=nrows, gridspec_kw=gs_kw)
+    for row in range(nrows):
+        metric_bar = metric_bars[row]
+        for col in range(ncols):
+            ax = axes[row, col]
+            plt.sca(ax)
+            style_plot_limits(xticks, yticks)
+            yticklabels = col == 0
+            xticklabels = row == nrows - 1
+            if fillblack: fill_plot()
+            cp = plt.contourf(X_grid, Y_grid, data[:, :, row, col],
+                              levels=metric_bar.levels,
+                              cmap=metric_bar.cmap)
+            style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+        cbar_ax = axes[row, -1]
+        metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8)
+        # plt.clim()
+    for col in range(ncols):
+        if not col and Z_label:
+            title = f"{Z_label}: {Z_value_format(Z_1d[col])}"
+        else:
+            title = Z_value_format(Z_1d[col])
+        ax = axes[0, col]
+        ax.set_title(title)
+    for ax in axes[:, -1]:
+        plt.sca(ax)
+        plt.axis('off')
+    set_axes_labels(axes[:, :-1], xlabel, ylabel)
+    plt.subplots_adjust(hspace=0.1, wspace=0.1)
+    return fig, axes
+            
+def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data, 
+                                   xlabel, ylabel, xticks, yticks, 
+                                   metric_bar, Z_label=None,
+                                   Z_value_format=lambda Z: str(Z),
+                                   fillblack=True):
+    """Create contour plots and return the figure and the axes."""
+    ncols = len(Z_1d)
+    assert data.shape == (*X_grid.shape, ncols), (
+        "data shape must be (X, Y, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
+        "and Z is the number of elements in Z_1d"
+    )
+    widths = np.ones(ncols + 1)
+    widths[-1] *= 0.38196601125
+    gs_kw = dict(width_ratios=widths)
+    fig, axes = plt.subplots(ncols=ncols + 1, nrows=1, gridspec_kw=gs_kw)
+    xticklabels = True
+    for col in range(ncols):
+        ax = axes[col]
+        plt.sca(ax)
+        style_plot_limits(xticks, yticks)
+        yticklabels = col == 0
+        if fillblack: fill_plot()
+        cp = plt.contourf(X_grid, Y_grid, data[:, :, col],
+                          levels=metric_bar.levels,
+                          cmap=metric_bar.cmap)
+        style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+    cbar_ax = axes[-1]
+    metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.35, pad=0.15)
+    for col in range(ncols):
+        if not col and Z_label:
+            title = f"{Z_label}: {Z_value_format(Z_1d[col])}"
+        else:
+            title = Z_value_format(Z_1d[col])
+        ax = axes[col]
+        ax.set_title(title)
+    plt.sca(axes[-1])
+    style_plot_limits(xticks, yticks)
+    plt.axis('off')
+    set_axes_labels(axes[np.newaxis, :-1], xlabel, ylabel)
+    plt.subplots_adjust(hspace=0.1, wspace=0.1)
+    return fig, axes
+            
+# def plot_contour_across_metric(X_grid, Y_grid, data, 
+#                                xlabel, ylabel, xticks, yticks, 
+#                                metric_bars, Z_value_format=lambda Z: str(Z),
+#                                fillblack=True):
+#     """Create contour plots and return the figure and the axes."""
+#     ncols = len(metric_bars)
+#     assert data.shape == (*X_grid.shape, ncols), (
+#         "data shape must be (X, Y, M), where (X, Y) is the shape of both X_grid and Y_grid, "
+#         "and M is the number of metric bars"
+#     )
+#     widths = np.ones(ncols + 1)
+#     widths[-1] /= 4
+#     gs_kw = dict(width_ratios=widths)
+#     fig, axes = plt.subplots(ncols=ncols + 1, nrows=1, gridspec_kw=gs_kw)
+#     xticklabels = True
+#     for col in range(ncols):
+#         ax = axes[col]
+#         plt.sca(ax)
+#         style_plot_limits(xticks, yticks)
+#         yticklabels = col == 0
+#         style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+#         if fillblack: fill_plot()
+#         cp = plt.contourf(X_grid, Y_grid, data[:, :, col],
+#                           cmap=metric_bar.cmap)
+#     cbar_ax = axes[-1]
+#     metric_bar.colorbar(fig, cbar_ax, cp)
+#     for col in range(ncols):
+#         title = Z_value_format(Z_1d[col])
+#         ax = axes[col]
+#         ax.set_title(title)
+#     plt.sca(axes[-1])
+#     plt.axis('off')
+#     set_axes_labels(axes[:-1], xlabel, ylabel)
+#     plt.subplots_adjust(hspace=0.1, wspace=0.1)
+#     return fig, axes

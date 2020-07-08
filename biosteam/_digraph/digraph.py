@@ -192,8 +192,11 @@ def add_connection(f: Digraph, connection, unit_names=None):
             # Process stream case
             edge_in = sink._graphics.edge_in
             edge_out = source._graphics.edge_out
-            f.attr('edge', arrowtail='none', arrowhead='normal',
-                   **edge_in[sink_index], **edge_out[source_index])
+            try:
+                f.attr('edge', arrowtail='none', arrowhead='normal',
+                       **edge_in[sink_index], **edge_out[source_index])
+            except:
+                stream.show()
             f.edge(unit_names[source], unit_names[sink], label=stream.ID)
         else:
             f.node(stream.ID)

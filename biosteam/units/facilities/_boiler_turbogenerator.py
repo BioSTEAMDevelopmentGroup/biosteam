@@ -56,6 +56,10 @@ class BoilerTurbogenerator(Facility):
         Fraction of steam heat converted to electricity.
     agent : UtilityAgent
         Steam produced.
+    other_agents = () : Iterable[UtilityAgent]
+        Other steams produced.
+    natural_gas_price = 0.218 : float
+        Price of natural gas [USD/kg].
     
     References
     ----------
@@ -80,15 +84,20 @@ class BoilerTurbogenerator(Facility):
                  turbogenerator_efficiency=0.85,
                  side_steam=None,
                  agent=HeatUtility.get_heating_agent('low_pressure_steam'),
-                 other_agents = ()):
+                 other_agents = (),
+                 natural_gas_price=0.218):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent
-        self.makeup_water = makeup_water = agent.to_stream('boiler_makeup_water')
+        makeup_water = agent.to_stream('boiler_makeup_water')
+        makeup_water.T = 298.15
+        makeup_water.P = 101325
+        makeup_water.phase = 'l'
         loss = makeup_water.flow_proxy()
         loss.ID = 'rejected_water_and_blowdown'
-        self.ins[-1] = bst.Stream(None, thermo=self.thermo, phase='g')
-        self.ins[-2] = makeup_water
-        self.outs[-1] = loss
+        self.ins[3] = bst.Stream(None, thermo=self.thermo, phase='g')
+        self.ins[2] = makeup_water
+        self.outs[1] = loss
+        self.natural_gas_price = natural_gas_price
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
@@ -96,6 +105,20 @@ class BoilerTurbogenerator(Facility):
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = other_agents
+    
+    @property
+    def makeup_water(self):
+        """[Stream] Makeup water due to boiler blowdown."""
+        return self.ins[2]
+    
+    @property
+    def natural_gas(self):
+        """[Stream] Natural gas to satisfy steam and electricity requirements."""
+        return self.ins[3]
+    
+    @property
+    def utility_cost(self):
+        return super().utility_cost + self.natural_gas_price * self.natural_gas.F_mass
     
     def _run(self): pass
 

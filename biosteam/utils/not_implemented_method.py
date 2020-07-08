@@ -17,7 +17,7 @@ class NotImplementedMethodType:
     @property
     def __doc__(self): return None
     def __new__(self): return NotImplementedMethod
-    def __call__(self): pass
+    def __call__(self): return NotImplemented
     def __bool__(self): return False
     def __repr__(self): return "NotImplementedMethod"
 

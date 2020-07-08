@@ -7,9 +7,9 @@
 # for license details.
 """
 """
-from thermosteam.utils import colors
+from thermosteam import utils
 from . import (misc,
-               plotting,
+               patches,
                tictoc,
                not_implemented_method,
                piping,
@@ -19,11 +19,12 @@ from . import (misc,
 )
 __all__ = ('colors',
            'misc', 
-           'plotting', 
+           'patches', 
            'tictoc',
            'not_implemented_method',
            'functors',
-           *plotting.__all__, 
+           *utils.__all__,
+           *patches.__all__, 
            *not_implemented_method.__all__, 
            *misc.__all__, 
            *tictoc.__all__, 
@@ -32,11 +33,14 @@ __all__ = ('colors',
            *unit_warnings.__all__,
            *functors.__all__,
 )
+from thermosteam.utils import *
 from .not_implemented_method import *
 from .misc import *
-from .plotting import *
+from .patches import *
 from .tictoc import *
 from .piping import *
 from .stream_link_options import *
 from .unit_warnings import *
 from .functors import *
+
+del utils

@@ -91,7 +91,7 @@ box_graphics = UnitGraphics(single_edge_in, single_edge_out, box_node)
 node = box_node.copy()
 node['shape'] = 'triangle'
 node['orientation'] = '270'
-mixer_graphics = UnitGraphics(6 * single_edge_in, right_edge_out, node)
+mixer_graphics = UnitGraphics(multi_edge_in, right_edge_out, node)
 
 # Create splitter graphics
 node = box_node.copy()
@@ -107,9 +107,14 @@ node['height'] = '1.2'
 vertical_column_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
 
 # Create flash column graphics
-node = node.copy()
+node = box_node.copy()
 node['height'] = '1.1'
 vertical_vessel_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
+
+# Mixer-Settler graphics
+node = box_node.copy()
+node['width'] = '1.2'
+mixer_settler_graphics = UnitGraphics(multi_edge_in, top_bottom_edge_out, node)
 
 # Single stream heat exchanger node
 node = box_node.copy()
@@ -139,7 +144,7 @@ def tailor_utility_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n" + line
 
 utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
-                                           tailor_utility_heat_exchanger_node)
+                                               tailor_utility_heat_exchanger_node)
 
 # Process heat exchanger network
 node = node.copy()
@@ -152,7 +157,7 @@ def tailor_process_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n Heat exchanger"
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
-                                           tailor_process_heat_exchanger_node)
+                                               tailor_process_heat_exchanger_node)
 
 # Process specification graphics
 orange = colors.orange_tint.tint(50)
@@ -166,7 +171,7 @@ def tailor_process_specification_node(node, unit):
                     f"{unit.line}")
 
 process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
-                                          tailor_process_specification_node)
+                                              tailor_process_specification_node)
 
 # System unit for creating diagrams
 node = box_node.copy()
@@ -190,4 +195,4 @@ def tailor_junction_node(node, unit):
         node['color'] = node['fillcolor'] = 'black'
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
-                             tailor_junction_node)
+                                 tailor_junction_node)

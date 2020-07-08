@@ -132,9 +132,9 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     
     Examples
     --------
-    >>> from biorefineries.lipidcane.chemicals import lipidcane_chemicals
+    >>> from biorefineries.lipidcane import chemicals
     >>> from biosteam import units, settings, Stream
-    >>> settings.set_thermo(lipidcane_chemicals)
+    >>> settings.set_thermo(chemicals)
     >>> feed = Stream('feed', T=333.15,
     ...               Lipid=0.996, Biodiesel=26.9,
     ...               Methanol=32.9, Glycerol=8.97)

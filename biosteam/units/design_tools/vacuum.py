@@ -144,6 +144,11 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
             flowrange, minsuction = flowrange_minsuction
             if checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
                 return (vacuum_sys, grade)
+    for vacuum_sys in vacuum_systems:
+        for grade, flowrange_minsuction in vacuum_sys.items():
+            flowrange, minsuction = flowrange_minsuction
+            if F_vol_cfm < flowrange[-1] and P_suction > minsuction:
+                return (vacuum_sys, grade)
     raise DesignError('no vacuum system available at current flow and suction pressure')
 
 @njitable(cache=True)

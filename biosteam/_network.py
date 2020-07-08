@@ -312,7 +312,8 @@ class Network:
                 subnetwork._add_subnetwork(i)
                 index = path.index(i)
                 path.remove(i)
-                subnetworks.remove(i)
+                try: subnetworks.remove(i)
+                except: pass
                 index_found = True
             elif subnetwork.issubset(i):
                 i._add_subnetwork(subnetwork)

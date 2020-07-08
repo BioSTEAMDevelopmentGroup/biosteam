@@ -15,7 +15,7 @@ from collections.abc import Mapping
 
 __all__ = ('UnitGroup',)
 
-INST_EQUIP_COST = 'Inst. equip. cost'
+INST_COST = 'Inst. cost'
 ELEC_CONSUMPTION = 'Elec. consumption'
 ELEC_PRODUCTION = 'Elec. production'
 INSTALLED_EQUIPMENT_COST = 'Installed equipment cost'
@@ -164,23 +164,23 @@ class UnitGroup:
     def to_dict(self, with_electricity_production=False, shorthand=False, with_units=True):
         """Return dictionary of results."""
         if shorthand:
-            inst_equip_cost = INST_EQUIP_COST
+            inst_cost = INST_COST
             elec_consumption = ELEC_CONSUMPTION
             elec_production = ELEC_PRODUCTION
         else:
-            inst_equip_cost = INSTALLED_EQUIPMENT_COST
+            inst_cost = INSTALLED_EQUIPMENT_COST
             
             elec_consumption = ELECTRICITY_CONSUMPTION
             elec_production = ELECTRICITY_PRODUCTION
         cooling_duty = COOLING_DUTY
         heating_duty = HEATING_DUTY
         if with_units:
-            inst_equip_cost += ' ' + CAPITAL_UNITS
+            inst_cost += ' ' + CAPITAL_UNITS
             elec_consumption += ' ' + ELEC_UNITS
             elec_production += ' ' + ELEC_UNITS
             cooling_duty += ' ' + DUTY_UNITS
             heating_duty += ' ' + DUTY_UNITS
-        dct = {inst_equip_cost: self.get_installed_cost(),
+        dct = {inst_cost: self.get_installed_cost(),
                cooling_duty: self.get_cooling_duty(),
                heating_duty: self.get_heating_duty(),
                elec_consumption: self.get_electricity_consumption()}

@@ -54,6 +54,9 @@ class Mixer(Unit):
     _N_ins = 2
     _ins_size_is_fixed = False
     
+    def _assert_compatible_property_package(self): 
+        pass # Not necessary for mixing streams
+    
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins)

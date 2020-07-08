@@ -61,10 +61,10 @@ class Fermentation(BatchBioreactor):
     Simulate a Fermentation object which models batch fermentation for the
     production of 1st generation ethanol using yeast.
     
-    >>> from biorefineries.lipidcane.chemicals import ethanol_chemicals 
+    >>> from biorefineries.lipidcane import chemicals
     >>> from biosteam.units import Fermentation
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(ethanol_chemicals)
+    >>> settings.set_thermo(chemicals)
     >>> feed = Stream('feed',
     ...               Water=1.20e+05,
     ...               Glucose=1.89e+03,
@@ -90,8 +90,8 @@ class Fermentation(BatchBioreactor):
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    2.5
-                        CO2      244
                         Ethanol  0.582
+                        CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water     6.6e+03
@@ -165,8 +165,8 @@ class Fermentation(BatchBioreactor):
                  efficiency=0.9, iskinetic=False):
         BatchBioreactor.__init__(self, ID, ins, outs, thermo,
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
-        self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
-        self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
+        self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
+        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
         self.iskinetic = iskinetic
         self.efficiency = efficiency
         
@@ -242,17 +242,17 @@ class Fermentation(BatchBioreactor):
 
     @property
     def efficiency(self):
-        return self.fermentation.X
+        return self.fermentation_reaction.X
     @efficiency.setter
     def efficiency(self, efficiency):
-        self.fermentation.X = efficiency
+        self.fermentation_reaction.X = efficiency
 
     def _run(self):
         vent, effluent = self.outs
         effluent.mix_from(self.ins)
         effluent_mol = effluent.mol
-        self.hydrolysis(effluent_mol)
+        self.hydrolysis_reaction(effluent_mol)
         if self.iskinetic:
-            self.fermentation.X = self._calc_efficiency(effluent, self._tau)
-        self.fermentation(effluent_mol)
+            self.fermentation_reaction.X = self._calc_efficiency(effluent, self._tau)
+        self.fermentation_reaction(effluent_mol)
         vent.receive_vent(effluent)

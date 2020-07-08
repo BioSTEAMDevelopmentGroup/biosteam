@@ -13,7 +13,7 @@ from .decorators import cost
 
 __all__ = ('Clarifier',)
 
-_iswithin = lambda x, bounds: bounds[0] < x < bounds[1]
+_iswithin = lambda x, bounds: bounds[0] <= x <= bounds[1]
 # Electricity: 16 hp / 200 ft diameter
 
 @cost('Settling area', cost=2720, CE=567, n=0.58, kW=0.0005)
@@ -32,7 +32,7 @@ class Clarifier(Splitter):
         Design['Settling area'] = SetArea = self.outs[0].F_vol *  4.4028
         # Checking to see which cost equation/material to use
         Steel_bounds, Concrete_bounds = self._bounds.values()
-        if _iswithin(SetArea, Steel_bounds): Design['Material'] = 'Steel'
+        if SetArea <= Steel_bounds[-1]: Design['Material'] = 'Steel'
         elif _iswithin(SetArea, Concrete_bounds): Design['Material'] = 'Concrete'
         else: raise DesignError('Volumetric flow rate is out of working range.')
         

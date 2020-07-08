@@ -61,7 +61,7 @@ class UtilityAgent(Stream):
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, ID='', flow=(), phase='l', T=298.15, P=101325., units='kmol/hr',
                  thermo=None, T_limit=None, heat_transfer_price=0.0,
-                 regeneration_price=0.0, heat_transfer_efficiency=1.0,
+                 regeneration_price=0.0, heat_transfer_efficiency=1.0, 
                  **chemical_flows):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
@@ -77,6 +77,20 @@ class UtilityAgent(Stream):
         self.heat_transfer_price = heat_transfer_price
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
+    
+    @property
+    def price(self):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'price'")
+    @price.setter
+    def price(self, price):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'price'")
+    
+    @property
+    def cost(self):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'cost'")
+    @cost.setter
+    def cost(self, cost):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'cost'")
     
     def to_stream(self, ID=None):
         """
@@ -100,16 +114,9 @@ class UtilityAgent(Stream):
         new._imol = self._imol.copy()
         new._thermal_condition = self._thermal_condition.copy()
         new._init_cache()
-        new.price = 0
+        new._price = 0.
         new.ID = ID
         return new
-    
-    @property
-    def cost(self):
-        return 0
-    @property
-    def price(self):
-        return 0
     
     @property
     def heat_transfer_price(self):

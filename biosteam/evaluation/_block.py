@@ -65,7 +65,7 @@ class Block:
                   baseline, bounds) -> Parameter:
         """Return a Parameter object."""
         if simulate is None: simulate = self._simulate
-        if not name: name, = signature(setter).parameters.keys()
+        if not name: name, *_ = signature(setter).parameters.keys()
         return Parameter(name, setter, simulate, self._element,
                          self._system, distribution, units, baseline, bounds)
     

@@ -7,11 +7,11 @@
 # for license details.
 """
 """
-from . import parameter
-from . import in_parallel
 
-__all__ = (*parameter.__all__,
-           *in_parallel.__all__)
+from . import (plots, utils)
 
-from .parameter import *
-from .in_parallel import *
+__all__ = (*plots.__all__, *utils.__all__)
+
+from .plots import *
+from .utils import *
+

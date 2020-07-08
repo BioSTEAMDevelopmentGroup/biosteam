@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Nov 18 16:17:00 2017
-
-@author: Yoel Cortes-Pena
-"""
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
 from setuptools import setup
 #from Cython.Build import cythonize
 #import numpy
@@ -12,12 +13,12 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.19.30',
+    version='2.20.1',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
-    install_requires=['IPython>=7.9.0', 'biorefineries==2.14.7',
-                      'thermosteam==0.19.24', 'graphviz>=0.8.3',
+    install_requires=['IPython>=7.9.0', 'biorefineries==2.15.1',
+                      'thermosteam==0.20.1', 'graphviz>=0.8.3',
                       'chaospy>=3.0.11', 'pipeml>=0.1'],
     python_requires=">=3.6",
     package_data=
@@ -30,6 +31,7 @@ setup(
                       'evaluation/*', 
                       'evaluation/evaluation_tools/*',
                       'process_tools/*',
+                      'plots/*',
                       'units/*',
                       'units/design_tools/*',
                       'units/facilities/*',

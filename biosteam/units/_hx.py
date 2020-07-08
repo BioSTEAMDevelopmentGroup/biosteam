@@ -583,6 +583,14 @@ class HXprocess(HX):
         s_out_a, s_out_b  = self.outs
         return s_in_a, s_in_b, s_out_a, s_out_b
     
+    def _setup(self):
+        for i in self._ins:
+            if i.source: i.empty()
+            
+    def simulate(self):
+        self._run()
+        self._summary()
+    
     def _run(self):
         s1_in, s2_in = self._ins
         s1_out, s2_out = self._outs

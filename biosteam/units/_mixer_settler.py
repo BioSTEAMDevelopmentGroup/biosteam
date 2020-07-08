@@ -8,6 +8,7 @@
 """
 """
 import biosteam as bst
+from .._graphics import mixer_settler_graphics
 
 __all__ = ('MixerSettler',)
 
@@ -16,6 +17,7 @@ class MixerSettler(bst.Unit):
     _ins_size_is_fixed = False
     _N_outs = 2
     auxiliary_unit_names = ('mixer', 'settler')
+    _graphics = mixer_settler_graphics
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, 
                  mixer_data={}, settler_data={}, model="LLE"):

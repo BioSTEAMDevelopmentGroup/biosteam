@@ -549,9 +549,8 @@ class System(metaclass=system):
     def _setup(self):
         """Setup each element of the system."""
         isa = isinstance
-        for a in self.path:
-            if isa(a, (Unit, System)): a._setup()
-            else: pass # Assume it is a function
+        for i in self.path:
+            if isa(i, (Unit, System)): i._setup()
         
     def _run(self):
         """Rigorous run each element of the system."""

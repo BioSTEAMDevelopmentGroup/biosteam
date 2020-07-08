@@ -20,6 +20,7 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'get_heating_duty',
            'get_electricity_consumption',
            'get_electricity_production',
+           'get_tea_results',
            'group_by_lines',
            'group_by_types',
            'filter_by_types',
@@ -98,6 +99,32 @@ def get_electricity_consumption(power_utilities):
 def get_electricity_production(power_utilities):
     """Return the total electricity production of all PowerUtility objects in MW."""
     return sum([i.production for i in power_utilities]) / 1000 # MW
+
+def get_tea_results(tea, product=None, feedstock=None):
+    """Return a dictionary with general TEA results."""
+    TCI = tea.TCI / 1e6
+    VOC = tea.VOC / 1e6
+    FOC = tea.FOC / 1e6
+    installed_cost = tea.installed_cost / 1e6
+    material_cost = tea.material_cost / 1e6
+    utility_cost = tea.utility_cost / 1e6
+    sales = tea.sales / 1e6 
+    dct = {
+        'TCI [million USD]': round(TCI),
+        'Installed equipment cost [million USD]': round(installed_cost),
+        'VOC [million USD/yr]': round(VOC),
+        'FOC [million USD/yr]': round(FOC),
+        'Material cost [million USD/yr]': round(material_cost),
+        'Utility cost [million USD/yr]': round(utility_cost),
+        'Sales [million USD/yr]': round(sales),
+    }
+    if product:
+        MPSP = tea.solve_price(product) * 907.18474
+        dct['MPSP [USD/ton]'] = round(MPSP)
+    if feedstock:
+        MFP = tea.solve_price(feedstock) * 907.18474
+        dct['MFP [USD/ton]'] = round(MFP)
+    return dct
 
 def stream_mass_balance(chemical_IDs, variable_inlets, constant_inlets=(),
                         constant_outlets=(), is_exact=True, balance='flow'):
