@@ -80,7 +80,7 @@ class PowerUtility:
             self.production = 0.
         else:
             self.consumption = 0.
-            self.production = rate
+            self.production = -rate
     
     @property
     def cost(self):
