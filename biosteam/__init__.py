@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -13,8 +12,6 @@ Created on Sat Oct 28 17:28:09 2017
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-"""
->>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
