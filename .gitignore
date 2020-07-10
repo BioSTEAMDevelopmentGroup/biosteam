@@ -7,3 +7,8 @@ docs/.ipynb_checkpoints
 docs/_build/*
 docs/_static/*
 docs/_templates/*
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
