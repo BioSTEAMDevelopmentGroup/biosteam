@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Sep  1 17:35:28 2018
 
@@ -7,6 +8,19 @@ Created on Sat Sep  1 17:35:28 2018
 import numpy as np
 from .. import Unit
 from ._process_specification import ProcessSpecification
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+from .._unit import Unit
+from ..process_tools import stream_mass_balance
+from .._graphics import process_specification_graphics
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from ..utils import static
 
 __all__ = ('MassBalance',)
@@ -96,10 +110,15 @@ class MassBalance(Unit):
                      Ethanol  500
     
     """
+<<<<<<< HEAD
     _graphics = ProcessSpecification._graphics
     power_utility = None
     heat_utilities = ()
     results = None
+=======
+    _graphics = process_specification_graphics
+    _N_heat_utilities = 0
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     _N_ins = _N_outs = 1
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
@@ -107,12 +126,16 @@ class MassBalance(Unit):
                  constant_outlets=(), constant_inlets=(),
                  is_exact=True, balance='flow',
                  description=""):
+<<<<<<< HEAD
         self._numerical_specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
         self._assert_compatible_property_package()
         self._register(ID)
+=======
+        Unit.__init__(self, ID, ins, outs, thermo)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.variable_inlets = variable_inlets
         self.constant_inlets = constant_inlets
         self.constant_outlets = constant_outlets
@@ -122,6 +145,7 @@ class MassBalance(Unit):
         self.description = description
         
     def _run(self):
+<<<<<<< HEAD
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
@@ -191,6 +215,16 @@ class MassBalance(Unit):
         
         else:
             raise ValueError( "balance type must be one of the following: 'flow', 'composition'")
+=======
+        stream_mass_balance(
+            chemical_IDs=self.chemical_IDs,
+            variable_inlets=self.variable_inlets,
+            constant_outlets=self.constant_outlets, 
+            constant_inlets=self.constant_inlets,
+            is_exact=self.is_exact,
+            balance=self.balance
+        )
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 
 # %% Energy Balance Unit

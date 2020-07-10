@@ -38,6 +38,10 @@ Key Features & Capabilities
    tutorial/Inheriting_from_Unit
    tutorial/Unit_decorators
    tutorial/Monte_Carlo
+<<<<<<< HEAD
+=======
+   tutorial/TRY-Analysis
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 
 .. toctree::
@@ -54,6 +58,10 @@ Key Features & Capabilities
    Flowsheet
    exceptions
    units/units
+<<<<<<< HEAD
+=======
+   process_tools/process_tools
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
    evaluation/evaluation
 
 

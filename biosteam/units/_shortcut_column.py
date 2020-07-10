@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Mar 19 09:22:08 2020
 
@@ -6,6 +7,19 @@ Created on Thu Mar 19 09:22:08 2020
 """
 from ._binary_distillation import BinaryDistillation
 import flexsolve as flx
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+from ._binary_distillation import BinaryDistillation
+import flexsolve as flx
+from thermosteam.exceptions import InfeasibleRegion
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from thermosteam.equilibrium import DewPoint, BubblePoint
 import numpy as np
 
@@ -13,11 +27,19 @@ __all__ = ('ShortcutColumn',)
 
 # %% Functions
 
+<<<<<<< HEAD
 @flx.njitable
 def geometric_mean(a, b):
     return (a * b) ** (0.5)
 
 @flx.njitable
+=======
+@flx.njitable(cache=True)
+def geometric_mean(a, b):
+    return (a * b) ** 0.5
+
+@flx.njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_index):
     alpha_distillate = K_distillate / K_distillate[HK_index]
     alpha_bottoms = K_bottoms / K_bottoms[HK_index]
@@ -25,17 +47,26 @@ def compute_mean_volatilities_relative_to_heavy_key(K_distillate, K_bottoms, HK_
                                 alpha_bottoms)
     return alpha_mean
 
+<<<<<<< HEAD
 @flx.njitable    
+=======
+@flx.njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_partition_coefficients(y, x):
     x[x <= 1e-16] = 1e-16
     return y / x
 
+<<<<<<< HEAD
 @flx.njitable    
+=======
+@flx.njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
                                                          alpha_mean,
                                                          LHK_index):
     LK_index = LHK_index[0]
     alpha_LK = alpha_mean[LK_index]
+<<<<<<< HEAD
     A_dummy = (1 - b_Hr) / b_Hr
     A = np.log10(A_dummy)
     B = np.log10(d_Lr / (1 - d_Lr) / A_dummy) / np.log10(alpha_LK)
@@ -47,6 +78,18 @@ def compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
     return distillate_recoveries
 
 @flx.njitable
+=======
+    A_dummy = (1. - b_Hr) / b_Hr
+    A = np.log10(A_dummy)
+    B = np.log10(d_Lr / (1. - d_Lr) / A_dummy) / np.log10(alpha_LK)
+    dummy = 10.**A * alpha_mean**B
+    distillate_recoveries = dummy / (1. + dummy)
+    distillate_recoveries[LHK_index] = [d_Lr, 1. - b_Hr]
+    distillate_recoveries[distillate_recoveries < 1e-12] = 0.
+    return distillate_recoveries
+
+@flx.njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha_LK):
     LK, HK = LHK_distillate
     LHK_ratio_distillate = LK / HK
@@ -55,6 +98,7 @@ def compute_minimum_theoretical_stages_Fenske(LHK_distillate, LHK_bottoms, alpha
     N = np.log10(LHK_ratio_distillate * HLK_ratio_bottoms) / np.log10(alpha_LK)
     return N
 
+<<<<<<< HEAD
 @flx.njitable
 def objective_function_Underwood_constant(theta, q, z_f, alpha_mean):
     return (alpha_mean * z_f / (alpha_mean - theta)).sum() - 1 + q
@@ -72,12 +116,36 @@ def compute_theoretical_stages_Gilliland(Nm, Rm, R):
     return np.ceil(N)
 
 @flx.njitable
+=======
+@flx.njitable(cache=True)
+def objective_function_Underwood_constant(theta, q, z_f, alpha_mean):
+    return (alpha_mean * z_f / (alpha_mean - theta)).sum() - 1.0 + q
+
+@flx.njitable(cache=True)
+def compute_minimum_reflux_ratio_Underwood(alpha_mean, z_d, theta):
+    Rm = (alpha_mean * z_d / (alpha_mean - theta)).sum() - 1.0
+    return Rm
+
+@flx.njitable(cache=True)
+def compute_theoretical_stages_Gilliland(Nm, Rm, R):
+    X = (R - Rm) / (R + 1.)
+    Y = 1. - np.exp((1. + 54.4*X) / (11. + 117.2*X) * (X - 1.) / X**0.5)
+    N = (Y + Nm) / (1. - Y)
+    return np.ceil(N)
+
+@flx.njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_feed_stage_Kirkbride(N, B, D,
                                  feed_HK_over_LK,
                                  z_LK_bottoms,
                                  z_HK_distillate):
+<<<<<<< HEAD
     m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2) ** 0.206
     return np.floor(N / (m_over_p + 1))
+=======
+    m_over_p = (B/D * feed_HK_over_LK * (z_LK_bottoms / z_HK_distillate)**2.) ** 0.206
+    return np.floor(N / (m_over_p + 1.))
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 
 # %%
@@ -200,10 +268,17 @@ class ShortcutColumn(BinaryDistillation,
     Distillation                                    Units       D1
     Cooling water       Duty                        kJ/hr -7.9e+06
                         Flow                      kmol/hr  5.4e+03
+<<<<<<< HEAD
                         Cost                       USD/hr     2.63
     Low pressure steam  Duty                        kJ/hr 1.24e+07
                         Flow                      kmol/hr      320
                         Cost                       USD/hr       76
+=======
+                        Cost                       USD/hr     2.64
+    Low pressure steam  Duty                        kJ/hr 1.43e+07
+                        Flow                      kmol/hr      368
+                        Cost                       USD/hr     87.5
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     Design              Theoretical feed stage                   8
                         Theoretical stages                      16
                         Minimum reflux              Ratio     1.06
@@ -222,10 +297,17 @@ class ShortcutColumn(BinaryDistillation,
                         Stripper trays                USD 2.02e+04
                         Rectifier tower               USD 8.44e+04
                         Stripper tower                USD 1.01e+05
+<<<<<<< HEAD
                         Condenser                     USD 4.19e+04
                         Boiler                        USD 2.41e+04
     Total purchase cost                               USD 2.87e+05
     Utility cost                                   USD/hr     78.6
+=======
+                        Condenser                     USD 4.17e+04
+                        Boiler                        USD 2.99e+04
+    Total purchase cost                               USD 2.92e+05
+    Utility cost                                   USD/hr     90.1
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     """
     line = 'Distillation'
     _ins_size_is_fixed = False
@@ -233,6 +315,7 @@ class ShortcutColumn(BinaryDistillation,
     _N_outs = 2     
      
     def _run(self):
+<<<<<<< HEAD
         # Set starting point for solving column
         self._run_binary_distillation_mass_balance()
         self._add_trace_heavy_and_light_non_keys_in_products()
@@ -245,12 +328,62 @@ class ShortcutColumn(BinaryDistillation,
         LHK = [i.ID for i in self.chemicals[self.LHK]]
         self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
         
+=======
+        # Initial mass balance
+        self._run_binary_distillation_mass_balance()
+        
+        # Initialize objects to calculate bubble and dew points
+        vle_chemicals = self.feed.vle_chemicals
+        reset_cache = self._vle_chemicals != vle_chemicals
+        if reset_cache:
+            self._dew_point = DewPoint(vle_chemicals, self.thermo)
+            self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
+            self._IDs_vle = self._dew_point.IDs
+            self._vle_chemicals = vle_chemicals
+            
+        # Setup light and heavy keys
+        LHK = [i.ID for i in self.chemicals[self.LHK]]
+        IDs = self._IDs_vle
+        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        
+        # Add temporary specification
+        composition_spec = self.product_specification_format == 'Composition'
+        if composition_spec:
+            feed = self.feed
+            distillate, bottoms = self.outs
+            LK_index, HK_index = LHK_index = self._LHK_index
+            LK_feed, HK_feed = feed.mol[LHK_index]
+            self._Lr = distillate.mol[LK_index] / LK_feed
+            self._Hr = bottoms.mol[HK_index] / HK_feed
+            
+        # Set starting point for solving column
+        if reset_cache:
+            self._add_trace_heavy_and_light_non_keys_in_products()
+            distillate_recoveries = self._estimate_distillate_recoveries()
+            self._distillate_recoveries = distillate_recoveries
+            self._update_distillate_recoveries(distillate_recoveries)
+        else:
+            distillate_recoveries = self._distillate_recoveries
+            lb = 1e-6; ub = 1 - 1e-6
+            distillate_recoveries[distillate_recoveries < lb] = lb
+            distillate_recoveries[distillate_recoveries > ub] = ub
+            self._update_distillate_recoveries(distillate_recoveries)
+        
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         # Solve for new recoveries
         self._solve_distillate_recoveries()
         self._update_distillate_and_bottoms_temperature()
         
+<<<<<<< HEAD
     def _setup_cache(self):
         pass
+=======
+        # Remove temporary data
+        if composition_spec: self._Lr = self._Hr = None
+        
+    def _setup_cache(self):
+        self._vle_chemicals = None
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     def plot_stages(self):
         raise TypeError('cannot plot stages for shortcut column')
@@ -331,10 +464,20 @@ class ShortcutColumn(BinaryDistillation,
         q = self._get_feed_quality()
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
+<<<<<<< HEAD
         bracket = flx.fast.find_bracket(objective_function_Underwood_constant,
                                         1, alpha_LK, -np.inf, np.inf, args=args)
         theta = flx.fast.IQ_interpolation(objective_function_Underwood_constant,
                                           *bracket, args=args)
+=======
+        ub = np.inf
+        lb = -np.inf
+        bracket = flx.find_bracket(objective_function_Underwood_constant,
+                                   1.0, alpha_LK, lb, ub, args)
+        theta = flx.IQ_interpolation(objective_function_Underwood_constant,
+                                     *bracket, args=args, checkiter=False,
+                                     checkbounds=False)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
@@ -370,6 +513,7 @@ class ShortcutColumn(BinaryDistillation,
     def _estimate_distillate_recoveries(self):
         # Use Hengsteback and Geddes equations
         alpha_mean = self._estimate_mean_volatilities_relative_to_heavy_key()
+<<<<<<< HEAD
         feed = self.feed
         distillate, bottoms = self.outs
         LHK_index = self._LHK_index
@@ -380,6 +524,11 @@ class ShortcutColumn(BinaryDistillation,
         return compute_distillate_recoveries_Hengsteback_and_Gaddes(d_Lr, b_Hr,
                                                                     alpha_mean,
                                                                     LHK_vle_index)
+=======
+        return compute_distillate_recoveries_Hengsteback_and_Gaddes(self.Lr, self.Hr,
+                                                                    alpha_mean,
+                                                                    self._LHK_vle_index)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _update_distillate_recoveries(self, distillate_recoveries):
         feed = self.feed
@@ -390,6 +539,7 @@ class ShortcutColumn(BinaryDistillation,
         bottoms.imol[IDs] = feed_mol - distillate_mol
         
     def _solve_distillate_recoveries(self):
+<<<<<<< HEAD
         distillate_recoveries = self._estimate_distillate_recoveries()
         try:
             distillate_recoveries = flx.aitken(self._recompute_distillate_recoveries,
@@ -404,6 +554,17 @@ class ShortcutColumn(BinaryDistillation,
             raise flx.InfeasibleRegion('distillate composition')
         self._update_distillate_recoveries(distillate_recoveries)
         distillate_recoveries = self._estimate_distillate_recoveries()
+=======
+        distillate_recoveries = self._distillate_recoveries
+        flx.aitken(self._recompute_distillate_recoveries,
+                   distillate_recoveries, 1e-8, checkiter=False)
+        
+    def _recompute_distillate_recoveries(self, distillate_recoveries):
+        if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
+            raise InfeasibleRegion('distillate composition')
+        self._update_distillate_recoveries(distillate_recoveries)
+        self._distillate_recoveries = distillate_recoveries = self._estimate_distillate_recoveries()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         return distillate_recoveries
         
     

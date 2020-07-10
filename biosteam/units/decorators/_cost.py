@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed May  1 19:05:53 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import biosteam as bst
 import copy
@@ -33,15 +43,23 @@ class CostItem:
         Exponential factor.
     kW : float
         Electricity rate.
+<<<<<<< HEAD
     BM : float
         Bare module factor (installation factor).
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     N : str
         Attribute name for number of parallel units.
     
     """
     __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
+<<<<<<< HEAD
                  'cost', 'n', 'kW', 'BM', 'N')
     def __init__(self, basis, units, S, ub, CE, cost, n, kW, BM, N):
+=======
+                 'cost', 'n', 'kW', 'N')
+    def __init__(self, basis, units, S, ub, CE, cost, n, kW, N):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         if ub and not N: N='#'
         self._basis = basis
         self._units = units
@@ -51,7 +69,10 @@ class CostItem:
         self.cost = cost
         self.n = n
         self.kW = kW
+<<<<<<< HEAD
         self.BM = BM
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.N = N
     
     __getitem__ = object.__getattribute__
@@ -75,11 +96,18 @@ class CostItem:
              +f" cost  {self.cost:.3g}\n"
              +f" n     {self.n:.3g}\n"
              +f" kW    {self.kW:.3g}\n"
+<<<<<<< HEAD
              +f" BM    {self.BM:.3g}\n"
             +(f" N     '{self.N}'" if self.N else ""))
     show = _ipython_display_
 
 def _cost(self):
+=======
+            +(f" N     '{self.N}'" if self.N else ""))
+    show = _ipython_display_
+
+def _decorated_cost(self):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     D = self.design_results
     C = self.purchase_costs
     kW = 0
@@ -92,7 +120,11 @@ def _cost(self):
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
             kW += x.kW*q
         elif x.N:
+<<<<<<< HEAD
             N = getattr(self, x.N)
+=======
+            N = getattr(self, x.N, None) or D[x.N]
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             F = S/x.S
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
             kW += N*x.kW*F
@@ -102,6 +134,7 @@ def _cost(self):
             kW += x.kW*F
     if kW: self.power_utility(kW)
 
+<<<<<<< HEAD
 def _extended_cost(self):
     _cost(self)
     self._end_decorated_cost_()
@@ -121,6 +154,10 @@ def installation_cost(self):
     return sum([C[i]*j.BM for i,j in self.cost_items.items()])
 
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None, N=None):    
+=======
+def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
+         units=None, fsize=None, N=None):    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up:
     
@@ -160,7 +197,13 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
     return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N)
 
 def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
+<<<<<<< HEAD
     if kW: cls._has_power_utility = True
+=======
+    # Make sure new _units dictionary is defined
+    if '_units' not in cls.__dict__:
+        cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     if basis in cls._units:
         if fsize:
             raise RuntimeError(f"cost basis '{basis}' already defined in class, cannot pass 'fsize' argument")
@@ -169,7 +212,11 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
         elif units != cls._units[basis]:
             raise RuntimeError(f"cost basis '{basis}' already defined in class with units '{cls._units[basis]}'")
     elif units:
+<<<<<<< HEAD
         design._add_design2cls(cls, basis, units, fsize)
+=======
+        design.add_design_basis_to_cls(cls, basis, units, fsize)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     else:
         raise RuntimeError(f"units of cost basis '{basis}' not available in '{cls.__name__}._units' dictionary, must pass units or define in class")
     if hasattr(cls, 'cost_items'):
@@ -179,6 +226,7 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
             raise ValueError("must pass an 'ID' for purchase cost item")
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
+<<<<<<< HEAD
         cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, BM, N)
     else:
         ID = ID or cls.line
@@ -190,5 +238,18 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
                 cls._cost = _cost
         cls.BM = BM_property
         cls.installation_cost = installation_cost
+=======
+        cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, N)
+        cls._BM[ID] = BM
+    else:
+        ID = ID or cls.line
+        cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, N)}
+        if '_BM' not in cls.__dict__:
+            cls._BM = cls._BM.copy() if hasattr(cls, '_BM') else {}
+        cls._BM[ID] = BM
+        if '_cost' not in cls.__dict__:
+            cls._cost = _decorated_cost
+        cls._decorated_cost = _decorated_cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     return cls
 

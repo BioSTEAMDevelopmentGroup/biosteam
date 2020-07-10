@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 General functional algorithms for the design of heat exchangers.
 
@@ -6,7 +15,12 @@ General functional algorithms for the design of heat exchangers.
 from numpy import log as ln
 from flexsolve import njitable
 
+<<<<<<< HEAD
 __all__ = ('heuristic_overall_heat_transfer_coefficient',
+=======
+__all__ = ('counter_current_heat_exchange',
+           'heuristic_overall_heat_transfer_coefficient',
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
            'heuristic_pressure_drop',
            'heuristic_tubeside_and_shellside_pressure_drops',
            'order_streams',
@@ -14,6 +28,103 @@ __all__ = ('heuristic_overall_heat_transfer_coefficient',
            'compute_heat_transfer_area',
            'compute_LMTD')
 
+<<<<<<< HEAD
+=======
+# %% Functional heat exchanger
+
+def heat_exchange_to_condition(s_in, s_out, T, phase=None):
+    """
+    Set the outlet stream condition and return duty required to achieve 
+    said condition.
+    """
+    if phase:
+        s_out.T = T
+        s_out.phase = phase
+    else:
+        s_out.vle(T=T, P=s_out.P)
+    return s_out.H - s_in.H
+
+def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
+                                  dT, T_lim0=None, T_lim1=None,
+                                  phase0=None, phase1=None):
+    """
+    Allow outlet streams to exchange heat until either the given temperature 
+    limits or the pinch temperature and return the total heat transfer 
+    [Q; in kJ/hr].
+    """
+    # Counter_current_heat_exchange_setup:
+    # First find the hot inlet, cold inlet, hot outlet and cold outlet streams
+    # along with the maximum temperature approaches for the hotside and the 
+    # cold side.
+    if s0_in.T > s1_in.T:
+        s_hot_in = s0_in
+        s_cold_in = s1_in
+        s_hot_out = s0_out
+        s_cold_out = s1_out
+        T_lim_coldside = T_lim0
+        T_lim_hotside = T_lim1
+        phase_coldside = phase0
+        phase_hotside = phase1
+    else:
+        s_cold_in = s0_in
+        s_hot_in = s1_in
+        s_cold_out = s0_out
+        s_hot_out = s1_out
+        T_lim_hotside = T_lim0
+        T_lim_coldside = T_lim1
+        phase_hotside = phase0
+        phase_coldside = phase1
+    
+    if (s_hot_in.T - s_cold_in.T) <= dT: return 0. # No heat exchange
+    
+    T_pinch_coldside = s_cold_in.T + dT
+    if T_lim_coldside:
+        T_lim_coldside = max(T_pinch_coldside, T_lim_coldside) 
+    else:
+        T_lim_coldside = T_pinch_coldside
+    
+    T_pinch_hotside = s_hot_in.T - dT
+    if T_lim_hotside:
+        T_lim_hotside = min(T_pinch_hotside, T_lim_hotside) 
+    else:
+        T_lim_hotside = T_pinch_hotside
+       
+    # Find which side reaches the pinch first by selecting the side that needs
+    # the least heat transfer to reach the pinch.
+       
+    # Pinch on the cold side
+    Q_hot_stream = heat_exchange_to_condition(s_hot_in, s_hot_out, 
+                                              T_lim_coldside, phase_coldside)
+    
+    # Pinch on the hot side
+    Q_cold_stream = heat_exchange_to_condition(s_cold_in, s_cold_out, 
+                                               T_lim_hotside, phase_hotside)
+    
+    if Q_hot_stream > 0 or Q_cold_stream < 0:
+        # Sanity check
+        raise RuntimeError('inlet stream not in vapor-liquid equilibrium')
+    
+    if Q_cold_stream < -Q_hot_stream:
+        # Pinch on the hot side            
+        Q = Q_cold_stream
+        if phase_coldside:
+            s_hot_out.H = s_hot_in.H - Q
+        else:
+            s_hot_out.vle(H=s_hot_in.H - Q, P=s_hot_out.P)
+    else:
+        # Pinch on the cold side
+        Q = Q_hot_stream
+        if phase_hotside:
+            s_cold_out.H = s_cold_in.H - Q
+        else:
+            s_cold_out.vle(H=s_cold_in.H - Q, P=s_cold_out.P)
+    
+    return abs(Q)
+
+
+# %% Heuristics
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho):
     """
     Return a heuristic estimate of the overall heat transfer coefficient
@@ -112,6 +223,11 @@ def heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho,
         dP_shell = dP_h
     return dP_tube, dP_shell
 
+<<<<<<< HEAD
+=======
+# %% General functions
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def order_streams(in_a, in_b, out_a, out_b):
     """
     Return cold and hot inlet and outlet streams.
@@ -144,7 +260,13 @@ def order_streams(in_a, in_b, out_a, out_b):
     else:
         return in_b, in_a, out_b, out_a
 
+<<<<<<< HEAD
 @njitable
+=======
+# %% Computational functions
+
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
     """Return LMTF correction factor using the fallback equation for
     `compute_Fahkeri_LMTD_correction_factor` when logarithms cannot be computed."""
@@ -162,7 +284,11 @@ def compute_fallback_Fahkeri_LMTD_correction_factor(P, N_shells):
             Ft = (2**0.5*J)/ln(K)
     return Ft
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     r"""
     Return the log-mean temperature difference correction factor `Ft` 
@@ -246,13 +372,21 @@ def compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells):
     if Ft > 1.0:
         Ft = 1.0
     elif Ft < 0.5:
+<<<<<<< HEAD
         # Bad design, probably a heat exchanger network with operating
+=======
+        # Bad design, probably a heat exchanger network operating
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         # too close to the pinch. Fahkeri may not be valid, so give
         # a conservative estimate of the correction factor.
         Ft = 0.5
     return Ft
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_heat_transfer_area(LMTD, U, Q, ft):
     """
     Return required heat transfer area by LMTD correction factor method.
@@ -269,7 +403,11 @@ def compute_heat_transfer_area(LMTD, U, Q, ft):
     """
     return Q/(U*LMTD*ft)   
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     r'''
     Return the log-mean temperature difference of an ideal counterflow
@@ -310,9 +448,15 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
 
     Examples
     --------
+<<<<<<< HEAD
     >>> LMTD(100., 60., 30., 40.2)
     43.200409294131525
     >>> LMTD(100., 60., 30., 40.2, counterflow=False)
+=======
+    >>> compute_LMTD(100., 60., 30., 40.2)
+    43.200409294131525
+    >>> compute_LMTD(100., 60., 30., 40.2, counterflow=False)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     39.75251118049003
     
     '''
@@ -322,9 +466,17 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     else:
         dTF1 = Thi-Tci
         dTF2 = Tho-Tco
+<<<<<<< HEAD
     log_factor = ln(dTF2/dTF1)
     if log_factor < 0.0001:
         LMTD = dTF1
     else:
         LMTD = (dTF2 - dTF1)/log_factor
+=======
+    dTF21 = dTF2 - dTF1
+    if abs(dTF21) < 1e-8:
+        LMTD = dTF1
+    else:
+        LMTD = dTF21/ln(dTF2/dTF1)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     return LMTD

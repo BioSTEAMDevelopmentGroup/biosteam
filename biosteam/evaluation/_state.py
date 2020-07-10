@@ -1,15 +1,32 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu May  9 13:38:57 2019
 
 @author: Guest Group
 """
 from ._block import Block
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+from ._block import Block
+from ._parameter import Parameter
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from .. import Unit
 from thermosteam import Stream
 import numpy as np
 import pandas as pd
+<<<<<<< HEAD
 from chaospy import J
+=======
+from chaospy import J, Uniform
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from .evaluation_tools import load_default_parameters
 
 __all__ = ('State',)
@@ -21,6 +38,7 @@ def param_unit(param):
     if isinstance(element, Unit): return element
     elif isinstance(element, Stream): return element._sink
 
+<<<<<<< HEAD
 def parameter(system, element, setter, kind, name, distribution, units, baseline):
     if kind == 'coupled':
         return Block(element, system).parameter(setter, name=name,
@@ -36,6 +54,22 @@ def parameter(system, element, setter, kind, name, distribution, units, baseline
         return Block(element, None).parameter(setter, simulate, name,
                     distribution=distribution, units=units, baseline=baseline)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
+=======
+def parameter(system, element, setter, kind, name,
+              distribution, units, baseline, bounds):
+    if kind == 'coupled':
+        block = Block(element, system); simulate = block.simulate
+    elif kind == 'isolated':
+        block = Block(element, None); simulate = None
+    elif kind == 'design':
+        block = Block(element, None); simulate = element._summary
+    elif kind == 'cost':
+        block = Block(element, None); simulate = element._cost
+    else:
+        raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
+    return block.parameter(setter, simulate, name, distribution, 
+                           units, baseline, bounds)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 class UpdateWithSkipping:
     __slots__ = ('cache', 'params')
@@ -82,7 +116,13 @@ class State:
     ----------
     system : System
     skip=False : bool
+<<<<<<< HEAD
         If True, skip simulation for repeated states
+=======
+        If True, skip simulation for repeated states.
+    params=None : Iterable[Parameter]
+        Parameters to sample from.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     """
     __slots__ = ('_system', # [System]
@@ -92,9 +132,15 @@ class State:
     
     load_default_parameters = load_default_parameters
     
+<<<<<<< HEAD
     def __init__(self, system, skip=False):
         self._system = system
         self._params = []
+=======
+    def __init__(self, system, skip=False, params=None):
+        self._system = system
+        self._params = list(params) if params else []
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._update = None
         self._skip = skip
     
@@ -113,6 +159,18 @@ class State:
     def get_baseline_sample(self):
         return np.array([i.baseline for i in self.get_parameters()])
     
+<<<<<<< HEAD
+=======
+    def set_parameters(self, parameters):
+        """Set parameters."""
+        parameters = list(parameters)
+        isa = isinstance
+        for i in parameters:
+            assert isa(i, Parameter), 'all elements must be Parameter objects'
+        self._erase()
+        self._params = parameters
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def get_parameters(self):
         """Return parameters."""
         if not self._update: self._load_params()
@@ -145,11 +203,20 @@ class State:
                 values = distribution._repr.values()
                 data.append((element, name, units, shape, *values))
             tables_by_shape[shape] =  pd.DataFrame(data, columns=columns)
+<<<<<<< HEAD
         return tables_by_shape
     
     def parameter(self, setter=None, element=None, kind='isolated',
                   name=None, distribution=None, units=None, baseline=None):
         """Define and register parameter.
+=======
+        return tables_by_shape    
+    
+    def parameter(self, setter=None, element=None, kind='isolated', name=None, 
+                  distribution=None, units=None, baseline=None, bounds=None):
+        """
+        Define and register parameter.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         Parameters
         ----------    
@@ -170,31 +237,62 @@ class State:
                 Parameter units of measure
         baseline : float
             Baseline value of parameter.
+<<<<<<< HEAD
         
         Notes
         -----
         
         If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
+=======
+        bounds : tuple[float, float]
+            Lower and upper bounds of parameter.
+        
+        Notes
+        -----
+        If kind is 'coupled', account for downstream operations. Otherwise,
+        only account for given element. If kind is 'design' or 'cost', 
+        element must be a Unit object.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         """
         if not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
+<<<<<<< HEAD
                                                  distribution, units, baseline)
         param = parameter(self._system, element, setter, kind,
                           name, distribution, units, baseline)
+=======
+                                                 distribution, units, baseline,
+                                                 bounds)
+        param = parameter(self._system, element, setter, kind, name, 
+                          distribution, units, baseline, bounds)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._params.append(param)
         self._erase()
         return setter
     
+<<<<<<< HEAD
     def sample(self, N, rule): 
         """Return N samples from parameter distribution at given rule.
+=======
+    def sample(self, N, rule, uniform=False): 
+        """
+        Return N samples from parameter distribution at given rule.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         Parameters
         ----------
         N : int
             Number of samples.
         rule : str
+<<<<<<< HEAD
                Sampling rule.
+=======
+            Sampling rule.
+        uniform=False : bool, optional
+            Whether to assume a joint uniform distribution across parameter bounds. 
+            Otherwise, sample from a joint distribution of all parameters.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         Notes
         -----
@@ -226,7 +324,16 @@ class State:
             
         """
         if not self._update: self._load_params()
+<<<<<<< HEAD
         return J(*[i.distribution for i in self._params]).sample(N, rule).transpose()
+=======
+        parameters = self._params
+        if uniform:
+            distributions = [Uniform(*i.bounds) for i in parameters]
+        else:
+            distributions = [i.distribution for i in parameters]
+        return J(*distributions).sample(N, rule).transpose()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _erase(self):
         """Erase cached data."""
@@ -234,8 +341,15 @@ class State:
     
     def _load_params(self):
         """Load parameters."""
+<<<<<<< HEAD
         length = len(self._system._unit_path)
         index =  self._system._unit_path.index
+=======
+        system = self._system
+        unit_path = system._unit_path + list(system._facilities)
+        length = len(unit_path)
+        index =  unit_path.index
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._params.sort(key=lambda x: index(param_unit(x)) if x.system else length)
         self._update = (UpdateWithSkipping if self._skip 
                         else UpdateWithoutSkipping)(self._params)

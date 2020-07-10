@@ -1,9 +1,20 @@
+<<<<<<< HEAD
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created on Thu Aug 23 19:33:20 2018
 
 @author: yoelr
+=======
+# -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import numpy as np
 from math import ceil
@@ -115,8 +126,14 @@ class BinaryDistillation(Unit):
     k : float
         Ratio of reflux to minimum reflux.
     Rmin : float, optional
+<<<<<<< HEAD
         User enforced minimum reflux ratio. If the actual minimum reflux ratio is less than `Rmin`, this enforced value is ignored. Defaults to 0.6.
     specification="Composition" : "Composition" or "Recovery"
+=======
+        User enforced minimum reflux ratio. If the actual minimum reflux ratio
+        is more than `Rmin`, this enforced value is ignored. Defaults to 0.3.
+    product_specification_format=None : "Composition" or "Recovery"
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         If composition is used, `y_top` and `x_bot` must be specified.
         If recovery is used, `Lr` and `Hr` must be specified.
     P=101325 : float
@@ -200,12 +217,21 @@ class BinaryDistillation(Unit):
                      --------  105 kmol/hr
     >>> D1.results()
     Distillation                                    Units        D1
+<<<<<<< HEAD
     Cooling water       Duty                        kJ/hr -5.11e+06
                         Flow                      kmol/hr  3.49e+03
                         Cost                       USD/hr      1.71
     Low pressure steam  Duty                        kJ/hr  9.49e+06
                         Flow                      kmol/hr       244
                         Cost                       USD/hr      58.1
+=======
+    Cooling water       Duty                        kJ/hr -5.12e+06
+                        Flow                      kmol/hr   3.5e+03
+                        Cost                       USD/hr      1.71
+    Low pressure steam  Duty                        kJ/hr  1.09e+07
+                        Flow                      kmol/hr       280
+                        Cost                       USD/hr      66.5
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     Design              Theoretical feed stage                    9
                         Theoretical stages                       13
                         Minimum reflux              Ratio     0.687
@@ -224,6 +250,7 @@ class BinaryDistillation(Unit):
                         Stripper trays                USD  1.25e+04
                         Rectifier tower               USD  8.18e+04
                         Stripper tower                USD  6.81e+04
+<<<<<<< HEAD
                         Condenser                     USD  3.41e+04
                         Boiler                        USD  2.27e+04
     Total purchase cost                               USD  2.34e+05
@@ -231,6 +258,16 @@ class BinaryDistillation(Unit):
     
     """
     line = 'Distillation'
+=======
+                        Condenser                     USD  3.39e+04
+                        Boiler                        USD  2.72e+04
+    Total purchase cost                               USD  2.39e+05
+    Utility cost                                   USD/hr      68.2
+    
+    """
+    line = 'Distillation'
+    auxiliary_unit_names = ('condenser', 'boiler')
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     _graphics = vertical_column_graphics
     _N_heat_utilities = 0
     _ins_size_is_fixed = False
@@ -250,8 +287,17 @@ class BinaryDistillation(Unit):
               'Diameter': 'ft',
               'Wall thickness': 'in',
               'Weight': 'lb'}
+<<<<<<< HEAD
     # Bare module factor
     BM = 4.3
+=======
+    _BM = {'Rectifier tower': 4.3,
+           'Stripper tower': 4.3,
+           'Rectifier trays': 4.3,
+           'Stripper trays': 4.3,
+           'Tower': 4.3,
+           'Trays': 4.3}
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
@@ -260,12 +306,20 @@ class BinaryDistillation(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                 P=101325, *, LHK, k,
+<<<<<<< HEAD
                 Rmin=0.6,
+=======
+                Rmin=0.3,
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                 Lr=None,
                 Hr=None,
                 y_top=None,
                 x_bot=None, 
+<<<<<<< HEAD
                 product_specification_format='Composition',
+=======
+                product_specification_format=None,
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                 vessel_material='Carbon steel',
                 tray_material='Carbon steel',
                 tray_type='Sieve',
@@ -325,8 +379,18 @@ class BinaryDistillation(Unit):
         return self._product_specification_format
     @product_specification_format.setter
     def product_specification_format(self, spec):
+<<<<<<< HEAD
         assert spec in ('Composition', 'Recovery'), (
             "product specification format must be either 'Composition' or 'Recovery'")
+=======
+        if spec == 'Composition':
+            self._Lr = self._Hr = None
+        elif spec == 'Recovery':
+            self._y_top = self._x_bot = None
+        else:
+            raise AttributeError("product specification format must be either "
+                                 "'Composition' or 'Recovery'")
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._product_specification_format = spec
     
     @property
@@ -353,10 +417,13 @@ class BinaryDistillation(Unit):
         HNK = []
         gases = []
         solids = []
+<<<<<<< HEAD
         if Tb_light > Tb_heavy:
             LK, HK = LHK
             raise ValueError(f"light key must be lighter than heavy key "
                              f"(i.e. {LK}.Tb must be lower than {HK}.Tb)")
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         for chemical in chemicals:
             ID = chemical.ID
             Tb = chemical.Tb
@@ -541,6 +608,16 @@ class BinaryDistillation(Unit):
     def _set_distillation_product_specifications(self,
                                                  product_specification_format,
                                                  x_bot, y_top, Lr, Hr):
+<<<<<<< HEAD
+=======
+        if not product_specification_format:
+            if (x_bot and y_top) and not (Lr or Hr):
+                product_specification_format = 'Composition'
+            elif (Lr and Hr) and not (x_bot or y_top):
+                product_specification_format = 'Recovery'
+            else:
+                raise ValueError("must specify either x_top and y_top, or Lr and Hr")
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._product_specification_format = product_specification_format
         if product_specification_format == 'Composition':
             self.y_top = y_top
@@ -763,7 +840,11 @@ class BinaryDistillation(Unit):
         condensate.P = dp.P
         vap = condenser.ins[0]
         vap.mol = distillate.mol + condensate.mol
+<<<<<<< HEAD
         vap.T = distillate.T
+=======
+        vap.T = vap.dew_point_at_P().T
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         vap.P = distillate.P
         
         # Set boiler conditions
@@ -777,6 +858,7 @@ class BinaryDistillation(Unit):
         boilup.P = bp.P
         boilup.imol[bp.IDs] = boilup_flow
         liq = boiler.ins[0]
+<<<<<<< HEAD
         liq.mol = bottoms_product.mol + boilup.mol
         
     def _simulate_condenser(self):
@@ -797,6 +879,31 @@ class BinaryDistillation(Unit):
         # Cost boiler
         self._simulate_boiler()
         self.purchase_costs['Boiler'] = self.boiler.purchase_costs['Heat exchanger']
+=======
+        liq.phase = 'l'
+        liq.mol = bottoms_product.mol + boilup.mol
+        liq.T = liq.bubble_point_at_P().T
+    
+    def _simulate_components(self): 
+        boiler = self.boiler
+        condenser = self.condenser
+        Q_condenser = condenser.outs[0].H - condenser.ins[0].H
+        H_out = self.H_out
+        H_in = self.H_in
+        Q_overall_boiler =  H_out - H_in - Q_condenser
+        Q_boiler = boiler.outs[0].H - boiler.ins[0].H
+        if Q_boiler < Q_overall_boiler:
+            liquid = boiler.ins[0]
+            H_out_boiler = boiler.outs[0].H
+            liquid.H = H_out_boiler - Q_overall_boiler
+            boiler._design(Q_overall_boiler)
+            condenser._design(Q_condenser)
+        else:
+            boiler._design(Q_boiler)
+            condenser._design(Q_condenser)
+        boiler._cost()
+        condenser._cost()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _get_relative_volatilities_LHK(self):
         x_stages = self._x_stages
@@ -922,6 +1029,10 @@ class BinaryDistillation(Unit):
     def _cost(self):
         Design = self.design_results
         Cost = self.purchase_costs
+<<<<<<< HEAD
+=======
+        Cost.clear() # Prevent having previous results if `is_divided` changed
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         F_TT = self._F_TT
         F_VM = self._F_VM
         if self.is_divided:

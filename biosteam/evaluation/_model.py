@@ -1,13 +1,27 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Mar  7 23:17:38 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import numpy as np
 import pandas as pd
 from ._state import State
 from ._metric import Metric
+<<<<<<< HEAD
+=======
+from pipeml import FittedModel
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from biosteam.utils import TicToc
 from scipy.stats import spearmanr
 from biosteam import speed_up
@@ -16,9 +30,15 @@ __all__ = ('Model',)
 
 # %% Functions
 
+<<<<<<< HEAD
 varindices = lambda vars: [var.index for var in vars]
 varcolumns = lambda vars: pd.MultiIndex.from_tuples(
                                  varindices(vars),
+=======
+var_indices = lambda vars: [var.index for var in vars]
+var_columns = lambda vars: pd.MultiIndex.from_tuples(
+                                 var_indices(vars),
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                                  names=('Element', 'Variable'))
             
 
@@ -98,9 +118,17 @@ class Model(State):
         paramlen = len(params)
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
+<<<<<<< HEAD
         elif samples.ndim != 2:
             raise ValueError('samples must be 2 dimensional')
         elif samples.shape[1] != paramlen:
+=======
+        if samples.ndim == 1:
+            samples = samples[:, np.newaxis]
+        elif samples.ndim != 2:
+            raise ValueError('samples must be 2 dimensional')
+        if samples.shape[1] != paramlen:
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(params)})')
         key = lambda x: samples[x][i]
         N_samples = len(samples)
@@ -111,7 +139,11 @@ class Model(State):
         self._index = index
         empty_metric_data = np.zeros((N_samples, len(self.metrics)))
         self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+<<<<<<< HEAD
                                    columns=varcolumns(tuple(params)+self.metrics))
+=======
+                                   columns=var_columns(tuple(params)+self.metrics))
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._samples = samples
         
     def evaluate(self, thorough=True):
@@ -131,26 +163,51 @@ class Model(State):
         if samples is None:
             raise ValueError('must load samples or distribution before evaluating')
         index = self._index
+<<<<<<< HEAD
         values = [None] * len(index)
+=======
+        values = np.zeros([len(index), len(funcs)])
+        zip_ = zip
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         if thorough:
             if self._setters:
                 setters = self._setters
             else:
                 self._setters = setters = [p.setter for p in self._params]
             simulate = self._system.simulate
+<<<<<<< HEAD
             zip_ = zip
             for i in index:
                 for f, s in zip_(setters, samples[i]): f(s)
                 simulate()
                 values[i] = [i() for i in funcs]
+=======
+            for i in index:
+                for f, s in zip_(setters, samples[i]): f(s)
+                try:
+                    simulate()
+                    values[i] = [i() for i in funcs]
+                except:
+                    self._system.empty_recycles()
+                    try:
+                        simulate()
+                        values[i] = [i() for i in funcs]
+                    except:
+                        self._system.empty_recycles()
+                        values[i] = np.nan
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         else:
             update = self._update
             for i in index: 
                 update(samples[i])
                 values[i] = [i() for i in funcs]
+<<<<<<< HEAD
         
         cols = varindices(self._metrics)
         for k, v in zip_(cols, zip_(*values)): self.table[k] = v
+=======
+        self.table[var_indices(self._metrics)] = values
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def metrics_at_baseline(self):
         baseline = self.get_baseline_sample()
@@ -159,7 +216,12 @@ class Model(State):
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=True,
                                    multi_coordinate=False):
+<<<<<<< HEAD
         """Evaluate across coordinate and save sample metrics.
+=======
+        """
+        Evaluate across coordinate and save sample metrics.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         Parameters
         ----------
@@ -232,11 +294,19 @@ class Model(State):
         """
         data = self.table
         param_cols = list(data)
+<<<<<<< HEAD
         all_metric_names = varindices(self.metrics)
         if not metrics: 
             metric_names = all_metric_names
         else:
             metric_names = varindices(metrics)
+=======
+        all_metric_names = var_indices(self.metrics)
+        if not metrics: 
+            metric_names = all_metric_names
+        else:
+            metric_names = var_indices(metrics)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         params = list(self._params)
         
         for i in all_metric_names: param_cols.remove(i)
@@ -253,6 +323,15 @@ class Model(State):
         return pd.DataFrame(allrhos, index=param_descriptions,
                             columns=metric_names)
     
+<<<<<<< HEAD
+=======
+    def create_fitted_model(self, parameters, metrics):
+        Xdf = self.table[[i.index for i in parameters]]
+        ydf_index = metrics.index if isinstance(metrics, Metric) else [i.index for i in metrics]
+        ydf = self.table[ydf_index]
+        return FittedModel.from_dfs(Xdf, ydf)
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def __call__(self, sample):
         """Return list of metric values."""
         super().__call__(sample)

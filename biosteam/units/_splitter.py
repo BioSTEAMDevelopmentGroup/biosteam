@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Mon May 20 22:04:02 2019
 
@@ -36,6 +37,24 @@ def run_split_with_mixing(self):
     bot.mol[:] -= top_mol
 
 
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+from .. import Unit
+from .._graphics import splitter_graphics
+from ._process_specification import ProcessSpecification
+from .design_tools import separations
+
+__all__ = ('Splitter', 'FakeSplitter',
+           'ReversedSplitter', 'ReversedSplit')
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 class Splitter(Unit):
     """
     Create a splitter that separates mixed streams based on splits.
@@ -148,6 +167,7 @@ class Splitter(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split, order=None):
         Unit.__init__(self, ID, ins, outs, thermo)
+<<<<<<< HEAD
         chemicals = self.thermo.chemicals
         if isinstance(split, dict):
             assert not order, "cannot pass 'other' key word argument when split is a dictionary"
@@ -175,6 +195,12 @@ class Splitter(Unit):
         bot.phase = top.phase = feed.phase
         top.mol[:] = top_mol = feed_mol * self.split
         bot.mol[:] = feed_mol - top_mol
+=======
+        self._isplit = self.thermo.chemicals.isplit(split, order)
+
+    def _run(self):
+        separations.split(*self.ins, *self.outs, self.split)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 
 class FakeSplitter(Unit):

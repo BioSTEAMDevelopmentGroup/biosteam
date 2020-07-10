@@ -1,14 +1,29 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 21:23:56 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from .. import Unit
 from ._flash import RatioFlash
 from ._splitter import Splitter
+<<<<<<< HEAD
 from .decorators import cost
 import thermosteam as tmo
+=======
+from ._lle_unit import LLEUnit
+from .decorators import cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 __all__ = ('LiquidsCentrifuge',
            'LiquidsSplitCentrifuge', 
@@ -22,7 +37,11 @@ __all__ = ('LiquidsCentrifuge',
 # in Microalgae-Based Biofuels and Bioproducts, 2017
 
 @cost('Flow rate', units='m^3/hr', CE=525.4, cost=28100,
+<<<<<<< HEAD
       n=0.574, kW=3.66, ub=100, BM=2.03, N='Number of centrifuges')
+=======
+      n=0.574, kW=1.4, ub=100, BM=2.03, N='Number of centrifuges')
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 class LiquidsCentrifuge(Unit, isabstract=True):
     r"""
     Abstract class for liquid centrifuges.
@@ -96,7 +115,11 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     split = Splitter.split
     
     
+<<<<<<< HEAD
 class LLECentrifuge(LiquidsCentrifuge):
+=======
+class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     r"""
     Create a liquids centrifuge simulated by liquid-liquid equilibrium.
 
@@ -111,6 +134,12 @@ class LLECentrifuge(LiquidsCentrifuge):
         Identifier of chemical that will be favored in the "liquid" phase.
         If none given, the "liquid" phase will the lightest and the "LIQUID"
         phase will be the heaviest.
+<<<<<<< HEAD
+=======
+    efficiency : float,
+        Fraction of feed in liquid-liquid equilibrium.
+        The rest of the feed is divided equally between phases.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Notes
     -----
@@ -126,9 +155,15 @@ class LLECentrifuge(LiquidsCentrifuge):
     
     Examples
     --------
+<<<<<<< HEAD
     >>> from biorefineries.lipidcane.chemicals import lipidcane_chemicals
     >>> from biosteam import units, settings, Stream
     >>> settings.set_thermo(lipidcane_chemicals)
+=======
+    >>> from biorefineries.lipidcane import chemicals
+    >>> from biosteam import units, settings, Stream
+    >>> settings.set_thermo(chemicals)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     >>> feed = Stream('feed', T=333.15,
     ...               Lipid=0.996, Biodiesel=26.9,
     ...               Methanol=32.9, Glycerol=8.97)
@@ -157,12 +192,18 @@ class LLECentrifuge(LiquidsCentrifuge):
                         Biodiesel  0.0031
     >>> C1.results()
     Liquids centrifuge                          Units       C1
+<<<<<<< HEAD
     Power               Rate                       kW     44.7
                         Cost                   USD/hr      3.5
+=======
+    Power               Rate                       kW     17.1
+                        Cost                   USD/hr     1.34
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     Design              Flow rate              m^3/hr     12.2
                         Number of centrifuges                1
     Purchase cost       Liquids centrifuge        USD 1.28e+05
     Total purchase cost                           USD 1.28e+05
+<<<<<<< HEAD
     Utility cost                               USD/hr      3.5
     
     """
@@ -199,3 +240,9 @@ class LLECentrifuge(LiquidsCentrifuge):
         bottom.mol[:] = ms.imol[bottom_phase]
         top.T = bottom.T = feed.T
         top.P = bottom.P = feed.P
+=======
+    Utility cost                               USD/hr     1.34
+    
+    """
+    line = 'Liquids centrifuge'
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1

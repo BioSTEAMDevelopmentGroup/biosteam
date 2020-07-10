@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed Dec 18 07:19:49 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from warnings import warn
 from ..exceptions import message_with_object_stamp
@@ -36,7 +46,11 @@ def design_warning_with_source(source, msg):
     msg= message_with_object_stamp(source, msg)
     return DesignWarning(msg)
             
+<<<<<<< HEAD
 def lb_warning(key, value, units, lb, stacklevel, source):
+=======
+def lb_warning(source, key, value, units, lb, stacklevel=2):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     units = ' ' + units if units else ''
     try:
         msg = f"{key} ({value:.4g}{units}) is out of bounds (minimum {lb:.4g}{units})."
@@ -45,7 +59,11 @@ def lb_warning(key, value, units, lb, stacklevel, source):
     
     warn(DesignWarning.from_source(source, msg), stacklevel=stacklevel)
     
+<<<<<<< HEAD
 def ub_warning(key, value, units, ub, stacklevel, source):
+=======
+def ub_warning(source, key, value, units, ub, stacklevel=2):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     units = ' ' + units if units else ''
     try:
         msg = f"{key} ({value:.4g}{units}) is out of bounds (maximum {ub:.4g}{units})."

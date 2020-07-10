@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 15:47:26 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from .design_tools.specification_factors import vessel_material_factors
 from .design_tools.tank_design import (
@@ -65,6 +75,10 @@ class Tank(Unit, isabstract=True):
 
     """
     _units = {'Total volume': 'm^3'}
+<<<<<<< HEAD
+=======
+    _BM = {'Tanks': 2.3}
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     _N_outs = 1
 
     def __init_subclass__(cls, isabstract=False):
@@ -252,6 +266,10 @@ class MixTank(Tank):
     please read the :doc:`Tank` documentation.
     
     The purchase cost algorithm is based on [1]_.
+<<<<<<< HEAD
+=======
+    The electricity rate is based on [2]_.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     References
     ----------
@@ -260,6 +278,13 @@ class MixTank(Tank):
         vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
         https://doi.org/10.1016/j.fuproc.2009.04.017
 
+<<<<<<< HEAD
+=======
+    .. [2] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     """
     _N_ins = 2
     _run = Mixer._run

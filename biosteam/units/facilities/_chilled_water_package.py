@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Mon Apr 29 18:28:55 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from . import Facility
 from ..decorators import cost
@@ -33,26 +43,53 @@ class ChilledWaterPackage(Facility):
     
     """
     network_priority = 0
+<<<<<<< HEAD
     _N_heat_utilities = 1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID=''):
         chilled_water = HeatUtility.get_cooling_agent('chilled_water')
+=======
+    _N_heat_utilities = 2
+    _units = {'Duty': 'kJ/hr'}
+    def __init__(self, ID='', agent=None):
+        self.agent = chilled_water = agent or HeatUtility.get_cooling_agent('chilled_water')
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         super().__init__(ID,
                          ins='recirculated_chilled_water',
                          outs=chilled_water.to_stream(),
                          thermo=chilled_water.thermo)
+<<<<<<< HEAD
         self.chilled_water_utilities = set()
         
     def _design(self):
         cwu = self.chilled_water_utilities
+=======
+        
+    def _load_chilled_water_utilities(self):
+        self.chilled_water_utilities = cwu = []
+        agent = self.agent
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         if not cwu:
             for u in self.system.units:
                 if u is self: continue
                 for hu in u.heat_utilities:
+<<<<<<< HEAD
                     if hu.ID == 'chilled_water': cwu.add(hu)
         self.design_results['Duty'] = duty = sum([i.duty for i in cwu])
         hu = self.heat_utilities[0]
         hu(duty, 330)
+=======
+                    if hu.agent is agent: cwu.append(hu)
+        
+    def _design(self):
+        self._load_chilled_water_utilities()
+        cwu = self.chilled_water_utilities
+        self.design_results['Duty'] = duty = sum([i.duty for i in cwu])        
+        hu_cooling, hu_chilled = self.heat_utilities
+        hu_chilled.mix_from(cwu)
+        hu_chilled.reverse()
+        hu_cooling(duty, 330)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         used = self.ins[0]
         used.mol[0] = sum([i.flow for i in cwu])
         used.T = np.array([i.outlet_utility_stream.T for i in cwu]).mean()

@@ -7,6 +7,10 @@ units
    decorators
    design_tools/design_tools
    facilities/facilities
+<<<<<<< HEAD
+=======
+   BatchBioreactor
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
    BinaryDistillation
    Duplicator
    Fermentation

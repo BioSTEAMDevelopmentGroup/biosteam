@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Mon Apr 29 18:28:55 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from . import Facility
 from ..decorators import cost
@@ -43,15 +53,23 @@ class CoolingTower(Facility):
     _N_outs = _N_ins = 2
     evaporation = 0.01
     blowdown = 0.001
+<<<<<<< HEAD
     def __init__(self, ID=''):
         cooling_water = HeatUtility.get_cooling_agent('cooling_water')
+=======
+    def __init__(self, ID='', agent=None):
+        self.agent = cooling_water = agent or HeatUtility.get_cooling_agent('cooling_water')
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.makeup_water = makeup_water = cooling_water.to_stream('cooling_tower_makeup_water')
         loss = makeup_water.flow_proxy()
         loss.ID = 'evaporation_and_blowdown'
         super().__init__(ID, ('return_cooling_water', makeup_water),
                          (cooling_water.to_stream(), loss), thermo=cooling_water.thermo)
         self.cooling_water_utilities = set()
+<<<<<<< HEAD
         self.agent = cooling_water
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _load_utility_agents(self):
         cwu = self.cooling_water_utilities

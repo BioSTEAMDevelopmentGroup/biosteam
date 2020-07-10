@@ -1,7 +1,18 @@
+<<<<<<< HEAD
 """
 Created on Thu January 23  16:27:00 2020
 
 @author: brent
+=======
+# -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena and contributors <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 
 from .._unit import Unit
@@ -30,7 +41,11 @@ class Duplicator(Unit, isabstract=True):
         >>> from biosteam import settings, Stream, units
         >>> settings.set_thermo(['Water', 'Ethanol'])
         >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+<<<<<<< HEAD
         >>> D1 = units.Duplicator('S1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
+=======
+        >>> D1 = units.Duplicator('D1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         >>> D1.simulate()
         >>> D1.show()
         Duplicator: D1

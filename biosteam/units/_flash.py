@@ -1,21 +1,38 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 16:21:56 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from .. import Unit, PowerUtility
 from thermosteam import MultiStream
 from math import pi
 import numpy as np
+<<<<<<< HEAD
 from .design_tools.specification_factors import (
     pressure_vessel_material_factors,
     material_densities_lb_per_ft3)
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
+<<<<<<< HEAD
 from ..utils import bounds_warning
+=======
+from .design_tools import separations
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 exp = np.exp
 ln = np.log
@@ -30,7 +47,11 @@ __all__ = ('Flash', 'SplitFlash', 'RatioFlash')
 
 # %% Flash
 
+<<<<<<< HEAD
 class Flash(Unit):
+=======
+class Flash(design.PressureVessel, Unit):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     """
     Create an equlibrium based flash drum with the option of having light
     non-keys and heavy non-keys completly separate into their respective
@@ -66,8 +87,13 @@ class Flash(Unit):
         True if glycol groups are present in the mixture.
     has_amine_groups=False : bool
         True if amine groups are present in the mixture.
+<<<<<<< HEAD
     vessel_type='Default' : 'Horizontal', 'Vertical', or 'Default'
         Vessel separation type. If 'Default', the vessel type will be chosen
+=======
+    vessel_type=None : 'Horizontal' or 'Vertical', optional
+        Vessel separation type. If not specified, the vessel type will be chosen
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         according to heuristics.
     holdup_time=15.0 : float
         Time it takes to raise liquid to half full [min].
@@ -113,6 +139,7 @@ class Flash(Unit):
         flow (kmol/hr): Water     42.4
                         Glycerol  298
     >>> F1.results()
+<<<<<<< HEAD
     Flash                                   Units            F1
     Medium pressure steam Duty              kJ/hr      5.05e+07
                           Flow            kmol/hr      1.39e+03
@@ -127,6 +154,22 @@ class Flash(Unit):
                           Heat exchanger      USD      4.36e+04
     Total purchase cost                       USD      8.92e+04
     Utility cost                           USD/hr           384
+=======
+    Flash                                             Units            F1
+    Medium pressure steam Duty                        kJ/hr      5.05e+07
+                          Flow                      kmol/hr      1.39e+03
+                          Cost                       USD/hr           384
+    Design                Vessel type                            Vertical
+                          Length                         ft          16.5
+                          Diameter                       ft           8.5
+                          Weight                         lb         1e+04
+                          Wall thickness                 in         0.438
+                          Vessel material                    Carbon steel
+    Purchase cost         Vertical pressure vessel      USD      6.22e+04
+                          Heat exchanger                USD      4.35e+04
+    Total purchase cost                                 USD      1.06e+05
+    Utility cost                                     USD/hr           384
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 
     References
@@ -145,12 +188,17 @@ class Flash(Unit):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
+<<<<<<< HEAD
+=======
+    auxiliary_unit_names = ('heat_exchanger',)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     _units = {'Vertical vessel weight': 'lb',
               'Horizontal vessel weight': 'lb',
               'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
+<<<<<<< HEAD
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
     _N_heat_utilities = 0
@@ -187,6 +235,13 @@ class Flash(Unit):
                               "only the following materials are available: "
                              f"{', '.join(pressure_vessel_material_factors)}")
         self._vessel_material = material  
+=======
+    _BM = {'Liquid-ring pump': 1.0,
+           **design.PressureVessel._BM}
+    _graphics = vertical_vessel_graphics 
+    _N_outs = 2
+    _N_heat_utilities = 0
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  V=None, T=None, Q=None, P=None, y=None, x=None,
@@ -194,13 +249,24 @@ class Flash(Unit):
                  vacuum_system_preference='Liquid-ring pump',
                  has_glycol_groups=False,
                  has_amine_groups=False,
+<<<<<<< HEAD
                  vessel_type='Default',
+=======
+                 vessel_type=None,
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                  holdup_time=15,
                  surge_time=7.5,
                  has_mist_eliminator=False):
         Unit.__init__(self, ID, ins, outs, thermo)
+<<<<<<< HEAD
         self._multistream = MultiStream(None)
         self.heat_exchanger = None
+=======
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
+        self.heat_utilities = hx.heat_utilities
+        hx._ins = self._ins
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         #: Enforced molar vapor fraction
         self.V = V
@@ -260,6 +326,7 @@ class Flash(Unit):
         return self._Q
     @Q.setter
     def Q(self, Q):
+<<<<<<< HEAD
         if Q == 0:
             self.heat_exchanger = None
         elif not self.heat_exchanger:
@@ -329,6 +396,38 @@ class Flash(Unit):
             hx = self.heat_exchanger
             hx._cost()
             self.purchase_costs.update(hx.purchase_costs)
+=======
+        self._Q = Q
+
+    def _default_vessel_type(self):
+        vap, liq = self.outs
+        F_mass_vap = vap.F_mass
+        F_mass_liq = liq.F_mass 
+        assert F_mass_liq, "no liquid effluent; flash vessel must have liquid to default vessel type"
+        return 'Vertical'if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
+
+    def _run(self):
+        separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
+                        self.Q, self.x, self.y, self._multi_stream)
+
+    def _design(self):
+        vessel_type = self.vessel_type
+        if vessel_type == 'Vertical': 
+            args = self._vertical_vessel_pressure_diameter_and_length()
+        elif vessel_type == 'Horizontal': 
+            args = self._horizontal_vessel_pressure_diameter_and_length()
+        else: raise RuntimeError('unknown vessel type')
+        self.heat_exchanger._summary()
+        self.design_results.update(
+            self._vessel_design(*args)
+        )
+
+    def _cost(self):
+        D = self.design_results
+        self.purchase_costs.update(
+            self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
+        )
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._cost_vacuum()
 
     def _cost_vacuum(self):
@@ -398,7 +497,11 @@ class Flash(Unit):
         Vs = Ts*Qll
         return rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs
 
+<<<<<<< HEAD
     def _design_vertical_vessel(self):
+=======
+    def _vertical_vessel_pressure_diameter_and_length(self):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Calculate internal diameter, Dvd
@@ -442,14 +545,18 @@ class Flash(Unit):
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = design.ceil_half_step(Ht)
 
+<<<<<<< HEAD
         # Calculate Vessel weight and wall thickness
         rho_M = design.material_densities_lb_per_ft3[self._vessel_material]
         VW, VWT = design.compute_vessel_weight_and_wall_thickness(P, D, Ht, rho_M)
 
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         # Find maximum and normal liquid level
         # Hhll = Hs + Hh + Hlll
         # Hnll = Hh + Hlll
 
+<<<<<<< HEAD
         Design = self.design_results
         bounds_warning(self, 'Vertical vessel weight', VW, 'lb',
                        self._bounds['Vertical vessel weight'],
@@ -464,6 +571,11 @@ class Flash(Unit):
         Design['Wall thickness'] = VWT  # in
         
     def _design_horizontal_vessel(self):
+=======
+        return P, D, Ht
+        
+    def _horizontal_vessel_pressure_diameter_and_length(self):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         rhov, rhol, P, Th, Ts, has_mist_eliminator, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
 
         # Initialize LD
@@ -540,10 +652,13 @@ class Flash(Unit):
             elif (LD > 6.0): D += 0.5
             else: break
 
+<<<<<<< HEAD
         # Calculate vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
         VW, VWT = design.compute_vessel_weight_and_wall_thickness(P, D, L, rho_M)
 
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         # # To check minimum Hv value
         # if int(has_mist_eliminator) == 1 and Hv <= 2.0:
         #     Hv = 2.0
@@ -559,6 +674,7 @@ class Flash(Unit):
         # Y = HNATable(2, X)
         # Hnll = Y*D
         
+<<<<<<< HEAD
         Design = self.design_results
         bounds_warning(self, 'Horizontal vessel weight', VW, 'lb',
                        self._bounds['Horizontal vessel weight'], 'cost')
@@ -571,18 +687,27 @@ class Flash(Unit):
     def _end_decorated_cost_(self):
         if self.heat_utilities: self.heat_utilities[0](self.Hnet, self.T)
     
+=======
+        return P, D, L
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # %% Special
 
 class SplitFlash(Flash):
     line = 'Flash' 
     
+<<<<<<< HEAD
     def __init__(self, ID='', ins=None, outs=(), *, split,
+=======
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split,
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                  order=None, T=None, P=None, Q=None,
                  vessel_material='Carbon steel',
                  vacuum_system_preference='Liquid-ring pump',
                  has_glycol_groups=False,
                  has_amine_groups=False,
+<<<<<<< HEAD
                  vessel_type='Default',
                  holdup_time=15,
                  surge_time=7.5,
@@ -592,6 +717,18 @@ class SplitFlash(Flash):
         
         #: [HXutility] Heat exchanger if needed.
         self.heat_exchanger = None
+=======
+                 vessel_type=None,
+                 holdup_time=15,
+                 surge_time=7.5,
+                 has_mist_eliminator=False):
+        Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        
+        #: [HXutility] Heat exchanger if needed.
+        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo)
+        hx._ins = self._ins
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.T = T #: Operating temperature (K)
         self.P = P #: Operating pressure (Pa)
         self.Q = Q #: Duty (kJ/hr)
@@ -635,9 +772,14 @@ class SplitFlash(Flash):
         bot.P = top.P = self.P
 
     def _design(self):
+<<<<<<< HEAD
         if self.heat_exchanger:
             self.heat_exchanger.outs[0] = ms = self._multistream
             ms.mix_from(self.outs)
+=======
+        self.heat_exchanger.outs[0] = ms = self._multi_stream
+        ms.mix_from(self.outs)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         super()._design()
     
 
@@ -648,6 +790,12 @@ class RatioFlash(Flash):
                  K_chemicals, Ks, top_solvents=(), top_split=(),
                  bot_solvents=(), bot_split=()):
         Unit.__init__(self, ID, ins, outs)
+<<<<<<< HEAD
+=======
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        #: [HXutility] Heat exchanger if needed.
+        self.heat_exchanger = HXutility(None, None, ms, thermo=self.thermo)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.K_chemicals = K_chemicals
         self.Ks = Ks
         self.top_solvents = top_solvents
@@ -675,6 +823,13 @@ class RatioFlash(Flash):
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
 
+<<<<<<< HEAD
+=======
+    def _design(self):
+        self.heat_exchanger.outs[0] = ms = self._multi_stream
+        ms.mix_from(self.outs)
+        super()._design()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # %% Single Component
 
@@ -703,8 +858,13 @@ class Evaporator_PQ(Unit):
     def V(self):
         return self._V
     
+<<<<<<< HEAD
     def __init__(self, ID='', ins=None, outs=(), *, Q=0, P=101325):
         super().__init__(ID, ins, outs)
+=======
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, Q=0, P=101325):
+        super().__init__(ID, ins, outs, thermo)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.Q = Q
         self.P = P
         self._V = None
@@ -726,7 +886,11 @@ class Evaporator_PQ(Unit):
         vapor.P = liquid.P = self.P
         liquid.phase = 'l'
         vapor.phase = 'g'
+<<<<<<< HEAD
         liquid.copy_flow(feed, IDs='7732-18-5', exclude=True)
+=======
+        liquid.copy_flow(feed)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         # Energy balance to find vapor fraction
         f = feed.imol['7732-18-5']
@@ -742,7 +906,11 @@ class Evaporator_PQ(Unit):
         evaporated = f * V
         vapor.imol['7732-18-5'] = evaporated
         liquid.imol['7732-18-5'] = (1-V)*f
+<<<<<<< HEAD
         self._Q = Q
+=======
+        self.design_results['Heat transfer'] = Q
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._V = V
 
 
@@ -766,8 +934,13 @@ class Evaporator_PV(Unit):
         self._P = water.Psat(T)
         self._T = T
     
+<<<<<<< HEAD
     def __init__(self, ID='', ins=None, outs=(), *, V=0.5, P=101325):
         super().__init__(ID, ins, outs)
+=======
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, V=0.5, P=101325):
+        super().__init__(ID, ins, outs, thermo)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.V = V
         self.P = P
 
@@ -775,6 +948,10 @@ class Evaporator_PV(Unit):
         feed = self.ins[0]
         vapor, liquid = self.outs
         vapor.T = liquid.T = self.T
+<<<<<<< HEAD
+=======
+        vapor.P = liquid.P = self.P
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         H2O_index = self.chemicals.index('7732-18-5')
         water_mol = feed.mol[H2O_index]
         vapor.mol[H2O_index] = self.V * water_mol

@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Jun  8 23:29:37 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from .._unit import Unit
 from .._graphics import junction_graphics
@@ -19,7 +29,12 @@ chemicals_in_common = lambda upstream, downstream: \
     tuple(set(upstream.chemicals.IDs).intersection(downstream.chemicals.IDs))
 
 class Junction(Unit):
+<<<<<<< HEAD
     """Create a Junction object that copies specifications from `upstream`
+=======
+    """
+    Create a Junction object that copies specifications from `upstream`
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     to `downstream`. This serves to connect streams with different
     Species object.
     
@@ -39,9 +54,15 @@ class Junction(Unit):
     Create a Junction object and connect streams with different Species objects:
         
     >>> from biosteam import *
+<<<<<<< HEAD
     >>> settings.thermo = Thermo(['Water'])
     >>> s1 = Stream('s1', Water=20)
     >>> settings.thermo = Thermo(['Ethanol', 'Water'])
+=======
+    >>> settings.set_thermo(['Water'])
+    >>> s1 = Stream('s1', Water=20)
+    >>> settings.set_thermo(['Ethanol', 'Water'])
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     >>> s2 = Stream('s2') # Note that s2 and s1 have different chemicals defined
     >>> J1 = units.Junction('J1', s1, s2)
     >>> J1.simulate()
@@ -63,7 +84,11 @@ class Junction(Unit):
     power_utility = PowerUtility()
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         thermo = self._load_thermo(thermo)
+<<<<<<< HEAD
         self._numerical_specification = None
+=======
+        self._specification = None
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._chemicals_in_common = self._past_streams = ()
         self._ins = Ins(self, self._N_ins, upstream, thermo)
         self._outs = Outs(self, self._N_outs, downstream, thermo)

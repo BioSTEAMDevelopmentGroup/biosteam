@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed Dec  5 17:24:01 2018
 
 This module includes arbitrary classes and functions.
 
 @author: Guest Group
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+This module includes arbitrary classes and functions.
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import biosteam as bst
 

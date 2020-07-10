@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed Dec 18 07:18:50 2019
 
 @author: yoelr
 """
 
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
@@ -16,7 +27,11 @@ from .utils import Ins, Outs, NotImplementedMethod, \
 from ._power_utility import PowerUtility
 from ._digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
+<<<<<<< HEAD
 from thermosteam.base import convert
+=======
+from thermosteam.units_of_measure import convert
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 import biosteam as bst
 
 __all__ = ('Unit',)
@@ -26,7 +41,14 @@ __all__ = ('Unit',)
 @thermo_user
 @registered(ticket_name='U')
 class Unit:
+<<<<<<< HEAD
     """Abstract parent class for Unit objects. Child objects must contain `_run`, `_design` and `_cost` methods to estimate stream outputs of a Unit and find design and cost information.  
+=======
+    """
+    Abstract parent class for Unit objects. Child objects must contain
+    `_run`, `_design` and `_cost` methods to estimate stream outputs of a
+    Unit and find design and cost information.  
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     **Abstract class methods**
     
@@ -41,12 +63,21 @@ class Unit:
 
     **Abstract class attributes**
     
+<<<<<<< HEAD
     **line=None**
         [str] Name denoting the type of Unit class. Defaults to the class
         name of the first child class.
     **BM=None** 
         [float] Bare module factor (installation factor).
     **_units={}**
+=======
+    **line='Unit'**
+        [str] Name denoting the type of Unit class. Defaults to the class
+        name of the first child class.
+    **_BM** 
+        dict[str, float] Bare module factors for each purchase cost item.
+    **_units**
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         [dict] Units of measure for `design_results` dictionary.
     **_N_ins=1**
         [int] Expected number of input streams.
@@ -57,11 +88,23 @@ class Unit:
     **_outs_size_is_fixed=True**
         [bool] Whether the number of streams in outs is fixed.
     **_N_heat_utilities=0**
+<<<<<<< HEAD
         [int] Number of heat utilities created with each instance
     **_graphics**
         [biosteam.Graphics, abstract, optional] Settings for diagram
         representation. Defaults to a box with the same number of input
         and output edges as `_N_ins` and `_N_outs`
+=======
+        [int] Number of heat utilities created with each instance.
+    **auxiliary_unit_names=()
+        tuple[str] Name of attributes that are auxiliary units. These units
+        will be accounted for in the purchase and installed equipment costs
+        without having add these costs in the `purchase_costs` dictionary.
+    **_graphics**
+        [biosteam.Graphics, abstract, optional] Settings for diagram
+        representation. Defaults to a box with the same number of input
+        and output edges as `_N_ins` and `_N_outs`.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     Parameters
     ----------
@@ -86,6 +129,7 @@ class Unit:
     outs : Outs[:class:`~thermosteam.Stream`]
         Output streams.
     power_utility : PowerUtility
+<<<<<<< HEAD
         Electricity rate requirements are stored here.
     heat_utilities : tuple[HeatUtility]
         Cooling and heating requirements are stored here.
@@ -97,6 +141,18 @@ class Unit:
         The thermodynamic property package used by the unit.
     
     
+=======
+        Electricity rate requirements are stored here (not including auxiliary units).
+    heat_utilities : tuple[HeatUtility]
+        Cooling and heating requirements are stored here (not including auxiliary units).
+    design_results : dict
+        All design requirements (not including auxiliary units).
+    purchase_costs : dict
+        Itemized purchase costs (not including auxiliary units).
+    thermo : Thermo
+        The thermodynamic property package used by the unit.
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     Examples
     --------
     :doc:`tutorial/Creating_a_Unit`
@@ -111,7 +167,10 @@ class Unit:
     # Settings
     IPYTHON_DISPLAY_UNIT_OPERATIONS = True
     
+<<<<<<< HEAD
     
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def __init_subclass__(cls,
                           isabstract=False,
                           new_graphics=True):
@@ -121,6 +180,7 @@ class Unit:
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
+<<<<<<< HEAD
         if not (isabstract or cls._run): static(cls)
         
     ### Abstract Attributes ###
@@ -130,6 +190,19 @@ class Unit:
     
     # [dict] Units for construction and design results
     _units = {}
+=======
+        if not isabstract:
+            if not hasattr(cls, '_BM'): cls._BM = {}
+            if not hasattr(cls, '_units'): cls._units = {}
+            if not cls._run: static(cls)
+        
+    ### Abstract Attributes ###
+    
+    # tuple[str] Name of attributes that are auxiliary units. These units
+    # will be accounted for in the purchase and installed equipment costs
+    # without having add these costs in the `purchase_costs` dictionary
+    auxiliary_unit_names = ()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     # [int] Expected number of input streams
     _N_ins = 1  
@@ -146,7 +219,11 @@ class Unit:
     # [int] number of heat utilities
     _N_heat_utilities = 0
     
+<<<<<<< HEAD
     # [StreamLinkOptions] Options of linking streams
+=======
+    # [StreamLinkOptions] Options for linking streams
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     _stream_link_options = None
     
     # [biosteam Graphics] a Graphics object for diagram representation.
@@ -158,7 +235,11 @@ class Unit:
     ### Other defaults ###
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
+<<<<<<< HEAD
         self._numerical_specification = None
+=======
+        self._specification = None
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
@@ -233,7 +314,11 @@ class Unit:
             self._outs[:] = (other,)
             return self
         elif isa(other, (tuple, list, np.ndarray)):
+<<<<<<< HEAD
             if all(isa(i, (int, np.int)) for i in other):
+=======
+            if all([isa(i, int_types) for i in other]):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                 return [self._outs[i] for i in other]
             else:
                 if isa(other, Unit):
@@ -255,7 +340,11 @@ class Unit:
             self._ins[:] = (other,)
             return self
         elif isa(other, (tuple, list, np.ndarray)):
+<<<<<<< HEAD
             if all(isa(i, int_types) for i in other):
+=======
+            if all([isa(i, int_types) for i in other]):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                 return [self._ins[i] for i in other]
             else:
                 if isa(other, Unit):
@@ -277,8 +366,16 @@ class Unit:
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
     
+<<<<<<< HEAD
     def _get_design_info(self):
         return ()
+=======
+    def _get_design_info(self): 
+        return ()
+    def _get_cost_info(self): 
+        return [(i.capitalize().replace('_', ' '), j.purchase_cost) for i,j in 
+                zip(self.auxiliary_unit_names, self.auxiliary_units)]
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _load_stream_links(self):
         options = self._stream_link_options
@@ -293,6 +390,7 @@ class Unit:
         self._cost()
     
     @property
+<<<<<<< HEAD
     def numerical_specification(self):
         """Numerical design or process specification."""
         return self._numerical_specification
@@ -302,24 +400,69 @@ class Unit:
             if not callable(numerical_specification):
                 raise ValueError("numerical specification must a callable or None.")
         self._numerical_specification = numerical_specification
+=======
+    def specification(self):
+        """Design or process specification."""
+        return self._specification
+    @specification.setter
+    def specification(self, specification):
+        if specification:
+            if not callable(specification):
+                raise ValueError("specification must a callable or None.")
+        self._specification = specification
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     @property
     def purchase_cost(self):
         """Total purchase cost [USD]."""
+<<<<<<< HEAD
         return sum(self.purchase_costs.values())
     
     @property
     def installation_cost(self):
         """Installation cost [USD]."""
         return self.BM * sum(self.purchase_costs.values())
+=======
+        return (sum(self.purchase_costs.values())
+                + sum([i.purchase_cost for i in self.auxiliary_units]))
+    
+    @property
+    def installed_cost(self):
+        """Total installed equipment cost [USD]."""
+        BM = self._BM
+        try:
+            installed_cost = sum([BM[i]*j for i,j in self.purchase_costs.items()])
+        except KeyError:
+            missing = set(self.purchase_costs).difference(BM)
+            raise NotImplementedError("the following purchase cost items have "
+                                      "no defined bare module factor in the "
+                                     f"'{type(self).__name__}._BM' dictionary: {missing}")
+        
+        return sum([i.installed_cost for i in self.auxiliary_units],
+                   installed_cost)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     @property
     def utility_cost(self):
         """Total utility cost [USD/hr]."""
         return sum([i.cost for i in self.heat_utilities]) + self.power_utility.cost
 
+<<<<<<< HEAD
     def simulate(self):
         """Run rigourous simulation and determine all design requirements. No design specifications are solved."""
+=======
+    @property
+    def auxiliary_units(self):
+        """tuple[Unit] All associated auxiliary units."""
+        getfield = getattr
+        return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
+
+    def simulate(self):
+        """
+        Run rigourous simulation and determine all design requirements.
+        No design specifications are solved.
+        """
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._load_stream_links()
         self._setup()
         self._run()
@@ -327,7 +470,14 @@ class Unit:
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True):
+<<<<<<< HEAD
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
+=======
+        """
+        Return key results from simulation as a DataFrame if `with_units`
+        is True or as a Series otherwise.
+        """
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         # TODO: Divide this into functions
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
@@ -339,7 +489,11 @@ class Unit:
                     addkey(('Power', 'Cost'))
                     addval(('kW', power_utility.rate))
                     addval(('USD/hr', power_utility.cost))
+<<<<<<< HEAD
                 for heat_utility in self.heat_utilities:
+=======
+                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
@@ -359,6 +513,12 @@ class Unit:
             for ki, vi in Cost.items():
                 addkey(('Purchase cost', ki))
                 addval(('USD', vi))
+<<<<<<< HEAD
+=======
+            for ki, vi in self._get_cost_info():
+                addkey(('Purchase cost', ki))
+                addval(('USD', vi))
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(('USD', self.purchase_cost))
@@ -391,7 +551,11 @@ class Unit:
                     addkey(('Power', 'Cost'))
                     addval(power_utility.rate)
                     addval(power_utility.cost)
+<<<<<<< HEAD
                 for heat_utility in self.heat_utilities:
+=======
+                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                     if heat_utility:
                         if heat_utility:
                             ID = heat_utility.ID.replace('_', ' ').capitalize()
@@ -406,7 +570,14 @@ class Unit:
                 addval(vi)
             for ki, vi, ui in self._get_design_info():
                 addkey(('Design', ki))
+<<<<<<< HEAD
                 addval((ui, vi))
+=======
+                addval(vi)
+            for ki, vi in self._get_cost_info():
+                addkey(('Purchase cost', ki))
+                addval(vi)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             for ki, vi in self.purchase_costs.items():
                 addkey(('Purchase cost', ki))
                 addval(vi)    
@@ -512,7 +683,11 @@ class Unit:
 
         # Make a Digraph handle
         f = Digraph(name='unit', filename='unit', format=format)
+<<<<<<< HEAD
         f.attr('graph', ratio='0.5', splines='normal', outputorder='edgesfirst',
+=======
+        f.attr('graph', ratio='0.5', outputorder='edgesfirst',
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
         f.attr(rankdir='LR', **graph_attrs)  # Left to right
 
@@ -731,7 +906,11 @@ class Unit:
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
+<<<<<<< HEAD
     def show(self, T=None, P=None, flow=None, composition=False, N=None):
+=======
+    def show(self, T=None, P=None, flow=None, composition=None, N=None):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         """Prints information on unit."""
         print(self._info(T, P, flow, composition, N))
     

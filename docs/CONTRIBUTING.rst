@@ -52,6 +52,7 @@ Here’s the short summary, complete TOC links are below:
 Testing
 -------
 
+<<<<<<< HEAD
 For a full assessment of BioSTEAM, you can run the following:
 
 .. code-block:: python
@@ -77,6 +78,93 @@ Changes made to a BioSTEAM unit operation requires it's specific unit test file 
 If no tests are available specfic to the unit operation, tests must be uploaded whereby the stream results and general simulation results are tested. Using `doctests <https://docs.python.org/3.6/library/doctest.html>`__ is the preferred method for running tests, but assertions are also accepted so long as all results of the unit operation is tested. You can use the source code in the "biosteam.tests" folder as a template for how this may be done.
 
 .. note:: Several sections in biosteam are not fully documented. Any contributions towards rigorous testing is welcome!
+=======
+First pip install `pytest <https://docs.pytest.org/en/stable/>`__ and run the
+following in your local biosteam directory:
+
+.. code-block:: bash
+    
+   $ pytest --doctest-modules
+    =================================== test session starts ===================================
+    platform win32 -- Python 3.7.6, pytest-5.3.5, py-1.8.1, pluggy-0.13.1
+    rootdir: C:\Users\...\biosteam, inifile: pytest.ini
+    plugins: hypothesis-5.5.4, arraydiff-0.3, astropy-header-0.1.2, doctestplus-0.5.0, 
+    openfiles-0.4.0, remotedata-0.3.2
+    collected 30 items
+    
+    biosteam\_heat_utility.py ..                                                         [  6%]
+    biosteam\_power_utility.py .                                                         [ 10%]
+    biosteam\examples\ethanol_subsystem_example.py .                                     [ 13%]
+    biosteam\process_tools\unit_group.py .                                               [ 16%]
+    biosteam\units\_balance.py .                                                         [ 20%]
+    biosteam\units\_binary_distillation.py .                                             [ 23%]
+    biosteam\units\_duplicator.py .                                                      [ 26%]
+    biosteam\units\_fermentation.py .                                                    [ 30%]
+    biosteam\units\_flash.py .                                                           [ 33%]
+    biosteam\units\_hx.py ..                                                             [ 40%]
+    biosteam\units\_junction.py .                                                        [ 43%]
+    biosteam\units\_liquids_centrifuge.py .                                              [ 46%]
+    biosteam\units\_lle_unit.py .                                                        [ 50%]
+    biosteam\units\_mixer.py .                                                           [ 53%]
+    biosteam\units\_molecular_sieve.py .                                                 [ 56%]
+    biosteam\units\_process_specification.py .                                           [ 60%]
+    biosteam\units\_pump.py .                                                            [ 63%]
+    biosteam\units\_shortcut_column.py .                                                 [ 66%]
+    biosteam\units\_splitter.py .                                                        [ 70%]
+    biosteam\units\_tank.py .                                                            [ 73%]
+    biosteam\units\design_tools\heat_transfer.py .                                       [ 76%]
+    biosteam\units\design_tools\tank_design.py ..                                        [ 83%]
+    biosteam\utils\functors.py .                                                         [ 86%]
+    biosteam\utils\piping.py ..                                                          [ 93%]
+    tests\test_example_sugarcane_subsystem.py ..                                         [100%]
+    
+    =================================== 30 passed in 5.84s ====================================
+    
+This runs all the `doctests <https://docs.python.org/3.6/library/doctest.html>`__
+in BioSTEAM, which covers most of the API, including unit operations. If any test 
+is marked with a letter F, that test has failed. Pytest will point you to the
+location of the error, the values that were expected, and the values that were 
+generated.
+
+Changes made to a BioSTEAM unit operation requires it's specific doctests to pass
+before uploading. If no tests are available specfic to the unit operation, tests 
+must be uploaded whereby the stream results and general simulation results are 
+tested. Using `doctests <https://docs.python.org/3.6/library/doctest.html>`__ is
+the preferred method for running tests, but assertions in a test function is also
+accepted so long as all results of the unit operation is tested. You can use the
+source code in the "biosteam.tests" folder as a template for how this may be done.
+
+.. note:: 
+
+    Several sections in biosteam are not fully documented. Any contributions
+    towards rigorous testing is welcome!
+
+The `biorefineries <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`__ 
+package can also be tested by running the following in your local biorefineries repository:
+
+.. code-block:: bash
+
+    $ pytest
+    =================================== test session starts ===================================
+    platform win32 -- Python 3.7.6, pytest-5.3.5, py-1.8.1, pluggy-0.13.1
+    rootdir: C:\Users\...\Bioindustrial-Park\BioSTEAM 2.x.x
+    plugins: hypothesis-5.5.4, arraydiff-0.3, astropy-header-0.1.2, doctestplus-0.5.0, 
+    openfiles-0.4.0, remotedata-0.3.2
+    collected 2 items
+    
+    tests\test_biorefineries.py ..                                                       [100%]
+    
+    =================================== 2 passed in 4.62s =====================================
+
+The `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`__ 
+package is not yet ready for `pytest`. Instead, run the following lines in python to
+test thermosteam:
+
+.. code-block:: python
+
+    >>> from thermosteam.tests import test_thermosteam  # From local repository
+    >>> test_thermosteam() # If nothing happens, all tests have passed
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 Documentation
 -------------

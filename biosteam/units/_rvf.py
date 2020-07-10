@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 22:15:20 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from ._solids_separator import SolidsSeparator
 from .design_tools import compute_vacuum_system_power_and_cost
@@ -27,8 +37,13 @@ class RotaryVacuumFilter(SolidsSeparator):
                        Fraction of water in retentate.
     
     """
+<<<<<<< HEAD
     _has_power_utility = True
     BM = 2.32
+=======
+    _BM = {'Vessels': 2.32,
+           'Liquid-ring pump': 1.0}
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     #: Revolutions per second
     rps = 20/3600
@@ -64,7 +79,11 @@ class RotaryVacuumFilter(SolidsSeparator):
         Design['Individual area'] = iArea
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
+<<<<<<< HEAD
         self.purchase_costs['Cost of vessels'] = N_vessels*Cost*bst.CE/567
+=======
+        self.purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _power(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs

@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import flexsolve as flx
 from ._digraph import (digraph_from_units_and_streams,
@@ -16,7 +26,11 @@ from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
+<<<<<<< HEAD
 from .exceptions import ConvergenceError, InfeasibleRegion
+=======
+from .exceptions import InfeasibleRegion
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from .utils import colors, strtuple
 import biosteam as bst
 
@@ -46,33 +60,57 @@ def filter_out_missing_streams(streams):
 # %% Functions for taking care of numerical specifications within a system path
     
 def run_unit_in_path(unit):
+<<<<<<< HEAD
     numerical_specification = unit._numerical_specification
     if numerical_specification:
         method = numerical_specification
+=======
+    specification = unit._specification
+    if specification:
+        method = specification
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     else:
         method = unit._run
     try_method_with_object_stamp(unit, method)
 
 def converge_system_in_path(system):
+<<<<<<< HEAD
     numerical_specification = system._numerical_specification
     if numerical_specification:
         method = numerical_specification
+=======
+    specification = system._specification
+    if specification:
+        method = specification
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     else:
         method = system._converge
     try_method_with_object_stamp(system, method)
 
 def simulate_unit_in_path(unit):
+<<<<<<< HEAD
     numerical_specification = unit._numerical_specification
     if numerical_specification:
         method = numerical_specification
+=======
+    specification = unit._specification
+    if specification:
+        method = specification
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     else:
         method = unit.simulate
     try_method_with_object_stamp(unit, method)
 
 def simulate_system_in_path(system):
+<<<<<<< HEAD
     numerical_specification = system._numerical_specification
     if numerical_specification:
         method = numerical_specification
+=======
+    specification = system._specification
+    if specification:
+        method = specification
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     else:
         method = system.simulate
     try_method_with_object_stamp(system, method)
@@ -80,7 +118,14 @@ def simulate_system_in_path(system):
 # %% Debugging and exception handling
 
 def _evaluate(self, command=None):
+<<<<<<< HEAD
     """Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object."""    
+=======
+    """
+    Evaluate a command and request user input for next command.
+    If no command, return. This function is used for debugging a System object.
+    """    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     # Done evaluating if no command, exit debugger if 'exit'
     if command is None:
         Next = colors.next('Next: ') + f'{repr(self)}\n'
@@ -90,7 +135,17 @@ def _evaluate(self, command=None):
     if command == 'exit': raise KeyboardInterrupt()
     if command:
         # Build locals dictionary for evaluating command
+<<<<<<< HEAD
         lcs = {self.ID: self, 'bst': bst} 
+=======
+        F = bst.main_flowsheet
+        lcs = {self.ID: self, 'bst': bst,
+               **F.system.__dict__,
+               **F.stream.__dict__,
+               **F.unit.__dict__,
+               **F.flowsheet.__dict__
+        } 
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -180,24 +235,37 @@ class System(metaclass=system):
     ### Class attributes ###
     
     #: Maximum number of iterations
+<<<<<<< HEAD
     maxiter = 100
 
+=======
+    maxiter = 200
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     #: Molar tolerance (kmol/hr)
     molar_tolerance = 0.50
     
     #: Temperature tolerance (K)
     temperature_tolerance = 0.10
 
+<<<<<<< HEAD
     #: Whether to use the least-squares solution of prior tear stream
     #: iterations during fixed-point iteration for better convergence 
     #: (possibly).
     use_least_squares_solution = False
 
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
     @classmethod
+<<<<<<< HEAD
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), ends=None):
+=======
+    def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
+                       ends=None, facility_recycle=None):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         """
         Create a System object from a feedstock.
         
@@ -215,6 +283,7 @@ class System(metaclass=system):
         ends : Iterable[:class:`~thermosteam.Stream`]
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
+<<<<<<< HEAD
         
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
@@ -222,6 +291,17 @@ class System(metaclass=system):
 
     @classmethod
     def from_network(cls, ID, network, facilities=()):
+=======
+        facility_recycle : [:class:`~thermosteam.Stream`], optional
+            Recycle stream between facilities and system path.
+        
+        """
+        network = Network.from_feedstock(feedstock, feeds, ends)
+        return cls.from_network(ID, network, facilities, facility_recycle)
+
+    @classmethod
+    def from_network(cls, ID, network, facilities=(), facility_recycle=None):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         """
         Create a System object from a network.
         
@@ -234,6 +314,11 @@ class System(metaclass=system):
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after 
             completing the path simulation.
+<<<<<<< HEAD
+=======
+        facility_recycle : [:class:`~thermosteam.Stream`], optional
+            Recycle stream between facilities and system path.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         """
         facilities = Facility.ordered_facilities(facilities)
@@ -245,11 +330,20 @@ class System(metaclass=system):
         self.streams = streams = network.streams
         self.feeds = feeds = network.feeds
         self.products = products = network.products
+<<<<<<< HEAD
         self._numerical_specification = None
         self._reset_errors()
         self._set_path(path)
         self._set_facilities(facilities)
         self._set_recycle(network.recycle)
+=======
+        self._specification = None
+        self._set_recycle(network.recycle)
+        self._reset_errors()
+        self._set_path(path)
+        self._set_facilities(facilities)
+        self._set_facility_recycle(facility_recycle)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._register(ID)
         if facilities:
             f_streams = streams_from_path(facilities)
@@ -261,19 +355,34 @@ class System(metaclass=system):
         self._finalize_streams()
         return self
         
+<<<<<<< HEAD
     def __init__(self, ID, path, recycle=None, facilities=()):
         self._numerical_specification = None
+=======
+    def __init__(self, ID, path, recycle=None, facilities=(), facility_recycle=None):
+        self._specification = None
+        self._set_recycle(recycle)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._load_flowsheet()
         self._reset_errors()
         self._set_path(path)
         self._load_units()
         self._set_facilities(facilities)
+<<<<<<< HEAD
         self._load_streams()
         self._finalize_streams()
         self._set_recycle(recycle)
         self._register(ID)
     
     numerical_specification = Unit.numerical_specification
+=======
+        self._set_facility_recycle(facility_recycle)
+        self._load_streams()
+        self._finalize_streams()
+        self._register(ID)
+    
+    specification = Unit.specification
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     save_report = save_report
     
     def _load_flowsheet(self):
@@ -297,6 +406,12 @@ class System(metaclass=system):
         #: list[Unit] Network of only unit operations
         self._unit_path = unit_path = []
         
+<<<<<<< HEAD
+=======
+        #: set[Unit] All units that have costs.
+        self._costunits = costunits = set()
+        
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         isa = isinstance
         for i in path:
             if i in unit_path: continue
@@ -305,6 +420,7 @@ class System(metaclass=system):
             elif isa(i, System):
                 unit_path.extend(i._unit_path)
                 subsystems.add(i)
+<<<<<<< HEAD
     
         #: set[Unit] All units in the path that have costs
         self._path_costunits = costunits = {i for i in unit_path
@@ -316,11 +432,27 @@ class System(metaclass=system):
     def _load_units(self):
         #: set[Unit] All units within the system
         self.units = set(self._unit_path)
+=======
+                costunits.update(i._costunits)
+    
+        #: set[Unit] All units in the path that have costs
+        self._path_costunits = path_costunits = {i for i in unit_path
+                                                 if i._design or i._cost}
+        costunits.update(path_costunits)
+        
+        
+    def _load_units(self):
+        #: set[Unit] All units within the system
+        self.units = set(self._unit_path) | self._costunits
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
         self._facilities = facilities = tuple(facilities)
+<<<<<<< HEAD
         self._facility_recycles = facility_recycle_streams = set()
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         subsystems = self.subsystems
         costunits = self._costunits
         units = self.units
@@ -330,15 +462,30 @@ class System(metaclass=system):
                 i._load_stream_links()
                 units.add(i)
                 if i._cost: costunits.add(i)
+<<<<<<< HEAD
                 if isa(i, Facility):
                     facility_recycle_streams.update(
                         [stream for stream in i.outs if stream.sink in units]
                     )
                     i._system = self
+=======
+                if isa(i, Facility) and not i._system: i._system = self
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             elif isa(i, System):
                 units.update(i.units)
                 subsystems.add(i)
                 costunits.update(i._costunits)
+<<<<<<< HEAD
+=======
+    
+    def _set_facility_recycle(self, recycle):
+        if recycle:
+            system = self._downstream_system(recycle.sink)
+            #: [FacilityLoop] Recycle loop for converging facilities
+            self._facility_loop = FacilityLoop(system, recycle)
+        else:
+            self._facility_loop = None
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _load_streams(self):
         #: set[:class:`~thermosteam.Stream`] All streams within the system
@@ -419,10 +566,14 @@ class System(metaclass=system):
                         if u in downstream_units:
                             path.append(i)
                             break
+<<<<<<< HEAD
                 elif i in downstream_units:
                     path.append(i)
                 elif (not isa(i, Unit)
                       or i.line == 'Balance'):
+=======
+                elif i in downstream_units or not isa(i, Unit):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                     path.append(i)
             else:
                 if unit is i:
@@ -453,7 +604,10 @@ class System(metaclass=system):
             assert unit_found, f'{unit} not found in system'
         system = System(None, path,
                         facilities=downstream_facilities)
+<<<<<<< HEAD
         for facility in downstream_facilities: facility._system = self
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
         self._cached_downstream_systems[unit] = system
         return system
@@ -525,11 +679,16 @@ class System(metaclass=system):
         if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
             unconverged = False
         elif self._iter == self.maxiter:
+<<<<<<< HEAD
             raise ConvergenceError(f'{repr(self)} could not converge' + self._error_info())
+=======
+            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         else:
             unconverged = True
         return rmol.copy(), unconverged
             
+<<<<<<< HEAD
         
     def _setup(self):
         """Setup each element of the system."""
@@ -537,6 +696,13 @@ class System(metaclass=system):
         for a in self.path:
             if isa(a, (Unit, System)): a._setup()
             else: pass # Assume it is a function
+=======
+    def _setup(self):
+        """Setup each element of the system."""
+        isa = isinstance
+        for i in self.path:
+            if isa(i, (Unit, System)): i._setup()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _run(self):
         """Rigorous run each element of the system."""
@@ -552,8 +718,12 @@ class System(metaclass=system):
     def _fixed_point(self):
         """Converge system recycle iteratively using fixed-point iteration."""
         self._reset_iter()
+<<<<<<< HEAD
         flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy(), 
                                     self.use_least_squares_solution)
+=======
+        flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy())
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
@@ -567,6 +737,7 @@ class System(metaclass=system):
     
     # Default converge method
     _converge_method = _aitken
+<<<<<<< HEAD
 
     def _converge_with_facilities(self):
         x0 = 0
@@ -593,6 +764,11 @@ class System(metaclass=system):
     @property
     def _converge(self):
         return self._converge_with_facilities if self._facility_recycles else self._converge_units
+=======
+   
+    def _converge(self):
+        return self._converge_method() if self._recycle else self._run()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     def _design_and_cost(self):
         for i in self._path_costunits:
@@ -639,16 +815,40 @@ class System(metaclass=system):
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
+<<<<<<< HEAD
+=======
+        from warning import warn
+        warn(DeprecationWarning("'reset_flows' will be depracated; please use 'empty_process_streams'"))
+        self.empty_process_streams()
+        
+    def empty_process_streams(self):
+        """Reset all process streams to zero flow."""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self._reset_errors()        
         feeds = self.feeds
         for stream in self.streams:
             if stream not in feeds: stream.empty()
 
+<<<<<<< HEAD
     def simulate(self):
         """Converge the path and simulate all units."""
         self._setup()
         need_to_design_and_cost = self._converge_with_facilities()
         if need_to_design_and_cost: self._design_and_cost()
+=======
+    def empty_recycles(self):
+        self._reset_errors()        
+        if self.recycle: self.recycle.empty()
+        for system in self.subsystems:
+            system.empty_recycles()
+
+    def simulate(self):
+        """Converge the path and simulate all units."""
+        self._setup()
+        self._converge()
+        self._design_and_cost()
+        if self._facility_loop: self._facility_loop()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
     # Debugging
     def _debug_on(self):
@@ -768,4 +968,45 @@ class System(metaclass=system):
                 + error)
 
 
+<<<<<<< HEAD
+=======
+class FacilityLoop(metaclass=system):
+    __slots__ = ('system', 'recycle',
+                 '_mol_error', '_T_error', '_iter')
+    
+    #: Maximum number of iterations to solve facilities
+    maxiter = 50
+    
+    #: Molar tolerance (kmol/hr)
+    molar_tolerance = 0.50
+    
+    #: Temperature tolerance (K)
+    temperature_tolerance = 0.10
+    
+    def __init__(self, system, recycle):
+        self.system = system
+        self.recycle = recycle
+        self._reset_errors()
+        
+    _reset_errors = System._reset_errors
+    _error_info = System._error_info
+    _iter_run = System._iter_run
+    _fixed_point = System._fixed_point
+    _aitken = System._aitken
+    _wegstein = System._wegstein
+    _converge_method = System._converge_method
+    converge_method = System.converge_method
+    
+    def _reset_iter(self):
+        self.system._reset_iter()
+        self._iter = 0
+    
+    def _run(self): self.system.simulate()
+    def __call__(self): self._converge_method()
+
+    def __repr__(self): 
+        return f"<{type(self).__name__}: {self.system.ID}>"
+    
+        
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from biosteam import _flowsheet as flowsheet_module

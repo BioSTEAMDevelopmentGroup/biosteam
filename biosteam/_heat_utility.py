@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Aug 18 14:25:34 2018
 
 @author: yoelr
 """
 from thermosteam.base.units_of_measure import convert, DisplayUnits
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+from thermosteam.units_of_measure import convert, DisplayUnits
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from thermosteam import Thermo, Stream, ThermalCondition
 from math import copysign
 
@@ -58,7 +70,11 @@ class UtilityAgent(Stream):
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, ID='', flow=(), phase='l', T=298.15, P=101325., units='kmol/hr',
                  thermo=None, T_limit=None, heat_transfer_price=0.0,
+<<<<<<< HEAD
                  regeneration_price=0.0, heat_transfer_efficiency=1.0,
+=======
+                 regeneration_price=0.0, heat_transfer_efficiency=1.0, 
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                  **chemical_flows):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
@@ -75,6 +91,23 @@ class UtilityAgent(Stream):
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
     
+<<<<<<< HEAD
+=======
+    @property
+    def price(self):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'price'")
+    @price.setter
+    def price(self, price):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'price'")
+    
+    @property
+    def cost(self):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'cost'")
+    @cost.setter
+    def cost(self, cost):
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'cost'")
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def to_stream(self, ID=None):
         """
         Return a copy as a :class:`~thermosteam.Stream` object.
@@ -97,11 +130,16 @@ class UtilityAgent(Stream):
         new._imol = self._imol.copy()
         new._thermal_condition = self._thermal_condition.copy()
         new._init_cache()
+<<<<<<< HEAD
         new.price = 0
+=======
+        new._price = 0.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         new.ID = ID
         return new
     
     @property
+<<<<<<< HEAD
     def cost(self):
         return 0
     @property
@@ -109,6 +147,8 @@ class UtilityAgent(Stream):
         return 0
     
     @property
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def heat_transfer_price(self):
         """Price of transfered heat [USD/kJ]."""
         return self._heat_transfer_price
@@ -167,17 +207,29 @@ chilled_brine = UtilityAgent('chilled_brine',
 
 # Create heating agents
 low_pressure_steam = UtilityAgent('low_pressure_steam',
+<<<<<<< HEAD
                                   Water=1, T=411.494, P=344738.0, phase='g',
+=======
+                                  Water=1, T=412.189, P=344738.0, phase='g',
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                                   thermo=thermo_water,
                                   regeneration_price = 0.2378,
                                   heat_transfer_efficiency = 0.95)
 medium_pressure_steam = UtilityAgent('medium_pressure_steam',
+<<<<<<< HEAD
                                      Water=1, T=454.484, P=1034214.0, phase='g',
+=======
+                                     Water=1, T=454.770, P=1.041e+6, phase='g',
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                                      thermo=thermo_water,
                                      regeneration_price = 0.2756,
                                      heat_transfer_efficiency = 0.90) 
 high_pressure_steam = UtilityAgent('high_pressure_steam',
+<<<<<<< HEAD
                                    Water=1, T=508.858, P=3102642.0, phase='g', 
+=======
+                                   Water=1, T=508.991, P=3.11e+6, phase='g', 
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                                    thermo=thermo_water,
                                    regeneration_price = 0.3171,
                                    heat_transfer_efficiency = 0.85) 
@@ -248,14 +300,22 @@ class HeatUtility:
        HeatUtility: low_pressure_steam
         duty: 1.05e+03 kJ/hr
         flow: 0.0271 kmol/hr
+<<<<<<< HEAD
         cost: 0.00644 USD/hr
+=======
+        cost: 0.00645 USD/hr
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
    
     All results are accessible:
         
     .. code-block:: python
     
        >>> hu.ID, hu.duty, hu.flow, hu.cost
+<<<<<<< HEAD
        ('low_pressure_steam', 1052.6315789473686, 0.027090382090408212, 0.006442092861099073)
+=======
+       ('low_pressure_steam', 1052.6315789473686, 0.027116986224992628, 0.006448419324303247)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
@@ -400,6 +460,7 @@ class HeatUtility:
     @staticmethod
     def heat_utilities_by_agent(heat_utilities):
         """Return a dictionary of heat utilities sorted by agent."""
+<<<<<<< HEAD
         heat_utilities_by_agent = {}
         for heat_utility in heat_utilities:
             agent = heat_utility.agent
@@ -408,6 +469,12 @@ class HeatUtility:
                 heat_utilities_by_agent[agent].append(heat_utility)
             else:
                 heat_utilities_by_agent[agent] = [heat_utility]
+=======
+        heat_utilities = [i for i in heat_utilities if i.agent]
+        heat_utilities_by_agent = {i.agent: [] for i in heat_utilities}
+        for i in heat_utilities:
+            heat_utilities_by_agent[i.agent].append(i)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         return heat_utilities_by_agent
 
     @classmethod
@@ -423,11 +490,19 @@ class HeatUtility:
     @classmethod
     def sum_by_agent(cls, heat_utilities):
         """
+<<<<<<< HEAD
         Return a list of heat utilities that reflect the sum of heat utilities
         by agent.
         """
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
         return [cls.sum(i) for i in heat_utilities_by_agent.values()]
+=======
+        Return a tuple of heat utilities that reflect the sum of heat utilities
+        by agent.
+        """
+        heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
+        return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     @classmethod
     def get_agent(cls, ID):

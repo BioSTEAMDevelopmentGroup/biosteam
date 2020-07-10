@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sun Jan  5 09:59:29 2020
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import biosteam as bst
 from graphviz import Digraph
@@ -34,10 +44,18 @@ def has_path(obj):
 def get_streams_from_units(units):
     return set(sum([i._ins + i._outs for i in units], []))
 
+<<<<<<< HEAD
 def blank_digraph(format='svg', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
     f.attr(rankdir='LR', **graph_attrs)
+=======
+def blank_digraph(format='svg', maxiter='10000000', 
+                  Damping='0.995', K='0.5', **graph_attrs):
+    # Create a digraph and set direction left to right
+    f = Digraph(format=format)
+    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, **graph_attrs)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     return f
 
 def get_section_inlets_and_outlets(units, streams):
@@ -188,8 +206,16 @@ def add_connection(f: Digraph, connection, unit_names=None):
             # Process stream case
             edge_in = sink._graphics.edge_in
             edge_out = source._graphics.edge_out
+<<<<<<< HEAD
             f.attr('edge', arrowtail='none', arrowhead='normal',
                    **edge_in[sink_index], **edge_out[source_index])
+=======
+            try:
+                f.attr('edge', arrowtail='none', arrowhead='normal',
+                       **edge_in[sink_index], **edge_out[source_index])
+            except:
+                stream.show()
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             f.edge(unit_names[source], unit_names[sink], label=stream.ID)
         else:
             f.node(stream.ID)
@@ -206,7 +232,11 @@ def add_connections(f: Digraph, connections, unit_names=None):
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
            height='0.6', color='black', peripheries='1')
+<<<<<<< HEAD
     f.attr('graph', splines='normal', overlap='orthoyx',
+=======
+    f.attr('graph', overlap='orthoyx',
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')
     for connection in connections:

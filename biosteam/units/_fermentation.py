@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 22:45:47 2018
 
@@ -6,12 +7,28 @@ Created on Thu Aug 23 22:45:47 2018
 """
 import numpy as np
 from ._bioreactor import Bioreactor
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+import numpy as np
+from ._batch_bioreactor import BatchBioreactor
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from scipy.integrate import odeint
 from thermosteam.reaction import Reaction
 
 __all__ = ('Fermentation',)
 
+<<<<<<< HEAD
 class Fermentation(Bioreactor):
+=======
+class Fermentation(BatchBioreactor):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     """
     Create a Fermentation object which models large-scale batch fermentation
     for the production of 1st generation ethanol using yeast
@@ -32,24 +49,53 @@ class Fermentation(Bioreactor):
         * [1] Effluent
     tau : float
         Reaction time.
+<<<<<<< HEAD
+=======
+    N : int, optional
+        Number of batch reactors
+    V : float, optional
+        Target volume of reactors [m^3].
+    T=305.15 : float
+        Temperature of reactor [K].
+    P=101325 : float
+        Operating pressure of reactor [Pa].
+    Nmin=2 : int
+        Minimum number of fermentors.
+    Nmax=36: int
+        Maximum number of fermentors.  
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     efficiency=0.9 : float, optional
         User enforced efficiency.
     iskinetic=False: bool, optional
         If True, `Fermenation.kinetic_model` will be used.
+<<<<<<< HEAD
     N : int
         Number of batch reactors
     T=305.15 : float
         Temperature of reactor [K].
+=======
+    
+    Notes
+    -----
+    Either N or V must be given.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Examples
     --------
     Simulate a Fermentation object which models batch fermentation for the
     production of 1st generation ethanol using yeast.
     
+<<<<<<< HEAD
     >>> from biorefineries.lipidcane.chemicals import ethanol_chemicals 
     >>> from biosteam.units import Fermentation
     >>> from biosteam import Stream, settings
     >>> settings.set_thermo(ethanol_chemicals)
+=======
+    >>> from biorefineries.lipidcane import chemicals
+    >>> from biosteam.units import Fermentation
+    >>> from biosteam import Stream, settings
+    >>> settings.set_thermo(chemicals)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     >>> feed = Stream('feed',
     ...               Water=1.20e+05,
     ...               Glucose=1.89e+03,
@@ -75,8 +121,13 @@ class Fermentation(Bioreactor):
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    2.5
+<<<<<<< HEAD
                         CO2      244
                         Ethanol  0.582
+=======
+                        Ethanol  0.582
+                        CO2      244
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water     6.6e+03
@@ -87,6 +138,7 @@ class Fermentation(Bioreactor):
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
                         Cost                          USD/hr     0.908
+<<<<<<< HEAD
     Chilled water       Duty                           kJ/hr -1.05e+07
                         Flow                         kmol/hr  7.06e+03
                         Cost                          USD/hr      52.7
@@ -117,6 +169,54 @@ class Fermentation(Bioreactor):
     
     """
     line = 'Fermentation'    
+=======
+    Chilled water       Duty                           kJ/hr -1.03e+07
+                        Flow                         kmol/hr  6.87e+03
+                        Cost                          USD/hr      51.3
+    Design              Reactor volume                    m3       246
+                        Batch time                        hr      12.6
+                        Loading time                      hr      1.57
+                        Number of reactors                           8
+                        Reactor duty                   kJ/hr  1.03e+07
+                        Cleaning and unloading time       hr         3
+                        Working volume fraction                    0.9
+    Purchase cost       Heat exchangers                  USD  4.09e+04
+                        Reactors                         USD  1.87e+06
+                        Agitators                        USD  1.16e+05
+                        Cleaning in place                USD  8.87e+04
+    Total purchase cost                                  USD  2.12e+06
+    Utility cost                                      USD/hr      52.2
+    
+    References
+    ----------
+    .. [1] Oliveira, Samuel C., et al. "Discrimination between ethanol 
+        inhibition models in a continuous alcoholic fermentation process using
+        flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
+    
+    .. [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a
+        tower reactor with flocculating yeast recycle: scale-up effects on process
+        performance, kinetic parameters and model predictions." Bioprocess
+        Engineering 20.6 (1999): 525-530.
+    
+    .. [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous
+        alcoholic fermentation process in a two-stage tower reactor cascade with
+        flocculating yeast recycle." Bioprocess and biosystems engineering 38.3
+        (2015): 469-479.
+    
+    .. [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol
+        Fermentations." Fermentation Processes. InTech, 2017.
+    
+    .. [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden
+        National. Renewable Energy Laboratory Golden, Colorado. P. Schoen,
+        J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group
+        Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics
+        for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid
+        Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical
+        Report NREL/TP-5100-47764
+    
+    """
+    line = 'Fermentation'
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     #: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
@@ -130,10 +230,19 @@ class Fermentation(Bioreactor):
                          0.18)  # a
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
+<<<<<<< HEAD
                  tau,  N, efficiency=0.9, iskinetic=False, T=305.15):
         Bioreactor.__init__(self, ID, ins, outs, thermo, tau=tau, N=N, T=T)
         self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
+=======
+                 tau,  N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
+                 efficiency=0.9, iskinetic=False):
+        BatchBioreactor.__init__(self, ID, ins, outs, thermo,
+                                 tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
+        self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
+        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.iskinetic = iskinetic
         self.efficiency = efficiency
         
@@ -209,17 +318,31 @@ class Fermentation(Bioreactor):
 
     @property
     def efficiency(self):
+<<<<<<< HEAD
         return self.fermentation.X
     @efficiency.setter
     def efficiency(self, efficiency):
         self.fermentation.X = efficiency
+=======
+        return self.fermentation_reaction.X
+    @efficiency.setter
+    def efficiency(self, efficiency):
+        self.fermentation_reaction.X = efficiency
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     def _run(self):
         vent, effluent = self.outs
         effluent.mix_from(self.ins)
         effluent_mol = effluent.mol
+<<<<<<< HEAD
         self.hydrolysis(effluent_mol)
         if self.iskinetic:
             self.fermentation.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation(effluent_mol)
+=======
+        self.hydrolysis_reaction(effluent_mol)
+        if self.iskinetic:
+            self.fermentation_reaction.X = self._calc_efficiency(effluent, self._tau)
+        self.fermentation_reaction(effluent_mol)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         vent.receive_vent(effluent)

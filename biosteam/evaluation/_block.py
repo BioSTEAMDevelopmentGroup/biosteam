@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed Mar  6 15:22:37 2019
 
 @author: yoelr
 """
         
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from .. import Unit
 from thermosteam import Stream
 from inspect import signature
@@ -59,6 +70,7 @@ class Block:
         self._element = element
         self._blocks[system, element] = self
     
+<<<<<<< HEAD
     def parameter(self, setter, simulate=None, name=None, distribution=None,
                   units=None, baseline=None) -> Parameter:
         """Return a Parameter object."""
@@ -66,6 +78,15 @@ class Block:
         if not name: name, = signature(setter).parameters.keys()
         return Parameter(name, setter, simulate, self._element,
                          self._system, distribution, units, baseline)
+=======
+    def parameter(self, setter, simulate, name, distribution, units, 
+                  baseline, bounds) -> Parameter:
+        """Return a Parameter object."""
+        if simulate is None: simulate = self._simulate
+        if not name: name, *_ = signature(setter).parameters.keys()
+        return Parameter(name, setter, simulate, self._element,
+                         self._system, distribution, units, baseline, bounds)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     @property
     def system(self):

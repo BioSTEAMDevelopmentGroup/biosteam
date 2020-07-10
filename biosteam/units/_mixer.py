@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 14:26:41 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from .. import Unit
 from .._graphics import mixer_graphics
@@ -51,6 +61,12 @@ class Mixer(Unit):
     _N_ins = 2
     _ins_size_is_fixed = False
     
+<<<<<<< HEAD
+=======
+    def _assert_compatible_property_package(self): 
+        pass # Not necessary for mixing streams
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins)

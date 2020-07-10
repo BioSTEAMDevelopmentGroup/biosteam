@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 Design and cost algorithms from ordinary vessels.
 
@@ -16,7 +25,11 @@ References
 import biosteam as bst
 from math import ceil
 from thermosteam import settings
+<<<<<<< HEAD
 from thermosteam.base import AbsoluteUnitsOfMeasure
+=======
+from thermosteam.units_of_measure import AbsoluteUnitsOfMeasure
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from ...utils import ExponentialFunctor
 
 __all__ = ('TankPurchaseCostAlgorithm',
@@ -56,7 +69,11 @@ class TankPurchaseCostAlgorithm:
     Find the number of mixing tanks and the total purchase cost 
     at a volume of 1 m^3 using the purchase cost equation from [1]_:
         
+<<<<<<< HEAD
     >>> from biosteam.units._tank import TankPurchaseCostAlgorithm
+=======
+    >>> from biosteam.units.design_tools import TankPurchaseCostAlgorithm
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     >>> TankPurchaseCostAlgorithm(lambda V: 12080 * V **0.525,
     ...                             V_min=0.1, V_max=30, V_units='m^3',
     ...                             CE=525.4, material='Stainless steel')
@@ -140,8 +157,12 @@ def field_erected_tank_purchase_cost(V):
     
     Examples
     --------
+<<<<<<< HEAD
     >>> from biosteam.units._tank import field_erected_vessel_purchase_cost
     >>> field_erected_vessel_purchase_cost(300)
+=======
+    >>> field_erected_tank_purchase_cost(300)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     112610.0
     
     """

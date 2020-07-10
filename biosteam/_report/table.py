@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Nov 17 09:48:34 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import numpy as np
 import pandas as pd
@@ -10,7 +20,11 @@ from warnings import warn
 import openpyxl
 from .._tea import TEA, CombinedTEA
 from thermosteam import Stream
+<<<<<<< HEAD
 from thermosteam.base import get_dimensionality, convert, stream_units_of_measure
+=======
+from thermosteam.units_of_measure import get_dimensionality, convert, stream_units_of_measure
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from thermosteam.exceptions import DimensionError
 import os
 
@@ -29,7 +43,12 @@ def _stream_key(s):
 # %% Helpful functions
 
 def _save(tables, writer, sheet_name='Sheet1', n_row=1):
+<<<<<<< HEAD
     """Save a list of tables as an excel file.
+=======
+    """
+    Save a list of tables as an excel file.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Parameters
     ----------
@@ -48,7 +67,12 @@ def _save(tables, writer, sheet_name='Sheet1', n_row=1):
 # %% Units
 
 def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
+<<<<<<< HEAD
     """Save a system report as an xlsx file.
+=======
+    """
+    Save a system report as an xlsx file.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Parameters
     ----------
@@ -75,7 +99,11 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
         except:
             # Assume xlsx writer is used
             worksheet = writer.book.add_worksheet('Flowsheet')
+<<<<<<< HEAD
             flowsheet.insert_image('A1', 'flowsheet.png')
+=======
+            worksheet.insert_image('A1', 'flowsheet.png')
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         diagram_completed = True
     
     if system.TEA:
@@ -128,7 +156,12 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
 save_system_results = save_report
 
 def results_table(units):
+<<<<<<< HEAD
     """Return a list of results tables for each unit type.
+=======
+    """
+    Return a list of results tables for each unit type.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     Parameters
     ----------
@@ -200,7 +233,11 @@ def cost_table(tea):
     
     df = DataFrame(array, columns=columns, index=IDs)    
     if not tea.lang_factor:
+<<<<<<< HEAD
         df['Installation cost (10^6 USD)'] = [u.installation_cost for u in units]
+=======
+        df['Installed cost (10^6 USD)'] = [u.installed_cost / 1e6 for u in units]
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     return df
 
@@ -314,7 +351,11 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
                 phase += 'solid|'
         phase = phase.rstrip('|')
         phases[j] = phase
+<<<<<<< HEAD
         flow_j = s.get_flow(flow)
+=======
+        flow_j = s.get_flow(units=flow)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         flows[j] = net_j = sum(flow_j)
         fracs[:,j] = flow_j/net_j if net_j > 0 else 0
         i = 0

@@ -1,13 +1,35 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Tue Sep 10 09:01:47 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from ._unit import Unit
 from ._facility import Facility
 from ._digraph import digraph_from_units_and_streams, finalize_digraph
 
+<<<<<<< HEAD
+=======
+# %% Path checking
+
+def feed_forward_recycle(path, other_path, recycle):
+    try: path = path[path.index(recycle.sink):]
+    except: return False
+    other_path = other_path[other_path.index(recycle.sink):]
+    return path != other_path
+
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 # %% Path tools
 
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
@@ -31,9 +53,22 @@ def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
               ends):
     unit = feed.sink
+<<<<<<< HEAD
     if not unit or isinstance(unit, Facility) or feed in ends:
         paths_without_recycle.add(tuple(path))
     elif unit in path: 
+=======
+    has_recycle = None
+    if feed in ends:
+        has_recycle = False
+        for other_path, recycle in paths_with_recycle:
+            if recycle is feed:
+                has_recycle = feed_forward_recycle(path, other_path, recycle)
+                if has_recycle: break
+    if not unit or isinstance(unit, Facility) or has_recycle is False:
+        paths_without_recycle.add(tuple(path))
+    elif unit in path or has_recycle: 
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
         ends.add(feed)
@@ -150,7 +185,10 @@ class Network:
         network = Network(sum(reversed(linear_paths), []))
         recycle_networks = [Network(path, recycle) for path, recycle
                             in cyclic_paths_with_recycle]
+<<<<<<< HEAD
         
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         for recycle_network in recycle_networks:
             network.join_network(recycle_network)
         isa = isinstance
@@ -175,8 +213,11 @@ class Network:
                 network._append_network(upstream_network)
             else:
                 network.join_network(upstream_network)
+<<<<<<< HEAD
                 # raise RuntimeError('path creation failed; multiple recycle '
                 #                    'connections found for a given path')
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         return network
 
     def copy_like(self, other):
@@ -213,6 +254,7 @@ class Network:
     
     def join_network_at_unit(self, network, unit):
         isa = isinstance
+<<<<<<< HEAD
         self._remove_overlap(network)
         has_overlap = False
         for index, item in enumerate(self.path):
@@ -223,6 +265,19 @@ class Network:
             elif unit == item:
                 self._insert_network(index, network, has_overlap)
                 break
+=======
+        for index, item in enumerate(self.path):
+            if isa(item, Network) and unit in item.units:
+                self._remove_overlap(network)
+                item.join_network_at_unit(network, unit)
+                self._update_from_newly_added_network(network)
+                return
+            elif unit == item:
+                self._remove_overlap(network)
+                self._insert_network(index, network, False)
+                return
+        raise RuntimeError('unit not in path')
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _append_unit(self, unit):
         self.units.add(unit)
@@ -264,12 +319,37 @@ class Network:
     
     def _add_subnetwork(self, subnetwork):
         path = self.path
+<<<<<<< HEAD
         subunits = subnetwork.units
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         isa = isinstance
         index_found = done = False
         subnetworks = self.subnetworks
         has_overlap = True
         path_tuple = tuple(path)
+<<<<<<< HEAD
+=======
+        recycle = self.recycle
+        if recycle is subnetwork.recycle:
+            # Feed forward scenario
+            subpath = subnetwork.path
+            for i, item in enumerate(subpath):
+                if item in path_tuple:
+                    unit = item
+                else:
+                    subpath = subpath[i:]
+                    break
+            for i, item in enumerate(reversed(subpath)):
+                if item in path_tuple:
+                    unit = item
+                else:
+                    subpath = subpath[:-i]
+                    break
+            self.join_network_at_unit(Network(subpath), unit)
+            return
+        subunits = subnetwork.units
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         for i in path_tuple:
             if isa(i, Unit):
                 continue
@@ -277,7 +357,12 @@ class Network:
                 subnetwork._add_subnetwork(i)
                 index = path.index(i)
                 path.remove(i)
+<<<<<<< HEAD
                 subnetworks.remove(i)
+=======
+                try: subnetworks.remove(i)
+                except: pass
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                 index_found = True
             elif subnetwork.issubset(i):
                 i._add_subnetwork(subnetwork)
@@ -297,6 +382,10 @@ class Network:
                         continue
                     else:
                         item._add_subnetwork(subnetwork)
+<<<<<<< HEAD
+=======
+                        self._update_from_newly_added_network(subnetwork)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                         done = True
                         break
         if has_overlap:
@@ -304,7 +393,11 @@ class Network:
         if not done:
             self._append_network(subnetwork)
         if len(path) == 1 and isa(path[0], Network):
+<<<<<<< HEAD
             self.copy_like(path[0])
+=======
+            self.path = path[0].path
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     def _remove_overlap(self, subnetwork):
         path = self.path

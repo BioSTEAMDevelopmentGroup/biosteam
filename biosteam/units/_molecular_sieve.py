@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 22:17:05 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from ._splitter import Splitter
 from .decorators import cost
@@ -70,7 +80,11 @@ class MolecularSieve(Splitter):
     Power               Rate            kW      14.2
                         Cost        USD/hr      1.11
     Low pressure steam  Duty         kJ/hr  3.21e+06
+<<<<<<< HEAD
                         Flow       kmol/hr      82.6
+=======
+                        Flow       kmol/hr      82.7
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
                         Cost        USD/hr      19.7
     Chilled water       Duty         kJ/hr -1.18e+05
                         Flow       kmol/hr       123
@@ -80,7 +94,10 @@ class MolecularSieve(Splitter):
     Total purchase cost                USD  6.85e+05
     Utility cost                    USD/hr      21.4
     
+<<<<<<< HEAD
     
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     References
     ----------
     .. [1] Process Design and Economics for Biochemical Conversion of
@@ -96,10 +113,13 @@ class MolecularSieve(Splitter):
     _units = {'Flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, order=None, split):
         Splitter.__init__(self, ID, ins, outs, order=order, split=split)
+<<<<<<< HEAD
         
     def _setup(self):
         s1_out, s2_out = self.outs
         s1_out.phase = s2_out.phase = 'g'
+=======
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     def _design(self):
         self.design_results['Flow rate'] = flow = self._outs[1].F_mass

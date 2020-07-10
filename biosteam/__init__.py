@@ -1,9 +1,20 @@
+<<<<<<< HEAD
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Sat Oct 28 17:28:09 2017
 
 @author: Yoel Rene Cortes-Pena
+=======
+# -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
@@ -24,12 +35,20 @@ from . import units
 from . import evaluation
 from . import exceptions
 from . import process_tools
+<<<<<<< HEAD
+=======
+from . import examples
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 __all__ = ('Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation',
            'main_flowsheet', 'Flowsheet', 'CE', 'Chemical', 'Chemicals', 'Stream',
            'MultiStream', 'settings', 'Network', 'exceptions', 'speed_up',
+<<<<<<< HEAD
            'process_tools', *units.__all__, *evaluation.__all__
+=======
+           'process_tools', 'examples', *units.__all__, *evaluation.__all__
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 )
 
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Mon Feb  4 19:38:37 2019
 
@@ -7,6 +8,19 @@ Created on Mon Feb  4 19:38:37 2019
 import pandas as pd
 import numpy as np
 from flexsolve import aitken_secant, secant
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+import pandas as pd
+import numpy as np
+import flexsolve as flx
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from copy import copy as copy_
 from flexsolve import njitable
 
@@ -47,7 +61,28 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
 
 # %% Utilities
 
+<<<<<<< HEAD
 @njitable   
+=======
+@njitable(cache=True)
+def NPV_at_IRR(IRR, cashflow, duration_array):
+    """Return NPV at given IRR and cashflow data."""
+    return (cashflow/(1.+IRR)**duration_array).sum()
+
+@njitable(cache=True)
+def NPV_with_sales(sales, NPV, coefficients, discount_factors):
+    """Return NPV with an additional annualized sales."""
+    return NPV + (sales*coefficients/discount_factors).sum()
+
+@njitable(cache=True)
+def sum_NPV_at_IRR(IRR, cashflows, duration_arrays):
+    NPV = 0.
+    for i in range(len(cashflows)):
+        NPV += NPV_at_IRR(IRR, cashflows[i], duration_arrays[i])
+    return NPV
+
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
@@ -56,7 +91,11 @@ def initial_loan_principal(loan, interest):
         principal *= k
     return principal
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def final_loan_principal(payment, principal, interest, years):
     for iter in range(years):
         principal += principal * interest - payment
@@ -64,11 +103,21 @@ def final_loan_principal(payment, principal, interest, years):
 
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
+<<<<<<< HEAD
     return aitken_secant(final_loan_principal,
                            payment, payment+10., 1e-4, 1e-4,
                            args=(principal, interest, years))
 
 @njitable
+=======
+    payment = flx.aitken_secant(final_loan_principal,
+                                payment, payment+10., 1., 10.,
+                                args=(principal, interest, years),
+                                maxiter=200, checkiter=False)
+    return payment
+
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def net_earnings(D, C, S, start,
                  FCI, TDC, VOC, FOC, sales,
                  income_tax,
@@ -286,6 +335,7 @@ class TEA:
         """Total purchase cost (USD)."""
         return sum([u.purchase_cost for u in self.units])
     @property
+<<<<<<< HEAD
     def installation_cost(self):
         """Total installation cost (USD)."""
         return sum([u.installation_cost for u in self.units])
@@ -293,6 +343,15 @@ class TEA:
     def DPI(self):
         """Direct permanent investment."""
         return self.purchase_cost * self.lang_factor if self.lang_factor else self.installation_cost
+=======
+    def installed_cost(self):
+        """Total installed cost (USD)."""
+        return sum([u.installed_cost for u in self.units])
+    @property
+    def DPI(self):
+        """Direct permanent investment."""
+        return self.purchase_cost * self.lang_factor if self.lang_factor else self.installed_cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def TDC(self):
         """Total depreciable capital."""
@@ -402,7 +461,11 @@ class TEA:
             L[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
             f_interest = (1. + interest)
             LP[start:end] = solve_payment(loan.sum()/years * f_interest,
+<<<<<<< HEAD
                                            loan, interest, years)
+=======
+                                          loan, interest, years)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             loan_principal = 0
             for i in range(end):
                 LI[i] = li = (loan_principal + L[i]) * interest 
@@ -433,7 +496,11 @@ class TEA:
     @property
     def NPV(self):
         """Net present value."""
+<<<<<<< HEAD
         return self._NPV_at_IRR(self.IRR, self.cashflow)
+=======
+        return NPV_at_IRR(self.IRR, self.cashflow, self._duration_array)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _AOC(self, FCI):
         """Return AOC at given FCI"""
@@ -445,7 +512,11 @@ class TEA:
         Parameters
         ----------
         products : Iterable[:class:`~thermosteam.Stream`]
+<<<<<<< HEAD
                     Main products of the system
+=======
+            Main products of the system
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         with_annual_depreciation=True : bool, optional
         
         Notes
@@ -521,6 +592,7 @@ class TEA:
             return NE + D + Loan - C_FC - C_WC - LP
         else:
             return NE + D - C_FC - C_WC
+<<<<<<< HEAD
     
     def _NPV_at_IRR(self, IRR, cashflow):
         """Return NPV at given IRR and cashflow data."""
@@ -543,6 +615,18 @@ class TEA:
                                xtol=1e-4, maxiter=200,
                                args=(self.cashflow,))
         return self._IRR
+=======
+
+    def solve_IRR(self):
+        """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
+        IRR = self._IRR
+        args = (self.cashflow, self._duration_array)
+        IRR = flx.aitken_secant(NPV_at_IRR,
+                                IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
+                                maxiter=200, args=args, checkiter=False)
+        self._IRR = IRR
+        return IRR
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cashflow in solve_price method."""
@@ -558,14 +642,20 @@ class TEA:
             
         """
         price2cost = self._price2cost(stream)
+<<<<<<< HEAD
         discount_factors = (1 + self.IRR)**self._duration_array
         cashflow = self.cashflow
+=======
+        cashflow = self.cashflow
+        discount_factors = (1 + self.IRR)**self._duration_array
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         NPV = (cashflow/discount_factors).sum()
         coefficients = np.ones_like(discount_factors)
         start = self._start
         coefficients[:start] = 0
         w0 = self._startup_time
         coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
+<<<<<<< HEAD
         try:
             self._sales = aitken_secant(self._NPV_with_sales,
                                           self._sales, self._sales+1e-6,
@@ -580,6 +670,18 @@ class TEA:
             return stream.price - self._sales/price2cost
         elif stream.source:
             return stream.price + self._sales/price2cost
+=======
+        args = (NPV, coefficients, discount_factors)
+        sales = self._sales or stream.price * price2cost
+        sales = flx.aitken_secant(NPV_with_sales,
+                                  sales, 1.0001 * sales + 1e-4, ytol=10.,
+                                  maxiter=200, args=args, checkiter=False)
+        self._sales = sales
+        if stream.sink:
+            return stream.price - sales/price2cost
+        elif stream.source:
+            return stream.price + sales/price2cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         else:
             raise ValueError(f"stream must be either a feed or a product")
     
@@ -633,6 +735,14 @@ class CombinedTEA(TEA):
         self._sales = 0
     
     @property
+<<<<<<< HEAD
+=======
+    def units(self):
+        """All unit operations used for TEA."""
+        return tuple(sum([i.units for i in self.TEAs], []))
+    
+    @property
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     def operating_days(self):
         v_all = [i.operating_days for i in self.TEAs]
         v0, *vs = v_all
@@ -643,6 +753,10 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = operating_days
         for i, j in zip(self.TEAs, vector): i.operating_days = j
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def startup_months(self):
         v_all = [i.startup_months for i in self.TEAs]
@@ -654,6 +768,10 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = startup_months
         for i, j in zip(self.TEAs, vector): i.startup_months = j
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def income_tax(self):
         v_all = [i.income_tax for i in self.TEAs]
@@ -665,17 +783,30 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = income_tax
         for i, j in zip(self.TEAs, vector): i.income_tax = j
+<<<<<<< HEAD
     @property
     def cashflow(self):
         return sum([i.cashflow for i in self.TEAs])
+=======
+    
+    @property
+    def cashflow(self):
+        return sum([i.cashflow for i in self.TEAs])
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def utility_cost(self):
         """Total utility cost (USD/yr)."""
         return sum([i.utility_cost for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def purchase_cost(self):
         """Total purchase cost (USD)."""
         return sum([i.purchase_cost for i in self.TEAs])
+<<<<<<< HEAD
     @property
     def installation_cost(self):
         """Total installation cost (USD)."""
@@ -683,57 +814,124 @@ class CombinedTEA(TEA):
     @property
     def NPV(self):
         return sum([i.NPV for i in self.TEAs])
+=======
+    
+    @property
+    def installed_cost(self):
+        """Total installation cost (USD)."""
+        return sum([i.installed_cost for i in self.TEAs])
+    
+    @property
+    def NPV(self):
+        return sum_NPV_at_IRR(self.IRR,
+                              tuple([i.cashflow for i in self.TEAs]),
+                              tuple([i._duration_array for i in self.TEAs]))
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def DPI(self):
         """Direct permanent investment."""
         return sum([i.DPI for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def TDC(self):
         """Total depreciable capital."""
         return sum([i.TDC for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def FCI(self):
         """Fixed capital investment."""
         return sum([i.FCI for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def TCI(self):
         """Total capital investment."""
         return sum([i.TCI for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def FOC(self):
         """Fixed operating costs (USD/yr)."""
         return sum([i.FOC for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def VOC(self):
         """Variable operating costs (USD/yr)."""
         return self.material_cost + self.utility_cost
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def AOC(self):
         """Annual operating cost excluding depreciation (USD/yr)."""
         return self.FOC + self.VOC
+<<<<<<< HEAD
     @property
     def working_capital(self):
         return sum([i.working_capital for i in self.TEAs])
+=======
+    
+    @property
+    def working_capital(self):
+        """Working capital."""
+        return sum([i.working_capital for i in self.TEAs])
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def material_cost(self):
         """Annual material cost."""
         return sum([i.material_cost for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def annual_depreciation(self):
         """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
         return sum([i.annual_depreciation for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def sales(self):
         """Annual sales revenue."""
         return sum([i.sales for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def net_earnings(self):
         """Net earnings without accounting for annualized depreciation."""
         return sum([i.net_earnings for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
         return sum([i.ROI for i in self.TEAs])
+<<<<<<< HEAD
+=======
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def PBP(self):
         """Pay back period (yr) without accounting for annualized depreciation."""
@@ -741,16 +939,29 @@ class CombinedTEA(TEA):
     
     def get_cashflow_table(self):
         """Return DataFrame of the cash flow analysis."""
+<<<<<<< HEAD
         TEA, *TEAs = self.TEAs
         table = TEA.get_cashflow_table()
         DF = table['Discount factor']
         DF_data = np.array(DF)
         for i in TEAs:
+=======
+        IRR = self.IRR
+        TEAs = self.TEAs
+        IRRs = [i.IRR for i in TEAs]
+        for i in TEAs: i.IRR = IRR
+        TEA, *other_TEAs = TEAs
+        table = TEA.get_cashflow_table()
+        DF = table['Discount factor']
+        DF_data = np.array(DF)
+        for i in other_TEAs:
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             i_table = i.get_cashflow_table()
             if (i_table.index != table.index).any():
                 raise NotImplementedError('cannot yet create cashflow table from TEAs with different venture years')
             table[:] += np.asarray(i_table)
         DF[:] = DF_data
+<<<<<<< HEAD
         return table    
         
     def _NPV_at_IRR(self, IRR, TEA_cashflows):
@@ -760,6 +971,10 @@ class CombinedTEA(TEA):
     def _NPV_with_sales(self, sales, NPV, TEA, coefficients, discount_factors):
         """Return NPV with additional sales."""
         return TEA._NPV_with_sales(sales, NPV, coefficients, discount_factors)
+=======
+        for IRR, TEA in zip(IRRs, TEAs): TEA.IRR = IRR
+        return table    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     def production_cost(self, products, with_annual_depreciation=True):
         """Return production cost of products [USD/yr].
@@ -787,6 +1002,7 @@ class CombinedTEA(TEA):
     
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
+<<<<<<< HEAD
         try:
             self._IRR = aitken_secant(self._NPV_at_IRR,
                                       self._IRR, self._IRR+1e-6,
@@ -799,6 +1015,14 @@ class CombinedTEA(TEA):
                                xtol=5e-8, maxiter=200,
                                args=([(i, i.cashflow) 
                                       for i in self.TEAs],))
+=======
+        IRR = self._IRR
+        args = (tuple([i.cashflow for i in self.TEAs]),
+                tuple([i._duration_array for i in self.TEAs]))
+        self._IRR = flx.aitken_secant(sum_NPV_at_IRR,
+                                      IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
+                                      maxiter=200, args=args, checkiter=False)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         return self._IRR
     
     def solve_price(self, stream, TEA=None):
@@ -812,18 +1036,29 @@ class CombinedTEA(TEA):
               Stream should belong here.
             
         """
+<<<<<<< HEAD
         if not TEA:
             for TEA in self.TEAs:
                 if stream in TEA.system.feeds or stream in TEA.system.products: break
         price2cost = TEA._price2cost(stream)
         IRR = self.IRR
         NPV = sum([i._NPV_at_IRR(IRR, i.cashflow) for i in self.TEAs])
+=======
+        TEAs = self.TEAs
+        if not TEA:
+            for TEA in TEAs:
+                if stream in TEA.system.feeds or stream in TEA.system.products: break
+        price2cost = TEA._price2cost(stream)
+        IRR = self.IRR
+        NPV = self.NPV
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         discount_factors = (1.+IRR)**TEA._duration_array
         coefficients = np.ones_like(discount_factors)
         start = TEA._start
         coefficients[:start] = 0
         w0 = TEA._startup_time
         coefficients[TEA._start] =  w0*TEA.startup_VOCfrac + (1-w0)
+<<<<<<< HEAD
         try:
             self._sales = aitken_secant(self._NPV_with_sales,
                                         self._sales, self._sales+1e-6,
@@ -842,6 +1077,18 @@ class CombinedTEA(TEA):
             return stream.price - self._sales/price2cost
         elif stream.source:
             return stream.price + self._sales/price2cost
+=======
+        args = (NPV, coefficients, discount_factors)
+        sales = self._sales or stream.price * price2cost
+        sales = flx.aitken_secant(NPV_with_sales,
+                                  sales, 1.0001 * sales + 1e-4, ytol=10.,
+                                  maxiter=200, args=args, checkiter=False)
+        self._sales = sales
+        if stream.sink:
+            return stream.price - sales/price2cost
+        elif stream.source:
+            return stream.price + sales/price2cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         else:
             raise ValueError(f"stream must be either a feed or a product")
     

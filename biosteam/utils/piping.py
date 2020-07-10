@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed Dec  5 16:47:33 2018
 
 This module includes classes and functions relating Stream objects.
 
 @author: Yoel Cortes-Pena
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+This module includes classes and functions concerning Stream objects.
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from thermosteam import Stream, MultiStream
 
@@ -351,8 +363,15 @@ class Sink:
     
     .. code-block:: python
     
+<<<<<<< HEAD
         >>> stream = Stream('s1')
         >>> unit = Mixer('M1')
+=======
+        >>> from biosteam import Stream, Mixer, settings
+        >>> settings.set_thermo(['Water'])
+        >>> stream = Stream('s1')
+        >>> unit = Mixer('M1', outs=('out'))
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Sink objects are created using -pipe- notation:
         
@@ -365,17 +384,30 @@ class Sink:
     
     .. code-block:: python
     
+<<<<<<< HEAD
         >>> stream-1-unit
         >>> M1.show()
         
         Mixer: M1
         ins...
         [0] Missing stream
+=======
+        >>> stream-1-unit # The last unit is returned to continue piping; just ignore this
+        <Mixer: M1>
+        >>> unit.show()
+        Mixer: M1
+        ins...
+        [0] missing stream
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         [1] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa
             flow:  0
         outs...
+<<<<<<< HEAD
         [0] d27
+=======
+        [0] out
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             phase: 'l', T: 298.15 K, P: 101325 Pa
             flow:  0
     
@@ -413,6 +445,11 @@ class Source:
     
     .. code-block:: python
     
+<<<<<<< HEAD
+=======
+        >>> from biosteam import Stream, Mixer, settings
+        >>> settings.set_thermo(['Water'])
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         >>> stream = Stream('s1')
         >>> unit = Mixer('M1')
     
@@ -427,6 +464,7 @@ class Source:
     
     .. code-block:: python
     
+<<<<<<< HEAD
         >>> unit**0**stream
         >>> M1.show()
         
@@ -434,6 +472,15 @@ class Source:
         ins...
         [0] Missing stream
         [1] Missing stream
+=======
+        >>> unit**0**stream # First unit is returned to continue backwards piping; just ignore this
+        <Mixer: M1>
+        >>> unit.show()
+        Mixer: M1
+        ins...
+        [0] missing stream
+        [1] missing stream
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         outs...
         [0] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa

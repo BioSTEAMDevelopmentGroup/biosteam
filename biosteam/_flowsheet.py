@@ -1,7 +1,20 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
+"""
+import biosteam as bst
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from thermosteam.utils import Registry
 from ._digraph import (digraph_from_units,
                        digraph_from_units_and_streams, 
@@ -31,6 +44,13 @@ def get_feeds_from_streams(streams):
 def sort_feeds_big_to_small(feeds):
     feeds.sort(key=lambda feed: -feed.F_mass)
     
+<<<<<<< HEAD
+=======
+def find_blowdown_recycle(facilities):
+    isa = isinstance
+    for i in facilities:
+        if isa(i, bst.BlowdownMixer): return i.outs[0]
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # %% Flowsheet search      
 
@@ -174,7 +194,11 @@ class Flowsheet:
             u._outs[:] = outs
         return f
     
+<<<<<<< HEAD
     def create_system(self, ID="", feeds=None, ends=()):
+=======
+    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -185,10 +209,20 @@ class Flowsheet:
         feeds : Iterable[:class:`thermosteam.Stream`], optional
             Feeds to the process ordered in decreasing priority. The 
             first feed should be your feedstock.
+<<<<<<< HEAD
         ends : Iterable[:class:`~thermosteam.Stream`]
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.
+=======
+        ends : Iterable[:class:`~thermosteam.Stream`], optional
+            End streams of the system which are not products. Specify this argument
+			if only a section of the system is wanted, or if recycle streams should be 
+			ignored.
+        facility_recycle : [:class:`~thermosteam.Stream`], optional
+            Recycle stream between facilities and system path. This argument
+            defaults to the outlet of a BlowdownMixer facility (if any).
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         """
         if not feeds:
@@ -197,8 +231,15 @@ class Flowsheet:
         if feeds:
             feedstock, *feeds = feeds
             facilities = self.get_facilities()
+<<<<<<< HEAD
             system = System.from_feedstock(ID, feedstock, feeds,
                                            facilities, ends)
+=======
+            if not facility_recycle:
+                facility_recycle = find_blowdown_recycle(facilities)
+            system = System.from_feedstock(ID, feedstock, feeds,
+                                           facilities, ends, facility_recycle)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         else:
             system = System(ID, ())
         return system

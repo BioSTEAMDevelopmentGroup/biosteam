@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Jun 15 00:46:41 2019
 
@@ -6,6 +7,18 @@ Created on Sat Jun 15 00:46:41 2019
 """
 from .. import Unit, units
 from ..utils import format_unit_name, static_flow_and_phase
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+"""
+from .. import Unit, units
+from ..utils import format_unit_name
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 from . import decorators
 import pandas as pd
 import numpy as np
@@ -37,6 +50,10 @@ def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
 def df2dct(df):
     dct = {}
     for name_sim in df.columns.levels[0]:
+<<<<<<< HEAD
+=======
+        if name_sim == 'Unit': continue
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         cost_items = df[name_sim]
         if '-' in name_sim:
             sim, name = name_sim.split('-')

@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Aug 18 14:36:58 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from .utils import colors
 
@@ -88,7 +98,11 @@ box_graphics = UnitGraphics(single_edge_in, single_edge_out, box_node)
 node = box_node.copy()
 node['shape'] = 'triangle'
 node['orientation'] = '270'
+<<<<<<< HEAD
 mixer_graphics = UnitGraphics(6 * single_edge_in, right_edge_out, node)
+=======
+mixer_graphics = UnitGraphics(multi_edge_in, right_edge_out, node)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # Create splitter graphics
 node = box_node.copy()
@@ -104,10 +118,22 @@ node['height'] = '1.2'
 vertical_column_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
 
 # Create flash column graphics
+<<<<<<< HEAD
 node = node.copy()
 node['height'] = '1.1'
 vertical_vessel_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
 
+=======
+node = box_node.copy()
+node['height'] = '1.1'
+vertical_vessel_graphics = UnitGraphics(single_edge_in, top_bottom_edge_out, node)
+
+# Mixer-Settler graphics
+node = box_node.copy()
+node['width'] = '1.2'
+mixer_settler_graphics = UnitGraphics(multi_edge_in, top_bottom_edge_out, node)
+
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 # Single stream heat exchanger node
 node = box_node.copy()
 node['shape'] = 'circle'
@@ -136,7 +162,11 @@ def tailor_utility_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n" + line
 
 utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
+<<<<<<< HEAD
                                            tailor_utility_heat_exchanger_node)
+=======
+                                               tailor_utility_heat_exchanger_node)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # Process heat exchanger network
 node = node.copy()
@@ -149,7 +179,11 @@ def tailor_process_heat_exchanger_node(node, unit):
     node['name'] = unit.ID + "\n Heat exchanger"
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
+<<<<<<< HEAD
                                            tailor_process_heat_exchanger_node)
+=======
+                                               tailor_process_heat_exchanger_node)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # Process specification graphics
 orange = colors.orange_tint.tint(50)
@@ -163,7 +197,11 @@ def tailor_process_specification_node(node, unit):
                     f"{unit.line}")
 
 process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
+<<<<<<< HEAD
                                           tailor_process_specification_node)
+=======
+                                              tailor_process_specification_node)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 # System unit for creating diagrams
 node = box_node.copy()
@@ -187,4 +225,8 @@ def tailor_junction_node(node, unit):
         node['color'] = node['fillcolor'] = 'black'
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
+<<<<<<< HEAD
                              tailor_junction_node)
+=======
+                                 tailor_junction_node)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1

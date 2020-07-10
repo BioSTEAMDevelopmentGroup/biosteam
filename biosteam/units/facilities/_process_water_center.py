@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Wed Jul 17 18:43:39 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from . import Facility
 from ..decorators import cost
@@ -50,10 +60,17 @@ class ProcessWaterCenter(Facility):
     _N_outs = 2
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
+<<<<<<< HEAD
     def __init__(self, ID='', ins=None, outs=(),
                  makeup_water_streams=None,
                  process_water_streams=None):
         Facility.__init__(self, ID, ins, outs)
+=======
+    def __init__(self, ID='', ins=None, outs=(), thermo=None,
+                 makeup_water_streams=None,
+                 process_water_streams=None):
+        Facility.__init__(self, ID, ins, outs, thermo)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.makeup_water_streams = makeup_water_streams
         self.process_water_streams = process_water_streams
     
@@ -72,7 +89,11 @@ class ProcessWaterCenter(Facility):
         s_makeup.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] 
                                           for stream in makeup_water_streams])
 
+<<<<<<< HEAD
     def _run(self):
+=======
+    def _run(self): 
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.update_process_water()
         self.update_makeup_water()
         s_recycle, s_makeup = self._ins

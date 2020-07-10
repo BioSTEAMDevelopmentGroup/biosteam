@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Sat Jul 13 02:24:35 2019
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 from ._unit import Unit
 
@@ -30,6 +40,13 @@ class Facility(Unit, isabstract=True,
                                       'the order of simulation relative to other '
                                       'facilities')
     
+<<<<<<< HEAD
+=======
+    def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        Unit.__init__(self, ID, ins, outs, thermo)
+        self._system = None
+    
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     @property
     def system(self):
         return self._system

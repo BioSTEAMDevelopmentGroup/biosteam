@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 General functional algorithms for the design and purchase cost estimation
 of distillation columns.
@@ -35,11 +44,19 @@ __all__ = ('compute_purchase_cost_of_trays',
            'compute_tower_diameter',
            'compute_tower_height')
 
+<<<<<<< HEAD
 @njitable
 def minimum_thickness_from_diameter(D):
     return 0.03125 * D + 0.125
 
 @njitable
+=======
+@njitable(cache=True)
+def minimum_thickness_from_diameter(D):
+    return 0.03125 * D + 0.125
+
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
     """
     Return total cost of all trays at BioSTEAM's CEPCI.
@@ -67,7 +84,11 @@ def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
     F_NT = compute_n_trays_factor(N_T)
     return N_T * F_CE * F_NT * F_TT * F_TM * C_BT
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_purchase_cost_of_tower(Di, L, W, F_VM):
     """
     Return cost of tower at BioSTEAM's CEPCI.
@@ -95,7 +116,11 @@ def compute_purchase_cost_of_tower(Di, L, W, F_VM):
     C_PL = compute_plaform_ladder_cost(Di, L)
     return F_CE * (F_VM * C_V + C_PL)
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_empty_tower_cost(W):
     """
     Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.
@@ -113,7 +138,11 @@ def compute_empty_tower_cost(W):
     """
     return np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_plaform_ladder_cost(Di, L):
     """
     Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.
@@ -132,7 +161,11 @@ def compute_plaform_ladder_cost(Di, L):
     """
     return 300.9*Di**0.63316*L**0.80161
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_tower_weight(Di, L, tv, rho_M):
     """
     Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.
@@ -157,7 +190,11 @@ def compute_tower_weight(Di, L, tv, rho_M):
     L = L*12
     return np.pi*(Di+tv)*(L+0.8*Di)*tv*rho_M
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     """
     Return the wall thinkness [tv; in inches] designed to withstand the
@@ -240,7 +277,11 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
         tv = utils.approx2step(tv, 2, 1/4)
     return tv
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_tray_base_purchase_cost(Di):
     """Return the base cost of a tray [C_BT; USD] at a CE of 500.
     
@@ -256,7 +297,11 @@ def compute_tray_base_purchase_cost(Di):
     """
     return 412.6985 * np.exp(0.1482*Di)
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_n_trays_factor(N_T):
     """
     Return the cost factor for number of trays, F_NT.
@@ -276,7 +321,11 @@ def compute_n_trays_factor(N_T):
         F_NT = 1
     return F_NT
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_murphree_stage_efficiency(mu, alpha, L, V):
     """
     Return the sectional murphree efficiency, E_mv.
@@ -302,7 +351,11 @@ def compute_murphree_stage_efficiency(mu, alpha, L, V):
     if e < 1: return e
     else: return 1
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_flow_parameter(L, V, rho_V, rho_L):
     """
     Return the flow parameter, F_LV.
@@ -325,7 +378,11 @@ def compute_flow_parameter(L, V, rho_V, rho_L):
     """
     return L/V*(rho_V/rho_L)**0.5
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_max_capacity_parameter(TS, F_LV):
     """Return the maximum capacity parameter before flooding [C_sbf; in m/s].
     
@@ -343,7 +400,11 @@ def compute_max_capacity_parameter(TS, F_LV):
     """
     return 0.0105 + 8.127e-4*TS**0.755*np.exp(-1.463*F_LV**0.842)
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     """
     Return the maximum allowable vapor velocity
@@ -381,7 +442,11 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     
     return C_sbf * F_HA * F_ST * ((rho_L-rho_V)/rho_V)**0.5
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_downcomer_area_fraction(F_LV):
     """
     Return the ratio of downcomer area to net (total) area, `A_dn`.
@@ -404,7 +469,11 @@ def compute_downcomer_area_fraction(F_LV):
         A_dn = 0.2
     return A_dn
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_tower_diameter(V_vol, U_f, f, A_dn):
     """Return tower diameter [D_T; in meter].
     
@@ -430,7 +499,11 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
         Di = 0.914
     return Di
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     """
     Return the height of a tower [H; in meter].

@@ -1,6 +1,19 @@
+<<<<<<< HEAD
 """
 General functional algorithms for the design and purchase cost estimation
 of flash vessels.
+=======
+# -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+General functional algorithms for the design and purchase cost estimation
+of flash pressure vessels.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 References
 ----------
@@ -20,11 +33,19 @@ __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_vessel_weight_and_wall_thickness',
            'compute_Stokes_law_York_Demister_K_value')
 
+<<<<<<< HEAD
 @njitable
 def compute_horizontal_vessel_purchase_cost(W, D, F_M):
     """
     Return the purchase cost [Cp; in USD] of a horizontal vessel,
     including thes cost of platforms and ladders.
+=======
+@njitable(cache=True)
+def compute_horizontal_vessel_purchase_cost(W, D, F_M):
+    """
+    Return the purchase cost [Cp; in USD] of a horizontal vessel,
+    including the cost of platforms and ladders.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Parameters
     ----------
@@ -48,11 +69,19 @@ def compute_horizontal_vessel_purchase_cost(W, D, F_M):
     C_pl = 2275*D**0.20294
     return bst.CE/567 * (F_M * C_v + C_pl)
 
+<<<<<<< HEAD
 @njitable
 def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
     """
     Return the purchase cost [Cp; in USD] of a horizontal vessel,
     including thes cost of platforms and ladders.
+=======
+@njitable(cache=True)
+def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
+    """
+    Return the purchase cost [Cp; in USD] of a vertical vessel,
+    including the cost of platforms and ladders.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Parameters
     ----------
@@ -184,7 +213,11 @@ def GTable(DRho, Hlr):
 
     return round(G, 2)
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def HNATable(Type, X):
     """
     Table for cylindrical height and area conversions.
@@ -229,9 +262,16 @@ def HNATable(Type, X):
 
     return Y
 
+<<<<<<< HEAD
 @njitable
 def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     """Return vessel weight and wall thickness.
+=======
+@njitable(cache=True)
+def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
+    """
+    Return vessel weight and wall thickness.
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     
     Parameters
     ----------
@@ -304,7 +344,11 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     VW = round(VW, 2)
     return VW, ts
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_low_liq_level_height(Type, P, D):
     """
     Return the height of the lowest liquid level [Hlll; in ft]
@@ -345,7 +389,11 @@ def compute_low_liq_level_height(Type, P, D):
 
     return Hlll  # in ft
 
+<<<<<<< HEAD
 @njitable
+=======
+@njitable(cache=True)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 def compute_Stokes_law_York_Demister_K_value(P):
     """
     Return K-constant in Stoke's Law using the York-Demister equation.
@@ -370,9 +418,15 @@ def compute_Stokes_law_York_Demister_K_value(P):
         raise ValueError(f'invalid Pressure {P} psia')
     return K
 
+<<<<<<< HEAD
 @njitable
 def ceil_half_step(value):
     """Return value to the next/highest 0.5 units"""
+=======
+@njitable(cache=True)
+def ceil_half_step(value):
+    """Return value to the next highest 0.5 units"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
     intval = round(value)
     if value > intval:
         return intval + 0.5

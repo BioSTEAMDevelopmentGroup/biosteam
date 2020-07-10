@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 """
 Created on Thu Aug 23 21:43:13 2018
 
 @author: yoelr
+=======
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 """
 import numpy as np
 import biosteam as bst
@@ -15,9 +25,15 @@ from .design_tools import (
     compute_heat_transfer_area
 )    
 from thermosteam import MultiStream, Stream, settings
+<<<<<<< HEAD
 from flexsolve import IQ_interpolation
 from warnings import warn
 import ht
+=======
+import flexsolve as flx
+from warnings import warn
+from .design_tools import heat_transfer as ht
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
 __all__ = ('MultiEffectEvaporator',)
 
@@ -76,12 +92,23 @@ class MultiEffectEvaporator(Unit):
             Liquid pressure after pumping (Pa).
     
     """
+<<<<<<< HEAD
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
     _N_outs = 2
     _N_heat_utilities = 2
     BM = 2.45
     line = 'Multi-Effect Evaporator'
+=======
+    line = 'Multi-Effect Evaporator'
+    _units = {'Area': 'm^2',
+              'Volume': 'm^3'}
+    _BM = {'Evaporators': 2.45,
+           'Liquid-ring pump': 1.0,
+           'Condenser': 3.17}
+    _N_outs = 2
+    _N_heat_utilities = 2
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
 
     #: Residence time (hr)
     tau = 0.30
@@ -158,15 +185,27 @@ class MultiEffectEvaporator(Unit):
             for evap in other_evaporators:
                 evap._run()
                 v_overall += (1-v_overall) * evap.V
+<<<<<<< HEAD
             return v_overall
+=======
+            return v_overall - self.V
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         x0 = 0.0001
         x1 = 0.9990
         y0 = compute_overall_vapor_fraction(x0)
         y1 = compute_overall_vapor_fraction(x1)
+<<<<<<< HEAD
         self._V1 = IQ_interpolation(compute_overall_vapor_fraction,
                                     x0, x1, y0, y1, self._V1, self.V, 
                                     xtol=0.0001, ytol=0.001)
+=======
+        self._V1 = flx.IQ_interpolation(compute_overall_vapor_fraction,
+                                        x0, x1, y0, y1, self._V1, 
+                                        xtol=0.0001, ytol=0.001,
+                                        checkiter=False)
+        
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         # Condensing vapor from last effector
         outs_vap = evaporators[-1].outs[0]
         condenser.ins[:] = [outs_vap]
@@ -207,7 +246,11 @@ class MultiEffectEvaporator(Unit):
         Tco = first_evaporator.outs[0].T
         hu(duty, Tci, Tco)
         Th = hu.inlet_utility_stream.T
+<<<<<<< HEAD
         LMTD = ht.LMTD(Th, Th, Tci, Tco)
+=======
+        LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         ft = 1
         A = abs(compute_heat_transfer_area(LMTD, U, Q, ft))
         self._evap_costs = evap_costs = [C_func(A, CE)]
@@ -216,13 +259,21 @@ class MultiEffectEvaporator(Unit):
         condenser = components['condenser']
         condenser._design()
         condenser._cost()
+<<<<<<< HEAD
         Cost['Condenser'] = condenser.purchase_costs['Heat exchanger']
+=======
+        Cost['Condenser'] = condenser.purchase_cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         
         # Find area and cost of evaporators
         As = [A]
         A_min, A_max = A_range
         for evap in evaporators[1:]:
+<<<<<<< HEAD
             Q = evap._Q
+=======
+            Q = evap.design_results['Heat transfer']
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
             Tc = evap.outs[0].T
             Th = evap.outs[2].T
             LMTD = Th - Tc
@@ -241,7 +292,11 @@ class MultiEffectEvaporator(Unit):
             F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
             vessel_volume=total_volume,
             vacuum_system_preference='Liquid-ring pump')
+<<<<<<< HEAD
         Cost['Vacuum liquid-ring pump'] = cost
+=======
+        Cost['Liquid-ring pump'] = cost
+>>>>>>> cd2c5013aaf9b5bc94bb764b52fd37db183472f1
         self.power_utility(power)
         
         
