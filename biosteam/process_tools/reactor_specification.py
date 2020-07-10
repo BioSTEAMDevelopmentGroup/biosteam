@@ -9,7 +9,6 @@
 import flexsolve as flx
 import numpy as np
 from thermosteam.exceptions import InfeasibleRegion
-from ..utils import NotImplementedMethod
 
 __all__ = ('ReactorSpecification',)
 
@@ -50,9 +49,6 @@ class ReactorSpecification:
         g products / L effluent / hr
     production : float
         kg products / hr
-    adjust_feed_composition : Callable, optional
-        Should adjust concentration of components in reactor feed other
-        than water and substrates.
     
     Notes
     -----
@@ -65,7 +61,6 @@ class ReactorSpecification:
     __slots__ = ('reactor',
                  'substrates',
                  'products',
-                 'adjust_feed_composition',
                  'yield_',
                  'titer',
                  'productivity',
@@ -73,7 +68,7 @@ class ReactorSpecification:
                  'reaction_name')
     
     def __init__(self, reactor, reaction_name, substrates, products, yield_, titer, 
-                 productivity, production, adjust_feed_composition=NotImplementedMethod):
+                 productivity, production):
         self.reactor = reactor #: [Unit] Reactor unit operation
         self.reaction_name = reaction_name #: reaction_name
         self.substrates = substrates #: tuple[str] Name of substrates
@@ -81,10 +76,7 @@ class ReactorSpecification:
         self.yield_ = yield_ #: [float] Weight fraction of theoretical yield.
         self.titer = titer #: [float] g products / L effluent
         self.productivity = productivity  #: [float] g products / L effluent / hr
-        self.production = production #: [float] kg / hr
-        #: [Callable] Should adjust concentration of components in reactor feed other
-        #: than water and substrates.
-        self.adjust_feed_composition = adjust_feed_composition
+        self.production = float(production) #: [float] kg / hr
         self.reaction_name
       
     def load_specifications(self, yield_=None, titer=None, productivity=None,
@@ -256,8 +248,8 @@ class ReactorSpecification:
         self.titer = titer
         try:
             flx.aitken_secant(f, substates, ytol=1e-5)
-        except InfeasibleRegion:
-            flx.IQ_interpolation(f, 1e-12, feed.F_mass, ytol=1e-5)
+        except:
+            flx.IQ_interpolation(f, 1e-12, feed.F_mass, ytol=1e-5, maxiter=100)
         self.reactor.tau = titer / self.productivity
     
     def load_productivity(self, productivity):
@@ -301,7 +293,8 @@ class ReactorSpecification:
     
     def _calculate_titer(self):
         """Return titer in g products / effluent L."""
-        self.reactor._run()
+        reactor = self.reactor
+        (reactor.specification or reactor._run)()
         effluent = self.effluent
         F_mass_products = effluent.imass[self.products].sum()
         if F_mass_products: 
@@ -319,5 +312,4 @@ class ReactorSpecification:
         mass_substrates = feed.imass[self.substrates]
         r_substrates = mass_substrates / mass_substrates.sum()
         mass_substrates[:] = substrates * r_substrates
-        self.adjust_feed_composition()
         return self._calculate_titer() - self.titer

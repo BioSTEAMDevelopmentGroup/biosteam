@@ -102,9 +102,11 @@ class Model(State):
         paramlen = len(params)
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
+        if samples.ndim == 1:
+            samples = samples[:, np.newaxis]
         elif samples.ndim != 2:
             raise ValueError('samples must be 2 dimensional')
-        elif samples.shape[1] != paramlen:
+        if samples.shape[1] != paramlen:
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(params)})')
         key = lambda x: samples[x][i]
         N_samples = len(samples)

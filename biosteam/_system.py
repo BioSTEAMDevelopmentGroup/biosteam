@@ -192,7 +192,7 @@ class System(metaclass=system):
     ### Class attributes ###
     
     #: Maximum number of iterations
-    maxiter = 100
+    maxiter = 200
     
     #: Molar tolerance (kmol/hr)
     molar_tolerance = 0.50
