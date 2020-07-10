@@ -1,0 +1,5 @@
+BoundedNumericalSpecification
+=============================
+
+.. autoclass:: biosteam.process_tools.BoundedNumericalSpecification
+   :members:

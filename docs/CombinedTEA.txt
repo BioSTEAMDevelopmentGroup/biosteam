@@ -1,0 +1,5 @@
+CombinedTEA
+===========
+
+.. autoclass:: biosteam.CombinedTEA
+   :members:

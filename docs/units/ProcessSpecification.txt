@@ -1,0 +1,5 @@
+ProcessSpecification
+====================
+
+.. autoclass:: biosteam.units.ProcessSpecification
+   :members:

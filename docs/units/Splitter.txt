@@ -1,0 +1,5 @@
+Splitter
+========
+
+.. autoclass:: biosteam.units.Splitter
+   :members:

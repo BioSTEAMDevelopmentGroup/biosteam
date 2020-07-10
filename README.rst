@@ -1,0 +1,73 @@
+=========================================================================
+BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+=========================================================================
+
+.. image:: http://img.shields.io/pypi/v/biosteam.svg?style=flat
+   :target: https://pypi.python.org/pypi/biosteam
+   :alt: Version_status
+.. image:: http://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+   :target: https://biosteam.readthedocs.io/en/latest/
+   :alt: Documentation
+.. image:: http://img.shields.io/badge/license-UIUC-blue.svg?style=flat
+   :target: https://github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+   :alt: license
+.. image:: https://zenodo.org/badge/164639830.svg
+   :target: https://zenodo.org/badge/latestdoi/164639830
+
+.. contents::
+
+What is BioSTEAM?
+-----------------
+
+BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/biosteam>`_ GitHub repository, BioSTEAM's premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
+
+
+Installation
+------------
+
+Get the latest version of BioSTEAM from `PyPI <https://pypi.python.org/pypi/biosteam/>`__. If you have an installation of Python with pip, simple install it with:
+
+    $ pip install biosteam
+
+To get the git version, run:
+
+    $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam
+
+For help on common installtion issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/Installation.html>`__.
+
+Documentation
+-------------
+
+BioSTEAM's documentation is available on the web:
+
+    http://biosteam.readthedocs.io/
+
+Bug reports
+-----------
+
+To report bugs, please use the BioSTEAM's Bug Tracker at:
+
+    https://github.com/BioSTEAMDevelopmentGroup/biosteam
+
+
+License information
+-------------------
+
+See ``LICENSE.txt`` for information on the terms & conditions for usage
+of this software, and a DISCLAIMER OF ALL WARRANTIES.
+
+Although not required by the BioSTEAM license, if it is convenient for you,
+please cite BioSTEAM if used in your work. Please also consider contributing
+any changes you make back, and benefit the community.
+
+
+About the authors
+-----------------
+
+BioSTEAM was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+
+References
+----------
+.. [1] Cortes-Peña, Y.; Kumar, D.; Singh, V.; Guest, J. S. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. https://doi.org/10.1021/acssuschemeng.9b07040.
+
+
