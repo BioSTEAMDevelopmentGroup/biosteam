@@ -38,6 +38,7 @@ Key Features & Capabilities
    tutorial/Inheriting_from_Unit
    tutorial/Unit_decorators
    tutorial/Monte_Carlo
+   tutorial/TRY-Analysis
 
 
 .. toctree::
