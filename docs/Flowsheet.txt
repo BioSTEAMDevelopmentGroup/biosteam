@@ -1,5 +1,0 @@
-Flowsheet
-=========
-
-.. autoclass:: biosteam.Flowsheet
-   :members:

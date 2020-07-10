@@ -1,8 +1,0 @@
-HeatUtility
-===========
-
-HeatUtility objects take care of finding utility requirements.
-
-.. autoclass:: biosteam.HeatUtility
-   :members:
-   :special-members: __call__

@@ -1,5 +1,0 @@
-LLECentrifuge
-=============
-
-.. autoclass:: biosteam.units.LLECentrifuge
-   :members:

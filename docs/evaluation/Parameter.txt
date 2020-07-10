@@ -1,5 +1,0 @@
-Parameter
-=========
-
-.. autoclass:: biosteam.evaluation.Parameter
-   :members:

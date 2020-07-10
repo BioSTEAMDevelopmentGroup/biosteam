@@ -1,5 +1,0 @@
-CoolingTower
-============
-
-.. autoclass:: biosteam.units.facilities.CoolingTower
-   :members:

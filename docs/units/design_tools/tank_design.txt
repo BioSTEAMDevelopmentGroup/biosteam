@@ -1,5 +1,0 @@
-tank_design
------------
-
-.. automodule:: biosteam.units.design_tools.tank_design
-   :members:

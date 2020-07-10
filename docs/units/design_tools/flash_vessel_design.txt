@@ -1,5 +1,0 @@
-flash_vessel_design
--------------------
-
-.. automodule:: biosteam.units.design_tools.flash_vessel_design
-   :members:

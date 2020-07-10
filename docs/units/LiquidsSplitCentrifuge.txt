@@ -1,5 +1,0 @@
-LiquidsSplitCentrifuge
-======================
-
-.. autoclass:: biosteam.units.LiquidsSplitCentrifuge
-   :members:

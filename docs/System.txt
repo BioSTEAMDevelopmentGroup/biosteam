@@ -1,7 +1,0 @@
-System
-======
-
-System objects manage recycle loops. It takes care of bringing a chemical process to steady state.
-
-.. autoclass:: biosteam.System
-   :members:

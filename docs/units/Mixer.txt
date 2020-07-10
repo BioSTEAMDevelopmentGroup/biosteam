@@ -1,5 +1,0 @@
-Mixer
-=====
-
-.. autoclass:: biosteam.units.Mixer
-   :members:

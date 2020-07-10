@@ -1,5 +1,0 @@
-specification_factors
----------------------
-
-.. automodule:: biosteam.units.design_tools.specification_factors
-   :members:

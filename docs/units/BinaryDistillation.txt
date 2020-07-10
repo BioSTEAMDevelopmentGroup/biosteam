@@ -1,5 +1,0 @@
-BinaryDistillation
-==================
-
-.. autoclass:: biosteam.units.BinaryDistillation
-   :members:

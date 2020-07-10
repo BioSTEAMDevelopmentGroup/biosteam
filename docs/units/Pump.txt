@@ -1,5 +1,0 @@
-Pump
-====
-
-.. autoclass:: biosteam.units.Pump
-   :members:
