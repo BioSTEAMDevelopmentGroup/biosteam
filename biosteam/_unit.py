@@ -16,7 +16,7 @@ from ._heat_utility import HeatUtility
 from .utils import Ins, Outs, NotImplementedMethod, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
-from ._digraph import finalize_digraph
+from .digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 import biosteam as bst
@@ -312,7 +312,7 @@ class Unit:
     def specification(self, specification):
         if specification:
             if not callable(specification):
-                raise ValueError("specification must a callable or None.")
+                raise AttributeError("specification must be callable")
         self._specification = specification
     
     @property

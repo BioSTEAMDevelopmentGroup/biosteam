@@ -9,7 +9,7 @@
 """
 from ._unit import Unit
 from ._facility import Facility
-from ._digraph import digraph_from_units_and_streams, finalize_digraph
+from .digraph import digraph_from_units_and_streams, finalize_digraph
 
 # %% Path checking
 

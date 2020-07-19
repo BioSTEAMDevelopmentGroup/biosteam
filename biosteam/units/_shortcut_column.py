@@ -428,7 +428,10 @@ class ShortcutColumn(BinaryDistillation,
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
             raise InfeasibleRegion('distillate composition')
         self._update_distillate_recoveries(distillate_recoveries)
-        self._distillate_recoveries = distillate_recoveries = self._estimate_distillate_recoveries()
+        distillate_recoveries = self._estimate_distillate_recoveries()
+        if hasattr(self, '_distillate_recoveries_hook'):
+            self._distillate_recoveries_hook(self._IDs_vle, distillate_recoveries)
+        self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
         
     

@@ -34,9 +34,6 @@ Connection = namedtuple('Connection',
 def has_path(obj):
     return hasattr(obj, 'path')
 
-def get_streams_from_units(units):
-    return set(sum([i._ins + i._outs for i in units], []))
-
 def blank_digraph(format='svg', maxiter='10000000', 
                   Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
@@ -130,7 +127,7 @@ def update_surface_units(ID, streams, units, surface_units, old_unit_connections
     surface_units.add(subsystem_unit)
 
 def digraph_from_units(units, **graph_attrs):
-    streams = get_streams_from_units(units)
+    streams = bst.utils.streams_from_units(units)
     return digraph_from_units_and_streams(units, streams, **graph_attrs)
 
 def digraph_from_units_and_streams(units, streams, **graph_attrs):

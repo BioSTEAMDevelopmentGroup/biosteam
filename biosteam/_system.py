@@ -8,43 +8,22 @@
 """
 """
 import flexsolve as flx
-from ._digraph import (digraph_from_units_and_streams,
-                       minimal_digraph,
-                       surface_digraph,
-                       finalize_digraph)
+from .digraph import (digraph_from_units_and_streams,
+                      minimal_digraph,
+                      surface_digraph,
+                      finalize_digraph)
 from thermosteam import Stream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
-from ._report import save_report
+from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import colors, strtuple
 import biosteam as bst
 
 __all__ = ('System',)    
-
-# %% Functions for building systems
-
-def streams_from_path(path):
-    isa = isinstance
-    streams = set()
-    for i in path:
-        if isa(i, System):
-            streams.add(i.streams)
-        elif isa(i, Unit):
-            streams.update(i._ins + i._outs)
-    return streams
-
-def feeds_from_streams(streams):
-    return {s for s in streams if not s._source}
-
-def products_from_streams(streams):
-    return {s for s in streams if not s._sink}
-
-def filter_out_missing_streams(streams):
-    streams.intersection_update([i for i in streams if i])
 
 # %% Functions for taking care of numerical specifications within a system path
     
@@ -67,10 +46,12 @@ def converge_system_in_path(system):
 def simulate_unit_in_path(unit):
     specification = unit._specification
     if specification:
-        method = specification
+        try_method_with_object_stamp(unit, unit._load_stream_links)
+        try_method_with_object_stamp(unit, unit._setup)
+        try_method_with_object_stamp(unit, specification)
+        try_method_with_object_stamp(unit, unit._summary)
     else:
-        method = unit.simulate
-    try_method_with_object_stamp(unit, method)
+        try_method_with_object_stamp(unit, unit.simulate)
 
 def simulate_system_in_path(system):
     specification = system._specification
@@ -265,9 +246,9 @@ class System(metaclass=system):
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
         if facilities:
-            f_streams = streams_from_path(facilities)
-            f_feeds = feeds_from_streams(f_streams)
-            f_products = products_from_streams(f_streams)
+            f_streams = bst.utils.streams_from_path(facilities)
+            f_feeds = bst.utils.feeds(f_streams)
+            f_products = bst.utils.products(f_streams)
             streams.update(f_streams)
             feeds.update(f_feeds)
             products.update(f_products)
@@ -370,17 +351,17 @@ class System(metaclass=system):
             streams.update(sys.streams)
         
         #: set[:class:`~thermosteam.Stream`] All feed streams in the system.
-        self.feeds = feeds_from_streams(streams)
+        self.feeds = bst.utils.feeds(streams)
         
         #: set[:class:`~thermosteam.Stream`] All product streams in the system.
-        self.products = products_from_streams(streams)
+        self.products = bst.utils.products(streams)
         
     def _load_stream_links(self):
         for u in self._unit_path: u._load_stream_links()
         
     def _filter_out_missing_streams(self):
         for stream_set in (self.streams, self.feeds, self.products):
-            filter_out_missing_streams(stream_set)
+            bst.utils.filter_out_missing_streams(stream_set)
         
     def _finalize_streams(self):
         self._load_stream_links()

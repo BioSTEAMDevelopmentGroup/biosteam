@@ -80,6 +80,40 @@ class MissingStream:
         source._outs.replace(self, material_stream)
         sink._ins.replace(self, material_stream)
     
+    def get_total_flow(units):
+        return 0.
+    
+    @property
+    def H(self):
+        return 0.
+    @property
+    def Hf(self):
+        return 0.
+    @property
+    def Hnet(self):
+        return 0.
+    @property
+    def LHV(self):
+        return 0.
+    @property
+    def HHV(self):
+        return 0.
+    @property
+    def Hvap(self):
+        return 0.
+    @property
+    def C(self):
+        return 0.
+    @property
+    def F_mol(self):
+        return 0.
+    @property
+    def F_mass(self):
+        return 0.
+    @property
+    def F_vol(self):
+        return 0.
+    
     def isempty(self):
         return True
     

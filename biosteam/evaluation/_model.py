@@ -38,8 +38,12 @@ class Model(State):
         Should reflect the model state.
     metrics : tuple[Metric]
         Metrics to be evaluated by model.
-    skip=False : bool
+    specification=None : Function, optional
+        Loads speficications once all parameters are set.
+    skip=False : bool, optional
         If True, skip simulation for repeated states.
+    params=None : Iterable[Parameter], optional
+        Parameters to sample from.
     
     Examples
     --------
@@ -49,28 +53,26 @@ class Model(State):
     __slots__ = ('_table',   # [DataFrame] All arguments and results
                  '_metrics', # tuple[Metric] Metrics to be evaluated by model
                  '_index',   # list[int] Order of sample evaluation for performance
-                 '_samples', # [array] Argument sample space
-                 '_setters') # list[function] Cached parameter setters
+                 '_samples') # [array] Argument sample space
     
-    def __init__(self, system, metrics, skip=False):
-        super().__init__(system, skip)
+    def __init__(self, system, metrics, specification=None, skip=False, params=None):
+        super().__init__(system, specification, skip, params)
         self.metrics = metrics
-        self._setters = self._samples = self._table = None
+        self._samples = self._table = None
         
     def copy(self):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
         if self._update:
-            copy._setters = self._setters
             copy._table = self._table.copy()
         else:
-            copy._setters = copy._samples = copy._table = None
+            copy._samples = copy._table = None
         return copy
     
     def _erase(self):
         """Erase cached data."""
-        self._setters = self._update = self._table = self._samples = None
+        self._update = self._table = self._samples = None
     
     @property
     def metrics(self):
@@ -121,7 +123,8 @@ class Model(State):
         self._samples = samples
         
     def evaluate(self, thorough=True):
-        """Evaluate metric over the argument sample space and save values to ``table``.
+        """
+        Evaluate metric over the argument sample space and save values to ``table``.
         
         Parameters
         ----------
@@ -131,41 +134,37 @@ class Model(State):
         
         """
         speed_up()
-        # Setup before simulation
-        funcs = [i.getter for i in self._metrics]
         samples = self._samples
         if samples is None:
             raise ValueError('must load samples or distribution before evaluating')
         index = self._index
-        values = np.zeros([len(index), len(funcs)])
-        zip_ = zip
-        if thorough:
-            if self._setters:
-                setters = self._setters
-            else:
-                self._setters = setters = [p.setter for p in self._params]
-            simulate = self._system.simulate
-            for i in index:
-                for f, s in zip_(setters, samples[i]): f(s)
-                try:
-                    simulate()
-                    values[i] = [i() for i in funcs]
-                except:
-                    self._system.empty_recycles()
-                    try:
-                        simulate()
-                        values[i] = [i() for i in funcs]
-                    except:
-                        self._system.empty_recycles()
-                        values[i] = np.nan
-        else:
-            update = self._update
-            for i in index: 
-                update(samples[i])
-                values[i] = [i() for i in funcs]
+        values = np.zeros([len(index), len(self.metrics)])
+        evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
+        values[:] = [evaluate_sample(samples[i]) for i in index]
         self.table[var_indices(self._metrics)] = values
     
+    def _evaluate_sample_thorough(self, sample):
+        for f, s in zip(self._params, sample): f(s)
+        if self._specification: self._specification()
+        try:
+            self._system.simulate()
+            return [i() for i in self.metrics]
+        except:
+            return self._failed_evaluation()
+    
+    def _evaluate_sample_smart(self, sample):
+        try:
+            self._update(sample, self._specification)
+            return [i() for i in self.metrics]
+        except:
+            return self._failed_evaluation()
+    
+    def _failed_evaluation(self):
+        self.system.empty_recycles()
+        return len(self.metrics) * [np.nan]
+    
     def metrics_at_baseline(self):
+        """Return metric values at baseline sample."""
         baseline = self.get_baseline_sample()
         return self(baseline)
     
@@ -237,12 +236,14 @@ class Model(State):
         return metric_data
     
     def spearman(self, metrics=()):
-        """Return DataFrame of Spearman's rank correlation for metrics vs parameters.
+        """
+        Return DataFrame of Spearman's rank correlation for metrics vs parameters.
         
         Parameters
         ----------
         metrics=() : Iterable[Metric], defaults to all metrics
             Metrics to be correlated with parameters.
+        
         """
         data = self.table
         param_cols = list(data)
@@ -274,9 +275,9 @@ class Model(State):
         return FittedModel.from_dfs(Xdf, ydf)
     
     def __call__(self, sample):
-        """Return list of metric values."""
+        """Return pandas Series of metric values at given sample."""
         super().__call__(sample)
-        return {i.index: i.getter() for i in self._metrics}
+        return pd.Series({i.index: i.getter() for i in self._metrics})
     
     def _repr(self):
         clsname = type(self).__name__

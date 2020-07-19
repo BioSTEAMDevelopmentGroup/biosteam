@@ -6,6 +6,7 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 import numpy as np
+import biosteam as bst
 from .._heat_utility import HeatUtility
 
 __all__ = ('heat_exchanger_utilities_from_units',
@@ -25,6 +26,7 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'group_by_types',
            'filter_by_types',
            'filter_by_lines',
+           'volume_of_chemical_in_units',
 )
     
 def units_with_costs(units):
@@ -99,6 +101,23 @@ def get_electricity_consumption(power_utilities):
 def get_electricity_production(power_utilities):
     """Return the total electricity production of all PowerUtility objects in MW."""
     return sum([i.production for i in power_utilities]) / 1000 # MW
+
+def volume_of_chemical_in_units(units, chemical):
+    """Return volume of chemical that occupied in given units [m^3]."""
+    isa = isinstance
+    F_vol = 0.
+    for i in units:
+        if isa(i, bst.BatchBioreactor):
+            feed = i.ins[0]
+            z_vol = feed.ivol[chemical] / feed.F_vol
+            D = i.design_results
+            F_vol += D['Number of reactors'] * D['Reactor volume'] * z_vol
+        elif isa(i, bst.Tank):
+            feed = i.ins[0]
+            z_vol = feed.ivol[chemical] / feed.F_vol
+            D = i.design_results
+            F_vol += D['Total volume'] * z_vol
+    return F_vol
 
 def get_tea_results(tea, product=None, feedstock=None):
     """Return a dictionary with general TEA results."""

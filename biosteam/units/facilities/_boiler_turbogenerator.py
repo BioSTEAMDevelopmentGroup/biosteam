@@ -79,7 +79,8 @@ class BoilerTurbogenerator(Facility):
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+    def __init__(self, ID='', ins=None, outs=('emissions', 'rejected_water_and_blowdown'),
+                 thermo=None, *,
                  boiler_efficiency=0.80,
                  turbogenerator_efficiency=0.85,
                  side_steam=None,
@@ -93,7 +94,7 @@ class BoilerTurbogenerator(Facility):
         makeup_water.P = 101325
         makeup_water.phase = 'l'
         loss = makeup_water.flow_proxy()
-        loss.ID = 'rejected_water_and_blowdown'
+        loss.ID = self.outs[1].ID
         self.ins[3] = bst.Stream(None, thermo=self.thermo, phase='g')
         self.ins[2] = makeup_water
         self.outs[1] = loss
@@ -177,7 +178,7 @@ class BoilerTurbogenerator(Facility):
             emissions.imol['O2'] = 0
             H_content = B_eff * H_combustion - emissions.H
             
-            #: [float] Total steam demand produced by the boiler (kmol/hr)
+            #: [float] Total steam produced by the boiler (kmol/hr)
             self.total_steam = H_content / duty_over_mol 
             Design['Flow rate'] = flow_rate = self.total_steam * 18.01528
             
@@ -198,7 +199,12 @@ class BoilerTurbogenerator(Facility):
         excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
             f = calculate_excess_electricity_at_natual_gas_flow
-            flx.aitken_secant(f, 10, 20, xtol=1, ytol=1)
+            lb = excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
+            ub = 10 * lb
+            while f(ub) < 0.: 
+                lb = ub
+                ub *= 2
+            flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
         
         hu_cooling = bst.HeatUtility()
         hu_cooling(self.cooling_duty, steam_demand.T)

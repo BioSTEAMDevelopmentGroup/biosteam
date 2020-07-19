@@ -122,8 +122,7 @@ def plot_montecarlo(data,
                     light_color=light_color,
                     dark_color=dark_color,
                     positions=None,
-                    transpose=False,
-                    **kwargs):
+                    transpose=False):
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -135,17 +134,12 @@ def plot_montecarlo(data,
         RGB normalized to 1. Defaults to brown.
     dark_colors : Iterable(numpy.ndarray)
         RGB normalized to 1. Defaults to brown.
-    **kwargs :
-        Additional arguments for pyplot.boxplot
     
     Returns
     -------
     bx : Patch
     
     """
-    if isinstance(data, pd.DataFrame):
-        if 'labels' not in kwargs:
-            kwargs['labels'] = data.columns
     if transpose: data = data.transpose()
     if not positions:
         if data.ndim == 1: 
@@ -162,7 +156,6 @@ def plot_montecarlo(data,
                                    'markerfacecolor': light_color,
                                    'markeredgecolor': dark_color,
                                    'markersize':6})
-    
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 

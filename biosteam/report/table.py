@@ -275,7 +275,7 @@ def power_utilities_table(units):
 
 # %% Streams
 
-def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
+def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -> 'DataFrame':
     """Return a stream table as a pandas DataFrame object.
 
     Parameters
@@ -290,7 +290,8 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
     
     # Prepare rows and columns
     ss = sorted([i for i in streams if i.ID], key=_stream_key)
-    chemical_IDs = ss[0].chemicals.IDs
+    if not chemicals: chemicals = ss[0].chemicals
+    chemical_IDs = chemicals.IDs
     n = len(ss)
     m = len(chemical_IDs)
     p = len(props)
@@ -322,7 +323,13 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
         phases[j] = phase
         flow_j = s.get_flow(units=flow)
         flows[j] = net_j = sum(flow_j)
-        fracs[:,j] = flow_j/net_j if net_j > 0 else 0
+        if percent: net_j /= 100.
+        fracs_j = flow_j/net_j if net_j > 1e-24 else 0
+        if s.chemicals is chemicals:
+            fracs[:, j] = fracs_j
+        else:
+            fracs[:, j] = 0.
+            fracs[chemicals.get_index(s.chemicals.IDs), j] = fracs_j
         i = 0
         for attr, units in props.items():
             prop_molar_data[i, j] = s.get_property(attr, units)
@@ -331,9 +338,10 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
     # Set the right units
     i = 0
     prop_molar_keys = [f'{attr} ({unit})' for attr, unit in props.items()]
+    composition = 'Composition [%]:' if percent else 'Composition:'
     
     # Make data frame object
-    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', 'Composition:') + tuple(chemical_IDs)
+    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', composition) + tuple(chemical_IDs)
     return DataFrame(array, columns=IDs, index=index)
 
 

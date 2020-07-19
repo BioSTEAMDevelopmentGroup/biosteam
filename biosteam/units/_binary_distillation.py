@@ -779,7 +779,9 @@ class BinaryDistillation(Unit):
         condensate.P = dp.P
         vap = condenser.ins[0]
         vap.mol = distillate.mol + condensate.mol
-        vap.T = vap.dew_point_at_P().T
+        vap_T = vap.dew_point_at_P().T
+        if vap_T < dp.T: vap_T = dp.T + 0.1
+        vap.T = vap_T
         vap.P = distillate.P
         
         # Set boiler conditions
@@ -795,7 +797,9 @@ class BinaryDistillation(Unit):
         liq = boiler.ins[0]
         liq.phase = 'l'
         liq.mol = bottoms_product.mol + boilup.mol
-        liq.T = liq.bubble_point_at_P().T
+        liq_T = liq.bubble_point_at_P().T
+        if liq_T > bp.T: liq_T = bp.T - 0.1
+        liq.T = liq_T
     
     def _simulate_components(self): 
         boiler = self.boiler
@@ -900,7 +904,10 @@ class BinaryDistillation(Unit):
         if A_dn is None:
            self._A_dn = A_dn = design.compute_downcomer_area_fraction(F_LV)
         f = self._f
-        R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
+        try:
+            R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
+        except:
+            breakpoint()
         
         ### Get diameter of stripping section based on feed plate ###
         rho_L = bottoms_product.rho

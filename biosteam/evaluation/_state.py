@@ -45,16 +45,20 @@ class UpdateWithSkipping:
     def __init__(self, params):
         self.params = tuple(params)
         self.cache = None
-    def __call__(self, sample):
+    def __call__(self, sample, specification=None):
         try:
             sim = None
-            for p, x, same in zip(self.params, sample, self.cache==sample):
+            same_arr = self.cache==sample
+            for p, x, same in zip(self.params, sample, same_arr):
                 if same: continue
                 p.setter(x)
-                if sim: continue
-                if p.system: sim = p.simulate 
+            if specification: specification()
+            for p, x, same in zip(self.params, sample, same_arr):
+                if same: continue
+                if p.system: 
+                    p.simulate()
+                    break
                 else: p.simulate()
-            if sim: sim()
             self.cache = sample.copy()
         except Exception as Error:
             self.cache = None
@@ -64,14 +68,15 @@ class UpdateWithoutSkipping:
     __slots__ = ('params',)
     def __init__(self, params):
         self.params = tuple(params)
-    def __call__(self, sample):
+    def __call__(self, sample, specification=None):
         sim = None
-        for p, x in zip(self.params, sample):
-            p.setter(x)
-            if sim: continue
-            if p.system: sim = p.simulate 
+        for p, x in zip(self.params, sample): p.setter(x)
+        if specification: specification()
+        for p, x in zip(self.params, sample): 
+            if p.system: 
+                p.simulate()
+                break
             else: p.simulate()
-        if sim: sim()
 
 
 # %%
@@ -84,25 +89,31 @@ class State:
     Parameters
     ----------
     system : System
-    skip=False : bool
+    specification=None : Function, optional
+        Loads speficications once all parameters are set.
+    skip=False : bool, optional
         If True, skip simulation for repeated states.
-    params=None : Iterable[Parameter]
+    params=None : Iterable[Parameter], optional
         Parameters to sample from.
     
     """
     __slots__ = ('_system', # [System]
                  '_params', # list[Parameter] All parameters.
                  '_update', # [function] Updates system state.
+                 '_specification', # [function] Loads speficications once all parameters are set.
                  '_skip') # [bool] If True, skip simulation for repeated states
     
     load_default_parameters = load_default_parameters
     
-    def __init__(self, system, skip=False, params=None):
+    def __init__(self, system, specification=None, skip=False, params=None):
+        self.specification = specification
         self._system = system
         self._params = list(params) if params else []
         self._update = None
         self._skip = skip
     
+    specification = Unit.specification
+        
     def __len__(self):
         return len(self._params)
     
@@ -112,6 +123,7 @@ class State:
         copy._params = list(self._params)
         copy._system = self._system
         copy._update = self._update
+        copy._specification = self._specification
         copy._skip = self._skip
         return copy
     
@@ -273,7 +285,7 @@ class State:
     def __call__(self, sample):
         """Update state given sample of parameters."""
         if not self._update: self._load_params()
-        self._update(np.asarray(sample, dtype=float))
+        self._update(np.asarray(sample, dtype=float), self._specification)
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'

@@ -10,11 +10,11 @@ As BioSTEAM objects are created, they are automatically registered. The `main_fl
 """
 import biosteam as bst
 from thermosteam.utils import Registry
-from ._digraph import (digraph_from_units,
-                       digraph_from_units_and_streams, 
-                       finalize_digraph,
-                       minimal_digraph,
-                       update_surface_units)
+from .digraph import (digraph_from_units,
+                      digraph_from_units_and_streams, 
+                      finalize_digraph,
+                      minimal_digraph,
+                      update_surface_units)
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility

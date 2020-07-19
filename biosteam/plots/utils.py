@@ -10,14 +10,15 @@
 from thermosteam.utils import plots
 from thermosteam.utils.plots import *
 from biosteam.utils import colors
-from matplotlib import colors as cm
 from typing import NamedTuple, Iterable, Callable
 from matplotlib.colors import Colormap
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize, LinearSegmentedColormap
+from matplotlib.cm import ScalarMappable
 
 __all__ = ('annotate_line', 'CABBI_green_colormap', 'MetricBar',
-           *plots.__all__)
+           'color_bar', *plots.__all__)
 
 # %% Data classes
 
@@ -65,7 +66,24 @@ def CABBI_green_colormap(N_levels=25):
     CABBI_colors = (colors.CABBI_yellow.RGBn,
                     colors.CABBI_green.RGBn,
                     colors.CABBI_teal_green.shade(75).RGBn)
-    return cm.LinearSegmentedColormap.from_list('CABBI', CABBI_colors, N_levels)
+    return LinearSegmentedColormap.from_list('CABBI', CABBI_colors, N_levels)
+
+def color_bar(RGBn: list, vmin=0, vmax=100, ax=None,
+              label=None, orientation='vertical', N_levels=25):
+    cmap = LinearSegmentedColormap.from_list(label, RGBn, N_levels)
+    norm = Normalize(vmin=vmin, vmax=vmax)
+    if not ax: 
+        if orientation == 'vertical':
+            shape = (0.5, 5)
+        elif orientation == 'horizontal':
+            shape = (5, 0.5)
+        else:
+            raise ValueError("orientation must be either 'vertical' or 'horizonta'; not %s" %orientation)
+        fig, ax = plt.subplots(figsize=(5, 0.5))
+    return plt.colorbar(ScalarMappable(norm=norm, cmap=cmap), 
+                        orientation=orientation, 
+                        cax=ax, label=label)
+    
 
 def expand(lower, upper, lb, ub):
     dx = (upper - lower)/12
