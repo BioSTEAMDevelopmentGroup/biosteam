@@ -610,7 +610,7 @@ class System(metaclass=system):
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
-        from warning import warn
+        from warnings import warn
         warn(DeprecationWarning("'reset_flows' will be depracated; please use 'empty_process_streams'"))
         self.empty_process_streams()
         

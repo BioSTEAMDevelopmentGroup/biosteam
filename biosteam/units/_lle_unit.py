@@ -64,6 +64,7 @@ class LLEUnit(bst.Unit, isabstract=True):
                         Biodiesel  0.0031
     
     """
+    _N_outs = 2
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
                  top_chemical=None, efficiency=1.0):

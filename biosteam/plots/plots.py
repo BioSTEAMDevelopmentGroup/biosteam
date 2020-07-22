@@ -14,8 +14,8 @@ from biosteam.utils import colors
 from ..utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
-           'plot_single_points', 'plot_spearman', 'plot_horizontal_line',
-           'plot_bars', 'plot_vertical_line', 'plot_single_points',
+           'plot_scatter_points', 'plot_spearman', 'plot_horizontal_line',
+           'plot_bars', 'plot_vertical_line', 'plot_scatter_points',
            'plot_contour_2d', 'plot_contour_across_coordinate')
 
 def plot_spearman(rhos, top=None, name=None):
@@ -96,11 +96,10 @@ def plot_vertical_line(x, color='grey', **kwargs):
     """Plot vertical line."""
     plt.axvline(x=x, color=color, **kwargs) 
 
-def plot_single_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', **kwargs):
-    """Plot single points and return patch artist."""
-    if xs is None:
-        xs = tuple(range(len(ys)))
-    return plt.scatter(xs, ys, marker='o', s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
+def plot_scatter_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs):
+    """Plot scatter points and return patch artist."""
+    if xs is None: xs = tuple(range(len(ys)))
+    return plt.scatter(xs, ys, marker=marker, s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
 
 def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None):
     barwidth = 0.50

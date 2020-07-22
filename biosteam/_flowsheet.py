@@ -22,7 +22,7 @@ from ._system import System
 from ._network import Network
 
 try:
-	from ._digraph.widget import FlowsheetWidget
+	from .digraph.widget import FlowsheetWidget
 except:
 	pass
 

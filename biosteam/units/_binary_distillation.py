@@ -904,10 +904,7 @@ class BinaryDistillation(Unit):
         if A_dn is None:
            self._A_dn = A_dn = design.compute_downcomer_area_fraction(F_LV)
         f = self._f
-        try:
-            R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
-        except:
-            breakpoint()
+        R_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         
         ### Get diameter of stripping section based on feed plate ###
         rho_L = bottoms_product.rho

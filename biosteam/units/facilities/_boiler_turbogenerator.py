@@ -46,10 +46,17 @@ class BoilerTurbogenerator(Facility):
         
         [3] Natural gas to satisfy steam and power requirement.
         
+        [4] Lime for flue gas desulfurization.
+        
+        [5] Boiler chemicals.
+        
     outs : stream sequence
         [0] Total emissions produced.
         
         [1] Blowdown water.
+        
+        [2] Ash disposal.
+        
     boiler_efficiency : float
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
@@ -60,6 +67,11 @@ class BoilerTurbogenerator(Facility):
         Other steams produced.
     natural_gas_price = 0.218 : float
         Price of natural gas [USD/kg].
+    
+    Notes
+    -----
+    The flow rate of natural gas, lime, and boiler chemicals (streams 3-5)
+    is set by the BoilerTurbogenerator object during simulation.
     
     References
     ----------
@@ -73,13 +85,16 @@ class BoilerTurbogenerator(Facility):
     network_priority = 0
     boiler_blowdown = 0.03
     RO_rejection = 0
-    _N_ins = 4
-    _N_outs = 2
+    _N_ins = 6
+    _N_outs = 3
     _N_heat_utilities = 0
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
-    def __init__(self, ID='', ins=None, outs=('emissions', 'rejected_water_and_blowdown'),
+    def __init__(self, ID='', ins=None, 
+                 outs=('emissions',
+                       'rejected_water_and_blowdown',
+                       'ash_disposal'),
                  thermo=None, *,
                  boiler_efficiency=0.80,
                  turbogenerator_efficiency=0.85,
@@ -89,15 +104,6 @@ class BoilerTurbogenerator(Facility):
                  natural_gas_price=0.218):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent
-        makeup_water = agent.to_stream('boiler_makeup_water')
-        makeup_water.T = 298.15
-        makeup_water.P = 101325
-        makeup_water.phase = 'l'
-        loss = makeup_water.flow_proxy()
-        loss.ID = self.outs[1].ID
-        self.ins[3] = bst.Stream(None, thermo=self.thermo, phase='g')
-        self.ins[2] = makeup_water
-        self.outs[1] = loss
         self.natural_gas_price = natural_gas_price
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
@@ -143,8 +149,14 @@ class BoilerTurbogenerator(Facility):
         Design = self.design_results
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
-        feed_solids, feed_gas, makeup_water, feed_CH4 = self.ins
-        emissions, _ = self.outs
+        feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
+        emissions, blowdown_water, ash_disposal = self.outs
+        if not ash_disposal.price: 
+            ash_disposal.price = -0.031812704433277834
+        if not lime.price:
+            lime.price = 0.19937504680689402
+        if not chems.price:
+            chems.price = 4.995862254032183
         H_steam =  sum([i.duty for i in self.steam_utilities])
         side_steam = self.side_steam
         if side_steam: 
@@ -211,11 +223,17 @@ class BoilerTurbogenerator(Facility):
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = (*hus_heating, hu_cooling)
-        
-        makeup_water.imol['7732-18-5'] = (
+        water_index = self.chemicals.index('7732-18-5')
+        blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
                 self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
         )
-
+        ash_index = self.chemicals.index('Ash')
+        ash_disposal.mol[ash_index] = F_mass_ash = emissions.mol[ash_index]
+        lime.mol[ash_index] = F_mass_lime = 0.21 * F_mass_ash
+        chems.mol[ash_index] = F_mass_chems = 0.0002846242774566474 * F_mass_lime
+        ash_disposal.mol[ash_index] += F_mass_chems +  F_mass_lime
+        emissions.mol[ash_index] = 0.
+        
     def _cost(self):
         self._decorated_cost()
         self.power_utility.production = self.design_results['Work']

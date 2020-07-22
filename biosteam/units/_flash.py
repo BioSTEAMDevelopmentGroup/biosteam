@@ -659,7 +659,8 @@ class Evaporator_PQ(Unit):
 
 class Evaporator_PV(Unit):
     _N_heat_utilities = 1
-
+    _N_outs = 2
+    
     @property
     def P(self):
         return self._P

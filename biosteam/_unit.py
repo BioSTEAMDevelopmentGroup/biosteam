@@ -131,7 +131,15 @@ class Unit:
         if not isabstract:
             if not hasattr(cls, '_BM'): cls._BM = {}
             if not hasattr(cls, '_units'): cls._units = {}
-            if not cls._run: static(cls)
+            if not cls._run:
+                if cls._N_ins == 1 and cls._N_outs == 1:
+                    static(cls)
+                else:
+                    raise NotImplementedError(
+                        "Unit subclass with multiple inlet or outlet streams "
+                        "must implement a '_run' method unless the "
+                        "'isabstract' keyword argument is True"
+                    )
         
     ### Abstract Attributes ###
     
@@ -144,7 +152,7 @@ class Unit:
     _N_ins = 1  
     
     # [int] Expected number of output streams
-    _N_outs = 2  
+    _N_outs = 1
     
     # [bool] Whether the number of streams in ins is fixed
     _ins_size_is_fixed = True
@@ -358,7 +366,7 @@ class Unit:
         self._summary()
 
     def results(self, with_units=True, include_utilities=True,
-                include_total_cost=True):
+                include_total_cost=True, include_installed_cost=False):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
@@ -400,6 +408,9 @@ class Unit:
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(('USD', self.purchase_cost))
+                if include_installed_cost:
+                    addkey(('Installed cost', ''))
+                    addval(('USD/hr', self.installed_cost))
                 addkey(('Utility cost', ''))
                 addval(('USD/hr', self.utility_cost))
             if self._GHGs:
@@ -466,6 +477,9 @@ class Unit:
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(self.purchase_cost)
+                if include_installed_cost:
+                    addkey(('Installed cost', ''))
+                    addval(self.installed_cost)
                 addkey(('Utility cost', ''))
                 addval(self.utility_cost)
             if not keys: return None
@@ -743,7 +757,7 @@ class Unit:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        info += f'ins...\n'
+        info += 'ins...\n'
         i = 0
         for stream in self.ins:
             if not stream:
@@ -756,7 +770,7 @@ class Unit:
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
             info += f'[{i}] {stream.ID}' + source_info + stream_info[index+1:] + '\n'
             i += 1
-        info += f'outs...\n'
+        info += 'outs...\n'
         i = 0
         for stream in self.outs:
             if not stream:

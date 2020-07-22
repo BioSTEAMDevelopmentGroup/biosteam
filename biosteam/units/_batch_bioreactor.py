@@ -8,7 +8,6 @@
 """
 """
 import numpy as np
-from ._hx import HXutility
 from .. import Unit
 from .design_tools import size_batch
 from .decorators import cost

@@ -120,6 +120,9 @@ class TEA:
     
     **Abstract methods**
     
+    _DPI(installed_equipment_cost) -> DPI
+        Should return the direct permanent investment given the
+        installed equipment cost.
     _TDC(DPI) -> TDC
         Should take direct permanent investment as an argument
         and return total depreciable capital.
@@ -185,7 +188,7 @@ class TEA:
     
     def __init_subclass__(self, isabstract=False):
         if isabstract: return
-        for method in ('_TDC', '_FCI', '_FOC'):
+        for method in ('_DPI', '_TDC', '_FCI', '_FOC'):
             if not hasattr(self, method):
                 raise NotImplementedError(f"subclass must implement a '{method}' method unless the 'isabstract' keyword argument is True")
 
@@ -251,6 +254,12 @@ class TEA:
         self.system = system
         system._TEA = self
 
+    def _DPI(self, installed_equipment_cost):
+        return installed_equipment_cost # Default for backwards compatibility
+
+    def _TDC(self, DPI):
+        return DPI # Default for backwards compatibility
+
     @property
     def operating_days(self):
         """[float] Number of operating days per year."""
@@ -308,13 +317,13 @@ class TEA:
         """Total purchase cost (USD)."""
         return sum([u.purchase_cost for u in self.units])
     @property
-    def installed_cost(self):
+    def installed_equipment_cost(self):
         """Total installed cost (USD)."""
         return sum([u.installed_cost for u in self.units])
     @property
     def DPI(self):
         """Direct permanent investment."""
-        return self.purchase_cost * self.lang_factor if self.lang_factor else self.installed_cost
+        return self._DPI(self.purchase_cost * self.lang_factor if self.lang_factor else self.installed_equipment_cost)
     @property
     def TDC(self):
         """Total depreciable capital."""
@@ -556,7 +565,7 @@ class TEA:
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cashflow in solve_price method."""
-        return stream.F_mass*self._annual_factor*(1-self.income_tax)
+        return stream.F_mass * self._annual_factor * (1 - self.income_tax)
     
     def solve_price(self, stream):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
@@ -583,11 +592,11 @@ class TEA:
                                   maxiter=200, args=args, checkiter=False)
         self._sales = sales
         if stream.sink:
-            return stream.price - sales/price2cost
+            return stream.price - sales / price2cost
         elif stream.source:
-            return stream.price + sales/price2cost
+            return stream.price + sales / price2cost
         else:
-            raise ValueError(f"stream must be either a feed or a product")
+            raise ValueError("stream must be either a feed or a product")
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.system.ID}>'
@@ -619,13 +628,15 @@ class CombinedTEA(TEA):
     ----------
     TEAs : Iterable[TEA]
         TEA objects used to conduct techno-economic analysis.
+    IRR : float
+        Internal rate of return.
     
     """
     _TDC = _FCI = _FOC = NotImplemented
     
     __slots__ = ('TEAs',)
     
-    def __init__(self, TEAs, IRR):
+    def __init__(self, TEAs, IRR, system=None):
         #: Iterable[TEA] All TEA objects for cashflow calculation
         self.TEAs = TEAs
         
@@ -637,6 +648,8 @@ class CombinedTEA(TEA):
         
         #: Guess sales for solve_price method
         self._sales = 0
+        
+        if system: system._TEA = self
     
     @property
     def units(self):
@@ -694,9 +707,9 @@ class CombinedTEA(TEA):
         return sum([i.purchase_cost for i in self.TEAs])
     
     @property
-    def installed_cost(self):
+    def installed_equipment_cost(self):
         """Total installation cost (USD)."""
-        return sum([i.installed_cost for i in self.TEAs])
+        return sum([i.installed_equipment_cost for i in self.TEAs])
     
     @property
     def NPV(self):
@@ -845,12 +858,12 @@ class CombinedTEA(TEA):
         price2cost = TEA._price2cost(stream)
         IRR = self.IRR
         NPV = self.NPV
-        discount_factors = (1.+IRR)**TEA._duration_array
+        discount_factors = (1. + IRR)**TEA._duration_array
         coefficients = np.ones_like(discount_factors)
         start = TEA._start
         coefficients[:start] = 0
         w0 = TEA._startup_time
-        coefficients[TEA._start] =  w0*TEA.startup_VOCfrac + (1-w0)
+        coefficients[TEA._start] =  w0 * TEA.startup_VOCfrac + (1 - w0)
         args = (NPV, coefficients, discount_factors)
         sales = self._sales or stream.price * price2cost
         sales = flx.aitken_secant(NPV_with_sales,
@@ -858,11 +871,11 @@ class CombinedTEA(TEA):
                                   maxiter=200, args=args, checkiter=False)
         self._sales = sales
         if stream.sink:
-            return stream.price - sales/price2cost
+            return stream.price - sales / price2cost
         elif stream.source:
-            return stream.price + sales/price2cost
+            return stream.price + sales / price2cost
         else:
-            raise ValueError(f"stream must be either a feed or a product")
+            raise ValueError("stream must be either a feed or a product")
     
     def __repr__(self):
         return f'<{type(self).__name__}: {", ".join([i.system.ID for i in self.TEAs])}>'

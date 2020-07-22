@@ -9,9 +9,11 @@
 """
 import biosteam as bst
 
-__all__ = ('Handle', 'CarbonHandle', 
-           'StreamNode', 'FeedNode', 'ProductNode', 'ProcessNode', 
-           'FeedLink', 'ProcessLink', 
+__all__ = ('Handle', 
+           'MassStreamHandle', 'MolarStreamHandle', 'VolumetricStreamHandle', 
+           'CapitalNodeHandle', 'CarbonColorHandle', 'CarbonHandle', 
+           'StreamNode', 'FeedNode', 
+           'ProductNode', 'ProcessNode', 
            'sankey_figure', 'sankey_data',
            'node_dict', 'link_dict')
 
@@ -51,7 +53,7 @@ cycle_colors = ('aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',
                 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke',
                 'yellow', 'yellowgreen')
 
-# %% Main classes
+# %% Main class used to handle the creating of Sankey plots
 
 class Handle:
     """
@@ -133,64 +135,18 @@ class Handle:
     def sankey_figure(self, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs):
         return sankey_figure(self, nodes, node_kwargs, link_kwargs, sankey_data_kwargs, **kwargs)
 
+# %% Custum hanldes
 
-class MassHandle(Handle):
+class CapitalNodeHandle(Handle):
     """
-    Create a MassHandle object that represents stream widths by mass flow.
+    Create a CapitalHandle object that represents node colors by installed 
+    equipment cost of the process.
     
     """
-    def stream_width(self, stream): return stream.F_mass
-
-
-class MolarHandle(Handle):
-    """
-    Create a MolarHandle object that represents stream widths by molar flow.
-    
-    """
-    def stream_width(self, stream): return stream.F_mol
-
-
-class VolumetricHandle(Handle):
-    """
-    Create a VolumetricHandle object that represents stream widths by volumetric 
-    flow.
-    
-    """
-    def stream_width(self, stream): return stream.F_vol
-
-
-class CarbonHandle(Handle):
-    """
-    Create a CarbonHandle object that represents stream widths by carbon flow
-    and color by carbon content by weight.
-    
-    """
-    __slots__ = ('total_installed_cost',
-                 'process_color_source')
-    
     def __init__(self, total_installed_cost=None, process_color_source=None):
         super().__init__()
         self.total_installed_cost = total_installed_cost
-        self.process_color_source = process_color_source or bst.utils.colors.CABBI_blue_light
-    
-    def stream_carbon_content(self, stream):
-        return stream.get_atomic_flow('C') * 12.01 / stream.F_mass
-       
-    def C_content_color(self, C_content):
-        scale = 85. * (1 - C_content)
-        return bst.utils.colors.grey.tint(scale)
-    
-    def stream_width(self, stream):
-        return stream.get_atomic_flow('C')
-    
-    def stream_color(self, stream):
-        C_content = self.stream_carbon_content(stream)
-        RGB = self.C_content_color(C_content).RGB
-        return "rgba(%d, %d, %d, 1.0)" %tuple(RGB)
-
-    def installed_cost_color(self, installed_cost):
-        scale = 75 * installed_cost / self.total_installed_cost
-        return self.process_color_source.shade(scale)
+        self.process_color_source = process_color_source or bst.utils.colors.CABBI_orange
 
     def process_color(self, units, index):
         if self.total_installed_cost:
@@ -199,14 +155,7 @@ class CarbonHandle(Handle):
             return "rgba(%d, %d, %d, 1.0)" %tuple(RGB)
         else:
             return cycle_colors[index % len(cycle_colors)]
-
-    def stream_colorbar(self, N_levels=25, orientation='vertical'):
-        colors = [self.C_content_color(0.).RGBn,
-                  self.C_content_color(1.).RGBn]
-        return bst.plots.color_bar(colors, label='Carbon content [wt. %]',
-                                   vmin=0, vmax=100, N_levels=25,
-                                   orientation=orientation)
-    
+        
     def process_colorbar(self, N_levels=25, orientation='vertical'):
         colors = [self.installed_cost_color(0.).RGBn,
                   self.installed_cost_color(self.total_installed_cost).RGBn]
@@ -214,6 +163,75 @@ class CarbonHandle(Handle):
                                    vmin=0, vmax=self.total_installed_cost / 1e6,
                                    N_levels=25, orientation=orientation)
 
+class MassStreamHandle(Handle):
+    """
+    Create a MassHandle object that represents stream widths by mass flow.
+    
+    """
+    def stream_width(self, stream): return stream.F_mass
+
+
+class MolarStreamHandle(Handle):
+    """
+    Create a MolarHandle object that represents stream widths by molar flow.
+    
+    """
+    def stream_width(self, stream): return stream.F_mol
+
+
+class VolumetricStreamHandle(Handle):
+    """
+    Create a VolumetricHandle object that represents stream widths by volumetric 
+    flow.
+    
+    """
+    def stream_width(self, stream): return stream.F_vol
+
+
+class CarbonStreamHandle(Handle):
+    """
+    Create a CarbonStreamHandle object that represents stream widths by
+    carbon flow by weight.
+    
+    """
+    def stream_width(self, stream): return stream.get_atomic_flow('C')
+
+
+class CarbonColorHandle(Handle):
+    """
+    Create a CarbonColorHandle object that represents stream color by
+    carbon content by weight.
+    
+    """
+    __slots__ = ()
+    
+    def stream_carbon_content(self, stream):
+        return stream.get_atomic_flow('C') * 12.01 / stream.F_mass
+       
+    def carbon_content_color(self, carbon_content):
+        scale = 85. * (1 - carbon_content)
+        return bst.utils.colors.grey.tint(scale)
+    
+    def stream_color(self, stream):
+        carbon_content = self.stream_carbon_content(stream)
+        RGB = self.carbon_content_color(carbon_content).RGB
+        return "rgba(%d, %d, %d, 1.0)" %tuple(RGB)
+
+    def installed_cost_color(self, installed_cost):
+        scale = 75 * installed_cost / self.total_installed_cost
+        return self.process_color_source.shade(scale)
+
+    def stream_colorbar(self, N_levels=25, orientation='vertical'):
+        colors = [self.carbon_content_color(0.).RGBn,
+                  self.carbon_content_color(1.).RGBn]
+        return bst.plots.color_bar(colors, label='Carbon content [wt. %]',
+                                   vmin=0, vmax=100, N_levels=25,
+                                   orientation=orientation)
+
+class CarbonHandle(CarbonColorHandle, MassStreamHandle, CapitalNodeHandle): pass
+
+
+# %% Main classes used by Handle objects to create Sankey plots
 
 class StreamNode:
     """

@@ -67,7 +67,8 @@ class Tank(Unit, isabstract=True):
         All purchase cost algorithms options for selected vessel types.
 
     """
-    _units = {'Total volume': 'm^3'}
+    _units = {'Total volume': 'm^3',
+              'Residence time': 'hr'}
     _BM = {'Tanks': 2.3}
     _N_outs = 1
 
@@ -189,7 +190,7 @@ class StorageTank(Tank):
         flow (kg/hr): Ethanol  2.3e+04
     >>> T1.results()
     Storage tank                          Units       T1
-    Design              Residence time               168
+    Design              Residence time       hr      168
                         Total volume        m^3 4.92e+03
                         Number of tanks                2
     Purchase cost       Tanks               USD 8.41e+05

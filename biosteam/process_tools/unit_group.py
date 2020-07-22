@@ -23,7 +23,7 @@ COOLING_DUTY = 'Cooling duty'
 HEATING_DUTY = 'Heating duty'
 ELECTRICITY_CONSUMPTION = 'Electricity consumption'
 ELECTRICITY_PRODUCTION = 'Electricity production'
-CAPITAL_UNITS = '[million USD]'
+CAPITAL_UNITS = '[MM$]'
 ELEC_UNITS = '[MW]'
 DUTY_UNITS = '[GJ/hr]'
 
@@ -55,7 +55,7 @@ class UnitGroup:
     You can get main process results using UnitGroup methods:
         
     >>> group.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [million USD]': 13.57808163192647, 'Cooling duty [GJ/hr]': 104.4639430479312, 'Heating duty [GJ/hr]': 156.88073343258333, 'Electricity consumption [MW]': 0.40116044433570186, 'Electricity production [MW]': 0.0}
+    {'Installed equipment cost [MM$]': 13.57808163192647, 'Cooling duty [GJ/hr]': 104.4639430479312, 'Heating duty [GJ/hr]': 156.88073343258333, 'Electricity consumption [MW]': 0.40116044433570186, 'Electricity production [MW]': 0.0}
     
     Each result can be retrieved separately:
     
@@ -195,7 +195,9 @@ class UnitGroup:
         return pd.Series(self.to_dict(with_electricity_production, shorthand, with_units), name=self.name)
 
     @classmethod
-    def df_from_groups(cls, unit_groups, with_electricity_production=False, shorthand=False, fraction=False):
+    def df_from_groups(cls, unit_groups,
+                       with_electricity_production=False, 
+                       shorthand=False, fraction=False):
         """Return a pandas.DataFrame object from unit groups."""
         with_units = not fraction
         data = [i.to_series(with_electricity_production, shorthand, with_units) for i in unit_groups]
@@ -207,7 +209,8 @@ class UnitGroup:
 
     @classmethod
     def plot_bars_from_groups(cls, unit_groups, with_electricity_production=False,
-                              shorthand=True, fraction=True, horizontal_ticks=False, **kwargs):
+                              shorthand=True, fraction=True, horizontal_ticks=False, 
+                              **kwargs):
         """Plot unit groups as a stacked bar chart."""
         df = cls.df_from_groups(unit_groups,
                                 with_electricity_production,
