@@ -143,13 +143,18 @@ class CapitalNodeHandle(Handle):
     equipment cost of the process.
     
     """
-    def __init__(self, total_installed_cost=None, process_color_source=None):
+    __slots__ = ('max_installed_cost', 'process_color_source')
+    def __init__(self, max_installed_cost=None, process_color_source=None):
         super().__init__()
-        self.total_installed_cost = total_installed_cost
+        self.max_installed_cost = max_installed_cost
         self.process_color_source = process_color_source or bst.utils.colors.CABBI_orange
 
+    def installed_cost_color(self, installed_cost):
+        scale = 75 * installed_cost / self.max_installed_cost
+        return self.process_color_source.shade(scale)
+
     def process_color(self, units, index):
-        if self.total_installed_cost:
+        if self.max_installed_cost:
             installed_cost = sum([i.installed_cost for i in units])
             RGB = self.installed_cost_color(installed_cost).RGB
             return "rgba(%d, %d, %d, 1.0)" %tuple(RGB)
@@ -158,9 +163,9 @@ class CapitalNodeHandle(Handle):
         
     def process_colorbar(self, N_levels=25, orientation='vertical'):
         colors = [self.installed_cost_color(0.).RGBn,
-                  self.installed_cost_color(self.total_installed_cost).RGBn]
+                  self.installed_cost_color(self.max_installed_cost).RGBn]
         return bst.plots.color_bar(colors, label='Installed equipment cost [million USD]',
-                                   vmin=0, vmax=self.total_installed_cost / 1e6,
+                                   vmin=0, vmax=self.max_installed_cost / 1e6,
                                    N_levels=25, orientation=orientation)
 
 class MassStreamHandle(Handle):
@@ -168,6 +173,7 @@ class MassStreamHandle(Handle):
     Create a MassHandle object that represents stream widths by mass flow.
     
     """
+    __slots__ = ()
     def stream_width(self, stream): return stream.F_mass
 
 
@@ -176,6 +182,7 @@ class MolarStreamHandle(Handle):
     Create a MolarHandle object that represents stream widths by molar flow.
     
     """
+    __slots__ = ()
     def stream_width(self, stream): return stream.F_mol
 
 
@@ -185,6 +192,7 @@ class VolumetricStreamHandle(Handle):
     flow.
     
     """
+    __slots__ = ()
     def stream_width(self, stream): return stream.F_vol
 
 
@@ -194,6 +202,7 @@ class CarbonStreamHandle(Handle):
     carbon flow by weight.
     
     """
+    __slots__ = ()
     def stream_width(self, stream): return stream.get_atomic_flow('C')
 
 
@@ -217,10 +226,6 @@ class CarbonColorHandle(Handle):
         RGB = self.carbon_content_color(carbon_content).RGB
         return "rgba(%d, %d, %d, 1.0)" %tuple(RGB)
 
-    def installed_cost_color(self, installed_cost):
-        scale = 75 * installed_cost / self.total_installed_cost
-        return self.process_color_source.shade(scale)
-
     def stream_colorbar(self, N_levels=25, orientation='vertical'):
         colors = [self.carbon_content_color(0.).RGBn,
                   self.carbon_content_color(1.).RGBn]
@@ -228,7 +233,8 @@ class CarbonColorHandle(Handle):
                                    vmin=0, vmax=100, N_levels=25,
                                    orientation=orientation)
 
-class CarbonHandle(CarbonColorHandle, MassStreamHandle, CapitalNodeHandle): pass
+class CarbonHandle(CarbonColorHandle, MassStreamHandle, CapitalNodeHandle):
+    __slots__ = ()
 
 
 # %% Main classes used by Handle objects to create Sankey plots

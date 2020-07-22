@@ -11,10 +11,7 @@ import numpy as np
 import pandas as pd
 from warnings import warn
 import openpyxl
-from .._tea import TEA, CombinedTEA
-from thermosteam import Stream
-from thermosteam.units_of_measure import get_dimensionality, convert, stream_units_of_measure
-from thermosteam.exceptions import DimensionError
+from .._tea import CombinedTEA
 import os
 
 DataFrame = pd.DataFrame
@@ -204,8 +201,8 @@ def cost_table(tea):
 
     """
     columns = ('Unit operation',
-              f'Purchase cost (10^6 USD)',
-              f'Utility cost (10^6 USD/yr)')
+               'Purchase cost (10^6 USD)',
+               'Utility cost (10^6 USD/yr)')
     units = tea.units
     operating_days = tea.operating_days
     N_units = len(units)

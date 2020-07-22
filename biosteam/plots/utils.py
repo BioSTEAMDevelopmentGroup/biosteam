@@ -79,7 +79,7 @@ def color_bar(RGBn: list, vmin=0, vmax=100, ax=None,
             shape = (5, 0.5)
         else:
             raise ValueError("orientation must be either 'vertical' or 'horizonta'; not %s" %orientation)
-        fig, ax = plt.subplots(figsize=(5, 0.5))
+        fig, ax = plt.subplots(figsize=shape)
     return plt.colorbar(ScalarMappable(norm=norm, cmap=cmap), 
                         orientation=orientation, 
                         cax=ax, label=label)

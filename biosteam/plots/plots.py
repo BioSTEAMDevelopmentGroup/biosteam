@@ -8,7 +8,6 @@
 """
 """
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from biosteam.utils import colors
 from ..utils import style_axis, style_plot_limits, fill_plot, set_axes_labels

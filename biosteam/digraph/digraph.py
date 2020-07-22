@@ -169,7 +169,7 @@ def add_connection(f: Digraph, connection, unit_names=None):
         has_source = source in unit_names
         has_sink = sink in unit_names
     
-    if stream:
+    if stream and stream.ID:
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
