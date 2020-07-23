@@ -145,8 +145,7 @@ class Model(State):
         """
         speed_up()
         samples = self._samples
-        if samples is None:
-            raise ValueError('must load samples or distribution before evaluating')
+        if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
         self.table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
     
@@ -198,6 +197,7 @@ class Model(State):
         
         """
         table = self.table
+        if table is None: raise RuntimeError('must load samples before evaluating')
         N_samples, N_parameters = table.shape
         N_points = len(coordinate)
         
