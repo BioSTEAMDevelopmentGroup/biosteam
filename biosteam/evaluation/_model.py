@@ -202,12 +202,8 @@ class Model(State):
         N_points = len(coordinate)
         
         # Initialize data containers
-        metric_data = {}
-        def new_data(key, dct=metric_data):
-            data = np.zeros([N_samples, N_points])
-            dct[key] = data
-            return data
-        for i in self.metrics: new_data(i.index)
+        metric_indices = self._metric_indices
+        metric_data = {i: np.zeros([N_samples, N_points]) for i in metric_indices}
         
         # Initialize timer
         if notify:
@@ -237,7 +233,7 @@ class Model(State):
                                 columns=columns)
             
             with pd.ExcelWriter(xlfile) as writer:
-                for i, metric in zip(self.metrics, metric_data):
+                for i, metric in zip(metric_indices, metric_data):
                     data[:] = metric_data[metric]
                     data.to_excel(writer, sheet_name=i.name)
         return metric_data
