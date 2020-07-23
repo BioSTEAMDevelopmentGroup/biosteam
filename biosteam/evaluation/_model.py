@@ -138,10 +138,8 @@ class Model(State):
         if samples is None:
             raise ValueError('must load samples or distribution before evaluating')
         index = self._index
-        values = np.zeros([len(index), len(self.metrics)])
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
-        values[:] = [evaluate_sample(samples[i]) for i in index]
-        self.table[var_indices(self._metrics)] = values
+        self.table[var_indices(self._metrics)] = [evaluate_sample(samples[i]) for i in index]
     
     def _evaluate_sample_thorough(self, sample):
         for f, s in zip(self._params, sample): f(s)
@@ -155,13 +153,13 @@ class Model(State):
     def _evaluate_sample_smart(self, sample):
         try:
             self._update(sample, self._specification)
-            return [i() for i in self.metrics]
+            return [i() for i in self._metrics]
         except:
             return self._failed_evaluation()
     
     def _failed_evaluation(self):
-        self.system.empty_recycles()
-        return len(self.metrics) * [np.nan]
+        self._system.empty_recycles()
+        return len(self._metrics) * [np.nan]
     
     def metrics_at_baseline(self):
         """Return metric values at baseline sample."""
