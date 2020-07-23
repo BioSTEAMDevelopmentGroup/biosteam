@@ -53,8 +53,12 @@ class Model(State):
     __slots__ = ('_table',   # [DataFrame] All arguments and results
                  '_metrics', # tuple[Metric] Metrics to be evaluated by model
                  '_index',   # list[int] Order of sample evaluation for performance
-                 '_samples') # [array] Argument sample space
-    
+                 '_samples', # [array] Argument sample space
+                 '_setters', # list[function] Cached parameter setters
+                 '_getters', # list[function] Cached metric getters
+                 '_failed_metrics', # list[np.nan] Cached NaN values for failed evaluations
+                 '_metric_indices', # list[Hashable] Cached metric indices.
+    )
     def __init__(self, system, metrics, specification=None, skip=False, params=None):
         super().__init__(system, specification, skip, params)
         self.metrics = metrics
@@ -117,10 +121,16 @@ class Model(State):
             if not params[i].system: break
             index.sort(key=key)
         self._index = index
-        empty_metric_data = np.zeros((N_samples, len(self.metrics)))
+        metrics = self._metrics
+        N_metrics = len(metrics)
+        empty_metric_data = np.zeros((N_samples, N_metrics))
         self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                   columns=var_columns(tuple(params)+self.metrics))
+                                   columns=var_columns(tuple(params) + metrics))
         self._samples = samples
+        self._setters = [i.setter for i in params]
+        self._getters = [i.getter for i in metrics]
+        self._failed_metrics = N_metrics * [np.nan]
+        self._metric_indices = var_indices(metrics)
         
     def evaluate(self, thorough=True):
         """
@@ -137,29 +147,28 @@ class Model(State):
         samples = self._samples
         if samples is None:
             raise ValueError('must load samples or distribution before evaluating')
-        index = self._index
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
-        self.table[var_indices(self._metrics)] = [evaluate_sample(samples[i]) for i in index]
+        self.table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
     
     def _evaluate_sample_thorough(self, sample):
-        for f, s in zip(self._params, sample): f(s)
+        for f, s in zip(self._setters, sample): f(s)
         if self._specification: self._specification()
         try:
             self._system.simulate()
-            return [i() for i in self.metrics]
+            return [i() for i in self._getters]
         except:
             return self._failed_evaluation()
     
     def _evaluate_sample_smart(self, sample):
         try:
             self._update(sample, self._specification)
-            return [i() for i in self._metrics]
+            return [i() for i in self._getters]
         except:
             return self._failed_evaluation()
     
     def _failed_evaluation(self):
         self._system.empty_recycles()
-        return len(self._metrics) * [np.nan]
+        return self._failed_metrics
     
     def metrics_at_baseline(self):
         """Return metric values at baseline sample."""
