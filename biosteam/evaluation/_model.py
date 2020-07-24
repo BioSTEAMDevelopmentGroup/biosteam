@@ -159,18 +159,31 @@ class Model(State):
             self._system.simulate()
             return [i() for i in self._getters]
         except:
-            return self._failed_evaluation()
+            self._reset_system()
+            try:
+                self._system.simulate()
+                return [i() for i in self._getters]
+            except:
+                return self._failed_evaluation()
     
     def _evaluate_sample_smart(self, sample):
         try:
             self._update(sample, self._specification)
             return [i() for i in self._getters]
         except:
-            return self._failed_evaluation()
+            self._reset_system()
+            try: 
+                self._update(sample, self._specification)
+                return [i() for i in self._getters]
+            except:
+                return self._failed_evaluation()
     
-    def _failed_evaluation(self):
+    def _reset_system(self):
         self._system.empty_recycles()
         self._system.reset_cache()
+    
+    def _failed_evaluation(self):
+        self._reset_system()
         return self._failed_metrics
     
     def metrics_at_baseline(self):
