@@ -20,8 +20,8 @@ __all__ = ('State',)
 
 # %% functions
 
-def param_unit(param):
-    element = param.element
+def parameter_unit(parameter):
+    element = parameter.element
     if isinstance(element, Unit): return element
     elif isinstance(element, Stream): return element._sink
 
@@ -41,19 +41,18 @@ def parameter(system, element, setter, kind, name,
                            units, baseline, bounds)
 
 class UpdateWithSkipping:
-    __slots__ = ('cache', 'params')
-    def __init__(self, params):
-        self.params = tuple(params)
+    __slots__ = ('cache', 'parameters')
+    def __init__(self, parameters):
+        self.parameters = tuple(parameters)
         self.cache = None
     def __call__(self, sample, specification=None):
         try:
-            sim = None
             same_arr = self.cache==sample
-            for p, x, same in zip(self.params, sample, same_arr):
+            for p, x, same in zip(self.parameters, sample, same_arr):
                 if same: continue
                 p.setter(x)
             if specification: specification()
-            for p, x, same in zip(self.params, sample, same_arr):
+            for p, x, same in zip(self.parameters, sample, same_arr):
                 if same: continue
                 if p.system: 
                     p.simulate()
@@ -65,14 +64,13 @@ class UpdateWithSkipping:
             raise Error
 
 class UpdateWithoutSkipping:
-    __slots__ = ('params',)
-    def __init__(self, params):
-        self.params = tuple(params)
+    __slots__ = ('parameters',)
+    def __init__(self, parameters):
+        self.parameters = tuple(parameters)
     def __call__(self, sample, specification=None):
-        sim = None
-        for p, x in zip(self.params, sample): p.setter(x)
+        for p, x in zip(self.parameters, sample): p.setter(x)
         if specification: specification()
-        for p, x in zip(self.params, sample): 
+        for p, x in zip(self.parameters, sample): 
             if p.system: 
                 p.simulate()
                 break
@@ -93,34 +91,37 @@ class State:
         Loads speficications once all parameters are set.
     skip=False : bool, optional
         If True, skip simulation for repeated states.
-    params=None : Iterable[Parameter], optional
+    parameters=None : Iterable[Parameter], optional
         Parameters to sample from.
     
     """
     __slots__ = ('_system', # [System]
-                 '_params', # list[Parameter] All parameters.
+                 '_parameters', # list[Parameter] All parameters.
                  '_update', # [function] Updates system state.
                  '_specification', # [function] Loads speficications once all parameters are set.
                  '_skip') # [bool] If True, skip simulation for repeated states
     
     load_default_parameters = load_default_parameters
     
-    def __init__(self, system, specification=None, skip=False, params=None):
+    def __init__(self, system, specification=None, skip=False, parameters=None):
         self.specification = specification
+        if parameters:
+            self.set_parameters(parameters)
+        else:
+            self._parameters = []
         self._system = system
-        self._params = list(params) if params else []
         self._update = None
         self._skip = skip
     
     specification = Unit.specification
         
     def __len__(self):
-        return len(self._params)
+        return len(self._parameters)
     
     def copy(self):
         """Return copy."""
         copy = self.__new__(type(self))
-        copy._params = list(self._params)
+        copy._parameters = list(self._parameters)
         copy._system = self._system
         copy._update = self._update
         copy._specification = self._specification
@@ -137,33 +138,33 @@ class State:
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
         self._erase()
-        self._params = parameters
+        self._parameters = parameters
     
     def get_parameters(self):
         """Return parameters."""
-        if not self._update: self._load_params()
-        return tuple(self._params)
+        if not self._update: self._load_parameters()
+        return tuple(self._parameters)
     
     def get_distribution_summary(self):
         """Return dictionary of shape name-DataFrame pairs."""
-        params = self.get_parameters()
-        if not params: return None
-        params_by_shape = {}
+        parameters = self.get_parameters()
+        if not parameters: return None
+        parameters_by_shape = {}
         shape_keys = {}
-        for p in params:
+        for p in parameters:
             distribution = p.distribution
             if not distribution: continue
             shape = type(distribution).__name__
-            if shape in params_by_shape:
-                params_by_shape[shape].append(p)
+            if shape in parameters_by_shape:
+                parameters_by_shape[shape].append(p)
             else:
-                params_by_shape[shape] = [p]
+                parameters_by_shape[shape] = [p]
                 shape_keys[shape] = tuple(distribution._repr.keys())
         tables_by_shape = {}
-        for shape, params in params_by_shape.items():
+        for shape, parameters in parameters_by_shape.items():
             data = []
             columns = ('Element', 'Name', 'Units', 'Shape', *shape_keys[shape])
-            for p in params:
+            for p in parameters:
                 distribution = p.distribution
                 element = p.element_name
                 name = p.name.replace(element, '')
@@ -211,9 +212,9 @@ class State:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
                                                  bounds)
-        param = parameter(self._system, element, setter, kind, name, 
-                          distribution, units, baseline, bounds)
-        self._params.append(param)
+        p = parameter(self._system, element, setter, kind, name, 
+                      distribution, units, baseline, bounds)
+        self._parameters.append(p)
         self._erase()
         return setter
     
@@ -260,8 +261,8 @@ class State:
         +-------+-------------------------------------------------+
             
         """
-        if not self._update: self._load_params()
-        parameters = self._params
+        if not self._update: self._load_parameters()
+        parameters = self._parameters
         if uniform:
             distributions = [Uniform(*i.bounds) for i in parameters]
         else:
@@ -272,19 +273,19 @@ class State:
         """Erase cached data."""
         self._update = None
     
-    def _load_params(self):
+    def _load_parameters(self):
         """Load parameters."""
         system = self._system
         unit_path = system._unit_path + list(system._facilities)
         length = len(unit_path)
         index =  unit_path.index
-        self._params.sort(key=lambda x: index(param_unit(x)) if x.system else length)
+        self._parameters.sort(key=lambda x: index(parameter_unit(x)) if x.system else length)
         self._update = (UpdateWithSkipping if self._skip 
-                        else UpdateWithoutSkipping)(self._params)
+                        else UpdateWithoutSkipping)(self._parameters)
     
     def __call__(self, sample):
         """Update state given sample of parameters."""
-        if not self._update: self._load_params()
+        if not self._update: self._load_parameters()
         self._update(np.asarray(sample, dtype=float), self._specification)
     
     def _repr(self):
@@ -294,12 +295,12 @@ class State:
         return '<' + self._repr() + '>'
     
     def _info(self):
-        if not self._update: self._load_params()
-        if not self._params: return f'{self._repr()}\n (No parameters)'
+        if not self._update: self._load_parameters()
+        if not self._parameters: return f'{self._repr()}\n (No parameters)'
         lines = []
         lenghts_block = []
         lastblk = None
-        for i in self._params:
+        for i in self._parameters:
             blk = i.element_name
             element = len(blk)*' ' if blk==lastblk else blk
             lines.append(f" {element}${i.name}\n")

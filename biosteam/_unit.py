@@ -35,6 +35,8 @@ class Unit:
 
     **Abstract class methods**
     
+    reset_cache()
+        Reset unit operartion cache.
     _setup()
         Set stream conditions and constant data.
     _run()
@@ -289,6 +291,7 @@ class Unit:
     __rpow__ = __rsub__
     
     # Abstract methods
+    reset_cache = NotImplementedMethod
     _run = NotImplementedMethod
     _setup = NotImplementedMethod
     _design = NotImplementedMethod

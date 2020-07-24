@@ -323,9 +323,9 @@ class BinaryDistillation(Unit):
                                 outs=tmo.MultiStream(None, thermo=thermo),
                                 thermo=thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
-        self._setup_cache()
+        self.reset_cache()
         
-    def _setup_cache(self):
+    def reset_cache(self):
         self._McCabeThiele_args = np.zeros(6)
     
     @property

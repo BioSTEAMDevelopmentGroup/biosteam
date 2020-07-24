@@ -11,9 +11,6 @@ import numpy as np
 import pandas as pd
 from ._state import State
 from ._metric import Metric
-from pipeml import FittedModel
-from biosteam.utils import TicToc
-from scipy.stats import spearmanr
 from biosteam import speed_up
 
 __all__ = ('Model',)
@@ -21,10 +18,11 @@ __all__ = ('Model',)
 # %% Functions
 
 var_indices = lambda vars: [var.index for var in vars]
-var_columns = lambda vars: pd.MultiIndex.from_tuples(
-                                 var_indices(vars),
-                                 names=('Element', 'Variable'))
-            
+var_columns = lambda vars, names=None: indices_to_multiindex(var_indices(vars), names)
+indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
+                                            indices,
+                                            names=names or ('Element', 'Variable'),
+                                        )
 
 # %% Grid of simulation blocks
 
@@ -50,19 +48,20 @@ class Model(State):
     :doc:`../tutorial/Monte_Carlo`
     
     """
-    __slots__ = ('_table',   # [DataFrame] All arguments and results
-                 '_metrics', # tuple[Metric] Metrics to be evaluated by model
-                 '_index',   # list[int] Order of sample evaluation for performance
-                 '_samples', # [array] Argument sample space
-                 '_setters', # list[function] Cached parameter setters
-                 '_getters', # list[function] Cached metric getters
-                 '_failed_metrics', # list[np.nan] Cached NaN values for failed evaluations
+    __slots__ = ('_user_table',     # [DataFrame] All arguments and results (made by user).
+                 '_table',          # [DataFrame] All arguments and results.
+                 '_metrics',        # tuple[Metric] Metrics to be evaluated by model.
+                 '_index',          # list[int] Order of sample evaluation for performance.
+                 '_samples',        # [array] Argument sample space.
+                 '_setters',        # list[function] Cached parameter setters.
+                 '_getters',        # list[function] Cached metric getters.
+                 '_failed_metrics', # list[np.nan] Cached NaN values for failed evaluations.
                  '_metric_indices', # list[Hashable] Cached metric indices.
     )
-    def __init__(self, system, metrics, specification=None, skip=False, params=None):
-        super().__init__(system, specification, skip, params)
+    def __init__(self, system, metrics, specification=None, skip=False, parameters=None):
+        super().__init__(system, specification, skip, parameters)
         self.metrics = metrics
-        self._samples = self._table = None
+        self._samples = self._table = self._user_table = None
         
     def copy(self):
         """Return copy."""
@@ -70,13 +69,14 @@ class Model(State):
         copy._metrics = self._metrics
         if self._update:
             copy._table = self._table.copy()
+            copy._user_table = self._user_table.copy() if self._user_table else None
         else:
-            copy._samples = copy._table = None
+            copy._samples = copy._table = self._user_table = None
         return copy
     
     def _erase(self):
         """Erase cached data."""
-        self._update = self._table = self._samples = None
+        self._update = self._samples = None
     
     @property
     def metrics(self):
@@ -92,8 +92,11 @@ class Model(State):
     
     @property
     def table(self):
-        """[DataFrame] Table of the sample space with results in the final column."""
-        return self._table
+        """[DataFrame] Table of the sample space and results."""
+        return self._table if self._user_table is None else self._user_table
+    @table.setter
+    def table(self, table):
+        self._user_table = table
     
     def load_samples(self, samples):
         """Load samples for evaluation
@@ -103,31 +106,31 @@ class Model(State):
         samples : numpy.ndarray, dim=2
         
         """
-        if not self._update: self._load_params()
-        params = self._params
-        paramlen = len(params)
+        if not self._update: self._load_parameters()
+        parameters = self._parameters
+        N_parameters = len(parameters)
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
         if samples.ndim == 1:
             samples = samples[:, np.newaxis]
         elif samples.ndim != 2:
             raise ValueError('samples must be 2 dimensional')
-        if samples.shape[1] != paramlen:
-            raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(params)})')
+        if samples.shape[1] != N_parameters:
+            raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(N_parameters)})')
         key = lambda x: samples[x][i]
         N_samples = len(samples)
         index = list(range(N_samples))
-        for i in range(paramlen-1,  -1, -1):
-            if not params[i].system: break
+        for i in range(N_parameters-1,  -1, -1):
+            if not parameters[i].system: break
             index.sort(key=key)
         self._index = index
         metrics = self._metrics
         N_metrics = len(metrics)
         empty_metric_data = np.zeros((N_samples, N_metrics))
         self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                   columns=var_columns(tuple(params) + metrics))
+                                   columns=var_columns(tuple(parameters) + metrics))
         self._samples = samples
-        self._setters = [i.setter for i in params]
+        self._setters = [i.setter for i in parameters]
         self._getters = [i.getter for i in metrics]
         self._failed_metrics = N_metrics * [np.nan]
         self._metric_indices = var_indices(metrics)
@@ -147,7 +150,7 @@ class Model(State):
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
-        self.table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
+        self._table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
     
     def _evaluate_sample_thorough(self, sample):
         for f, s in zip(self._setters, sample): f(s)
@@ -167,6 +170,7 @@ class Model(State):
     
     def _failed_evaluation(self):
         self._system.empty_recycles()
+        self._system.reset_cache()
         return self._failed_metrics
     
     def metrics_at_baseline(self):
@@ -196,17 +200,19 @@ class Model(State):
             If True, notify elapsed time after each coordinate evaluation.
         
         """
-        table = self.table
-        if table is None: raise RuntimeError('must load samples before evaluating')
+        if self._samples is None: raise RuntimeError('must load samples before evaluating')
+        table = self._table
         N_samples, N_parameters = table.shape
         N_points = len(coordinate)
         
         # Initialize data containers
         metric_indices = self._metric_indices
-        metric_data = {i: np.zeros([N_samples, N_points]) for i in metric_indices}
+        shape = (N_samples, N_points)
+        metric_data = {i: np.zeros(shape) for i in metric_indices}
         
         # Initialize timer
         if notify:
+            from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
             def evaluate():
@@ -238,40 +244,35 @@ class Model(State):
                     data.to_excel(writer, sheet_name=i.name)
         return metric_data
     
-    def spearman(self, metrics=()):
+    def spearman(self, parameters=(), metrics=()):
         """
         Return DataFrame of Spearman's rank correlation for metrics vs parameters.
         
         Parameters
         ----------
+        parameters=() : Iterable[Parameter], defaults to all parameters
+            Parameters to be correlated with metrics .
         metrics=() : Iterable[Metric], defaults to all metrics
             Metrics to be correlated with parameters.
         
         """
-        data = self.table
-        param_cols = list(data)
-        all_metric_names = var_indices(self.metrics)
-        if not metrics: 
-            metric_names = all_metric_names
-        else:
-            metric_names = var_indices(metrics)
-        params = list(self._params)
-        
-        for i in all_metric_names: param_cols.remove(i)
-        param_descriptions = [i.describe() for i in params]
-        allrhos = []
-        for name in metric_names:
-            rhos = []
-            metric = data[name]
-            for col in param_cols:
-                rho, p = spearmanr(data[col], metric)
-                rhos.append(rho)
-            allrhos.append(rhos)
-        allrhos = np.array(allrhos).transpose()
-        return pd.DataFrame(allrhos, index=param_descriptions,
-                            columns=metric_names)
+        from scipy.stats import spearmanr
+        if not parameters: parameters = self._parameters
+        table = self.table
+        parameter_indices = var_indices(parameters)
+        parameter_data = [table[i] for i in parameter_indices]
+        metric_indices = var_indices(metrics) if metrics else self._metric_indices 
+        metric_data = [table[i] for i in metric_indices]
+        rhos = [[spearmanr(p, m)[0] for m in metric_data] for p in parameter_data]
+        return pd.DataFrame(rhos, 
+                            index=indices_to_multiindex(
+                                parameter_indices, 
+                                ('Element', 'Parameter')
+                            )
+               )
     
     def create_fitted_model(self, parameters, metrics):
+        from pipeml import FittedModel
         Xdf = self.table[[i.index for i in parameters]]
         ydf_index = metrics.index if isinstance(metrics, Metric) else [i.index for i in metrics]
         ydf = self.table[ydf_index]

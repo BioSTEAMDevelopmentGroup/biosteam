@@ -622,10 +622,15 @@ class System(metaclass=system):
             if stream not in feeds: stream.empty()
 
     def empty_recycles(self):
+        """Reset all recycle streams to zero flow."""
         self._reset_errors()        
         if self.recycle: self.recycle.empty()
         for system in self.subsystems:
             system.empty_recycles()
+
+    def reset_cache(self):
+        """Reset cache of all unit operations."""
+        for unit in self.units: unit.reset_cache()
 
     def simulate(self):
         """Converge the path and simulate all units."""

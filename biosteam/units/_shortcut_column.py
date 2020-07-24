@@ -283,7 +283,7 @@ class ShortcutColumn(BinaryDistillation,
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
         
-    def _setup_cache(self):
+    def reset_cache(self):
         self._vle_chemicals = None
 
     def plot_stages(self):

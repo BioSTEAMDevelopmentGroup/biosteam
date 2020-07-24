@@ -12,6 +12,7 @@ from . import utils
 from ..evaluation import Metric
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
+from ..plots import style_axis
 
 __all__ = ('UnitGroup',)
 
@@ -85,11 +86,9 @@ class UnitGroup:
         if isinstance(agent, str): agent = HeatUtility.get_agent(agent)
         name = agent.ID.replace('_', ' ').capitalize()
         if basis == 'duty':
-            units = 'GJ'
-            self.metric(name, units, self.name, lambda: self.get_utility_duty(agent))
+            self.metric(name, 'GJ', lambda: self.get_utility_duty(agent))
         elif basis == 'flow':
-            units = 'MT'
-            self.metric(name, units, self.name, lambda: self.get_utility_flow(agent))
+            self.metric(name, 'MT', lambda: self.get_utility_flow(agent))
         else:
             raise ValueError(f"basis must be either 'duty' or 'flow', not {repr(basis)}")
     
@@ -224,6 +223,7 @@ class UnitGroup:
         if fraction:
             plt.ylabel('[%]')
             plt.ylim(0, 100)
+        style_axis(top=False)
 
     def __repr__(self):
         return f"{type(self).__name__}({repr(self.name)}, {self.units}, metrics={self.metrics})"
