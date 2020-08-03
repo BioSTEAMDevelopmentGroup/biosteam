@@ -630,7 +630,7 @@ class TEA:
         w0 = self._startup_time
         sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         sales = self._sales
-        sales = stream.price * price2cost if not sales or np.isnan(sales) else sales
+        if not sales or np.isnan(sales): sales = stream.price * price2cost
         taxable_cashflow, nontaxable_cashflow = self.taxable_and_nontaxable_cashflow_arrays
         args = (self.income_tax, taxable_cashflow, 
                 nontaxable_cashflow, sales_coefficients,
@@ -888,7 +888,8 @@ class CombinedTEA(TEA):
     
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
-        IRR = 0.1 if np.isnan(self._IRR) else self._IRR
+        IRR = self._IRR
+        if not IRR or np.isnan(self._IRR): IRR = self.IRR
         args = (self.cashflow_array, self._get_duration_array())
         self._IRR = flx.aitken_secant(NPV_at_IRR,
                                       IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
@@ -918,13 +919,12 @@ class CombinedTEA(TEA):
         sales_coefficients[:start] = 0
         w0 = TEA._startup_time
         sales_coefficients[TEA._start] =  w0 * TEA.startup_VOCfrac + (1 - w0)
-        sales = self._sales or stream.price * price2cost
+        sales = self._sales
+        if not sales or np.isnan(sales): sales = stream.price * price2cost
         taxable_cashflow, nontaxable_cashflow = self.taxable_and_nontaxable_cashflow_arrays
         args = (self.income_tax, taxable_cashflow, 
                 nontaxable_cashflow, sales_coefficients,
                 discount_factors)
-        sales = self._sales
-        sales = stream.price * price2cost if not sales or np.isnan(sales) else sales
         sales = flx.aitken_secant(NPV_with_sales,
                                   sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
                                   maxiter=300, args=args, checkiter=False)
