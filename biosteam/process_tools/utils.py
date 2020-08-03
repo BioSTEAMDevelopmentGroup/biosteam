@@ -27,6 +27,9 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'filter_by_types',
            'filter_by_lines',
            'volume_of_chemical_in_units',
+           'set_construction_material',
+           'set_construction_material_to_stainless_steel',
+           'set_construction_material_to_carbon_steel',
 )
     
 def units_with_costs(units):
@@ -118,6 +121,75 @@ def volume_of_chemical_in_units(units, chemical):
             D = i.design_results
             F_vol += D['Total volume'] * z_vol
     return F_vol
+
+def set_construction_material(units, pressure_vessel_material, tray_material,
+                              tank_material, heat_exchanger_material, pump_material):
+    """
+    Set the construction material of all vessels, columns, trays,
+    heat exchangers, and pumps
+    
+    Parameters
+    ----------
+    units : Iterable[Unit]
+        Unit operations to set construction material.
+    pressure_vessel_material : str
+        Construction material for pressure vessels (includes distillation 
+        columns and flash vessels).
+    tray_material : str
+        Construction material for column trays.
+    tank_material : str
+        Construction material for tanks.
+    pump_material : str
+        Construction material for pumps.
+    
+    """
+    isa = isinstance
+    HeatExchanger = bst.HX
+    Distillation = bst.BinaryDistillation
+    PressureVessel = bst.units.design_tools.PressureVessel
+    Tank = bst.Tank
+    Pump = bst.Pump
+    for i in units:
+        if isa(i, HeatExchanger):
+            i.material = heat_exchanger_material
+        elif isa(i, Distillation):
+            i.boiler.material = i.condenser.material = heat_exchanger_material
+            i.vessel_material = pressure_vessel_material
+            i.tray_material = tray_material
+        elif isa(i, PressureVessel):
+            i.vessel_material = pressure_vessel_material
+        elif isa(i, Tank):
+            i.vessel_material = tank_material
+        elif isa(i, Pump):
+            i.material = pump_material
+
+def set_construction_material_to_stainless_steel(units, kind='304'):
+    """
+    Set the construction material of all vessels, columns, trays,
+    heat exchangers, and pumps to stainless steel.
+    
+    Parameters
+    ----------
+    kind : str, "304" or "316"
+        Type of stainless steel. 
+    
+    """
+    if kind not in ('304', '316'): 
+        raise ValueError("kind must be either '304' or '316', not '%s'" %kind)
+    material = 'Stainless steel ' + kind
+    set_construction_material(units, material, material, 'Stainless steel',
+                              'Stainless steel/stainless steel', 
+                              'Stainless steel')
+
+def set_construction_material_to_carbon_steel(units):
+    """
+    Set the construction material of all vessels, columns, trays,
+    heat exchangers, and pumps to carbon steel or cast iron.
+    
+    """
+    set_construction_material(units, 'Carbon steel', 'Carbon steel', 
+                              'Carbon steel', 'Carbon steel/carbon steel', 
+                              'Cast iron')
 
 def get_tea_results(tea, product=None, feedstock=None):
     """Return a dictionary with general TEA results."""
