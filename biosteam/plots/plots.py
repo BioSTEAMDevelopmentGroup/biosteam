@@ -15,7 +15,7 @@ from ..utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
            'plot_scatter_points', 'plot_spearman', 'plot_horizontal_line',
            'plot_bars', 'plot_vertical_line', 'plot_scatter_points',
-           'plot_contour_2d', 'plot_contour_across_coordinate')
+           'plot_contour_1d', 'plot_contour_2d', 'plot_contour_across_coordinate')
 
 def plot_spearman(rhos, top=None, name=None):
     """
@@ -196,6 +196,37 @@ def plot_montecarlo_across_coordinate(xs, ys,
     
     return percentiles
     
+def plot_contour_1d(X_grid, Y_grid, data, 
+                    xlabel, ylabel, xticks, yticks, 
+                    metric_bars, fillblack=True):
+    """Create contour plots and return the figure and the axes."""
+    n = len(metric_bars)
+    assert data.shape == (*X_grid.shape, n), (
+        "data shape must be (X, Y, M), where (X, Y) is the shape of both X_grid and Y_grid, "
+        "and M is the number of metrics"
+    )
+    gs_kw = dict(height_ratios=[1, 0.25])
+    fig, axes = plt.subplots(ncols=n, nrows=2, gridspec_kw=gs_kw)
+    for i in range(n):
+        metric_bar = metric_bars[i]
+        ax = axes[0, i]
+        plt.sca(ax)
+        style_plot_limits(xticks, yticks)
+        yticklabels = i == 0
+        xticklabels = True
+        if fillblack: fill_plot()
+        cp = plt.contourf(X_grid, Y_grid, data[:, :, i],
+                          levels=metric_bar.levels,
+                          cmap=metric_bar.cmap)
+        style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+        cbar_ax = axes[1, i]
+        plt.sca(cbar_ax)
+        metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8, orientation='horizontal')
+        plt.axis('off')
+    set_axes_labels(axes[:-1], xlabel, ylabel)
+    plt.subplots_adjust(hspace=0.1, wspace=0.1)
+    return fig, axes
+
 def plot_contour_2d(X_grid, Y_grid, Z_1d, data, 
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, Z_label=None,

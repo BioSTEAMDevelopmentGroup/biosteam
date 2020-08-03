@@ -233,6 +233,7 @@ class CarbonColorHandle(Handle):
                                    vmin=0, vmax=100, N_levels=25,
                                    orientation=orientation)
 
+
 class CarbonHandle(CarbonColorHandle, MassStreamHandle, CapitalNodeHandle):
     __slots__ = ()
 
@@ -345,6 +346,7 @@ class Link:
         
     def __repr__(self):
         return f"<{type(self).__name__}: {self.source.name} - {self.sink.name}>"
+
 
 # %% Functions that use plotly to create diagrams
 
