@@ -614,7 +614,9 @@ class TEA:
         return stream.F_mass * self._annual_factor
     
     def solve_price(self, stream):
-        """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
+        """
+        Return the price (USD/kg) of stream at the break even point (NPV = 0)
+        through cash flow analysis. 
         
         Parameters
         ----------
@@ -622,7 +624,21 @@ class TEA:
             Stream with variable selling price.
             
         """
+        sales = self.solve_incentive()
         price2cost = self._price2cost(stream)
+        if stream.sink:
+            return stream.price - sales / price2cost
+        elif stream.source:
+            return stream.price + sales / price2cost
+        else:
+            raise ValueError("stream must be either a feed or a product")
+    
+    def solve_incentive(self):
+        """
+        Return the required incentive (USD) to reach the break even point (NPV = 0)
+        through cash flow analysis. 
+        
+        """
         discount_factors = (1 + self.IRR)**self._get_duration_array()
         sales_coefficients = np.ones_like(discount_factors)
         start = self._start
@@ -630,7 +646,7 @@ class TEA:
         w0 = self._startup_time
         sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         sales = self._sales
-        if not sales or np.isnan(sales): sales = stream.price * price2cost
+        if not sales or np.isnan(sales): sales = 0.
         taxable_cashflow, nontaxable_cashflow = self.taxable_and_nontaxable_cashflow_arrays
         args = (self.income_tax, taxable_cashflow, 
                 nontaxable_cashflow, sales_coefficients,
@@ -639,12 +655,7 @@ class TEA:
                                   sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
                                   maxiter=300, args=args, checkiter=False)
         self._sales = sales
-        if stream.sink:
-            return stream.price - sales / price2cost
-        elif stream.source:
-            return stream.price + sales / price2cost
-        else:
-            raise ValueError("stream must be either a feed or a product")
+        return sales
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.system.ID}>'
@@ -721,7 +732,7 @@ class CombinedTEA(TEA):
         v_all = [i.operating_days for i in self.TEAs]
         v0, *vs = v_all
         if all([v0 == v for v in vs]): return v0
-        else: return tuple(v_all)
+        else: raise AttributeError("TEAs don't have the same operating days")
     @operating_days.setter
     def operating_days(self, operating_days):
         vector = np.zeros(len(self.TEAs))
@@ -733,7 +744,7 @@ class CombinedTEA(TEA):
         v_all = [i.startup_months for i in self.TEAs]
         v0, *vs = v_all
         if all([v0 == v for v in vs]): return v0
-        else: return tuple(v_all)
+        else: raise AttributeError("TEAs don't have the same startup months")
     @startup_months.setter
     def startup_months(self, startup_months):
         vector = np.zeros(len(self.TEAs))
@@ -863,7 +874,8 @@ class CombinedTEA(TEA):
         return table    
     
     def production_cost(self, products, with_annual_depreciation=True):
-        """Return production cost of products [USD/yr].
+        """
+        Return production cost of products [USD/yr].
         
         Parameters
         ----------
@@ -897,7 +909,9 @@ class CombinedTEA(TEA):
         return self._IRR
     
     def solve_price(self, stream, TEA=None):
-        """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
+        """
+        Return the price (USD/kg) of stream at the break even point (NPV = 0)
+        through cash flow analysis. 
         
         Parameters
         ----------
@@ -907,12 +921,30 @@ class CombinedTEA(TEA):
               Stream should belong here.
             
         """
-        TEAs = self.TEAs
-        if not TEA:
-            for TEA in TEAs:
-                if stream in TEA.system.feeds or stream in TEA.system.products: break
+        if not TEA: TEA = self.TEAs[0]
+        sales = self.solve_incentive(TEA)
         price2cost = TEA._price2cost(stream)
+        if stream.sink:
+            return stream.price - sales / price2cost
+        elif stream.source:
+            return stream.price + sales / price2cost
+        else:
+            raise ValueError("stream must be either a feed or a product")
+    
+    def solve_incentive(self, TEA=None):
+        """
+        Return the required incentive (USD) to reach the break even point (NPV = 0)
+        through cash flow analysis. 
+        
+        Parameters
+        ----------
+        TEA=None : TEA, optional
+              Incentive will be added using settings from given TEA. Defaults to
+              first TEA object in the `TEAs` attribute.
+        
+        """
         IRR = self.IRR
+        if not TEA: TEA = self.TEAs[0]
         discount_factors = (1. + IRR)**TEA._get_duration_array()
         sales_coefficients = np.ones_like(discount_factors)
         start = TEA._start
@@ -920,7 +952,7 @@ class CombinedTEA(TEA):
         w0 = TEA._startup_time
         sales_coefficients[TEA._start] =  w0 * TEA.startup_VOCfrac + (1 - w0)
         sales = self._sales
-        if not sales or np.isnan(sales): sales = stream.price * price2cost
+        if not sales or np.isnan(sales): sales = 0.
         taxable_cashflow, nontaxable_cashflow = self.taxable_and_nontaxable_cashflow_arrays
         args = (self.income_tax, taxable_cashflow, 
                 nontaxable_cashflow, sales_coefficients,
@@ -929,12 +961,7 @@ class CombinedTEA(TEA):
                                   sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
                                   maxiter=300, args=args, checkiter=False)
         self._sales = sales
-        if stream.sink:
-            return stream.price - sales / price2cost
-        elif stream.source:
-            return stream.price + sales / price2cost
-        else:
-            raise ValueError("stream must be either a feed or a product")
+        return sales
     
     def __repr__(self):
         return f'<{type(self).__name__}: {", ".join([i.system.ID for i in self.TEAs])}>'
