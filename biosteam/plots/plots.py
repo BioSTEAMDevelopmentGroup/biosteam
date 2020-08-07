@@ -10,7 +10,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from biosteam.utils import colors
-from ..utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
+from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
            'plot_scatter_points', 'plot_spearman', 'plot_horizontal_line',
@@ -43,7 +43,7 @@ def plot_spearman(rhos, top=None, name=None):
         index = index[-top:]
     
     xranges = [(0, i) for i in rhos]
-    yranges = [(i, 0.65) for i in range(len(rhos))]
+    yranges = [(i, 1.) for i in range(len(rhos))]
     
     # Plot bars one by one
     fig, ax = plt.subplots()
