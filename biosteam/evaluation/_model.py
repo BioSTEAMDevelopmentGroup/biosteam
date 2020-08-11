@@ -254,7 +254,7 @@ class Model(State):
             with pd.ExcelWriter(xlfile) as writer:
                 for i, metric in zip(metric_indices, metric_data):
                     data[:] = metric_data[metric]
-                    data.to_excel(writer, sheet_name=i)
+                    data.to_excel(writer, sheet_name=i[1])
         return metric_data
     
     def spearman(self, parameters=(), metrics=()):
