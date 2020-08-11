@@ -61,8 +61,8 @@ class BoilerTurbogenerator(Facility):
         Fraction of heat transfered to steam.
     turbo_generator_efficiency : float
         Fraction of steam heat converted to electricity.
-    agent : UtilityAgent
-        Steam produced.
+    agent : UtilityAgent, optional
+        Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent]
         Other steams produced.
     natural_gas_price = 0.218 : float
@@ -99,11 +99,11 @@ class BoilerTurbogenerator(Facility):
                  boiler_efficiency=0.80,
                  turbogenerator_efficiency=0.85,
                  side_steam=None,
-                 agent=HeatUtility.get_heating_agent('low_pressure_steam'),
+                 agent=None,
                  other_agents = (),
                  natural_gas_price=0.218):
         Facility.__init__(self, ID, ins, outs, thermo)
-        self.agent = agent
+        self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
         self.natural_gas_price = natural_gas_price
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
