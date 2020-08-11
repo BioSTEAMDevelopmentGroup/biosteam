@@ -40,4 +40,3 @@ __all__ = ('Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
 from .evaluation import *
 from .units import *
-

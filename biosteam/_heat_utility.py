@@ -157,40 +157,8 @@ class UtilityAgent(Stream):
         return f"<{type(self).__name__}: {self.ID}>"
 
 
-# Create cooling agnets
+# Used broadly throughout BioSTEAM utilities
 thermo_water = Thermo(['Water'])
-cooling_water = UtilityAgent('cooling_water',
-                             Water=1, T=305.372, P=101325,
-                             thermo=thermo_water,
-                             T_limit = 324.817,
-                             regeneration_price = 4.8785e-4)
-chilled_water = UtilityAgent('chilled_water',
-                             Water=1, T=280.372, P=101325,
-                             thermo=thermo_water,
-                             T_limit = 300.372,
-                             heat_transfer_price = 5e-6)
-chilled_brine = UtilityAgent('chilled_brine',
-                             Water=1, T=255.372, P=101325,
-                             thermo=thermo_water,
-                             T_limit = 275.372,
-                             heat_transfer_price = 8.145e-6,)
-
-# Create heating agents
-low_pressure_steam = UtilityAgent('low_pressure_steam',
-                                  Water=1, T=412.189, P=344738.0, phase='g',
-                                  thermo=thermo_water,
-                                  regeneration_price = 0.2378,
-                                  heat_transfer_efficiency = 0.95)
-medium_pressure_steam = UtilityAgent('medium_pressure_steam',
-                                     Water=1, T=454.770, P=1.041e+6, phase='g',
-                                     thermo=thermo_water,
-                                     regeneration_price = 0.2756,
-                                     heat_transfer_efficiency = 0.90) 
-high_pressure_steam = UtilityAgent('high_pressure_steam',
-                                   Water=1, T=508.991, P=3.11e+6, phase='g', 
-                                   thermo=thermo_water,
-                                   regeneration_price = 0.3171,
-                                   heat_transfer_efficiency = 0.85) 
        
 # %%
 
@@ -276,9 +244,6 @@ class HeatUtility:
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
 
-    cooling_agents = [cooling_water, chilled_water, chilled_brine]
-    heating_agents = [low_pressure_steam, medium_pressure_steam, high_pressure_steam]
-
     def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
         self.heat_exchanger = heat_exchanger
@@ -296,6 +261,68 @@ class HeatUtility:
     def ID(self, ID):
         """[str] ID of utility agent being used."""
         self.agent = self.get_agent(ID)
+
+    @classmethod
+    def default_agents(cls):
+        """Reset all agents back to BioSTEAM's defaults."""
+        cls.default_heating_agents()
+        cls.default_cooling_agents()
+
+    @classmethod
+    def default_heating_agents(cls):
+        """Reset all heating agents back to BioSTEAM's defaults."""
+        low_pressure_steam = UtilityAgent(
+            'low_pressure_steam',
+            Water=1, T=412.189, P=344738.0, phase='g',
+            thermo=thermo_water,
+            regeneration_price = 0.2378,
+            heat_transfer_efficiency = 0.95
+        )
+        medium_pressure_steam = UtilityAgent(
+            'medium_pressure_steam',
+            Water=1, T=454.770, P=1.041e+6, phase='g',
+            thermo=thermo_water,
+            regeneration_price = 0.2756,
+            heat_transfer_efficiency = 0.90,
+        ) 
+        high_pressure_steam = UtilityAgent(
+            'high_pressure_steam',
+            Water=1, T=508.991, P=3.11e+6, phase='g', 
+            thermo=thermo_water,
+            regeneration_price = 0.3171,
+            heat_transfer_efficiency = 0.85,
+        ) 
+        cls.heating_agents = [low_pressure_steam, 
+                              medium_pressure_steam, 
+                              high_pressure_steam]
+        
+    @classmethod
+    def default_cooling_agents(cls):
+        """Reset all cooling agents back to BioSTEAM's defaults."""
+        cooling_water = UtilityAgent(
+            'cooling_water',
+            Water=1, T=305.372, P=101325,
+            thermo=thermo_water,
+            T_limit = 324.817,
+            regeneration_price = 4.8785e-4,
+        )
+        chilled_water = UtilityAgent(
+            'chilled_water',
+            Water=1, T=280.372, P=101325,
+            thermo=thermo_water,
+            T_limit = 300.372,
+            heat_transfer_price = 5e-6
+        )
+        chilled_brine = UtilityAgent(
+            'chilled_brine',
+            Water=1, T=255.372, P=101325,
+            thermo=thermo_water,
+            T_limit = 275.372,
+            heat_transfer_price = 8.145e-6,
+        )
+        cls.cooling_agents = [cooling_water, 
+                              chilled_water, 
+                              chilled_brine]
 
     def copy_like(self, other):
         """Copy all data from another heat utility."""
@@ -596,3 +623,4 @@ class HeatUtility:
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
 
+HeatUtility.default_agents()
