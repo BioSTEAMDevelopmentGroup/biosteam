@@ -1,0 +1,27 @@
+Updates 2.20
+============
+
+BioSTEAM 2.20.14
+----------------
+
+* Added the following new functions and methods to default utilities back to original specifications:
+
+  * :func:`biosteam.process_tools.utils.default_utilities`
+
+  * :meth:`biosteam.HeatUtility.default_agents`
+
+  * :meth:`biosteam.HeatUtility.default_heating_agents`
+
+  * :meth:`biosteam.HeatUtility.default_cooling_agents`
+
+  * :meth:`biosteam.PowerUtility.default_price`
+
+* Updated biorefineries to version 2.15.9 with the following corrections and new features:
+
+  * Fixed bug for missing facilities in sugarcane biorefinery.
+
+  * Added linear-alpha olefin production process as the "LAOs" subpackage.
+
+  * Added tests for sugarcane biorefinery and linear-alpha olefin production process.
+
+  * Added readme.rst files to sugarcane, lipidcane, cornstover, and LAOs production processes.
