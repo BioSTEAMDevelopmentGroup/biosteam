@@ -1,8 +1,8 @@
-Updates 2.20
-============
+BioSTEAM 2.20
+=============
 
-BioSTEAM 2.20.14
-----------------
+2.20.14
+-------
 
 * Added the following new functions and methods to default utilities back to original specifications:
 
