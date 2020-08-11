@@ -30,6 +30,7 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'set_construction_material',
            'set_construction_material_to_stainless_steel',
            'set_construction_material_to_carbon_steel',
+           'default_utilities',
 )
     
 def units_with_costs(units):
@@ -308,3 +309,8 @@ def stream_mass_balance(chemical_IDs, variable_inlets, constant_inlets=(),
     
     else:
         raise ValueError( "balance must be one of the following: 'flow', 'composition'")
+        
+def default_utilities():
+    """Reset utilities back to BioSTEAM's defaults."""
+    bst.HeatUtility.default_agents()
+    bst.PowerUtility.default_price()
