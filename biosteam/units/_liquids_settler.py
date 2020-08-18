@@ -10,7 +10,7 @@
 import biosteam as bst
 from ._lle_unit import LLEUnit
 from ._splitter import Splitter
-from .design_tools import PressureVessel
+from .design_tools import separations, PressureVessel
 
 __all__ = ('LiquidsSettler', 'LLESettler', 'LiquidsSplitSettler')
 
@@ -49,7 +49,8 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
         self.purchase_costs.update(
             self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
         )
-        
+    
+
 class LLESettler(LLEUnit, LiquidsSettler):
     line = 'Settler'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
@@ -58,13 +59,17 @@ class LLESettler(LLEUnit, LiquidsSettler):
                  vessel_material='Carbon steel',
                  vessel_type='Horizontal',
                  top_chemical=None,
-                 efficiency=1.0):
+                 efficiency=1.0,
+                 cache_tolerance=1e-6,
+        ):
         LLEUnit.__init__(self, ID, ins, outs, thermo, top_chemical, efficiency)
         self.vessel_material = vessel_material
         self.vessel_type = vessel_type
         self.length_to_diameter = length_to_diameter
         self.area_to_feed = area_to_feed
-    
+        self.cache_tolerance = cache_tolerance
+        
+        
 class LiquidsSplitSettler(LiquidsSettler):
     line = 'Settler'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
@@ -82,3 +87,34 @@ class LiquidsSplitSettler(LiquidsSettler):
     split = Splitter.split
     isplit = Splitter.isplit
     _run = Splitter._run
+    
+    
+class LiquidsPartitionSettler(LiquidsSettler):
+    line = 'Settler'
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                 partition_coefficients, partion_IDs, 
+                 forced_split_IDs=None, forced_split=None,
+                 area_to_feed=0.1, 
+                 length_to_diameter=4,
+                 vessel_material='Carbon steel',
+                 vessel_type='Horizontal'):
+        bst.Unit.__init__(self, ID, ins, outs, thermo)
+        self.vessel_material = vessel_material
+        self.vessel_type = vessel_type
+        self.length_to_diameter = length_to_diameter
+        self.area_to_feed = area_to_feed
+        self.partition_coefficients = partition_coefficients
+        self.partion_IDs = partion_IDs
+        #: array[float] Forced splits to 0th stream for given IDs. 
+        self.forced_split = forced_split
+        #: tuple[str] IDs corresponding to forced splits. 
+        self.forced_split_IDs = forced_split_IDs
+        self.reset_cache()
+    
+    def reset_cache(self):
+        self._phi = None
+    
+    def _run(self):
+        self._phi = separations.partition(*self.ins, *self.outs, 
+                                          self.partion_IDs, self.partition_coefficients,
+                                          self._phi)

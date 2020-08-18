@@ -662,9 +662,7 @@ class TEA:
     
     def _info(self):
         return (f'{type(self).__name__}: {self.system.ID}\n'
-                f' NPV: {self.NPV:.3g} USD at {self.IRR:.1%} IRR\n'
-                f' ROI: {self.ROI:.3g} 1/yr\n'
-                f' PBP: {self.PBP:.3g} yr')
+                f' NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
     
     def show(self):
         """Prints information on unit."""
@@ -968,9 +966,7 @@ class CombinedTEA(TEA):
     
     def _info(self):
         return (f'{type(self).__name__}: {", ".join([i.system.ID for i in self.TEAs])}\n'
-                f' NPV: {self.NPV:.3g} USD at {self.IRR:.1%} IRR\n'
-                f' ROI: {self.ROI:.3g} 1/yr\n'
-                f' PBP: {self.PBP:.3g} yr')
+                f' NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
     
     def show(self):
         """Prints information on unit."""

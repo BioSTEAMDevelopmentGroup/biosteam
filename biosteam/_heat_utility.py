@@ -156,9 +156,6 @@ class UtilityAgent(Stream):
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"
 
-
-# Used broadly throughout BioSTEAM utilities
-thermo_water = Thermo(['Water'])
        
 # %%
 
@@ -244,6 +241,9 @@ class HeatUtility:
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
 
+    #: [Thermo] Used broadly throughout BioSTEAM utilities
+    thermo_water = Thermo(['Water'])
+
     def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
         self.heat_exchanger = heat_exchanger
@@ -271,6 +271,7 @@ class HeatUtility:
     @classmethod
     def default_heating_agents(cls):
         """Reset all heating agents back to BioSTEAM's defaults."""
+        thermo_water = cls.thermo_water
         low_pressure_steam = UtilityAgent(
             'low_pressure_steam',
             Water=1, T=412.189, P=344738.0, phase='g',
@@ -299,6 +300,7 @@ class HeatUtility:
     @classmethod
     def default_cooling_agents(cls):
         """Reset all cooling agents back to BioSTEAM's defaults."""
+        thermo_water = cls.thermo_water
         cooling_water = UtilityAgent(
             'cooling_water',
             Water=1, T=305.372, P=101325,
@@ -606,9 +608,9 @@ class HeatUtility:
         """Return string related to specifications"""
         if not self.agent:
             return (f'{type(self).__name__}: None\n'
-                    +f' duty: 0\n'
-                    +f' flow: 0\n'
-                    +f' cost: 0')
+                    +' duty: 0\n'
+                    +' flow: 0\n'
+                    +' cost: 0')
         else:
             (duty, flow, cost, duty_units,
              flow_units, cost_units) = self._info_data(duty, flow, cost)

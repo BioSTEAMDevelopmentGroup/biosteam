@@ -33,7 +33,7 @@ class MixerSettler(bst.Unit):
             Settler = bst.LiquidsSplitSettler
         elif model == 'partition coefficients':
             raise NotImplementedError("partition coefficient model not yet implemented in BioSTEAM")
-            Settler = bst.LiquidsKSettler
+            Settler = bst.LiquidsPartitionSettler
         self.settler = Settler(None, mixed_stream, None, self.thermo, **settler_data)
         self.settler._outs = self._outs
         self.power_utility = mixer.power_utility
@@ -49,3 +49,20 @@ class MixerSettler(bst.Unit):
     def _cost(self):
         self.mixer._cost()
         self.settler._cost()
+        
+class MultiStageMixerSettlers:
+    _N_ins = 2
+    _N_outs = 2
+    def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
+                 mixer_kwargs, N_stages):
+        super().__init__(ID, ins, outs, thermo)
+        self.N_stages = N_stages
+        self.stages = None
+        
+    def _setup(self):
+        if self.N_stages != self._N_stages_previous:
+            self._N_stages_previous = self.N_stages
+            self.reset_cache()
+            
+    def reset_cache(self):
+        self._stages = []

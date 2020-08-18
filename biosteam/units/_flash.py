@@ -544,7 +544,7 @@ class SplitFlash(Flash):
         ms.mix_from(self.outs)
         super()._design()
     
-
+# TODO: Remove this in favor of partition coefficients
 class RatioFlash(Flash):
     _N_heat_utilities = 1
 

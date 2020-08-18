@@ -1,0 +1,5 @@
+separations
+-----------
+
+.. automodule:: biosteam.units.design_tools.separations
+   :members:

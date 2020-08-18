@@ -25,3 +25,10 @@ BioSTEAM 2.20
   * Added tests for sugarcane biorefinery and linear-alpha olefin production process.
 
   * Added readme.rst files to sugarcane, lipidcane, cornstover, and LAOs production processes.
+
+2.20.15
+-------
+
+* New function for running equilibrium on streams given partition coefficients: :func:`biosteam.units.design_tools.separations.partition`.
+* Updated thermosteam to version 0.20.10 to use cached partition coefficients in liquid-liquid equilibrium.
+* Updated biorefineries to version 2.15.10 to satisfy doctests for readme.rst files.

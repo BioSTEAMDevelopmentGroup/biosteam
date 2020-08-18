@@ -55,6 +55,7 @@ class LiquidsCentrifuge(Unit, isabstract=True):
     line = 'Liquids centrifuge'
 
 
+# TODO: Remove this in favor of partition coefficients
 class LiquidsRatioCentrifuge(LiquidsCentrifuge):
     _N_heat_utilities = 0
     line = 'Liquids centrifuge'

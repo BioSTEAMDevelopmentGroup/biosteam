@@ -57,7 +57,7 @@ following in your local biosteam directory:
 
 .. code-block:: bash
     
-   $ pytest --doctest-modules
+   $ pytest
     =================================== test session starts ===================================
     platform win32 -- Python 3.7.6, pytest-5.3.5, py-1.8.1, pluggy-0.13.1
     rootdir: C:\Users\...\biosteam, inifile: pytest.ini
@@ -104,8 +104,7 @@ before uploading. If no tests are available specfic to the unit operation, tests
 must be uploaded whereby the stream results and general simulation results are 
 tested. Using `doctests <https://docs.python.org/3.6/library/doctest.html>`__ is
 the preferred method for running tests, but assertions in a test function is also
-accepted so long as all results of the unit operation is tested. You can use the
-source code in the "biosteam.tests" folder as a template for how this may be done.
+accepted so long as all results of the unit operation is tested. 
 
 .. note:: 
 
@@ -125,9 +124,27 @@ package can also be tested by running the following in your local biorefineries 
     openfiles-0.4.0, remotedata-0.3.2
     collected 2 items
     
-    tests\test_biorefineries.py ..                                                       [100%]
+    tests\test_biorefineries.py ....                                                     [100%]
     
     =================================== 2 passed in 4.62s =====================================
+
+If you are uploading a new biorefinery to the `biorefineries` package, make sure
+you include tests for the following results:
+
+* One TEA feasibility parameter (e.g. MPSP, MFSP, or IRR).
+* Sales
+* Material cost
+* Installed equipment cost
+* Utility cost
+* Heating duty
+* Coling duty
+* Electricity consumption
+* Electricity production 
+
+Also make sure to add a README.rst file to explain basic functionality and 
+design. If a paper is already published, you can add a link to it here too.
+Examples in the readme may be tested using `doctest's testfile <https://docs.python.org/3/library/doctest.html>`__
+method. In the biorefineries repository you can find `example tests <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/BioSTEAM%202.x.x/tests>`__.
 
 The `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`__ 
 package is not yet ready for `pytest`. Instead, run the following lines in python to

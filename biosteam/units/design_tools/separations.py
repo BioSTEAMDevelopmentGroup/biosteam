@@ -10,10 +10,12 @@ This module contains unit operation separation methods.
 
 """
 from thermosteam.exceptions import InfeasibleRegion
+from thermosteam.equilibrium import phase_fraction
 
 __all__ = ('lle', 'vle', 'split', 'mix_and_split',
            'adjust_moisture_content', 
-           'mix_and_split_with_moisture_content')
+           'mix_and_split_with_moisture_content',
+           'partition')
 
 def mix_and_split_with_moisture_content(ins, retentate, permeate,
                                         split, moisture_content):
@@ -99,6 +101,47 @@ def split(feed, top, bottom, split):
     top_mol[:] *= split
     bottom.mol[:] -= top_mol
 
+def partition(feed, top, bottom, IDs, K, phi=None):
+    """
+    Run equilibrium of feed to top and bottom streams given partition 
+    coeffiecients and return the phase fraction.
+
+    Parameters
+    ----------
+    feed : Stream
+        Mixed feed.
+    top : Stream
+        Top phase.
+    bottom : TYPE
+        Bottom phase.
+    IDs : tuple[str]
+        IDs of chemicals in equilibrium.
+    K : 1d array
+        Partition coefficeints corresponding to IDs.
+    phi : float, optional
+        Guess phase fraction in top phase.
+
+    Returns
+    -------
+    phi : float
+        Phase fraction in top phase.
+
+    Notes
+    -----
+    Chemicals not in equilibrium end up in the top phase.
+
+    """
+    mol = feed.imol[IDs]
+    F_mol = mol.sum()
+    z_mol = mol / F_mol
+    phi = phase_fraction(z_mol, K, phi)
+    x = z_mol / (phi * K + (1 - phi))
+    mol = x * (1 - phi) * F_mol
+    bottom.empty()
+    bottom.imol[IDs] = mol
+    top.mol[:] = feed.mol - bottom.mol
+    return phi
+
 def lle(feed, top, bottom, top_chemical, efficiency, multi_stream=None):
     """Run LLE mass and energy balance."""
     if multi_stream:
@@ -123,7 +166,7 @@ def lle(feed, top, bottom, top_chemical, efficiency, multi_stream=None):
     if efficiency < 1.:
         top.mol *= efficiency
         bottom.mol *= efficiency
-        mixing = (1 - efficiency) / 2 * feed.mol
+        mixing = (1. - efficiency) / 2. * feed.mol
         top.mol += mixing
         bottom.mol += mixing
         
