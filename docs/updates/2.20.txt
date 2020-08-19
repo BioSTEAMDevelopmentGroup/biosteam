@@ -29,6 +29,11 @@ BioSTEAM 2.20
 2.20.15
 -------
 
-* New function for running equilibrium on streams given partition coefficients: :func:`biosteam.units.design_tools.separations.partition`.
 * Updated thermosteam to version 0.20.10 to use cached partition coefficients in liquid-liquid equilibrium.
 * Updated biorefineries to version 2.15.10 to satisfy doctests for readme.rst files.
+
+2.20.16
+-------
+
+* Moved `biosteam.process_tools.separations` module to `thermosteam.separations`.
+* Added a `biosteam.units.ShortcutColumn.minimum_guess_distillate_recovery` class attribute to control the minimum guess for the recovery of light non-keys in the distillate.
