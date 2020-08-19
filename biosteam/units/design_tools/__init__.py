@@ -16,7 +16,6 @@ from . import specification_factors
 from . import column_design
 from . import heat_transfer
 from . import tank_design
-from . import separations
 from . import geometry
 from . import utils
 
@@ -31,7 +30,6 @@ __all__ = (*cost_index.__all__,
            *tank_design.__all__,
            *utils.__all__,
            *geometry.__all__,
-           *separations.__all__,
 )
 
 from .pressure_vessel import *
@@ -45,4 +43,3 @@ from .heat_transfer import *
 from .tank_design import *
 from .utils import *
 from .geometry import *
-from .separations import *

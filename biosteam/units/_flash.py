@@ -8,14 +8,13 @@
 """
 """
 from .. import Unit, PowerUtility
-from thermosteam import MultiStream
+from thermosteam import MultiStream, separations
 from math import pi
 import numpy as np
 from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
-from .design_tools import separations
 
 exp = np.exp
 ln = np.log

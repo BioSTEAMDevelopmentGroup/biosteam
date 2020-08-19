@@ -8,8 +8,7 @@
 """
 """
 import biosteam as bst
-from .design_tools import separations
-import numpy as np
+from thermosteam import separations
 
 __all__ = ('LLEUnit',)
 
@@ -28,10 +27,10 @@ class LLEUnit(bst.Unit, isabstract=True):
         Identifier of chemical that will be favored in the "liquid" phase.
         If none given, the "liquid" phase will the lightest and the "LIQUID"
         phase will be the heaviest.
-    efficiency : float,
+    efficiency=1. : float, optional
         Fraction of feed in liquid-liquid equilibrium.
         The rest of the feed is divided equally between phases.
-    cache_tolerance=1e-6 : float
+    cache_tolerance=1e-6 : float, optional
         Reuse previous partition coefficients to calculate LLE when 
         the change in molar fraction of all chemicals is below this 
         tolerance.

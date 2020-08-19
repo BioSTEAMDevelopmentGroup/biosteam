@@ -10,7 +10,7 @@
 from .. import Unit
 from .._graphics import splitter_graphics
 from ._process_specification import ProcessSpecification
-from .design_tools import separations
+from thermosteam import separations
 
 __all__ = ('Splitter', 'FakeSplitter',
            'ReversedSplitter', 'ReversedSplit')

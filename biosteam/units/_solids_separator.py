@@ -8,8 +8,7 @@
 """
 """
 from ._splitter import Splitter
-from ..exceptions import InfeasibleRegion
-from .design_tools import separations
+from thermosteam import separations
 
 __all__ = ('SolidsSeparator',)
 

@@ -10,7 +10,8 @@
 import biosteam as bst
 from ._lle_unit import LLEUnit
 from ._splitter import Splitter
-from .design_tools import separations, PressureVessel
+from .design_tools import PressureVessel
+from thermosteam import separations
 
 __all__ = ('LiquidsSettler', 'LLESettler', 'LiquidsSplitSettler')
 
