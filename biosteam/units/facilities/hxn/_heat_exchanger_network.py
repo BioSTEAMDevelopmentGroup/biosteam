@@ -9,9 +9,9 @@
 Created on Sat Aug 22 21:58:19 2020
 @author: sarangbhagwat
 """
-from biosteam import HeatUtility, Facility
+from .. import HeatUtility, Facility
 import biosteam as bst
-from hxn.hxn_synthesis import synthesize_network, StreamLifeCycle
+from .hxn_synthesis import synthesize_network, StreamLifeCycle
 
 __all__ = ('HeatExchangerNetwork',)
 
