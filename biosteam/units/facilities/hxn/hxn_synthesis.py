@@ -81,16 +81,16 @@ class StreamLifeCycle:
             index = self.index
             name = 'Stream_%s'%index
             strtype = 'cold' if cold else 'hot'
-            rep = name + ', ' + strtype + '\n'
+            rep = ''
             for LifeStage in life_cycle:
-                line = '\t' + repr(LifeStage) + '\n'
+                line = '\t\t' + repr(LifeStage) + '\n'
                 rep += line
-            rep = '<StreamLifeCycle: ' + rep[:-1] + '>'
+            rep = '<StreamLifeCycle: ' + name + ', ' + strtype  + '\n\tlife_cycle = [\n' +  rep[:-1] + '\n\t]>'
             return rep
         
     def show(self):
-        info = repr(self).replace('<', '').replace('>', '')
-        print(info)
+        info = repr(self).replace('[', '').replace(']', '').replace('life_cycle =', 'life_cycle:')
+        print(info[1:-1])
         
     _ipython_display_ = show
     

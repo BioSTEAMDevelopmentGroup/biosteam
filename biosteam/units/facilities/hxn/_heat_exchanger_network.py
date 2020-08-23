@@ -9,7 +9,7 @@
 Created on Sat Aug 22 21:58:19 2020
 @author: sarangbhagwat
 """
-from .. import HeatUtility, Facility
+from .. import Facility
 import biosteam as bst
 from .hxn_synthesis import synthesize_network, StreamLifeCycle
 
@@ -44,7 +44,7 @@ class HeatExchangerNetwork(Facility):
     --------
     >>> from biosteam.units import ShortcutColumn, HXutility, Flash
     >>> from biosteam import Flowsheet
-    >>> from hxn._heat_exchanger_network import HeatExchangerNetwork
+    >>> from biosteam.units.facilities import HeatExchangerNetwork
     >>> from biosteam import Stream, settings
     >>> from biosteam import main_flowsheet as f
     >>> flowsheet = Flowsheet('trial')
@@ -72,22 +72,33 @@ class HeatExchangerNetwork(Facility):
     0.884
     >>> HXN.get_stream_life_cycles()
     [<StreamLifeCycle: Stream_0, cold
-     	<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 6.52e+06 kJ, H_out = 4.26e+07 kJ>
-     	<LifeStage: <HXutility: Util_0_hs>, H_in = 4.26e+07 kJ, H_out = 7.35e+07 kJ>>,
+     	life_cycle = [
+     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 6.52e+06 kJ, H_out = 4.26e+07 kJ>
+     		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.26e+07 kJ, H_out = 7.35e+07 kJ>
+     	]>,
      <StreamLifeCycle: Stream_1, cold
-     	<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.6e-06 kJ, H_out = 6.08e+06 kJ>
-     	<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 6.08e+06 kJ, H_out = 6.85e+06 kJ>
-     	<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 6.85e+06 kJ, H_out = 2.78e+07 kJ>
-     	<LifeStage: <HXutility: Util_1_hs>, H_in = 2.78e+07 kJ, H_out = 4.84e+08 kJ>>,
+     	life_cycle = [
+     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.6e-06 kJ, H_out = 6.08e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 6.08e+06 kJ, H_out = 6.85e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 6.85e+06 kJ, H_out = 2.78e+07 kJ>
+     		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.78e+07 kJ, H_out = 4.84e+08 kJ>
+     	]>,
      <StreamLifeCycle: Stream_2, hot
-     	<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 9.15e+06 kJ>
-     	<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 9.15e+06 kJ, H_out = 3.07e+06 kJ>
-     	<LifeStage: <HXutility: Util_2_hs>, H_in = 3.07e+06 kJ, H_out = 1.14e+06 kJ>>,
+     	life_cycle = [
+     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 9.15e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 9.15e+06 kJ, H_out = 3.07e+06 kJ>
+     		<LifeStage: <HXutility: Util_2_hs>, H_in = 3.07e+06 kJ, H_out = 1.14e+06 kJ>
+     	]>,
      <StreamLifeCycle: Stream_3, hot
-     	<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.37e+07 kJ, H_out = 2.71e+06 kJ>>,
+     	life_cycle = [
+     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.37e+07 kJ, H_out = 2.71e+06 kJ>
+     	]>,
      <StreamLifeCycle: Stream_4, hot
-     	<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.84e+05 kJ, H_out = 1.96e+04 kJ>
-     	<LifeStage: <HXutility: Util_4_hs>, H_in = 1.96e+04 kJ, H_out = 2.91e+03 kJ>>]
+     	life_cycle = [
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.84e+05 kJ, H_out = 1.96e+04 kJ>
+     		<LifeStage: <HXutility: Util_4_hs>, H_in = 1.96e+04 kJ, H_out = 2.91e+03 kJ>
+     	]>]
+    
     """
 
     network_priority = -1
@@ -131,11 +142,11 @@ class HeatExchangerNetwork(Facility):
             new_installed_costs_HXp.append(new_HX.installed_cost)
         self.purchase_costs['Heat exchangers'] = (sum(new_purchase_costs_HXp) + sum(new_purchase_costs_HXu)) \
             - (sum(original_purchase_costs))
-        hu_sums1 = HeatUtility.sum_by_agent(hx_utils_rearranged)
-        hu_sums2 = HeatUtility.sum_by_agent(sum([hx.heat_utilities for hx in new_HX_utils], ()))
+        hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
+        hu_sums2 = bst.HeatUtility.sum_by_agent(sum([hx.heat_utilities for hx in new_HX_utils], ()))
         # to change sign on duty without switching heat/cool (i.e. negative costs):
         for hu in hu_sums1: hu.reverse()
-        hus_final = tuple(HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
+        hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
         self._installed_cost = (sum(new_installed_costs_HXp) + sum(new_installed_costs_HXu)) \
             - (sum(original_installed_costs))
         self.heat_utilities = hus_final
