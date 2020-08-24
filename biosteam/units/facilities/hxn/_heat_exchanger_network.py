@@ -7,7 +7,7 @@
 # for license details.
 """
 Created on Sat Aug 22 21:58:19 2020
-@author: sarangbhagwat
+@author: sarangbhagwat and yoelcp
 """
 from .. import Facility
 import biosteam as bst
@@ -183,3 +183,26 @@ class HeatExchangerNetwork(Facility):
         stream_life_cycles = SLCs
         self.stream_life_cycles = stream_life_cycles
         return stream_life_cycles
+    
+    def save_stream_life_cycles_as_csv(self):
+        if not hasattr(self, 'stream_life_cycles'):
+            self.stream_life_cycles = self.get_stream_life_cycles()
+        stream_life_cycles = self.stream_life_cycles
+        import csv
+        from datetime import datetime
+        dateTimeObj = datetime.now()
+        filename = 'HXN-%s_%s_%s_%s_%s_%s.csv'%(self.system.ID, dateTimeObj.year,
+                                                dateTimeObj.month, dateTimeObj.day,
+                                                dateTimeObj.hour, dateTimeObj.minute)
+        csvWriter = csv.writer(open(filename, 'w'), delimiter=',')
+        csvWriter.writerow(['Stream', 'Type', 'Unit', 'H_in (kJ)', 'H_out (kJ)'])
+        stream, streamtype, unit, H_in, H_out = 0, 0, 0, 0, 0
+        for life_cycle in stream_life_cycles:
+            stream = life_cycle.index
+            streamtype = 'Cold' if life_cycle.cold else 'Hot'
+            for stage in life_cycle.life_cycle:
+                unit = stage.unit.ID
+                H_in = stage.H_in
+                H_out = stage.H_out
+                row = [stream, streamtype, unit, H_in, H_out]
+                csvWriter.writerow(row)
