@@ -230,7 +230,7 @@ class HeatExchangerNetwork(Facility):
                                                 dateTimeObj.month, dateTimeObj.day,
                                                 dateTimeObj.hour, dateTimeObj.minute)
         csvWriter = csv.writer(open(filename, 'w'), delimiter=',')
-        csvWriter.writerow(['Stream', 'Type', 'Original Unit', 'HXN unit', 'H_in (kJ)', 'H_out (kJ)'])
+        csvWriter.writerow(['Stream', 'Type', 'Original unit', 'HXN unit', 'H_in (kJ)', 'H_out (kJ)'])
         stream, streamtype, original_unit, hxn_unit, H_in, H_out = 0, 0, 0, 0, 0, 0
         for life_cycle in stream_life_cycles:
             stream = life_cycle.index
