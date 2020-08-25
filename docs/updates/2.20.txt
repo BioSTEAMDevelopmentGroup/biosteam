@@ -35,5 +35,5 @@ BioSTEAM 2.20
 2.20.16
 -------
 
-* Moved `biosteam.process_tools.separations` module to `thermosteam.separations`.
+* Moved `biosteam.units.design_tools.separations` module to `thermosteam.separations`.
 * Added a `biosteam.units.ShortcutColumn.minimum_guess_distillate_recovery` class attribute to control the minimum guess for the recovery of light non-keys in the distillate.

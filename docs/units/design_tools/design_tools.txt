@@ -10,7 +10,6 @@ design_tools
    flash_vessel_design
    heat_transfer
    mechanical
-   separations
    specification_factors
    tank_design
    vacuum
