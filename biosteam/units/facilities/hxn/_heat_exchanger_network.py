@@ -68,7 +68,7 @@ class HeatExchangerNetwork(Facility):
     >>> trial_sys.simulate()
     >>> HXN.simulate()
     >>> # See all results
-    >>> round(HXN.act_heat_util_load/HXN.orig_heat_util_load, 3)
+    >>> round(HXN.actual_heat_util_load/HXN.original_heat_util_load, 3)
     0.884
     >>> HXN.get_stream_life_cycles()
     [<StreamLifeCycle: Stream_0, cold
@@ -120,10 +120,10 @@ class HeatExchangerNetwork(Facility):
         sysname = sys.ID
         hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(sys.units)
         hx_utils.sort(key = lambda x: x.duty)
-        matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, act_heat_util_load,\
-        act_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
+        matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, actual_heat_util_load,\
+        actual_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
         T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-        hot_indices, cold_indices, orig_heat_util_load, orig_cool_util_load =\
+        hot_indices, cold_indices, original_heat_util_load, original_cool_util_load =\
         synthesize_network(hx_utils, ID_original=sysname, T_min_app=self.T_min_app)
         original_purchase_costs= [hx.purchase_cost for hx in hxs]
         original_installed_costs = [hx.installed_cost for hx in hxs]
@@ -153,7 +153,7 @@ class HeatExchangerNetwork(Facility):
         self.cold_indices = cold_indices
         self.new_HXs = new_HXs
         self.new_HX_utils = new_HX_utils
-        self.orig_heat_utils = hx_utils_rearranged
+        self.original_heat_utils = hx_utils_rearranged
         self.original_purchase_costs = original_purchase_costs
         self.original_utility_costs = hu_sums1
         self.new_purchase_costs_HXp = new_purchase_costs_HXp
@@ -161,10 +161,10 @@ class HeatExchangerNetwork(Facility):
         self.new_utility_costs = hu_sums2
         self.stream_HXs_dict = stream_HXs_dict
         self.streams = streams
-        self.orig_heat_util_load = orig_heat_util_load
-        self.orig_cool_util_load = orig_cool_util_load
-        self.act_heat_util_load = act_heat_util_load
-        self.act_cool_util_load = act_cool_util_load
+        self.original_heat_util_load = original_heat_util_load
+        self.original_cool_util_load = original_cool_util_load
+        self.actual_heat_util_load = actual_heat_util_load
+        self.actual_cool_util_load = actual_cool_util_load
         
     @property
     def installed_cost(self):
@@ -183,26 +183,64 @@ class HeatExchangerNetwork(Facility):
         stream_life_cycles = SLCs
         self.stream_life_cycles = stream_life_cycles
         return stream_life_cycles
+        
+    def get_original_hxs_associated_with_streams(self):
+        original_units = self.system.units
+        original_heat_utils = self.original_heat_utils
+        original_hx_utils = [i.heat_exchanger for i in original_heat_utils]
+        original_hxs = {}
+        stream_index = 0
+        for hx in original_hx_utils:
+            if '.' in hx.ID: # Names like 'U.1', implying non-explicit named unit
+                for unit in original_units:
+                    if isinstance(unit, bst.units.MultiEffectEvaporator):
+                        for key, component in unit.components.items():
+                            if isinstance(component, list):
+                                for subcomponent in component:
+                                    if subcomponent is hx:
+                                         original_hxs[stream_index] = (unit, key)
+                            elif component is hx:
+                                original_hxs[stream_index] = (unit, key)
+                    elif isinstance(unit, bst.units.BinaryDistillation)\
+                        or isinstance(unit, bst.units.ShortcutColumn):
+                        if unit.boiler is hx:
+                            original_hxs[stream_index] = (unit, 'boiler')
+                        elif unit.condenser is hx:
+                            original_hxs[stream_index] = (unit, 'condenser')
+                    elif hasattr(unit, 'heat_exchanger'):
+                        if unit.heat_exchanger is hx:
+                            original_hxs[stream_index] = (unit, 'heat exchanger')
+            else: # Explicitly named unit
+                original_hxs[stream_index] = (hx, '')
+            stream_index += 1
+        self.original_hxs = original_hxs
+        return original_hxs
     
     def save_stream_life_cycles_as_csv(self):
         if not hasattr(self, 'stream_life_cycles'):
             self.stream_life_cycles = self.get_stream_life_cycles()
         stream_life_cycles = self.stream_life_cycles
+        if not hasattr(self, 'original_hxs'):
+            self.original_hxs = self.get_original_hxs_associated_with_streams()
+        original_hxs = self.original_hxs
         import csv
         from datetime import datetime
         dateTimeObj = datetime.now()
-        filename = 'HXN-%s_%s_%s_%s_%s_%s.csv'%(self.system.ID, dateTimeObj.year,
+        filename = 'HXN-%s_%s.%s.%s.%s.%s.csv'%(self.system.ID, dateTimeObj.year,
                                                 dateTimeObj.month, dateTimeObj.day,
                                                 dateTimeObj.hour, dateTimeObj.minute)
         csvWriter = csv.writer(open(filename, 'w'), delimiter=',')
-        csvWriter.writerow(['Stream', 'Type', 'Unit', 'H_in (kJ)', 'H_out (kJ)'])
-        stream, streamtype, unit, H_in, H_out = 0, 0, 0, 0, 0
+        csvWriter.writerow(['Stream', 'Type', 'Original Unit', 'HXN unit', 'H_in (kJ)', 'H_out (kJ)'])
+        stream, streamtype, original_unit, hxn_unit, H_in, H_out = 0, 0, 0, 0, 0, 0
         for life_cycle in stream_life_cycles:
             stream = life_cycle.index
             streamtype = 'Cold' if life_cycle.cold else 'Hot'
             for stage in life_cycle.life_cycle:
-                unit = stage.unit.ID
+                original_unit = original_hxs[stream][0].ID
+                if original_hxs[stream][1] is not '':
+                     original_unit+= ' - ' + original_hxs[stream][1]
+                hxn_unit = stage.unit.ID
                 H_in = stage.H_in
                 H_out = stage.H_out
-                row = [stream, streamtype, unit, H_in, H_out]
+                row = [stream, streamtype, original_unit, hxn_unit, H_in, H_out]
                 csvWriter.writerow(row)
