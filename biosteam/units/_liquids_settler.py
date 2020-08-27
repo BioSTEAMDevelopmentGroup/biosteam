@@ -16,6 +16,26 @@ from thermosteam import separations
 __all__ = ('LiquidsSettler', 'LLESettler', 'LiquidsSplitSettler')
 
 class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
+    """
+    Abstract Settler class for liquid-liquid extraction.
+    
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid with two liquid phases.
+    outs : stream sequence
+        [0] Top fluid.
+        [1] Bottom fluid.
+    vessel_material='Carbon steel' : str, optional
+        Vessel construction material.
+    vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
+        Vessel type.
+    length_to_diameter=4 : float
+        Length to diameter ratio.
+    area_to_feed=0.1 : float
+        Diameter * length per gpm of feed [ft2/gpm].
+        
+    """
     _N_ins = 1
     _N_outs = 2
     _N_heat_utilities = 0
@@ -53,6 +73,32 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     
 
 class LLESettler(LLEUnit, LiquidsSettler):
+    """
+    Create a LLESettler object that rigorously simulates liquid-liquid extraction.
+    
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid with two liquid phases.
+    outs : stream sequence
+        [0] Top fluid.
+        [1] Bottom fluid.
+    vessel_material='Carbon steel' : str, optional
+        Vessel construction material.
+    vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
+        Vessel type.
+    length_to_diameter=4 : float, optional
+        Length to diameter ratio.
+    area_to_feed=0.1 : float, optional
+        Diameter * length per gpm of feed [ft2/gpm].
+    top_chemical=None : str, optional
+        Chemical selectively partitioned to the top phase
+    efficiency=1.0 : float
+        Fraction of feed in liquid-liquid equilibrium
+    cache_tolerance=1e-6 : float, optional
+        Molar tolerance of cached partition coefficients.
+    
+    """
     line = 'Settler'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  area_to_feed=0.1, 
@@ -72,6 +118,32 @@ class LLESettler(LLEUnit, LiquidsSettler):
         
         
 class LiquidsSplitSettler(LiquidsSettler):
+    """
+    Create a LLESettler object that rigorously simulates liquid-liquid extraction.
+    
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid with two liquid phases.
+    outs : stream sequence
+        [0] Top fluid.
+        [1] Bottom fluid.
+    split : Should be one of the following
+            * [float] The fraction of net feed in the 0th outlet stream
+            * [array_like] Componentwise split of feed to 0th outlet stream
+            * [dict] ID-split pairs of feed to 0th outlet stream
+    order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
+        Chemical order of split.
+    vessel_material='Carbon steel' : str, optional
+        Vessel construction material.
+    vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
+        Vessel type.
+    length_to_diameter=4 : float, optional
+        Length to diameter ratio.
+    area_to_feed=0.1 : float, optional
+        Diameter * length per gpm of feed [ft2/gpm].
+    
+    """
     line = 'Settler'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  split, order=None,
@@ -91,6 +163,35 @@ class LiquidsSplitSettler(LiquidsSettler):
     
     
 class LiquidsPartitionSettler(LiquidsSettler):
+    """
+    Create a LiquidsPartitionSettler object that simulates liquid-liquid 
+    extraction by partition coefficients.
+    
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid with two liquid phases.
+    outs : stream sequence
+        [0] Top fluid.
+        [1] Bottom fluid.
+    vessel_material='Carbon steel' : str, optional
+        Vessel construction material.
+    vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
+        Vessel type.
+    length_to_diameter=4 : float, optional
+        Length to diameter ratio.
+    area_to_feed=0.1 : float, optional
+        Diameter * length per gpm of feed [ft2/gpm].
+    partition_coefficients : 1d array, optional
+        Partition coefficients of chemicals in equilibrium. 
+    partition_IDs: tuple[str], optional
+        IDs of chemicals in equilibrium.
+    forced_split : 1d array, optional
+        Componentwise split of feed to 0th outlet stream.
+    forced_split_IDs=None : Iterable[str], optional
+        Chemical order of `forced_split`.
+    
+    """
     line = 'Settler'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  partition_coefficients, partion_IDs, 

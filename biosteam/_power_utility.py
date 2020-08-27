@@ -103,6 +103,16 @@ class PowerUtility:
         self.consumption = sum([i.consumption for i in power_utilities])
         self.production = sum([i.production for i in power_utilities])
     
+    def copy_like(self, power_utility):
+        """Copy consumption anf production rates from another power utility."""
+        self.consumption = power_utility.consumption
+        self.production = power_utility.production
+    
+    def scale(self, scale):
+        """Scale consumption and production accordingly."""
+        self.consumption *= scale
+        self.production *= scale
+    
     @classmethod
     def sum(cls, power_utilities):
         """
