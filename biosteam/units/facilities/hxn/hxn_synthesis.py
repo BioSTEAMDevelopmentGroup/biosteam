@@ -263,12 +263,12 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     (hot not in unavailables) and (cold not in unavailables) and
                     (cold not in matches_cs[hot]) and (cold in candidate_cold_streams)): 
                 potential_matches.append(cold)
+        
         potential_matches = sorted(potential_matches, key = lambda pot_cold:
-                      min(C_flow_vector[hot], C_flow_vector[pot_cold])
+                      (min(C_flow_vector[hot], C_flow_vector[pot_cold])
                        * (T_transient_cold_side[hot] 
-                          - T_transient_cold_side[pot_cold] - T_min_app),
+                          - T_transient_cold_side[cold] - T_min_app)),
                       reverse = True)
-            
         for cold in potential_matches:
             original_cold_stream = streams[cold]
             try:
@@ -319,10 +319,11 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     (hot not in unavailables) and (cold not in unavailables) and
                     (hot not in matches_hs[cold]) and (hot in candidate_hot_streams)):
                 potential_matches.append(hot)
+                
         potential_matches = sorted(potential_matches, key = lambda pot_hot:
-                                   min(C_flow_vector[cold], C_flow_vector[pot_hot])
+                                   (min(C_flow_vector[cold], C_flow_vector[pot_hot])
                                        * ( T_transient_hot_side[pot_hot] 
-                                          - T_transient_hot_side[cold] - T_min_app),
+                                          - T_transient_hot_side[cold] - T_min_app)),
                                    reverse = True)
             
         for hot in potential_matches:
@@ -450,6 +451,7 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                         matches_hs[cold].append(hot)                    
                     except:
                         pass     
+   
                     
     # Add final utility HXs
     new_HX_utils = []    
