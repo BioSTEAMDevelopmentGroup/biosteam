@@ -209,13 +209,13 @@ class UnitGroup:
     @classmethod
     def plot_bars_from_groups(cls, unit_groups, with_electricity_production=False,
                               shorthand=True, fraction=True, horizontal_ticks=False, 
-                              **kwargs):
+                              edgecolor='k', **kwargs):
         """Plot unit groups as a stacked bar chart."""
         df = cls.df_from_groups(unit_groups,
                                 with_electricity_production,
                                 shorthand,
                                 fraction)
-        df.T.plot(kind='bar', stacked=True, **kwargs)
+        df.T.plot(kind='bar', stacked=True, edgecolor=edgecolor, **kwargs)
         locs, labels = plt.xticks()
         plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
         plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')

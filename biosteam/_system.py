@@ -89,7 +89,7 @@ def _evaluate(self, command=None):
         except Exception as err:
             # Print exception and ask to raise error or continue evaluating
             err = colors.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
-            info = colors.info(f"Enter to raise error or type to evaluate:\n")
+            info = colors.info("Enter to raise error or type to evaluate:\n")
             command = input(err + info + ">>> ")
             if command == '': raise err
             _evaluate(self, command)        
@@ -488,7 +488,7 @@ class System(metaclass=system):
         elif kind == 'minimal':
             f = self._minimal_digraph(format=format, **graph_attrs)
         else:
-            raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
+            raise ValueError("kind must be either 'thorough', 'surface', or 'minimal'")
         finalize_digraph(f, file, format)
             
     # Methods for running one iteration of a loop
@@ -512,11 +512,11 @@ class System(metaclass=system):
         if (mol < 0.).any():
             raise InfeasibleRegion('material flow')
         recycle = self.recycle
-        rmol = recycle.mol
+        rmol = recycle.imol.data
         rmol[:] = mol
         T = recycle.T
         self._run()
-        self._mol_error = mol_error = abs(mol - recycle.mol).sum()
+        self._mol_error = mol_error = abs(mol - rmol).sum()
         self._T_error = T_error = abs(T - recycle.T)
         self._iter += 1
         if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
@@ -546,18 +546,26 @@ class System(metaclass=system):
     # Methods for convering the recycle stream    
     def _fixed_point(self):
         """Converge system recycle iteratively using fixed-point iteration."""
-        self._reset_iter()
-        flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy())
+        self._solve(flx.conditional_fixed_point)
         
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
-        self._reset_iter()
-        flx.conditional_wegstein(self._iter_run, self.recycle.mol.copy())
+        self._solve(flx.conditional_wegstein)
     
     def _aitken(self):
         """Converge the system recycle iteratively using Aitken's method."""
+        self._solve(flx.conditional_aitken)
+        
+    def _solve(self, solver):
+        """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
-        flx.conditional_aitken(self._iter_run, self.recycle.mol.copy())
+        try:
+            solver(self._iter_run, self.recycle.imol.data.copy())
+        except IndexError as error:
+            try:
+                solver(self._iter_run, self.recycle.imol.data.copy())
+            except:
+                raise error
     
     # Default converge method
     _converge_method = _aitken
@@ -674,7 +682,7 @@ class System(metaclass=system):
         if end:
             print(f'\nFinished debugging{end}')
         else:
-            print(f'\n        Finished debugging')
+            print('\n        Finished debugging')
 
     # Representation
     def __str__(self):
@@ -782,6 +790,7 @@ class FacilityLoop(metaclass=system):
     _aitken = System._aitken
     _wegstein = System._wegstein
     _converge_method = System._converge_method
+    _solve = System._solve
     converge_method = System.converge_method
     
     def _reset_iter(self):

@@ -148,19 +148,19 @@ def set_construction_material(units, pressure_vessel_material, tray_material,
     PressureVessel = bst.units.design_tools.PressureVessel
     Tank = bst.Tank
     Pump = bst.Pump
-    for i in units:
-        if isa(i, HeatExchanger):
-            i.material = heat_exchanger_material
-        elif isa(i, Distillation):
-            i.boiler.material = i.condenser.material = heat_exchanger_material
-            i.vessel_material = pressure_vessel_material
-            i.tray_material = tray_material
-        elif isa(i, PressureVessel):
-            i.vessel_material = pressure_vessel_material
-        elif isa(i, Tank):
-            i.vessel_material = tank_material
-        elif isa(i, Pump):
-            i.material = pump_material
+    for u in units:
+        for i in (u, *u.auxiliary_units):
+            if isa(i, HeatExchanger):
+                i.material = heat_exchanger_material
+            elif isa(i, Distillation):
+                i.vessel_material = pressure_vessel_material
+                i.tray_material = tray_material
+            elif isa(i, PressureVessel):
+                i.vessel_material = pressure_vessel_material
+            elif isa(i, Tank):
+                i.vessel_material = tank_material
+            elif isa(i, Pump):
+                i.material = pump_material
 
 def set_construction_material_to_stainless_steel(units, kind='304'):
     """
