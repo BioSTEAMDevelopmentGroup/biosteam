@@ -161,9 +161,16 @@ class HeatExchangerNetwork(Facility):
                         next_stage_unit = stages[i+1].unit
                         next_stage_unit_ID = next_stage_unit.ID
                         pointer = 1
-                        if '_%s_'%stream in next_stage_unit_ID:
+                        if 'HX_%s_'%stream in next_stage_unit_ID\
+                            or 'Util_%s_'%stream in next_stage_unit_ID:
                             pointer = 0
+                        # try:
+                        #     next_stage_unit.ins[pointer].vle(stream_in_at_stage.T, stream_in_at_stage.P)
+                        #     next_stage_unit.simulate()
+                        #     stages.remove(stage)
+                        # except:
                         next_stage_unit.ins[pointer].T = stream_in_at_stage.T
+                        # next_stage_unit.ins[pointer].H = stream_in_at_stage.H
                         next_stage_unit.simulate()
                         stages.remove(stage)
                         break
@@ -222,7 +229,7 @@ class HeatExchangerNetwork(Facility):
         original_hxs = {}
         stream_index = 0
         for hx in original_hx_utils:
-            if '.' in hx.ID: # Names like 'U.1', implying non-explicit named unit
+            if '.' in hx.ID: # Names like 'U.1', i.e. non-explicitly named unit (e.g. auxillary HX)
                 for unit in original_units:
                     if isinstance(unit, bst.units.MultiEffectEvaporator):
                         for key, component in unit.components.items():
@@ -273,6 +280,7 @@ class HeatExchangerNetwork(Facility):
             streamtype = 'Cold' if life_cycle.cold else 'Hot'
             stage_no = 0
             stages = life_cycle.life_cycle
+            len_stages = len(stages)
             for stage in stages:
                 original_unit = original_hxs[stream][0].ID
                 if original_hxs[stream][1] is not '':
@@ -282,12 +290,11 @@ class HeatExchangerNetwork(Facility):
                 hxn_unit_ID = hxn_unit.ID
                 H_in = stage.H_in
                 H_out = stage.H_out
-                pointer = 1
                 T_in, T_out = None, None
                 if stage_no == 0:
-                    T_in = inlet_Ts[stream]
-                if stage_no == len(stages) - 1:
-                    T_out = outlet_Ts[stream]
+                    T_in = inlet_Ts[stream] - 273.15
+                if stage_no == len_stages - 1:
+                    T_out = outlet_Ts[stream] - 273.15
                     
                 row = [stream, streamtype, original_unit, hxn_unit_ID,
                        H_in, H_out, T_in, T_out]
