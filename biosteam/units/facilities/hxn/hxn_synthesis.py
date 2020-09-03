@@ -37,7 +37,6 @@ class LifeStage:
             
         def show(self):
             print(self._info())
-        
         _ipython_display_ = show
         
         
@@ -70,7 +69,7 @@ class StreamLifeCycle:
         life_cycle.sort(key = lambda pt: pt.H_out, reverse = not cold)
         self.life_cycle = life_cycle
         return life_cycle
-    
+        
     def __repr__(self):
         life_cycle = self.life_cycle
         cold = self.cold
@@ -243,6 +242,7 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     stream_HXs_dict = {i:[] for i in indices}
     is_cold = lambda x: x in cold_indices
     load_duties(streams, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
+    
     matches_hs = {i: [] for i in cold_indices}
     matches_cs = {i: [] for i in hot_indices}
     candidate_hot_streams = list(hot_indices)
@@ -251,11 +251,13 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     HXs_cold_side = []
     
                             # ------------- Cold side design ------------- # 
+    unavailables = []
     unavailables = set([i for i in hot_indices if T_out_arr[i] >= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_in_arr[i] >= pinch_T_arr[i]])
     for hot in hot_indices:
         stream_quenched = False
         original_hot_stream = streams[hot]
+        # T_transient_cold_side[hot]  = min(T_transient_cold_side[hot], T_transient_hot_side[hot] )
         potential_matches = []
         for cold in cold_indices:
             if (C_flow_vector[hot]>= C_flow_vector[cold] and
@@ -309,6 +311,7 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     for cold in cold_indices:
         stream_quenched = False
         original_cold_stream = streams[cold]
+        T_transient_hot_side[cold] = min(T_transient_hot_side[cold], T_transient_cold_side[cold])
         for hot in candidate_hot_streams:
             if ((cold in matches_cs.keys() and hot in matches_cs[cold])
                 or (cold in matches_hs.keys() and hot in matches_hs[cold])):
@@ -476,18 +479,18 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             new_HX_util.simulate()
             new_HX_utils.append(new_HX_util)
             stream_HXs_dict[cold].append(new_HX_util)
-        if T_transient_cold_side[cold] + 0.05 < pinch_T_arr[cold]:
-            original_cold_stream = streams[cold]
-            cold_stream = original_cold_stream.copy()
-            cold_stream.vle(T = T_transient_cold_side[cold], P = cold_stream.P)
-            ID = 'Util_%s_cs'%(cold)
-            cold_stream.ID = 's_%s__%s'%(cold,ID)
-            outsID = '%s__s_%s'%(ID,cold)
-            new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
-                                              T = pinch_T_arr[cold], rigorous = True)
-            new_HX_util.simulate()
-            new_HX_utils.append(new_HX_util)
-            stream_HXs_dict[cold].append(new_HX_util)
+        # if T_transient_cold_side[cold] + 0.05 < pinch_T_arr[cold]:
+        #     original_cold_stream = streams[cold]
+        #     cold_stream = original_cold_stream.copy()
+        #     cold_stream.vle(T = T_transient_cold_side[cold], P = cold_stream.P)
+        #     ID = 'Util_%s_cs'%(cold)
+        #     cold_stream.ID = 's_%s__%s'%(cold,ID)
+        #     outsID = '%s__s_%s'%(ID,cold)
+        #     new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
+        #                                       T = pinch_T_arr[cold], rigorous = True)
+        #     new_HX_util.simulate()
+        #     new_HX_utils.append(new_HX_util)
+        #     stream_HXs_dict[cold].append(new_HX_util)
             
     new_hus = bst.process_tools.heat_exchanger_utilities_from_units(new_HX_utils)
     act_cool_util_load = sum([abs(hu.duty) for hu in new_hus if hu.duty<0])
