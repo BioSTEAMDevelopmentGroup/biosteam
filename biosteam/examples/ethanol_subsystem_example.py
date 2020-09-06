@@ -87,7 +87,6 @@ def ethanol_subsystem_example():
     
     # Add constant models for molar heat capacity of solids
     Ash.Cn.add_model(0.09 * 4.184 * Ash.MW) 
-    
     for chemical in chemicals: chemical.default()
     bst.settings.set_thermo(chemicals)
     chemicals.set_synonym('Water', 'H2O')
