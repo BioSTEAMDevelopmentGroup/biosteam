@@ -73,21 +73,22 @@ class HeatExchangerNetwork(Facility):
     >>> HXN.get_stream_life_cycles()
     [<StreamLifeCycle: Stream_0, cold
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 6.52e+06 kJ, H_out = 4.26e+07 kJ>
+     		<LifeStage: <HXprocess: HX_0_4_hs>, H_in = 6.52e+06 kJ, H_out = 7.28e+06 kJ>
+     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 7.28e+06 kJ, H_out = 4.26e+07 kJ>
      		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.26e+07 kJ, H_out = 7.35e+07 kJ>
      	]>,
      <StreamLifeCycle: Stream_1, cold
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.6e-06 kJ, H_out = 6.08e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 6.08e+06 kJ, H_out = 6.85e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 6.85e+06 kJ, H_out = 2.78e+07 kJ>
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 3.67e-06 kJ, H_out = 1.6e+04 kJ>
+     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 1.6e+04 kJ, H_out = 6.79e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 6.79e+06 kJ, H_out = 2.78e+07 kJ>
      		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.78e+07 kJ, H_out = 4.84e+08 kJ>
      	]>,
      <StreamLifeCycle: Stream_2, hot
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 9.15e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 9.15e+06 kJ, H_out = 3.07e+06 kJ>
-     		<LifeStage: <HXutility: Util_2_hs>, H_in = 3.07e+06 kJ, H_out = 1.14e+06 kJ>
+     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 9.86e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 9.86e+06 kJ, H_out = 3.08e+06 kJ>
+     		<LifeStage: <HXutility: Util_2_hs>, H_in = 3.08e+06 kJ, H_out = 1.14e+06 kJ>
      	]>,
      <StreamLifeCycle: Stream_3, hot
      	life_cycle = [
@@ -95,10 +96,11 @@ class HeatExchangerNetwork(Facility):
      	]>,
      <StreamLifeCycle: Stream_4, hot
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.84e+05 kJ, H_out = 1.96e+04 kJ>
-     		<LifeStage: <HXutility: Util_4_hs>, H_in = 1.96e+04 kJ, H_out = 2.91e+03 kJ>
+     		<LifeStage: <HXprocess: HX_0_4_hs>, H_in = 7.84e+05 kJ, H_out = 2.39e+04 kJ>
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 2.39e+04 kJ, H_out = 7.91e+03 kJ>
+     		<LifeStage: <HXutility: Util_4_hs>, H_in = 7.91e+03 kJ, H_out = 2.91e+03 kJ>
      	]>]
-    
+        
     """
 
     network_priority = -1
@@ -151,7 +153,7 @@ class HeatExchangerNetwork(Facility):
             stages = life_cycle.life_cycle
             stream = life_cycle.index
             if stream not in cold_indices:
-                for i in range(len(stages)):
+                for i in range(len(stages) - 1):
                     stage = stages[i]
                     hxn_unit = stage.unit
                     if hxn_unit.ID == 'Util_%s_hs'%stream:
