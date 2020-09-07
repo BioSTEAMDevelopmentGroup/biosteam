@@ -211,23 +211,23 @@ class ShortcutColumn(BinaryDistillation,
                         Theoretical stages                      16
                         Minimum reflux              Ratio     1.06
                         Reflux                      Ratio     2.12
-                        Rectifier stages                        13
-                        Stripper stages                         26
-                        Rectifier height               ft     31.7
-                        Stripper height                ft     50.9
+                        Rectifier stages                        29
+                        Stripper stages                         64
+                        Rectifier height               ft     55.3
+                        Stripper height                ft      107
                         Rectifier diameter             ft     4.53
-                        Stripper diameter              ft     3.67
+                        Stripper diameter              ft     3.65
                         Rectifier wall thickness       in    0.312
-                        Stripper wall thickness        in    0.312
-                        Rectifier weight               lb 6.46e+03
-                        Stripper weight                lb 7.98e+03
-    Purchase cost       Rectifier trays               USD 1.52e+04
-                        Stripper trays                USD 2.02e+04
-                        Rectifier tower               USD 8.44e+04
-                        Stripper tower                USD 1.01e+05
+                        Stripper wall thickness        in    0.875
+                        Rectifier weight               lb 3.05e+04
+                        Stripper weight                lb 4.59e+04
+    Purchase cost       Rectifier trays               USD 2.57e+04
+                        Stripper trays                USD 5.07e+04
+                        Rectifier tower               USD 1.82e+05
+                        Stripper tower                USD 2.49e+05
                         Condenser                     USD 4.17e+04
                         Boiler                        USD 2.99e+04
-    Total purchase cost                               USD 2.92e+05
+    Total purchase cost                               USD  5.8e+05
     Utility cost                                   USD/hr     90.1
     """
     line = 'Distillation'
