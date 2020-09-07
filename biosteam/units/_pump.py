@@ -84,21 +84,21 @@ class Pump(Unit):
         phase: 'l', T: 350 K, P: 200000 Pa
         flow (kmol/hr): Water  200
     >>> P1.results()
-    Pump                               Units       P1
-    Power               Rate              kW    0.289
-                        Cost          USD/hr   0.0226
-    Design              Ideal power       hp    0.136
-                        Flow rate        gpm     16.3
-                        Efficiency              0.352
-                        Actual power            0.387
-                        Pump power                0.5
-                        N                           1
-                        Head              ft     96.5
-                        Type                     Gear
-    Purchase cost       Pump             USD 3.94e+03
-                        Motor            USD      311
-    Total purchase cost                  USD 4.25e+03
-    Utility cost                      USD/hr   0.0226
+    Pump                               Units           P1
+    Power               Rate              kW        0.289
+                        Cost          USD/hr       0.0226
+    Design              Ideal power       hp        0.136
+                        Flow rate        gpm         16.3
+                        Efficiency                  0.352
+                        Actual power                0.387
+                        Pump power                    0.5
+                        N                               1
+                        Head              ft         96.5
+                        Type                  Centrifugal
+    Purchase cost       Pump             USD     4.37e+03
+                        Motor            USD          311
+    Total purchase cost                  USD     4.68e+03
+    Utility cost                      USD/hr       0.0226
     
     References
     ----------

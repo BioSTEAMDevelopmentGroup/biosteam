@@ -213,23 +213,23 @@ class BinaryDistillation(Unit):
                         Theoretical stages                       13
                         Minimum reflux              Ratio     0.687
                         Reflux                      Ratio      1.37
-                        Rectifier stages                         33
-                        Stripper stages                          32
-                        Rectifier height               ft      61.2
-                        Stripper height                ft      59.8
+                        Rectifier stages                         15
+                        Stripper stages                          13
+                        Rectifier height               ft      34.7
+                        Stripper height                ft      31.7
                         Rectifier diameter             ft      3.93
                         Stripper diameter              ft      3.19
                         Rectifier wall thickness       in     0.312
                         Stripper wall thickness        in     0.312
-                        Rectifier weight               lb  1.02e+04
-                        Stripper weight                lb  8.06e+03
-    Purchase cost       Rectifier trays               USD  2.68e+04
-                        Stripper trays                USD  2.33e+04
-                        Rectifier tower               USD   1.2e+05
-                        Stripper tower                USD  1.03e+05
+                        Rectifier weight               lb  6.01e+03
+                        Stripper weight                lb  4.43e+03
+    Purchase cost       Rectifier trays               USD   1.5e+04
+                        Stripper trays                USD  1.25e+04
+                        Rectifier tower               USD  8.18e+04
+                        Stripper tower                USD  6.78e+04
                         Condenser                     USD  3.39e+04
                         Boiler                        USD  2.72e+04
-    Total purchase cost                               USD  3.34e+05
+    Total purchase cost                               USD  2.38e+05
     Utility cost                                   USD/hr      68.2
     
     """
