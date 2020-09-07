@@ -140,6 +140,40 @@ class HeatExchangerNetwork(Facility):
         for new_HX in new_HXs:
             new_purchase_costs_HXp.append(new_HX.purchase_cost)
             new_installed_costs_HXp.append(new_HX.installed_cost)
+        
+        self.cold_indices = cold_indices
+        self.new_HXs = new_HXs
+        self.new_HX_utils = new_HX_utils
+        self.streams = streams
+        
+        stream_life_cycles = self.stream_life_cycles = self.get_stream_life_cycles()
+        for life_cycle in stream_life_cycles:
+            stages = life_cycle.life_cycle
+            stream = life_cycle.index
+            if stream not in cold_indices:
+                for i in range(len(stages)):
+                    stage = stages[i]
+                    hxn_unit = stage.unit
+                    if hxn_unit.ID == 'Util_%s_hs'%stream:
+                        new_HX_utils.remove(hxn_unit)
+                        stream_in_at_stage = hxn_unit.ins[0]
+                        
+                        next_stage_unit = stages[i+1].unit
+                        next_stage_unit_ID = next_stage_unit.ID
+                        pointer = 1
+                        if 'HX_%s_'%stream in next_stage_unit_ID\
+                            or 'Util_%s_'%stream in next_stage_unit_ID:
+                            pointer = 0
+                        # try:
+                        #     next_stage_unit.ins[pointer].vle(stream_in_at_stage.T, stream_in_at_stage.P)
+                        #     next_stage_unit.simulate()
+                        #     stages.remove(stage)
+                        # except:
+                        next_stage_unit.ins[pointer].T = stream_in_at_stage.T
+                        # next_stage_unit.ins[pointer].H = stream_in_at_stage.H
+                        next_stage_unit.simulate()
+                        stages.remove(stage)
+                        break
         self.purchase_costs['Heat exchangers'] = (sum(new_purchase_costs_HXp) + sum(new_purchase_costs_HXu)) \
             - (sum(original_purchase_costs))
         hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
@@ -147,12 +181,11 @@ class HeatExchangerNetwork(Facility):
         # to change sign on duty without switching heat/cool (i.e. negative costs):
         for hu in hu_sums1: hu.reverse()
         hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
+
         self._installed_cost = (sum(new_installed_costs_HXp) + sum(new_installed_costs_HXu)) \
             - (sum(original_installed_costs))
         self.heat_utilities = hus_final
-        self.cold_indices = cold_indices
-        self.new_HXs = new_HXs
-        self.new_HX_utils = new_HX_utils
+
         self.original_heat_utils = hx_utils_rearranged
         self.original_purchase_costs = original_purchase_costs
         self.original_utility_costs = hu_sums1
@@ -160,7 +193,9 @@ class HeatExchangerNetwork(Facility):
         self.new_purchase_costs_HXu = new_purchase_costs_HXu
         self.new_utility_costs = hu_sums2
         self.stream_HXs_dict = stream_HXs_dict
-        self.streams = streams
+        self.pinch_Ts = pinch_T_arr
+        self.inlet_Ts = T_in_arr
+        self.outlet_Ts = T_out_arr
         self.original_heat_util_load = original_heat_util_load
         self.original_cool_util_load = original_cool_util_load
         self.actual_heat_util_load = actual_heat_util_load
@@ -173,10 +208,13 @@ class HeatExchangerNetwork(Facility):
     def _design(self): pass
     
     def get_stream_life_cycles(self):
+        # if hasattr(self, 'stream_life_cycles'): 
+        #     return self.stream_life_cycles
         cold_indices = self.cold_indices
         new_HXs = self.new_HXs
         new_HX_utils = self.new_HX_utils
-        indices = [i for i in range(len(self.streams))]
+        streams = self.streams
+        indices = [i for i in range(len(streams))]
         SLCs = [StreamLifeCycle(index, index in cold_indices) for index in indices]
         for SLC in SLCs:
             SLC.get_life_cycle(new_HXs, new_HX_utils)
@@ -191,7 +229,7 @@ class HeatExchangerNetwork(Facility):
         original_hxs = {}
         stream_index = 0
         for hx in original_hx_utils:
-            if '.' in hx.ID: # Names like 'U.1', implying non-explicit named unit
+            if '.' in hx.ID: # Names like 'U.1', i.e. non-explicitly named unit (e.g. auxillary HX)
                 for unit in original_units:
                     if isinstance(unit, bst.units.MultiEffectEvaporator):
                         for key, component in unit.components.items():
@@ -230,17 +268,35 @@ class HeatExchangerNetwork(Facility):
                                                 dateTimeObj.month, dateTimeObj.day,
                                                 dateTimeObj.hour, dateTimeObj.minute)
         csvWriter = csv.writer(open(filename, 'w'), delimiter=',')
-        csvWriter.writerow(['Stream', 'Type', 'Original Unit', 'HXN unit', 'H_in (kJ)', 'H_out (kJ)'])
-        stream, streamtype, original_unit, hxn_unit, H_in, H_out = 0, 0, 0, 0, 0, 0
+        csvWriter.writerow(['Stream', 'Type', 'Original unit', 'HXN unit', 'H_in (kJ)',
+                            'H_out (kJ)', 'T_in (C)', 'T_out (C)'])
+        stream, streamtype, original_unit, hxn_unit, H_in, H_out, T_in, T_out =\
+            0, 0, 0, 0, 0, 0, 0, 0
+            
+        inlet_Ts = self.inlet_Ts
+        outlet_Ts = self.outlet_Ts
         for life_cycle in stream_life_cycles:
             stream = life_cycle.index
             streamtype = 'Cold' if life_cycle.cold else 'Hot'
-            for stage in life_cycle.life_cycle:
+            stage_no = 0
+            stages = life_cycle.life_cycle
+            len_stages = len(stages)
+            for stage in stages:
                 original_unit = original_hxs[stream][0].ID
                 if original_hxs[stream][1] is not '':
                      original_unit+= ' - ' + original_hxs[stream][1]
-                hxn_unit = stage.unit.ID
+                
+                hxn_unit = stage.unit
+                hxn_unit_ID = hxn_unit.ID
                 H_in = stage.H_in
                 H_out = stage.H_out
-                row = [stream, streamtype, original_unit, hxn_unit, H_in, H_out]
+                T_in, T_out = None, None
+                if stage_no == 0:
+                    T_in = inlet_Ts[stream] - 273.15
+                if stage_no == len_stages - 1:
+                    T_out = outlet_Ts[stream] - 273.15
+                    
+                row = [stream, streamtype, original_unit, hxn_unit_ID,
+                       H_in, H_out, T_in, T_out]
                 csvWriter.writerow(row)
+                stage_no += 1
