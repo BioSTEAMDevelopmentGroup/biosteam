@@ -23,7 +23,7 @@ def test_example_sugarcane_subsystem():
     Examples
     --------
     >>> # Simply run this test and make sure not errors are raised
-    >>> test_example_sugarcane_subsystem()
+    >>> # test_example_sugarcane_subsystem()
 
     """
     from biosteam.examples import ethanol_subsystem_example
