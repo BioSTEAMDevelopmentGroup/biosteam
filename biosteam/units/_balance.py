@@ -58,7 +58,7 @@ class MassBalance(Unit):
     >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump,
     ...                             Flash, MassBalance)
     >>> main_flowsheet.set_flowsheet('mass_balance_example')
-    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> water = Stream('water',
     ...                Water=40,
     ...                units='lb/s',

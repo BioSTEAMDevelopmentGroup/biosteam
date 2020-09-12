@@ -38,7 +38,7 @@ class ProcessSpecification(Unit):
     
     >>> from biosteam import settings, Stream, units, main_flowsheet
     >>> main_flowsheet.set_flowsheet('mix_ethanol_with_denaturant')
-    >>> settings.set_thermo(['Water', 'Ethanol', 'Octane'])
+    >>> settings.set_thermo(['Water', 'Ethanol', 'Octane'], cache=True)
     >>> ethanol = Stream('ethanol', T=340, Water=200, Ethanol=22500, units='kg/hr')
     >>> denaturant = Stream('denaturant', Octane=1)
     >>> def adjust_denaturant():

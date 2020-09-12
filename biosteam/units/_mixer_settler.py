@@ -42,7 +42,7 @@ class MixerSettler(bst.Unit):
     Simulate by rigorous LLE:
     
     >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'], cache=True)
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('raffinate', 'extract'))

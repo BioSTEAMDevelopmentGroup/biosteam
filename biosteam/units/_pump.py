@@ -69,7 +69,7 @@ class Pump(Unit):
     
     >>> from biosteam import Stream, settings
     >>> from biosteam.units import Pump
-    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = Stream('feed', Water=200, T=350)
     >>> P1 = Pump('P1', ins=feed, outs='out', P=2e5)
     >>> P1.simulate()

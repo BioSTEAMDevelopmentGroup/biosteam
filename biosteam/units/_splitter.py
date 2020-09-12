@@ -41,7 +41,7 @@ class Splitter(Unit):
     .. code-block:: python
     
        >>> from biosteam import units, settings, Stream
-       >>> settings.set_thermo(['Water', 'Ethanol'])
+       >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
        >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
        >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
        >>> S1.simulate()

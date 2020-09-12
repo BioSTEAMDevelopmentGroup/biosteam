@@ -32,7 +32,7 @@ class Duplicator(Unit, isabstract=True):
     .. code-block:: python
 
         >>> from biosteam import settings, Stream, units
-        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
         >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
         >>> D1 = units.Duplicator('D1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
         >>> D1.simulate()

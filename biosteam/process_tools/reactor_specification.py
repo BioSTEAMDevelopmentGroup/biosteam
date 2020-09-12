@@ -251,6 +251,7 @@ class ReactorSpecification:
             flx.aitken_secant(f, substates, ytol=1e-5)
         except:
             flx.IQ_interpolation(f, 1e-12, 0.50 * feed.F_mass, ytol=1e-5, maxiter=100)
+            
         self.reactor.tau = titer / self.productivity
     
     def load_productivity(self, productivity):

@@ -167,7 +167,7 @@ class ShortcutColumn(BinaryDistillation,
     --------
     >>> from biosteam.units import ShortcutColumn
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
+    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'], cache=True)
     >>> feed = Stream('feed', flow=(80, 100, 25))
     >>> bp = feed.bubble_point_at_P()
     >>> feed.T = bp.T # Feed at bubble point T

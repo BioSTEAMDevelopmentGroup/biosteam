@@ -45,7 +45,7 @@ class Junction(Unit):
     >>> from biosteam import *
     >>> settings.set_thermo(['Water'])
     >>> s1 = Stream('s1', Water=20)
-    >>> settings.set_thermo(['Ethanol', 'Water'])
+    >>> settings.set_thermo(['Ethanol', 'Water'], cache=True)
     >>> s2 = Stream('s2') # Note that s2 and s1 have different chemicals defined
     >>> J1 = units.Junction('J1', s1, s2)
     >>> J1.simulate()

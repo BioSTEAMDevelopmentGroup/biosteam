@@ -211,7 +211,7 @@ class HXutility(HX):
     
     >>> from biosteam.units import HXutility
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = Stream('feed', Water=200, Ethanol=200)
     >>> hx = HXutility('hx', ins=feed, outs='product', T=50+273.15,
     ...                rigorous=False) # Ignore VLE

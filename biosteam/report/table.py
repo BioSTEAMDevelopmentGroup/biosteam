@@ -341,7 +341,7 @@ def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -
         phase = phase.rstrip('|')
         phases[j] = phase
         flow_j = s.get_flow(units=flow)
-        flows[j] = net_j = sum(flow_j)
+        flows[j] = net_j = flow_j.sum()
         if percent: net_j /= 100.
         fracs_j = flow_j/net_j if net_j > 1e-24 else 0
         if s.chemicals is chemicals:
