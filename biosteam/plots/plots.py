@@ -17,7 +17,7 @@ __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
            'plot_bars', 'plot_vertical_line', 'plot_scatter_points',
            'plot_contour_1d', 'plot_contour_2d', 'plot_contour_across_coordinate')
 
-def plot_spearman(rhos, top=None, name=None):
+def plot_spearman(rhos, top=None, name=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -87,20 +87,20 @@ def plot_spearman(rhos, top=None, name=None):
 light_color = colors.brown_tint.RGBn
 dark_color = colors.brown_shade.RGBn
 
-def plot_horizontal_line(y, color='grey', **kwargs):
+def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
     plt.axhline(y=y, color=color, **kwargs) 
 
-def plot_vertical_line(x, color='grey', **kwargs):
+def plot_vertical_line(x, color='grey', **kwargs): # pragma: no coverage
     """Plot vertical line."""
     plt.axvline(x=x, color=color, **kwargs) 
 
-def plot_scatter_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs):
+def plot_scatter_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs): # pragma: no coverage
     """Plot scatter points and return patch artist."""
     if xs is None: xs = tuple(range(len(ys)))
     return plt.scatter(xs, ys, marker=marker, s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
 
-def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None):
+def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # pragma: no coverage
     barwidth = 0.50
     N_scenarios = len(scenarios)
     N_labels = len(labels)
@@ -120,7 +120,7 @@ def plot_montecarlo(data,
                     light_color=light_color,
                     dark_color=dark_color,
                     positions=None,
-                    transpose=False):
+                    transpose=False): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -158,7 +158,7 @@ def plot_montecarlo(data,
 
 def plot_montecarlo_across_coordinate(xs, ys, 
                                       light_color=light_color,
-                                      dark_color=dark_color):
+                                      dark_color=dark_color): # pragma: no coverage
     """
     Plot Monte Carlo evaluation across a coordinate.
     
@@ -198,7 +198,7 @@ def plot_montecarlo_across_coordinate(xs, ys,
     
 def plot_contour_1d(X_grid, Y_grid, data, 
                     xlabel, ylabel, xticks, yticks, 
-                    metric_bars, fillblack=True):
+                    metric_bars, fillblack=True): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     n = len(metric_bars)
     assert data.shape == (*X_grid.shape, n), (
@@ -231,7 +231,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, Z_label=None,
                     Z_value_format=lambda Z: str(Z),
-                    fillblack=True):
+                    fillblack=True): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     nrows = len(metric_bars)
     ncols = len(Z_1d)
@@ -277,7 +277,7 @@ def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data,
                                    xlabel, ylabel, xticks, yticks, 
                                    metric_bar, Z_label=None,
                                    Z_value_format=lambda Z: str(Z),
-                                   fillblack=True):
+                                   fillblack=True): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     ncols = len(Z_1d)
     assert data.shape == (*X_grid.shape, ncols), (

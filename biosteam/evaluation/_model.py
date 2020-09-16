@@ -45,8 +45,150 @@ class Model(State):
     
     Examples
     --------
-    :doc:`../tutorial/Monte_Carlo`
+    For a complete example, visit :doc:`../tutorial/Monte_Carlo`. An abridged example is presented here:
     
+    >>> from chaospy import distributions as shape
+    >>> from biorefineries import lipidcane as lc
+    >>> import biosteam as bst
+    >>> solve_IRR = lc.lipidcane_tea.solve_IRR
+    >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
+    >>> metrics = (bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR, '%'),
+    ...            bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))
+    >>> model = bst.Model(lc.lipidcane_sys, metrics)
+    
+    The Model object begins with no parameters:
+    
+    >>> model.show()
+    Model: Biorefinery internal rate of return [%]
+           Biorefinery utility cost [10^6 USD/yr]
+     (No parameters)
+     
+    Add number of fermentation reactors as a "design" parameter (which doesn't affect mass or energy balances'):
+        
+    >>> R301 = bst.main_flowsheet.unit.R301 # The Fermentation Unit
+    >>> @model.parameter(name='Number of reactors',
+    ...                  element=R301, kind='design',
+    ...                  distribution=shape.Uniform(4, 10))
+    ... def set_N_reactors(N):
+    ...     R301.N = round(N)
+    
+    The decorator uses the function to create a Parameter object and add it to the model:
+
+    >>> parameters = model.get_parameters()
+    >>> parameters
+    (<Parameter: [Fermentation-R301] Number of reactors>,)
+
+    Calling a Parameter object will update the parameter and results:
+
+    >>> set_N_reactors_parameter = parameters[0]
+    >>> set_N_reactors_parameter(5)
+    >>> R301.purchase_cost / 1e6
+    1.7
+    >>> set_N_reactors_parameter(8)
+    >>> R301.purchase_cost / 1e6
+    2.0
+    
+    Add the fermentation unit base cost as a "cost" parameter with a triangular distribution (which doesn't affect mass and energy balances nor design requirements'):
+    
+    >>> reactors_cost_coefficients = R301.cost_items['Reactors']
+    >>> mid = reactors_cost_coefficients.n # Most probable at baseline value
+    >>> lb = mid - 0.1 # Minimum
+    >>> ub = mid + 0.1 # Maximum
+    >>> @model.parameter(element=R301, kind='cost',
+    ...              distribution=shape.Triangle(lb, mid, ub))
+    ... def set_exponential_cost_coefficient(exponential_cost_coefficient):
+    ...     reactors_cost_coefficients.n = exponential_cost_coefficient
+    
+    Note that if the name was not defined, it defaults to the setter's signature:
+    
+    >>> model.get_parameters()
+    (<Parameter: [Fermentation-R301] Number of reactors>,
+     <Parameter: [Fermentation-R301] Exponential cost coefficient>)
+
+    Add feedstock price as a "isolated" parameter (which doesn't affect unit operations in any way):
+                                                   
+    >>> lipidcane = lc.lipidcane # The feedstock stream
+    >>> lb = lipidcane.price * 0.9 # Minimum price
+    >>> ub = lipidcane.price * 1.1 # Maximum price
+    >>> @model.parameter(element=lipidcane, kind='isolated', units='USD/kg',
+    ...                  distribution=shape.Uniform(lb, ub))
+    ... def set_feed_price(feedstock_price):
+    ...     lipidcane.price = feedstock_price                                   
+    
+    Add lipid fraction as a "coupled" parameter (which affects mass and energy balances):   
+    
+    >>> from biorefineries.lipidcane.utils import set_lipid_fraction
+    >>> # Note that if the setter function is already made,
+    >>> # you can pass it as the first argument
+    >>> set_lipid_fraction = model.parameter(set_lipid_fraction,
+    ...                                      element=lipidcane, kind='coupled',
+    ...                                      distribution=shape.Uniform(0.05, 0.10))
+    
+    Add fermentation efficiency as a "coupled" parameter:
+
+    >>> @model.parameter(element=R301, kind='coupled',
+    ...                  distribution=shape.Triangle(0.85, 0.90, 0.95))
+    ... def set_fermentation_efficiency(efficiency):
+    ...     R301.efficiency = efficiency
+
+    Note that all parameters are stored in the model with highly coupled parameters first:
+
+    >>> model.show()
+    Model: Biorefinery internal rate of return [%]
+           Biorefinery utility cost [10^6 USD/yr]
+     Element:           Parameter:
+     Stream-lipidcane   Lipid fraction
+     Fermentation-R301  Efficiency
+                        Number of reactors
+                        Exponential cost coefficient
+     Stream-lipidcane   Feedstock price        
+
+    Get dictionary that contain DataFrame objects of parameter distributions:
+
+    >>> df_dct = model.get_distribution_summary()
+    >>> df_dct['Uniform']    
+                 Element                Name   Units    Shape  lower  upper
+    0   Stream-lipidcane      Lipid fraction          Uniform   0.05    0.1
+    1  Fermentation-R301  Number of reactors          Uniform      4     10
+    2   Stream-lipidcane     Feedstock price  USD/kg  Uniform 0.0311  0.038
+    
+    Evaluate sample:
+        
+    >>> model([0.05, 0.85, 8, 100000, 0.040]) # Returns metrics (IRR and utility cost)
+    Biorefinery  Internal rate of return [%]   0.102
+                 Utility cost [10^6 USD/yr]      -18
+    dtype: float64
+    
+    Sample from a joint distribution, and simulate samples:
+
+    >>> import numpy as np
+    >>> np.random.seed(1234) # For consistent results
+    >>> N_samples = 10
+    >>> rule = 'L' # For Latin-Hypercube sampling
+    >>> samples = model.sample(N_samples, rule)
+    >>> model.load_samples(samples)
+    >>> model.evaluate(jit=False)
+    >>> table = model.table # All evaluations are stored as a pandas DataFrame
+    >>> table['Biorefinery'] # Only biorefinery metrics
+    Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
+    0                                0.16                       -18.8
+    1                               0.135                       -17.9
+    2                               0.181                       -25.5
+    3                               0.149                       -19.8
+    4                               0.162                       -25.1
+    5                               0.168                       -22.2
+    6                               0.145                       -20.5
+    7                               0.177                       -21.6
+    8                                0.18                       -24.6
+    9                                0.17                       -23.5
+    
+    Note that coupled parameters are on the left most columns, and are ordered 
+    from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
+
+    >>> # Reset for future tests
+    >>> bst.process_tools.default_utilities()
+    >>> bst.CE = 567.5
+
     """
     __slots__ = ('_user_table',     # [DataFrame] All arguments and results (made by user).
                  '_table',          # [DataFrame] All arguments and results.
@@ -135,7 +277,7 @@ class Model(State):
         self._failed_metrics = N_metrics * [np.nan]
         self._metric_indices = var_indices(metrics)
         
-    def evaluate(self, thorough=True):
+    def evaluate(self, thorough=True, jit=True):
         """
         Evaluate metric over the argument sample space and save values to ``table``.
         
@@ -144,9 +286,11 @@ class Model(State):
         thorough : bool
             If True, simulate the whole system with each sample.
             If False, simulate only the affected parts of the system.
+        jit : bool
+            Whether to JIT compile functions with Numba to speed up simulation.
         
         """
-        speed_up()
+        if jit: speed_up()
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart

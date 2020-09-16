@@ -55,7 +55,7 @@ cycle_colors = ('aliceblue', 'chocolate', 'peachpuff',
 
 # %% Main class used to handle the creating of Sankey plots
 
-class Handle:
+class Handle: # pragma: no coverage
     """
     Create a Handle object for creating Sankey diagrams. You can subclass and
     implement the following to customize streams and processes.
@@ -137,7 +137,7 @@ class Handle:
 
 # %% Custum hanldes
 
-class CapitalNodeHandle(Handle):
+class CapitalNodeHandle(Handle): # pragma: no coverage
     """
     Create a CapitalHandle object that represents node colors by installed 
     equipment cost of the process.
@@ -168,7 +168,7 @@ class CapitalNodeHandle(Handle):
                                    vmin=0, vmax=self.max_installed_cost / 1e6,
                                    N_levels=25, orientation=orientation)
 
-class MassStreamHandle(Handle):
+class MassStreamHandle(Handle): # pragma: no coverage
     """
     Create a MassHandle object that represents stream widths by mass flow.
     
@@ -177,7 +177,7 @@ class MassStreamHandle(Handle):
     def stream_width(self, stream): return stream.F_mass
 
 
-class MolarStreamHandle(Handle):
+class MolarStreamHandle(Handle): # pragma: no coverage
     """
     Create a MolarHandle object that represents stream widths by molar flow.
     
@@ -186,7 +186,7 @@ class MolarStreamHandle(Handle):
     def stream_width(self, stream): return stream.F_mol
 
 
-class VolumetricStreamHandle(Handle):
+class VolumetricStreamHandle(Handle): # pragma: no coverage
     """
     Create a VolumetricHandle object that represents stream widths by volumetric 
     flow.
@@ -196,7 +196,7 @@ class VolumetricStreamHandle(Handle):
     def stream_width(self, stream): return stream.F_vol
 
 
-class CarbonStreamHandle(Handle):
+class CarbonStreamHandle(Handle): # pragma: no coverage
     """
     Create a CarbonStreamHandle object that represents stream widths by
     carbon flow by weight.
@@ -206,7 +206,7 @@ class CarbonStreamHandle(Handle):
     def stream_width(self, stream): return stream.get_atomic_flow('C')
 
 
-class CarbonColorHandle(Handle):
+class CarbonColorHandle(Handle): # pragma: no coverage
     """
     Create a CarbonColorHandle object that represents stream color by
     carbon content by weight.
@@ -234,13 +234,13 @@ class CarbonColorHandle(Handle):
                                    orientation=orientation)
 
 
-class CarbonHandle(CarbonColorHandle, MassStreamHandle, CapitalNodeHandle):
+class CarbonHandle(CarbonColorHandle, MassStreamHandle, CapitalNodeHandle): # pragma: no coverage
     __slots__ = ()
 
 
 # %% Main classes used by Handle objects to create Sankey plots
 
-class StreamNode:
+class StreamNode: # pragma: no coverage
     """
     Abstract class for stream nodes.
     
@@ -260,7 +260,7 @@ class StreamNode:
         return f"<{type(self).__name__}: {self.name}>"
 
 
-class FeedNode(StreamNode):
+class FeedNode(StreamNode): # pragma: no coverage
     """
     Create a FeedNode object that represents a feed in a Sankey diagram.
     
@@ -273,7 +273,7 @@ class FeedNode(StreamNode):
         return [Link(self.handle, self, sanky_group, [stream])]
     
     
-class ProductNode(StreamNode):
+class ProductNode(StreamNode): # pragma: no coverage
     """
     Create a ProductNode object that represents a product in a Sankey diagram.
     
@@ -286,7 +286,7 @@ class ProductNode(StreamNode):
         return [Link(self.handle, sanky_group, self, [stream])]
     
 
-class ProcessNode:
+class ProcessNode: # pragma: no coverage
     """
     Create a ProcessNode object that represents a process in a Sankey diagram.
     
@@ -319,7 +319,7 @@ class ProcessNode:
     __repr__ = StreamNode.__repr__
 
 
-class Link:
+class Link: # pragma: no coverage
     """
     Create a Link object that represents a link in a Sankey diagram.
     
@@ -350,12 +350,12 @@ class Link:
 
 # %% Functions that use plotly to create diagrams
 
-def sankey_figure(handle, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs):
+def sankey_figure(handle, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs): # pragma: no coverage
     import plotly.graph_objects as go
     sankey_data_kwargs = sankey_data_kwargs or {}
     return go.Figure(data=sankey_data(handle, nodes, node_kwargs, link_kwargs, **sankey_data_kwargs), **kwargs)
 
-def sankey_data(handle, nodes, arrangement = 'snap', node_kwargs=None, link_kwargs=None):
+def sankey_data(handle, nodes, arrangement = 'snap', node_kwargs=None, link_kwargs=None): # pragma: no coverage
     import plotly.graph_objects as go
     node_kwargs = node_kwargs or {}
     link_kwargs = link_kwargs or {}
@@ -366,14 +366,14 @@ def sankey_data(handle, nodes, arrangement = 'snap', node_kwargs=None, link_kwar
         link = link_dict(handle, links, **link_kwargs)
     )
 
-def node_dict(handle, nodes, **kwargs):
+def node_dict(handle, nodes, **kwargs): # pragma: no coverage
     nodes = sorted(nodes, key=lambda x: x.index)
     dct = {'label': [i.name for i in nodes],
            **kwargs}
     if handle.process_color: dct['color'] = [i.color() for i in nodes]
     return dct
                                              
-def link_dict(handle, links, **kwargs):
+def link_dict(handle, links, **kwargs): # pragma: no coverage
     dct = {
         'source': [i.source.index for i in links],
         'target': [i.sink.index for i in links],

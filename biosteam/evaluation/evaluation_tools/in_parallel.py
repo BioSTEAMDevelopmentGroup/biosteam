@@ -15,7 +15,7 @@ __all__ = ('evaluate_coordinate_in_parallel',)
 
 def evaluate_coordinate_in_parallel(f_evaluate_at_coordinate, coordinate,
                                     metrics, multi_coordinate=False,
-                                    name=None, names=None, xlfile=None): 
+                                    name=None, names=None, xlfile=None): # pragma: no cover
     # In parallel
     pool = mp.Pool(mp.cpu_count())
     map = pool.starmap if multi_coordinate else pool.map

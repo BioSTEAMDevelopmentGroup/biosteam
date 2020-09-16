@@ -250,7 +250,7 @@ class Flash(design.PressureVessel, Unit):
             args = self._vertical_vessel_pressure_diameter_and_length()
         elif vessel_type == 'Horizontal': 
             args = self._horizontal_vessel_pressure_diameter_and_length()
-        else: raise RuntimeError('unknown vessel type')
+        else: raise RuntimeError('unknown vessel type') # pragma: no cover
         self.heat_exchanger._summary()
         self.design_results.update(
             self._vessel_design(*args)
@@ -276,12 +276,12 @@ class Flash(design.PressureVessel, Unit):
         if isinstance(hx, HX):
             index = hx.ins.index(vapor)
             stream = hx.outs[index]
-            if isinstance(stream, MultiStream):
+            if isinstance(stream, MultiStream): # pragma: no cover
                 vapor = stream['g']
                 F_mass = vapor.F_mass
                 F_vol = vapor.F_vol
             else:
-                if stream.phase == 'g':
+                if stream.phase == 'g': # pragma: no cover
                     F_mass = stream.F_mass
                     F_vol = stream.F_vol
                 else:
@@ -365,7 +365,7 @@ class Flash(design.PressureVessel, Unit):
 
         # Calculate the vapor disengagement height
         Hv = 0.5*Dvd
-        Hv2 = (2.0 if has_mist_eliminator else 3.0) + dN/2.0
+        Hv2 = (2.0 if has_mist_eliminator else 3.0) + dN/2.0 # pragma: no cover
         if Hv2 < Hv: Hv = Hv2
         Hv = Hv
 
@@ -386,9 +386,9 @@ class Flash(design.PressureVessel, Unit):
         # Initialize LD
         if P > 0 and P <= 264.7:
             LD = 1.5/250.0*(P-14.7)+1.5
-        elif P > 264.7 and P <= 514.7:
+        elif P > 264.7 and P <= 514.7: # pragma: no cover
             LD = 1.0/250.0*(P-14.7)+2.0
-        elif P > 514.7:
+        elif P > 514.7: # pragma: no cover
             LD = 5.0
 
         D = (4.0*(Vh+Vs)/(0.6*pi*LD))**(1.0/3.0)
@@ -445,7 +445,7 @@ class Flash(design.PressureVessel, Unit):
                 if D <= 4.0: break
                 else: D -= 0.5
 
-            if LD > 7.2:
+            if LD > 7.2: # pragma: no cover
                 D += 0.5
             else: break
 
@@ -581,7 +581,7 @@ class RatioFlash(Flash):
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
 
-    def _design(self):
+    def _design(self): # pragma: no cover
         self.heat_exchanger.outs[0] = ms = self._multi_stream
         ms.mix_from(self.outs)
         super()._design()
@@ -604,7 +604,7 @@ class Evaporator_PQ(Unit):
     def T(self):
         return self._T
     @T.setter
-    def T(self, T):
+    def T(self, T): # pragma: no cover
         water = getattr(self.chemicals, '7732-18-5')
         self._P = water.Psat(T)
         self._Hvap = water.Hvap(T)
@@ -643,7 +643,7 @@ class Evaporator_PQ(Unit):
         H = feed_H + Q - liquid.H
         if f:
             V = H/(f * self._Hvap)
-            if V < 0:
+            if V < 0: 
                 V = 0
             elif V > 1:
                 V = 1
@@ -672,7 +672,7 @@ class Evaporator_PV(Unit):
     def T(self):
         return self._T
     @T.setter
-    def T(self, T):
+    def T(self, T): # pragma: no cover
         water = getattr(self.chemicals, '7732-18-5')
         self._P = water.Psat(T)
         self._T = T

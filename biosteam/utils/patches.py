@@ -16,7 +16,7 @@ __all__ = ('DoubleColorCircle', 'DoubleColorLegend')
 
 # %% Legend handlers
 
-def make_patch(pos, width, height, Patch, handlepatch, kwargs):
+def make_patch(pos, width, height, Patch, handlepatch, kwargs): # pragma: no cover
     if issubclass(Patch , patches.Circle): 
         patch = Patch(pos+[width/2,height/2], height/2,
                       transform=handlepatch.get_transform(), **kwargs)    
@@ -28,7 +28,7 @@ def make_patch(pos, width, height, Patch, handlepatch, kwargs):
     handlepatch.add_artist(patch)
     return patch
 
-class DoubleColor:
+class DoubleColor: # pragma: no cover
     __slots__ = ('leftpatches', 'rightpatches', 'Patch', 'patches', 'both')
     
     def __init__(self, leftpatches, rightpatches, morepatches=None,
@@ -63,7 +63,7 @@ class DoubleColor:
         return lpatch
 
 
-class DoubleColorCircle:
+class DoubleColorCircle: # pragma: no cover
     __slots__ = ('left', 'right', 'both')
     
     def __init__(self, left, right, both):
@@ -97,7 +97,7 @@ class DoubleColorCircle:
         return leftpatch
 
 
-class TwoColorArrow:
+class TwoColorArrow: # pragma: no cover
     __slots__ = ('left', 'right', 'pos')
     
     def __init__(self, left, right, pos='mid'):
@@ -127,7 +127,7 @@ class TwoColorArrow:
         return leftpatch
 
 
-class Legend:
+class Legend: # pragma: no cover
     __slots__ = ('handler_map')
     
     def __init__(self, handler_map=None):
@@ -140,7 +140,7 @@ class Legend:
                    loc=loc)
 
 
-class DoubleColorLegend(Legend):
+class DoubleColorLegend(Legend): # pragma: no cover
     __slots__ = ()
     
     def __init__(self, key_leftrightpatches=None, handler_map=None):

@@ -48,7 +48,7 @@ class UnitGraphics:
         edge_out = [{'tailport': 'c'} for i in range(N_outs)]
         return cls(edge_in, edge_out, box_node)
     
-    def get_node_tailored_to_unit(self, unit):
+    def get_node_tailored_to_unit(self, unit): # pragma: no coverage
         """Return node tailored to unit specifications"""
         node = self.node
         node['name'] = unit.ID + '\n' + unit.line
@@ -57,7 +57,7 @@ class UnitGraphics:
             tailor_node_to_unit(node, unit)
         return node
         
-    def __repr__(self):
+    def __repr__(self): # pragma: no coverage
         return f'{type(self).__name__}(node={self.node}, edge_in={self.edge_in}, edge_out={self.edge_out})'
 
 
@@ -121,7 +121,7 @@ node = box_node.copy()
 node['shape'] = 'circle'
 node['color'] = 'none'
 node['margin'] = '0'
-def tailor_utility_heat_exchanger_node(node, unit):
+def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
     try:
         si = unit.ins[0]
         so = unit.outs[0]
@@ -153,7 +153,7 @@ node['color'] = 'none'
 node['margin'] = '0'
 node['gradientangle'] = '90'
 node['fillcolor'] = '#cfecf0:#fad6d8'
-def tailor_process_heat_exchanger_node(node, unit):
+def tailor_process_heat_exchanger_node(node, unit): # pragma: no coverage
     node['name'] = unit.ID + "\n Heat exchanger"
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
@@ -166,7 +166,7 @@ node = box_node.copy()
 node['fillcolor'] = orange_tint.HEX + ':' + orange.HEX
 node['shape'] = 'note'
 node['margin'] = '0.2'
-def tailor_process_specification_node(node, unit):
+def tailor_process_specification_node(node, unit): # pragma: no coverage
     node['name'] = (f"{unit.ID} - {unit.description}\n"
                     f"{unit.line}")
 
@@ -184,7 +184,7 @@ stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 
 node = box_node.copy()
-def tailor_junction_node(node, unit):
+def tailor_junction_node(node, unit): # pragma: no coverage
     if not any(unit._get_streams()):
         node['fontsize'] = '18'
         node['shape'] = 'plaintext'

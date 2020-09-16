@@ -224,7 +224,7 @@ class HeatExchangerNetwork(Facility):
         self.stream_life_cycles = stream_life_cycles
         return stream_life_cycles
         
-    def get_original_hxs_associated_with_streams(self):
+    def get_original_hxs_associated_with_streams(self): # pragma: no cover
         original_units = self.system.units
         original_heat_utils = self.original_heat_utils
         original_hx_utils = [i.heat_exchanger for i in original_heat_utils]
@@ -256,7 +256,7 @@ class HeatExchangerNetwork(Facility):
         self.original_hxs = original_hxs
         return original_hxs
     
-    def save_stream_life_cycles_as_csv(self):
+    def save_stream_life_cycles_as_csv(self): # pragma: no cover
         if not hasattr(self, 'stream_life_cycles'):
             self.stream_life_cycles = self.get_stream_life_cycles()
         stream_life_cycles = self.stream_life_cycles

@@ -22,7 +22,7 @@ __all__ = ('annotate_line', 'CABBI_green_colormap', 'MetricBar',
 
 # %% Data classes
 
-class MetricBar(NamedTuple):
+class MetricBar(NamedTuple): # pragma: no coverage
     name: str = None
     units: str = None
     cmap: Colormap = None
@@ -57,7 +57,7 @@ class MetricBar(NamedTuple):
         
 # %% Helpful functions
 
-def CABBI_green_colormap(N_levels=25):
+def CABBI_green_colormap(N_levels=25): # pragma: no coverage
     """
     Return a matplotlib.colors.LinearSegmentedColormap object
     that serves as CABBI's green colormap theme for contour plots.
@@ -69,7 +69,7 @@ def CABBI_green_colormap(N_levels=25):
     return LinearSegmentedColormap.from_list('CABBI', CABBI_colors, N_levels)
 
 def color_bar(RGBn: list, vmin=0, vmax=100, ax=None,
-              label=None, orientation='vertical', N_levels=25):
+              label=None, orientation='vertical', N_levels=25): # pragma: no coverage
     cmap = LinearSegmentedColormap.from_list(label, RGBn, N_levels)
     norm = Normalize(vmin=vmin, vmax=vmax)
     if not ax: 
@@ -85,11 +85,11 @@ def color_bar(RGBn: list, vmin=0, vmax=100, ax=None,
                         cax=ax, label=label)
     
 
-def expand(lower, upper, lb, ub):
+def expand(lower, upper, lb, ub): # pragma: no coverage
     dx = (upper - lower)/12
     return max(lower-dx, lb), min(upper+dx, ub)
 
-def closest_index(x, xs):
+def closest_index(x, xs): # pragma: no coverage
     if xs[0] < xs[-1]:
         for i, xi in enumerate(xs):
             if x < xi: break
@@ -99,7 +99,7 @@ def closest_index(x, xs):
     return i
 
 def annotate_line(text, x, xs, ys, dy=0.2, dy_text=0.22, position='under', 
-                  color=colors.brown_shade.RGBn):
+                  color=colors.brown_shade.RGBn): # pragma: no coverage
     """
     Annotate line with text and arrow pointing to text.
     

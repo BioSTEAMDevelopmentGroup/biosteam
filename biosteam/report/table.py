@@ -21,14 +21,14 @@ __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'save_report', 'unit_result_tables', 'heat_utilities_table',
            'power_utilities_table', 'tables_to_excel')
 
-def _stream_key(s):
+def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
     if num.isnumeric(): return int(num)
     else: return -1
 
 # %% Helpful functions
 
-def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2):
+def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2): # pragma: no coverage
     """
     Save a list of tables as an excel file and return the row number at which
     another consecutive table would start.
@@ -62,7 +62,7 @@ def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2):
 
 # %% Units
 
-def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
+def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # pragma: no coverage
     """
     Save a system report as an xlsx file.
     
@@ -146,7 +146,7 @@ save_system_results = save_report
 def unit_result_tables(units,
                        include_utilities=False, 
                        include_total_cost=False,
-                       include_installed_cost=False):
+                       include_installed_cost=False): # pragma: no coverage
     """
     Return a list of results tables for each unit type.
 
@@ -188,7 +188,7 @@ def unit_result_tables(units,
         tables.append(table)
     return tables
     
-def cost_table(tea):
+def cost_table(tea): # pragma: no coverage
     """Return a cost table as a pandas DataFrame object.
 
     Parameters
@@ -226,7 +226,7 @@ def cost_table(tea):
     
     return df
 
-def heat_utilities_table(units):
+def heat_utilities_table(units): # pragma: no coverage
     """Return a list of utility tables for each heat utility source.
     
     Parameters
@@ -276,7 +276,7 @@ def heat_utilities_table(units):
     return tables
     
 
-def power_utilities_table(units):
+def power_utilities_table(units): # pragma: no coverage
     # Sort power utilities by unit type
     units = sorted(units, key=(lambda u: type(u).__name__))
     units = [u for u in units if u.power_utility]
@@ -291,7 +291,7 @@ def power_utilities_table(units):
 
 # %% Streams
 
-def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -> 'DataFrame':
+def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -> 'DataFrame': # pragma: no coverage
     """Return a stream table as a pandas DataFrame object.
 
     Parameters

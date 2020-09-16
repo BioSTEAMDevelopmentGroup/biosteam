@@ -22,7 +22,7 @@ from .digraph import (get_all_connections,
 
 __all__ = ('FlowsheetWidget',)
 
-class FlowsheetWidget(QMainWindow):
+class FlowsheetWidget(QMainWindow): # pragma: no coverage
 
     def __init__(self, flowsheet):
         super().__init__()

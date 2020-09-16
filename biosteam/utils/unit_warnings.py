@@ -34,12 +34,12 @@ class CostWarning(UnitWarning):
 
 # %% Bounds checking
 
-def design_warning_with_source(source, msg):
+def design_warning_with_source(source, msg): # pragma: no cover
     """Return a DesignWarning object with source description."""
     msg= message_with_object_stamp(source, msg)
     return DesignWarning(msg)
             
-def lb_warning(source, key, value, units, lb, stacklevel=2):
+def lb_warning(source, key, value, units, lb, stacklevel=2): # pragma: no cover
     units = ' ' + units if units else ''
     try:
         msg = f"{key} ({value:.4g}{units}) is out of bounds (minimum {lb:.4g}{units})."
@@ -48,7 +48,7 @@ def lb_warning(source, key, value, units, lb, stacklevel=2):
     
     warn(DesignWarning.from_source(source, msg), stacklevel=stacklevel)
     
-def ub_warning(source, key, value, units, ub, stacklevel=2):
+def ub_warning(source, key, value, units, ub, stacklevel=2): # pragma: no cover
     units = ' ' + units if units else ''
     try:
         msg = f"{key} ({value:.4g}{units}) is out of bounds (maximum {ub:.4g}{units})."
@@ -57,7 +57,7 @@ def ub_warning(source, key, value, units, ub, stacklevel=2):
     
     warn(DesignWarning.from_source(source, msg), stacklevel=stacklevel)
 
-def bounds_warning(source, key, value, units, bounds, kind='design'):
+def bounds_warning(source, key, value, units, bounds, kind='design'): # pragma: no cover
     """Issue a warning if value is out of bounds.
     
     Parameters
