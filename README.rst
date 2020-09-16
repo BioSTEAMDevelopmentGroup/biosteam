@@ -16,6 +16,9 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
    :alt: Supported_versions
 .. image:: https://zenodo.org/badge/164639830.svg
    :target: https://zenodo.org/badge/latestdoi/164639830
+.. image:: https://coveralls.io/repos/github/BioSTEAMDevelopmentGroup/biosteam/badge.svg?branch=master
+   :target: https://coveralls.io/github/BioSTEAMDevelopmentGroup/biosteam?branch=master
+
 
 .. contents::
 
