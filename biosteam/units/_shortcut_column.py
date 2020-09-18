@@ -167,7 +167,7 @@ class ShortcutColumn(BinaryDistillation,
     --------
     >>> from biosteam.units import ShortcutColumn
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
+    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'], cache=True)
     >>> feed = Stream('feed', flow=(80, 100, 25))
     >>> bp = feed.bubble_point_at_P()
     >>> feed.T = bp.T # Feed at bubble point T
@@ -216,13 +216,13 @@ class ShortcutColumn(BinaryDistillation,
                         Rectifier height               ft     31.7
                         Stripper height                ft     50.9
                         Rectifier diameter             ft     4.53
-                        Stripper diameter              ft     3.67
+                        Stripper diameter              ft     3.65
                         Rectifier wall thickness       in    0.312
                         Stripper wall thickness        in    0.312
                         Rectifier weight               lb 6.46e+03
-                        Stripper weight                lb 7.98e+03
+                        Stripper weight                lb 7.93e+03
     Purchase cost       Rectifier trays               USD 1.52e+04
-                        Stripper trays                USD 2.02e+04
+                        Stripper trays                USD 2.01e+04
                         Rectifier tower               USD 8.44e+04
                         Stripper tower                USD 1.01e+05
                         Condenser                     USD 4.17e+04
@@ -233,7 +233,8 @@ class ShortcutColumn(BinaryDistillation,
     line = 'Distillation'
     _ins_size_is_fixed = False
     _N_ins = 1
-    _N_outs = 2     
+    _N_outs = 2
+    minimum_guess_distillate_recovery = 1e-11
      
     def _run(self):
         # Initial mass balance
@@ -266,15 +267,13 @@ class ShortcutColumn(BinaryDistillation,
         # Set starting point for solving column
         if reset_cache:
             self._add_trace_heavy_and_light_non_keys_in_products()
-            distillate_recoveries = self._estimate_distillate_recoveries()
-            self._distillate_recoveries = distillate_recoveries
-            self._update_distillate_recoveries(distillate_recoveries)
+            self._distillate_recoveries = self._estimate_distillate_recoveries()
         else:
             distillate_recoveries = self._distillate_recoveries
-            lb = 1e-6; ub = 1 - 1e-6
+            lb = self.minimum_guess_distillate_recovery
+            ub = 1 - lb
             distillate_recoveries[distillate_recoveries < lb] = lb
             distillate_recoveries[distillate_recoveries > ub] = ub
-            self._update_distillate_recoveries(distillate_recoveries)
         
         # Solve for new recoveries
         self._solve_distillate_recoveries()
@@ -283,7 +282,7 @@ class ShortcutColumn(BinaryDistillation,
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
         
-    def _setup_cache(self):
+    def reset_cache(self):
         self._vle_chemicals = None
 
     def plot_stages(self):
@@ -428,7 +427,10 @@ class ShortcutColumn(BinaryDistillation,
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
             raise InfeasibleRegion('distillate composition')
         self._update_distillate_recoveries(distillate_recoveries)
-        self._distillate_recoveries = distillate_recoveries = self._estimate_distillate_recoveries()
+        distillate_recoveries = self._estimate_distillate_recoveries()
+        if hasattr(self, '_distillate_recoveries_hook'):
+            self._distillate_recoveries_hook(self._IDs_vle, distillate_recoveries)
+        self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
         
     

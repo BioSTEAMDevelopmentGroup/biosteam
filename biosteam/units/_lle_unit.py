@@ -8,7 +8,7 @@
 """
 """
 import biosteam as bst
-from .design_tools import separations
+from thermosteam import separations
 
 __all__ = ('LLEUnit',)
 
@@ -27,9 +27,17 @@ class LLEUnit(bst.Unit, isabstract=True):
         Identifier of chemical that will be favored in the "liquid" phase.
         If none given, the "liquid" phase will the lightest and the "LIQUID"
         phase will be the heaviest.
-    efficiency : float,
+    efficiency=1. : float, optional
         Fraction of feed in liquid-liquid equilibrium.
         The rest of the feed is divided equally between phases.
+    cache_tolerance=1e-6 : float, optional
+        Reuse previous partition coefficients to calculate LLE when 
+        the change in molar fraction of all chemicals is below this 
+        tolerance.
+    forced_split_IDs : tuple[str], optional
+        IDs of component with a user defined split.
+    forced_split : 1d array, optional
+        Component-wise split to 0th stream.
     
     Examples
     --------
@@ -64,17 +72,35 @@ class LLEUnit(bst.Unit, isabstract=True):
                         Biodiesel  0.0031
     
     """
+    _N_outs = 2
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None,
-                 top_chemical=None, efficiency=1.0):
+                 top_chemical=None, efficiency=1.0, cache_tolerance=1e-6,
+                 forced_split_IDs=None, forced_split=None):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         #: [str] Identifier of chemical that will be favored in the "liquid" phase.
         #: If none given, the "liquid" phase will the lightest and the "LIQUID"
         #: phase will be the heaviest.
         self.top_chemical = top_chemical
-        #: Fraction of feed in liquid-liquid equilibrium.
+        #: [float] Fraction of feed in liquid-liquid equilibrium.
         #: The rest of the feed is divided equally between phases.
         self.efficiency = efficiency 
+        #: [float] The change in molar fraction of individual chemicals must be 
+        #: below this tolerance to reuse partition coefficients.
+        self.cache_tolerance = cache_tolerance
+        #: array[float] Forced splits to 0th stream for given IDs. 
+        self.forced_split = forced_split
+        #: tuple[str] IDs corresponding to forced splits. 
+        self.forced_split_IDs = forced_split_IDs
+        self.multi_stream = bst.MultiStream(phases='lL', thermo=self.thermo)
         
     def _run(self):
-        separations.lle(self.ins[0], *self.outs, self.top_chemical, self.efficiency)
+        separations.lle(*self.ins, *self.outs, self.top_chemical, self.efficiency, self.multi_stream)
+        IDs = self.forced_split_IDs
+        if IDs:
+            feed, = self.ins
+            liquid, LIQUID = self.outs
+            mol = feed.imol[IDs]
+            liquid.imol[IDs] = mol_liquid = mol * self.forced_split
+            LIQUID.imol[IDs] = mol - mol_liquid
+            

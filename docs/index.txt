@@ -61,6 +61,13 @@ Key Features & Capabilities
 
 .. toctree::
    :maxdepth: 1
+   :caption: What's new?
+   
+   updates/2.20
+
+
+.. toctree::
+   :maxdepth: 1
    :caption: Developer's guide
    
    CONTRIBUTING

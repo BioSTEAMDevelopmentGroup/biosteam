@@ -8,17 +8,16 @@
 """
 """
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from biosteam.utils import colors
-from ..utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
+from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
-           'plot_single_points', 'plot_spearman', 'plot_horizontal_line',
-           'plot_bars', 'plot_vertical_line', 'plot_single_points',
-           'plot_contour_2d', 'plot_contour_across_coordinate')
+           'plot_scatter_points', 'plot_spearman', 'plot_horizontal_line',
+           'plot_bars', 'plot_vertical_line', 'plot_scatter_points',
+           'plot_contour_1d', 'plot_contour_2d', 'plot_contour_across_coordinate')
 
-def plot_spearman(rhos, top=None, name=None):
+def plot_spearman(rhos, top=None, name=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -44,7 +43,7 @@ def plot_spearman(rhos, top=None, name=None):
         index = index[-top:]
     
     xranges = [(0, i) for i in rhos]
-    yranges = [(i, 0.65) for i in range(len(rhos))]
+    yranges = [(i, 1.) for i in range(len(rhos))]
     
     # Plot bars one by one
     fig, ax = plt.subplots()
@@ -88,21 +87,20 @@ def plot_spearman(rhos, top=None, name=None):
 light_color = colors.brown_tint.RGBn
 dark_color = colors.brown_shade.RGBn
 
-def plot_horizontal_line(y, color='grey', **kwargs):
+def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
     plt.axhline(y=y, color=color, **kwargs) 
 
-def plot_vertical_line(x, color='grey', **kwargs):
+def plot_vertical_line(x, color='grey', **kwargs): # pragma: no coverage
     """Plot vertical line."""
     plt.axvline(x=x, color=color, **kwargs) 
 
-def plot_single_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', **kwargs):
-    """Plot single points and return patch artist."""
-    if xs is None:
-        xs = tuple(range(len(ys)))
-    return plt.scatter(xs, ys, marker='o', s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
+def plot_scatter_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs): # pragma: no coverage
+    """Plot scatter points and return patch artist."""
+    if xs is None: xs = tuple(range(len(ys)))
+    return plt.scatter(xs, ys, marker=marker, s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
 
-def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None):
+def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # pragma: no coverage
     barwidth = 0.50
     N_scenarios = len(scenarios)
     N_labels = len(labels)
@@ -122,8 +120,7 @@ def plot_montecarlo(data,
                     light_color=light_color,
                     dark_color=dark_color,
                     positions=None,
-                    transpose=False,
-                    **kwargs):
+                    transpose=False): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -135,17 +132,12 @@ def plot_montecarlo(data,
         RGB normalized to 1. Defaults to brown.
     dark_colors : Iterable(numpy.ndarray)
         RGB normalized to 1. Defaults to brown.
-    **kwargs :
-        Additional arguments for pyplot.boxplot
     
     Returns
     -------
     bx : Patch
     
     """
-    if isinstance(data, pd.DataFrame):
-        if 'labels' not in kwargs:
-            kwargs['labels'] = data.columns
     if transpose: data = data.transpose()
     if not positions:
         if data.ndim == 1: 
@@ -162,12 +154,11 @@ def plot_montecarlo(data,
                                    'markerfacecolor': light_color,
                                    'markeredgecolor': dark_color,
                                    'markersize':6})
-    
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 
                                       light_color=light_color,
-                                      dark_color=dark_color):
+                                      dark_color=dark_color): # pragma: no coverage
     """
     Plot Monte Carlo evaluation across a coordinate.
     
@@ -205,11 +196,42 @@ def plot_montecarlo_across_coordinate(xs, ys,
     
     return percentiles
     
+def plot_contour_1d(X_grid, Y_grid, data, 
+                    xlabel, ylabel, xticks, yticks, 
+                    metric_bars, fillblack=True): # pragma: no coverage
+    """Create contour plots and return the figure and the axes."""
+    n = len(metric_bars)
+    assert data.shape == (*X_grid.shape, n), (
+        "data shape must be (X, Y, M), where (X, Y) is the shape of both X_grid and Y_grid, "
+        "and M is the number of metrics"
+    )
+    gs_kw = dict(height_ratios=[1, 0.25])
+    fig, axes = plt.subplots(ncols=n, nrows=2, gridspec_kw=gs_kw)
+    for i in range(n):
+        metric_bar = metric_bars[i]
+        ax = axes[0, i]
+        plt.sca(ax)
+        style_plot_limits(xticks, yticks)
+        yticklabels = i == 0
+        xticklabels = True
+        if fillblack: fill_plot()
+        cp = plt.contourf(X_grid, Y_grid, data[:, :, i],
+                          levels=metric_bar.levels,
+                          cmap=metric_bar.cmap)
+        style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+        cbar_ax = axes[1, i]
+        plt.sca(cbar_ax)
+        metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8, orientation='horizontal')
+        plt.axis('off')
+    set_axes_labels(axes[:-1], xlabel, ylabel)
+    plt.subplots_adjust(hspace=0.1, wspace=0.1)
+    return fig, axes
+
 def plot_contour_2d(X_grid, Y_grid, Z_1d, data, 
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, Z_label=None,
                     Z_value_format=lambda Z: str(Z),
-                    fillblack=True):
+                    fillblack=True): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     nrows = len(metric_bars)
     ncols = len(Z_1d)
@@ -255,7 +277,7 @@ def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data,
                                    xlabel, ylabel, xticks, yticks, 
                                    metric_bar, Z_label=None,
                                    Z_value_format=lambda Z: str(Z),
-                                   fillblack=True):
+                                   fillblack=True): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     ncols = len(Z_1d)
     assert data.shape == (*X_grid.shape, ncols), (

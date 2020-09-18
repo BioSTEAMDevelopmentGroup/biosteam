@@ -11,7 +11,7 @@ from scipy.optimize import brentq
 
 __all__ = ('BoundedNumericalSpecification',)
 
-class BoundedNumericalSpecification:
+class BoundedNumericalSpecification: # pragma: no cover
     __slots__ = ('args', 'solver', 'kwargs')
     
     def __init__(self, *args, solver=brentq, **kwargs):

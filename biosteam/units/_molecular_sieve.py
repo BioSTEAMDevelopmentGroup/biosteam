@@ -39,7 +39,7 @@ class MolecularSieve(Splitter):
     --------
     >>> from biosteam import Stream, settings
     >>> from biosteam.units import MolecularSieve
-    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = Stream('feed', flow=(75.7, 286), phase='g')
     >>> bp = feed.bubble_point_at_T()
     >>> feed.T = bp.T

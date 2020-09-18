@@ -9,6 +9,7 @@
 import flexsolve as flx
 import numpy as np
 from thermosteam.exceptions import InfeasibleRegion
+import thermosteam as tmo
 
 __all__ = ('ReactorSpecification',)
 
@@ -249,7 +250,8 @@ class ReactorSpecification:
         try:
             flx.aitken_secant(f, substates, ytol=1e-5)
         except:
-            flx.IQ_interpolation(f, 1e-12, feed.F_mass, ytol=1e-5, maxiter=100)
+            flx.IQ_interpolation(f, 1e-12, 0.50 * feed.F_mass, ytol=1e-5, maxiter=100)
+            
         self.reactor.tau = titer / self.productivity
     
     def load_productivity(self, productivity):
@@ -294,7 +296,9 @@ class ReactorSpecification:
     def _calculate_titer(self):
         """Return titer in g products / effluent L."""
         reactor = self.reactor
+        tmo.reaction.CHECK_FEASIBILITY = False
         (reactor.specification or reactor._run)()
+        tmo.reaction.CHECK_FEASIBILITY = True
         effluent = self.effluent
         F_mass_products = effluent.imass[self.products].sum()
         if F_mass_products: 

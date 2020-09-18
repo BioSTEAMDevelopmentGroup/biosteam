@@ -56,14 +56,14 @@ class Variable:
         if self.element:
             name = self.element_name + ' ' + name
         if self.units:
-            units = (' (' + str(self.units) + ')')
+            units = (' [' + str(self.units) + ']')
         else:
             units = ''
         if self.distribution:
             distribution_values = self.distribution._repr.values()
             distribution = ', '.join([format(j, number_format)
                                       for j in distribution_values])
-            distribution = ' [' + distribution + ']'
+            distribution = ' (' + distribution + ')'
         else:
             distribution = ''
         return name + units + distribution

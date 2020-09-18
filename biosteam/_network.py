@@ -9,7 +9,7 @@
 """
 from ._unit import Unit
 from ._facility import Facility
-from ._digraph import digraph_from_units_and_streams, finalize_digraph
+from .digraph import digraph_from_units_and_streams, finalize_digraph
 
 # %% Path checking
 
@@ -369,7 +369,10 @@ class Network:
             if isa(i, Unit):
                 path_info.append(str(i))
             else:
-                path_info.append(i._info(spaces))
+                try:
+                    path_info.append(i._info(spaces))
+                except:
+                    path_info.append(str(i))
         info += '[' + (end + " ").join(path_info) + ']'
         if self.recycle:
             info += end + f"recycle={self.recycle})"

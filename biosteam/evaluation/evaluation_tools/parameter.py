@@ -22,12 +22,12 @@ __all__ = ('load_default_parameters',
 
 # %% Predefined shapes
 
-def triang(mid, proportion=0.1, addition=0):
+def triang(mid, proportion=0.1, addition=0): # pragma: no cover
     return shape.Triangle((1.-proportion)*mid - addition,
                           mid,
                           (1.+proportion)*mid + addition)
 
-def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1):
+def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1): # pragma: no cover
     lower = (1.-proportion)*mid - addition
     upper = (1.+proportion)*mid + addition
     if lower < lb: lower = lb
@@ -38,7 +38,7 @@ def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1):
 
 def load_default_parameters(self, feedstock, shape=triang,
                             bounded_shape=bounded_triang,
-                            operating_days=False, include_feedstock_price=True):
+                            operating_days=False, include_feedstock_price=True): # pragma: no cover
     """
     Load all default parameters, including coefficients of cost items,
     stream prices, electricity price, heat utility prices, feedstock
@@ -70,7 +70,7 @@ def load_default_parameters(self, feedstock, shape=triang,
     add_flow_rate_param(self, feedstock, shape)
     add_basic_TEA_params(self, shape, operating_days)
 
-def add_all_cost_item_params(model, shape, exp_shape):
+def add_all_cost_item_params(model, shape, exp_shape): # pragma: no cover
     system = model._system
     costunits = system._costunits
     
@@ -91,7 +91,7 @@ def add_all_cost_item_params(model, shape, exp_shape):
             _exp(model, ID, item, line, exp_shape)
             _kW(model, ID, item, line, shape)
             
-def add_all_stream_price_params(model, shape, feedstock, include_feedstock_price):
+def add_all_stream_price_params(model, shape, feedstock, include_feedstock_price): # pragma: no cover
     # Add stream prices as parameters
     system = model._system
     feeds = system.feeds
@@ -102,23 +102,23 @@ def add_all_stream_price_params(model, shape, feedstock, include_feedstock_price
     for s in feeds: add_stream_price_param(model, s, shape)
     for s in products: add_stream_price_param(model, s, shape)
 
-def set_price(price):
+def set_price(price): # pragma: no cover
     bst.PowerUtility.price = price
         
-def add_power_utility_price_param(model, shape):
+def add_power_utility_price_param(model, shape): # pragma: no cover
     if bst.PowerUtility.price:
         baseline = bst.PowerUtility.price
         model.parameter(set_price, element='Electricity', units='USD/kWhr',
                         distribution=shape(baseline),
                         baseline=baseline)
         
-def add_heat_utility_price_params(model, shape):
+def add_heat_utility_price_params(model, shape): # pragma: no cover
     agents = (*bst.HeatUtility.cooling_agents,
                     *bst.HeatUtility.heating_agents)
     for agent in agents:
         add_agent_price_params(model, agent.ID, agent, shape)
         
-class Setter:
+class Setter: # pragma: no cover
     __slots__ = ('obj', 'attr')
     def __init__(self, obj, attr):
         self.obj = obj
@@ -126,7 +126,7 @@ class Setter:
     def __call__(self, value):
         setattr(self.obj, self.attr, value)
         
-def add_agent_price_params(model, name, agent, shape):
+def add_agent_price_params(model, name, agent, shape): # pragma: no cover
     if agent.heat_transfer_price:
         baseline = agent.heat_transfer_price
         model.parameter(Setter(agent, 'heat_transfer_price'), element=name, units='USD/kJ',
@@ -138,13 +138,13 @@ def add_agent_price_params(model, name, agent, shape):
                         name='Price', distribution=shape(baseline),
                         baseline=baseline)
         
-def add_flow_rate_param(model, feed, shape):
+def add_flow_rate_param(model, feed, shape): # pragma: no cover
     baseline = feed.F_mass
     model.parameter(Setter(feed, 'F_mass'), element=feed, units='kg/hr',
                     distribution=shape(baseline), kind='coupled',
                     name='Flow rate', baseline=baseline)
     
-def add_basic_TEA_params(model, shape, operating_days):
+def add_basic_TEA_params(model, shape, operating_days): # pragma: no cover
     param = model.parameter
     TEA = model._system.TEA
     
@@ -172,7 +172,7 @@ def add_basic_TEA_params(model, shape, operating_days):
 
 # %% Parameter creators for cost_items
 
-def add_stream_price_param(model, stream, shape):
+def add_stream_price_param(model, stream, shape): # pragma: no cover
     mid = stream.price
     if not mid: return
     model.parameter(Setter(stream, 'price'),
@@ -181,7 +181,7 @@ def add_stream_price_param(model, stream, shape):
                     baseline=mid,
                     name='price')
 
-def _cost(model, ID, item, line, shape):
+def _cost(model, ID, item, line, shape): # pragma: no cover
     key = 'cost'
     mid = float(item[key])
     if not mid: return None
@@ -191,7 +191,7 @@ def _cost(model, ID, item, line, shape):
     else: ID = name
     _cost_option(model, ID, item, key, line, distribution, 'USD', mid)
     
-def _exp(model, ID, item, line, shape):
+def _exp(model, ID, item, line, shape): # pragma: no cover
     key = 'n'
     mid = float(item[key])
     if not mid: return None
@@ -201,7 +201,7 @@ def _exp(model, ID, item, line, shape):
     else: ID = name
     _cost_option(model, ID, item, key, line, distribution, None, mid)
 
-class CostItemSetter:
+class CostItemSetter: # pragma: no cover
     __slots__ = ('item', 'key', 'size')
     def __init__(self, item, key, size=1):
         self.item = item
@@ -210,7 +210,7 @@ class CostItemSetter:
     def __call__(self, value):
         self.item[self.key] = value*self.size
 
-def _kW(model, ID, item, line, shape):
+def _kW(model, ID, item, line, shape): # pragma: no cover
     key = 'kW'
     mid = float(item[key])
     if not mid: return None
@@ -226,7 +226,7 @@ def _kW(model, ID, item, line, shape):
                     baseline=mid,
                     units=units, distribution=distribution, name=ID)
 
-def _cost_option(model, ID, item, key, line, distribution, units, mid):
+def _cost_option(model, ID, item, key, line, distribution, units, mid): # pragma: no cover
     model.parameter(CostItemSetter(item, key), element=line, units=units, 
                     baseline=mid,
                     distribution=distribution, name=ID)

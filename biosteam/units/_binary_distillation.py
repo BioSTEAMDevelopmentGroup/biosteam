@@ -169,7 +169,7 @@ class BinaryDistillation(Unit):
     
     >>> from biosteam.units import BinaryDistillation
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
+    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'], cache=True)
     >>> feed = Stream('feed', flow=(80, 100, 25))
     >>> bp = feed.bubble_point_at_P()
     >>> feed.T = bp.T # Feed at bubble point T
@@ -218,18 +218,18 @@ class BinaryDistillation(Unit):
                         Rectifier height               ft      34.7
                         Stripper height                ft      31.7
                         Rectifier diameter             ft      3.93
-                        Stripper diameter              ft      3.21
+                        Stripper diameter              ft      3.19
                         Rectifier wall thickness       in     0.312
                         Stripper wall thickness        in     0.312
                         Rectifier weight               lb  6.01e+03
-                        Stripper weight                lb  4.46e+03
+                        Stripper weight                lb  4.43e+03
     Purchase cost       Rectifier trays               USD   1.5e+04
                         Stripper trays                USD  1.25e+04
                         Rectifier tower               USD  8.18e+04
-                        Stripper tower                USD  6.81e+04
+                        Stripper tower                USD  6.78e+04
                         Condenser                     USD  3.39e+04
                         Boiler                        USD  2.72e+04
-    Total purchase cost                               USD  2.39e+05
+    Total purchase cost                               USD  2.38e+05
     Utility cost                                   USD/hr      68.2
     
     """
@@ -323,9 +323,9 @@ class BinaryDistillation(Unit):
                                 outs=tmo.MultiStream(None, thermo=thermo),
                                 thermo=thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
-        self._setup_cache()
+        self.reset_cache()
         
-    def _setup_cache(self):
+    def reset_cache(self):
         self._McCabeThiele_args = np.zeros(6)
     
     @property
@@ -779,7 +779,9 @@ class BinaryDistillation(Unit):
         condensate.P = dp.P
         vap = condenser.ins[0]
         vap.mol = distillate.mol + condensate.mol
-        vap.T = vap.dew_point_at_P().T
+        vap_T = vap.dew_point_at_P().T
+        if vap_T < dp.T: vap_T = dp.T + 0.1
+        vap.T = vap_T
         vap.P = distillate.P
         
         # Set boiler conditions
@@ -795,7 +797,9 @@ class BinaryDistillation(Unit):
         liq = boiler.ins[0]
         liq.phase = 'l'
         liq.mol = bottoms_product.mol + boilup.mol
-        liq.T = liq.bubble_point_at_P().T
+        liq_T = liq.bubble_point_at_P().T
+        if liq_T > bp.T: liq_T = bp.T - 0.1
+        liq.T = liq_T
     
     def _simulate_components(self): 
         boiler = self.boiler

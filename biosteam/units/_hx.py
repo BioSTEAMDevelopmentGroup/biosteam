@@ -85,8 +85,8 @@ class HX(Unit, isabstract=True):
         try:
             self._F_Mab = shell_and_tube_material_factor_coefficients[material]
         except KeyError:
-            raise ValueError("material must be one of the following: "
-                            f"{', '.join(shell_and_tube_material_factor_coefficients)}")
+            raise AttributeError("material must be one of the following: "
+                                 f"{', '.join(shell_and_tube_material_factor_coefficients)}")
         self._material = material  
     
     @property
@@ -98,8 +98,8 @@ class HX(Unit, isabstract=True):
         try:
             self._Cb_func = Cb_dict[heat_exchanger_type]
         except KeyError:
-            raise ValueError("heat exchange type must be one of the following: "
-                            f"{', '.join(Cb_dict)}")
+            raise AttributeError("heat exchange type must be one of the following: "
+                                 f"{', '.join(Cb_dict)}")
         self._heat_exchanger_type = heat_exchanger_type     
 
     def _design(self):
@@ -211,7 +211,7 @@ class HXutility(HX):
     
     >>> from biosteam.units import HXutility
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> feed = Stream('feed', Water=200, Ethanol=200)
     >>> hx = HXutility('hx', ins=feed, outs='product', T=50+273.15,
     ...                rigorous=False) # Ignore VLE

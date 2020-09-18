@@ -12,6 +12,7 @@ from . import utils
 from ..evaluation import Metric
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
+from ..plots import style_axis
 
 __all__ = ('UnitGroup',)
 
@@ -23,7 +24,7 @@ COOLING_DUTY = 'Cooling duty'
 HEATING_DUTY = 'Heating duty'
 ELECTRICITY_CONSUMPTION = 'Electricity consumption'
 ELECTRICITY_PRODUCTION = 'Electricity production'
-CAPITAL_UNITS = '[million USD]'
+CAPITAL_UNITS = '[MM$]'
 ELEC_UNITS = '[MW]'
 DUTY_UNITS = '[GJ/hr]'
 
@@ -49,21 +50,22 @@ class UnitGroup:
     Create a UnitGroup from BioSTEAM's example ethanol subsystem:
     
     >>> from biosteam.examples import ethanol_subsystem_example
+    >>> from biosteam.process_tools import UnitGroup
     >>> ethanol_sys = ethanol_subsystem_example()
     >>> group = UnitGroup('Ethanol production', ethanol_sys.units)
     
     You can get main process results using UnitGroup methods:
         
     >>> group.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [million USD]': 13.57808163192647, 'Cooling duty [GJ/hr]': 104.4639430479312, 'Heating duty [GJ/hr]': 156.88073343258333, 'Electricity consumption [MW]': 0.40116044433570186, 'Electricity production [MW]': 0.0}
+    {'Installed equipment cost [MM$]': 13.739, 'Cooling duty [GJ/hr]': 105.023, 'Heating duty [GJ/hr]': 156.880, 'Electricity consumption [MW]': 0.401, 'Electricity production [MW]': 0.0}
     
     Each result can be retrieved separately:
     
     >>> group.get_installed_cost()
-    13.57808163192647
+    13.739
     
     >>> group.get_heating_duty()
-    156.88073343258333
+    156.880
     
     """
     __slots__ = ('name', 'units', 'metrics')
@@ -85,11 +87,9 @@ class UnitGroup:
         if isinstance(agent, str): agent = HeatUtility.get_agent(agent)
         name = agent.ID.replace('_', ' ').capitalize()
         if basis == 'duty':
-            units = 'GJ'
-            self.metric(name, units, self.name, lambda: self.get_utility_duty(agent))
+            self.metric(name, 'GJ', lambda: self.get_utility_duty(agent))
         elif basis == 'flow':
-            units = 'MT'
-            self.metric(name, units, self.name, lambda: self.get_utility_flow(agent))
+            self.metric(name, 'MT', lambda: self.get_utility_flow(agent))
         else:
             raise ValueError(f"basis must be either 'duty' or 'flow', not {repr(basis)}")
     
@@ -195,7 +195,9 @@ class UnitGroup:
         return pd.Series(self.to_dict(with_electricity_production, shorthand, with_units), name=self.name)
 
     @classmethod
-    def df_from_groups(cls, unit_groups, with_electricity_production=False, shorthand=False, fraction=False):
+    def df_from_groups(cls, unit_groups,
+                       with_electricity_production=False, 
+                       shorthand=False, fraction=False):
         """Return a pandas.DataFrame object from unit groups."""
         with_units = not fraction
         data = [i.to_series(with_electricity_production, shorthand, with_units) for i in unit_groups]
@@ -207,13 +209,14 @@ class UnitGroup:
 
     @classmethod
     def plot_bars_from_groups(cls, unit_groups, with_electricity_production=False,
-                              shorthand=True, fraction=True, horizontal_ticks=False, **kwargs):
+                              shorthand=True, fraction=True, horizontal_ticks=False, 
+                              edgecolor='k', **kwargs):
         """Plot unit groups as a stacked bar chart."""
         df = cls.df_from_groups(unit_groups,
                                 with_electricity_production,
                                 shorthand,
                                 fraction)
-        df.T.plot(kind='bar', stacked=True, **kwargs)
+        df.T.plot(kind='bar', stacked=True, edgecolor=edgecolor, **kwargs)
         locs, labels = plt.xticks()
         plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
         plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
@@ -221,6 +224,7 @@ class UnitGroup:
         if fraction:
             plt.ylabel('[%]')
             plt.ylim(0, 100)
+        style_axis(top=False)
 
     def __repr__(self):
         return f"{type(self).__name__}({repr(self.name)}, {self.units}, metrics={self.metrics})"

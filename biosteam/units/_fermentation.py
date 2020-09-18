@@ -102,22 +102,22 @@ class Fermentation(BatchBioreactor):
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
                         Cost                          USD/hr     0.908
-    Chilled water       Duty                           kJ/hr -1.03e+07
-                        Flow                         kmol/hr  6.87e+03
-                        Cost                          USD/hr      51.3
+    Chilled water       Duty                           kJ/hr -1.05e+07
+                        Flow                         kmol/hr  7.06e+03
+                        Cost                          USD/hr      52.7
     Design              Reactor volume                    m3       246
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Number of reactors                           8
-                        Reactor duty                   kJ/hr  1.03e+07
+                        Reactor duty                   kJ/hr  1.05e+07
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers                  USD  4.09e+04
-                        Reactors                         USD  1.87e+06
+    Purchase cost       Heat exchangers                  USD  4.17e+04
+                        Reactors                         USD  2.08e+06
                         Agitators                        USD  1.16e+05
                         Cleaning in place                USD  8.87e+04
-    Total purchase cost                                  USD  2.12e+06
-    Utility cost                                      USD/hr      52.2
+    Total purchase cost                                  USD  2.32e+06
+    Utility cost                                      USD/hr      53.6
     
     References
     ----------
@@ -170,7 +170,7 @@ class Fermentation(BatchBioreactor):
         self.iskinetic = iskinetic
         self.efficiency = efficiency
         
-    def _calc_efficiency(self, feed, tau):
+    def _calc_efficiency(self, feed, tau): # pragma: no cover
         # Get initial concentrations
         y, e, s, w = feed.indices(['Yeast',
                                    '64-17-5',
@@ -198,7 +198,7 @@ class Fermentation(BatchBioreactor):
         return eff
         
     @staticmethod
-    def kinetic_model(z, t, *kinetic_constants):
+    def kinetic_model(z, t, *kinetic_constants): # pragma: no cover
         """
         Return change of yeast, ethanol, and substrate concentration in kg/m3.
         

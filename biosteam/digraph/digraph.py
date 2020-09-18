@@ -31,20 +31,17 @@ Connection = namedtuple('Connection',
                         ('source', 'source_index', 'stream', 'sink_index', 'sink'),
                         module=__name__)
 
-def has_path(obj):
+def has_path(obj): # pragma: no coverage
     return hasattr(obj, 'path')
 
-def get_streams_from_units(units):
-    return set(sum([i._ins + i._outs for i in units], []))
-
 def blank_digraph(format='svg', maxiter='10000000', 
-                  Damping='0.995', K='0.5', **graph_attrs):
+                  Damping='0.995', K='0.5', **graph_attrs): # pragma: no coverage
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
     f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, **graph_attrs)
     return f
 
-def get_section_inlets_and_outlets(units, streams):
+def get_section_inlets_and_outlets(units, streams): # pragma: no coverage
     outs = []
     ins = []
     units = tuple(units)
@@ -57,7 +54,7 @@ def get_section_inlets_and_outlets(units, streams):
             ins.append(s)
     return ins, outs
 
-def minimal_digraph(ID, units, streams, **graph_attrs):
+def minimal_digraph(ID, units, streams, **graph_attrs): # pragma: no coverage
     ins, outs = get_section_inlets_and_outlets(units, streams)
     product = Stream(None)
     product._ID = ''
@@ -71,7 +68,7 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
     return digraph_from_units((feed_box, system_box, product_box),
                               **graph_attrs)
 
-def surface_digraph(path):
+def surface_digraph(path): # pragma: no coverage
     surface_units = set()  
     old_unit_connections = set()
     isa = isinstance
@@ -88,7 +85,7 @@ def surface_digraph(path):
         u._outs[:] = outs    
     return f
 
-def update_surface_units(ID, streams, units, surface_units, old_unit_connections):
+def update_surface_units(ID, streams, units, surface_units, old_unit_connections): # pragma: no coverage
     outs = []
     ins = []
     feeds = []
@@ -129,20 +126,20 @@ def update_surface_units(ID, streams, units, surface_units, old_unit_connections
     subsystem_unit = SystemUnit(ID, ins, outs)
     surface_units.add(subsystem_unit)
 
-def digraph_from_units(units, **graph_attrs):
-    streams = get_streams_from_units(units)
+def digraph_from_units(units, **graph_attrs): # pragma: no coverage
+    streams = bst.utils.streams_from_units(units)
     return digraph_from_units_and_streams(units, streams, **graph_attrs)
 
-def digraph_from_units_and_streams(units, streams, **graph_attrs):
+def digraph_from_units_and_streams(units, streams, **graph_attrs): # pragma: no coverage
     connections = get_all_connections(streams)
     return digraph_from_units_and_connections(units, connections, **graph_attrs)
 
-def digraph_from_units_and_connections(units, connections, **graph_attrs):
+def digraph_from_units_and_connections(units, connections, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs)
     update_digraph_from_units_and_connections(f, units, connections)
     return f
 
-def update_digraph_from_units_and_connections(f: Digraph, units, connections):
+def update_digraph_from_units_and_connections(f: Digraph, units, connections): # pragma: no coverage
     # Set up unit nodes
     unit_names = {}  # Contains full description (ID and line) by unit
     for u in units:
@@ -151,19 +148,19 @@ def update_digraph_from_units_and_connections(f: Digraph, units, connections):
         unit_names[u] = node['name']
     add_connections(f, connections, unit_names)    
 
-def get_stream_connection(stream):
+def get_stream_connection(stream): # pragma: no coverage
     source = stream._source
     source_index = source._outs.index(stream) if source else None
     sink = stream._sink
     sink_index = sink._ins.index(stream) if sink else None
     return Connection(source, source_index, stream, sink_index, sink)
 
-def get_all_connections(streams):
+def get_all_connections(streams): # pragma: no coverage
     return {get_stream_connection(s)
             for s in streams 
             if (s._source or s._sink)}
 
-def add_connection(f: Digraph, connection, unit_names=None):
+def add_connection(f: Digraph, connection, unit_names=None): # pragma: no coverage
     source, source_index, stream, sink_index, sink = connection
     if unit_names is None:
         has_source = bool(source)
@@ -172,7 +169,7 @@ def add_connection(f: Digraph, connection, unit_names=None):
         has_source = source in unit_names
         has_sink = sink in unit_names
     
-    if stream:
+    if stream and stream.ID:
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -208,7 +205,7 @@ def add_connection(f: Digraph, connection, unit_names=None):
                **edge_in[sink_index], **edge_out[source_index])
         f.edge(unit_names[source], unit_names[sink], style='dashed')
 
-def add_connections(f: Digraph, connections, unit_names=None):
+def add_connections(f: Digraph, connections, unit_names=None): # pragma: no coverage
     # Set attributes for graph and streams
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
@@ -219,14 +216,14 @@ def add_connections(f: Digraph, connections, unit_names=None):
     for connection in connections:
         add_connection(f, connection, unit_names)
 
-def display_digraph(digraph, format):
+def display_digraph(digraph, format): # pragma: no coverage
     if format == 'svg':
         x = display.SVG(digraph.pipe(format=format))
     else:
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
 
-def save_digraph(digraph, file, format):
+def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
         file += '.' + format
     img = digraph.pipe(format=format)
@@ -234,7 +231,7 @@ def save_digraph(digraph, file, format):
     f.write(img)
     f.close()
     
-def finalize_digraph(digraph, file, format):
+def finalize_digraph(digraph, file, format): # pragma: no coverage
     if file:
         save_digraph(digraph, file, format)
     else:

@@ -8,7 +8,6 @@
 """
 """
 import numpy as np
-from ._hx import HXutility
 from .. import Unit
 from .design_tools import size_batch
 from .decorators import cost
@@ -35,7 +34,7 @@ class BatchBioreactor(Unit, isabstract=True):
     
     **Abstract methods**
         
-    kinetic_model(z, t, *kinetic_constants) : 
+    kinetic_model(z, t, *kinetic_constants): 
         A staticmethod that returns effluent concentrations (z_t; kg/m^3)
         given the starting concentration (z; kg/m^3), reaction time (t; hr),
         and kinetic constants.

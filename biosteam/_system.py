@@ -8,43 +8,22 @@
 """
 """
 import flexsolve as flx
-from ._digraph import (digraph_from_units_and_streams,
-                       minimal_digraph,
-                       surface_digraph,
-                       finalize_digraph)
+from .digraph import (digraph_from_units_and_streams,
+                      minimal_digraph,
+                      surface_digraph,
+                      finalize_digraph)
 from thermosteam import Stream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit
-from ._report import save_report
+from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import colors, strtuple
 import biosteam as bst
 
 __all__ = ('System',)    
-
-# %% Functions for building systems
-
-def streams_from_path(path):
-    isa = isinstance
-    streams = set()
-    for i in path:
-        if isa(i, System):
-            streams.add(i.streams)
-        elif isa(i, Unit):
-            streams.update(i._ins + i._outs)
-    return streams
-
-def feeds_from_streams(streams):
-    return {s for s in streams if not s._source}
-
-def products_from_streams(streams):
-    return {s for s in streams if not s._sink}
-
-def filter_out_missing_streams(streams):
-    streams.intersection_update([i for i in streams if i])
 
 # %% Functions for taking care of numerical specifications within a system path
     
@@ -67,10 +46,12 @@ def converge_system_in_path(system):
 def simulate_unit_in_path(unit):
     specification = unit._specification
     if specification:
-        method = specification
+        try_method_with_object_stamp(unit, unit._load_stream_links)
+        try_method_with_object_stamp(unit, unit._setup)
+        try_method_with_object_stamp(unit, specification)
+        try_method_with_object_stamp(unit, unit._summary)
     else:
-        method = unit.simulate
-    try_method_with_object_stamp(unit, method)
+        try_method_with_object_stamp(unit, unit.simulate)
 
 def simulate_system_in_path(system):
     specification = system._specification
@@ -108,7 +89,7 @@ def _evaluate(self, command=None):
         except Exception as err:
             # Print exception and ask to raise error or continue evaluating
             err = colors.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
-            info = colors.info(f"Enter to raise error or type to evaluate:\n")
+            info = colors.info("Enter to raise error or type to evaluate:\n")
             command = input(err + info + ">>> ")
             if command == '': raise err
             _evaluate(self, command)        
@@ -265,9 +246,9 @@ class System(metaclass=system):
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
         if facilities:
-            f_streams = streams_from_path(facilities)
-            f_feeds = feeds_from_streams(f_streams)
-            f_products = products_from_streams(f_streams)
+            f_streams = bst.utils.streams_from_path(facilities)
+            f_feeds = bst.utils.feeds(f_streams)
+            f_products = bst.utils.products(f_streams)
             streams.update(f_streams)
             feeds.update(f_feeds)
             products.update(f_products)
@@ -370,17 +351,17 @@ class System(metaclass=system):
             streams.update(sys.streams)
         
         #: set[:class:`~thermosteam.Stream`] All feed streams in the system.
-        self.feeds = feeds_from_streams(streams)
+        self.feeds = bst.utils.feeds(streams)
         
         #: set[:class:`~thermosteam.Stream`] All product streams in the system.
-        self.products = products_from_streams(streams)
+        self.products = bst.utils.products(streams)
         
     def _load_stream_links(self):
         for u in self._unit_path: u._load_stream_links()
         
     def _filter_out_missing_streams(self):
         for stream_set in (self.streams, self.feeds, self.products):
-            filter_out_missing_streams(stream_set)
+            bst.utils.filter_out_missing_streams(stream_set)
         
     def _finalize_streams(self):
         self._load_stream_links()
@@ -507,7 +488,7 @@ class System(metaclass=system):
         elif kind == 'minimal':
             f = self._minimal_digraph(format=format, **graph_attrs)
         else:
-            raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
+            raise ValueError("kind must be either 'thorough', 'surface', or 'minimal'")
         finalize_digraph(f, file, format)
             
     # Methods for running one iteration of a loop
@@ -531,11 +512,11 @@ class System(metaclass=system):
         if (mol < 0.).any():
             raise InfeasibleRegion('material flow')
         recycle = self.recycle
-        rmol = recycle.mol
+        rmol = recycle.imol.data
         rmol[:] = mol
         T = recycle.T
         self._run()
-        self._mol_error = mol_error = abs(mol - recycle.mol).sum()
+        self._mol_error = mol_error = abs(mol - rmol).sum()
         self._T_error = T_error = abs(T - recycle.T)
         self._iter += 1
         if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
@@ -565,18 +546,26 @@ class System(metaclass=system):
     # Methods for convering the recycle stream    
     def _fixed_point(self):
         """Converge system recycle iteratively using fixed-point iteration."""
-        self._reset_iter()
-        flx.conditional_fixed_point(self._iter_run, self.recycle.mol.copy())
+        self._solve(flx.conditional_fixed_point)
         
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
-        self._reset_iter()
-        flx.conditional_wegstein(self._iter_run, self.recycle.mol.copy())
+        self._solve(flx.conditional_wegstein)
     
     def _aitken(self):
         """Converge the system recycle iteratively using Aitken's method."""
+        self._solve(flx.conditional_aitken)
+        
+    def _solve(self, solver):
+        """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
-        flx.conditional_aitken(self._iter_run, self.recycle.mol.copy())
+        try:
+            solver(self._iter_run, self.recycle.imol.data.copy())
+        except IndexError as error:
+            try:
+                solver(self._iter_run, self.recycle.imol.data.copy())
+            except:
+                raise error
     
     # Default converge method
     _converge_method = _aitken
@@ -629,7 +618,7 @@ class System(metaclass=system):
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
-        from warning import warn
+        from warnings import warn
         warn(DeprecationWarning("'reset_flows' will be depracated; please use 'empty_process_streams'"))
         self.empty_process_streams()
         
@@ -641,10 +630,15 @@ class System(metaclass=system):
             if stream not in feeds: stream.empty()
 
     def empty_recycles(self):
+        """Reset all recycle streams to zero flow."""
         self._reset_errors()        
         if self.recycle: self.recycle.empty()
         for system in self.subsystems:
             system.empty_recycles()
+
+    def reset_cache(self):
+        """Reset cache of all unit operations."""
+        for unit in self.units: unit.reset_cache()
 
     def simulate(self):
         """Converge the path and simulate all units."""
@@ -688,7 +682,7 @@ class System(metaclass=system):
         if end:
             print(f'\nFinished debugging{end}')
         else:
-            print(f'\n        Finished debugging')
+            print('\n        Finished debugging')
 
     # Representation
     def __str__(self):
@@ -796,6 +790,7 @@ class FacilityLoop(metaclass=system):
     _aitken = System._aitken
     _wegstein = System._wegstein
     _converge_method = System._converge_method
+    _solve = System._solve
     converge_method = System.converge_method
     
     def _reset_iter(self):

@@ -1,5 +1,4 @@
 thermosteam>=0.8.2
-lazypkg>=1.4
 IPython>=7.9.0
 colorpalette>=0.3.0
 chaospy>=3.0.11

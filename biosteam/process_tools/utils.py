@@ -5,11 +5,10 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-import numpy as np
+import biosteam as bst
 from .._heat_utility import HeatUtility
 
 __all__ = ('heat_exchanger_utilities_from_units',
-           'stream_mass_balance',
            'units_with_costs',
            'get_utility_flow',
            'get_utility_duty',
@@ -25,6 +24,11 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'group_by_types',
            'filter_by_types',
            'filter_by_lines',
+           'volume_of_chemical_in_units',
+           'set_construction_material',
+           'set_construction_material_to_stainless_steel',
+           'set_construction_material_to_carbon_steel',
+           'default_utilities',
 )
     
 def units_with_costs(units):
@@ -100,6 +104,92 @@ def get_electricity_production(power_utilities):
     """Return the total electricity production of all PowerUtility objects in MW."""
     return sum([i.production for i in power_utilities]) / 1000 # MW
 
+def volume_of_chemical_in_units(units, chemical):
+    """Return volume of chemical that occupied in given units [m^3]."""
+    isa = isinstance
+    F_vol = 0.
+    for i in units:
+        if isa(i, bst.BatchBioreactor):
+            feed = i.ins[0]
+            z_vol = feed.ivol[chemical] / feed.F_vol
+            D = i.design_results
+            F_vol += D['Number of reactors'] * D['Reactor volume'] * z_vol
+        elif isa(i, bst.Tank):
+            feed = i.ins[0]
+            z_vol = feed.ivol[chemical] / feed.F_vol
+            D = i.design_results
+            F_vol += D['Total volume'] * z_vol
+    return F_vol
+
+def set_construction_material(units, pressure_vessel_material, tray_material,
+                              tank_material, heat_exchanger_material, pump_material):
+    """
+    Set the construction material of all vessels, columns, trays,
+    heat exchangers, and pumps
+    
+    Parameters
+    ----------
+    units : Iterable[Unit]
+        Unit operations to set construction material.
+    pressure_vessel_material : str
+        Construction material for pressure vessels (includes distillation 
+        columns and flash vessels).
+    tray_material : str
+        Construction material for column trays.
+    tank_material : str
+        Construction material for tanks.
+    pump_material : str
+        Construction material for pumps.
+    
+    """
+    isa = isinstance
+    HeatExchanger = bst.HX
+    Distillation = bst.BinaryDistillation
+    PressureVessel = bst.units.design_tools.PressureVessel
+    Tank = bst.Tank
+    Pump = bst.Pump
+    for u in units:
+        for i in (u, *u.auxiliary_units):
+            if isa(i, HeatExchanger):
+                i.material = heat_exchanger_material
+            elif isa(i, Distillation):
+                i.vessel_material = pressure_vessel_material
+                i.tray_material = tray_material
+            elif isa(i, PressureVessel):
+                i.vessel_material = pressure_vessel_material
+            elif isa(i, Tank):
+                i.vessel_material = tank_material
+            elif isa(i, Pump):
+                i.material = pump_material
+
+def set_construction_material_to_stainless_steel(units, kind='304'):
+    """
+    Set the construction material of all vessels, columns, trays,
+    heat exchangers, and pumps to stainless steel.
+    
+    Parameters
+    ----------
+    kind : str, "304" or "316"
+        Type of stainless steel. 
+    
+    """
+    if kind not in ('304', '316'): 
+        raise ValueError("kind must be either '304' or '316', not '%s'" %kind)
+    material = 'Stainless steel ' + kind
+    set_construction_material(units, material, material, 'Stainless steel',
+                              'Stainless steel/stainless steel', 
+                              'Stainless steel')
+
+def set_construction_material_to_carbon_steel(units):
+    """
+    Set the construction material of all vessels, columns, trays,
+    heat exchangers, and pumps to carbon steel or cast iron.
+    
+    """
+    set_construction_material(units, 'Carbon steel', 'Carbon steel', 
+                              'Carbon steel', 'Carbon steel/carbon steel', 
+                              'Cast iron')
+
 def get_tea_results(tea, product=None, feedstock=None):
     """Return a dictionary with general TEA results."""
     TCI = tea.TCI / 1e6
@@ -125,95 +215,9 @@ def get_tea_results(tea, product=None, feedstock=None):
         MFP = tea.solve_price(feedstock) * 907.18474
         dct['MFP [USD/ton]'] = round(MFP)
     return dct
-
-def stream_mass_balance(chemical_IDs, variable_inlets, constant_inlets=(),
-                        constant_outlets=(), is_exact=True, balance='flow'):
-    """
-    Solve stream mass balance by iteration.
+        
+def default_utilities():
+    """Reset utilities back to BioSTEAM's defaults."""
+    bst.HeatUtility.default_agents()
+    bst.PowerUtility.default_price()
     
-    Parameters
-    ----------
-    chemical_IDs : tuple[str]
-        Chemicals that will be used to solve mass balance linear equations.
-        The number of chemicals must be same as the number of input streams varied.
-    variable_inlets : Iterable[Stream]
-        Inlet streams that can vary in net flow rate to accomodate for the
-        mass balance.
-    constant_inlets: Iterable[Stream], optional
-        Inlet streams that cannot vary in flow rates.
-    constant_outlets: Iterable[Stream], optional
-        Outlet streams that cannot vary in flow rates.
-    is_exact=True : bool, optional
-        True if exact flow rate solution is required for the specified IDs.
-    kind='flow' : {'flow', 'composition'}, optional
-          * 'flow': Satisfy output flow rates
-          * 'composition': Satisfy net output molar composition
-    
-    """
-    # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
-    # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-    solver = np.linalg.solve if is_exact else np.linalg.lstsq
-
-    # Set up constant and variable streams
-    if not variable_inlets:
-        raise ValueError('variable_inlets must contain at least one stream')
-    index = variable_inlets[0].chemicals.get_index(chemical_IDs)
-    mol_out = sum([s.mol for s in constant_outlets])
-
-    if balance == 'flow':
-        # Perform the following calculation: Ax = b = f - g
-        # Where:
-        #    A = flow rate array
-        #    x = factors
-        #    b = target flow rates
-        #    f = output flow rates
-        #    g = constant inlet flow rates
-
-        # Solve linear equations for mass balance
-        A = np.array([s.mol for s in variable_inlets]).transpose()[index, :]
-        f = mol_out[index]
-        g = sum([s.mol[index] for s in constant_inlets])
-        b = f - g
-        x = solver(A, b)
-
-        # Set flow rates for input streams
-        for factor, s in zip(x, variable_inlets):
-            s.mol[:] = s.mol * factor
-
-    elif balance == 'composition':
-        # Perform the following calculation:
-        # Ax = b
-        #    = sum( A_ * x_guess + g_ )f - g
-        #    = A_ * x_guess * f - O
-        # O  = sum(g_)*f - g
-        # Where:
-        # A_ is flow array for all species
-        # g_ is constant flows for all species
-        # Same variable definitions as in 'flow'
-
-        # Set all variables
-        A_ = np.array([s.mol for s in variable_inlets]).transpose()
-        A = np.array([s.mol for s in variable_inlets]).transpose()[index, :]
-        F_mol_out = mol_out.sum()
-        z_mol_out = mol_out / F_mol_out if F_mol_out else mol_out
-        f = z_mol_out[index]
-        g_ = sum([s.mol for s in constant_inlets])
-        g = g_[index]
-        O = sum(g_) * f - g
-
-        # Solve by iteration
-        x_guess = np.ones_like(index)
-        not_converged = True
-        while not_converged:
-            # Solve linear equations for mass balance
-            b = (A_ * x_guess).sum()*f + O
-            x_new = solver(A, b)
-            not_converged = sum(((x_new - x_guess)/x_new)**2) > 0.0001
-            x_guess = x_new
-
-        # Set flow rates for input streams
-        for factor, s in zip(x_new, variable_inlets):
-            s.mol = s.mol * factor
-    
-    else:
-        raise ValueError( "balance must be one of the following: 'flow', 'composition'")

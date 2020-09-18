@@ -11,6 +11,8 @@ from thermosteam.units_of_measure import DisplayUnits, convert
 
 __all__ = ('PowerUtility',)
 
+default_price = 0.0782
+
 class PowerUtility:
     """
     Create an PowerUtility object that, when called, calculates the cost of 
@@ -58,15 +60,17 @@ class PowerUtility:
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(rate='kW', cost='USD/hr')
     
-    #: [float] USD/kWhr
-    price = 0.0782
-    
     def __init__(self):
         #: Electricity consumption [kW]
         self.consumption = 0.
         
         #: Electricity production [kW]
         self.production = 0.
+    
+    @classmethod
+    def default_price(cls):
+        """Reset price back to BioSTEAM's default."""
+        cls.price = default_price #: [float] USD/kWhr
     
     @property
     def rate(self):
@@ -99,6 +103,16 @@ class PowerUtility:
         self.consumption = sum([i.consumption for i in power_utilities])
         self.production = sum([i.production for i in power_utilities])
     
+    def copy_like(self, power_utility):
+        """Copy consumption anf production rates from another power utility."""
+        self.consumption = power_utility.consumption
+        self.production = power_utility.production
+    
+    def scale(self, scale):
+        """Scale consumption and production accordingly."""
+        self.consumption *= scale
+        self.production *= scale
+    
     @classmethod
     def sum(cls, power_utilities):
         """
@@ -119,4 +133,6 @@ class PowerUtility:
     _ipython_display = show    
     
     def __repr__(self):
-        return (f'<{type(self).__name__}: {self.rate:.3g} kW, {self.cost:.3g} USD/hr>')    
+        return (f'<{type(self).__name__}: {self.rate:.3g} kW, {self.cost:.3g} USD/hr>')
+    
+PowerUtility.default_price()

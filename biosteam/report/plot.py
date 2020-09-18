@@ -13,7 +13,7 @@ import numpy as np
 
 __all__ = ['plot_cost_summary']
 
-def plot_cost_summary(system, cost='Capital'):
+def plot_cost_summary(system, cost='Capital'): # pragma: no coverage
     cost = cost.capitalize()
     if cost == 'Capital':
         colkey = 'Fixed Capital Investment (10^6 USD)'

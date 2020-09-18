@@ -8,14 +8,13 @@
 """
 """
 from .. import Unit, PowerUtility
-from thermosteam import MultiStream
+from thermosteam import MultiStream, separations
 from math import pi
 import numpy as np
 from . import design_tools as design
 from ._splitter import Splitter
 from ._hx import HX, HXutility
 from .._graphics import vertical_vessel_graphics
-from .design_tools import separations
 
 exp = np.exp
 ln = np.log
@@ -86,7 +85,7 @@ class Flash(design.PressureVessel, Unit):
     --------
     >>> from biosteam.units import Flash
     >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Glycerol'])
+    >>> settings.set_thermo(['Water', 'Glycerol'], cache=True)
     >>> feed = Stream('feed', Glycerol=300, Water=1000)
     >>> bp = feed.bubble_point_at_P() # Feed at bubble point T
     >>> feed.T = bp.T
@@ -114,19 +113,19 @@ class Flash(design.PressureVessel, Unit):
                         Glycerol  298
     >>> F1.results()
     Flash                                             Units            F1
-    Medium pressure steam Duty                        kJ/hr      5.05e+07
-                          Flow                      kmol/hr      1.39e+03
-                          Cost                       USD/hr           384
+    Medium pressure steam Duty                        kJ/hr      5.06e+07
+                          Flow                      kmol/hr       1.4e+03
+                          Cost                       USD/hr           385
     Design                Vessel type                            Vertical
-                          Length                         ft          16.5
+                          Length                         ft          15.5
                           Diameter                       ft           8.5
-                          Weight                         lb         1e+04
+                          Weight                         lb      9.57e+03
                           Wall thickness                 in         0.438
                           Vessel material                    Carbon steel
-    Purchase cost         Vertical pressure vessel      USD      6.22e+04
+    Purchase cost         Vertical pressure vessel      USD      6.02e+04
                           Heat exchanger                USD      4.35e+04
-    Total purchase cost                                 USD      1.06e+05
-    Utility cost                                     USD/hr           384
+    Total purchase cost                                 USD      1.04e+05
+    Utility cost                                     USD/hr           385
 
 
     References
@@ -251,7 +250,7 @@ class Flash(design.PressureVessel, Unit):
             args = self._vertical_vessel_pressure_diameter_and_length()
         elif vessel_type == 'Horizontal': 
             args = self._horizontal_vessel_pressure_diameter_and_length()
-        else: raise RuntimeError('unknown vessel type')
+        else: raise RuntimeError('unknown vessel type') # pragma: no cover
         self.heat_exchanger._summary()
         self.design_results.update(
             self._vessel_design(*args)
@@ -277,12 +276,12 @@ class Flash(design.PressureVessel, Unit):
         if isinstance(hx, HX):
             index = hx.ins.index(vapor)
             stream = hx.outs[index]
-            if isinstance(stream, MultiStream):
+            if isinstance(stream, MultiStream): # pragma: no cover
                 vapor = stream['g']
                 F_mass = vapor.F_mass
                 F_vol = vapor.F_vol
             else:
-                if stream.phase == 'g':
+                if stream.phase == 'g': # pragma: no cover
                     F_mass = stream.F_mass
                     F_vol = stream.F_vol
                 else:
@@ -366,7 +365,7 @@ class Flash(design.PressureVessel, Unit):
 
         # Calculate the vapor disengagement height
         Hv = 0.5*Dvd
-        Hv2 = (2.0 if has_mist_eliminator else 3.0) + dN/2.0
+        Hv2 = (2.0 if has_mist_eliminator else 3.0) + dN/2.0 # pragma: no cover
         if Hv2 < Hv: Hv = Hv2
         Hv = Hv
 
@@ -387,9 +386,9 @@ class Flash(design.PressureVessel, Unit):
         # Initialize LD
         if P > 0 and P <= 264.7:
             LD = 1.5/250.0*(P-14.7)+1.5
-        elif P > 264.7 and P <= 514.7:
+        elif P > 264.7 and P <= 514.7: # pragma: no cover
             LD = 1.0/250.0*(P-14.7)+2.0
-        elif P > 514.7:
+        elif P > 514.7: # pragma: no cover
             LD = 5.0
 
         D = (4.0*(Vh+Vs)/(0.6*pi*LD))**(1.0/3.0)
@@ -446,7 +445,7 @@ class Flash(design.PressureVessel, Unit):
                 if D <= 4.0: break
                 else: D -= 0.5
 
-            if LD > 7.2:
+            if LD > 7.2: # pragma: no cover
                 D += 0.5
             else: break
 
@@ -544,7 +543,7 @@ class SplitFlash(Flash):
         ms.mix_from(self.outs)
         super()._design()
     
-
+# TODO: Remove this in favor of partition coefficients
 class RatioFlash(Flash):
     _N_heat_utilities = 1
 
@@ -582,7 +581,7 @@ class RatioFlash(Flash):
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
 
-    def _design(self):
+    def _design(self): # pragma: no cover
         self.heat_exchanger.outs[0] = ms = self._multi_stream
         ms.mix_from(self.outs)
         super()._design()
@@ -605,7 +604,7 @@ class Evaporator_PQ(Unit):
     def T(self):
         return self._T
     @T.setter
-    def T(self, T):
+    def T(self, T): # pragma: no cover
         water = getattr(self.chemicals, '7732-18-5')
         self._P = water.Psat(T)
         self._Hvap = water.Hvap(T)
@@ -644,7 +643,7 @@ class Evaporator_PQ(Unit):
         H = feed_H + Q - liquid.H
         if f:
             V = H/(f * self._Hvap)
-            if V < 0:
+            if V < 0: 
                 V = 0
             elif V > 1:
                 V = 1
@@ -659,7 +658,8 @@ class Evaporator_PQ(Unit):
 
 class Evaporator_PV(Unit):
     _N_heat_utilities = 1
-
+    _N_outs = 2
+    
     @property
     def P(self):
         return self._P
@@ -672,7 +672,7 @@ class Evaporator_PV(Unit):
     def T(self):
         return self._T
     @T.setter
-    def T(self, T):
+    def T(self, T): # pragma: no cover
         water = getattr(self.chemicals, '7732-18-5')
         self._P = water.Psat(T)
         self._T = T

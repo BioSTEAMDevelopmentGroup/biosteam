@@ -8,9 +8,9 @@
 """
 """
 
-from . import (plots, utils)
+from . import (plots, utils, sankey)
 
-__all__ = (*plots.__all__, *utils.__all__)
+__all__ = ('sankey', *plots.__all__, *utils.__all__)
 
 from .plots import *
 from .utils import *

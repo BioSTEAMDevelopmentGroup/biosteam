@@ -18,7 +18,7 @@ __all__ = ('ConveyingBelt',)
 class ConveyingBelt(Unit):
     length = 40 #: ft
     height = 20 #: ft
-    _N_outs = 1
+    _N_ins = _N_outs = 1
     _has_power_utility = True
     _minimum_flow = 120
     _units = {'Flow rate': 'ft^3/hr'}

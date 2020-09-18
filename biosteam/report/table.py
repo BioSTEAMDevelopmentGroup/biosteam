@@ -11,47 +11,58 @@ import numpy as np
 import pandas as pd
 from warnings import warn
 import openpyxl
-from .._tea import TEA, CombinedTEA
-from thermosteam import Stream
-from thermosteam.units_of_measure import get_dimensionality, convert, stream_units_of_measure
-from thermosteam.exceptions import DimensionError
+from .._tea import CombinedTEA
 import os
 
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
-           'save_report', 'results_table', 'heat_utilities_table',
-           'power_utilities_table')
+           'save_report', 'unit_result_tables', 'heat_utilities_table',
+           'power_utilities_table', 'tables_to_excel')
 
-def _stream_key(s):
+def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
     if num.isnumeric(): return int(num)
     else: return -1
 
 # %% Helpful functions
 
-def _save(tables, writer, sheet_name='Sheet1', n_row=1):
+def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2): # pragma: no coverage
     """
-    Save a list of tables as an excel file.
+    Save a list of tables as an excel file and return the row number at which
+    another consecutive table would start.
     
     Parameters
     ----------
-    tables : iterable[DataFrame]
-    writer : ExcelWritter
+    tables : iterable[pandas.DataFrame]
+        Tables to save to excel.
+    writer : pandas.ExcelWritter
+        Writer to manage data stream to excel.
+    sheet : str
+        Name of sheet to save data.
+    n_row : int
+        Row number to begin saving data.
+    row_spacing : int
+        Number of rows between tables.
+    
+    Returns
+    -------
+    n_row : int
+        Row number for next table.
         
     """
+    row_spacing += 1 # Account for Python index offset
     for t in tables:
         label = t.columns.name
-        t.to_excel(writer, sheet_name, 
+        t.to_excel(writer, sheet, 
                    startrow=n_row, index_label=label)
-        n_row += len(t.index) + 2
-    
+        n_row += len(t.index) + row_spacing
     return n_row
 
 # %% Units
 
-def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
+def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # pragma: no coverage
     """
     Save a system report as an xlsx file.
     
@@ -87,7 +98,7 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
         tea = system.TEA
         if isinstance(tea, CombinedTEA):
             costs = [cost_table(i) for i in tea.TEAs]
-            _save(costs, writer, 'Itemized costs')
+            tables_to_excel(costs, writer, 'Itemized costs')
         else:
             # Cost table
             cost = cost_table(tea)
@@ -110,13 +121,13 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
         else:
             streams_by_chemicals[chemicals] = [i]
     stream_tables = []
-    for streams in streams_by_chemicals.values():
-        stream_tables.append(stream_table(streams, **stream_properties))
-    _save(stream_tables, writer, 'Stream table')
+    for chemicals, streams in streams_by_chemicals.items():
+        stream_tables.append(stream_table(streams, chemicals=chemicals, **stream_properties))
+    tables_to_excel(stream_tables, writer, 'Stream table')
     
     # Heat utility tables
     heat_utilities = heat_utilities_table(units)
-    n_row = _save(heat_utilities, writer, 'Utilities')
+    n_row = tables_to_excel(heat_utilities, writer, 'Utilities')
     
     # Power utility table
     power_utility = power_utilities_table(units)
@@ -125,14 +136,17 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties):
                            startrow=n_row)
     
     # General desing requirements
-    results = results_table(units)
-    _save(results, writer, 'Design requirements')
+    results = unit_result_tables(units)
+    tables_to_excel(results, writer, 'Design requirements')
     writer.save()
     if diagram_completed: os.remove("flowsheet.png")
 
 save_system_results = save_report
 
-def results_table(units):
+def unit_result_tables(units,
+                       include_utilities=False, 
+                       include_total_cost=False,
+                       include_installed_cost=False): # pragma: no coverage
     """
     Return a list of results tables for each unit type.
 
@@ -145,7 +159,7 @@ def results_table(units):
     tables : list[DataFrame]
     
     """
-    units.sort(key=(lambda u: u.line))
+    units = sorted(units, key=(lambda u: u.line))
     
     # Organize units by units of measure:
     organized = {}
@@ -161,18 +175,20 @@ def results_table(units):
         table = None
         while (table is None) and units:
             u, *units = units
-            table = u.results(include_utilities=False,
-                              include_total_cost=False)
+            table = u.results(include_utilities=include_utilities,
+                              include_total_cost=include_total_cost,
+                              include_installed_cost=include_installed_cost)
         if table is None: continue
         for u in units[1:]:
-            table[u.ID] = u.results(with_units=False, include_utilities=False,
-                                   include_total_cost=False)
+            table[u.ID] = u.results(with_units=False, 
+                                    include_utilities=include_utilities,
+                                    include_total_cost=include_total_cost,
+                                    include_installed_cost=include_installed_cost)
         table.columns.name = (u.line, '')
         tables.append(table)
-        table = u.results()
     return tables
     
-def cost_table(tea):
+def cost_table(tea): # pragma: no coverage
     """Return a cost table as a pandas DataFrame object.
 
     Parameters
@@ -185,8 +201,8 @@ def cost_table(tea):
 
     """
     columns = ('Unit operation',
-              f'Purchase cost (10^6 USD)',
-              f'Utility cost (10^6 USD/yr)')
+               'Purchase cost (10^6 USD)',
+               'Utility cost (10^6 USD/yr)')
     units = tea.units
     operating_days = tea.operating_days
     N_units = len(units)
@@ -210,7 +226,7 @@ def cost_table(tea):
     
     return df
 
-def heat_utilities_table(units):
+def heat_utilities_table(units): # pragma: no coverage
     """Return a list of utility tables for each heat utility source.
     
     Parameters
@@ -260,7 +276,7 @@ def heat_utilities_table(units):
     return tables
     
 
-def power_utilities_table(units):
+def power_utilities_table(units): # pragma: no coverage
     # Sort power utilities by unit type
     units = sorted(units, key=(lambda u: type(u).__name__))
     units = [u for u in units if u.power_utility]
@@ -275,7 +291,7 @@ def power_utilities_table(units):
 
 # %% Streams
 
-def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
+def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -> 'DataFrame': # pragma: no coverage
     """Return a stream table as a pandas DataFrame object.
 
     Parameters
@@ -290,9 +306,13 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
     
     # Prepare rows and columns
     ss = sorted([i for i in streams if i.ID], key=_stream_key)
-    chemical_IDs = ss[0].chemicals.IDs
+    if not chemicals: 
+        all_chemicals = tuple(set([i.chemicals for i in ss]))
+        sizes = [(i, chemical.size) for i, chemical in enumerate(all_chemicals)]
+        index, size = max(sizes, key=lambda x: x[1])
+        chemicals = all_chemicals[index]
     n = len(ss)
-    m = len(chemical_IDs)
+    m = chemicals.size
     p = len(props)
     array = np.empty((m+p+5, n), dtype=object)
     IDs = n*[None]
@@ -305,8 +325,8 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
     fracs = array[p+5:m+p+5, :]
     for j in range(n):
         s = ss[j]
-        sources[j] = str(s.source or '-')
-        sinks[j] = str(s.sink or '-')
+        sources[j] = s.source.ID if s.source else '-'
+        sinks[j] = s.sink.ID if s.sink else '-'
         IDs[j] = s.ID
         phase = ''
         for i in s.phase:
@@ -321,19 +341,27 @@ def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
         phase = phase.rstrip('|')
         phases[j] = phase
         flow_j = s.get_flow(units=flow)
-        flows[j] = net_j = sum(flow_j)
-        fracs[:,j] = flow_j/net_j if net_j > 0 else 0
+        flows[j] = net_j = flow_j.sum()
+        if percent: net_j /= 100.
+        fracs_j = flow_j/net_j if net_j > 1e-24 else 0
+        if s.chemicals is chemicals:
+            fracs[:, j] = fracs_j
+        else:
+            fracs[:, j] = 0.
+            fracs[chemicals.get_index(s.chemicals.IDs), j] = fracs_j
         i = 0
         for attr, units in props.items():
             prop_molar_data[i, j] = s.get_property(attr, units)
             i += 1
-    
-    # Set the right units
-    i = 0
-    prop_molar_keys = [f'{attr} ({unit})' for attr, unit in props.items()]
-    
-    # Make data frame object
-    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', 'Composition:') + tuple(chemical_IDs)
+    index = (
+        'Source', 
+        'Sink',
+        'Phase', 
+        *[f'{attr} ({units})' for attr, units in props.items()], 
+        f'flow ({flow})',
+        ('Composition [%]:' if percent else 'Composition:'),
+        *chemicals.IDs
+    )
     return DataFrame(array, columns=IDs, index=index)
 
 

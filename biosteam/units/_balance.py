@@ -8,7 +8,7 @@
 """
 """
 from .._unit import Unit
-from ..process_tools import stream_mass_balance
+from thermosteam.separations import material_balance
 from .._graphics import process_specification_graphics
 from ..utils import static
 
@@ -58,7 +58,7 @@ class MassBalance(Unit):
     >>> from biosteam.units import (Mixer, Splitter, StorageTank, Pump,
     ...                             Flash, MassBalance)
     >>> main_flowsheet.set_flowsheet('mass_balance_example')
-    >>> settings.set_thermo(['Water', 'Ethanol'])
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> water = Stream('water',
     ...                Water=40,
     ...                units='lb/s',
@@ -118,7 +118,7 @@ class MassBalance(Unit):
         self.description = description
         
     def _run(self):
-        stream_mass_balance(
+        material_balance(
             chemical_IDs=self.chemical_IDs,
             variable_inlets=self.variable_inlets,
             constant_outlets=self.constant_outlets, 

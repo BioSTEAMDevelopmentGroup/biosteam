@@ -2,13 +2,67 @@ build
 dist
 biosteam.egg-info
 **/__pycache__
+*.pyc
+*.pyo
+.gitignore
+.pypirc
+dist
+MANIFEST
+.coverage
+.coveralls.yml
+htmlcov
+_build
+.cache
+__pycache__
+prof
+*Pyreverse*
+monkeytype.sqlite3
+*.spyproject*
+
+# Docs #
+########
+# No need to save these files
 docs/tutorial/.ipynb_checkpoints
 docs/.ipynb_checkpoints
 docs/_build/*
 docs/_static/*
 docs/_templates/*
 
-# macOS generated files #
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.idea
+ # Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+#*.gz
+*.iso
+*.jar
+*.rar
+#*.tar
+#*.zip
+ 
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+ 
+# mac OS generated files #
 ######################
 .DS_Store
 .DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+surfaces

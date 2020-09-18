@@ -8,12 +8,15 @@
 """
 """
 from warnings import warn
-from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
-                             QLabel, QWidget, QMainWindow, QMenu,
-                             QMessageBox, QScrollArea, QSizePolicy, 
-                             QGridLayout, QSizePolicy, QFrame)
-from PyQt5.QtCore import QSize, QTimer, Qt
-from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
+try:
+    from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
+                                 QLabel, QWidget, QMainWindow, QMenu,
+                                 QMessageBox, QScrollArea, QSizePolicy, 
+                                 QGridLayout, QSizePolicy, QFrame)
+    from PyQt5.QtCore import QSize, QTimer, Qt
+    from PyQt5.QtGui import QPixmap, QPalette, QImage, QFont
+except:
+    pass
 from .digraph import (get_all_connections,
                       digraph_from_units_and_connections,
                       update_digraph_from_units_and_connections,
@@ -22,7 +25,7 @@ from .digraph import (get_all_connections,
 
 __all__ = ('FlowsheetWidget',)
 
-class FlowsheetWidget(QMainWindow):
+class FlowsheetWidget(QMainWindow): # pragma: no coverage
 
     def __init__(self, flowsheet):
         super().__init__()

@@ -12,7 +12,7 @@ import numpy as np
 
 __all__ = ('TicToc',)
 
-class TicToc:
+class TicToc: # pragma: no coverage
     """Create a TicToc class with tic toc functions that measure elapsed time."""
     __slots__ = ['ID', 'record', '_start']
 

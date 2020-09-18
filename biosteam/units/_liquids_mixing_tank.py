@@ -16,6 +16,27 @@ __all__ = ('LiquidsMixingTank',)
 @cost('Power', 'Turbine agitator', N='Number of agitators',
       ub=60, CE=567, cost=3730, n=0.54, BM=2.25)
 class LiquidsMixingTank(bst.Unit, PressureVessel):
+    """
+    Create a LiquidsMixingTank for mixing two liquid phases.
+    
+    Parameters
+    ----------
+    ins : streams
+        Inlet fluids to be mixed.
+    outs : stream
+        Mixed outlet fluid.
+    tau=0.022 : float
+        Residence time [hr].
+    agitator_kW_per_m3=1.0 : float
+        Electricity consumption in kW / m3 of volume.
+    vessel_material='Carbon steel' : str, optional
+        Vessel construction material.
+    vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
+        Vessel type.
+    length_to_diameter=1 : float
+        Length to diameter ratio.
+        
+    """
     _units = {**PressureVessel._units,
               'Volume': 'm^3',
               'Power': 'hp'}

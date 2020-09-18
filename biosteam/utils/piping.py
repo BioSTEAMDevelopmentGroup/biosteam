@@ -15,8 +15,6 @@ __all__ = ('MissingStream', 'Ins', 'Outs', 'Sink', 'Source',
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections')
 
-isa = isinstance
-
 # %% Utilities
 
 def pipe_info(source, sink):
@@ -33,6 +31,7 @@ def pipe_info(source, sink):
     return f"{source}{sink}"
 
 def as_stream(stream):
+    isa = isinstance
     if isa(stream, Stream):
         return stream
     elif isa(stream, str):
@@ -79,6 +78,40 @@ class MissingStream:
         material_stream = Stream(ID, thermo=source.thermo)
         source._outs.replace(self, material_stream)
         sink._ins.replace(self, material_stream)
+    
+    def get_total_flow(units):
+        return 0.
+    
+    @property
+    def H(self):
+        return 0.
+    @property
+    def Hf(self):
+        return 0.
+    @property
+    def Hnet(self):
+        return 0.
+    @property
+    def LHV(self):
+        return 0.
+    @property
+    def HHV(self):
+        return 0.
+    @property
+    def Hvap(self):
+        return 0.
+    @property
+    def C(self):
+        return 0.
+    @property
+    def F_mol(self):
+        return 0.
+    @property
+    def F_mass(self):
+        return 0.
+    @property
+    def F_vol(self):
+        return 0.
     
     def isempty(self):
         return True
@@ -130,6 +163,7 @@ class StreamSequence:
         if streams == ():
                 self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
+            isa = isinstance
             if fixed_size:
                 self._initialize_missing_streams()
                 if streams:
@@ -200,6 +234,13 @@ class StreamSequence:
         self._redock(stream)
         self._streams[int] = stream
     
+    def append(self, stream):
+        if self._fixed_size: 
+            raise RuntimeError(f"size of '{type(self).__name__}' object is fixed")
+        self._undock(stream)
+        self._dock(stream)
+        self._streams.append(stream)
+    
     def replace(self, stream, other_stream):
         index = self.index(stream)
         self[index] = other_stream
@@ -239,12 +280,13 @@ class StreamSequence:
         return self._streams[index]
             
     def __setitem__(self, index, item):
+        isa = isinstance
         if isa(index, int):
             if item:
                 assert isa(item, Stream), (
                     f"'{type(self).__name__}' object can only contain "
                     f"'Stream' objects; not '{type(item).__name__}'")
-            else:
+            elif not isa(item, MissingStream):
                 item = self._create_missing_stream()
             self._set_stream(index, item)
         elif isa(index, slice):
@@ -254,7 +296,7 @@ class StreamSequence:
                     assert isa(stream, Stream), (
                         f"'{type(self).__name__}' object can only contain "
                         f"'Stream' objects; not '{type(stream).__name__}'")
-                else:
+                elif not isa(stream, MissingStream):
                     stream = self._create_missing_stream()
                 streams.append(stream)
             self._set_streams(index, item)
