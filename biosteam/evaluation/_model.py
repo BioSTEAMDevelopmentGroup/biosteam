@@ -415,7 +415,7 @@ class Model(State):
         """
         from scipy.stats import spearmanr
         if not parameters: parameters = self._parameters
-        table = self.table
+        table = self.table.dropna()
         parameter_indices = var_indices(parameters)
         parameter_data = [table[i] for i in parameter_indices]
         metric_indices = var_indices(metrics) if metrics else self._metric_indices 
