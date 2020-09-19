@@ -202,8 +202,7 @@ class Model(State):
     >>> bst.CE = 567.5
 
     """
-    __slots__ = ('_user_table',     # [DataFrame] All arguments and results (made by user).
-                 '_table',          # [DataFrame] All arguments and results.
+    __slots__ = ('table',          # [DataFrame] All arguments and results.
                  '_metrics',        # tuple[Metric] Metrics to be evaluated by model.
                  '_index',          # list[int] Order of sample evaluation for performance.
                  '_samples',        # [array] Argument sample space.
@@ -215,17 +214,16 @@ class Model(State):
     def __init__(self, system, metrics, specification=None, skip=False, parameters=None):
         super().__init__(system, specification, skip, parameters)
         self.metrics = metrics
-        self._samples = self._table = self._user_table = None
+        self._samples = self.table = None
         
     def copy(self):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
         if self._update:
-            copy._table = self._table.copy()
-            copy._user_table = self._user_table.copy() if self._user_table else None
+            copy.table = self.table.copy()
         else:
-            copy._samples = copy._table = self._user_table = None
+            copy._samples = copy.table = None
         return copy
     
     def _erase(self):
@@ -243,14 +241,6 @@ class Model(State):
                 raise ValueError(f"metrics must be '{Metric.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
         self._metrics = tuple(metrics)
-    
-    @property
-    def table(self):
-        """[DataFrame] Table of the sample space and results."""
-        return self._table if self._user_table is None else self._user_table
-    @table.setter
-    def table(self, table):
-        self._user_table = table
     
     def load_samples(self, samples):
         """Load samples for evaluation
@@ -281,8 +271,8 @@ class Model(State):
         metrics = self._metrics
         N_metrics = len(metrics)
         empty_metric_data = np.zeros((N_samples, N_metrics))
-        self._user_table = self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                                      columns=var_columns(tuple(parameters) + metrics))
+        self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+                                  columns=var_columns(tuple(parameters) + metrics))
         self._samples = samples
         self._setters = [i.setter for i in parameters]
         self._getters = [i.getter for i in metrics]
