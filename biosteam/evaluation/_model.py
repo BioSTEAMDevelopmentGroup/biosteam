@@ -269,8 +269,8 @@ class Model(State):
         metrics = self._metrics
         N_metrics = len(metrics)
         empty_metric_data = np.zeros((N_samples, N_metrics))
-        self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                   columns=var_columns(tuple(parameters) + metrics))
+        self._user_table = self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+                                                      columns=var_columns(tuple(parameters) + metrics))
         self._samples = samples
         self._setters = [i.setter for i in parameters]
         self._getters = [i.getter for i in metrics]
@@ -294,7 +294,8 @@ class Model(State):
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
-        self._table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
+        table = self.table
+        table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
     
     def _evaluate_sample_thorough(self, sample):
         for f, s in zip(self._setters, sample): f(s)
@@ -358,7 +359,7 @@ class Model(State):
         
         """
         if self._samples is None: raise RuntimeError('must load samples before evaluating')
-        table = self._table
+        table = self.table
         N_samples, N_parameters = table.shape
         N_points = len(coordinate)
         
@@ -428,7 +429,7 @@ class Model(State):
                             )
                )
     
-    def create_fitted_model(self, parameters, metrics):
+    def create_fitted_model(self, parameters, metrics): # pragma: no cover
         from pipeml import FittedModel
         Xdf = self.table[[i.index for i in parameters]]
         ydf_index = metrics.index if isinstance(metrics, Metric) else [i.index for i in metrics]
