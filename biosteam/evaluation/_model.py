@@ -185,6 +185,18 @@ class Model(State):
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
 
+    Model objects also presents methods for sensitivity analysis such as Spearman's correlation:        
+
+    >>> df_spearman = model.spearman()
+    >>> df_spearman['Biorefinery', 'Internal rate of return [%]']
+    Element            Parameter                   
+    Stream-lipidcane   Lipid fraction                   0.794
+    Fermentation-R301  Efficiency                       0.333
+                       Number of reactors              0.0545
+                       Exponential cost coefficient   -0.0667
+    Stream-lipidcane   Feedstock price [USD/kg]        -0.491
+    Name: (Biorefinery, Internal rate of return [%]), dtype: float64        
+
     >>> # Reset for future tests
     >>> bst.process_tools.default_utilities()
     >>> bst.CE = 567.5
@@ -426,6 +438,10 @@ class Model(State):
                             index=indices_to_multiindex(
                                 parameter_indices, 
                                 ('Element', 'Parameter')
+                            ),
+                            columns=indices_to_multiindex(
+                                metric_indices,
+                                ('Element', 'Metric')
                             )
                )
     
