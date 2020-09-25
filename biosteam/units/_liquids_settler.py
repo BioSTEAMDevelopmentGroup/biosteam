@@ -183,7 +183,8 @@ class LiquidsPartitionSettler(LiquidsSettler):
     area_to_feed=0.1 : float, optional
         Diameter * length per gpm of feed [ft2/gpm].
     partition_coefficients : 1d array, optional
-        Partition coefficients of chemicals in equilibrium. 
+        Partition coefficients of chemicals in equilibrium (molar 
+        composition ratio of the top fluid over the bottom fluid). 
     partition_IDs: tuple[str], optional
         IDs of chemicals in equilibrium.
     forced_split : 1d array, optional

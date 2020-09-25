@@ -254,7 +254,8 @@ class MultiStageMixerSettlers(bst.Unit):
     N_stages : int
         Number of stages.
     partition_data : {'IDs': tuple[str], 'K': 1d array}, optional
-        IDs of chemicals in equilibrium and partition coefficients. If given,
+        IDs of chemicals in equilibrium and partition coefficients (molar 
+        composition ratio of the raffinate over the extract). If given,
         The mixer-settlers will be modeled with these constants. Otherwise,
         partition coefficients are computed based on temperature and composition.
     carrier_chemical : str
