@@ -24,6 +24,7 @@ import numpy as np
 from . import utils
 from flexsolve import njitable
 import biosteam as bst
+from warnings import warn
 
 __all__ = ('compute_purchase_cost_of_trays',
            'compute_purchase_cost_of_tower',
@@ -188,6 +189,11 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     -----
     The wall thickness is given by [1]_. See source code for details.
     
+    Warning
+    -------
+    This function is only applicable to positive internal pressures (no vacuums).
+    Vacuum pressure vessels may require stiffening rings and higher vessel thickness.
+    
     """
     # TODO: Incorporate temperature for choosing S and M
     Di = Di*12 # ft to in
@@ -200,14 +206,7 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     
     # Get design pressure, which should be higher than operating pressure.
     Po_gauge = Po - 14.69
-    if Po_gauge < 0:
-        # TODO: Double check vacuum calculation
-        Pd = -Po_gauge
-        tE = 1.3*Di*(Pd*L/M/Di)**0.4
-        tEC = L*(0.18*Di - 2.2)*10**-5 - 0.19
-        tv = tE + tEC
-        return tv
-    elif Po_gauge < 5:
+    if Po_gauge < 5:
         Pd = 10
     elif Po_gauge < 1000:
         Pd = np.exp(0.60608 + 0.91615*np.log(Po)) + 0.0015655*np.log(Po)**2

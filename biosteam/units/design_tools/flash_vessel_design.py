@@ -258,6 +258,11 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     -----
     Equations are given by [2]_. See source code for details.
     
+    Warning
+    -------
+    This function is only applicable to positive internal pressures (no vacuums).
+    Vacuum pressure vessels may require stiffening rings and higher vessel thickness.
+    
     """
     S = 15000.0     # Vessel material stress value (assume carbon-steel)
     Ca = 1.0/8.0    # Corrosion Allowance in inches
