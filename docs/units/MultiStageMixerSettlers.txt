@@ -1,0 +1,5 @@
+MultiStageMixerSettlers
+=======================
+
+.. autoclass:: biosteam.units.MultiStageMixerSettlers
+   :members:

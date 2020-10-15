@@ -11,6 +11,7 @@ from .specification_factors import (pressure_vessel_material_factors,
                                     material_densities_lb_per_ft3)
 from . import flash_vessel_design as design
 from ...utils import bounds_warning
+from warnings import warn
 
 __all__ = ('PressureVessel',)
 
@@ -80,6 +81,10 @@ class PressureVessel:
     def _horizontal_vessel_design(self, pressure, diameter, length) -> dict:
         # Calculate vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
+        if pressure < 14.68:
+            warn('vacuum pressure vessel ASME codes not implemented yet; '
+                 'wall thickness may be inaccurate and stiffening rings may be '
+                 'required')
         VW, VWT = design.compute_vessel_weight_and_wall_thickness(
             pressure, diameter, length, rho_M)
         bounds_warning(self, 'Horizontal vessel weight', VW, 'lb',
@@ -96,6 +101,10 @@ class PressureVessel:
     
     def _vertical_vessel_design(self, pressure, diameter, length) -> dict:
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
+        if pressure < 14.68:
+            warn('vacuum pressure vessel ASME codes not implemented yet; '
+                 'wall thickness may be inaccurate and stiffening rings may be '
+                 'required')
         VW, VWT = design.compute_vessel_weight_and_wall_thickness(
             pressure, diameter, length, rho_M)
         Design = {}

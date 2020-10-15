@@ -20,8 +20,10 @@ units
    MassBalance
    MixTank
    Mixer
+   MixerSettler
    MolecularSieve
    MultiEffectEvaporator
+   MultiStageMixerSettlers
    ProcessSpecification
    Pump
    ShortcutColumn

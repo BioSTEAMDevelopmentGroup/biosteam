@@ -19,6 +19,7 @@ from .design_tools import column_design as design
 from .. import Unit
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
+from warnings import warn
 from ._hx import HXutility
 from ..exceptions import InfeasibleRegion
 import matplotlib.pyplot as plt
@@ -923,7 +924,10 @@ class BinaryDistillation(Unit):
         S_diameter = design.compute_tower_diameter(V_vol, U_f, f, A_dn) * 3.28
         Po = self.P * 0.000145078 # to psi
         rho_M = material_densities_lb_per_in3[self.vessel_material]
-        
+        if Po < 14.68:
+            warn('vacuum pressure vessel ASME codes not implemented yet; '
+                 'wall thickness may be inaccurate and stiffening rings may be '
+                 'required')
         if is_divided:
             Design['Rectifier stages'] = Rstages
             Design['Stripper stages'] =  Sstages

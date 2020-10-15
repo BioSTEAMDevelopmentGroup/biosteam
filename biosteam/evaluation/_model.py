@@ -185,13 +185,24 @@ class Model(State):
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
 
+    Model objects also presents methods for sensitivity analysis such as Spearman's correlation:        
+
+    >>> df_spearman = model.spearman()
+    >>> df_spearman['Biorefinery', 'Internal rate of return [%]']
+    Element            Parameter                   
+    Stream-lipidcane   Lipid fraction                   0.794
+    Fermentation-R301  Efficiency                       0.333
+                       Number of reactors              0.0545
+                       Exponential cost coefficient   -0.0667
+    Stream-lipidcane   Feedstock price [USD/kg]        -0.491
+    Name: (Biorefinery, Internal rate of return [%]), dtype: float64        
+
     >>> # Reset for future tests
     >>> bst.process_tools.default_utilities()
     >>> bst.CE = 567.5
 
     """
-    __slots__ = ('_user_table',     # [DataFrame] All arguments and results (made by user).
-                 '_table',          # [DataFrame] All arguments and results.
+    __slots__ = ('table',          # [DataFrame] All arguments and results.
                  '_metrics',        # tuple[Metric] Metrics to be evaluated by model.
                  '_index',          # list[int] Order of sample evaluation for performance.
                  '_samples',        # [array] Argument sample space.
@@ -203,17 +214,16 @@ class Model(State):
     def __init__(self, system, metrics, specification=None, skip=False, parameters=None):
         super().__init__(system, specification, skip, parameters)
         self.metrics = metrics
-        self._samples = self._table = self._user_table = None
+        self._samples = self.table = None
         
     def copy(self):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
         if self._update:
-            copy._table = self._table.copy()
-            copy._user_table = self._user_table.copy() if self._user_table else None
+            copy.table = self.table.copy()
         else:
-            copy._samples = copy._table = self._user_table = None
+            copy._samples = copy.table = None
         return copy
     
     def _erase(self):
@@ -231,14 +241,6 @@ class Model(State):
                 raise ValueError(f"metrics must be '{Metric.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
         self._metrics = tuple(metrics)
-    
-    @property
-    def table(self):
-        """[DataFrame] Table of the sample space and results."""
-        return self._table if self._user_table is None else self._user_table
-    @table.setter
-    def table(self, table):
-        self._user_table = table
     
     def load_samples(self, samples):
         """Load samples for evaluation
@@ -269,8 +271,8 @@ class Model(State):
         metrics = self._metrics
         N_metrics = len(metrics)
         empty_metric_data = np.zeros((N_samples, N_metrics))
-        self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                   columns=var_columns(tuple(parameters) + metrics))
+        self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+                                  columns=var_columns(tuple(parameters) + metrics))
         self._samples = samples
         self._setters = [i.setter for i in parameters]
         self._getters = [i.getter for i in metrics]
@@ -294,7 +296,8 @@ class Model(State):
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
-        self._table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
+        table = self.table
+        table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
     
     def _evaluate_sample_thorough(self, sample):
         for f, s in zip(self._setters, sample): f(s)
@@ -358,7 +361,7 @@ class Model(State):
         
         """
         if self._samples is None: raise RuntimeError('must load samples before evaluating')
-        table = self._table
+        table = self.table
         N_samples, N_parameters = table.shape
         N_points = len(coordinate)
         
@@ -425,10 +428,14 @@ class Model(State):
                             index=indices_to_multiindex(
                                 parameter_indices, 
                                 ('Element', 'Parameter')
+                            ),
+                            columns=indices_to_multiindex(
+                                metric_indices,
+                                ('Element', 'Metric')
                             )
                )
     
-    def create_fitted_model(self, parameters, metrics):
+    def create_fitted_model(self, parameters, metrics): # pragma: no cover
         from pipeml import FittedModel
         Xdf = self.table[[i.index for i in parameters]]
         ydf_index = metrics.index if isinstance(metrics, Metric) else [i.index for i in metrics]

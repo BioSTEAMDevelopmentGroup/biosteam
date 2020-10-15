@@ -147,8 +147,8 @@ Examples in the readme may be tested using `doctest's testfile <https://docs.pyt
 method. In the biorefineries repository you can find `example tests <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/BioSTEAM%202.x.x/tests>`__.
 
 The `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`__ 
-package is not yet ready for `pytest`. Instead, run the doctests.py module
-in the tests folder of your local thermosteam repository.
+package also uses `pytest` for testing (just run pytest on your local 
+thermosteam repository).
 
 Documentation
 -------------
