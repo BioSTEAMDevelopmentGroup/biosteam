@@ -15,13 +15,9 @@ TODO:
 @author: yalinli_cabbi
 """
 
-# from .._unit import Unit
-# from .decorators import cost
-# from .design_tools.cost_index import CEPCI_by_year
-from biosteam._unit import Unit
-from biosteam.units.decorators import cost
-from biosteam.units.design_tools.cost_index import CEPCI_by_year
-
+from .._unit import Unit
+from .decorators import cost
+from .design_tools.cost_index import CEPCI_by_year
 
 __all__ = ('AmineAbsorption', 'CO2Compression')
 
