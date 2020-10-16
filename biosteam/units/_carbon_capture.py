@@ -1,19 +1,10 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020, Yoel Cortes-Pena and contributors <yoelcortes@gmail.com>
+# Copyright (C) 2020, Yoel Cortes-Pena <yoelcortes@gmail.com> and Yalin Li <zoe.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-
-"""
-Created on Thu Oct 15 14:57:52 2020
-
-TODO:
-    Maybe can try to use BioSTEAM's columns, pumps, heat exchanges, etc.
-
-@author: yalinli_cabbi
-"""
 
 from .._unit import Unit
 from .decorators import cost
@@ -66,8 +57,6 @@ class AmineAbsorption(Unit):
     
     Examples
     --------
-    Simulate a Fermentation object which models batch fermentation for the
-    production of 1st generation ethanol using yeast.
     
     >>> import biosteam as bst
     >>> import thermosteam as tmo
@@ -179,7 +168,7 @@ class AmineAbsorption(Unit):
       cost=5.08e6, S=24123, CE=CEPCI_by_year[2009], n=0.6, BM=3.3)
 class CO2Compression(Unit):
     '''
-    Create a CO2Compression object for compression of gas CO2 into liquid CO2 [1]_.
+    Create a CO2Compression unit for compression of gas CO2 into liquid CO2 [1]_.
     Cost is extrapolated via the 6/10th rule [2]_. Pump power usage is
     based on [2]_. Bare module factor is based on BioSTEAM pump.
     
@@ -192,7 +181,6 @@ class CO2Compression(Unit):
     
     Examples
     --------
-    Simulate a series of compressors to compress gaseous CO2 into liquid.
     
     >>> import biosteam as bst
     >>> import thermosteam as tmo
