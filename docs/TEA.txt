@@ -1,0 +1,5 @@
+TEA
+===
+
+.. autoclass:: biosteam.TEA
+   :members:

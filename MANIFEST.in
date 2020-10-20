@@ -1,0 +1,19 @@
+include LICENSE.txt AUTHORS README.rst pytest.ini 
+recursive-include biosteam *
+recursive-include tests *
+global-exclude .spyproject
+global-exclude tests/.spyproject/*
+global-exclude tests/.spyproject
+global-exclude *__pycache__*
+global-exclude *.py[co]
+global-exclude *.nbi
+global-exclude *.nbc
+global-exclude *.coverage
+global-exclude *.so
+global-exclude *.ipynb_checkpoints
+global-exclude ipynb_checkpoints
+global-exclude *-checkpoint.ipynb
+global-exclude *checkpoint*
+global-exclude .*ipynb_checkpoints*
+prune thermosteam/__pycache__
+recursive-exclude docs *ipynb_checkpoints

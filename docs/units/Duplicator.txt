@@ -1,0 +1,5 @@
+Duplicator
+==========
+
+.. autoclass:: biosteam.units.Duplicator
+   :members:
