@@ -29,8 +29,8 @@ class ConveyingBelt(Unit):
         if F_vol < self._minimum_flow:
             lb_warning(self, 'Flow rate', F_vol, 'kg/hr', 3, self._minimum_flow)
         F_mass = feed.F_mass * 0.0006124 # kg/hr to lb/s
-        self.power_utility(0.00058 * F_mass**0.82 * self.length
-                           + self.height*0.00182*F_mass * 0.7457) # kW
+        self.power_utility.consumption = 0.7457 * (0.00058 * F_mass**0.82 * self.length
+                                                   + self.height*0.00182*F_mass) # kW
         
         
 
