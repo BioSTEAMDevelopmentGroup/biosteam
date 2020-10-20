@@ -84,7 +84,7 @@ class Fermentation(BatchBioreactor):
         flow (kmol/hr): Water     6.66e+03
                         Glucose   10.5
                         Sucrose   62.5
-                        DryYeast  1.03e+04
+                        Yeast  1.03e+04
     [1] missing stream
     outs...
     [0] CO2
@@ -97,7 +97,7 @@ class Fermentation(BatchBioreactor):
         flow (kmol/hr): Water     6.6e+03
                         Ethanol   243
                         Glucose   13.6
-                        DryYeast  1.03e+04
+                        Yeast  1.03e+04
     >>> F1.results()
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.6
