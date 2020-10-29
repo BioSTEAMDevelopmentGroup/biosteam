@@ -175,8 +175,13 @@ def add_connection(f: Digraph, connection, unit_names=None): # pragma: no covera
             # Feed stream case
             f.node(stream.ID)
             edge_in = sink._graphics.edge_in
-            f.attr('edge', arrowtail='none', arrowhead='none',
+            try:
+                f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[sink_index])
+            except:
+                print(stream)
+                f.attr('edge', arrowtail='none', arrowhead='none',
+                   tailport='e', **edge_in[-1])
             f.edge(stream.ID, unit_names[sink])
         elif has_source and not has_sink:
             # Product stream case
@@ -193,7 +198,9 @@ def add_connection(f: Digraph, connection, unit_names=None): # pragma: no covera
                 f.attr('edge', arrowtail='none', arrowhead='normal',
                        **edge_in[sink_index], **edge_out[source_index])
             except:
-                stream.show()
+                print(stream)
+                f.attr('edge', arrowtail='none', arrowhead='normal',
+                       **edge_in[-1], **edge_out[-1])
             f.edge(unit_names[source], unit_names[sink], label=stream.ID)
         else:
             f.node(stream.ID)
