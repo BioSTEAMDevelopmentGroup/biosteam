@@ -62,7 +62,7 @@ class Flowsheets:
             super().__delattr__(key)
     
     def __repr__(self):
-        return f'Register:\n ' + '\n '.join([repr(i) for i in self])
+        return 'Register:\n ' + '\n '.join([repr(i) for i in self])
     
     
 class Flowsheet:
@@ -167,7 +167,7 @@ class Flowsheet:
         elif kind == 'minimal':
             f = minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
         else:
-            raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
+            raise ValueError("kind must be either 'thorough', 'surface', or 'minimal'.")
         finalize_digraph(f, file, format)
     
     def _surface_digraph(self, format, **graph_attrs):

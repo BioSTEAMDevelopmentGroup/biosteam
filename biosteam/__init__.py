@@ -8,7 +8,7 @@
 """
 """
 
-__version__ = '2.20.24'
+__version__ = '2.20.25'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 CE = 567.5 
