@@ -171,16 +171,16 @@ class Model(State):
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
     >>> table['Biorefinery'] # Only biorefinery metrics
     Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
-    0                                0.16                       -18.8
-    1                               0.135                       -17.9
-    2                               0.181                       -25.5
-    3                               0.149                       -19.8
+    0                               0.159                       -18.9
+    1                               0.135                         -18
+    2                               0.181                       -25.6
+    3                               0.148                       -19.9
     4                               0.162                       -25.1
-    5                               0.168                       -22.2
-    6                               0.145                       -20.5
-    7                               0.177                       -21.6
-    8                                0.18                       -24.6
-    9                                0.17                       -23.5
+    5                               0.167                       -22.2
+    6                               0.144                       -20.6
+    7                               0.176                       -21.6
+    8                                0.18                       -24.7
+    9                                0.17                       -23.6
     
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
@@ -195,7 +195,7 @@ class Model(State):
                        Number of reactors              0.0545
                        Exponential cost coefficient   -0.0667
     Stream-lipidcane   Feedstock price [USD/kg]        -0.491
-    Name: (Biorefinery, Internal rate of return [%]), dtype: float64        
+    Name: (Biorefinery, Internal rate of return [%]), dtype: float64    
 
     >>> # Reset for future tests
     >>> bst.process_tools.default_utilities()
