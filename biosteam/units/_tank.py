@@ -9,19 +9,114 @@
 """
 from .design_tools.specification_factors import vessel_material_factors
 from .design_tools.tank_design import (
+    TankPurchaseCostAlgorithm,
     compute_number_of_tanks_and_total_purchase_cost,
     storage_tank_purchase_cost_algorithms,
     mix_tank_purchase_cost_algorithms)
 from ..utils import ExponentialFunctor
 from .._unit import Unit
 from ._mixer import Mixer
-import biosteam as bst
 
-from warnings import warn
+__all__ = ('Tank', 'MixTank', 'StorageTank', 'tank_factory')
 
-__all__ = ('Tank', 'MixTank', 'StorageTank')
+# %% Factory functions
 
-# %%
+def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9, 
+                 V_min=0., V_max=1e6, V_units='m3', material='Carbon steel', 
+                 vessel_type='Tank', BM=None, module=None, mixing=False):
+    """
+    Return a Tank sublcass.
+
+    Parameters
+    ----------
+    name : str
+        Name of subclass.
+    CE : float
+        Chemical plant cost index.
+    cost : float
+        Cost of tank.
+    S : float
+        Size of tank.
+    tau : float
+        Residence time [hr].
+    n : float, optional
+        Scale up factor. The default is 0.6.
+    kW_per_m3 : float, optional
+        Electricity consumption per volume [kW/m3]. The default is 0..
+    V_wf : float, optional
+        Fraction of working volume. The default is 0.9.
+    V_min : , optional
+        Minimum tank volume. The default is 0..
+    V_max : TYPE, optional
+        Maximum tank volume. The default is 1e6.
+    V_units : str, optional
+        Volume units of measure. The default is 'm3'.
+    material : TYPE, optional
+        Vessel material. The default is 'Carbon steel'.
+    vessel_type : str, optional
+        Name of vessel type. The default is 'Tank'.
+    BM : float, optional
+        Bare module factor. The default is 2.3 for all tanks.
+    module : str, optional
+        Module to implement class.
+    mixing: bool, optional
+        Whether multiple streams are mixed in the tank.
+        
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> Corn = bst.Chemical('Corn', search_db=False, default=True, phase='s')
+    >>> bst.settings.set_thermo([Corn])
+    >>> CornStorage = bst.tank_factory('CornStorage', 
+    ...     CE=525, cost=979300., S=185400, tau=259.2, n=1.0, V_wf=0.9, V_max=3e5, 
+    ...     V_units='m3'
+    ... )
+    >>> corn = bst.Stream('corn', Corn=46350.72444)
+    >>> T101 = CornStorage('T101', corn, 'outlet')
+    >>> T101.simulate()
+    >>> T101.show()
+    CornStorage: T101
+    ins...
+    [0] corn
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Corn  4.64e+04
+    outs...
+    [0] outlet
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Corn  4.64e+04
+    >>> T101.results()
+    Corn storage                          Units     T101
+    Design              Residence time       hr      259
+                        Total volume        m^3 1.27e+04
+                        Number of tanks                1
+    Purchase cost       Tanks               USD 7.26e+04
+    Total purchase cost                     USD 7.26e+04
+    Utility cost                         USD/hr        0
+
+    """
+    dct = {
+        'purchase_cost_algorithms': {
+            vessel_type: TankPurchaseCostAlgorithm(
+                ExponentialFunctor(cost/S**n, n), V_min, V_max, V_units, CE, material
+            )
+        },
+        '_default_vessel_type': vessel_type,
+        '_default_tau': tau,
+        '_default_V_wf': V_wf,
+        '_default_vessel_material': material,
+        '_default_kW_per_m3': kW_per_m3,
+    }
+    if BM: 
+        dct['_BM'] = {'Tanks': BM}
+    if mixing:
+        dct['_ins_size_is_fixed'] = False
+        dct['_N_ins'] = 2
+        dct['_run'] = Mixer._run
+    cls = type(name, (Tank,), dct)
+    if module: cls.__module__ = module
+    return cls
+
+# %% Abstract tank class
 
 class Tank(Unit, isabstract=True):
     r"""
@@ -37,6 +132,8 @@ class Tank(Unit, isabstract=True):
         Fraction of working volume over total volume.
     vessel_material : str
         Vessel material.
+    kW_per_m3 : float
+        Electricity requirement per unit volume [kW/m^3].
 
     Notes
     -----
@@ -67,16 +164,44 @@ class Tank(Unit, isabstract=True):
         All purchase cost algorithms options for selected vessel types.
 
     """
+    _default_kW_per_m3 = 0.
     _units = {'Total volume': 'm^3',
               'Residence time': 'hr'}
     _BM = {'Tanks': 2.3}
     _N_outs = 1
+    
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
+                  vessel_type=None, tau=None, V_wf=None, 
+                  vessel_material=None, kW_per_m3=0.):
+        Unit.__init__(self, ID, ins, outs, thermo)
+
+        # [str] Vessel type.
+        self.vessel_type = vessel_type or self._default_vessel_type
+
+        #: [float] Residence time in hours.
+        self.tau = tau or self._default_tau
+
+        #: [float] Fraction of working volume to total volume.
+        self.V_wf = V_wf or self._default_V_wf
+
+        #: [str] Vessel construction material.
+        self.vessel_material = vessel_material or self._default_vessel_material
+        
+        # [float] Electricity requirement per unit volume [kW/m^3].
+        self.kW_per_m3 = kW_per_m3 or self._default_kW_per_m3
 
     def __init_subclass__(cls, isabstract=False):
         if not isabstract:
-            if not hasattr(cls, 'purchase_cost_algorithms'):
+            hasfield = hasattr
+            if not hasfield(cls, 'purchase_cost_algorithms'):
                 raise NotImplementedError("Tank subclass must implement "
                                           "a 'purchase_cost_algorithms' dictionary")
+            attributes = ('_default_vessel_type', '_default_tau', 
+                          '_default_V_wf', '_default_vessel_material')
+            for i in attributes:
+                if not hasfield(cls, i):
+                    raise NotImplementedError("Tank subclass must implement "
+                                              "a '{i}' attribute")
         super().__init_subclass__(isabstract)
 
     @property
@@ -123,12 +248,12 @@ class Tank(Unit, isabstract=True):
         design_results['Total volume'] = tau * self.F_vol_out / self.V_wf
 
     def _cost(self):
-        N, Cp = compute_number_of_tanks_and_total_purchase_cost(
-            self.design_results['Total volume'],
-            self.purchase_cost_algorithm,
-            self._F_M)
-        self.design_results['Number of tanks'] = N
-        self.purchase_costs['Tanks'] = Cp
+        design_results = self.design_results
+        V = design_results['Total volume']
+        design_results['Number of tanks'], self.purchase_costs['Tanks'] = compute_number_of_tanks_and_total_purchase_cost(
+            V, self.purchase_cost_algorithm, self._F_M
+        )
+        self.power_utility.consumption = self.kW_per_m3 * V
 
 
 # %% Storage tank purchase costs    
@@ -146,12 +271,14 @@ class StorageTank(Tank):
         Outlet.
     vessel_type : str, optional
         Vessel type. Defaults to 'Field erected'.
-    tau=672 : float
-        Residence time [hr].
-    V_wf=1 : float
-        Fraction of working volume over total volume.
+    tau : float, optional
+        Residence time [hr]. Defaults to 672.
+    V_wf : float, optional
+        Fraction of working volume over total volume. Defaults to 1.
     vessel_material : str, optional
         Vessel material. Defaults to 'Stainless steel'.
+    kW_per_m3 : float, optional
+        Electricity requirement per unit volume [kW/m^3]. Defaults to 0.
 
     Notes
     -----
@@ -209,22 +336,12 @@ class StorageTank(Tank):
         In Product and Process Design Principles; Wiley, 2017; pp 426–485.
 
     """
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                  vessel_type='Field erected', tau=4*7*24,
-                  V_wf=1.0, vessel_material='Stainless steel'):
-        Unit.__init__(self, ID, ins, outs, thermo)
-
-        # [str] Vessel type.
-        self.vessel_type = vessel_type
-
-        #: [float] Residence time in hours.
-        self.tau = tau
-
-        #: [float] Fraction of working volume to total volume.
-        self.V_wf = V_wf
-
-        #: [str] Vessel construction material.
-        self.vessel_material = vessel_material
+    _outs_size_is_fixed = _ins_size_is_fixed = True
+    _default_vessel_type = 'Field erected'
+    _default_tau = 4*7*24
+    _default_V_wf = 1.0
+    _default_vessel_material = 'Stainless steel'
+    _default_kW_per_m3 = 0.
     
     #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
     purchase_cost_algorithms = storage_tank_purchase_cost_algorithms
@@ -240,16 +357,16 @@ class MixTank(Tank):
         Inlet fluids to be mixed.
     outs : stream
         Outlet.
-    vessel_type : str
-        Vessel type.
-    tau=1 : float
-        Residence time [hr].
-    V_wf=0.8 : float
-        Fraction of working volume over total volume.
+    vessel_type : str, optional
+        Vessel type. Defaults to 'Conventional'.
+    tau : float, optional
+        Residence time [hr]. Defaults to 1.
+    V_wf : float, optional
+        Fraction of working volume over total volume. Defaults to 0.8.
     vessel_material : str, optional
         Vessel material. Defaults to 'Stainless steel'.
-    kW_per_m3=0.0985 : float
-        Electricity requirement per unit volume [kW/m^3].
+    kW_per_m3 : float, optional
+        Electricity requirement per unit volume [kW/m^3]. Defaults to 0.0985.
     
     Notes
     -----
@@ -273,34 +390,15 @@ class MixTank(Tank):
     """
     _N_ins = 2
     _run = Mixer._run
-    
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                  vessel_type="Conventional", tau=1,
-                  V_wf=0.8, vessel_material='Stainless steel',
-                  kW_per_m3=0.0985):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        
-        # [float] Electricity requirement per unit volume [kW/m^3].
-        self.kW_per_m3 = kW_per_m3
-        
-        # [str] Vessel type.
-        self.vessel_type = vessel_type
-
-        #: [float] Residence time in hours.
-        self.tau = tau
-
-        #: [float] Fraction of working volume to total volume.
-        self.V_wf = V_wf
-
-        #: [str] Vessel construction material.
-        self.vessel_material = vessel_material
+    _default_vessel_type = 'Conventional'
+    _default_tau = 1
+    _default_V_wf = 0.8
+    _default_vessel_material = 'Stainless steel'
+    _default_kW_per_m3 = 0.0985
     
     #: dict[str: VesselPurchaseCostAlgorithm] All cost algorithms available for vessel types.
     purchase_cost_algorithms = mix_tank_purchase_cost_algorithms
 
-    def _cost(self):
-        super()._cost()
-        self.power_utility(self.kW_per_m3 * self.design_results['Total volume'])
 
 MixTank._graphics.edge_in *= 3
 MixTank._graphics.edge_out *= 3

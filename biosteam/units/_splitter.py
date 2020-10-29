@@ -12,7 +12,7 @@ from .._graphics import splitter_graphics
 from ._process_specification import ProcessSpecification
 from thermosteam import separations
 
-__all__ = ('Splitter', 'FakeSplitter',
+__all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter',
            'ReversedSplitter', 'ReversedSplit')
 
 class Splitter(Unit):
@@ -131,6 +131,61 @@ class Splitter(Unit):
 
     def _run(self):
         separations.split(*self.ins, *self.outs, self.split)
+
+
+class PhaseSplitter(Unit):
+    """
+    Create a PhaseSplitter object that splits the feed to outlets by phase.
+    
+    Parameters
+    ----------
+    ins : stream
+        Feed.
+    outs : streams
+        Outlets.
+        
+    Notes
+    -----
+    Phases allocate to outlets in alphabetical order. For example,
+    if the feed.phases is 'gls' (i.e. gas, liquid, and solid), the phases
+    of the outlets will be 'g', 'l', and 's'.
+        
+    Examples
+    --------
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = bst.Stream('feed', Water=10, Ethanol=10)
+    >>> feed.vle(V=0.5, P=101325)
+    >>> s1 = bst.Stream('s1')
+    >>> s2 = bst.Stream('s2')
+    >>> PS = bst.PhaseSplitter('PS', feed, [s1, s2])
+    >>> PS.simulate()
+    >>> PS.show()
+    PhaseSplitter: PS
+    ins...
+    [0] feed
+        phases: ('g', 'l'), T: 353.88 K, P: 101325 Pa
+        flow (kmol/hr): (g) Water    3.861
+                            Ethanol  6.139
+                        (l) Water    6.139
+                            Ethanol  3.861
+    outs...
+    [0] s1
+        phase: 'g', T: 353.88 K, P: 101325 Pa
+        flow (kmol/hr): Water    3.86
+                        Ethanol  6.14
+    [1] s2
+        phase: 'l', T: 353.88 K, P: 101325 Pa
+        flow (kmol/hr): Water    6.14
+                        Ethanol  3.86
+    
+    """
+    _N_ins = 1
+    _N_outs = 2
+    _graphics = splitter_graphics
+    
+    def _run(self):
+        separations.phase_split(*self.ins, self.outs)
 
 
 class FakeSplitter(Unit):

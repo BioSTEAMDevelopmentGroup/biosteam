@@ -12,7 +12,7 @@ import copy
 from ._design import design
 from math import ceil
 
-__all__ = ('cost', 'add_cost', 'CostItem')
+__all__ = ('cost', 'copy_algorithm', 'add_cost', 'CostItem')
 
 class CostItem:
     """
@@ -101,10 +101,34 @@ def _decorated_cost(self):
             kW += x.kW*F
     if kW: self.power_utility(kW)
 
+def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
+    if not cls: return lambda cls: copy_algorithm(other, cls, run, design, cost)
+    dct = cls.__dict__
+    if run:
+        if '_run' in dct: raise RuntimeError('run method already implemented')
+        cls._run = other._run
+    if cost:
+        if '_cost' in dct: raise RuntimeError('cost method already implemented')
+        cls._cost = other._cost
+        try:
+            cls._BM = other._BM
+            cls.cost_items = other.cost_items
+        except: pass
+    if design:
+        if '_design' in dct: raise RuntimeError('design method already implemented')
+        cls._design = other._design
+        cls._units = other._units
+        try:
+            cls._decorated_cost = other._decorated_cost
+            cls._design_basis_ = other._design_basis_
+            cls._decorated_design = other._decorated_design
+        except: pass
+    return cls
+
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
          units=None, fsize=None, N=None):    
     r"""
-    Add item (free-on-board) purchase cost based on exponential scale up:
+    Add item (free-on-board) purchase cost based on exponential scale up.
     
     Parameters
     ----------
@@ -118,19 +142,21 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
         Purchase cost of item.
     n : float
         Exponential factor.
-    S = 1 : float
+    S = 1 : float, optional
         Size.
-    ub : float
-         Size limit.
-    kW : float
-        Electricity rate.
-    BM = 1: float
-        Bare module factor (installation factor).
-    units = None : str, optional
+    ub : float, optional
+        Size limit, if any.
+    kW : float, optional
+        Electricity rate. Defaults to 0.
+    BM : float, optional
+        Bare module factor (installation factor). Defaults to 1.
+    units : str, optional
         Units of measure.
-    fsize = None : function, optional
-        Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.
-    N : str
+    fsize : function, optional
+        Accepts a Unit object argument and returns the size parameter. If not 
+        given, defaults to function predefined for given name and units of 
+        measure.
+    N : str, optional
         Attribute name for number of parallel units.
         
     Examples

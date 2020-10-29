@@ -7,16 +7,18 @@
 # for license details.
 """
 """
+import biosteam as bst
 from ._solids_separator import SolidsSeparator
 from .decorators import cost
 
-__all__ = ('CrushingMill',)
+__all__ = ('CrushingMill', 'HammerMill')
 
 @cost('Flow rate', units='kg/hr', cost=1.5e6, CE=541.7,
       n=0.6, S=335e3, kW=2010, BM=2.3)
 class CrushingMill(SolidsSeparator):
     """
-    Create CrushingMill object.
+    Create crushing mill unit operation for the 
+    separation of sugarcane juice from the baggasse.
     
     Parameters
     ----------
@@ -31,3 +33,18 @@ class CrushingMill(SolidsSeparator):
     
     """
     
+@cost('Flow rate', units='ton/hr', cost=4310, CE=541.7,
+      n=0.78, ub=200., kW=6.17, BM=2.3)
+class HammerMill(bst.Unit): 
+    """
+    Create hammer mill unit operation for reducing
+    particle size.
+    
+    Parameters
+    ----------
+    ins : stream
+        Solids.
+    outs : stream
+        Milled solids.
+    
+    """

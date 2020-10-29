@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+from .._unit import Unit
 from ._mixer import *
 from ._splitter import *
 from ._pump import *
@@ -33,7 +34,7 @@ from ._fermentation import *
 from ._transesterification import *
 from ._enzyme_treatment import *
 from ._clarifier import *
-from ._crushing_mill import *
+from ._particle_size_reduction import *
 from ._shredder import *
 from ._screw_feeder import *
 from ._magnetic_separator import *
@@ -43,18 +44,19 @@ from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._mixer_settler import *
 from ._carbon_capture import *
+from ._slle_centrifuge import *
 from .facilities import *
 
 
 from . import (
-    _flash, _mixer, _splitter,
+    _flash, _mixer, _splitter, _slle_centrifuge,
     _pump, _hx, _multi_effect_evaporator, _shortcut_column,
     _binary_distillation, _tank, _magnetic_separator,
     _molecular_sieve, _conveying_belt, _vent_scrubber,
     _vibrating_screen, _junction, _solids_separator,
     _transesterification, _fermentation, 
     _enzyme_treatment, _clarifier, _rvf,
-    _solids_centrifuge, _crushing_mill,
+    _solids_centrifuge, _particle_size_reduction,
     _balance, _shredder, _screw_feeder,
     decorators, design_tools, facilities,
     _process_specification, _duplicator,
@@ -64,7 +66,8 @@ from . import (
     _carbon_capture,
 )
 
-__all__ = (*_diagram_only_units.__all__,
+__all__ = ('Unit',
+           *_diagram_only_units.__all__,
            *_flash.__all__,
            *_liquids_centrifuge.__all__,
            *_shortcut_column.__all__,
@@ -89,7 +92,7 @@ __all__ = (*_diagram_only_units.__all__,
            *_clarifier.__all__,
            *_rvf.__all__,
            *_solids_centrifuge.__all__, 
-           *_crushing_mill.__all__,
+           *_particle_size_reduction.__all__,
            *_balance.__all__, 
            *_shredder.__all__,
            *_screw_feeder.__all__,
@@ -102,6 +105,7 @@ __all__ = (*_diagram_only_units.__all__,
            *_lle_unit.__all__,
            *_mixer_settler.__all__,
            *_carbon_capture.__all__,
+           *_slle_centrifuge.__all__,
            'facilities',
            'decorators',
            'design_tools',
