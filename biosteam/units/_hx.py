@@ -374,7 +374,15 @@ class HXutility(HX):
                     raise RuntimeError("vapor fraction, 'V', must be either "
                                        "0 or 1 in a non-rigorous simulation")
             else:
-                s.phase = feed.phase
+                phase = feed.phase
+                if len(phase) == 1:
+                    s.phase = phase
+                elif feed.vapor_fraction == 1.:
+                    s.phase = 'g'
+                elif feed.solid_fraction == 1.:
+                    s.phase = 's'
+                else:
+                    s.phase = 'l'
             if T:
                 s.T = T
             else:
