@@ -333,9 +333,11 @@ class Ins(StreamSequence):
             ins = sink._ins
             if ins is not self:
                 ins.remove(stream)
-                stream._sink = self._sink
-                warn(f"undocked inlet stream {stream} from unit {sink}; {stream} is "
-                     f"now an inlet stream to unit {self._sink}", RuntimeWarning, stacklevel)
+                stream._sink = new_sink = self._sink
+                if sink._ID and new_sink:
+                    warn(f"undocked inlet stream {stream} from unit {sink}; "
+                         "{stream} is now docked at {self._sink}", 
+                         RuntimeWarning, stacklevel)
         else:
             stream._sink = self._sink
         return stream
@@ -370,9 +372,11 @@ class Outs(StreamSequence):
             if outs is not self:
                 # Remove from source
                 outs.remove(stream)
-                stream._source = self._source
-                warn(f"undocked outlet stream {stream} from unit {source}; {stream} is "
-                     f"now an outlet stream to unit {self._source}", RuntimeWarning, stacklevel)
+                stream._source = new_source = self._source
+                if source._ID and new_source:
+                    warn(f"undocked outlet stream {stream} from unit {source}; "
+                         "{stream} is now docked at {self._source}", 
+                         RuntimeWarning, stacklevel)
         else:
             stream._source = self._source
         return stream
