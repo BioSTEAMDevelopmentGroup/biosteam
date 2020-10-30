@@ -79,7 +79,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
         V_T = F_{vol}\frac{\tau_{reaction} + \tau_{cleaning}}{1 - \frac{1}{N_{reactors}}}
     
     Using this equation, :math:`V_T` is first calculated, then :math:`V_{i, working}`, 
-    :math:`\tau_{loading}`, and :math:``V_i`.
+    :math:`\tau_{loading}`, and :math:`V_i`.
     
     Units of measure may vary so long as they are consistent. The loading time
     can be considered the cycle time in this scenario.
