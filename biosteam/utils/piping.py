@@ -10,7 +10,7 @@ This module includes classes and functions concerning Stream objects.
 
 """
 from thermosteam import Stream, MultiStream
-
+from warnings import warn
 __all__ = ('MissingStream', 'Ins', 'Outs', 'Sink', 'Source',
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections')
@@ -155,7 +155,7 @@ class StreamSequence:
     """
     __slots__ = ('_size', '_streams', '_fixed_size')
         
-    def __init__(self, size, streams, thermo, fixed_size):
+    def __init__(self, size, streams, thermo, fixed_size, stacklevel):
         self._size = size
         self._fixed_size = fixed_size
         dock = self._dock
@@ -170,20 +170,20 @@ class StreamSequence:
                     if isa(streams, str):
                         self._streams[0] = dock(Stream(streams, thermo=thermo))
                     elif isa(streams, (Stream, MultiStream)):
-                        self._streams[0] = redock(streams)
+                        self._streams[0] = redock(streams, stacklevel)
                     else:
                         N = len(streams)
                         n_missing(size, N) # Assert size is not too big
-                        self._streams[:N] = [redock(i) if isa(i, Stream)
+                        self._streams[:N] = [redock(i, stacklevel+1) if isa(i, Stream)
                                              else dock(Stream(i, thermo=thermo)) for i in streams]
             else:
                 if streams:
                     if isa(streams, str):
                         self._streams = [dock(Stream(streams, thermo=thermo))]
                     elif isa(streams, (Stream, MultiStream)):
-                        self._streams = [redock(streams)]
+                        self._streams = [redock(streams, stacklevel)]
                     else:
-                        self._streams = [redock(i) if isa(i, Stream)
+                        self._streams = [redock(i, stacklevel+1) if isa(i, Stream)
                                          else dock(Stream(i, thermo=thermo)) 
                                          for i in streams]
                 else:
@@ -205,15 +205,15 @@ class StreamSequence:
         return other + self._streams
     
     def _dock(self, stream): return stream
-    def _redock(self, stream): return stream
+    def _redock(self, stream, stacklevel): return stream
     def _undock(self, stream): pass
         
-    def _set_streams(self, slice, streams):
+    def _set_streams(self, slice, streams, stacklevel):
         all_streams = self._streams
         for stream in all_streams[slice]: self._undock(stream)
         all_streams[slice] = streams
         for stream in all_streams:
-            self._redock(stream)
+            self._redock(stream, stacklevel)
         if self._fixed_size:
             size = self._size
             N_streams = len(all_streams)
@@ -229,9 +229,9 @@ class StreamSequence:
     def __len__(self):
         return self._streams.__len__()
     
-    def _set_stream(self, int, stream):
+    def _set_stream(self, int, stream, stacklevel):
         self._undock(self._streams[int])
-        self._redock(stream)
+        self._redock(stream, stacklevel)
         self._streams[int] = stream
     
     def append(self, stream):
@@ -288,7 +288,7 @@ class StreamSequence:
                     f"'Stream' objects; not '{type(item).__name__}'")
             elif not isa(item, MissingStream):
                 item = self._create_missing_stream()
-            self._set_stream(index, item)
+            self._set_stream(index, item, 3)
         elif isa(index, slice):
             streams = []
             for stream in item:
@@ -299,7 +299,7 @@ class StreamSequence:
                 elif not isa(stream, MissingStream):
                     stream = self._create_missing_stream()
                 streams.append(stream)
-            self._set_streams(index, item)
+            self._set_streams(index, item, 3)
         else:
             raise TypeError("Only intergers and slices are valid "
                            f"indices for '{type(self).__name__}' objects")
@@ -312,9 +312,9 @@ class Ins(StreamSequence):
     """Create an Ins object which serves as input streams for a Unit object."""
     __slots__ = ('_sink', '_fixed_size')
     
-    def __init__(self, sink, size, streams, thermo, fixed_size=True):
+    def __init__(self, sink, size, streams, thermo, fixed_size, stacklevel):
         self._sink = sink
-        super().__init__(size, streams, thermo, fixed_size)
+        super().__init__(size, streams, thermo, fixed_size, stacklevel)
     
     @property
     def sink(self):
@@ -327,13 +327,15 @@ class Ins(StreamSequence):
         stream._sink = self._sink
         return stream
 
-    def _redock(self, stream): 
+    def _redock(self, stream, stacklevel): 
         sink = stream._sink
         if sink:
             ins = sink._ins
             if ins is not self:
                 ins.remove(stream)
                 stream._sink = self._sink
+                warn(f"undocked inlet stream {stream} from unit {sink}; {stream} is "
+                     f"now an inlet stream to unit {self._sink}", RuntimeWarning, stacklevel)
         else:
             stream._sink = self._sink
         return stream
@@ -346,9 +348,9 @@ class Outs(StreamSequence):
     """Create an Outs object which serves as output streams for a Unit object."""
     __slots__ = ('_source',)
     
-    def __init__(self, source, size, streams, thermo, fixed_size=True):
+    def __init__(self, source, size, streams, thermo, fixed_size, stacklevel):
         self._source = source
-        super().__init__(size, streams, thermo, fixed_size)
+        super().__init__(size, streams, thermo, fixed_size, stacklevel)
     
     @property
     def source(self):
@@ -361,7 +363,7 @@ class Outs(StreamSequence):
         stream._source = self._source
         return stream
 
-    def _redock(self, stream): 
+    def _redock(self, stream, stacklevel): 
         source = stream._source
         if source:
             outs = source._outs
@@ -369,6 +371,8 @@ class Outs(StreamSequence):
                 # Remove from source
                 outs.remove(stream)
                 stream._source = self._source
+                warn(f"undocked outlet stream {stream} from unit {source}; {stream} is "
+                     f"now an outlet stream to unit {self._source}", RuntimeWarning, stacklevel)
         else:
             stream._source = self._source
         return stream

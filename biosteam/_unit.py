@@ -142,6 +142,8 @@ class Unit:
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
                     )
+        if '__init__' in dct and '_stacklevel' not in dct:
+            cls._stacklevel += 1
         
     ### Abstract Attributes ###
     
@@ -168,8 +170,12 @@ class Unit:
     # [StreamLinkOptions] Options for linking streams
     _stream_link_options = None
     
-    # [biosteam Graphics] a Graphics object for diagram representation.
+    # [biosteam Graphics] A Graphics object for diagram representation
     _graphics = box_graphics
+
+    # [int] Used for piping warnings. Should be equal to 6 plus the number of
+    # wrappers to Unit.__init__
+    _stacklevel = 6
     
     # [str] The general type of unit, regardless of class
     line = 'Unit'
@@ -177,6 +183,7 @@ class Unit:
     ### Other defaults ###
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        self._register(ID)
         self._specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
@@ -184,15 +191,14 @@ class Unit:
         self._init_utils()
         self._init_results()
         self._assert_compatible_property_package()
-        self._register(ID)
     
     def _init_ins(self, ins):
         # Ins[:class:`~thermosteam.Stream`] Input streams
-        self._ins = Ins(self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed)
+        self._ins = Ins(self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel)
     
     def _init_outs(self, outs):
         # Outs[:class:`~thermosteam.Stream`] Output streams
-        self._outs = Outs(self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed)
+        self._outs = Outs(self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel)
     
     def _init_utils(self):
         # tuple[HeatUtility] All heat utilities associated to unit
