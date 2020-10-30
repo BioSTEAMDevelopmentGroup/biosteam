@@ -56,7 +56,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
     
         V_{i,working} = \frac{V_T}{N_{reactors}}
     
-    where :math:`N_reactors` is the number of reactor vessels.
+    where :math:`N_{reactors}` is the number of reactor vessels.
     
     The time required to load a reactor (assuming no downtime) is:
         
