@@ -44,7 +44,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
         V_T = F_{vol}(\tau_{reaction} + \tau_{cleaning} + \tau_{loading})
         
     where :math:`V_T` is the total volume of all reactors, :math:`F_{vol}` is the 
-    volumetric flow rate of the feed, :math:`\tau_reaction` is the 
+    volumetric flow rate of the feed, :math:`\tau_{reaction}` is the 
     reaction time, :math:`\tau_{cleaning}` is the cleaning and unloading time, 
     and :math:`\tau_{loading}` is the time required to load a vessel. This
     equation makes the conservative assumption that no reaction takes place 
