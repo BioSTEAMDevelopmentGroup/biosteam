@@ -40,7 +40,7 @@ Common Issues
 
      $ conda install graphviz
 
-  You may also need to add Graphviz to your system path on Windows by following these `instructions <https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz  +software>`__.
+  Additionally, please follow the following instructions for `installing graphviz on windows <https://forum.graphviz.org/t/new-simplified-installation-procedure-on-windows/224#format-svg-not-recognized-use-one-of>`__.
 
 * **Dynamic flowsheet GUI is not displaying:**
 

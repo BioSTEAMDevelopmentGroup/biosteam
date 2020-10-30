@@ -13,7 +13,7 @@ General functional algorithms for batch design.
 __all__ = ('size_batch',)
 
 def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
-    """
+    r"""
     Solve for batch reactor volume, cycle time, and loading time.
     
     Parameters
@@ -38,9 +38,52 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
        
     Notes
     -----
-    Units of measure may vary so long as they are consistent. The loading time
-    can be considered the cycle time.
+    By assuming no downtime, the total volume of all reactors is:
         
+    .. math::
+        V_T = F_{vol}(\tau_{reaction} + \tau_{cleaning} + \tau_{loading})
+        
+    where :math:`V_T` is the total volume of all reactors, :math:`F_{vol}` is the 
+    volumetric flow rate of the feed, :math:`\tau_reaction` is the 
+    reaction time, :math:`\tau_{cleaning}` is the cleaning and unloading time, 
+    and :math:`\tau_{loading}` is the time required to load a vessel. This
+    equation makes the conservative assumption that no reaction takes place 
+    when the tank is being filled.
+    
+    The working volume of an individual reactor is:
+    
+    .. math::
+    
+        V_{i,working} = \frac{V_T}{N_{reactors}}
+    
+    where :math:`N_reactors` is the number of reactor vessels.
+    
+    The time required to load a reactor (assuming no downtime) is:
+        
+    .. math::
+
+        \tau_{loading} = \frac{V_{i,working}}{F_{vol}}
+    
+    Note that the the actual volume of a reaction is:
+        
+    .. math::
+
+        V_i = V_{i,working} / f
+        
+    where f is the fraction of working volume in a reaction.
+    
+    Plugging in and solving for the total volume, :math:`V_{T}`, we have: 
+    
+    .. math::
+
+        V_T = F_{vol}\frac{\tau_{reaction} + \tau_{cleaning}}{1 - \frac{1}{N_{reactors}}}
+    
+    Using this equation, :math:`V_T` is first calculated, then :math:`V_{i, working}`, 
+    :math:`\tau_{loading}`, and :math:``V_i`.
+    
+    Units of measure may vary so long as they are consistent. The loading time
+    can be considered the cycle time in this scenario.
+    
     """
     # Total volume of all reactors, assuming no downtime
     V_T = F_vol * (tau_reaction + tau_cleaning) / (1 - 1 / N_reactors)
