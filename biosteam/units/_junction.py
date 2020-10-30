@@ -61,16 +61,16 @@ class Junction(Unit):
         flow (kmol/hr): Water  20
         
     """
+    _stacklevel = Unit._stacklevel
     _graphics = junction_graphics
-    _N_ins = _N_outs = 1
     heat_utilities = ()
     power_utility = PowerUtility()
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         thermo = self._load_thermo(thermo)
         self._specification = None
         self._chemicals_in_common = self._past_streams = ()
-        self._ins = Ins(self, self._N_ins, upstream, thermo)
-        self._outs = Outs(self, self._N_outs, downstream, thermo)
+        self._ins = Ins(self, 1, upstream, thermo, True, self._stacklevel)
+        self._outs = Outs(self, 1, downstream, thermo, True, self._stacklevel)
         self._register(ID)
     
     def set_spec(self, *args, **kwargs):
