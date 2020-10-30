@@ -68,7 +68,7 @@ def size_batch(F_vol, tau_reaction, tau_cleaning, N_reactors, V_wf) -> dict:
         
     .. math::
 
-        V_i = V_{i,working} / f
+        V_i = \frac{V_{i,working}}{f}
         
     where f is the fraction of working volume in a reaction.
     
