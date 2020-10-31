@@ -49,22 +49,26 @@ class UnitGroup:
     --------
     Create a UnitGroup from BioSTEAM's example ethanol subsystem:
     
-    >>> from biosteam.examples import ethanol_subsystem_example as ethanol_sys
+    >>> from biosteam.examples import ethanol_subsystem as ethanol_sys
     >>> from biosteam.process_tools import UnitGroup
     >>> group = UnitGroup('Ethanol production', ethanol_sys.units)
     
     You can get main process results using UnitGroup methods:
         
     >>> group.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [MM$]': 13.739, 'Cooling duty [GJ/hr]': 105.023, 'Heating duty [GJ/hr]': 156.880, 'Electricity consumption [MW]': 0.401, 'Electricity production [MW]': 0.0}
+    {'Installed equipment cost [MM$]': 13.5,
+     'Cooling duty [GJ/hr]': 105.0,
+     'Heating duty [GJ/hr]': 156.8,
+     'Electricity consumption [MW]': 0.401,
+     'Electricity production [MW]': 0.0}
     
     Each result can be retrieved separately:
     
     >>> group.get_installed_cost()
-    13.739
+    13.5
     
     >>> group.get_heating_duty()
-    156.880
+    156.8
     
     """
     __slots__ = ('name', 'units', 'metrics')
