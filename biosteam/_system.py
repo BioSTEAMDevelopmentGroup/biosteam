@@ -710,6 +710,71 @@ class System(metaclass=system):
         network.products = self.products
         return network
     
+    def print(self, spaces=''):
+        """
+        Print in a format that you can use recreate the system.
+        
+        Examples
+        --------
+        >>> from biosteam.examples import ethanol_subsystem
+        >>> ethanol_subsystem.print()
+        System('ethanol_subsystem_example',
+            [R301,
+             T301,
+             C301,
+             M302,
+             P301,
+             System('SYS1',
+                [H302,
+                 D302,
+                 P302],
+                recycle=s11),
+             System('SYS2',
+                [M303,
+                 D303,
+                 H303,
+                 U301],
+                recycle=s17),
+             P303,
+             D301])
+        
+        """
+        print(self._stacked_info())
+    
+    def _stacked_info(self, spaces=''):
+        """
+        Return info with inner layers of path and facilities stacked.
+        """
+        info = f"{type(self).__name__}({repr(self.ID)}"
+        spaces += 4 * " "
+        dlim = ',\n' + spaces
+        update_info = lambda new_info: dlim.join([info, new_info])
+        def get_path_info(path):
+            isa = isinstance
+            path_info = []
+            for i in path:
+                if isa(i, Unit):
+                    path_info.append(str(i))
+                elif isa(i, System):
+                    path_info.append(i._stacked_info(spaces))
+                else:
+                    path_info.append(str(i))
+            return '[' + (dlim + " ").join(path_info) + ']'
+        path_info = get_path_info(self.path)
+        info = update_info(path_info)
+        facilities = self.facilities
+        if facilities:
+            facilities_info = get_path_info(self.facilities)
+            facilities_info = f'facilities={facilities_info}'
+            info = update_info(facilities_info)
+        recycle = self.recycle
+        if recycle:
+            recycle_source = f"{recycle.source}-{recycle.source.outs.index(recycle)}"
+            info = update_info(f"recycle={recycle_source})")
+        else:
+            info += ')'
+        return info
+    
     def _ipython_display_(self):
         try: self.diagram('minimal')
         except: pass
