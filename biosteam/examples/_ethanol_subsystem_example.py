@@ -22,7 +22,7 @@ def create_ethanol_subsystem_example():
     
     Examples
     --------
-    >>> ethanol_sys = ethanol_subsystem_example()
+    >>> ethanol_sys = create_ethanol_subsystem_example()
     >>> # The sugarcane_example_subsystem flowsheet may help for accessing units
     >>> from biosteam import main_flowsheet as F
     >>> fs = F.flowsheet['ethanol_subsystem_example']
