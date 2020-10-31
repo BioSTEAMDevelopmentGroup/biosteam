@@ -97,6 +97,9 @@ class MissingStream:
         return 0.
     
     @property
+    def link(self):
+        return None
+    @property
     def H(self):
         return 0.
     @property
