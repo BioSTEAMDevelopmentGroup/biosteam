@@ -31,6 +31,17 @@ Connection = namedtuple('Connection',
                         ('source', 'source_index', 'stream', 'sink_index', 'sink'),
                         module=__name__)
 
+def ignore_docking_warnings(f):
+    def g(*args, **kwargs):
+        warn = bst.utils.piping.DOCKING_WARNINGS
+        bst.utils.piping.DOCKING_WARNINGS = False
+        try:
+            return f(*args, **kwargs)
+        finally:
+            bst.utils.piping.IGNORE_DOCKING_WARNINGS = warn
+    g.__name__ = f.__name__
+    return g
+
 def has_path(obj): # pragma: no coverage
     return hasattr(obj, 'path')
 
@@ -54,6 +65,7 @@ def get_section_inlets_and_outlets(units, streams): # pragma: no coverage
             ins.append(s)
     return ins, outs
 
+@ignore_docking_warnings
 def minimal_digraph(ID, units, streams, **graph_attrs): # pragma: no coverage
     ins, outs = get_section_inlets_and_outlets(units, streams)
     product = Stream(None)
@@ -68,6 +80,7 @@ def minimal_digraph(ID, units, streams, **graph_attrs): # pragma: no coverage
     return digraph_from_units((feed_box, system_box, product_box),
                               **graph_attrs)
 
+@ignore_docking_warnings
 def surface_digraph(path): # pragma: no coverage
     surface_units = set()  
     old_unit_connections = set()
@@ -85,6 +98,7 @@ def surface_digraph(path): # pragma: no coverage
         u._outs[:] = outs    
     return f
 
+@ignore_docking_warnings
 def update_surface_units(ID, streams, units, surface_units, old_unit_connections): # pragma: no coverage
     outs = []
     ins = []

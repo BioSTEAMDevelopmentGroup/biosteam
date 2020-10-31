@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from warnings import warn
+from ..utils import ignore_docking_warnings
 try:
     from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog,
                                  QLabel, QWidget, QMainWindow, QMenu,
@@ -288,6 +288,7 @@ class FlowsheetWidget(QMainWindow): # pragma: no coverage
             qtimer.stop()
         self._autorefresh = autorefresh    
 
+    @ignore_docking_warnings
     def get_digraph(self, system, flowsheet, connections):
         kind = self.kind
         if kind == 'thorough':

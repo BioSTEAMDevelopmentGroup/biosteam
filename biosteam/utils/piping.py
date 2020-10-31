@@ -11,9 +11,11 @@ This module includes classes and functions concerning Stream objects.
 """
 from thermosteam import Stream, MultiStream
 from warnings import warn
-__all__ = ('MissingStream', 'Ins', 'Outs', 'Sink', 'Source',
+__all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections')
+
+DOCKING_WARNINGS = True
 
 # %% Utilities
 
@@ -57,7 +59,7 @@ def materialize_connections(streams):
 
 class MissingStream:
     """
-    Create a MissingStream object that acts as a dummy in Ins and Outs
+    Create a MissingStream object that acts as a dummy in Inlets and Outlets
     objects until replaced by an actual Stream object.
     """
     __slots__ = ('_source', '_sink')
@@ -137,7 +139,7 @@ class MissingStream:
 # %% Utilities
 
 def n_missing(ub, N):
-    assert ub >= N, f"size of streams exceeds {ub}"
+    if ub < N: raise RuntimeError(f"size of streams exceeds {ub}")
     return ub - N
 
 # %% List objects for input and output streams
@@ -173,7 +175,7 @@ class StreamSequence:
                         self._streams[0] = redock(streams, stacklevel)
                     else:
                         N = len(streams)
-                        n_missing(size, N) # Assert size is not too big
+                        n_missing(size, N) # Make sure size is not too big
                         self._streams[:N] = [redock(i, stacklevel+1) if isa(i, Stream)
                                              else dock(Stream(i, thermo=thermo)) for i in streams]
             else:
@@ -288,7 +290,7 @@ class StreamSequence:
                     f"'Stream' objects; not '{type(item).__name__}'")
             elif not isa(item, MissingStream):
                 item = self._create_missing_stream()
-            self._set_stream(index, item, 3)
+            self._set_stream(index, item, 4)
         elif isa(index, slice):
             streams = []
             for stream in item:
@@ -299,7 +301,7 @@ class StreamSequence:
                 elif not isa(stream, MissingStream):
                     stream = self._create_missing_stream()
                 streams.append(stream)
-            self._set_streams(index, item, 3)
+            self._set_streams(index, item, 4)
         else:
             raise TypeError("Only intergers and slices are valid "
                            f"indices for '{type(self).__name__}' objects")
@@ -308,8 +310,8 @@ class StreamSequence:
         return repr(self._streams)
 
 
-class Ins(StreamSequence):
-    """Create an Ins object which serves as input streams for a Unit object."""
+class Inlets(StreamSequence):
+    """Create an Inlets object which serves as input streams for a Unit object."""
     __slots__ = ('_sink', '_fixed_size')
     
     def __init__(self, sink, size, streams, thermo, fixed_size, stacklevel):
@@ -334,9 +336,9 @@ class Ins(StreamSequence):
             if ins is not self:
                 ins.remove(stream)
                 stream._sink = new_sink = self._sink
-                if sink._ID and new_sink:
+                if DOCKING_WARNINGS and sink._ID and new_sink._ID:
                     warn(f"undocked inlet stream {stream} from unit {sink}; "
-                         f"{stream} is now docked at {self._sink}", 
+                         f"{stream} is now docked at {new_sink}", 
                          RuntimeWarning, stacklevel)
         else:
             stream._sink = self._sink
@@ -346,8 +348,8 @@ class Ins(StreamSequence):
         stream._sink = None
     
         
-class Outs(StreamSequence):
-    """Create an Outs object which serves as output streams for a Unit object."""
+class Outlets(StreamSequence):
+    """Create an Outlets object which serves as output streams for a Unit object."""
     __slots__ = ('_source',)
     
     def __init__(self, source, size, streams, thermo, fixed_size, stacklevel):
@@ -373,9 +375,9 @@ class Outs(StreamSequence):
                 # Remove from source
                 outs.remove(stream)
                 stream._source = new_source = self._source
-                if source._ID and new_source:
+                if DOCKING_WARNINGS and source._ID and new_source._ID:
                     warn(f"undocked outlet stream {stream} from unit {source}; "
-                         f"{stream} is now docked at {self._source}", 
+                         f"{stream} is now docked at {new_source}", 
                          RuntimeWarning, stacklevel)
         else:
             stream._source = self._source
