@@ -49,9 +49,8 @@ class UnitGroup:
     --------
     Create a UnitGroup from BioSTEAM's example ethanol subsystem:
     
-    >>> from biosteam.examples import ethanol_subsystem_example
+    >>> from biosteam.examples import ethanol_subsystem_example as ethanol_sys
     >>> from biosteam.process_tools import UnitGroup
-    >>> ethanol_sys = ethanol_subsystem_example()
     >>> group = UnitGroup('Ethanol production', ethanol_sys.units)
     
     You can get main process results using UnitGroup methods:
