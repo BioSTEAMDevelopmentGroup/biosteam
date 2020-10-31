@@ -12,10 +12,10 @@ from biosteam import main_flowsheet
 import biosteam as bst
 import thermosteam as tmo
 
-__all__ = ('ethanol_subsystem_example',
+__all__ = ('create_ethanol_subsystem_example',
 )
 
-def ethanol_subsystem_example():
+def create_ethanol_subsystem_example():
     """
     Test BioSTEAM by creating a conventional sugarcane fermentation and ethanol
     purification process.

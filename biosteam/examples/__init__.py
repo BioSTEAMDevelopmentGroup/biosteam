@@ -6,9 +6,15 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 
-from . import ethanol_subsystem_example
+__all__ = ('ethanol_subsystem',)
 
-__all__ = (*ethanol_subsystem_example.__all__,
-)
+from ._ethanol_subsystem_example import create_ethanol_subsystem_example
 
-from .ethanol_subsystem_example import *
+
+def __getattr__(name):
+    if name == 'ethanol_subsystem':
+        global ethanol_subsystem
+        ethanol_subsystem = create_ethanol_subsystem_example()
+        return ethanol_subsystem
+    else:
+        raise AttributeError("module %s has no attribute %s" %(__name__, name))
