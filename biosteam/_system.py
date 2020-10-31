@@ -728,13 +728,13 @@ class System(metaclass=system):
                 [H302,
                  D302,
                  P302],
-                recycle=s11),
+                recycle=P302-0),
              System('SYS2',
                 [M303,
                  D303,
                  H303,
                  U301],
-                recycle=s17),
+                recycle=U301-0),
              P303,
              D301])
         
