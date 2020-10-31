@@ -336,7 +336,7 @@ class Ins(StreamSequence):
                 stream._sink = new_sink = self._sink
                 if sink._ID and new_sink:
                     warn(f"undocked inlet stream {stream} from unit {sink}; "
-                         "{stream} is now docked at {self._sink}", 
+                         f"{stream} is now docked at {self._sink}", 
                          RuntimeWarning, stacklevel)
         else:
             stream._sink = self._sink
@@ -375,7 +375,7 @@ class Outs(StreamSequence):
                 stream._source = new_source = self._source
                 if source._ID and new_source:
                     warn(f"undocked outlet stream {stream} from unit {source}; "
-                         "{stream} is now docked at {self._source}", 
+                         f"{stream} is now docked at {self._source}", 
                          RuntimeWarning, stacklevel)
         else:
             stream._source = self._source
