@@ -13,9 +13,21 @@ from thermosteam import Stream, MultiStream
 from warnings import warn
 __all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
            'as_stream', 'as_upstream', 'as_downstream', 
-           'materialize_connections')
+           'materialize_connections', 'ignore_docking_warnings')
 
 DOCKING_WARNINGS = True
+
+def ignore_docking_warnings(f):
+    def g(*args, **kwargs):
+        global DOCKING_WARNINGS
+        warn = DOCKING_WARNINGS
+        DOCKING_WARNINGS = False
+        try:
+            return f(*args, **kwargs)
+        finally:
+            DOCKING_WARNINGS = warn
+    g.__name__ = f.__name__
+    return g
 
 # %% Utilities
 

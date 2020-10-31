@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+from biosteam.utils.piping import ignore_docking_warnings
 import biosteam as bst
 from graphviz import Digraph
 from IPython import display
@@ -30,17 +31,6 @@ __all__ = ('digraph_from_units',
 Connection = namedtuple('Connection', 
                         ('source', 'source_index', 'stream', 'sink_index', 'sink'),
                         module=__name__)
-
-def ignore_docking_warnings(f):
-    def g(*args, **kwargs):
-        warn = bst.utils.piping.DOCKING_WARNINGS
-        bst.utils.piping.DOCKING_WARNINGS = False
-        try:
-            return f(*args, **kwargs)
-        finally:
-            bst.utils.piping.IGNORE_DOCKING_WARNINGS = warn
-    g.__name__ = f.__name__
-    return g
 
 def has_path(obj): # pragma: no coverage
     return hasattr(obj, 'path')
