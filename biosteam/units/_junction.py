@@ -11,7 +11,7 @@ from .._unit import Unit
 from .._graphics import junction_graphics
 from .._power_utility import PowerUtility
 from thermosteam import MultiStream
-from ..utils.piping import Ins, Outs
+from ..utils.piping import Inlets, Outlets
 
 __all__ = ('Junction',)
 
@@ -69,8 +69,8 @@ class Junction(Unit):
         thermo = self._load_thermo(thermo)
         self._specification = None
         self._chemicals_in_common = self._past_streams = ()
-        self._ins = Ins(self, 1, upstream, thermo, True, self._stacklevel)
-        self._outs = Outs(self, 1, downstream, thermo, True, self._stacklevel)
+        self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
+        self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
         self._register(ID)
     
     def set_spec(self, *args, **kwargs):

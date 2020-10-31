@@ -13,7 +13,7 @@ from graphviz import Digraph
 from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
-from .utils import Ins, Outs, NotImplementedMethod, \
+from .utils import Inlets, Outlets, NotImplementedMethod, \
                    format_unit_line, static
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
@@ -92,9 +92,9 @@ class Unit:
     
     Attributes
     ----------
-    ins : Ins[:class:`~thermosteam.Stream`]
+    ins : Inlets[:class:`~thermosteam.Stream`]
         Input streams.
-    outs : Outs[:class:`~thermosteam.Stream`]
+    outs : Outlets[:class:`~thermosteam.Stream`]
         Output streams.
     power_utility : PowerUtility
         Electricity rate requirements are stored here (not including auxiliary units).
@@ -152,10 +152,10 @@ class Unit:
     # without having add these costs in the `purchase_costs` dictionary
     auxiliary_unit_names = ()
     
-    # [int] Expected number of input streams
+    # [int] Expected number of inlet streams
     _N_ins = 1  
     
-    # [int] Expected number of output streams
+    # [int] Expected number of outlet streams
     _N_outs = 1
     
     # [bool] Whether the number of streams in ins is fixed
@@ -193,12 +193,12 @@ class Unit:
         self._assert_compatible_property_package()
     
     def _init_ins(self, ins):
-        # Ins[:class:`~thermosteam.Stream`] Input streams
-        self._ins = Ins(self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel)
+        # Inlets[:class:`~thermosteam.Stream`] Input streams
+        self._ins = Inlets(self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel)
     
     def _init_outs(self, outs):
-        # Outs[:class:`~thermosteam.Stream`] Output streams
-        self._outs = Outs(self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel)
+        # Outlets[:class:`~thermosteam.Stream`] Output streams
+        self._outs = Outlets(self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel)
     
     def _init_utils(self):
         # tuple[HeatUtility] All heat utilities associated to unit
