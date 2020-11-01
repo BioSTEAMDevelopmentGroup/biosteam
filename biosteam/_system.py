@@ -168,6 +168,13 @@ class System(metaclass=system):
     facilities=() : tuple[Unit, function, and/or System], optional
         Offsite facilities that are simulated only after
         completing the path simulation.
+    facility_recycle : :class:`~thermosteam.Stream`, optional
+        Recycle stream between facilities and system path.
+    converge_method : str, optional
+        Name of iteration method to converge recycle stream.
+    N_runs : int, optional
+        Number of iterations to run system. This parameter is applicable 
+        only to systems with no recycle loop.
 
     """
     ### Class attributes ###
@@ -225,8 +232,6 @@ class System(metaclass=system):
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after 
             completing the path simulation.
-        facility_recycle : [:class:`~thermosteam.Stream`], optional
-            Recycle stream between facilities and system path.
         
         """
         facilities = Facility.ordered_facilities(facilities)
@@ -238,7 +243,7 @@ class System(metaclass=system):
         self.streams = streams = network.streams
         self.feeds = feeds = network.feeds
         self.products = products = network.products
-        self._specification = None
+        self._N_runs = self._specification = None
         self._set_recycle(network.recycle)
         self._reset_errors()
         self._set_path(path)
@@ -255,8 +260,10 @@ class System(metaclass=system):
         self._finalize_streams()
         return self
         
-    def __init__(self, ID, path, recycle=None, facilities=(), facility_recycle=None):
-        self._specification = None
+    def __init__(self, ID, path, recycle=None, facilities=(), 
+                 facility_recycle=None, converge_method=None,
+                 N_runs=None):
+        self._N_runs = self._specification = None
         self._set_recycle(recycle)
         self._load_flowsheet()
         self._reset_errors()
@@ -267,19 +274,36 @@ class System(metaclass=system):
         self._load_streams()
         self._finalize_streams()
         self._register(ID)
+        if N_runs: self.N_runs = N_runs
+        if converge_method: self.converge_method = converge_method
     
     specification = Unit.specification
     save_report = save_report
+    
+    @property
+    def N_runs(self):
+        return self._N_runs
+    @N_runs.setter
+    def N_runs(self, N_runs):
+        if self._recycle:
+            raise AttributeError("cannot set number of runs when a recycle is defined")
+        self._N_runs = N_runs
     
     def _load_flowsheet(self):
         self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
     
     def _set_recycle(self, recycle):
-        assert recycle is None or isinstance(recycle, Stream), (
-             "recycle must be a Stream instance or None, not "
-            f"{type(recycle).__name__}"
-        )
-        self._recycle = recycle
+        if recycle is None:
+            self._recycle = recycle
+        elif isinstance(recycle, Stream):
+            if isinstance(recycle.sink, bst.HXprocess):
+                self._N_runs = 2
+                self._recycle = None
+            else:
+                self._recycle = recycle
+        else:
+            raise ValueError("recycle must be a Stream instance or None, "
+                            f"not {type(recycle).__name__}")
     
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element
@@ -571,7 +595,12 @@ class System(metaclass=system):
     _converge_method = _aitken
    
     def _converge(self):
-        return self._converge_method() if self._recycle else self._run()
+        if self._N_runs:
+            for i in range(self.N_runs): self._run()
+        elif self._recycle:
+            self._converge_method()
+        else:
+            self._run()
         
     def _design_and_cost(self):
         for i in self._path_costunits:
@@ -770,9 +799,10 @@ class System(metaclass=system):
         recycle = self.recycle
         if recycle:
             recycle_source = f"{recycle.source}-{recycle.source.outs.index(recycle)}"
-            info = update_info(f"recycle={recycle_source})")
-        else:
-            info += ')'
+            info = update_info(f"recycle={recycle_source}")
+        if self.N_runs:
+            info = update_info(f"N_runs={self.N_runs}")
+        info += ')'
         return info
     
     def _ipython_display_(self):
