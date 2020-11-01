@@ -204,9 +204,10 @@ class Flowsheet:
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
-        hx_convergence : 'rigorous', 'estimate', or 'ignore', optional
-            If 'check' or 'estimate', recycle streams to process heat exchangers 
-            included as subnetworks.  If 'ignore', they are ignored.
+        hx_convergence : 'rigorous' or 'estimate', optional
+            If 'check', recycle streams to process heat exchangers are rigorously
+            converged. If 'estimate' and the recyle stream is an inlet to the 
+            process heat exchanger, the loop is only runned twice.
         
         """
         if not feeds:
@@ -224,7 +225,7 @@ class Flowsheet:
             system = System(ID, ())
         return system
     
-    def create_network(self, feeds=None, ends=(), hx_convergence='rigorous'):
+    def create_network(self, feeds=None, ends=()):
         """
         Create a Network object from all units and streams defined in the flowsheet.
         
@@ -236,16 +237,13 @@ class Flowsheet:
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.
-        hx_convergence : 'rigorous', 'estimate', or 'ignore', optional
-            If 'check' or 'estimate', recycle streams to process heat exchangers 
-            included as subnetworks.  If 'ignore', they are ignored.
         
         """
         feeds = get_feeds_from_streams(self.stream)
         if feeds:
             sort_feeds_big_to_small(feeds)
             feedstock, *feeds = feeds
-            network = Network.from_feedstock(feedstock, feeds, ends, hx_convergence)
+            network = Network.from_feedstock(feedstock, feeds, ends)
         else:
             network = Network([])
         return network
