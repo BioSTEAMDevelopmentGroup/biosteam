@@ -176,9 +176,9 @@ class System(metaclass=system):
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
     hx_convergence : 'rigorous' or 'estimate', optional
-        If 'check', recycle streams to process heat exchangers are rigorously
-        converged. If 'estimate' and the recyle stream is an inlet to the 
-        process heat exchanger, the loop is only runned twice.
+        If 'rigorous', recycle streams to process heat exchangers are rigorously
+        converged. If 'estimate', loops with process heat exchanger are only 
+        runned twice.
 
     """
     ### Class attributes ###
@@ -217,6 +217,10 @@ class System(metaclass=system):
             process requirements and not by its unit source.
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path.
+        hx_convergence : 'rigorous' or 'estimate', optional
+            If 'rigorous', recycle streams to process heat exchangers are rigorously
+            converged. If 'estimate', loops with process heat exchanger are only 
+            runned twice.
         
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
@@ -236,6 +240,12 @@ class System(metaclass=system):
         facilities : Iterable[Facility]
             Offsite facilities that are simulated only after 
             completing the path simulation.
+        facility_recycle : [:class:`~thermosteam.Stream`], optional
+            Recycle stream between facilities and system path.
+        hx_convergence : 'rigorous' or 'estimate', optional
+            If 'rigorous', recycle streams to process heat exchangers are rigorously
+            converged. If 'estimate', loops with process heat exchanger are only 
+            runned twice.
         
         """
         facilities = Facility.ordered_facilities(facilities)
