@@ -175,6 +175,10 @@ class System(metaclass=system):
     N_runs : int, optional
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
+    check_hx_convergence : bool, optional
+        Whether to check convergence of recycle streams to process heat 
+        exchangers. If False and the recyle strea is the inlet to a process 
+        heat exchanger, the loop is only runned twice.
 
     """
     ### Class attributes ###
@@ -244,7 +248,7 @@ class System(metaclass=system):
         self.feeds = feeds = network.feeds
         self.products = products = network.products
         self._N_runs = self._specification = None
-        self._set_recycle(network.recycle)
+        self._set_recycle(network.recycle, False)
         self._reset_errors()
         self._set_path(path)
         self._set_facilities(facilities)
@@ -262,9 +266,9 @@ class System(metaclass=system):
         
     def __init__(self, ID, path, recycle=None, facilities=(), 
                  facility_recycle=None, converge_method=None,
-                 N_runs=None):
+                 N_runs=None, check_hx_convergence=True):
         self._N_runs = self._specification = None
-        self._set_recycle(recycle)
+        self._set_recycle(recycle, check_hx_convergence)
         self._load_flowsheet()
         self._reset_errors()
         self._set_path(path)
@@ -292,11 +296,11 @@ class System(metaclass=system):
     def _load_flowsheet(self):
         self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
     
-    def _set_recycle(self, recycle):
+    def _set_recycle(self, recycle, check_hx_convergence):
         if recycle is None:
             self._recycle = recycle
         elif isinstance(recycle, Stream):
-            if isinstance(recycle.sink, bst.HXprocess):
+            if not check_hx_convergence and isinstance(recycle.sink, bst.HXprocess):
                 self._N_runs = 2
                 self._recycle = None
             else:
@@ -757,7 +761,7 @@ class System(metaclass=system):
                 [H302,
                  D302,
                  P302],
-                recycle=P302-0),
+                N_runs=2),
              System('SYS2',
                 [M303,
                  D303,
