@@ -480,16 +480,16 @@ class HXprocess(HX):
     
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Design              Area                                   ft^2      107
-                        Overall heat transfer coefficient  kW/m^2/K        1
+    Design              Area                                   ft^2      213
+                        Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K     20.4
                         Fouling correction factor                          1
                         Tube side pressure drop                 psi      1.5
-                        Shell side pressure drop                psi      1.5
+                        Shell side pressure drop                psi        5
                         Operating pressure                      psi     14.7
                         Total tube length                        ft       20
-    Purchase cost       Double pipe                             USD 5.19e+03
-    Total purchase cost                                         USD 5.19e+03
+    Purchase cost       Floating head                           USD 2.06e+04
+    Total purchase cost                                         USD 2.06e+04
     Utility cost                                             USD/hr        0
     
     Sensible fluids case with user enfored outlet phases 
