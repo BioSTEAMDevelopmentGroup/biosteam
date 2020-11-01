@@ -90,7 +90,7 @@ def simplify_linear_path(path, other_paths):
     simplified_path = list(path)
     for unit in path:
         for other_path in other_paths:
-            if unit in other_path and not unit._isolated_fluids:
+            if unit in other_path:
                 simplified_path.remove(unit)
                 break
     return simplified_path
