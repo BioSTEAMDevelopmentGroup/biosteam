@@ -18,7 +18,7 @@ __all__ = ('test_example_sugarcane_subsystem',
 def test_example_sugarcane_subsystem():
     from biosteam.examples import ethanol_subsystem as ethanol_sys
     biorefinery = UnitGroup('Biorefinery', ethanol_sys.units)
-    assert np.allclose(biorefinery.get_installed_cost(), 13.579610187784533, rtol=1e-2)
+    assert np.allclose(biorefinery.get_installed_cost(), 13.579610187784533, rtol=1e-1)
     assert np.allclose(biorefinery.get_heating_duty(), 156.88060396033987, rtol=1e-2)
     assert np.allclose(biorefinery.get_cooling_duty(), 105.02387679790326, rtol=1e-2)
     assert np.allclose(biorefinery.get_electricity_consumption(), 0.40116044439505544, rtol=1e-2)

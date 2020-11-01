@@ -185,7 +185,8 @@ class Flowsheet:
             u._outs[:] = outs
         return f
     
-    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
+    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None,
+                      hx_convergence='rigorous'):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -203,6 +204,9 @@ class Flowsheet:
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
+        hx_convergence : 'rigorous', 'estimate', or 'ignore', optional
+            If 'check' or 'estimate', recycle streams to process heat exchangers 
+            included as subnetworks.  If 'ignore', they are ignored.
         
         """
         if not feeds:
@@ -214,28 +218,34 @@ class Flowsheet:
             if not facility_recycle:
                 facility_recycle = find_blowdown_recycle(facilities)
             system = System.from_feedstock(ID, feedstock, feeds,
-                                           facilities, ends, facility_recycle)
+                                           facilities, ends, facility_recycle,
+                                           hx_convergence)
         else:
             system = System(ID, ())
         return system
     
-    def create_network(self, feeds=None, ends=()):
+    def create_network(self, feeds=None, ends=(), hx_convergence='rigorous'):
         """
         Create a Network object from all units and streams defined in the flowsheet.
         
         Parameters
         ----------
+        feeds : Iterable[:class:`~thermosteam.Stream`]
+            Feeds to the process.
         ends : Iterable[:class:`~thermosteam.Stream`]
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.
+        hx_convergence : 'rigorous', 'estimate', or 'ignore', optional
+            If 'check' or 'estimate', recycle streams to process heat exchangers 
+            included as subnetworks.  If 'ignore', they are ignored.
         
         """
         feeds = get_feeds_from_streams(self.stream)
         if feeds:
             sort_feeds_big_to_small(feeds)
             feedstock, *feeds = feeds
-            network = Network.from_feedstock(feedstock, feeds, ends)
+            network = Network.from_feedstock(feedstock, feeds, ends, hx_convergence)
         else:
             network = Network([])
         return network

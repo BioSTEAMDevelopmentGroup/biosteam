@@ -130,7 +130,7 @@ class Splitter(Unit):
         self._isplit = self.thermo.chemicals.isplit(split, order)
 
     def _run(self):
-        separations.split(*self.ins, *self.outs, self.split)
+        separations.split(self.ins[0], *self.outs, self.split)
 
 
 class PhaseSplitter(Unit):

@@ -175,10 +175,10 @@ class System(metaclass=system):
     N_runs : int, optional
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
-    check_hx_convergence : bool, optional
-        Whether to check convergence of recycle streams to process heat 
-        exchangers. If False and the recyle strea is the inlet to a process 
-        heat exchanger, the loop is only runned twice.
+    hx_convergence : 'rigorous' or 'estimate', optional
+        If 'check', recycle streams to process heat exchangers are rigorously
+        converged. If 'estimate' and the recyle stream is an inlet to the 
+        process heat exchanger, the loop is only runned twice.
 
     """
     ### Class attributes ###
@@ -197,7 +197,7 @@ class System(metaclass=system):
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
-                       ends=None, facility_recycle=None):
+                       ends=None, facility_recycle=None, hx_convergence='rigorous'):
         """
         Create a System object from a feedstock.
         
@@ -220,10 +220,10 @@ class System(metaclass=system):
         
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
-        return cls.from_network(ID, network, facilities, facility_recycle)
+        return cls.from_network(ID, network, facilities, facility_recycle, hx_convergence)
 
     @classmethod
-    def from_network(cls, ID, network, facilities=(), facility_recycle=None):
+    def from_network(cls, ID, network, facilities=(), facility_recycle=None, hx_convergence='rigorous'):
         """
         Create a System object from a network.
         
@@ -240,15 +240,15 @@ class System(metaclass=system):
         """
         facilities = Facility.ordered_facilities(facilities)
         isa = isinstance
-        path = tuple([(cls.from_network('', i) if isa(i, Network) else i)
-                      for i in network.path])
+        path = tuple([(cls.from_network('', i) 
+                       if isa(i, Network) else i) for i in network.path])
         self = cls.__new__(cls)
         self.units = network.units
         self.streams = streams = network.streams
         self.feeds = feeds = network.feeds
         self.products = products = network.products
         self._N_runs = self._specification = None
-        self._set_recycle(network.recycle, False)
+        self._set_recycle(network.recycle, hx_convergence)
         self._reset_errors()
         self._set_path(path)
         self._set_facilities(facilities)
@@ -266,9 +266,9 @@ class System(metaclass=system):
         
     def __init__(self, ID, path, recycle=None, facilities=(), 
                  facility_recycle=None, converge_method=None,
-                 N_runs=None, check_hx_convergence=True):
+                 N_runs=None, hx_convergence='rigorous'):
         self._N_runs = self._specification = None
-        self._set_recycle(recycle, check_hx_convergence)
+        self._set_recycle(recycle, hx_convergence)
         self._load_flowsheet()
         self._reset_errors()
         self._set_path(path)
@@ -296,13 +296,19 @@ class System(metaclass=system):
     def _load_flowsheet(self):
         self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
     
-    def _set_recycle(self, recycle, check_hx_convergence):
+    def _set_recycle(self, recycle, hx_convergence):
         if recycle is None:
             self._recycle = recycle
         elif isinstance(recycle, Stream):
-            if not check_hx_convergence and isinstance(recycle.sink, bst.HXprocess):
-                self._N_runs = 2
-                self._recycle = None
+            if isinstance(recycle.sink, bst.HXprocess):
+                if hx_convergence == 'rigorous':
+                    self._recycle = recycle
+                elif hx_convergence == 'estimate':
+                    self._N_runs = 2
+                    self._recycle = None
+                else:
+                    raise ValueError("hx_convergence must be either 'rigorous' "
+                                     "or 'estimate'")
             else:
                 self._recycle = recycle
         else:
@@ -743,34 +749,9 @@ class System(metaclass=system):
         network.products = self.products
         return network
     
-    def print(self, spaces=''):
+    def print(self, spaces=''): # pragma: no cover
         """
         Print in a format that you can use recreate the system.
-        
-        Examples
-        --------
-        >>> from biosteam.examples import ethanol_subsystem
-        >>> ethanol_subsystem.print()
-        System('ethanol_subsystem_example',
-            [R301,
-             T301,
-             C301,
-             M302,
-             P301,
-             System('SYS1',
-                [H302,
-                 D302,
-                 P302],
-                N_runs=2),
-             System('SYS2',
-                [M303,
-                 D303,
-                 H303,
-                 U301],
-                recycle=U301-0),
-             P303,
-             D301])
-        
         """
         print(self._stacked_info())
     

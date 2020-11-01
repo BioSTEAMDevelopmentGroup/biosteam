@@ -56,19 +56,19 @@ class UnitGroup:
     You can get main process results using UnitGroup methods:
         
     >>> group.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [MM$]': 13.5,
-     'Cooling duty [GJ/hr]': 105.0,
-     'Heating duty [GJ/hr]': 156.8,
-     'Electricity consumption [MW]': 0.401,
+    {'Installed equipment cost [MM$]': 13.,
+     'Cooling duty [GJ/hr]': 105.,
+     'Heating duty [GJ/hr]': 156.,
+     'Electricity consumption [MW]': 0.40,
      'Electricity production [MW]': 0.0}
     
     Each result can be retrieved separately:
     
     >>> group.get_installed_cost()
-    13.5
+    13.
     
     >>> group.get_heating_duty()
-    156.8
+    156.
     
     """
     __slots__ = ('name', 'units', 'metrics')

@@ -90,7 +90,7 @@ def simplify_linear_path(path, other_paths):
     simplified_path = list(path)
     for unit in path:
         for other_path in other_paths:
-            if unit in other_path:
+            if unit in other_path and not unit._isolated_fluids:
                 simplified_path.remove(unit)
                 break
     return simplified_path
@@ -161,7 +161,7 @@ class Network:
         ends : Iterable[:class:`~thermosteam.Stream`]
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
-        
+            
         """
         ends = set(ends) or set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
