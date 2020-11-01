@@ -377,12 +377,8 @@ class HXutility(HX):
                 phase = feed.phase
                 if len(phase) == 1:
                     s.phase = phase
-                elif feed.vapor_fraction == 1.:
-                    s.phase = 'g'
-                elif feed.solid_fraction == 1.:
-                    s.phase = 's'
                 else:
-                    s.phase = 'l'
+                    s.phases = feed.phases
             if T:
                 s.T = T
             else:
@@ -553,7 +549,7 @@ class HXprocess(HX):
                  heat_exchanger_type="Floating head",
                  N_shells=2, ft=None, 
                  phase0=None,
-                 phase1=None,):
+                 phase1=None):
         super().__init__(ID, ins, outs, thermo)
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
