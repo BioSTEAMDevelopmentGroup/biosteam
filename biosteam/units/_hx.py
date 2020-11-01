@@ -375,10 +375,7 @@ class HXutility(HX):
                                        "0 or 1 in a non-rigorous simulation")
             else:
                 phase = feed.phase
-                if len(phase) == 1:
-                    s.phase = phase
-                else:
-                    s.phases = feed.phases
+                if len(phase) == 1: s.phase = phase
             if T:
                 s.T = T
             else:
