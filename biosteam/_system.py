@@ -765,7 +765,7 @@ class System(metaclass=system):
         """
         print(self._stacked_info())
     
-    def _stacked_info(self, spaces=''):
+    def _stacked_info(self, spaces=''): # pragma: no cover
         """
         Return info with inner layers of path and facilities stacked.
         """
