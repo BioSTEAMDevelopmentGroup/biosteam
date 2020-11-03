@@ -1,0 +1,21 @@
+BioSTEAM 2.21
+=============
+
+2.21.1
+-------
+
+New features:
+
+* Runtime warning when reconnecting a stream already connected to another unit operation.
+
+* Optional `N_runs` parameter for :class:`biosteam.System` objects for user flexibility in managing convergence.
+
+* Optional `hx_convergence` parameter for :class:`biosteam.System` objects for optionally estimating convergence of recycle loops with process heat exchangers. Convergnce is "rigorous" by default, but can be set to "estimate".
+
+* Optional hooks for :class:`biosteam.TEA` subclasses including the `_fill_tax` and `_fill_incentives` methods.
+
+* Better compatibility with MultiStream objects between unit operations.
+
+* More robust usage of linked streams, which share data on flow rates and thermal conditions.
+
+* :class:`biosteam.Stream` objects now return absolute entropy instead of relative entropy for the `S` property.

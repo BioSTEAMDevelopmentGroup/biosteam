@@ -72,6 +72,7 @@ All data on chemicals, fitted coefficients, and functions to estimate chemical p
    :caption: What's new?
    
    updates/2.20
+   updates/2.21
 
 
 .. toctree::
