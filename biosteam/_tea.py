@@ -340,7 +340,7 @@ class TEA:
     @property
     def installed_equipment_cost(self):
         """Total installed cost (USD)."""
-        return sum([u.installed_cost for u in self.units])
+        return self.purchase_cost * self.lang_factor if self.lang_factor else sum([u.installed_cost for u in self.units])
     @property
     def DPI(self):
         """Direct permanent investment."""
