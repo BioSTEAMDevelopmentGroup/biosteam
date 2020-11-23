@@ -375,7 +375,8 @@ class Unit:
         self._summary()
 
     def results(self, with_units=True, include_utilities=True,
-                include_total_cost=True, include_installed_cost=False):
+                include_total_cost=True, include_installed_cost=False,
+                include_zeros=True):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
@@ -388,18 +389,20 @@ class Unit:
                 power_utility = self.power_utility
                 if power_utility:
                     addkey(('Power', 'Rate'))
-                    addkey(('Power', 'Cost'))
                     addval(('kW', power_utility.rate))
-                    addval(('USD/hr', power_utility.cost))
+                    if include_zeros or power_utility.cost:
+                        addkey(('Power', 'Cost'))
+                        addval(('USD/hr', power_utility.cost))
                 for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
-                        addkey((ID, 'Flow'))
-                        addkey((ID, 'Cost'))
                         addval(('kJ/hr', heat_utility.duty))
+                        addkey((ID, 'Flow'))
                         addval(('kmol/hr', heat_utility.flow))
-                        addval(('USD/hr', heat_utility.cost))
+                        if include_zeros or heat_utility.cost: 
+                            addkey((ID, 'Cost'))
+                            addval(('USD/hr', heat_utility.cost))
             units = self._units
             Cost = self.purchase_costs
             for ki, vi in self.design_results.items():
@@ -418,10 +421,12 @@ class Unit:
                 addkey(('Total purchase cost', ''))
                 addval(('USD', self.purchase_cost))
                 if include_installed_cost:
-                    addkey(('Installed cost', ''))
-                    addval(('USD/hr', self.installed_cost))
-                addkey(('Utility cost', ''))
-                addval(('USD/hr', self.utility_cost))
+                    addkey(('Installed equipment cost', ''))
+                    addval(('USD', self.installed_cost))
+                utility_cost = self.utility_cost
+                if include_zeros or utility_cost: 
+                    addkey(('Utility cost', ''))
+                    addval(('USD/hr', utility_cost))
             if self._GHGs:
                 a, b = self._totalGHG
                 GHG_units =  self._GHG_units
@@ -446,18 +451,19 @@ class Unit:
                 power_utility = self.power_utility
                 if power_utility:
                     addkey(('Power', 'Rate'))
-                    addkey(('Power', 'Cost'))
                     addval(power_utility.rate)
-                    addval(power_utility.cost)
+                    if include_zeros or power_utility.cost:
+                        addkey(('Power', 'Cost'))
+                        addval(power_utility.cost)
                 for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities):
                     if heat_utility:
-                        if heat_utility:
-                            ID = heat_utility.ID.replace('_', ' ').capitalize()
-                            addkey((ID, 'Duty'))
-                            addkey((ID, 'Flow'))
+                        ID = heat_utility.ID.replace('_', ' ').capitalize()
+                        addkey((ID, 'Duty'))
+                        addval(heat_utility.duty)
+                        addkey((ID, 'Flow'))
+                        addval(heat_utility.flow)
+                        if include_zeros or heat_utility.cost:
                             addkey((ID, 'Cost'))
-                            addval(heat_utility.duty)
-                            addval(heat_utility.flow)
                             addval(heat_utility.cost)
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
@@ -487,10 +493,12 @@ class Unit:
                 addkey(('Total purchase cost', ''))
                 addval(self.purchase_cost)
                 if include_installed_cost:
-                    addkey(('Installed cost', ''))
+                    addkey(('Installed equipment cost', ''))
                     addval(self.installed_cost)
-                addkey(('Utility cost', ''))
-                addval(self.utility_cost)
+                utility_cost = self.utility_cost
+                if include_zeros or utility_cost:
+                    addkey(('Utility cost', ''))
+                    addval(utility_cost)
             if not keys: return None
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = self.ID

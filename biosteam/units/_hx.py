@@ -472,8 +472,8 @@ class HXprocess(HX):
     outs...
     [0] out_a
         phases: ('g', 'l'), T: 351.39 K, P: 101325 Pa
-        flow (kmol/hr): (g) Ethanol  32.94
-                        (l) Ethanol  17.06
+        flow (kmol/hr): (g) Ethanol  32.9
+                        (l) Ethanol  17.1
     [1] out_b
         phases: ('g', 'l'), T: 346.43 K, P: 101325 Pa
         flow (kmol/hr): (l) Water  200

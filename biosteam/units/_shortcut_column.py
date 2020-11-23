@@ -200,7 +200,7 @@ class ShortcutColumn(BinaryDistillation,
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
-    Distillation                                    Units       D1
+    Divided Distillation Column                     Units       D1
     Cooling water       Duty                        kJ/hr -7.9e+06
                         Flow                      kmol/hr  5.4e+03
                         Cost                       USD/hr     2.64

@@ -122,7 +122,7 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # p
             streams_by_chemicals[chemicals] = [i]
     stream_tables = []
     for chemicals, streams in streams_by_chemicals.items():
-        stream_tables.append(stream_table(streams, chemicals=chemicals, **stream_properties))
+        stream_tables.append(stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
     tables_to_excel(stream_tables, writer, 'Stream table')
     
     # Heat utility tables
@@ -171,19 +171,18 @@ def unit_result_tables(units,
     # Make a list of tables, keeping all results with same keys in one table
     tables = []
     for units in organized.values():
-        # First table with units of measure
-        table = None
-        while (table is None) and units:
-            u, *units = units
-            table = u.results(include_utilities=include_utilities,
-                              include_total_cost=include_total_cost,
-                              include_installed_cost=include_installed_cost)
-        if table is None: continue
-        for u in units[1:]:
+        # First table with units of measures
+        u, *units = units
+        table = u.results(include_utilities=include_utilities,
+                          include_total_cost=include_total_cost,
+                          include_installed_cost=include_installed_cost,
+                          include_zeros=False)
+        for u in units:
             table[u.ID] = u.results(with_units=False, 
                                     include_utilities=include_utilities,
                                     include_total_cost=include_total_cost,
-                                    include_installed_cost=include_installed_cost)
+                                    include_installed_cost=include_installed_cost,
+                                    include_zeros=False)
         table.columns.name = (u.line, '')
         tables.append(table)
     return tables

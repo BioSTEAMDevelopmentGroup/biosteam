@@ -203,7 +203,7 @@ class BinaryDistillation(Unit):
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
-    Distillation                                    Units        D1
+    Divided Distillation Column                     Units        D1
     Cooling water       Duty                        kJ/hr -5.12e+06
                         Flow                      kmol/hr   3.5e+03
                         Cost                       USD/hr      1.71
@@ -547,6 +547,7 @@ class BinaryDistillation(Unit):
     @is_divided.setter
     def is_divided(self, is_divided):
         self._is_divided = is_divided
+        self.line = 'Divided Distillation Column' if is_divided else "Distillation Column"
     
     def _set_distillation_product_specifications(self,
                                                  product_specification_format,
