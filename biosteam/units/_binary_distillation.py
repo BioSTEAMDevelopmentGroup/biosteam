@@ -204,12 +204,12 @@ class BinaryDistillation(Unit):
                      --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                     Units        D1
-    Cooling water       Duty                        kJ/hr -5.12e+06
-                        Flow                      kmol/hr   3.5e+03
-                        Cost                       USD/hr      1.71
-    Low pressure steam  Duty                        kJ/hr  1.09e+07
-                        Flow                      kmol/hr       280
-                        Cost                       USD/hr      66.5
+    Cooling water       Duty                        kJ/hr -4.87e+06
+                        Flow                      kmol/hr  3.33e+03
+                        Cost                       USD/hr      1.62
+    Low pressure steam  Duty                        kJ/hr  1.02e+07
+                        Flow                      kmol/hr       263
+                        Cost                       USD/hr      62.6
     Design              Theoretical feed stage                    9
                         Theoretical stages                       13
                         Minimum reflux              Ratio     0.687
@@ -228,10 +228,10 @@ class BinaryDistillation(Unit):
                         Stripper trays                USD  1.25e+04
                         Rectifier tower               USD  8.18e+04
                         Stripper tower                USD  6.78e+04
-                        Condenser                     USD  3.39e+04
-                        Boiler                        USD  2.72e+04
-    Total purchase cost                               USD  2.38e+05
-    Utility cost                                   USD/hr      68.2
+                        Condenser                     USD  3.32e+04
+                        Boiler                        USD  2.67e+04
+    Total purchase cost                               USD  2.37e+05
+    Utility cost                                   USD/hr      64.3
     
     """
     line = 'Distillation'

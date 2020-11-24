@@ -265,10 +265,10 @@ class HXutility(HX):
                         Ethanol  200
     >>> hx.results()
     Heat Exchanger                                            Units       hx
-    Low pressure steam  Duty                                  kJ/hr 2.07e+07
-                        Flow                                kmol/hr      532
-                        Cost                                 USD/hr      127
-    Design              Area                                   ft^2      727
+    Low pressure steam  Duty                                  kJ/hr 1.94e+07
+                        Flow                                kmol/hr      499
+                        Cost                                 USD/hr      119
+    Design              Area                                   ft^2      680
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
@@ -276,9 +276,9 @@ class HXutility(HX):
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Floating head                           USD 2.67e+04
-    Total purchase cost                                         USD 2.67e+04
-    Utility cost                                             USD/hr      127
+    Purchase cost       Floating head                           USD 2.61e+04
+    Total purchase cost                                         USD 2.61e+04
+    Utility cost                                             USD/hr      119
     
     """
     line = 'Heat Exchanger'
@@ -472,8 +472,8 @@ class HXprocess(HX):
     outs...
     [0] out_a
         phases: ('g', 'l'), T: 351.39 K, P: 101325 Pa
-        flow (kmol/hr): (g) Ethanol  32.9
-                        (l) Ethanol  17.1
+        flow (kmol/hr): (g) Ethanol  31.3
+                        (l) Ethanol  18.7
     [1] out_b
         phases: ('g', 'l'), T: 346.43 K, P: 101325 Pa
         flow (kmol/hr): (l) Water  200
