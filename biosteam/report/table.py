@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from warnings import warn
 import openpyxl
+from .._heat_utility import HeatUtility
 from .._tea import CombinedTEA
 import os
 
@@ -170,19 +171,35 @@ def unit_result_tables(units,
     
     # Make a list of tables, keeping all results with same keys in one table
     tables = []
-    for units in organized.values():
+    key = lambda u: u.ID
+    for all_units in organized.values():
         # First table with units of measures
-        u, *units = units
+        all_units = sorted(all_units, key=key)
+        u, *units = all_units
+        empty_heat_utilities = []
+        key_hook = None
+        if all([i.line == 'Heat Exchanger' for i in all_units]):
+            key_hook = lambda key: ('Purchase cost', 'Heat Exchanger') if key[0]=='Purchase cost' else key
+            all_heat_utilities = sum([i.heat_utilities for i in all_units], ())
+            for i in set([i.agent for i in all_heat_utilities]):
+                heat_utility = HeatUtility()
+                heat_utility.load_agent(i)
+                empty_heat_utilities.append(heat_utility)
+        empty_heat_utilities = tuple(empty_heat_utilities)
         table = u.results(include_utilities=include_utilities,
                           include_total_cost=include_total_cost,
                           include_installed_cost=include_installed_cost,
-                          include_zeros=False)
+                          include_zeros=False,
+                          external_utilities=empty_heat_utilities,
+                          key_hook=key_hook)
         for u in units:
             table[u.ID] = u.results(with_units=False, 
                                     include_utilities=include_utilities,
                                     include_total_cost=include_total_cost,
                                     include_installed_cost=include_installed_cost,
-                                    include_zeros=False)
+                                    include_zeros=False,
+                                    external_utilities=empty_heat_utilities,
+                                    key_hook=key_hook)
         table.columns.name = (u.line, '')
         tables.append(table)
     return tables

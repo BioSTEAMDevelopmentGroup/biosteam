@@ -16,7 +16,24 @@ from flexsolve import njitable
 __all__ = ('TEA', 'CombinedTEA')
 
 
-# TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
+cashflow_columns = ('Depreciable capital [MM$]',
+                    'Fixed capital investment [MM$]',
+                    'Working capital [MM$]',
+                    'Depreciation [MM$]',
+                    'Loan [MM$]',
+                    'Loan interest payment [MM$]',
+                    'Loan payment [MM$]',
+                    'Loan principal [MM$]',
+                    'Annual operating cost (excluding depreciation) [MM$]',
+                    'Sales [MM$]',
+                    'Tax [MM$]',
+                    'Incentives [MM$]',
+                    'Net earnings [MM$]',
+                    'Cash flow [MM$]',
+                    'Discount factor',
+                    'Net present value (NPV) [MM$]',
+                    'Cumulative NPV [MM$]')
+
 
 # %% Depreciation data
 
@@ -47,6 +64,7 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
                                0.04461, 0.04462, 0.04461,
                                0.04462, 0.04461, 0.02231])}
 
+# TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
 
 # %% Utilities
 
@@ -480,25 +498,11 @@ class TEA:
         DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
         NPV[:] = CF*DF
         CNPV[:] = NPV.cumsum()
+        DF *= 1e6
+        data /= 1e6
         return pd.DataFrame(data.transpose(),
                             index=np.arange(self._duration[0]-start, self._duration[1]),
-                            columns=('Depreciable capital',
-                                     'Fixed capital investment',
-                                     'Working capital',
-                                     'Depreciation',
-                                     'Loan',
-                                     'Loan interest payment',
-                                     'Loan payment',
-                                     'Loan principal',
-                                     'Annual operating cost (excluding depreciation)',
-                                     'Sales',
-                                     'Tax',
-                                     'Incentives',
-                                     'Net earnings',
-                                     'Cash flow',
-                                     'Discount factor',
-                                     'Net present value (NPV)',
-                                     'Cumulative NPV'))
+                            columns=cashflow_columns)
     @property
     def NPV(self):
         """Net present value."""
@@ -891,10 +895,10 @@ class CombinedTEA(TEA):
             if (i_table.index != table.index).any():
                 raise NotImplementedError('cannot yet create cashflow table from TEAs with different venture years')
             table[:] += np.asarray(i_table)
-        table['Net earnings'] = self.net_earnings_array
-        table['Cash flow'] = CF = self.cashflow_array
+        table['Net earnings'] = self.net_earnings_array / 1e6
+        table['Cash flow'] = CF = self.cashflow_array  / 1e6
         table['Net present value (NPV)'] = NPV = CF * table['Discount factor']
-        table['Cumilative NPV'] = NPV.cumsum()
+        table['Cumulative NPV'] = NPV.cumsum()
         for IRR, TEA in zip(IRRs, TEAs): TEA.IRR = IRR
         return table    
     

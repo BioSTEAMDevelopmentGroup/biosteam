@@ -376,13 +376,17 @@ class Unit:
 
     def results(self, with_units=True, include_utilities=True,
                 include_total_cost=True, include_installed_cost=False,
-                include_zeros=True):
+                include_zeros=True, external_utilities=(), key_hook=None):
         """
         Return key results from simulation as a DataFrame if `with_units`
         is True or as a Series otherwise.
         """
         # TODO: Divide this into functions
-        keys = []; addkey = keys.append
+        def addkey(key):
+            if key_hook: key = key_hook(key)
+            keys.append(key)
+        
+        keys = []; 
         vals = []; addval = vals.append
         if with_units:
             if include_utilities:
@@ -393,7 +397,7 @@ class Unit:
                     if include_zeros or power_utility.cost:
                         addkey(('Power', 'Cost'))
                         addval(('USD/hr', power_utility.cost))
-                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities):
+                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities + external_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
@@ -455,7 +459,7 @@ class Unit:
                     if include_zeros or power_utility.cost:
                         addkey(('Power', 'Cost'))
                         addval(power_utility.cost)
-                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities):
+                for heat_utility in HeatUtility.sum_by_agent(self.heat_utilities + external_utilities):
                     if heat_utility:
                         ID = heat_utility.ID.replace('_', ' ').capitalize()
                         addkey((ID, 'Duty'))
