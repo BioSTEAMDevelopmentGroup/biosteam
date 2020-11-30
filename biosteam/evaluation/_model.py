@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from ._state import State
 from ._metric import Metric
+from ._parameter import Parameter
 from biosteam import speed_up
 
 __all__ = ('Model',)
@@ -236,11 +237,14 @@ class Model(State):
         return self._metrics
     @metrics.setter
     def metrics(self, metrics):
+        metrics = tuple(metrics)
+        isa = isinstance
         for i in metrics:
-            if not isinstance(i, Metric):
+            if not isa(i, Metric):
                 raise ValueError(f"metrics must be '{Metric.__name__}' "
                                  f"objects, not '{type(i).__name__}'")
-        self._metrics = tuple(metrics)
+        Metric.check_indices_unique(metrics)
+        self._metrics = metrics
     
     def load_samples(self, samples):
         """Load samples for evaluation
@@ -252,6 +256,7 @@ class Model(State):
         """
         if not self._update: self._load_parameters()
         parameters = self._parameters
+        Parameter.check_indices_unique(parameters)
         N_parameters = len(parameters)
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')

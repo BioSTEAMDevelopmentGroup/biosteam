@@ -29,6 +29,33 @@ class Variable:
     """
     __slots__ = ()
     include_units_in_index = True
+    
+    @classmethod
+    def check_index_unique(cls, variable, variables):
+        key = (variable.element, variable.name)
+        keys = {(i.element, i.name) for i in variables}
+        if key in keys:
+            kind = cls.__name__.lower()
+            raise ValueError(
+                    f"each {kind} must have a unique element and name; "
+                    f"{kind} with element {repr(variable.element)} "
+                     "and name {repr(variable.name)} already present"
+                )
+    
+    @classmethod
+    def check_indices_unique(cls, variables):
+        keys = set()
+        for i in variables:
+            key = (i.element, i.name)
+            if key in keys:
+                kind = cls.__name__.lower()
+                raise ValueError(
+                        f"each {kind} must have a unique element and name; "
+                        f"more than one {kind} with element {repr(i.element)} "
+                         "and name {repr(i.name)} are present"
+                    )
+            keys.add(key)
+    
     @property
     def element_name(self):
         return element_name(self.element)

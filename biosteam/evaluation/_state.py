@@ -137,6 +137,7 @@ class State:
         isa = isinstance
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
+        Parameter.check_indices_unique(parameters)
         self._erase()
         self._parameters = parameters
     
@@ -214,6 +215,7 @@ class State:
                                                  bounds)
         p = parameter(self._system, element, setter, kind, name, 
                       distribution, units, baseline, bounds)
+        Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()
         return setter
