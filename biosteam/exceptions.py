@@ -17,3 +17,6 @@ del exceptions
 
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
+    
+class GraphicsWarning(RuntimeWarning):
+    """RuntimeWarning regarding diagrams."""

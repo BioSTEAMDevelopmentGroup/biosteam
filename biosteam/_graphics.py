@@ -7,6 +7,8 @@
 # for license details.
 """
 """
+from warnings import warn
+from biosteam.exceptions import GraphicsWarning
 from .utils import colors
 
 __all__ = ('UnitGraphics',
@@ -41,6 +43,30 @@ class UnitGraphics:
         
         # [function(node, unit)] tailor node to unit.
         self.tailor_node_to_unit = tailor_node_to_unit
+    
+    def get_inlet_options(self, sink, sink_index):
+        edge_in = self.edge_in
+        try:
+            options = edge_in[sink_index]
+        except IndexError:
+            N_inlets = len(edge_in)
+            warn(f'inlet #{sink_index} at {repr(sink)} missing graphics options; '
+                 f'UnitGraphics object expected at most {N_inlets} inlets',
+                  GraphicsWarning)
+            options = {'headport': 'c'}
+        return options
+    
+    def get_outlet_options(self, source, source_index):
+        edge_out = self.edge_out
+        try:
+            options = edge_out[source_index]
+        except IndexError:
+            N_outlets = len(edge_out)
+            warn(f'outlet #{source_index} at {repr(source)} missing graphics options; '
+                 f'UnitGraphics object expected at most {N_outlets} inlets',
+                  GraphicsWarning)
+            options = {'tailport': 'c'}
+        return options
     
     @classmethod
     def box(cls, N_ins, N_outs):

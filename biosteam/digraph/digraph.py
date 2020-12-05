@@ -8,6 +8,7 @@
 """
 """
 from biosteam.utils.piping import ignore_docking_warnings
+from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
 from IPython import display
@@ -178,33 +179,23 @@ def add_connection(f: Digraph, connection, unit_names=None): # pragma: no covera
         if has_sink and not has_source:
             # Feed stream case
             f.node(stream.ID)
-            edge_in = sink._graphics.edge_in
-            try:
-                f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[sink_index])
-            except:
-                print(stream)
-                f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[-1])
+            inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   tailport='e', **inlet_options)
             f.edge(stream.ID, unit_names[sink])
         elif has_source and not has_sink:
             # Product stream case
             f.node(stream.ID)
-            edge_out = source._graphics.edge_out
+            outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **edge_out[source_index])
+                   headport='w', **outlet_options)
             f.edge(unit_names[source], stream.ID)
         elif has_sink and has_source:
             # Process stream case
-            edge_in = sink._graphics.edge_in
-            edge_out = source._graphics.edge_out
-            try:
-                f.attr('edge', arrowtail='none', arrowhead='normal',
-                       **edge_in[sink_index], **edge_out[source_index])
-            except:
-                print(stream)
-                f.attr('edge', arrowtail='none', arrowhead='normal',
-                       **edge_in[-1], **edge_out[-1])
+            inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
+            outlet_options = source._graphics.get_outlet_options(source, source_index)
+            f.attr('edge', arrowtail='none', arrowhead='normal',
+                   **inlet_options, **outlet_options)
             f.edge(unit_names[source], unit_names[sink], label=stream.ID)
         else:
             f.node(stream.ID)

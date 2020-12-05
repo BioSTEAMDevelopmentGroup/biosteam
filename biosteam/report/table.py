@@ -271,10 +271,6 @@ def heat_utilities_table(units): # pragma: no coverage
         if ID in heat_utils_dict: heat_utils_dict[ID].append(i)
         else: heat_utils_dict[ID] = [i]
     
-    # First table and set Type to compare with
-    hu = heat_utils[0]
-    Type = hu.ID
-    
     # Make a list of tables, keeping all results with same Type in one table
     tables = []
     for Type, heat_utils in heat_utils_dict.items():

@@ -16,7 +16,7 @@ A script or a text file that runs the code to reproduce the error.
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-** Actual behavior**
+**Actual behavior**
 Full trace back, as text or a screenshot
 
 **Version**
