@@ -192,6 +192,7 @@ def unit_result_tables(units,
                           include_zeros=False,
                           external_utilities=empty_heat_utilities,
                           key_hook=key_hook)
+        if table is None: continue
         for u in units:
             table[u.ID] = u.results(with_units=False, 
                                     include_utilities=include_utilities,
