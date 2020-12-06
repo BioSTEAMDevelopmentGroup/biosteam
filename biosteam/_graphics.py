@@ -49,10 +49,11 @@ class UnitGraphics:
         try:
             options = edge_in[sink_index]
         except IndexError:
-            N_inlets = len(edge_in)
-            warn(f'inlet #{sink_index} at {repr(sink)} missing graphics options; '
-                 f'UnitGraphics object expected at most {N_inlets} inlets',
-                  GraphicsWarning)
+            if sink._ins_size_is_fixed: 
+                N_inlets = len(edge_in)
+                warn(f'inlet #{sink_index} at {repr(sink)} missing graphics options; '
+                     f'expected at most {N_inlets} inlet' + ('' if N_inlets == 1 else 's'),
+                      GraphicsWarning)
             options = {'headport': 'c'}
         return options
     
@@ -61,10 +62,11 @@ class UnitGraphics:
         try:
             options = edge_out[source_index]
         except IndexError:
-            N_outlets = len(edge_out)
-            warn(f'outlet #{source_index} at {repr(source)} missing graphics options; '
-                 f'UnitGraphics object expected at most {N_outlets} inlets',
-                  GraphicsWarning)
+            if source._outs_size_is_fixed: 
+                N_outlets = len(edge_out)
+                warn(f'outlet #{source_index} at {repr(source)} missing graphics options; '
+                     f'expected at most {N_outlets} outlet' + ('' if N_outlets == 1 else 's'),
+                      GraphicsWarning)
             options = {'tailport': 'c'}
         return options
     

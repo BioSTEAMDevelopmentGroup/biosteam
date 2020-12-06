@@ -9,17 +9,18 @@ import biosteam as bst
 
 
 def test_unit_graphics():
-    sink = 'M1'
-    sink_index = 2
-    assert bst.Mixer._graphics.get_inlet_options(sink, sink_index) == {'headport': 'c'}
-    source = 'M1'
-    source_index = 0
-    assert bst.Mixer._graphics.get_outlet_options(source, source_index) == {'tailport': 'e'}
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    M = bst.Mixer(None, outs=None)
+    assert M._graphics.get_inlet_options(M, 2) == {'headport': 'c'}
+    assert M._graphics.get_inlet_options(M, 100) == {'headport': 'c'}
+    assert M._graphics.get_outlet_options(M, 0) == {'tailport': 'e'}
+    
+    S = bst.Splitter(None, outs=None, split=0.5)
     
     GraphicsWarning = bst.exceptions.GraphicsWarning
     with pytest.warns(GraphicsWarning):
-        bst.Mixer._graphics.get_inlet_options(sink, 100)
+        assert S._graphics.get_inlet_options(S, 1) == {'headport': 'c'}
     
     with pytest.warns(GraphicsWarning):
-        bst.Mixer._graphics.get_outlet_options(sink, 1)
+        assert M._graphics.get_outlet_options(M, 1) == {'tailport': 'c'}
     
