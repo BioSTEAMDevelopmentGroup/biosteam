@@ -44,9 +44,9 @@ class Model(State):
         If True, skip simulation for repeated states.
     params=None : Iterable[Parameter], optional
         Parameters to sample from.
-    exception_hook : callable(model, exception, sample)
+    exception_hook : callable(exception, sample)
         Function called after a failed evaluation. The exception hook should 
-        return either None or metric values given the model, exception and sample.
+        return either None or metric values given the exception and sample.
     
     Examples
     --------
@@ -243,7 +243,7 @@ class Model(State):
         """
         [callable(model, exception, sample)] Function called after a failed 
         evaluation. The exception hook should return either None or metric 
-        values given the model, exception and sample.
+        values given the exception and sample.
         
         """
         return self._exception_hook
@@ -338,7 +338,7 @@ class Model(State):
     
     def _run_exception_hook(self, exception, sample):
         if self._exception_hook: 
-            values = self._exception_hook(self, exception, sample)
+            values = self._exception_hook(exception, sample)
             if isinstance(values, Sized) and len(values) == len(self.metrics):
                 return values
             elif values is not None:
@@ -351,7 +351,7 @@ class Model(State):
         except:
             return self._failed_evaluation()
     
-    def _evaluate_sample_smart(self, sample, exception_hook=None):
+    def _evaluate_sample_smart(self, sample):
         try:
             self._update(sample, self._specification)
             return [i() for i in self._getters]

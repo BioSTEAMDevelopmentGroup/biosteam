@@ -53,7 +53,7 @@ def test_model_exception_hook():
     
     @lipidcane_model.parameter(element=lc.lipidcane, distribution=distribution, units='kg/hr')
     def set_lipidcane_flow_rate(flow_rate):
-        lc.lipidcane.F_mass =flow_rate
+        lc.lipidcane.F_mass = flow_rate
     
     samples = lipidcane_model.sample(15, 'L')
     lipidcane_model.load_samples(samples)
@@ -64,8 +64,8 @@ def test_model_exception_hook():
     
     InfeasibleRegion = bst.exceptions.InfeasibleRegion
     
-    # This will provide a more understandable solution for infeasible regions
-    def exception_hook(model, exception, sample): 
+    # This will provide a more understandable IRR result for infeasible regions
+    def exception_hook(exception, sample): 
         if isinstance(exception, InfeasibleRegion):
             return [0]
     lipidcane_model.exception_hook = exception_hook
@@ -73,14 +73,14 @@ def test_model_exception_hook():
     assert not np.isnan(lipidcane_model.table.values).any()
     
     # This will raise an exception due to negative flow rates
-    def exception_hook(model, exception, sample): 
+    def exception_hook(exception, sample): 
         if isinstance(exception, InfeasibleRegion):
             raise exception
     lipidcane_model.exception_hook = exception_hook
     with pytest.raises(InfeasibleRegion): lipidcane_model.evaluate()
     
     # This will raise an exception regardless
-    def exception_hook(model, exception, sample): 
+    def exception_hook(exception, sample): 
         raise exception
     lipidcane_model.exception_hook = exception_hook
     with pytest.raises(InfeasibleRegion): lipidcane_model.evaluate()
@@ -90,18 +90,21 @@ def test_model_exception_hook():
     bad_metric = bst.Metric('bad metric', lambda: 1/0)
     lipidcane_model.metrics = (IRR_metric, bad_metric)
     lipidcane_model.load_samples(samples) # Metrics changed, so need to reload sample
-    def exception_hook(model, exception, sample): 
+    def exception_hook(exception, sample): 
         if not isinstance(exception, ZeroDivisionError): return
         lc.lipidcane_sys.simulate()
         values = []
-        for i in model.metrics:
+        for i in lipidcane_model.metrics:
             try: x = i()
             except: x = None
             values.append(x)
-        return x
+        return values
     lipidcane_model.exception_hook = exception_hook
     lipidcane_model.evaluate()
     bad_metric_results = lipidcane_model.table[bad_metric.index]
     IRR_metric_results = lipidcane_model.table[IRR_metric.index]
     assert np.isnan(bad_metric_results).all()
-    assert np.isnan(IRR_metric_results).all()
+    assert not np.isnan(IRR_metric_results).all()
+    
+    # Note that the possibilities are infinite here...
+    
