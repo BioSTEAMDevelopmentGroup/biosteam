@@ -13,6 +13,7 @@ from ._state import State
 from ._metric import Metric
 from ._parameter import Parameter
 from biosteam import speed_up
+from collections.abc import Sized
 
 __all__ = ('Model',)
 
@@ -43,6 +44,9 @@ class Model(State):
         If True, skip simulation for repeated states.
     params=None : Iterable[Parameter], optional
         Parameters to sample from.
+    exception_hook : callable(model, exception, sample)
+        Function called after a failed evaluation. The exception hook should 
+        return either None or metric values given an exception and the sample.
     
     Examples
     --------
@@ -211,10 +215,13 @@ class Model(State):
                  '_getters',        # list[function] Cached metric getters.
                  '_failed_metrics', # list[np.nan] Cached NaN values for failed evaluations.
                  '_metric_indices', # list[Hashable] Cached metric indices.
+                 '_exception_hook', # [callable(model, exception, sample)] Should return either None or metric value given an exception and the sample.
     )
-    def __init__(self, system, metrics, specification=None, skip=False, parameters=None):
+    def __init__(self, system, metrics, specification=None, skip=False, 
+                 parameters=None, exception_hook=None):
         super().__init__(system, specification, skip, parameters)
         self.metrics = metrics
+        self.exception_hook = exception_hook
         self._samples = self.table = None
         
     def copy(self):
@@ -230,6 +237,22 @@ class Model(State):
     def _erase(self):
         """Erase cached data."""
         self._update = self._samples = None
+    
+    @property
+    def exception_hook(self):
+        """
+        [callable(model, exception, sample)] Function called after a failed 
+        evaluation. The exception hook should return either None or metric 
+        values given an exception and the sample.
+        
+        """
+        return self._exception_hook
+    @exception_hook.setter
+    def exception_hook(self, exception_hook):
+        if not exception_hook or callable(exception_hook):
+            self._exception_hook = exception_hook
+        else:
+            raise ValueError('exception hook must be callable or None')
     
     @property
     def metrics(self):
@@ -310,25 +333,30 @@ class Model(State):
         try:
             self._system.simulate()
             return [i() for i in self._getters]
-        except:
-            self._reset_system()
-            try:
-                self._system.simulate()
-                return [i() for i in self._getters]
-            except:
-                return self._failed_evaluation()
+        except Exception as exception:
+            return self._run_exception_hook(exception, sample)
     
-    def _evaluate_sample_smart(self, sample):
+    def _run_exception_hook(self, exception, sample):
+        if self._exception_hook: 
+            values = self._exception_hook(self, exception, sample)
+            if isinstance(values, Sized) and len(values) == len(self.metrics):
+                return values
+            elif values is not None:
+                raise RuntimeError('exception hook must return either None or '
+                                   'an array of metric values for the given sample')
+        self._reset_system()
+        try:
+            self._system.simulate()
+            return [i() for i in self._getters]
+        except:
+            return self._failed_evaluation()
+    
+    def _evaluate_sample_smart(self, sample, exception_hook=None):
         try:
             self._update(sample, self._specification)
             return [i() for i in self._getters]
-        except:
-            self._reset_system()
-            try: 
-                self._update(sample, self._specification)
-                return [i() for i in self._getters]
-            except:
-                return self._failed_evaluation()
+        except Exception as exception:
+            return self._exception_hook(exception, sample)
     
     def _reset_system(self):
         self._system.empty_recycles()

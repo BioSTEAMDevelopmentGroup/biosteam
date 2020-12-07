@@ -36,3 +36,72 @@ def test_model():
     
     bst.process_tools.default_utilities()
     bst.CE = 567.5
+    
+def test_model_exception_hook():
+    import biosteam as bst
+    import pytest
+    from biorefineries import lipidcane as lc
+    from chaospy import distributions as shape
+    from warnings import simplefilter
+    import numpy as np
+    simplefilter("ignore")
+    IRR_metric = bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR)
+    metrics = [IRR_metric]
+    lipidcane_model = bst.Model(lc.lipidcane_sys, metrics)
+    baseline = lc.lipidcane.F_mass
+    distribution = shape.Triangle(-baseline , baseline , 2*baseline ) # Negative value should fail
+    
+    @lipidcane_model.parameter(element=lc.lipidcane, distribution=distribution, units='kg/hr')
+    def set_lipidcane_flow_rate(flow_rate):
+        lc.lipidcane.F_mass =flow_rate
+    
+    samples = lipidcane_model.sample(15, 'L')
+    lipidcane_model.load_samples(samples)
+    
+    # Without an exception hook, the same behavior will result (NaN values for failed evaluations)
+    lipidcane_model.evaluate()
+    assert np.isnan(lipidcane_model.table.values).any()
+    
+    InfeasibleRegion = bst.exceptions.InfeasibleRegion
+    
+    # This will provide a more understandable solution for infeasible regions
+    def exception_hook(model, exception, sample): 
+        if isinstance(exception, InfeasibleRegion):
+            return [0]
+    lipidcane_model.exception_hook = exception_hook
+    lipidcane_model.evaluate()
+    assert not np.isnan(lipidcane_model.table.values).any()
+    
+    # This will raise an exception due to negative flow rates
+    def exception_hook(model, exception, sample): 
+        if isinstance(exception, InfeasibleRegion):
+            raise exception
+    lipidcane_model.exception_hook = exception_hook
+    with pytest.raises(InfeasibleRegion): lipidcane_model.evaluate()
+    
+    # This will raise an exception regardless
+    def exception_hook(model, exception, sample): 
+        raise exception
+    lipidcane_model.exception_hook = exception_hook
+    with pytest.raises(InfeasibleRegion): lipidcane_model.evaluate()
+    
+    # Here is another cool thing we could do in the case where 
+    # some metrics are expected to fail
+    bad_metric = bst.Metric('bad metric', lambda: 1/0)
+    lipidcane_model.metrics = (IRR_metric, bad_metric)
+    lipidcane_model.load_samples(samples) # Metrics changed, so need to reload sample
+    def exception_hook(model, exception, sample): 
+        if not isinstance(exception, ZeroDivisionError): return
+        lc.lipidcane_sys.simulate()
+        values = []
+        for i in model.metrics:
+            try: x = i()
+            except: x = None
+            values.append(x)
+        return x
+    lipidcane_model.exception_hook = exception_hook
+    lipidcane_model.evaluate()
+    bad_metric_results = lipidcane_model.table[bad_metric.index]
+    IRR_metric_results = lipidcane_model.table[IRR_metric.index]
+    assert np.isnan(bad_metric_results).all()
+    assert np.isnan(IRR_metric_results).all()
