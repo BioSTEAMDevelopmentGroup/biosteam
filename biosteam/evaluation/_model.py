@@ -46,7 +46,7 @@ class Model(State):
         Parameters to sample from.
     exception_hook : callable(model, exception, sample)
         Function called after a failed evaluation. The exception hook should 
-        return either None or metric values given an exception and the sample.
+        return either None or metric values given the model, exception and sample.
     
     Examples
     --------
@@ -243,7 +243,7 @@ class Model(State):
         """
         [callable(model, exception, sample)] Function called after a failed 
         evaluation. The exception hook should return either None or metric 
-        values given an exception and the sample.
+        values given the model, exception and sample.
         
         """
         return self._exception_hook
