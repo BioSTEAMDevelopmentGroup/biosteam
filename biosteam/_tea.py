@@ -549,9 +549,9 @@ class TEA:
             TDC = self.TDC
             annual_depreciation = TDC/(self.duration[1]-self.duration[0])
             AOC = self._AOC(self._FCI(TDC))
-            return AOC + coproduct_sales + annual_depreciation
+            return AOC - coproduct_sales + annual_depreciation
         else:
-            return self.AOC + coproduct_sales
+            return self.AOC - coproduct_sales
     
     def _taxable_and_nontaxable_cashflow_arrays(self):
         """Return taxable and nontaxable cash flows by year as a tuple[1d array, 1d array]."""
