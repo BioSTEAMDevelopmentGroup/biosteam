@@ -26,7 +26,7 @@ __all__ = ('BoilerTurbogenerator',)
 @cost('Flow rate', 'Deaerator',
       CE=551, cost=305e3, S=235803, n=0.6, BM=3.0)
 @cost('Flow rate', 'Boiler',
-      CE=551, cost=28550e3, kW=1000, S=238686, n=0.6, BM=1.8)
+      CE=551, cost=28550e3, kW=1371, S=238686, n=0.6, BM=1.8)
 class BoilerTurbogenerator(Facility):
     """
     Create a BoilerTurbogenerator object that will calculate electricity
