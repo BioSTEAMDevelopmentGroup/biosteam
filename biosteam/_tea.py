@@ -315,8 +315,9 @@ class TEA:
         return self._duration
     @duration.setter
     def duration(self, duration):
-        self._duration = duration
-        self._years = duration[1] - duration[0]
+        start, end = [int(i) for i in duration]
+        self._duration = (start, end)
+        self._years = end - start
         
     @property
     def depreciation(self):
@@ -768,6 +769,18 @@ class CombinedTEA(TEA):
         vector = np.zeros(len(self.TEAs))
         vector[:] = operating_days
         for i, j in zip(self.TEAs, vector): i.operating_days = j
+    
+    @property
+    def duration(self):
+        v_all = [i.duration for i in self.TEAs]
+        v0, *vs = v_all
+        if all([np.all(v0 == v) for v in vs]): return v0
+        else: raise AttributeError("TEAs don't have the same duration")
+    @duration.setter
+    def duration(self, duration):
+        vector = np.zeros([len(self.TEAs), 2], dtype=int)
+        vector[:] = duration
+        for i, j in zip(self.TEAs, vector): i.duration = j
     
     @property
     def startup_months(self):

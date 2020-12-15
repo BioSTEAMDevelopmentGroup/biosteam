@@ -44,7 +44,8 @@ class Parameter(Variable):
     def __init__(self, name, setter, simulate,
                  element, system, distribution,
                  units, baseline, bounds):
-        self.name = name.replace('_', ' ').capitalize()
+        name = name.replace('_', ' ')
+        self.name = name if name.isupper() else name.capitalize()
         self.setter = setter
         self.simulate = simulate
         self.element = element
