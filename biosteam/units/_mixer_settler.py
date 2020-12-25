@@ -338,27 +338,13 @@ class MultiStageMixerSettlers(bst.Unit):
     ...     }
     ... )
     >>> MSMS1.simulate()
-    >>> MSMS1.show()
-    MultiStageMixerSettlers: MSMS1
-    ins...
-    [0] feed
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     5e+03
-                        Methanol  500
-    [1] solvent
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Octanol  5e+03
-    outs...
-    [0] raffinate
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     4.13e+03
-                        Methanol  1.27
-                        Octanol   1.51
-    [1] extract
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     871
-                        Methanol  499
-                        Octanol   5e+03
+    >>> MSMS1.raffinate.show()
+    Stream: raffinate from <MultiStageMixerSettlers: MSMS1>
+     phase: 'l', T: 298.15 K, P: 101325 Pa
+     flow (kmol/hr): Water     4.13e+03
+                     Methanol  1.27
+                     Octanol   1.51
+    
     >>> MSMS1.results()
     Multi stage mixer settlers                     Units       MSMS1
     Power               Rate                          kW         198
