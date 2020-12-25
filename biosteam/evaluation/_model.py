@@ -160,7 +160,7 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 100000, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   0.105
+    Biorefinery  Internal rate of return [%]   0.117
                  Utility cost [10^6 USD/yr]    -19.4
     dtype: float64
     
@@ -176,16 +176,16 @@ class Model(State):
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
     >>> table['Biorefinery'] # Only biorefinery metrics
     Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
-    0                               0.162                       -20.3
-    1                               0.137                       -19.4
-    2                               0.182                         -27
-    3                               0.151                       -21.3
-    4                               0.164                       -26.5
-    5                               0.169                       -23.6
-    6                               0.147                         -22
-    7                               0.178                         -23
-    8                               0.182                         -26
-    9                               0.172                         -25
+    0                               0.174                       -20.3
+    1                                0.15                       -19.4
+    2                               0.195                         -27
+    3                               0.164                       -21.3
+    4                               0.176                       -26.5
+    5                               0.182                       -23.6
+    6                               0.159                         -22
+    7                               0.191                         -23
+    8                               0.195                         -26
+    9                               0.184                         -25
     
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
@@ -200,7 +200,7 @@ class Model(State):
                        Number of reactors              0.0545
                        Exponential cost coefficient   -0.0667
     Stream-lipidcane   Feedstock price [USD/kg]        -0.491
-    Name: (Biorefinery, Internal rate of return [%]), dtype: float64  
+    Name: (Biorefinery, Internal rate of return [%]), dtype: float64 
 
     >>> # Reset for future tests
     >>> bst.process_tools.default_utilities()
