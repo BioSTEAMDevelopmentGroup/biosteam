@@ -299,7 +299,7 @@ class MultiStageMixerSettlers(bst.Unit):
                         Octanol   0.103
     [1] extract
         phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     87.1
+        flow (kmol/hr): Water     87.2
                         Methanol  41.6
                         Octanol   500
     >>> MSMS1.results()
