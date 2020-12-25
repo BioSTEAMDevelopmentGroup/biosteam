@@ -16,7 +16,7 @@ setup(
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0', 'biorefineries>=2.16.7',
-                      'thermosteam>=0.22.6', 'graphviz>=0.8.3',
+                      'thermosteam>=0.22.7', 'graphviz>=0.8.3',
                       'chaospy==3.3.9'],
     package_data=
         {'biosteam': ['report/*',
