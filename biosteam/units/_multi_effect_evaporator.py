@@ -86,8 +86,8 @@ class MultiEffectEvaporator(Unit):
     >>> from biorefineries.cornstover import chemicals
     >>> bst.settings.set_thermo(chemicals)
     >>> feed = bst.Stream('feed', Water=1000, Glucose=100, 
-                          AceticAcid=0.5, HMF=0.1, Furfural=0.1,
-                          units='kg/hr')
+    ...                   AceticAcid=0.5, HMF=0.1, Furfural=0.1,
+    ...                   units='kg/hr')
     >>> E1 = bst.MultiEffectEvaporator('E1', ins=feed, outs=('solids', 'liquid'), 
     ...                                V=0.1, V_definition='First-effect',
     ...                                P=(101325, 73581, 50892, 32777, 20000))
@@ -140,8 +140,8 @@ class MultiEffectEvaporator(Unit):
     >>> from biorefineries.cornstover import chemicals
     >>> bst.settings.set_thermo(chemicals)
     >>> feed = bst.Stream('feed', Water=1000, Glucose=100, 
-                          AceticAcid=0.5, HMF=0.1, Furfural=0.1,
-                          units='kg/hr')
+    ...                   AceticAcid=0.5, HMF=0.1, Furfural=0.1,
+    ...                   units='kg/hr')
     >>> E1 = bst.MultiEffectEvaporator('E1', ins=feed, outs=('solids', 'liquid'), 
     ...                                V=0.1, V_definition='Overall',
     ...                                P=(101325, 73581, 50892, 32777, 20000))
