@@ -7,10 +7,12 @@
 # for license details.
 """
 """
-from .. import Unit
+from .._unit import Unit
 from .._graphics import mixer_graphics
+import flexsolve as flx
+import biosteam as bst
 
-__all__ = ('Mixer',)
+__all__ = ('Mixer', 'SteamMixer')
 
 class Mixer(Unit):
     """
@@ -60,3 +62,60 @@ class Mixer(Unit):
     def _run(self):
         s_out, = self.outs
         s_out.mix_from(self.ins)
+        
+
+class SteamMixer(Unit):
+    """
+    Create a mixer that varies the flow of steam to achieve a specified outlet
+    pressure.
+    
+    Parameters
+    ----------
+    ins : stream sequence
+        [0] Feed    
+        [1] Steam
+    outs : stream
+        Mixed product.
+    P : float
+        Outlet pressure.
+    utility: str, optional
+        ID of steam utility to set conditions of inlet stream. 
+        Defaults to low_pressure_steam. 
+    
+    """
+    _N_outs = 1
+    _N_ins = 2
+    _N_heat_utilities = 1
+    _graphics = mixer_graphics
+    installation_cost = purchase_cost = 0.
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, utility='low_pressure_steam'):
+        Unit.__init__(self, ID, ins, outs, thermo)
+        self.P = P
+        self.utility = utility
+    
+    def pressure_objective_function(self, steam_mol):
+        feed, steam = self.ins
+        mixed = self.outs[0]
+        steam.imol['7732-18-5'] = steam_mol
+        mixed.mol[:] = steam.mol + feed.mol
+        mixed.H = feed.H + steam.H
+        P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
+        return self.P - P_new
+    
+    def _setup(self):
+        steam = self.ins[1]
+        if steam.isempty():
+            steam.copy_like(bst.HeatUtility.get_heating_agent(self.utility))
+        self.outs[0].P = self.P
+    
+    def _run(self):
+        steam = self.ins[1]
+        steam_mol = steam.F_mol
+        steam_mol = flx.aitken_secant(self.pressure_objective_function,
+                                      steam_mol, steam_mol+0.1, 
+                                      1e-4, 1e-4, checkroot=False)
+        
+    def _design(self): 
+        steam = self.ins[1]
+        mixed = self.outs[0]
+        self.heat_utilities[0](steam.H, mixed.T)

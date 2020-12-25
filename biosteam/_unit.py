@@ -86,7 +86,7 @@ class Unit:
         Outlet streams or IDs to initialize output streams.
         If empty, default IDs will be given.
         If None, leave streams missing.
-    thermo=None : Thermo
+    thermo=None : :class:`~thermosteam.Thermo`
         Thermo object to initialize inlet and outlet streams. Defaults to
         `biosteam.settings.get_thermo()`.
     
@@ -98,7 +98,7 @@ class Unit:
         Output streams.
     power_utility : PowerUtility
         Electricity rate requirements are stored here (not including auxiliary units).
-    heat_utilities : tuple[HeatUtility]
+    heat_utilities : tuple[:class:`~biosteam.HeatUtility`]
         Cooling and heating requirements are stored here (not including auxiliary units).
     design_results : dict
         All design requirements (not including auxiliary units).

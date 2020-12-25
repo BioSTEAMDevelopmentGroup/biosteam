@@ -10,9 +10,11 @@ This module includes arbitrary classes and functions.
 
 """
 import biosteam as bst
+from thermosteam import Chemicals
 
 __all__ = ('factor', 'checkbounds', 'strtuple',
-           'format_unit_line', 'format_unit_name')
+           'format_unit_line', 'format_unit_name',
+           'remove_undefined_chemicals')
 
 # %% Number functions
 
@@ -72,3 +74,9 @@ def format_unit_name(name):
         new_words.append(i[0].capitalize() + i[1:])
     return ''.join(new_words)
     
+
+# %% Chemical management
+
+def remove_undefined_chemicals(data: dict, chemicals: Chemicals):
+    for i in data:
+        if i not in chemicals: del data[i]

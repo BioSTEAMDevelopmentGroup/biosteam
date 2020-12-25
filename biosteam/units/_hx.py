@@ -103,6 +103,13 @@ class HX(Unit, isabstract=True):
         self._heat_exchanger_type = heat_exchanger_type     
 
     def _design(self):
+        # Get duty (kW)
+        Q = abs(self.Q) / 3600
+        
+        if Q <= 1e-12: 
+            self.design_results.clear()
+            return
+        
         ###  Use LMTD correction factor method  ###
         Design = self.design_results
         
@@ -122,9 +129,6 @@ class HX(Unit, isabstract=True):
             N_shells = self.N_shells
             ft = ht.compute_Fahkeri_LMTD_correction_factor(Tci, Thi, Tco, Tho, N_shells)
         
-        # Get duty (kW)
-        Q = self.Q / 3600
-        
         # Get overall heat transfer coefficient
         U = self.U or ht.heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho)
         dP_tube, dP_shell = ht.heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho)
@@ -135,7 +139,7 @@ class HX(Unit, isabstract=True):
         
         # Design pressure
         P = max((ci.P, hi.P))
-        Design['Area'] = 10.763 * ht.compute_heat_transfer_area(abs(LMTD), U, abs(Q), ft)
+        Design['Area'] = 10.763 * ht.compute_heat_transfer_area(abs(LMTD), U, Q, ft)
         Design['Overall heat transfer coefficient'] = U
         Design['Log-mean temperature difference'] = LMTD
         Design['Fouling correction factor'] = ft
@@ -146,6 +150,10 @@ class HX(Unit, isabstract=True):
 
     def _cost(self):
         Design = self.design_results
+        if not Design: 
+            self.purchase_costs.clear()
+            return
+            
         A = Design['Area']
         L = Design['Total tube length']
         P = Design['Operating pressure']

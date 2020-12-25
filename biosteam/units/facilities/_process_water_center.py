@@ -71,9 +71,9 @@ class ProcessWaterCenter(Facility):
 
     def update_makeup_water(self):
         makeup_water_streams = self.makeup_water_streams
-        _, s_makeup = self.ins
-        s_makeup.imol['7732-18-5'] = sum([stream.imol['7732-18-5'] 
-                                          for stream in makeup_water_streams])
+        s_recycle, s_makeup = self.ins
+        water = sum([stream.imol['7732-18-5'] for stream in makeup_water_streams]) - s_recycle.imol['7732-18-5']
+        s_makeup.imol['7732-18-5'] = max(water, 0)
 
     def _run(self): 
         self.update_process_water()
@@ -84,9 +84,9 @@ class ProcessWaterCenter(Facility):
         recycle_water = s_recycle.F_mol
         process_water = s_process.F_mol
         waste_water = recycle_water + makeup_water - process_water
-        if waste_water < 0:
+        if waste_water < 0.:
             s_makeup.imol['7732-18-5'] -= waste_water
-            waste_water = 0
+            waste_water = 0.
         s_waste.imol['7732-18-5'] = waste_water
         Design = self.design_results
         Design['Process water flow rate'] = (process_water + waste_water) * 18.015

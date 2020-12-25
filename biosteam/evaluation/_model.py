@@ -307,9 +307,9 @@ class Model(State):
         self._failed_metrics = N_metrics * [np.nan]
         self._metric_indices = var_indices(metrics)
         
-    def evaluate(self, thorough=True, jit=True):
+    def evaluate(self, thorough=True, jit=True, notify=False):
         """
-        Evaluate metric over the argument sample space and save values to ``table``.
+        Evaluate metric over the argument sample space and save values to `table`.
         
         Parameters
         ----------
@@ -318,6 +318,8 @@ class Model(State):
             If False, simulate only the affected parts of the system.
         jit : bool
             Whether to JIT compile functions with Numba to speed up simulation.
+        notify=False : bool, optional
+            If True, notify elapsed time after each sample evaluation. 
         
         """
         if jit: speed_up()
@@ -325,7 +327,18 @@ class Model(State):
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
         table = self.table
-        table[self._metric_indices] = [evaluate_sample(samples[i]) for i in self._index]
+        if notify:
+            from biosteam.utils import TicToc
+            timer = TicToc()
+            timer.tic()
+            def evaluate(sample, count=[0]):
+                count[0] += 1
+                values = evaluate_sample(sample)
+                print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
+                return values
+        else:
+            evaluate = evaluate_sample
+        table[self._metric_indices] = [evaluate(samples[i]) for i in self._index]
     
     def _evaluate_sample_thorough(self, sample):
         for f, s in zip(self._setters, sample): f(s)

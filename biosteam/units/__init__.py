@@ -13,8 +13,7 @@ from ._splitter import *
 from ._pump import *
 from ._hx import *
 from ._tank import *
-from ._binary_distillation import *
-from ._shortcut_column import *
+from ._distillation import *
 from ._duplicator import *
 from ._junction import *
 from ._process_specification import *
@@ -26,9 +25,8 @@ from ._lle_unit import *
 from ._liquids_settler import *
 from ._liquids_centrifuge import *
 from ._liquids_mixing_tank import *
-from ._solids_separator import *
+from .solids_separation import *
 from ._solids_centrifuge import *
-from ._rvf import *
 from ._batch_bioreactor import *
 from ._fermentation import *
 from ._transesterification import *
@@ -45,17 +43,18 @@ from ._vibrating_screen import *
 from ._mixer_settler import *
 from ._carbon_capture import *
 from ._slle_centrifuge import *
+from .wastewater import *
 from .facilities import *
 
 
 from . import (
     _flash, _mixer, _splitter, _slle_centrifuge,
-    _pump, _hx, _multi_effect_evaporator, _shortcut_column,
-    _binary_distillation, _tank, _magnetic_separator,
+    _pump, _hx, _multi_effect_evaporator, 
+    _distillation, _tank, _magnetic_separator,
     _molecular_sieve, _conveying_belt, _vent_scrubber,
-    _vibrating_screen, _junction, _solids_separator,
+    _vibrating_screen, _junction, solids_separation,
     _transesterification, _fermentation, 
-    _enzyme_treatment, _clarifier, _rvf,
+    _enzyme_treatment, _clarifier, 
     _solids_centrifuge, _particle_size_reduction,
     _balance, _shredder, _screw_feeder,
     decorators, design_tools, facilities,
@@ -63,14 +62,13 @@ from . import (
     _diagram_only_units, _batch_bioreactor,
     _liquids_centrifuge, _liquids_settler,
     _lle_unit, _liquids_mixing_tank, _mixer_settler,
-    _carbon_capture,
+    _carbon_capture, wastewater,
 )
 
 __all__ = ('Unit',
            *_diagram_only_units.__all__,
            *_flash.__all__,
            *_liquids_centrifuge.__all__,
-           *_shortcut_column.__all__,
            *_mixer.__all__,
            *_splitter.__all__,
            *_pump.__all__,
@@ -78,19 +76,18 @@ __all__ = ('Unit',
            *_multi_effect_evaporator.__all__,
            *_liquids_centrifuge.__all__,
            *_liquids_mixing_tank.__all__,
-           *_binary_distillation.__all__,
+           *_distillation.__all__,
            *_tank.__all__,
            *_molecular_sieve.__all__,
            *_conveying_belt.__all__,
            *_vent_scrubber.__all__,
            *_vibrating_screen.__all__,
            *_junction.__all__,
-           *_solids_separator.__all__,
+           *solids_separation.__all__,
            *_transesterification.__all__,
            *_fermentation.__all__, 
            *_enzyme_treatment.__all__,
            *_clarifier.__all__,
-           *_rvf.__all__,
            *_solids_centrifuge.__all__, 
            *_particle_size_reduction.__all__,
            *_balance.__all__, 
@@ -106,9 +103,11 @@ __all__ = ('Unit',
            *_mixer_settler.__all__,
            *_carbon_capture.__all__,
            *_slle_centrifuge.__all__,
+           *wastewater.__all__,
            'facilities',
            'decorators',
            'design_tools',
+           'wastewater',
 )
 
 

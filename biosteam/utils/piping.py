@@ -87,8 +87,9 @@ class MissingStream:
         """
         source = self._source
         sink = self._sink
-        assert source and sink, (
-            "both a source and a sink is required to materialize connection")
+        if not (source and sink):
+            raise RuntimeError("both a source and a sink is required to "
+                               "materialize connection")
         material_stream = Stream(ID, thermo=source.thermo)
         source._outs.replace(self, material_stream)
         sink._ins.replace(self, material_stream)
@@ -226,6 +227,7 @@ class StreamSequence:
     def _undock(self, stream): pass
         
     def _set_streams(self, slice, streams, stacklevel):
+        streams = [self._as_stream(i) for i in streams]
         all_streams = self._streams
         for stream in all_streams[slice]: self._undock(stream)
         all_streams[slice] = streams
@@ -238,7 +240,18 @@ class StreamSequence:
                 N_missing = n_missing(size, N_streams)
                 if N_missing:
                     all_streams[N_streams: size] = self._create_N_missing_streams(N_missing)
-            
+       
+    def _as_stream(self, stream):
+        if stream:
+            if not isinstance(stream, Stream):
+                raise TypeError(
+                    f"'{type(self).__name__}' object can only contain "
+                    f"'Stream' objects; not '{type(item).__name__}'"
+                )
+        elif not isinstance(stream, MissingStream):
+            stream = self._create_missing_stream()
+        return stream
+       
     @property
     def size(self):
         return self._streams.__len__()
@@ -247,6 +260,7 @@ class StreamSequence:
         return self._streams.__len__()
     
     def _set_stream(self, int, stream, stacklevel):
+        stream = self._as_stream(stream)
         self._undock(self._streams[int])
         self._redock(stream, stacklevel)
         self._streams[int] = stream
@@ -295,31 +309,16 @@ class StreamSequence:
     
     def __getitem__(self, index):
         return self._streams[index]
-            
+    
     def __setitem__(self, index, item):
         isa = isinstance
         if isa(index, int):
-            if item:
-                assert isa(item, Stream), (
-                    f"'{type(self).__name__}' object can only contain "
-                    f"'Stream' objects; not '{type(item).__name__}'")
-            elif not isa(item, MissingStream):
-                item = self._create_missing_stream()
             self._set_stream(index, item, 4)
         elif isa(index, slice):
-            streams = []
-            for stream in item:
-                if stream:
-                    assert isa(stream, Stream), (
-                        f"'{type(self).__name__}' object can only contain "
-                        f"'Stream' objects; not '{type(stream).__name__}'")
-                elif not isa(stream, MissingStream):
-                    stream = self._create_missing_stream()
-                streams.append(stream)
             self._set_streams(index, item, 4)
         else:
-            raise TypeError("Only intergers and slices are valid "
-                           f"indices for '{type(self).__name__}' objects")
+            raise IndexError("Only intergers and slices are valid "
+                             f"indices for '{type(self).__name__}' objects")
     
     def __repr__(self):
         return repr(self._streams)

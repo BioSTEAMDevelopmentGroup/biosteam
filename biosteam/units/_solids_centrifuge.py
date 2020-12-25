@@ -37,7 +37,9 @@ class SolidsCentrifuge(Splitter):
     
     References
     ----------
-    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
+    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost 
+    Estimation". In Product and Process Design Principles: Synthesis, Analysis,
+    and Evaluation (pp. 481-485). New York: Wiley.
     
     """
     _units = {'Solids loading': 'ton/hr',

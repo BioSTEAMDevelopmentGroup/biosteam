@@ -163,10 +163,7 @@ class BoilerTurbogenerator(Facility):
             H_steam += side_steam.H
             mol_steam += side_steam.F_mol
         steam_demand.imol['7732-18-5'] = mol_steam 
-        if not mol_steam:
-            duty_over_mol = self.agent.Hvap
-        else:
-            duty_over_mol = H_steam / mol_steam
+        duty_over_mol = 39000 # kJ / mol-superheated steam 
         emissions_mol = emissions.mol
         emissions.T = self.agent.T
         emissions.P = 101325

@@ -277,7 +277,7 @@ class HeatUtility:
             Water=1, T=412.189, P=344738.0, phase='g',
             thermo=thermo_water,
             regeneration_price = 0.2378,
-            heat_transfer_efficiency = 0.95
+            heat_transfer_efficiency = 0.95,
         )
         medium_pressure_steam = UtilityAgent(
             'medium_pressure_steam',

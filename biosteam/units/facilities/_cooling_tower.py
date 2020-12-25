@@ -18,7 +18,7 @@ __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
 # %%
 
 @cost('Flow rate', 'Cooling water pump',
-      S=557183, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
+      S=609624, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
 @cost('Flow rate', 'Cooling tower',
       S=557183, kW=1598, cost=1375e3, CE=551, n=0.7, BM=1.5)
 class CoolingTower(Facility):
@@ -80,22 +80,9 @@ class CoolingTower(Facility):
         used.imol['7732-18-5'] = \
         self.design_results['Flow rate'] = \
         self.cooling_water = hu.flow 
-        
-        self._outs[0].T = hu.inlet_utility_stream.T
+        cooling_water, loss = self.outs
+        cooling_water.T = hu.inlet_utility_stream.T
         self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)
+        loss.T = hu.outlet_utility_stream.T
         hu.reverse()
 
-    
-# class CoolingTowerWithPowerDemand(CoolingTower):
-#     _has_power_utility = True
-#     _N_heat_utilities = 1
-#     cost_options = copy(CoolingTower.cost_items)
-#     cost_options['Cooling tower'].kW = 0.1
-#     def _cost(self):
-#         super()._cost()
-#         q = self._molar_flow # kmol/hr
-#         hu = self.heat_utilities[0]
-#         cw = hu.cooling_agents['Cooling water']
-#         hu.ID = 'Cooling water'
-#         hu.flow = -q
-#         hu.cost = -q*cw.price_kmol
