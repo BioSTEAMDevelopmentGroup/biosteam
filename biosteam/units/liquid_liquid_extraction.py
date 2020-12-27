@@ -139,7 +139,7 @@ class LLEUnit(bst.Unit, isabstract=True):
         self.multi_stream = bst.MultiStream(phases='lL', thermo=self.thermo)
         
     def _run(self):
-        separations.lle(*self.ins, *self.outs, self.top_chemical, self.efficiency, self.multi_stream)
+        sep.lle(*self.ins, *self.outs, self.top_chemical, self.efficiency, self.multi_stream)
         IDs = self.forced_split_IDs
         if IDs:
             feed, = self.ins
@@ -175,7 +175,9 @@ class LiquidsCentrifuge(Unit, isabstract=True):
     -----
     The f.o.b purchase cost is given by [1]_:
 
-    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
+    .. math::
+        
+       C_{f.o.b}^{2007} = 28100 Q^{0.574} \ (Q < 100 \frac{m^3}{h})
     
     References
     ----------
@@ -218,7 +220,9 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     -----
     The f.o.b purchase cost is given by [1]_:
 
-    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
+    .. math::
+        
+       C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})
     
     References
     ----------
@@ -255,8 +259,10 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     Notes
     -----
     The f.o.b purchase cost is given by [1]_:
-
-    :math:`C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})` 
+    
+    .. math::
+        
+       C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})
     
     References
     ----------
@@ -322,9 +328,9 @@ class SLLECentrifuge(Unit):
     ins : stream
         feed
     outs : stream sequence
-        [0] Oil fluid.
-        [1] Aqueous fluid.
-        [2] Solids.
+        * [0] Oil fluid.
+        * [1] Aqueous fluid.
+        * [2] Solids.
     solids_split : dict[str, float]
         Splits to 2nd outlet stream.
     top_chemical : str, optional
@@ -443,9 +449,9 @@ class SolidLiquidsSplitCentrifuge(Unit):
     ins : stream
         feed
     outs : stream sequence
-        [0] Oil fluid.
-        [1] Aqueous fluid.
-        [2] Solids.
+        * [0] Oil fluid.
+        * [1] Aqueous fluid.
+        * [2] Solids.
     aqueous_split : dict[str, float]
         Splits to [0] outlet stream.
     solids_split : dict[str, float]
@@ -635,8 +641,8 @@ class LiquidsSettler(bst.Unit, PressureVessel, isabstract=True):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        [0] Top fluid.
-        [1] Bottom fluid.
+        * [0] Top fluid.
+        * [1] Bottom fluid.
     vessel_material='Carbon steel' : str, optional
         Vessel construction material.
     vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
@@ -692,8 +698,8 @@ class LLESettler(LLEUnit, LiquidsSettler):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        [0] Top fluid.
-        [1] Bottom fluid.
+        * [0] Top fluid.
+        * [1] Bottom fluid.
     vessel_material='Carbon steel' : str, optional
         Vessel construction material.
     vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
@@ -737,8 +743,8 @@ class LiquidsSplitSettler(LiquidsSettler):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        [0] Top fluid.
-        [1] Bottom fluid.
+        * [0] Top fluid.
+        * [1] Bottom fluid.
     split : Should be one of the following
             * [float] The fraction of net feed in the 0th outlet stream
             * [array_like] Componentwise split of feed to 0th outlet stream
@@ -783,8 +789,8 @@ class LiquidsPartitionSettler(LiquidsSettler):
     ins : stream
         Inlet fluid with two liquid phases.
     outs : stream sequence
-        [0] Top fluid.
-        [1] Bottom fluid.
+        * [0] Top fluid.
+        * [1] Bottom fluid.
     vessel_material='Carbon steel' : str, optional
         Vessel construction material.
     vessel_type='Horizontal': 'Horizontal' or 'Vertical', optional
@@ -820,9 +826,9 @@ class LiquidsPartitionSettler(LiquidsSettler):
         self._phi = None
     
     def _run(self):
-        self._phi = separations.partition(*self.ins, *self.outs, 
-                                          self.partion_IDs, self.partition_coefficients,
-                                          self._phi)
+        self._phi = sep.partition(*self.ins, *self.outs, 
+                                  self.partion_IDs, self.partition_coefficients,
+                                  self._phi)
 
 # %% Mixer-settlers
 
@@ -1204,7 +1210,7 @@ class MultiStageMixerSettlers(bst.Unit):
     def _setup(self):
         args = (self.stages, self.feed, self.solvent, self.carrier_chemical)
         if args != self._last_args:
-            self.stages = tmo.separations.MultiStageLLE(
+            self.stages = sep.MultiStageLLE(
                 self.N_stages, self.feed, self.solvent, self.carrier_chemical, 
                 self.thermo, self.partition_data
             )

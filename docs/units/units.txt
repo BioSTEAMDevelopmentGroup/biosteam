@@ -7,27 +7,19 @@ units
    decorators
    design_tools/design_tools
    facilities/facilities
+   heat_exchange
+   liquid_liquid_extraction
+   mixing
+   splitting
+   tank
+   Pump
    BatchBioreactor
-   BinaryDistillation
    Duplicator
    Fermentation
    Flash
-   HXprocess
-   HXutility
    Junction
-   LiquidsSplitCentrifuge
-   LLECentrifuge
    MassBalance
-   MixTank
-   Mixer
-   MixerSettler
    MolecularSieve
    MultiEffectEvaporator
-   MultiStageMixerSettlers
    ProcessSpecification
-   Pump
-   ShortcutColumn
-   Splitter
-   StorageTank
    Transesterification
-   Tank

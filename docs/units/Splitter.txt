@@ -1,5 +1,0 @@
-splitter
-========
-
-.. automodule:: biosteam.units.splitter
-   :members:

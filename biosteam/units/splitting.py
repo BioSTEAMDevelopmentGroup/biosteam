@@ -12,11 +12,11 @@ This module contains unit operations for splitting flows.
     
 Unit Operations
 ---------------
-.. autoclass:: biosteam.units.splitter.Splitter
-.. autoclass:: biosteam.units.splitter.Splitter
-.. autoclass:: biosteam.units.splitter.PhaseSplitter 
-.. autoclass:: biosteam.units.splitter.FakeSplitter
-.. autoclass:: biosteam.units.splitter.ReversedSplitter
+.. autoclass:: biosteam.units.splitting.Splitter
+.. autoclass:: biosteam.units.splitting.Splitter
+.. autoclass:: biosteam.units.splitting.PhaseSplitter 
+.. autoclass:: biosteam.units.splitting.FakeSplitter
+.. autoclass:: biosteam.units.splitting.ReversedSplitter
 
 """
 from .. import Unit

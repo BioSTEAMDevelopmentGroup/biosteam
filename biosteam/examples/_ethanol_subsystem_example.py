@@ -110,12 +110,12 @@ def create_ethanol_subsystem_example():
     D301 = units.VentScrubber('D301', ins=(stripping_water, R301-0), gas=('CO2',))
     
     # Separate 99% of yeast
-    C301 = units.SolidsCentrifuge('C301', outs=('', 'recycle_yeast'),
+    C301 = units.SolidsCentrifuge('C301', outs=('recycle_yeast', ''),
                                 split=(1, 0.99999, 1, 0.96, 0.01),
                                 order=('Ethanol', 'Glucose', 'H3PO4', 
                                        'Water', 'DryYeast'),
                                 solids=('DryYeast',))
-    
+    C301.split[:] = 1. - C301.split
     # Mix in Water
     M302 = units.Mixer('M302')
     P301 = units.Pump('P301')
@@ -158,7 +158,7 @@ def create_ethanol_subsystem_example():
                                 order=('Ethanol', 'Water'))
     
     fermentation_feed-R301-1-T301-0-C301
-    (C301-0, D301-1)-M302-P301
+    (C301-1, D301-1)-M302-P301
     (P301-0, P302-0)-H302-0-D302-1-P302
     (D302-0, U301-0)-M303-0-D303-0-H303-U301
     D303-1-P303

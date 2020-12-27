@@ -12,11 +12,6 @@ from .decorators import cost
 
 __all__ = ('MolecularSieve',)
 
-
-# @cost('Flow rate', 'Pressure filter drying (2)',
-#       cost=405000, CE=521.9, S=22687, n=0.6, kW=1044)
-# @cost('Flow rate', 'Pressure filter pressing',
-#       cost=75200, CE=521.9, S=22687, n=0.6, kW=112)
 @cost('Flow rate', 'Column', kW=151, BM=1.8,
       cost=2601000, CE=521.9, S=22687, n=0.6)
 class MolecularSieve(Splitter):
