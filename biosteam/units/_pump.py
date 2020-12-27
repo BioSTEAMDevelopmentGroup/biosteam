@@ -165,6 +165,9 @@ class Pump(Unit):
         Design = self.design_results
         si, = self.ins
         so, = self.outs
+        if si.isempty(): 
+            self.design_results.clear()
+            return
         Pi = si.P
         Po = so.P
         Qi = si.F_vol
@@ -234,6 +237,10 @@ class Pump(Unit):
         self.power_utility(power/N/1.341) # Set power in kW
     
     def _cost(self):
+        if self.ins[0].isempty(): 
+            self.purchase_costs.clear()
+            return
+        
         # Parameters
         Design = self.design_results
         Cost = self.purchase_costs

@@ -78,5 +78,5 @@ def format_unit_name(name):
 # %% Chemical management
 
 def remove_undefined_chemicals(data: dict, chemicals: Chemicals):
-    for i in data:
+    for i in tuple(data):
         if i not in chemicals: del data[i]

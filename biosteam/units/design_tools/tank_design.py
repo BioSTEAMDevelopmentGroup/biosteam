@@ -112,9 +112,12 @@ def compute_number_of_tanks_and_total_purchase_cost(total_volume,
              f"the lower bound ({V_min:.5g} {V_units}) for purchase "
               "cost estimation")
     N = ceil(V_total / purchase_cost_algorithm.V_max)
-    V = V_total / N
-    F_CE = bst.CE / purchase_cost_algorithm.CE
-    Cp = N * F_M * F_CE * purchase_cost_algorithm.f_Cp(V)
+    if N:
+        V = V_total / N
+        F_CE = bst.CE / purchase_cost_algorithm.CE
+        Cp = N * F_M * F_CE * purchase_cost_algorithm.f_Cp(V)
+    else:
+        Cp = 0.
     return N, Cp
     
 def field_erected_tank_purchase_cost(V):

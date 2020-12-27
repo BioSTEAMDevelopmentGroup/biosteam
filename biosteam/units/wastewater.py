@@ -78,7 +78,7 @@ def get_digestable_organic_chemicals(chemicals):
         Digestable organic chemicals will be retrieve from this parameter.
 
     """
-    non_digestable_chemicals = set(chemicals[non_digestables])
+    non_digestable_chemicals = set([chemicals[i] for i in non_digestables if i in chemicals])
     digestables = [i for i in chemicals if i not in non_digestable_chemicals]
     return [i for i in digestables if i.locked_state != 'g' and 'C' in i.atoms]
 
