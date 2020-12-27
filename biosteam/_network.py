@@ -381,8 +381,11 @@ class Network:
                 except:
                     path_info.append(str(i))
         info += '[' + (end + " ").join(path_info) + ']'
-        if self.recycle:
-            info += end + f"recycle={self.recycle})"
+        recycle = self.recycle
+        if recycle:
+            source = recycle.source
+            recycle = f"{source}-{source.outs.index(recycle)}"
+            info += end + f"recycle={recycle})"
         else:
             info += ')'
         return info
