@@ -176,16 +176,16 @@ class Model(State):
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
     >>> table['Biorefinery'] # Only biorefinery metrics
     Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
-    0                               0.175                       -20.4
-    1                                0.15                       -19.5
-    2                               0.196                       -27.1
-    3                               0.164                       -21.4
-    4                               0.177                       -26.6
-    5                               0.183                       -23.8
-    6                                0.16                       -22.1
-    7                               0.192                       -23.2
-    8                               0.196                       -26.2
-    9                               0.185                       -25.1
+    0                                0.17                        -20.
+    1                                0.15                        -19.
+    2                                0.19                        -27.
+    3                                0.16                        -21.
+    4                                0.17                        -26.
+    5                                0.18                        -23.
+    6                                0.16                        -22.
+    7                                0.19                        -23.
+    8                                0.19                        -26.
+    9                                0.18                        -25.
     
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
