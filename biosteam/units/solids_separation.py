@@ -57,8 +57,10 @@ class SolidsSeparator(Splitter):
         #: Moisture content of retentate
         self.moisture_content = moisture_content
         water_split = self.isplit['7732-18-5']
-        if water_split: warn(RuntimeWarning('cannot define water split, only moisture content'))
-        self.isplit['7732-18-5'] = 0.
+        if water_split: 
+            warn(RuntimeWarning('cannot define water split, only moisture content'), 
+                 stacklevel=self._stacklevel - 6)
+            self.isplit['7732-18-5'] = 0.
     
     def _run(self):
         separations.mix_and_split_with_moisture_content(
@@ -104,7 +106,7 @@ class SolidsCentrifuge(SolidsSeparator):
 
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 split, order=None, solids=None, moisture_content=0.40):
+                 split, order=None, solids=(), moisture_content=0.40):
         SolidsSeparator.__init__(self, ID, ins, outs, thermo, moisture_content=moisture_content, split=split, order=order)
         self.solids = solids
     
