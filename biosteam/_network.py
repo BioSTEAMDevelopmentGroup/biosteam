@@ -237,9 +237,9 @@ class Network:
                 self._remove_overlap(network)
                 if network.recycle:
                     item.join_network_at_unit(network, unit)
+                    self._update_from_newly_added_network(network)
                 else:
                     self._insert_network(index, network, False)
-                self._update_from_newly_added_network(network)
                 return
             elif unit == item:
                 self._remove_overlap(network)
@@ -288,7 +288,7 @@ class Network:
     def _add_subnetwork(self, subnetwork):
         path = self.path
         isa = isinstance
-        index_found = done = False
+        done = False
         subnetworks = self.subnetworks
         has_overlap = True
         path_tuple = tuple(path)
@@ -320,14 +320,13 @@ class Network:
                 path.remove(i)
                 try: subnetworks.remove(i)
                 except: pass
-                index_found = True
+                self._insert_network(index, subnetwork)
+                done = True
             elif not subnetwork.isdisjoint(i):
                 i._add_subnetwork(subnetwork)
+                self._update_from_newly_added_network(subnetwork)
                 done = True
-        if index_found:
-            self._insert_network(index, subnetwork)
-            done = True
-        elif not done:
+        if not done:
             for index, item in enumerate(path_tuple):
                 if isa(item, Unit):
                     if item not in subunits: continue
