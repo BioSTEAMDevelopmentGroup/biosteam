@@ -109,7 +109,7 @@ def load_network_components(path, units, streams, feeds,
             streams.update(i.streams)
             products.update(i.products)
             units.update(i.units)
-            subnetworks.add(i)
+            subnetworks.append(i)
         else:
             raise ValueError("path elements must be either Unit or Network "
                             f"objects not '{type(i).__name__}' objects")
@@ -123,7 +123,7 @@ class Network:
     
     Parameters
     ----------
-    path : Iterable[Unit or Network]
+    path : Iterable[:class:`~biosteam.Unit` or :class:`~biosteam.Network`]
         A path of unit operations and subnetworks.
     recycle : :class:`~thermosteam.Stream`
         A recycle stream, if any.
@@ -137,12 +137,15 @@ class Network:
         self.path = list(path)
         self.recycle = recycle
         self.units = units = set()
-        self.subnetworks = subnetworks = set()
+        self.subnetworks = subnetworks = []
         self.streams = streams = set()
         self.feeds = feeds = set()
         self.products = products = set()
         load_network_components(path, units, streams, feeds,
                                 products, subnetworks)
+     
+    def __eq__(self, other):
+        return isinstance(other, Network) and self.path == other.path and self.recycle is other.recycle
         
     @classmethod
     def from_feedstock(cls, feedstock, feeds=(), ends=None):
@@ -155,7 +158,7 @@ class Network:
             Main feedstock of the process.
         feeds : Iterable[:class:`~thermosteam.Stream`]
             Additional feeds to the process.
-        facilities : Iterable[Facility]
+        facilities : Iterable[:class:`~biosteam.Facility`]
             Offsite facilities that are simulated only after 
             completing the path simulation.
         ends : Iterable[:class:`~thermosteam.Stream`]
@@ -232,7 +235,10 @@ class Network:
         for index, item in enumerate(self.path):
             if isa(item, Network) and unit in item.units:
                 self._remove_overlap(network)
-                item.join_network_at_unit(network, unit)
+                if network.recycle:
+                    item.join_network_at_unit(network, unit)
+                else:
+                    self._insert_network(index, network, False)
                 self._update_from_newly_added_network(network)
                 return
             elif unit == item:
@@ -248,7 +254,7 @@ class Network:
         self.streams.update(unit._ins + unit._outs)
     
     def _update_from_newly_added_network(self, network):
-        self.subnetworks.add(network)
+        self.subnetworks.append(network)
         self.units.update(network.units)
         self.streams.update(network.streams)
         self.feeds.update(network.feeds)
@@ -315,11 +321,12 @@ class Network:
                 try: subnetworks.remove(i)
                 except: pass
                 index_found = True
-            elif subnetwork.issubset(i):
+            elif not subnetwork.isdisjoint(i):
                 i._add_subnetwork(subnetwork)
                 done = True
         if index_found:
             self._insert_network(index, subnetwork)
+            done = True
         elif not done:
             for index, item in enumerate(path_tuple):
                 if isa(item, Unit):
