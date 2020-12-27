@@ -6,6 +6,20 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+This module contains unit operations for tanks.
+
+.. contents:: :local:
+    
+Unit Operations
+---------------
+.. autoclass:: biosteam.units.tank.Tank
+.. autoclass:: biosteam.units.tank.MixTank
+.. autoclass:: biosteam.units.tank.StorageTank
+
+Factories
+---------
+.. autofunction:: biosteam.units.tank.tank_factory
+
 """
 from .design_tools.specification_factors import vessel_material_factors
 from .design_tools.tank_design import (
@@ -15,7 +29,7 @@ from .design_tools.tank_design import (
     mix_tank_purchase_cost_algorithms)
 from ..utils import ExponentialFunctor
 from .._unit import Unit
-from ._mixer import Mixer
+from .mixing import Mixer
 
 __all__ = ('Tank', 'MixTank', 'StorageTank', 'tank_factory')
 

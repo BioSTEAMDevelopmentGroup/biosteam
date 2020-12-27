@@ -1,5 +1,5 @@
-Tank
+tank
 ====
 
-.. autoclass:: biosteam.units.Tank
+.. automodule:: biosteam.units.tank
    :members:

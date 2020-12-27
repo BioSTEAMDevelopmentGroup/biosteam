@@ -10,8 +10,8 @@
 import numpy as np
 import biosteam as bst
 from .. import Unit
-from ._mixer import Mixer
-from ._hx import HXutility
+from .mixing import Mixer
+from .heat_exchange import HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
 from .design_tools import (
     compute_vacuum_system_power_and_cost,

@@ -6,6 +6,15 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+This module contains unit operations for mixing.
+
+.. contents:: :local:
+    
+Unit Operations
+---------------
+.. autoclass:: biosteam.units.mixing.Mixer
+.. autoclass:: biosteam.units.mixing.SteamMixer
+
 """
 from .._unit import Unit
 from .._graphics import mixer_graphics

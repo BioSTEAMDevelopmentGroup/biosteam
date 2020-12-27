@@ -6,6 +6,16 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+This module contains unit operations for distillation.
+
+.. contents:: :local:
+    
+Unit Operations
+---------------
+.. autoclass:: biosteam.units.distillation.Distillation
+.. autoclass:: biosteam.units.distillation.BinaryDistillation 
+.. autoclass:: biosteam.units.distillation.ShortcutColumn
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,7 +34,7 @@ from .. import Unit
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
-from ._hx import HXutility
+from .heat_exchange import HXutility
 
 __all__ = ('BinaryDistillation', 'ShortcutColumn')
 

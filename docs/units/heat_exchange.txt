@@ -1,0 +1,5 @@
+heat_exchange
+=============
+
+.. automodule:: biosteam.units.heat_exchange
+   :members:

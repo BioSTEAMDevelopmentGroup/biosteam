@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from ._splitter import Splitter
+from .splitting import Splitter
 from ..exceptions import DesignError
 from .decorators import cost
 

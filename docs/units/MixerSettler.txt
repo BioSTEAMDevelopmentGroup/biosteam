@@ -1,5 +1,0 @@
-MixerSettler
-============
-
-.. autoclass:: biosteam.units.MixerSettler
-   :members:

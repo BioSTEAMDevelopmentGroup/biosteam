@@ -6,6 +6,18 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+This module contains unit operations for splitting flows.
+
+.. contents:: :local:
+    
+Unit Operations
+---------------
+.. autoclass:: biosteam.units.splitter.Splitter
+.. autoclass:: biosteam.units.splitter.Splitter
+.. autoclass:: biosteam.units.splitter.PhaseSplitter 
+.. autoclass:: biosteam.units.splitter.FakeSplitter
+.. autoclass:: biosteam.units.splitter.ReversedSplitter
+
 """
 from .. import Unit
 from .._graphics import splitter_graphics
@@ -208,7 +220,12 @@ class FakeSplitter(Unit):
 FakeSplitter.line = 'Splitter'
 
 class ReversedSplitter(Unit):
-    """Create a splitter that, when simulated, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    """
+    Create a splitter that, when simulated, sets the inlet stream based 
+    on outlet streams. Must have only one input stream. The outlet streams will
+    have the same temperature, pressure and phase as the inlet.
+    
+    """
     _graphics = Splitter._graphics
     _N_ins = 1
     _N_outs = 2
@@ -223,7 +240,12 @@ class ReversedSplitter(Unit):
         reversed_split(inlet, outlets)
 
 class ReversedSplit:
-    """Create a splitter that, when called, sets the inlet stream based on outlet streams. Must have only one input stream. The outlet streams will become the same temperature, pressure and phase as the input."""
+    """
+    When called, sets the inlet stream based on outlet streams. Must have 
+    only one input stream. The outlet streams will have the same temperature, 
+    pressure and phase as the inlet.
+    
+    """
     __slots__ = ('splitter',)
     
     def __init__(self, splitter):

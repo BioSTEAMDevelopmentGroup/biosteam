@@ -7,8 +7,8 @@
 # for license details.
 """
 """
-from ._tank import MixTank
-from ._hx import HXutility
+from .tank import MixTank
+from .heat_exchange import HXutility
 
 __all__ = ('EnzymeTreatment',)
 

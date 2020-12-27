@@ -12,8 +12,8 @@ from thermosteam import MultiStream, separations
 from math import pi
 import numpy as np
 from . import design_tools as design
-from ._splitter import Splitter
-from ._hx import HX, HXutility
+from .splitting import Splitter
+from .heat_exchange import HX, HXutility
 from .._graphics import vertical_vessel_graphics
 
 exp = np.exp

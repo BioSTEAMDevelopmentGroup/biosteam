@@ -41,7 +41,7 @@ References
 """
 from .._unit import Unit
 from .decorators import cost
-from ._splitter import Splitter
+from .splitting import Splitter
 from biosteam.utils import remove_undefined_chemicals
 import biosteam as bst
 import thermosteam as tmo

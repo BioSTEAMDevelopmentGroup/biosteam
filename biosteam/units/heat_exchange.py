@@ -6,6 +6,16 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+This module contains heat exchanger unit operations.
+
+.. contents:: :local:
+    
+Unit Operations
+---------------
+.. autoclass:: biosteam.units.heat_exchange.HX
+.. autoclass:: biosteam.units.heat_exchange.HXutility
+.. autoclass:: biosteam.units.heat_exchange.HXprocess 
+
 """
 from .. import Unit
 from .._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_graphics
@@ -51,12 +61,14 @@ Cb_dict = {'Floating head': compute_floating_head_purchase_price,
 # %% Classes
 
 class HX(Unit, isabstract=True):
-    """Abstract class for counter current heat exchanger.
+    """
+    Abstract class for counter current heat exchanger.
 
     **Abstract methods**
     
     get_streams()
-        Should return two inlet streams and two outlet streams that exchange heat.
+        Should return two inlet streams and two outlet streams that exchange
+        heat.
 
     """
     line = 'Heat Exchanger'

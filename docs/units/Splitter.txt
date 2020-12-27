@@ -1,5 +1,5 @@
-Splitter
+splitter
 ========
 
-.. autoclass:: biosteam.units.Splitter
+.. automodule:: biosteam.units.splitter
    :members:

@@ -8,7 +8,7 @@
 """
 """
 from .decorators import cost
-from ._splitter import Splitter
+from .splitting import Splitter
 
 __all__ = ('VibratingScreen',)
 
