@@ -169,6 +169,7 @@ class Network:
         ends = set(ends) or set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
+        cyclic_paths_with_recycle = sorted(cyclic_paths_with_recycle, key=lambda x: -len(x[0]))
         network = Network(sum(reversed(linear_paths), []))
         recycle_networks = [Network(path, recycle) for path, recycle
                             in cyclic_paths_with_recycle]

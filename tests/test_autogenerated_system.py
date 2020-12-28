@@ -105,7 +105,20 @@ def test_two_recycle_loops_with_partial_overlap():
                  recycle=inner_recycle),
              S1],
             recycle=recycle)])
-    assert network == actual_network
+    actual_network_alternative = Network(
+        [P1,
+         P2,
+         P3,
+         Network(
+            [Network(
+                [M1,
+                 M2,
+                 S2,
+                 S1],
+                recycle=S1-1),
+             S3],
+            recycle=S3-1)])
+    assert network == actual_network or network == actual_network_alternative
     recycle_loop_sys.simulate()
 
 if __name__ == '__main__':

@@ -552,8 +552,33 @@ class Unit:
             new_length = len(downstream_units)
         return downstream_units
         
+    def is_upstream_from(self, other):
+        """
+        Return whether this unit is upstream from another unit.
+
+        Parameters
+        ----------
+        other : :class:`~biosteam.Unit`
+            Another unit operation.
+
+        """
+        radius -= 1
+        neighborhood = set()
+        self._add_downstream_neighbors_to_set(neighborhood)
+        direct_neighborhood = neighborhood
+        for i in range(radius):
+            neighbors = set()
+            for unit in direct_neighborhood:
+                unit._add_downstream_neighbors_to_set(neighbors)
+            if neighbors == direct_neighborhood: break
+            if other in neighbors: return True
+            direct_neighborhood = neighbors
+        return False
+        
+    
     def _neighborhood(self, radius=1, upstream=True, downstream=True):
-        """Return a set of all neighboring units within given radius.
+        """
+        Return a set of all neighboring units within given radius.
         
         Parameters
         ----------
