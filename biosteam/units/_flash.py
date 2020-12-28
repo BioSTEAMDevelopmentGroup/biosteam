@@ -657,7 +657,7 @@ class Evaporator_PQ(Unit):
 
 
 class Evaporator_PV(Unit):
-    _N_heat_utilities = 1
+    _N_heat_utilities = 0
     _N_outs = 2
     
     @property
@@ -679,12 +679,17 @@ class Evaporator_PV(Unit):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, V=0.5, P=101325):
         super().__init__(ID, ins, outs, thermo)
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
+        self.heat_utilities = hx.heat_utilities
         self.V = V
         self.P = P
+        hx._ins = self._ins
 
     def _run(self):
         feed = self.ins[0]
         vapor, liquid = self.outs
+        vapor.phase = 'g'
         vapor.T = liquid.T = self.T
         vapor.P = liquid.P = self.P
         H2O_index = self.chemicals.index('7732-18-5')
@@ -693,5 +698,7 @@ class Evaporator_PV(Unit):
         liquid_mol = liquid.mol
         liquid_mol[:] = feed.mol
         liquid_mol[H2O_index] = (1-self.V) * water_mol
-
-        
+        ms = self._multi_stream
+        self.design_results['Heat transfer'] = self.heat_exchanger.Q = (vapor.H + liquid.H) - feed.H
+        ms['g'].copy_like(vapor)
+        ms['l'].copy_like(liquid)

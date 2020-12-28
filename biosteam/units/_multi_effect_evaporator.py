@@ -12,7 +12,7 @@ import biosteam as bst
 from .. import Unit
 from .mixing import Mixer
 from .heat_exchange import HXutility
-from ._flash import Evaporator_PV, Evaporator_PQ
+from ._flash import Flash, Evaporator_PV, Evaporator_PQ
 from .design_tools import (
     compute_vacuum_system_power_and_cost,
     compute_heat_transfer_area
@@ -105,9 +105,9 @@ class MultiEffectEvaporator(Unit):
     outs...
     [0] solids
         phase: 'l', T: 333.24 K, P: 20000 Pa
-        flow (kmol/hr): Water       20.7
+        flow (kmol/hr): Water       20.6
                         AceticAcid  0.00189
-                        Furfural    7.4e-05
+                        Furfural    7.39e-05
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
@@ -120,19 +120,19 @@ class MultiEffectEvaporator(Unit):
     Multi-Effect Evaporator                 Units        E1
     Power               Rate                   kW      5.72
                         Cost               USD/hr     0.447
-    Low pressure steam  Duty                kJ/hr  3.42e+05
-                        Flow              kmol/hr       8.8
-                        Cost               USD/hr      2.09
+    Low pressure steam  Duty                kJ/hr   5.8e+05
+                        Flow              kmol/hr      14.9
+                        Cost               USD/hr      3.55
     Cooling water       Duty                kJ/hr -3.49e+05
                         Flow              kmol/hr       239
                         Cost               USD/hr     0.116
-    Design              Area                  m^2      10.7
+    Design              Area                  m^2        11
                         Volume                m^3      1.64
     Purchase cost       Condenser             USD  5.35e+03
-                        Evaporators           USD  9.32e+03
+                        Evaporators           USD  9.59e+03
                         Liquid-ring pump      USD  1.24e+04
-    Total purchase cost                       USD  2.71e+04
-    Utility cost                           USD/hr      2.66
+    Total purchase cost                       USD  2.74e+04
+    Utility cost                           USD/hr      4.12
     
     Concentrate sugar setting overall vapor fraction:
     
@@ -174,19 +174,19 @@ class MultiEffectEvaporator(Unit):
     Multi-Effect Evaporator                 Units        E1
     Power               Rate                   kW      5.72
                         Cost               USD/hr     0.447
-    Low pressure steam  Duty                kJ/hr  3.42e+05
-                        Flow              kmol/hr       8.8
-                        Cost               USD/hr      2.09
+    Low pressure steam  Duty                kJ/hr  3.82e+05
+                        Flow              kmol/hr      9.85
+                        Cost               USD/hr      2.34
     Cooling water       Duty                kJ/hr -1.15e+05
                         Flow              kmol/hr      78.5
                         Cost               USD/hr    0.0383
-    Design              Area                  m^2      1.59
+    Design              Area                  m^2      1.64
                         Volume                m^3     0.986
     Purchase cost       Condenser             USD  3.89e+03
-                        Evaporators           USD  2.72e+03
+                        Evaporators           USD  2.77e+03
                         Liquid-ring pump      USD  1.24e+04
-    Total purchase cost                       USD   1.9e+04
-    Utility cost                           USD/hr      2.58
+    Total purchase cost                       USD  1.91e+04
+    Utility cost                           USD/hr      2.83
     
     """
     line = 'Multi-Effect Evaporator'
@@ -248,7 +248,7 @@ class MultiEffectEvaporator(Unit):
         
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
-        first_evaporator = Evaporator_PV(None, outs=(None, None), P=P[0], thermo=thermo)
+        first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
         
         # Put liquid first, then vapor side stream
         evaporators = [first_evaporator]
@@ -360,8 +360,9 @@ class MultiEffectEvaporator(Unit):
         CE = bst.CE
         
         first_evaporator = evaporators[0]
-        hu = first_evaporator.heat_utilities[0]
-        duty = first_evaporator.H_out - first_evaporator.H_in
+        heat_exchanger = first_evaporator.heat_exchanger
+        hu = heat_exchanger.heat_utilities[0]
+        duty = heat_exchanger.Q = first_evaporator.H_out - first_evaporator.H_in
         Q = abs(duty)
         Tci = first_evaporator.ins[0].T
         Tco = first_evaporator.outs[0].T
@@ -370,7 +371,8 @@ class MultiEffectEvaporator(Unit):
         LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
         ft = 1
         A = abs(compute_heat_transfer_area(LMTD, U, Q, ft))
-        self._evap_costs = evap_costs = [C_func(A, CE)]
+        first_evaporator.purchase_costs['Evaporator'] = C = C_func(A, CE)
+        self._evap_costs = evap_costs = [C]
         
         # Find condenser requirements
         condenser = components['condenser']
@@ -381,6 +383,7 @@ class MultiEffectEvaporator(Unit):
         # Find area and cost of evaporators
         As = [A]
         A_min, A_max = A_range
+        evap = evaporators[-1]
         for evap in evaporators[1:]:
             Q = evap.design_results['Heat transfer']
             if Q <= 1e-12: 
@@ -390,7 +393,7 @@ class MultiEffectEvaporator(Unit):
                 Tc = evap.outs[0].T
                 Th = evap.outs[2].T
                 LMTD = Th - Tc
-                A = compute_heat_transfer_area(LMTD, U, Q, ft)
+                A = compute_heat_transfer_area(LMTD, U, Q, 1.)
                 As.append(A)
                 if settings.debug and not A_min < A < A_max:
                     warn(f'area requirement ({A}) is out of range, {A_range}')
