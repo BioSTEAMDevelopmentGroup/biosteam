@@ -562,11 +562,10 @@ class Unit:
             Another unit operation.
 
         """
-        radius -= 1
         neighborhood = set()
         self._add_downstream_neighbors_to_set(neighborhood)
         direct_neighborhood = neighborhood
-        for i in range(radius):
+        while True:
             neighbors = set()
             for unit in direct_neighborhood:
                 unit._add_downstream_neighbors_to_set(neighbors)
