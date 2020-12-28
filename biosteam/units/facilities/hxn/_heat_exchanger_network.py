@@ -121,6 +121,7 @@ class HeatExchangerNetwork(Facility):
         sys = self.system
         sysname = sys.ID
         hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(sys.units)
+        hx_utils = [i for i in hx_utils if i.duty]
         hx_utils.sort(key = lambda x: x.duty)
         matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, actual_heat_util_load,\
         actual_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\

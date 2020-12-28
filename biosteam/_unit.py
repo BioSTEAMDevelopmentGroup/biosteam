@@ -573,7 +573,6 @@ class Unit:
             if other in neighbors: return True
             direct_neighborhood = neighbors
         return False
-        
     
     def _neighborhood(self, radius=1, upstream=True, downstream=True):
         """
