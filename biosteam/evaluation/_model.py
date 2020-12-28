@@ -160,8 +160,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 100000, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   0.118
-                 Utility cost [10^6 USD/yr]    -19.5
+    Biorefinery  Internal rate of return [%]   0.117
+                 Utility cost [10^6 USD/yr]    -19.4
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -176,16 +176,16 @@ class Model(State):
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
     >>> table['Biorefinery'] # Only biorefinery metrics
     Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
-    0                                0.17                        -20.
-    1                                0.15                        -19.
-    2                                0.19                        -27.
-    3                                0.16                        -21.
-    4                                0.17                        -26.
-    5                                0.18                        -23.
-    6                                0.16                        -22.
-    7                                0.19                        -23.
-    8                                0.19                        -26.
-    9                                0.18                        -25.
+    0                               0.174                       -20.3
+    1                                0.15                       -19.4
+    2                               0.195                         -27
+    3                               0.164                       -21.3
+    4                               0.176                       -26.5
+    5                               0.182                       -23.6
+    6                                0.16                         -22
+    7                               0.191                         -23
+    8                               0.195                         -26
+    9                               0.184                         -25
     
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
