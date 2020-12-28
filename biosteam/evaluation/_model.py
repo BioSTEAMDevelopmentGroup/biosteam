@@ -26,6 +26,68 @@ indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
                                             names=names or ('Element', 'Variable'),
                                         )
 
+# %% Documentation example code for copy pasting to console; DO NOT DELETE
+
+# >>> from chaospy import distributions as shape
+# >>> from biorefineries import lipidcane as lc
+# >>> import biosteam as bst
+# >>> solve_IRR = lc.lipidcane_tea.solve_IRR
+# >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
+# >>> metrics = (bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR, '%'),
+# ...            bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))
+# >>> model = bst.Model(lc.lipidcane_sys, metrics)
+
+# >>> R301 = bst.main_flowsheet.unit.R301 # The Fermentation Unit
+# >>> @model.parameter(name='Number of reactors',
+# ...                  element=R301, kind='design',
+# ...                  distribution=shape.Uniform(4, 10))
+# ... def set_N_reactors(N):
+# ...     R301.N = round(N)
+
+# >>> reactors_cost_coefficients = R301.cost_items['Reactors']
+# >>> mid = reactors_cost_coefficients.n # Most probable at baseline value
+# >>> lb = mid - 0.1 # Minimum
+# >>> ub = mid + 0.1 # Maximum
+# >>> @model.parameter(element=R301, kind='cost',
+# ...              distribution=shape.Triangle(lb, mid, ub))
+# ... def set_exponential_cost_coefficient(exponential_cost_coefficient):
+# ...     reactors_cost_coefficients.n = exponential_cost_coefficient
+
+# >>> lipidcane = lc.lipidcane # The feedstock stream
+# >>> lb = lipidcane.price * 0.9 # Minimum price
+# >>> ub = lipidcane.price * 1.1 # Maximum price
+# >>> @model.parameter(element=lipidcane, kind='isolated', units='USD/kg',
+# ...                  distribution=shape.Uniform(lb, ub))
+# ... def set_feed_price(feedstock_price):
+# ...     lipidcane.price = feedstock_price 
+
+# >>> from biorefineries.lipidcane.utils import set_lipid_fraction
+# >>> # Note that if the setter function is already made,
+# >>> # you can pass it as the first argument
+# >>> set_lipid_fraction = model.parameter(set_lipid_fraction,
+# ...                                      element=lipidcane, kind='coupled',
+# ...                                      distribution=shape.Uniform(0.05, 0.10))
+
+# >>> @model.parameter(element=R301, kind='coupled',
+# ...                  distribution=shape.Triangle(0.85, 0.90, 0.95))
+# ... def set_fermentation_efficiency(efficiency):
+# ...     R301.efficiency = efficiency
+
+# >>> print(model([0.05, 0.85, 8, 100000, 0.040])) # Returns metrics (IRR and utility cost)
+
+# >>> import numpy as np
+# >>> np.random.seed(1234) # For consistent results
+# >>> N_samples = 10
+# >>> rule = 'L' # For Latin-Hypercube sampling
+# >>> samples = model.sample(N_samples, rule)
+# >>> model.load_samples(samples)
+# >>> model.evaluate(jit=False)
+# >>> table = model.table # All evaluations are stored as a pandas DataFrame
+# >>> print(table['Biorefinery']) # Only biorefinery metrics
+
+# >>> df_spearman = model.spearman()
+# >>> print(df_spearman['Biorefinery', 'Internal rate of return [%]'])
+
 # %% Grid of simulation blocks
 
 class Model(State):
@@ -160,8 +222,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 100000, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   0.117
-                 Utility cost [10^6 USD/yr]    -19.4
+    Biorefinery  Internal rate of return [%]   0.099
+                 Utility cost [10^6 USD/yr]     -14.
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -176,16 +238,16 @@ class Model(State):
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
     >>> table['Biorefinery'] # Only biorefinery metrics
     Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
-    0                               0.174                       -20.3
-    1                                0.15                       -19.4
-    2                               0.195                         -27
-    3                               0.164                       -21.3
-    4                               0.176                       -26.5
-    5                               0.182                       -23.6
-    6                                0.16                         -22
-    7                               0.191                         -23
-    8                               0.195                         -26
-    9                               0.184                         -25
+    0                                0.16                        -15.
+    1                                0.13                        -14.
+    2                                0.18                        -21.
+    3                                0.15                        -16.
+    4                                0.16                        -20.
+    5                                0.17                        -18.
+    6                                0.14                        -16.
+    7                                0.18                        -17.
+    8                                0.18                        -20.
+    9                                0.17                        -19.
     
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
@@ -195,11 +257,11 @@ class Model(State):
     >>> df_spearman = model.spearman()
     >>> df_spearman['Biorefinery', 'Internal rate of return [%]']
     Element            Parameter                   
-    Stream-lipidcane   Lipid fraction                   0.794
-    Fermentation-R301  Efficiency                       0.333
-                       Number of reactors              0.0545
-                       Exponential cost coefficient   -0.0667
-    Stream-lipidcane   Feedstock price [USD/kg]        -0.491
+    Stream-lipidcane   Lipid fraction                    0.79
+    Fermentation-R301  Efficiency                        0.33
+                       Number of reactors               0.054
+                       Exponential cost coefficient    -0.066
+    Stream-lipidcane   Feedstock price [USD/kg]         -0.49
     Name: (Biorefinery, Internal rate of return [%]), dtype: float64
 
     >>> # Reset for future tests
