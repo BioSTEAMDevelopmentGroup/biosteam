@@ -12,7 +12,7 @@ from biosteam import (
     main_flowsheet as f,
     Pump, Mixer, Splitter, HXprocess,
     Stream, settings,
-    Network,
+    System, Network,
 )
 
 def test_simple_recycle_loop():
@@ -36,6 +36,10 @@ def test_simple_recycle_loop():
              S1],
             recycle=recycle)])
     assert network == actual_network
+    recycle_loop_sys.simulate()
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (P1, P2, M1, S1)
+    recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     
     
@@ -70,6 +74,10 @@ def test_two_recycle_loops_with_complete_overlap():
              S1],
             recycle=recycle)])
     assert network == actual_network
+    recycle_loop_sys.simulate()
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S1)
+    recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
 
 def test_two_recycle_loops_with_partial_overlap():
@@ -119,6 +127,10 @@ def test_two_recycle_loops_with_partial_overlap():
              S3],
             recycle=S3-1)])
     assert network == actual_network or network == actual_network_alternative
+    recycle_loop_sys.simulate()
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S3, S1)
+    recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
 
 if __name__ == '__main__':

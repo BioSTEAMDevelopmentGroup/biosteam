@@ -10,6 +10,7 @@
 from ._unit import Unit
 from ._facility import Facility
 from .digraph import digraph_from_units_and_streams, finalize_digraph
+from thermosteam import Stream
 
 # %% Path checking
 
@@ -383,8 +384,14 @@ class Network:
         info += '[' + (end + " ").join(path_info) + ']'
         recycle = self.recycle
         if recycle:
-            source = recycle.source
-            recycle = f"{source}-{source.outs.index(recycle)}"
+            def recycle_info(recycle):
+                source = recycle.source
+                return f"{source}-{source.outs.index(recycle)}"
+            if isinstance(recycle, Stream):
+                recycle = recycle_info(recycle)
+            else:
+                recycle = ", ".join([recycle_info(i) for i in recycle])
+                recycle = '[' + recycle + ']'
             info += end + f"recycle={recycle})"
         else:
             info += ')'
