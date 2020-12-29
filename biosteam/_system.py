@@ -996,6 +996,9 @@ class FacilityLoop(metaclass=system):
         self.recycle = recycle
         self._reset_errors()
         
+    _get_recycle_temperatures = System._get_recycle_temperatures
+    _get_recycle_data = System._get_recycle_data
+    _set_recycle_data = System._set_recycle_data
     _reset_errors = System._reset_errors
     _error_info = System._error_info
     _iter_run = System._iter_run

@@ -384,13 +384,10 @@ class Network:
         info += '[' + (end + " ").join(path_info) + ']'
         recycle = self.recycle
         if recycle:
-            def recycle_info(recycle):
-                source = recycle.source
-                return f"{source}-{source.outs.index(recycle)}"
             if isinstance(recycle, Stream):
-                recycle = recycle_info(recycle)
+                recycle = recycle._source_info()
             else:
-                recycle = ", ".join([recycle_info(i) for i in recycle])
+                recycle = ", ".join([i._source_info() for i in recycle])
                 recycle = '[' + recycle + ']'
             info += end + f"recycle={recycle})"
         else:
