@@ -305,8 +305,8 @@ class MultiEffectEvaporator(Unit):
                     self.P.pop()
                     self.load_components()
                 else:
-                    self.P = P
                     break
+            self.P = P
             self._V_first_effect = flx.IQ_interpolation(self._V_overall_objective_function,
                                                         0., 1., None, None, self._V_first_effect, 
                                                         xtol=0.000001, ytol=0.0001,

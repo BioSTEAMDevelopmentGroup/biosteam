@@ -618,6 +618,8 @@ class TEA:
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
+        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = self.IRR
+        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.10
         args = (self.cashflow_array, self._get_duration_array())
         IRR = flx.aitken_secant(NPV_at_IRR,
                                 IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
@@ -943,7 +945,8 @@ class CombinedTEA(TEA):
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
-        if not IRR or np.isnan(self._IRR): IRR = self.IRR
+        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = self.IRR
+        if not IRR or np.isnan(IRR) or IRR < 0.: IRR = 0.10
         args = (self.cashflow_array, self._get_duration_array())
         self._IRR = flx.aitken_secant(NPV_at_IRR,
                                       IRR, 1.0001 * IRR + 1e-3, xtol=1e-6, ytol=10.,
