@@ -165,15 +165,10 @@ def get_all_connections(streams): # pragma: no coverage
             for s in streams 
             if (s._source or s._sink)}
 
-def add_connection(f: Digraph, connection, unit_names=None): # pragma: no coverage
+def add_connection(f: Digraph, connection, unit_names): # pragma: no coverage
     source, source_index, stream, sink_index, sink = connection
-    if unit_names is None:
-        has_source = bool(source)
-        has_sink = bool(sink)
-    else:
-        has_source = source in unit_names
-        has_sink = sink in unit_names
-    
+    has_source = source in unit_names
+    has_sink = sink in unit_names
     if stream and stream.ID:
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
@@ -196,18 +191,19 @@ def add_connection(f: Digraph, connection, unit_names=None): # pragma: no covera
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='normal',
                    **inlet_options, **outlet_options)
-            f.edge(unit_names[source], unit_names[sink], label=stream.ID)
+            label = stream.ID if bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS else ''
+            f.edge(unit_names[source], unit_names[sink], label=label)
         else:
             f.node(stream.ID)
     elif has_sink and has_source:
         # Missing process stream case
-        edge_in = sink._graphics.edge_in
-        edge_out = source._graphics.edge_out
+        inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
+        outlet_options = source._graphics.get_outlet_options(source, source_index)
         f.attr('edge', arrowtail='none', arrowhead='normal',
-               **edge_in[sink_index], **edge_out[source_index])
+               **inlet_options, **outlet_options)
         f.edge(unit_names[source], unit_names[sink], style='dashed')
 
-def add_connections(f: Digraph, connections, unit_names=None): # pragma: no coverage
+def add_connections(f: Digraph, connections, unit_names): # pragma: no coverage
     # Set attributes for graph and streams
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',

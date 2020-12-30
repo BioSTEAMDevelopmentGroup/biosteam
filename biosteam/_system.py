@@ -640,7 +640,7 @@ class System(metaclass=system):
             
     def _get_recycle_data(self):
         recycle = self.recycle
-        if isinstance(recycle, bst.Stream):
+        if isinstance(recycle, Stream):
             return recycle.imol.data.copy()
         elif isinstance(recycle, Iterable):
             return np.vstack([i.imol.data for i in recycle])
@@ -650,17 +650,18 @@ class System(metaclass=system):
     def _set_recycle_data(self, data):
         recycle = self.recycle
         isa = isinstance
-        if isa(recycle, bst.Stream):
+        if isa(recycle, Stream):
             recycle.imol.data[:] = data
         elif isa(recycle, Iterable):
+            length = len
             N_rows = data.shape[0]
-            M_rows = sum([len(i) if isa(i, MultiStream) else 1 for i in recycle])
+            M_rows = sum([length(i) if isa(i, MultiStream) else 1 for i in recycle])
             if M_rows != N_rows: 
                 raise IndexError(f'expected {M_rows} rows; got {N_rows} rows instead')
             index = 0
             for i in recycle:
                 if isa(i, MultiStream):
-                    next_index = index + len(i)
+                    next_index = index + length(i)
                     i.imol.data[:] = data[index:next_index, :]
                     index = next_index
                 else:
@@ -671,7 +672,7 @@ class System(metaclass=system):
             
     def _get_recycle_temperatures(self):
         recycle = self.recycle
-        if isinstance(recycle, bst.Stream):
+        if isinstance(recycle, Stream):
             return self.recycle.T
         elif isinstance(recycle, Iterable):
             return np.array([i.T for i in recycle], float)
@@ -924,8 +925,9 @@ class System(metaclass=system):
         return recycle
     
     def _ipython_display_(self):
-        try: self.diagram('minimal')
-        except: pass
+        if bst.ALWAYS_DISPLAY_DIAGRAMS:
+            try: self.diagram('minimal')
+            except: pass
         self.show()
 
     def _error_info(self):

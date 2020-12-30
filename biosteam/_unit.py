@@ -118,8 +118,6 @@ class Unit:
     :doc:`tutorial/Unit_decorators`
     
     """ 
-    # Settings
-    IPYTHON_DISPLAY_UNIT_OPERATIONS = True
     
     def __init_subclass__(cls,
                           isabstract=False,
@@ -234,7 +232,10 @@ class Unit:
         """Return unit node attributes for graphviz."""
         try: self._load_stream_links()
         except: pass
-        return self._graphics.get_node_tailored_to_unit(self)
+        if bst.MINIMAL_UNIT_DIAGRAMS:
+            return self._graphics.get_minimal_node(self)
+        else:
+            return self._graphics.get_node_tailored_to_unit(self)
     
     def get_design_result(self, key, units):
         return convert(self.design_results[key], self._units[key], units)
@@ -835,7 +836,7 @@ class Unit:
         print(self._info(T, P, flow, composition, N))
     
     def _ipython_display_(self):
-        if self.IPYTHON_DISPLAY_UNIT_OPERATIONS:
+        if bst.ALWAYS_DISPLAY_DIAGRAMS:
             try: self.diagram()
             except: pass
         self.show()

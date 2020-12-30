@@ -18,6 +18,7 @@ from .design_tools.specification_factors import (
 from .._unit import Unit
 from ..utils import static_flow_and_phase
 from math import ceil
+from warnings import warn
 import biosteam as bst
 
 __all__ = ('Pump',)
@@ -228,11 +229,11 @@ class Pump(Unit):
                 pump_type = 'MeteringPlunger'
             else:
                 NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
-                raise NotImplementedError(
-                    f'no pump type available at current power '
-                    f'({power:.3g} hp), flow rate ({q_i:.3g} gpm), and head '
-                    f'({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), '
-                    f'and NPSH ({NPSH:.3g} ft)')
+                warn(f'no pump type available at current power '
+                     f'({power:.3g} hp), flow rate ({q_i:.3g} gpm), and head '
+                     f'({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), '
+                     f'and NPSH ({NPSH:.3g} ft); assuming centrigugal pump')
+                pump_type = 'Centrifugal'
                 
         Design['Type'] = pump_type
         self.power_utility(power/N/1.341) # Set power in kW

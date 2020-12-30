@@ -76,6 +76,16 @@ class UnitGraphics:
         edge_out = [{'tailport': 'c'} for i in range(N_outs)]
         return cls(edge_in, edge_out, box_node)
     
+    def get_minimal_node(self, unit):
+        """Return minmal node (a single dot)."""
+        return dict(
+            name = unit.ID,
+            width = '0.1',
+            shape = 'oval',
+            fillcolor = "#d2d2d2:white",
+            style = 'filled',
+        )
+    
     def get_node_tailored_to_unit(self, unit): # pragma: no coverage
         """Return node tailored to unit specifications"""
         node = self.node
