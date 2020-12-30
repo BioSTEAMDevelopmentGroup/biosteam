@@ -142,25 +142,23 @@ def digraph_from_units_and_streams(units, streams, **graph_attrs): # pragma: no 
 
 def digraph_from_system(system, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs) 
-    unit_names = get_unit_names(f, system.units.union(system.facilities))
-    update_digraph_from_path(f, system.path + system.facilities, 
+    unit_names = get_unit_names(f, system._unit_path + [i for i in system.facilities if isinstance(i, bst.Unit)])
+    update_digraph_from_path(f, tuple(system.path) + system.facilities, 
                              system.recycle, 0, unit_names, set())
     return f
 
 def update_digraph_from_path(f, path, recycle, depth, unit_names, 
                              excluded_connections): # pragma: no coverage
-    units = set()
     streams = set()
-    subsystems = set()
+    subsystems = []
     isa = isinstance
     System = bst.System
     Unit = bst.Unit
     for i in path:
         if isa(i, Unit):
-            units.add(i)
             streams.update(i._ins + i._outs)
         elif isa(i, System): 
-            subsystems.add(i)
+            subsystems.append(i)
     if isa(recycle, bst.Stream): 
         recycles = [recycle] 
     elif recycle:

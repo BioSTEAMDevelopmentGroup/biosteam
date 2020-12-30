@@ -589,7 +589,7 @@ class System(metaclass=system):
         return surface_digraph(self.path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self.units, self.streams, 
+        return digraph_from_units_and_streams(self._unit_path + [i for i in self.facilities if isinstance(i, Unit)], self.streams, 
                                               **graph_attrs)
         
     def _cluster_digraph(self, **graph_attrs):
@@ -620,7 +620,7 @@ class System(metaclass=system):
         elif kind == 'minimal':
             f = self._minimal_digraph(format=format, **graph_attrs)
         else:
-            raise ValueError("kind must be either 'thorough', 'surface', or 'minimal'")
+            raise ValueError("kind must be either 'cluster', 'thorough', 'surface', or 'minimal'")
         finalize_digraph(f, file, format)
             
     # Methods for running one iteration of a loop
