@@ -142,8 +142,9 @@ def digraph_from_units_and_streams(units, streams, **graph_attrs): # pragma: no 
 
 def digraph_from_system(system, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs) 
-    unit_names = get_unit_names(f, system.units)
-    update_digraph_from_path(f, system.path, system.recycle, 0, unit_names, set())
+    unit_names = get_unit_names(f, system.units.union(system.facilities))
+    update_digraph_from_path(f, system.path + system.facilities, 
+                             system.recycle, 0, unit_names, set())
     return f
 
 def update_digraph_from_path(f, path, recycle, depth, unit_names, 
