@@ -150,12 +150,14 @@ def digraph_from_system(system, **graph_attrs): # pragma: no coverage
 def update_digraph_from_path(f, path, recycle, depth, unit_names, 
                              excluded_connections): # pragma: no coverage
     streams = set()
+    units = set()
     subsystems = []
     isa = isinstance
     System = bst.System
     Unit = bst.Unit
     for i in path:
         if isa(i, Unit):
+            units.add(i)
             streams.update(i._ins + i._outs)
         elif isa(i, System): 
             subsystems.append(i)
@@ -165,6 +167,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
         recycles = recycle
     else:
         recycles = []
+    streams = [i for i in streams if not i.sink or (i.sink in units)]
     connections = get_all_connections(recycles)
     excluded_connections.update(connections)
     add_connections(f, connections, unit_names, color='#d71622')
