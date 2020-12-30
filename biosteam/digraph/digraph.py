@@ -15,7 +15,8 @@ from IPython import display
 from collections import namedtuple
 from thermosteam import Stream
 
-__all__ = ('digraph_from_units',
+__all__ = ('digraph_from_system',
+           'digraph_from_units',
            'digraph_from_units_and_streams',
            'digraph_from_units_and_connections',
            'update_digraph_from_units_and_connections',
@@ -139,19 +140,60 @@ def digraph_from_units_and_streams(units, streams, **graph_attrs): # pragma: no 
     connections = get_all_connections(streams)
     return digraph_from_units_and_connections(units, connections, **graph_attrs)
 
+def digraph_from_system(system, **graph_attrs): # pragma: no coverage
+    f = blank_digraph(**graph_attrs) 
+    unit_names = get_unit_names(f, system.units)
+    update_digraph_from_path(f, system.path, system.recycle, 0, unit_names, set())
+    return f
+
+def update_digraph_from_path(f, path, recycle, depth, unit_names, 
+                             excluded_connections): # pragma: no coverage
+    units = set()
+    streams = set()
+    subsystems = set()
+    isa = isinstance
+    System = bst.System
+    Unit = bst.Unit
+    for i in path:
+        if isa(i, Unit):
+            units.add(i)
+            streams.update(i._ins + i._outs)
+        elif isa(i, System): 
+            subsystems.add(i)
+    if isa(recycle, bst.Stream): 
+        recycles = [recycle] 
+    elif recycle:
+        recycles = recycle
+    else:
+        recycles = []
+    connections = get_all_connections(recycles)
+    excluded_connections.update(connections)
+    add_connections(f, connections, unit_names, color='#d71622')
+    connections = get_all_connections(streams).difference(excluded_connections)
+    excluded_connections.update(connections)
+    add_connections(f, connections, unit_names, color='black')    
+    depth += 1
+    for i in subsystems:
+        with f.subgraph(name='cluster_' + i.ID) as c:
+            c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="times-bold", 
+                   style='dashed', bgcolor='#79bf823f')
+            update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections)
+
 def digraph_from_units_and_connections(units, connections, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs)
     update_digraph_from_units_and_connections(f, units, connections)
     return f
 
-def update_digraph_from_units_and_connections(f: Digraph, units, connections): # pragma: no coverage
-    # Set up unit nodes
+def get_unit_names(f: Digraph, units):
     unit_names = {}  # Contains full description (ID and line) by unit
     for u in units:
         node = u.get_node()
         f.node(**node)
         unit_names[u] = node['name']
-    add_connections(f, connections, unit_names)    
+    return unit_names
+
+def update_digraph_from_units_and_connections(f: Digraph, units, connections): # pragma: no coverage
+    add_connections(f, connections, get_unit_names(f, units))    
 
 def get_stream_connection(stream): # pragma: no coverage
     source = stream._source
@@ -165,7 +207,7 @@ def get_all_connections(streams): # pragma: no coverage
             for s in streams 
             if (s._source or s._sink)}
 
-def add_connection(f: Digraph, connection, unit_names): # pragma: no coverage
+def add_connection(f: Digraph, connection, unit_names, edge_options): # pragma: no coverage
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
@@ -176,21 +218,21 @@ def add_connection(f: Digraph, connection, unit_names): # pragma: no coverage
             f.node(stream.ID)
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **inlet_options)
+                   tailport='e', **inlet_options, **edge_options)
             f.edge(stream.ID, unit_names[sink])
         elif has_source and not has_sink:
             # Product stream case
             f.node(stream.ID)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **outlet_options)
+                   headport='w', **outlet_options, **edge_options)
             f.edge(unit_names[source], stream.ID)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='normal',
-                   **inlet_options, **outlet_options)
+                   **inlet_options, **outlet_options, **edge_options)
             label = stream.ID if bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS else ''
             f.edge(unit_names[source], unit_names[sink], label=label)
         else:
@@ -200,10 +242,10 @@ def add_connection(f: Digraph, connection, unit_names): # pragma: no coverage
         inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
         outlet_options = source._graphics.get_outlet_options(source, source_index)
         f.attr('edge', arrowtail='none', arrowhead='normal',
-               **inlet_options, **outlet_options)
+               **inlet_options, **outlet_options, **edge_options)
         f.edge(unit_names[source], unit_names[sink], style='dashed')
 
-def add_connections(f: Digraph, connections, unit_names): # pragma: no coverage
+def add_connections(f: Digraph, connections, unit_names, **edge_options): # pragma: no coverage
     # Set attributes for graph and streams
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
@@ -212,7 +254,7 @@ def add_connections(f: Digraph, connections, unit_names): # pragma: no coverage
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')
     for connection in connections:
-        add_connection(f, connection, unit_names)
+        add_connection(f, connection, unit_names, edge_options)
 
 def display_digraph(digraph, format): # pragma: no coverage
     if format == 'svg':

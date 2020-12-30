@@ -9,6 +9,7 @@
 """
 import flexsolve as flx
 from .digraph import (digraph_from_units_and_streams,
+                      digraph_from_system,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
@@ -325,6 +326,20 @@ class System(metaclass=system):
             else:
                 path.append(i)
     
+    def _get_recycle_streams(self):
+        recycles = []
+        recycle = self.recycle
+        if recycle:
+            if isinstance(recycle, Stream):
+                recycles.append(recycle)
+            elif isinstance(recycle, Iterable):
+                recycles.extend(recycle)
+            else:
+                raise_recycle_type_runtime_error(recycle)
+        for i in self.subsystems:
+            recycles.extend(i._get_recycle_streams())
+        return recycles
+    
     def flatten(self, hx_convergence='rigorous'):
         """
         Flatten system by removing subsystems.
@@ -574,15 +589,19 @@ class System(metaclass=system):
         return surface_digraph(self.path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self.units, self.streams, 
+        return digraph_from_units_and_systems(self.units, self.subsystems, 
                                               **graph_attrs)
+        
+    def _cluster_digraph(self, **graph_attrs):
+        return digraph_from_system(self, **graph_attrs)
         
     def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         Parameters
         ----------
-        kind='surface' : {'thorough', 'surface', 'minimal'}:
+        kind='surface' : 'cluster', 'thorough', 'surface', or 'minimal'
+            * **'cluster':** Display all units clustered by system.
             * **'thorough':** Display every unit within the path.
             * **'surface':** Display only elements listed in the path.
             * **'minimal':** Display path as a box.
@@ -592,7 +611,9 @@ class System(metaclass=system):
             File format (e.g. "png", "svg").
         
         """
-        if kind == 'thorough':
+        if kind == 'cluster':
+            f = self._cluster_digraph(format=format, **graph_attrs)
+        elif kind == 'thorough':
             f = self._thorough_digraph(format=format, **graph_attrs)
         elif kind == 'surface':
             f = self._surface_digraph(format=format, **graph_attrs)
