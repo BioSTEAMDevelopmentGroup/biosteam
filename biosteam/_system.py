@@ -589,7 +589,7 @@ class System(metaclass=system):
         return surface_digraph(self.path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_systems(self.units, self.subsystems, 
+        return digraph_from_units_and_streams(self.units, self.streams, 
                                               **graph_attrs)
         
     def _cluster_digraph(self, **graph_attrs):
