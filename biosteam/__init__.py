@@ -25,6 +25,9 @@ ALWAYS_DISPLAY_DIAGRAMS = True
 #: flow diagrams.
 MINIMAL_UNIT_DIAGRAMS = False
 
+#: Whether to number unit operations in diagrams according to their order in the system path.
+LABEL_PATH_NUMBER_IN_DIAGRAMS = False
+
 # %% Initialize BioSTEAM 
 
 from flexsolve import speed_up

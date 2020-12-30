@@ -185,10 +185,17 @@ def digraph_from_units_and_connections(units, connections, **graph_attrs): # pra
 
 def get_unit_names(f: Digraph, units):
     unit_names = {}  # Contains full description (ID and line) by unit
-    for u in units:
-        node = u.get_node()
-        f.node(**node)
-        unit_names[u] = node['name']
+    if bst.LABEL_PATH_NUMBER_IN_DIAGRAMS:
+        for i, u in enumerate(units):
+            node = u.get_node()
+            unit_names[u] = node['name'] = name = f"[{i}] {node['name']}"
+            f.node(**node)
+            
+    else:
+        for u in units:
+            node = u.get_node()
+            f.node(**node)
+            unit_names[u] = node['name']
     return unit_names
 
 def update_digraph_from_units_and_connections(f: Digraph, units, connections): # pragma: no coverage
