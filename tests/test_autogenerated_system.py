@@ -8,6 +8,8 @@
 """
 """
 import pytest
+import numpy as np
+from numpy.testing import assert_allclose
 from biosteam import (
     main_flowsheet as f,
     Pump, Mixer, Splitter, HXprocess,
@@ -37,11 +39,13 @@ def test_simple_recycle_loop():
             recycle=recycle)])
     assert network == actual_network
     recycle_loop_sys.simulate()
+    x_nested_solution = recycle.mol.copy()
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (P1, P2, M1, S1)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
-    
+    x_flat_solution = recycle.mol.copy()
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
     
 def test_two_recycle_loops_with_complete_overlap():
     f.set_flowsheet('two_recycle_loops_with_complete_overlap')
@@ -75,10 +79,13 @@ def test_two_recycle_loops_with_complete_overlap():
             recycle=recycle)])
     assert network == actual_network
     recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S1)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
 def test_two_recycle_loops_with_partial_overlap():
     f.set_flowsheet('two_recycle_loops_with_partial_overlap')
@@ -128,10 +135,13 @@ def test_two_recycle_loops_with_partial_overlap():
             recycle=S3-1)])
     assert network == actual_network or network == actual_network_alternative
     recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (P1, P2, P3, M1, M2, S2, S3, S1)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
 if __name__ == '__main__':
     test_simple_recycle_loop()

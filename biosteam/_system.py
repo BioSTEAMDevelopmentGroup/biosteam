@@ -390,8 +390,12 @@ class System(metaclass=system):
                                      "or 'estimate'")
             else:
                 self._recycle = recycle
-        elif isa(recycle, Iterable) and all([isa(i, Stream) for i in recycle]):
+        elif isa(recycle, Iterable):
             recycle = tuple(recycle)
+            for i in recycle:
+                if not isa(i, Stream):
+                    raise ValueError("recycle streams must be Stream objects; "
+                                     f"not {type(i).__name__}")                
             if all([isa(i.sink, bst.HXprocess) for i in recycle]):
                 if hx_convergence == 'rigorous':
                     self._recycle = recycle
@@ -404,8 +408,7 @@ class System(metaclass=system):
             else:
                 self._recycle = recycle
         else:
-            raise ValueError("recycle must be either a Stream object, a tuple of Stream objects, or None; "
-                            f"not {type(recycle).__name__}")
+            raise_recycle_type_runtime_error(recycle)
     
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element

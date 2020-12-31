@@ -142,14 +142,21 @@ def digraph_from_units_and_streams(units, streams, **graph_attrs): # pragma: no 
 
 def digraph_from_system(system, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs) 
+    other_streams = set()
+    excluded_connections = set()
     unit_names = get_unit_names(f, system._unit_path + [i for i in system.facilities if isinstance(i, bst.Unit)])
     update_digraph_from_path(f, tuple(system.path) + system.facilities, 
-                             system.recycle, 0, unit_names, set())
+                             system.recycle, 0, unit_names, excluded_connections,
+                             other_streams)
+    connections = get_all_connections(other_streams).difference(excluded_connections)
+    add_connections(f, connections, unit_names, color='black')
     return f
 
-def update_digraph_from_path(f, path, recycle, depth, unit_names, 
-                             excluded_connections): # pragma: no coverage
-    streams = set()
+
+def update_digraph_from_path(f, path, recycle, depth, unit_names,
+                             excluded_connections,
+                             other_streams): # pragma: no coverage
+    all_streams = set()
     units = set()
     subsystems = []
     isa = isinstance
@@ -158,7 +165,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     for i in path:
         if isa(i, Unit):
             units.add(i)
-            streams.update(i._ins + i._outs)
+            all_streams.update(i._ins + i._outs)
         elif isa(i, System): 
             subsystems.append(i)
     if isa(recycle, bst.Stream): 
@@ -167,19 +174,20 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
         recycles = recycle
     else:
         recycles = []
-    streams = [i for i in streams if not i.sink or (i.sink in units)]
+    streams = [i for i in all_streams if (not i.sink or i.sink in units) and (not i.source or i.source in units)]
+    other_streams.update(all_streams.difference(streams))
     connections = get_all_connections(recycles)
-    excluded_connections.update(connections)
     add_connections(f, connections, unit_names, color='#d71622')
-    connections = get_all_connections(streams).difference(excluded_connections)
     excluded_connections.update(connections)
-    add_connections(f, connections, unit_names, color='black')    
+    connections = get_all_connections(streams).difference(excluded_connections)
+    add_connections(f, connections, unit_names, color='black')
+    excluded_connections.update(connections)
     depth += 1
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
             c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="times-bold", 
                    style='dashed', bgcolor='#79bf823f')
-            update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections)
+            update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
 def digraph_from_units_and_connections(units, connections, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs)
@@ -191,9 +199,8 @@ def get_unit_names(f: Digraph, units):
     if bst.LABEL_PATH_NUMBER_IN_DIAGRAMS:
         for i, u in enumerate(units):
             node = u.get_node()
-            unit_names[u] = node['name'] = name = f"[{i}] {node['name']}"
+            unit_names[u] = node['name'] = f"[{i}] {node['name']}"
             f.node(**node)
-            
     else:
         for u in units:
             node = u.get_node()
