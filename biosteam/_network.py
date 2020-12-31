@@ -288,6 +288,7 @@ class Network:
         self._update_from_newly_added_network(network)
     
     def _add_subnetwork(self, subnetwork):
+        if self == subnetwork: return
         path = self.path
         isa = isinstance
         done = False
@@ -295,7 +296,7 @@ class Network:
         has_overlap = True
         path_tuple = tuple(path)
         recycle = self.recycle
-        if recycle is subnetwork.recycle:
+        if recycle and subnetwork.recycle and recycle.sink is subnetwork.recycle.sink:
             # Feed forward scenario
             subpath = subnetwork.path
             for i, item in enumerate(subpath):
@@ -316,17 +317,17 @@ class Network:
         for i in path_tuple:
             if isa(i, Unit):
                 continue
-            elif i.issubset(subnetwork):
-                subnetwork._add_subnetwork(i)
-                index = path.index(i)
-                path.remove(i)
-                try: subnetworks.remove(i)
-                except: pass
-                self._insert_network(index, subnetwork)
-                done = True
-            elif not subnetwork.isdisjoint(i):
-                i._add_subnetwork(subnetwork)
-                self._update_from_newly_added_network(subnetwork)
+            elif not subnetwork.isdisjoint(i):  
+                if len(subnetwork.path) > len(i.path):
+                    subnetwork._add_subnetwork(i)
+                    index = path.index(i)
+                    path.remove(i)
+                    try: subnetworks.remove(i)
+                    except: pass
+                    self._insert_network(index, subnetwork)
+                else:
+                    i._add_subnetwork(subnetwork)
+                    self._update_from_newly_added_network(subnetwork)
                 done = True
         if not done:
             for index, item in enumerate(path_tuple):
