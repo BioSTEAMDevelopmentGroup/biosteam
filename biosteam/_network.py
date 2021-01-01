@@ -288,7 +288,6 @@ class Network:
         self._update_from_newly_added_network(network)
     
     def _add_subnetwork(self, subnetwork):
-        if self == subnetwork: return
         path = self.path
         isa = isinstance
         done = False

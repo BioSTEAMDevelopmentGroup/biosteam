@@ -23,6 +23,7 @@ from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import colors, strtuple
 from collections.abc import Iterable
+from collections import deque
 import biosteam as bst
 import numpy as np
 
@@ -291,7 +292,6 @@ class System(metaclass=system):
         self._load_flowsheet()
         self._reset_errors()
         self._set_path(path)
-        self._load_units()
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._load_streams()
@@ -411,38 +411,33 @@ class System(metaclass=system):
             raise_recycle_type_runtime_error(recycle)
     
     def _set_path(self, path):
-        #: tuple[Unit, function and/or System] A path that is run element
+        #: deque[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
-        self.path = path
+        self.path = tuple(path)
+        
+        #: set[Unit] All units within the system
+        self.units = units = set()
         
         #: set[System] All subsystems in the system
         self.subsystems = subsystems = set()
         
-        #: list[Unit] Network of only unit operations
-        self._unit_path = unit_path = []
-        
-        #: set[Unit] All units that have costs.
+        #: set[Unit] All units that have costs (including facilities).
         self._costunits = costunits = set()
         
         isa = isinstance
         for i in path:
-            if i in unit_path: continue
             if isa(i, Unit): 
-                unit_path.append(i)
+                units.add(i)
+                if i._design or i._cost:
+                    costunits.add(i)
             elif isa(i, System):
-                unit_path.extend(i._unit_path)
                 subsystems.add(i)
+                units.update(i.units)
                 costunits.update(i._costunits)
-    
-        #: set[Unit] All units in the path that have costs
-        self._path_costunits = path_costunits = {i for i in unit_path
-                                                 if i._design or i._cost}
-        costunits.update(path_costunits)
-        
-        
-    def _load_units(self):
-        #: set[Unit] All units within the system
-        self.units = set(self._unit_path) | self._costunits
+                
+        #: list[Unit] All units in the path that have costs
+        self._path_costunits = path_costunits = [i for i in units
+                                                 if i._design or i._cost]
     
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
@@ -486,7 +481,7 @@ class System(metaclass=system):
         self.products = bst.utils.products(streams)
         
     def _load_stream_links(self):
-        for u in self._unit_path: u._load_stream_links()
+        for u in self.unit_path: u._load_stream_links()
         
     def _filter_out_missing_streams(self):
         for stream_set in (self.streams, self.feeds, self.products):
@@ -592,7 +587,7 @@ class System(metaclass=system):
         return surface_digraph(self.path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self._unit_path + [i for i in self.facilities if isinstance(i, Unit)], self.streams, 
+        return digraph_from_units_and_streams(self.unit_path + [i for i in self.facilities if isinstance(i, Unit)], self.streams, 
                                               **graph_attrs)
         
     def _cluster_digraph(self, **graph_attrs):
@@ -710,14 +705,48 @@ class System(metaclass=system):
             if isa(i, (Unit, System)): i._setup()
         
     def _run(self):
-        """Rigorous run each element of the system."""
+        """Run each element in the path. Rotate path if necessary."""
+        if self.recycle:
+            N_elements = len(self.path)
+            if N_elements <= 1:
+                self._run_path()
+            else:
+                max_rotations = N_elements - 1
+                for n in range(N_elements):
+                    try:
+                        self._run_path()
+                    except Exception as error:
+                        if n == max_rotations: raise error
+                        if not n: self.path = deque(self.path)
+                        self.path.rotate()
+                    else:
+                        break
+                if n: self.path = tuple(self.path)
+        else:
+            self._run_path()
+        
+    def _run_path(self):
+        """Rigorously run each element in the path."""
         isa = isinstance
         for i in self.path:
-            if isa(i, Unit):
+            if isa(i, Unit):                            
                 run_unit_in_path(i)
             elif isa(i, System): 
                 converge_system_in_path(i)
             else: i() # Assume it is a function
+    
+    @property
+    def unit_path(self):
+        """[list] All unit operation as ordered in the path."""
+        unit_path = []
+        isa = isinstance
+        for i in self.path:
+            if i in unit_path: continue
+            if isa(i, Unit): 
+                unit_path.append(i)
+            elif isa(i, System):
+                unit_path.extend(i.unit_path)
+        return unit_path 
     
     # Methods for convering the recycle stream    
     def _fixed_point(self):
@@ -776,7 +805,7 @@ class System(metaclass=system):
         Stream._default_ID = stream_format if stream_format else ['d', 0]
         streams = set()
         units = set()
-        for i in self._unit_path:
+        for i in self.unit_path:
             if i in units: continue
             try: i.ID = ''
             except: continue
@@ -839,7 +868,7 @@ class System(metaclass=system):
     def _debug_on(self):
         """Turn on debug mode."""
         self._run = _notify_run_wrapper(self, self._run)
-        self.path = path = list(self.path)
+        path = self.path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = _method_debug(item, item._run)
@@ -859,7 +888,6 @@ class System(metaclass=system):
                 item._converge = item._converge._original
             elif callable(item):
                 path[i] = item._original
-        self.path = tuple(path)
     
     def debug(self):
         """Converge in debug mode. Just try it!"""
