@@ -413,7 +413,7 @@ class System(metaclass=system):
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
-        self.path = tuple(path)
+        self.path = path = tuple(path)
         
         #: set[Unit] All units within the system
         self.units = units = set()
@@ -434,10 +434,6 @@ class System(metaclass=system):
                 subsystems.add(i)
                 units.update(i.units)
                 costunits.update(i._costunits)
-                
-        #: list[Unit] All units in the path that have costs
-        self._path_costunits = path_costunits = [i for i in units
-                                                 if i._design or i._cost]
     
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
@@ -783,9 +779,10 @@ class System(metaclass=system):
         else:
             self._run()
         
-    def _design_and_cost(self):
-        for i in self._path_costunits:
-            try_method_with_object_stamp(i, i._summary)
+    def _summary(self):
+        iscallable = callable
+        for i in self.path:
+            if not iscallable(i): try_method_with_object_stamp(i, i._summary)
         isa = isinstance
         for i in self._facilities:
             if isa(i, Unit):
@@ -861,7 +858,7 @@ class System(metaclass=system):
         """Converge the path and simulate all units."""
         self._setup()
         self._converge()
-        self._design_and_cost()
+        self._summary()
         if self._facility_loop: self._facility_loop()
         
     # Debugging

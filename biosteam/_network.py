@@ -14,10 +14,9 @@ from thermosteam import Stream
 
 # %% Path checking
 
-def feed_forward_recycle(path, other_path, recycle):
-    try: path = path[path.index(recycle.sink):]
-    except: return False
-    other_path = other_path[other_path.index(recycle.sink):]
+def feed_forward_recycle(path, other_path, unit):
+    path = path[path.index(unit):]
+    other_path = other_path[other_path.index(unit):]
     return path != other_path
 
 
@@ -30,6 +29,7 @@ def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     for path_with_recycle in paths_with_recycle:
         cyclic_path_with_recycle = path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle)
         cyclic_paths_with_recycle.add(cyclic_path_with_recycle)
+    cyclic_paths_with_recycle = sorted(cyclic_paths_with_recycle, key=lambda x: -len(x[0]))
     return simplify_linear_paths(linear_paths), cyclic_paths_with_recycle
 
 def find_paths_with_and_without_recycle(feed, ends):
@@ -47,13 +47,14 @@ def fill_path(feed, path, paths_with_recycle,
     has_recycle = None
     if feed in ends:
         has_recycle = False
-        for other_path, recycle in paths_with_recycle:
-            if recycle is feed:
-                has_recycle = feed_forward_recycle(path, other_path, recycle)
-                if has_recycle: break
+        if unit in path:
+            for other_path, recycle in paths_with_recycle:
+                if recycle.sink is unit:
+                    has_recycle = feed_forward_recycle(path, other_path, unit)
+                    if has_recycle: break
     if not unit or isinstance(unit, Facility) or has_recycle is False:
         paths_without_recycle.add(tuple(path))
-    elif unit in path or has_recycle: 
+    elif has_recycle or unit in path: 
         path_with_recycle = tuple(path), feed
         paths_with_recycle.add(path_with_recycle)
         ends.add(feed)
@@ -220,7 +221,6 @@ class Network:
         ends = set(ends) or set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
-        cyclic_paths_with_recycle = sorted(cyclic_paths_with_recycle, key=lambda x: -len(x[0]))
         network = Network(sum(reversed(linear_paths), []))
         recycle_networks = [Network(path, recycle) for path, recycle
                             in cyclic_paths_with_recycle]
@@ -319,60 +319,32 @@ class Network:
         path_tuple = tuple(path)
         recycle = self.recycle
         if recycle and subnetwork.recycle and recycle.sink is subnetwork.recycle.sink:
-            # Feed forward scenario
-            subpath = subnetwork.path
-            for i, item in enumerate(subpath):
-                if item in path_tuple:
-                    unit = item
-                else:
-                    subpath = subpath[i:]
-                    break
-            for i, item in enumerate(reversed(subpath)):
-                if item in path_tuple:
-                    unit = item
-                else:
-                    subpath = subpath[:-i]
-                    break
-            self.join_network_at_unit(Network(subpath), unit)
+            subnetwork.recycle = None # Feed forward scenario
+            self._add_subnetwork(subnetwork)
             return
         subunits = subnetwork.units
-        for i in path_tuple:
-            if isa(i, Unit):
-                continue
-            elif not subnetwork.isdisjoint(i):  
-                if len(subnetwork.path) > len(i.path):
-                    subnetwork._add_subnetwork(i)
-                    index = path.index(i)
-                    path.remove(i)
-                    try: subnetworks.remove(i)
-                    except: pass
-                    self._insert_network(index, subnetwork)
-                else:
-                    i._add_subnetwork(subnetwork)
-                    self._update_from_newly_added_network(subnetwork)
+        for index, i in enumerate(path_tuple):
+            if isa(i, Network) and not subnetwork.isdisjoint(i):
+                i._add_subnetwork(subnetwork)
+                self._update_from_newly_added_network(subnetwork)
                 done = True
+                break
         if not done:
             for index, item in enumerate(path_tuple):
-                if isa(item, Unit):
-                    if item not in subunits: continue
+                if isa(item, Unit) and item in subunits:
                     self._insert_network(index, subnetwork)
                     has_overlap = False
                     done = True
                     break
-                elif isa(item, Network):
-                    if item.isdisjoint(subnetwork):
-                        continue
-                    else:
-                        item._add_subnetwork(subnetwork)
-                        self._update_from_newly_added_network(subnetwork)
-                        done = True
-                        break
         if has_overlap:
             self._remove_overlap(subnetwork)
         if not done:
             self._append_network(subnetwork)
-        if len(path) == 1 and isa(path[0], Network):
-            self.path = path[0].path
+        if len(path) == 1:
+            subnetwork = path[0]
+            if isa(subnetwork, Network):
+                self.path = subnetwork.path
+                self.recycle = subnetwork.recycle
 
     def _remove_overlap(self, subnetwork):
         path = self.path
@@ -400,10 +372,7 @@ class Network:
             if isa(i, Unit):
                 path_info.append(str(i))
             else:
-                try:
-                    path_info.append(i._info(spaces))
-                except:
-                    path_info.append(str(i))
+                path_info.append(i._info(spaces))
         info += '[' + (end + " ").join(path_info) + ']'
         recycle = self.recycle
         if recycle:
