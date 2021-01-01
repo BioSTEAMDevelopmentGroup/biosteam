@@ -9,6 +9,7 @@
 """
 import pytest
 import numpy as np
+import biosteam as bst
 from numpy.testing import assert_allclose
 from biosteam import (
     main_flowsheet as f,
@@ -180,6 +181,51 @@ def test_feed_forward_recycle_loop():
     x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
+def test_separate_recycle_loops():
+    f.set_flowsheet('separate_recycle_loops')
+    settings.set_thermo(['Water'], cache=True)
+    feedstock_a = Stream('feedstock_a', Water=1000)
+    water_a = Stream('water_a', Water=10)
+    recycle_a = Stream('recycle_a')
+    product_a = Stream('product_a')
+    P1_a = Pump('P1_a', feedstock_a)
+    P2_a = Pump('P2_a', water_a)
+    M1_a = Mixer('M1_a', [P1_a-0, P2_a-0, recycle_a])
+    S1_a = Splitter('S1_a', M1_a-0, [product_a, recycle_a], split=0.5)
+    feedstock_b = Stream('feedstock_b', Water=1000)
+    water_b = Stream('water_b', Water=10)
+    recycle_b = Stream('recycle_b')
+    product_b = Stream('product_b')
+    P1_b = Pump('P1_b', feedstock_b)
+    P2_b = Pump('P2_b', water_b)
+    M1_b = Mixer('M1_b', [P1_b-0, P2_b-0, recycle_b])
+    S1_b = Splitter('S1_b', M1_b-0, [product_b, recycle_b], split=0.5)
+    recycles = [recycle_a, recycle_b]
+    recycle_loop_sys = f.create_system('recycle_loop_sys')
+    recycle_loop_sys.simulate()
+    network = recycle_loop_sys.to_network()
+    actual_network = Network(
+        [P1_a,
+         P2_a,
+         Network(
+            [M1_a,
+             S1_a],
+            recycle=S1_a-1),
+         P1_b,
+         P2_b,
+         Network(
+            [M1_b,
+             S1_b],
+            recycle=S1_b-1)])
+    assert network == actual_network
+    x_nested_solution = np.vstack([i.mol for i in recycles])
+    recycle_loop_sys.flatten()
+    recycle_loop_sys.empty_recycles()
+    recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([i.mol for i in recycles])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert recycle_loop_sys.path == (P1_a, P2_a, M1_a, S1_a, P1_b, P2_b, M1_b, S1_b)
+    
 def test_nested_recycle_loops():
     f.set_flowsheet('feed_forward_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
@@ -265,9 +311,81 @@ def test_nested_recycle_loops():
     x_flat_solution = np.vstack([i.mol for i in recycles])
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
+def test_sugarcane_biorefinery_network():
+    from biorefineries.sugarcane import flowsheet as f
+    sugarcane_sys = f.create_system('sugarcane_sys')
+    globals().update(f.unit.__dict__)
+    network = sugarcane_sys.to_network()
+    actual_network = Network(
+        [U101,
+         U102,
+         U103,
+         T201,
+         Network(
+            [U201,
+             S201,
+             M201],
+            recycle=M201-0),
+         T202,
+         H201,
+         T203,
+         P201,
+         T204,
+         T205,
+         P202,
+         Network(
+            [M202,
+             H202,
+             T206,
+             C201,
+             C202,
+             P203],
+            recycle=P203-0),
+         S202,
+         S301,
+         F301,
+         P306,
+         M301,
+         H301,
+         T305,
+         R301,
+         T301,
+         C301,
+         M302,
+         P301,
+         Network(
+            [H302,
+             D302,
+             P302],
+            recycle=P302-0),
+         Network(
+            [M303,
+             D303,
+             H303,
+             U301],
+            recycle=U301-0),
+         H304,
+         T302,
+         P304,
+         T303,
+         P305,
+         M304,
+         T304,
+         D301,
+         P303,
+         M305,
+         U202])
+    assert network == actual_network
+    sugarcane_sys.empty_recycles()
+    sugarcane_sys.simulate()
+    bst.process_tools.default_utilities()
+    bst.CE = 567.5
+    
 if __name__ == '__main__':
     test_simple_recycle_loop()
     test_two_recycle_loops_with_complete_overlap()
     test_two_recycle_loops_with_partial_overlap()
     test_feed_forward_recycle_loop()
+    test_separate_recycle_loops()
     test_nested_recycle_loops()
+    test_sugarcane_biorefinery_network()

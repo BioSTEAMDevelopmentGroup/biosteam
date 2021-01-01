@@ -202,7 +202,7 @@ class System(metaclass=system):
     #: Temperature tolerance (K)
     temperature_tolerance = 0.10
 
-    # [dict] Cached downstream systems by (system, unit, with_facilities) keys
+    # [dict] Cached downstream systems by (system, unit) keys
     _cached_downstream_systems = {} 
 
     @classmethod
@@ -411,7 +411,7 @@ class System(metaclass=system):
             raise_recycle_type_runtime_error(recycle)
     
     def _set_path(self, path):
-        #: deque[Unit, function and/or System] A path that is run element
+        #: tuple[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
         self.path = tuple(path)
         
@@ -741,8 +741,8 @@ class System(metaclass=system):
         unit_path = []
         isa = isinstance
         for i in self.path:
-            if i in unit_path: continue
             if isa(i, Unit): 
+                if i in unit_path: continue
                 unit_path.append(i)
             elif isa(i, System):
                 unit_path.extend(i.unit_path)

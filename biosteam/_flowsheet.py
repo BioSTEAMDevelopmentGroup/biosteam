@@ -201,7 +201,7 @@ class Flowsheet:
             End streams of the system which are not products. Specify this argument
 			if only a section of the system is wanted, or if recycle streams should be 
 			ignored.
-        facility_recycle : [:class:`~thermosteam.Stream`], optional
+        facility_recycle : :class:`~thermosteam.Stream`, optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
         hx_convergence : 'rigorous' or 'estimate', optional

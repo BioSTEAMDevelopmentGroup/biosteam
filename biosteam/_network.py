@@ -129,6 +129,56 @@ class Network:
     recycle : :class:`~thermosteam.Stream`
         A recycle stream, if any.
     
+    Examples
+    --------
+    Create a network representing two nested recycle loops:
+        
+    >>> from biosteam import (
+    ...     main_flowsheet as f,
+    ...     Pump, Mixer, Splitter,
+    ...     Stream, settings, Network,
+    ... )
+    >>> f.set_flowsheet('two_nested_recycle_loops')
+    >>> settings.set_thermo(['Water'], cache=True)
+    >>> feedstock = Stream('feedstock', Water=1000)
+    >>> water = Stream('water', Water=10)
+    >>> recycle = Stream('recycle')
+    >>> inner_recycle = Stream('inner_recycle')
+    >>> product = Stream('product')
+    >>> inner_water = Stream('inner_water', Water=10)
+    >>> P1 = Pump('P1', feedstock)
+    >>> P2 = Pump('P2', water)
+    >>> P3 = Pump('P3', inner_water)
+    >>> M1 = Mixer('M1', [P1-0, P2-0, recycle])
+    >>> M2 = Mixer('M2', [M1-0, P3-0, inner_recycle])
+    >>> S2 = Splitter('S2', M2-0, ['', inner_recycle], split=0.5)
+    >>> S1 = Splitter('S1', S2-0, [product, recycle], split=0.5)
+    >>> network = Network(
+    ... [P1,
+    ...  P2,
+    ...  P3,
+    ...  Network(
+    ...     [M1,
+    ...      Network(
+    ...          [M2,
+    ...           S2],
+    ...          recycle=inner_recycle),
+    ...      S1],
+    ...     recycle=recycle)])
+    >>> network.show()
+    Network(
+        [P1,
+         P2,
+         P3,
+         Network(
+            [M1,
+             Network(
+                [M2,
+                 S2],
+                recycle=S2-1),
+             S1],
+            recycle=S1-1)])
+    
     """
     
     __slots__ = ('path', 'recycle', 'units', 'subnetworks',
@@ -200,15 +250,6 @@ class Network:
                 network.join_network(upstream_network)
         return network
 
-    def copy_like(self, other):
-        self.path = other.path
-        self.recycle = other.recycle
-        self.units = other.units
-        self.subnetworks = other.subnetworks
-        self.streams = other.streams
-        self.feeds = other.feeds
-        self.products = other.products
-
     def __contains__(self, other):
         if isinstance(other, Unit):
             return other in self.units
@@ -217,18 +258,13 @@ class Network:
         else:
             return False
     
-    def issubset(self, network):
-        return self.units.issubset(network.units)
-    
     def isdisjoint(self, network):
         return self.units.isdisjoint(network.units)
     
-    def join_network(self, network, downstream=True):
+    def join_network(self, network):
         if self.isdisjoint(network):
-            if downstream:
-                self._append_network(network)
-            else:
-                self._appendleft_network(network)
+            # Always join downstream
+            self._append_network(network)
         else:
             self._add_subnetwork(network)
     
@@ -249,25 +285,12 @@ class Network:
                 return
         raise RuntimeError('unit not in path')
     
-    def _append_unit(self, unit):
-        self.units.add(unit)
-        self.products.update([i for i in unit._outs if i and not i._sink])
-        self.feeds.update([i for i in unit._ins if i and not i._source])
-        self.streams.update(unit._ins + unit._outs)
-    
     def _update_from_newly_added_network(self, network):
         self.subnetworks.append(network)
         self.units.update(network.units)
         self.streams.update(network.streams)
         self.feeds.update(network.feeds)
         self.products.update(network.products)
-    
-    def _appendleft_network(self, network):
-        if network.recycle:
-            self.path.insert(0, network)
-        else:
-            for i in reversed(network.path): self.path.insert(0, i)
-        self._update_from_newly_added_network(network)
     
     def _append_network(self, network):
         if network.recycle:
