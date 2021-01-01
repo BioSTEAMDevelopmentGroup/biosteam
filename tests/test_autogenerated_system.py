@@ -41,7 +41,6 @@ def test_simple_recycle_loop():
     recycle_loop_sys.simulate()
     x_nested_solution = recycle.mol.copy()
     recycle_loop_sys.flatten()
-    recycle_loop_sys.print()
     assert recycle_loop_sys.path == (P1, P2, M1, S1)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
