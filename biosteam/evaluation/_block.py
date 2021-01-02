@@ -50,12 +50,13 @@ class Block:
         isa = isinstance
         if isa(element, Stream): unit = element.sink
         elif isa(element, Unit): unit = element
+        else: unit = None
         if system and element:
             subsys = system._downstream_system(unit)
             simulate = subsys.simulate
         else:
             subsys = system
-            simulate = unit.simulate if isa(element, Unit) else do_nothing
+            simulate = unit.simulate if unit else do_nothing
         self._system = subsys
         self._simulate = simulate
         self._element = element
