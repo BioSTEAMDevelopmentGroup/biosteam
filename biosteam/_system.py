@@ -141,46 +141,8 @@ def _notify_run_wrapper(self, func):
 
 # %% Process flow
 
-class system(type):
-    @property
-    def converge_method(self):
-        """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
-        return self._default_converge_method.__name__[1:]
-    @converge_method.setter
-    def converge_method(self, method):
-        method = method.lower().replace('-', '').replace(' ', '')
-        try:
-            self._default_converge_method = getattr(self, '_' + method)
-        except:
-            raise ValueError(f"only 'wegstein', 'aitken', and 'fixedpoint' methods are valid, not '{method}'")
-
-    @property
-    def molar_tolerance(self):
-        """[float] Default molar tolerance (kmol/hr)."""
-        return self._default_molar_tolerance
-    @molar_tolerance.setter
-    def molar_tolerance(self, tol):
-        self._default_molar_tolerance = float(tol)
-    
-    @property
-    def temperature_tolerance(self):
-        """[float] Default temperature tolerance (K)."""
-        return self._default_molar_tolerance
-    @molar_tolerance.setter
-    def temperature_tolerance(self, tol):
-        self._default_temperature_tolerance = float(tol)
-        
-    @property
-    def maxiter(self):
-        """[int] Default maximum number of iterations."""
-        return self._default_maxiter
-    @maxiter.setter
-    def maxiter(self, maxiter):
-        self._default_maxiter = int(maxiter)
-        
-
 @registered('SYS')
-class System(metaclass=system):
+class System:
     """
     Create a System object that can iteratively run each element in a path
     of BioSTREAM objects until the recycle stream is converged. A path can
@@ -233,14 +195,17 @@ class System(metaclass=system):
     
     ### Class attributes ###
     
-    #: Default maximum number of iterations
-    _default_maxiter = 200
+    #: [int] Default maximum number of iterations
+    default_maxiter = 200
     
-    #: Default molar tolerance (kmol/hr)
-    _default_molar_tolerance = 0.50
+    #: [float] Default molar tolerance (kmol/hr)
+    default_molar_tolerance = 0.50
     
-    #: Default temperature tolerance (K)
-    _default_temperature_tolerance = 0.10
+    #: [float] Default temperature tolerance (K)
+    default_temperature_tolerance = 0.10
+
+    #: [str] Default convergence method.
+    default_converge_method = 'Aitken'
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
@@ -338,16 +303,16 @@ class System(metaclass=system):
     
     def _load_defaults(self):
         #: [int] Maximum number of iterations.
-        self.maxiter = self._default_maxiter
+        self.maxiter = self.default_maxiter
         
         #: [float] Molar tolerance (kmol/hr)
-        self.molar_tolerance = self._default_molar_tolerance
+        self.molar_tolerance = self.default_molar_tolerance
         
         #: [float] Temperature tolerance (K)
-        self.temperature_tolerance = self._default_temperature_tolerance
+        self.temperature_tolerance = self.default_temperature_tolerance
         
         #: [function] Converge method
-        self._converge_method = self._default_converge_method
+        self.converge_method = self.default_converge_method
     
     specification = Unit.specification
     save_report = save_report
@@ -540,9 +505,6 @@ class System(metaclass=system):
         return self._converge_method.__name__[1:]
     @converge_method.setter
     def converge_method(self, method):
-        if self._recycle is None:
-            raise ValueError(
-                "cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         try:
             self._converge_method = getattr(self, '_' + method)
@@ -750,8 +712,7 @@ class System(metaclass=system):
         unit_path = []
         isa = isinstance
         for i in self._path:
-            if isa(i, Unit): 
-                if i in unit_path: continue
+            if isa(i, Unit):
                 unit_path.append(i)
             elif isa(i, System):
                 unit_path.extend(i.unit_path)
@@ -781,8 +742,6 @@ class System(metaclass=system):
             except:
                 raise error
     
-    _default_converge_method = _aitken
-   
     def _converge(self):
         if self._N_runs:
             for i in range(self.N_runs): self._run()
@@ -1041,15 +1000,15 @@ class System(metaclass=system):
                 + error)
 
 
-class FacilityLoop(metaclass=system):
+class FacilityLoop:
     __slots__ = ('system', '_recycle',
                  'maxiter', 'molar_tolerance', 'temperature_tolerance',
                  '_converge_method', '_mol_error', '_T_error', '_iter')
     
-    _default_maxiter = 50
-    _default_molar_tolerance = 0.50
-    _default_temperature_tolerance = 0.10
-    _default_converge_method = System._default_converge_method
+    default_maxiter = 50
+    default_molar_tolerance = 0.50
+    default_temperature_tolerance = 0.10
+    default_converge_method = System.default_converge_method
     
     def __init__(self, system, recycle):
         self.system = system

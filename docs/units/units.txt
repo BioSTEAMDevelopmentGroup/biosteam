@@ -11,6 +11,7 @@ units
    liquid_liquid_extraction
    mixing
    splitting
+   distillation
    tank
    Pump
    BatchBioreactor
