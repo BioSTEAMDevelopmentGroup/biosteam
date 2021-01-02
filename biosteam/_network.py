@@ -12,14 +12,6 @@ from ._facility import Facility
 from .digraph import digraph_from_units_and_streams, finalize_digraph
 from thermosteam import Stream
 
-# %% Path checking
-
-def feed_forward_recycle(path, other_path, unit):
-    path = path[path.index(unit):]
-    other_path = other_path[other_path.index(unit):]
-    return path != other_path
-
-
 # %% Path tools
 
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
@@ -36,8 +28,7 @@ def find_paths_with_and_without_recycle(feed, ends):
     path = []
     paths_without_recycle  = set()
     paths_with_recycle = set()
-    fill_path(feed, path, paths_with_recycle, paths_without_recycle,
-              ends)
+    fill_path(feed, path, paths_with_recycle, paths_without_recycle, ends)
     return paths_with_recycle, paths_without_recycle
 
 def fill_path(feed, path, paths_with_recycle,
@@ -49,9 +40,8 @@ def fill_path(feed, path, paths_with_recycle,
         has_recycle = False
         if unit in path:
             for other_path, recycle in paths_with_recycle:
-                if recycle.sink is unit:
-                    has_recycle = feed_forward_recycle(path, other_path, unit)
-                    if has_recycle: break
+                has_recycle = recycle.sink is unit
+                if has_recycle: break
     if not unit or isinstance(unit, Facility) or has_recycle is False:
         paths_without_recycle.add(tuple(path))
     elif has_recycle or unit in path: 

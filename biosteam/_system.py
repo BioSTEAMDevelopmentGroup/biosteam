@@ -67,8 +67,8 @@ def simulate_system_in_path(system):
 
 # %% Debugging and exception handling
 
-def raise_recycle_type_runtime_error(recycle):
-    raise RuntimeError(
+def raise_recycle_type_error(recycle):
+    raise ValueError(
        f"invalid recycle of type '{type(recycle).__name__}' encountered; "
         "recycle must be either a Stream object, a tuple of Stream objects, or None"
     )
@@ -128,7 +128,7 @@ def _method_debug(self, func):
 def _notify_run_wrapper(self, func):
     """Decorate a System run method to notify you after each loop"""
     def wrapper(*args, **kwargs):
-        if self.recycle:
+        if self._recycle:
             func(*args, **kwargs)
             input(f'        Finished loop #{self._iter}\n')
         else:
@@ -144,19 +144,40 @@ def _notify_run_wrapper(self, func):
 class system(type):
     @property
     def converge_method(self):
-        """Iterative convergence method ('wegstein', 'aitken', or 'fixed point')."""
-        return self._converge_method.__name__[1:]
+        """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
+        return self._default_converge_method.__name__[1:]
     @converge_method.setter
     def converge_method(self, method):
         method = method.lower().replace('-', '').replace(' ', '')
-        if 'wegstein' == method:
-            self._converge_method = self._wegstein
-        elif 'fixedpoint' == method:
-            self._converge_method = self._fixed_point
-        elif 'aitken' == method:
-            self._converge_method = self._aitken
-        else:
-            raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
+        try:
+            self._default_converge_method = getattr(self, '_' + method)
+        except:
+            raise ValueError(f"only 'wegstein', 'aitken', and 'fixedpoint' methods are valid, not '{method}'")
+
+    @property
+    def molar_tolerance(self):
+        """[float] Default molar tolerance (kmol/hr)."""
+        return self._default_molar_tolerance
+    @molar_tolerance.setter
+    def molar_tolerance(self, tol):
+        self._default_molar_tolerance = float(tol)
+    
+    @property
+    def temperature_tolerance(self):
+        """[float] Default temperature tolerance (K)."""
+        return self._default_molar_tolerance
+    @molar_tolerance.setter
+    def temperature_tolerance(self, tol):
+        self._default_temperature_tolerance = float(tol)
+        
+    @property
+    def maxiter(self):
+        """[int] Default maximum number of iterations."""
+        return self._default_maxiter
+    @maxiter.setter
+    def maxiter(self, maxiter):
+        self._default_maxiter = int(maxiter)
+        
 
 @registered('SYS')
 class System(metaclass=system):
@@ -180,34 +201,50 @@ class System(metaclass=system):
         completing the path simulation.
     facility_recycle : :class:`~thermosteam.Stream`, optional
         Recycle stream between facilities and system path.
-    converge_method : str, optional
-        Name of iteration method to converge recycle stream.
     N_runs : int, optional
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
-    hx_convergence : 'rigorous' or 'estimate', optional
-        If 'rigorous', recycle streams to process heat exchangers are rigorously
-        converged. If 'estimate', loops with process heat exchanger are only 
-        runned twice.
 
     """
+    __slots__ = (
+        '_ID',
+        '_path',
+        '_facilities',
+        '_facility_loop',
+        '_recycle',
+        '_N_runs',
+        '_specification',
+        '_mol_error',
+        '_T_error',
+        '_iter',
+        'units',
+        'streams',
+        'subsystems',
+        'feeds',
+        'products',
+        'maxiter',
+        'molar_tolerance',
+        'temperature_tolerance',
+        'flowsheet',
+        '_converge_method',
+        '_costunits',
+        '_TEA',
+    )
+    
     ### Class attributes ###
     
-    #: Maximum number of iterations
-    maxiter = 200
+    #: Default maximum number of iterations
+    _default_maxiter = 200
     
-    #: Molar tolerance (kmol/hr)
-    molar_tolerance = 0.50
+    #: Default molar tolerance (kmol/hr)
+    _default_molar_tolerance = 0.50
     
-    #: Temperature tolerance (K)
-    temperature_tolerance = 0.10
-
-    # [dict] Cached downstream systems by (system, unit) keys
-    _cached_downstream_systems = {} 
+    #: Default temperature tolerance (K)
+    _default_temperature_tolerance = 0.10
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
-                       ends=None, facility_recycle=None, hx_convergence='rigorous'):
+                       ends=None, facility_recycle=None):
         """
         Create a System object from a feedstock.
         
@@ -227,17 +264,13 @@ class System(metaclass=system):
             process requirements and not by its unit source.
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path.
-        hx_convergence : 'rigorous' or 'estimate', optional
-            If 'rigorous', recycle streams to process heat exchangers are rigorously
-            converged. If 'estimate', loops with process heat exchanger are only 
-            runned twice.
         
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
-        return cls.from_network(ID, network, facilities, facility_recycle, hx_convergence)
+        return cls.from_network(ID, network, facilities, facility_recycle)
 
     @classmethod
-    def from_network(cls, ID, network, facilities=(), facility_recycle=None, hx_convergence='rigorous'):
+    def from_network(cls, ID, network, facilities=(), facility_recycle=None):
         """
         Create a System object from a network.
         
@@ -252,25 +285,22 @@ class System(metaclass=system):
             completing the path simulation.
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path.
-        hx_convergence : 'rigorous' or 'estimate', optional
-            If 'rigorous', recycle streams to process heat exchangers are rigorously
-            converged. If 'estimate', loops with process heat exchanger are only 
-            runned twice.
         
         """
         facilities = Facility.ordered_facilities(facilities)
         isa = isinstance
-        path = tuple([(cls.from_network('', i) 
-                       if isa(i, Network) else i) for i in network.path])
+        path = [(cls.from_network('', i) if isa(i, Network) else i)
+                for i in network.path]
         self = cls.__new__(cls)
         self.units = network.units
         self.streams = streams = network.streams
         self.feeds = feeds = network.feeds
         self.products = products = network.products
-        self._N_runs = self._specification = None
-        self._set_recycle(network.recycle, hx_convergence)
-        self._reset_errors()
+        self.recycle = network.recycle
         self._set_path(path)
+        self._specification = None
+        self._load_flowsheet()
+        self._reset_errors()
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
@@ -282,144 +312,107 @@ class System(metaclass=system):
             feeds.update(f_feeds)
             products.update(f_products)
         self._finalize_streams()
+        self._load_defaults()
         return self
         
     def __init__(self, ID, path, recycle=None, facilities=(), 
-                 facility_recycle=None, converge_method=None,
-                 N_runs=None, hx_convergence='rigorous'):
-        self._N_runs = self._specification = None
-        self._set_recycle(recycle, hx_convergence)
+                 facility_recycle=None, N_runs=None):
+        self.recycle = recycle
+        self.N_runs = N_runs
+        self._set_path(path)
+        self._specification = None
         self._load_flowsheet()
         self._reset_errors()
-        self._set_path(path)
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._load_streams()
         self._finalize_streams()
         self._register(ID)
-        if N_runs: self.N_runs = N_runs
-        if converge_method: self.converge_method = converge_method
+        self._load_defaults()
+    
+    def __eq__(self, other):
+        return (isinstance(other, System) 
+                and self._path == other._path 
+                and self._facilities == other._facilities 
+                and self._recycle == other._recycle)
+    
+    def _load_defaults(self):
+        #: [int] Maximum number of iterations.
+        self.maxiter = self._default_maxiter
+        
+        #: [float] Molar tolerance (kmol/hr)
+        self.molar_tolerance = self._default_molar_tolerance
+        
+        #: [float] Temperature tolerance (K)
+        self.temperature_tolerance = self._default_temperature_tolerance
+        
+        #: [function] Converge method
+        self._converge_method = self._default_converge_method
     
     specification = Unit.specification
     save_report = save_report
     
-    def _extend_flattend_path_and_recycles(self, path, recycles, subsystems):
+    def _extend_flattend_path_and_recycles(self, path, recycles):
         isa = isinstance
-        recycle = self.recycle
+        recycle = self._recycle
         if recycle:
             if isa(recycle, Stream):
                 recycles.append(recycle)
             elif isa(recycle, Iterable):
                 recycles.extend(recycle)
             else:
-                raise_recycle_type_runtime_error(recycle)
-        for i in self.path:
+                raise_recycle_type_error(recycle)
+        for i in self._path:
             if isa(i, System):
                 if i.facilities:
                     warn(RuntimeWarning('subsystem with facilities could not be flattened'))
-                    subsystems.add(i); path.append(i)
+                    path.append(i)
                 elif i.specification:
                     warn(RuntimeWarning('subsystem with specification could not be flattened'))
-                    subsystems.add(i); path.append(i)
+                    path.append(i)
                 else:
-                    i._extend_flattend_path_and_recycles(path, recycles, subsystems)
+                    i._extend_flattend_path_and_recycles(path, recycles)
             else:
                 path.append(i)
     
     def _get_recycle_streams(self):
         recycles = []
-        recycle = self.recycle
+        recycle = self._recycle
         if recycle:
             if isinstance(recycle, Stream):
                 recycles.append(recycle)
             elif isinstance(recycle, Iterable):
                 recycles.extend(recycle)
             else:
-                raise_recycle_type_runtime_error(recycle)
+                raise_recycle_type_error(recycle)
         for i in self.subsystems:
             recycles.extend(i._get_recycle_streams())
         return recycles
     
-    def flatten(self, hx_convergence='rigorous'):
-        """
-        Flatten system by removing subsystems.
-
-        Parameters
-        ----------
-        hx_convergence : 'rigorous' or 'estimate', optional
-            If 'rigorous', recycle streams to process heat exchangers are rigorously
-            converged. If 'estimate', loops with process heat exchanger are only 
-            runned twice.
-
-        """
+    def flatten(self):
+        """Flatten system by removing subsystems."""
         recycles = []
         path = []
-        subsystems = set()
-        self._extend_flattend_path_and_recycles(path, recycles, subsystems)
-        self.path = tuple(path)
-        self._set_recycle(recycles, hx_convergence)
+        self._extend_flattend_path_and_recycles(path, recycles)
+        self._path = tuple(path)
+        self._recycle = tuple(recycles)
         N_recycles = len(recycles)
         self.molar_tolerance *= N_recycles
         self.temperature_tolerance *= N_recycles
     
-    @property
-    def N_runs(self):
-        return self._N_runs
-    @N_runs.setter
-    def N_runs(self, N_runs):
-        if self._recycle:
-            raise AttributeError("cannot set number of runs when a recycle is defined")
-        self._N_runs = N_runs
-    
     def _load_flowsheet(self):
         self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
-    
-    def _set_recycle(self, recycle, hx_convergence):
-        isa = isinstance
-        if recycle is None:
-            self._recycle = recycle
-        elif isa(recycle, Stream):
-            if isa(recycle.sink, bst.HXprocess):
-                if hx_convergence == 'rigorous':
-                    self._recycle = recycle
-                elif hx_convergence == 'estimate':
-                    self._N_runs = 2
-                    self._recycle = None
-                else:
-                    raise ValueError("hx_convergence must be either 'rigorous' "
-                                     "or 'estimate'")
-            else:
-                self._recycle = recycle
-        elif isa(recycle, Iterable):
-            recycle = tuple(recycle)
-            for i in recycle:
-                if not isa(i, Stream):
-                    raise ValueError("recycle streams must be Stream objects; "
-                                     f"not {type(i).__name__}")                
-            if all([isa(i.sink, bst.HXprocess) for i in recycle]):
-                if hx_convergence == 'rigorous':
-                    self._recycle = recycle
-                elif hx_convergence == 'estimate':
-                    self._N_runs = 2
-                    self._recycle = None
-                else:
-                    raise ValueError("hx_convergence must be either 'rigorous' "
-                                     "or 'estimate'")
-            else:
-                self._recycle = recycle
-        else:
-            raise_recycle_type_runtime_error(recycle)
     
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
-        self.path = path = tuple(path)
+        self._path = path = tuple(path)
         
         #: set[Unit] All units within the system
         self.units = units = set()
         
-        #: set[System] All subsystems in the system
-        self.subsystems = subsystems = set()
+        #: list[System] All subsystems in the system
+        self.subsystems = subsystems = []
         
         #: set[Unit] All units that have costs (including facilities).
         self._costunits = costunits = set()
@@ -431,7 +424,7 @@ class System(metaclass=system):
                 if i._design or i._cost:
                     costunits.add(i)
             elif isa(i, System):
-                subsystems.add(i)
+                subsystems.append(i)
                 units.update(i.units)
                 costunits.update(i._costunits)
     
@@ -450,7 +443,7 @@ class System(metaclass=system):
                 if isa(i, Facility) and not i._system: i._system = self
             elif isa(i, System):
                 units.update(i.units)
-                subsystems.add(i)
+                subsystems.append(i)
                 costunits.update(i._costunits)
     
     def _set_facility_recycle(self, recycle):
@@ -500,79 +493,99 @@ class System(metaclass=system):
     
     @property
     def recycle(self):
-        """[:class:`~thermosteam.Stream`] A tear stream for the recycle loop"""
+        """
+        :class:`~thermosteam.Stream` or Iterable[:class:`~thermosteam.Stream`]
+        A tear stream for the recycle loop.
+        """
         return self._recycle
+    @recycle.setter
+    def recycle(self, recycle):
+        isa = isinstance
+        self._N_runs = None
+        if recycle is None:
+            self._recycle = recycle
+        elif isa(recycle, Stream):
+            self._recycle = recycle
+        elif isa(recycle, Iterable):
+            recycle = tuple(recycle)
+            for i in recycle:
+                if not isa(i, Stream):
+                    raise ValueError("recycle streams must be Stream objects; "
+                                     f"not {type(i).__name__}")                
+            self._recycle = recycle
+        else:
+            raise_recycle_type_error(recycle)
+
+    @property
+    def N_runs(self):
+        """Number of times to run the path."""
+        return self._N_runs
+    @N_runs.setter
+    def N_runs(self, N_runs):
+        if N_runs: self._recycle = None
+        self._N_runs = N_runs
+
+    @property
+    def path(self):
+        """
+        tuple[Unit, function and/or System] A path that is run element by 
+        element until the recycle(s) converges (if any).
+        
+        """
+        return self._path
 
     @property
     def converge_method(self):
-        """Iterative convergence method ('wegstein', 'aitken', or 'fixed point')."""
+        """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
         return self._converge_method.__name__[1:]
     @converge_method.setter
     def converge_method(self, method):
-        if self.recycle is None:
+        if self._recycle is None:
             raise ValueError(
                 "cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
-        if 'wegstein' == method:
-            self._converge_method = self._wegstein
-        elif 'fixedpoint' == method:
-            self._converge_method = self._fixed_point
-        elif 'aitken' == method:
-            self._converge_method = self._aitken
-        else:
-            raise ValueError(
-                f"only 'wegstein', 'aitken', and 'fixed point' methods "
-                f"are valid, not '{method}'")
+        try:
+            self._converge_method = getattr(self, '_' + method)
+        except:
+            raise ValueError("only 'wegstein', 'aitken', and 'fixedpoint' "
+                            f"methods are valid, not '{method}'")
 
     
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
         if unit not in self.units: return []
-        elif self._recycle: return self.path
-        unit_found = False
-        downstream_units = unit._downstream_units
-        path = []
+        elif self._recycle: return self._path
         isa = isinstance
-        for i in self.path:
-            if unit_found:
-                if isa(i, System):
-                    for u in i.units:
-                        if u in downstream_units:
-                            path.append(i)
-                            break
-                elif i in downstream_units or not isa(i, Unit):
-                    path.append(i)
-            else:
-                if unit is i:
-                    unit_found = True
-                    path.append(unit)
-                elif isa(i, System) and unit in i.units:
-                    unit_found = True   
-                    path.append(i)
-        return path
-
+        for index, i in enumerate(self._path):
+            if unit is i:
+                return self._path[index:]
+            elif (isa(i, System) and unit in i.units): 
+                return i._downstream_path(unit) + self._path[index+1:]
+        return []
+    
+    def _downstream_facilities(self, unit):
+        """Return a list of facilities composed of the `unit` and 
+        everything downstream."""
+        isa = isinstance
+        for index, i in enumerate(self._facilities):
+            if unit is i or (isa(i, System) and unit in i.units):
+                return self._facilities[index:]
+        return []
+    
     def _downstream_system(self, unit):
         """Return a system with a path composed of the `unit` and
         everything downstream (facilities included)."""
-        if unit is self.path[0]: return self
-        system = self._cached_downstream_systems.get((self, unit))
-        if system: return system
+        if unit is self._path[0]: return self
         path = self._downstream_path(unit)
         if path:
-            downstream_facilities = self._facilities            
+            facilities = self._facilities            
         else:
-            unit_found = False
-            isa = isinstance
-            for pos, i in enumerate(self._facilities):
-                if unit is i or (isa(i, System) and unit in i.units):
-                    downstream_facilities = self._facilities[pos:]
-                    unit_found = True
-                    break
-            assert unit_found, f'{unit} not found in system'
+            facilities = self._downstream_facilities(unit)
+            if not facilities:
+                raise RuntimeError(f'{unit} not found in system')
         system = System(None, path,
-                        facilities=downstream_facilities)
+                        facilities=facilities)
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
-        self._cached_downstream_systems[unit] = system
         return system
     
     def _minimal_digraph(self, **graph_attrs):
@@ -580,7 +593,7 @@ class System(metaclass=system):
         return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
 
     def _surface_digraph(self, **graph_attrs):
-        return surface_digraph(self.path)
+        return surface_digraph(self._path)
 
     def _thorough_digraph(self, **graph_attrs):
         return digraph_from_units_and_streams(self.unit_path + [i for i in self.facilities if isinstance(i, Unit)], self.streams, 
@@ -654,7 +667,7 @@ class System(metaclass=system):
         return rmol, unconverged
             
     def _get_recycle_data(self):
-        recycle = self.recycle
+        recycle = self._recycle
         if isinstance(recycle, Stream):
             return recycle.imol.data.copy()
         elif isinstance(recycle, Iterable):
@@ -663,7 +676,7 @@ class System(metaclass=system):
             raise RuntimeError('no recycle available')
     
     def _set_recycle_data(self, data):
-        recycle = self.recycle
+        recycle = self._recycle
         isa = isinstance
         if isa(recycle, Stream):
             recycle.imol.data[:] = data
@@ -686,9 +699,9 @@ class System(metaclass=system):
             raise RuntimeError('no recycle available')
             
     def _get_recycle_temperatures(self):
-        recycle = self.recycle
+        recycle = self._recycle
         if isinstance(recycle, Stream):
-            return self.recycle.T
+            return self._recycle.T
         elif isinstance(recycle, Iterable):
             return np.array([i.T for i in recycle], float)
         else:
@@ -697,13 +710,13 @@ class System(metaclass=system):
     def _setup(self):
         """Setup each element of the system."""
         isa = isinstance
-        for i in self.path:
+        for i in self._path:
             if isa(i, (Unit, System)): i._setup()
         
     def _run(self):
         """Run each element in the path. Rotate path if necessary."""
-        if self.recycle:
-            N_elements = len(self.path)
+        if self._recycle:
+            N_elements = len(self._path)
             if N_elements <= 1:
                 self._run_path()
             else:
@@ -713,18 +726,18 @@ class System(metaclass=system):
                         self._run_path()
                     except Exception as error:
                         if n == max_rotations: raise error
-                        if not n: self.path = deque(self.path)
-                        self.path.rotate()
+                        if not n: self._path = deque(self._path)
+                        self._path.rotate()
                     else:
                         break
-                if n: self.path = tuple(self.path)
+                if n: self._path = tuple(self._path)
         else:
             self._run_path()
         
     def _run_path(self):
         """Rigorously run each element in the path."""
         isa = isinstance
-        for i in self.path:
+        for i in self._path:
             if isa(i, Unit):                            
                 run_unit_in_path(i)
             elif isa(i, System): 
@@ -736,7 +749,7 @@ class System(metaclass=system):
         """[list] All unit operation as ordered in the path."""
         unit_path = []
         isa = isinstance
-        for i in self.path:
+        for i in self._path:
             if isa(i, Unit): 
                 if i in unit_path: continue
                 unit_path.append(i)
@@ -745,7 +758,7 @@ class System(metaclass=system):
         return unit_path 
     
     # Methods for convering the recycle stream    
-    def _fixed_point(self):
+    def _fixedpoint(self):
         """Converge system recycle iteratively using fixed-point iteration."""
         self._solve(flx.conditional_fixed_point)
         
@@ -768,8 +781,7 @@ class System(metaclass=system):
             except:
                 raise error
     
-    # Default converge method
-    _converge_method = _aitken
+    _default_converge_method = _aitken
    
     def _converge(self):
         if self._N_runs:
@@ -781,7 +793,7 @@ class System(metaclass=system):
         
     def _summary(self):
         iscallable = callable
-        for i in self.path:
+        for i in self._path:
             if not iscallable(i): try_method_with_object_stamp(i, i._summary)
         isa = isinstance
         for i in self._facilities:
@@ -839,14 +851,14 @@ class System(metaclass=system):
     def empty_recycles(self):
         """Reset all recycle streams to zero flow."""
         self._reset_errors()        
-        recycle = self.recycle
+        recycle = self._recycle
         if recycle:
             if isinstance(recycle, Stream):
                 recycle.empty()
             elif isinstance(recycle, Iterable):
                 for i in recycle: i.empty()
             else:
-                raise_recycle_type_runtime_error(recycle)
+                raise_recycle_type_error(recycle)
         for system in self.subsystems:
             system.empty_recycles()
 
@@ -865,7 +877,7 @@ class System(metaclass=system):
     def _debug_on(self):
         """Turn on debug mode."""
         self._run = _notify_run_wrapper(self, self._run)
-        path = self.path
+        path = self._path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = _method_debug(item, item._run)
@@ -877,7 +889,7 @@ class System(metaclass=system):
     def _debug_off(self):
         """Turn off debug mode."""
         self._run = self._run._original
-        path = self.path
+        path = self._path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = item._run._original
@@ -913,10 +925,10 @@ class System(metaclass=system):
     def to_network(self):
         """Return network that defines the system path."""
         isa = isinstance
-        path = [(i.to_network() if isa(i, System) else i) for i in self.path]
+        path = [(i.to_network() if isa(i, System) else i) for i in self._path]
         network = Network.__new__(Network)    
         network.path = path
-        network.recycle = self.recycle
+        network.recycle = self._recycle
         network.units = self.units
         network.subnetworks = [i for i in path if isa(i, Network)]
         network.feeds = self.feeds
@@ -948,14 +960,14 @@ class System(metaclass=system):
                 else:
                     path_info.append(str(i))
             return '[' + (dlim + " ").join(path_info) + ']'
-        path_info = get_path_info(self.path)
+        path_info = get_path_info(self._path)
         info = update_info(path_info)
         facilities = self.facilities
         if facilities:
             facilities_info = get_path_info(self.facilities)
             facilities_info = f'facilities={facilities_info}'
             info = update_info(facilities_info)
-        recycle = self.recycle
+        recycle = self._recycle
         if recycle:
             recycle = self._get_recycle_info()
             info = update_info(f"recycle={recycle}")
@@ -965,7 +977,7 @@ class System(metaclass=system):
         return info
     
     def _get_recycle_info(self):
-        recycle = self.recycle
+        recycle = self._recycle
         if isinstance(recycle, Stream):
             recycle = recycle._source_info()
         else:
@@ -981,7 +993,7 @@ class System(metaclass=system):
 
     def _error_info(self):
         """Return information on convergence."""
-        if self.recycle:
+        if self._recycle:
             return (f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
                     f"\n                    Temperature {self._T_error:.2e} K"
                     f"\n iterations: {self._iter}")
@@ -990,12 +1002,12 @@ class System(metaclass=system):
 
     def _info(self):
         """Return string with all specifications."""
-        if self.recycle is None:
+        if self._recycle is None:
             recycle = ''
         else:
             recycle = f"\n recycle: {self._get_recycle_info()}"
         error = self._error_info()
-        path = strtuple(self.path)
+        path = strtuple(self._path)
         i = 1; last_i = 0
         while True:
             i += 2
@@ -1030,35 +1042,34 @@ class System(metaclass=system):
 
 
 class FacilityLoop(metaclass=system):
-    __slots__ = ('system', 'recycle',
-                 '_mol_error', '_T_error', '_iter')
+    __slots__ = ('system', '_recycle',
+                 'maxiter', 'molar_tolerance', 'temperature_tolerance',
+                 '_converge_method', '_mol_error', '_T_error', '_iter')
     
-    #: Maximum number of iterations to solve facilities
-    maxiter = 50
-    
-    #: Molar tolerance (kmol/hr)
-    molar_tolerance = 0.50
-    
-    #: Temperature tolerance (K)
-    temperature_tolerance = 0.10
+    _default_maxiter = 50
+    _default_molar_tolerance = 0.50
+    _default_temperature_tolerance = 0.10
+    _default_converge_method = System._default_converge_method
     
     def __init__(self, system, recycle):
         self.system = system
-        self.recycle = recycle
+        self._recycle = recycle
         self._reset_errors()
+        self._load_defaults()
         
+    recycle = System.recycle
+    converge_method = System.converge_method
     _get_recycle_temperatures = System._get_recycle_temperatures
     _get_recycle_data = System._get_recycle_data
     _set_recycle_data = System._set_recycle_data
     _reset_errors = System._reset_errors
     _error_info = System._error_info
     _iter_run = System._iter_run
-    _fixed_point = System._fixed_point
+    _fixedpoint = System._fixedpoint
     _aitken = System._aitken
     _wegstein = System._wegstein
-    _converge_method = System._converge_method
     _solve = System._solve
-    converge_method = System.converge_method
+    _load_defaults = System._load_defaults
     
     def _reset_iter(self):
         self.system._reset_iter()

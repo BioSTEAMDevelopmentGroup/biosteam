@@ -70,7 +70,8 @@ class Flowsheet:
     Create a Flowsheet object which stores references to all stream, unit,
     and system objects. For a tutorial on flowsheets, visit
     :doc:`tutorial/Managing_flowsheets`.
-	"""
+	
+    """
     line = "Flowsheet"
     
     #: [Register] All flowsheets.
@@ -185,8 +186,7 @@ class Flowsheet:
             u._outs[:] = outs
         return f
     
-    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None,
-                      hx_convergence='rigorous'):
+    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -204,10 +204,6 @@ class Flowsheet:
         facility_recycle : :class:`~thermosteam.Stream`, optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
-        hx_convergence : 'rigorous' or 'estimate', optional
-            If 'check', recycle streams to process heat exchangers are rigorously
-            converged. If 'estimate' and the recyle stream is an inlet to the 
-            process heat exchanger, the loop is only runned twice.
         
         """
         if not feeds:
@@ -219,8 +215,7 @@ class Flowsheet:
             if not facility_recycle:
                 facility_recycle = find_blowdown_recycle(facilities)
             system = System.from_feedstock(ID, feedstock, feeds,
-                                           facilities, ends, facility_recycle,
-                                           hx_convergence)
+                                           facilities, ends, facility_recycle)
         else:
             system = System(ID, ())
         return system

@@ -38,7 +38,7 @@ class Block:
     __slots__ = ('_system', '_simulate', '_element')
     
     def __new__(cls, element, system=None):
-        block = cls._blocks.get((system, element))
+        block = cls._blocks.get((id(system), element))
         if block:
             self = block
         else:
@@ -59,7 +59,7 @@ class Block:
         self._system = subsys
         self._simulate = simulate
         self._element = element
-        self._blocks[system, element] = self
+        self._blocks[id(system), element] = self
     
     def parameter(self, setter, simulate, name, distribution, units, 
                   baseline, bounds) -> Parameter:
