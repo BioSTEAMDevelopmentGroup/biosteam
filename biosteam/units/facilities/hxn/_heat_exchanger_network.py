@@ -126,7 +126,8 @@ class HeatExchangerNetwork(Facility):
         matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, actual_heat_util_load,\
         actual_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
         T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-        hot_indices, cold_indices, original_heat_util_load, original_cool_util_load =\
+        hot_indices, cold_indices, original_heat_util_load, original_cool_util_load,\
+        Q_percent_error =\
         synthesize_network(hx_utils, ID_original=sysname, T_min_app=self.T_min_app)
         original_purchase_costs= [hx.purchase_cost for hx in hxs]
         original_installed_costs = [hx.installed_cost for hx in hxs]
@@ -188,7 +189,7 @@ class HeatExchangerNetwork(Facility):
         self._installed_cost = (sum(new_installed_costs_HXp) + sum(new_installed_costs_HXu)) \
             - (sum(original_installed_costs))
         self.heat_utilities = hus_final
-
+        self.energy_balance_percent_error = Q_percent_error
         self.original_heat_utils = hx_utils_rearranged
         self.original_purchase_costs = original_purchase_costs
         self.original_utility_costs = hu_sums1

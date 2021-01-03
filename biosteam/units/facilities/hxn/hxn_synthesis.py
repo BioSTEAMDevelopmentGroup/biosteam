@@ -508,12 +508,13 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     Q_new_utils = Q_new_heating + Q_new_cooling
     Q_new = 2*Q_HXp + Q_new_utils
     Q_bal = Q_new/Q_prev
-    if abs(Q_bal - 1)>0.02:
+    Q_percent_error = 100*(Q_bal - 1)
+    if abs(Q_percent_error)>2:
         msg = '\n\n\n WARNING: Q balance of HXN off by %s p.c.,\ which is more than 2 p.c.\n\n\n'\
-              %(100*(Q_bal - 1))
+              %(Q_percent_error)
         warn(msg, UserWarning, stacklevel =2)
     
     return matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, act_heat_util_load,\
            act_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-           hot_indices, cold_indices, orig_heat_util_load, orig_cool_util_load
+           hot_indices, cold_indices, orig_heat_util_load, orig_cool_util_load, Q_percent_error
