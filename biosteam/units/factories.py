@@ -65,7 +65,7 @@ def df2dct(df):
 
 def xl2dct(file, sheet_name=0):
     """Return dictionary of unit subclasses from excel file."""
-    return df2dct(pd.read_excel(file, header=[0, 1], nrows=11))
+    return df2dct(pd.read_excel(file, header=[0, 1], nrows=10))
 
 def xl2mod(file, module, sheet_name=0):
     dct = xl2dct(file, sheet_name)

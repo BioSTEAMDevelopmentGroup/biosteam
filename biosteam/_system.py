@@ -24,6 +24,7 @@ from .exceptions import InfeasibleRegion
 from .utils import colors, strtuple
 from collections.abc import Iterable
 from collections import deque
+from warnings import warn
 import biosteam as bst
 import numpy as np
 
@@ -317,9 +318,10 @@ class System:
     specification = Unit.specification
     save_report = save_report
     
-    def _extend_flattend_path_and_recycles(self, path, recycles):
+    def _extend_flattend_path_and_recycles(self, path, recycles, stacklevel):
         isa = isinstance
         recycle = self._recycle
+        stacklevel += 1
         if recycle:
             if isa(recycle, Stream):
                 recycles.append(recycle)
@@ -330,13 +332,15 @@ class System:
         for i in self._path:
             if isa(i, System):
                 if i.facilities:
-                    warn(RuntimeWarning('subsystem with facilities could not be flattened'))
+                    warning = RuntimeWarning('subsystem with facilities could not be flattened')
+                    warn(warning, stacklevel=stacklevel)
                     path.append(i)
                 elif i.specification:
-                    warn(RuntimeWarning('subsystem with specification could not be flattened'))
+                    warning = RuntimeWarning('subsystem with specification could not be flattened')
+                    warn(warning, stacklevel=stacklevel)
                     path.append(i)
                 else:
-                    i._extend_flattend_path_and_recycles(path, recycles)
+                    i._extend_flattend_path_and_recycles(path, recycles, stacklevel)
             else:
                 path.append(i)
     
@@ -358,7 +362,7 @@ class System:
         """Flatten system by removing subsystems."""
         recycles = []
         path = []
-        self._extend_flattend_path_and_recycles(path, recycles)
+        self._extend_flattend_path_and_recycles(path, recycles, stacklevel=2)
         self._path = tuple(path)
         self._recycle = tuple(recycles)
         N_recycles = len(recycles)

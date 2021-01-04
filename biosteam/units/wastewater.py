@@ -46,6 +46,8 @@ from biosteam.utils import remove_undefined_chemicals
 import biosteam as bst
 import thermosteam as tmo
 from thermosteam import (
+    utils,
+    settings,
     Reaction as Rxn,
     ParallelReaction as PRxn,
     Chemicals,
@@ -86,7 +88,8 @@ def anaerobic_digestion_reactions(
         chemicals, MW_sludge,
         biogas_CH4_fraction=0.51, # mol-CH4 / mol-biogas
         organics_to_biogas=0.86, # g-biogas / g-reactant
-        organics_to_biomass=0.05 # g-biomass / g-reactant
+        organics_to_biomass=0.05, # g-biomass / g-reactant
+        thermo=None,
     ):
     # Defaults are based on P49 in Humbird et al., 91% of organic components is destroyed,	
     # of which 86% is converted to biogas and 5% is converted to sludge,	
@@ -101,28 +104,34 @@ def anaerobic_digestion_reactions(
     f_sludge = organics_to_biomass / (conversion * MW_sludge) # mol-biomass / g-reacted
     f_CH4 = x_CH4 * f_biogas # mol-CH4 / g-reacted
     f_CO2 = x_CO2 * f_biogas # mol-CO2 / g-reacted
-    
+    thermo = settings.get_default_thermo(thermo)
+    parsable_name = thermo.chemicals.get_parsable_synonym
+    isvalid = utils.is_valid_ID
     def anaerobic_rxn(chemical):
         reactant = chemical.ID
+        if not isvalid(reactant): reactant = parsable_name(reactant)
         if reactant == 'H2SO4':
             return Rxn("H2SO4 -> H2S + 2O2", 'H2SO4', 1.)
         else:
             MW_inv = 1. / chemical.MW	
             return Rxn(f'{MW_inv}{reactant} -> {f_CH4}CH4 + {f_CO2}CO2 + {f_sludge}WWTsludge',	
-                       reactant, 0.91)	    
+                       reactant, 0.91, chemicals=thermo.chemicals)	    
     
     return PRxn([anaerobic_rxn(i) for i in chemicals])
 
-def growth(chemical, MW_sludge, X):
-    f = MW_sludge / chemical.MW
-    reactant = chemical.ID
-    return Rxn(f"{f}{reactant} -> WWTsludge", reactant, X)
-
-def aerobic_digestion_reactions(chemicals, MW_sludge, X_combustion=0.74, X_growth=0.22):
+def aerobic_digestion_reactions(chemicals, MW_sludge, X_combustion=0.74, X_growth=0.22, thermo=None):
     # Based on P49 in Humbird et al. Defaults assume 96% of remaining soluble 
     # organic matter is removed after aerobic digestion, of which 74% is 
     # converted to water and CO2 and 22% to cell mass
-    return PRxn([i.get_combustion_reaction(conversion=X_combustion) + growth(i, MW_sludge, X_growth)
+    isvalid = utils.is_valid_ID
+    thremo = settings.get_default_thermo(thermo)
+    parsable_name = thermo.chemicals.get_parsable_synonym
+    def growth(chemical):
+        f = MW_sludge / chemical.MW
+        reactant = chemical.ID
+        if not isvalid(reactant): reactant = parsable_name(reactant)
+        return Rxn(f"{f}{reactant} -> WWTsludge", reactant, X_growth, chemicals=thermo.chemicals)
+    return PRxn([i.get_combustion_reaction(conversion=X_combustion) + growth(i)
                  for i in chemicals])
 
 # %% Unit operations
@@ -175,7 +184,7 @@ class AnaerobicDigestion(Unit):
         chemicals = self.chemicals
         if not reactions:
             digestables = get_digestable_organic_chemicals(chemicals)
-            reactions = anaerobic_digestion_reactions(digestables, chemicals.WWTsludge.MW)
+            reactions = anaerobic_digestion_reactions(digestables, chemicals.WWTsludge.MW, thermo=self.thermo)
         self.reactions = reactions
         if sludge_split is None:
             sludge_split = dict(
@@ -282,7 +291,7 @@ class AerobicDigestion(Unit):
         if not reactions:
             chemicals = self.chemicals
             digestables = get_digestable_organic_chemicals(self.chemicals)
-            reactions = aerobic_digestion_reactions(digestables, chemicals.WWTsludge.MW)        
+            reactions = aerobic_digestion_reactions(digestables, chemicals.WWTsludge.MW, thermo=self.thermo)        
         self.reactions = reactions
         self.evaporation = evaporation
     

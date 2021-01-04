@@ -406,13 +406,14 @@ def test_sugarcane_ethanol_biorefinery_network():
     bst.process_tools.default_utilities()
     bst.CE = 567.5
     
-def test_corn_ethanol_biorefinery_network():
+def test_corn_ethanol_biorefinery_system_creation():
     from biorefineries.corn import flowsheet as f
     corn_sys = f.create_system('corn_sys')
     corn_sys.empty_recycles()
     corn_sys.simulate()
     bst.process_tools.default_utilities()
     bst.CE = 567.5
+    
     
 if __name__ == '__main__':
     test_simple_recycle_loop()
@@ -423,4 +424,4 @@ if __name__ == '__main__':
     test_separate_recycle_loops()
     test_nested_recycle_loops()
     test_sugarcane_ethanol_biorefinery_network()
-    test_corn_ethanol_biorefinery_network()
+    test_corn_ethanol_biorefinery_system_creation()
