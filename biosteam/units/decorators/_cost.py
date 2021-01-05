@@ -43,16 +43,16 @@ class CostItem:
     __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
                  'cost', 'n', 'kW', 'N')
     def __init__(self, basis, units, S, ub, CE, cost, n, kW, N):
-        if ub and not N: N='#'
-        self._basis = basis
-        self._units = units
-        self.S = S
-        self.ub = ub
-        self.CE = CE
-        self.cost = cost
-        self.n = n
-        self.kW = kW
-        self.N = N
+        s = str; f = float; b = bool
+        self._basis = s(basis)
+        self._units = s(units)
+        self.S = f(S)
+        self.ub = f(ub)
+        self.CE = f(CE)
+        self.cost = f(cost)
+        self.n = f(n)
+        self.kW = f(kW)
+        self.N = '#' if ub and not N else N
     
     __getitem__ = object.__getattribute__
     __setitem__ = object.__setattr__
@@ -125,7 +125,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
         except: pass
     return cls
 
-def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
+def cost(basis, ID=None, *, CE, cost, n, S=1., ub=0., kW=0., BM=1.,
          units=None, fsize=None, N=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up.
@@ -142,8 +142,8 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
         Purchase cost of item.
     n : float
         Exponential factor.
-    S = 1 : float, optional
-        Size.
+    S : float, optional
+        Size. Defaults to 1.
     ub : float, optional
         Size limit, if any.
     kW : float, optional
@@ -165,9 +165,9 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1,
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N)
+    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, fsize)
 
-def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
+def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, fsize):
     # Make sure new _units dictionary is defined
     if '_units' not in cls.__dict__:
         cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
