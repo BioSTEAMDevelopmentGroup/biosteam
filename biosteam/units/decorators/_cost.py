@@ -44,6 +44,16 @@ class CostItem:
                  'cost', 'n', 'kW', 'N')
     def __init__(self, basis, units, S, ub, CE, cost, n, kW, N):
         s = str; f = float; b = bool
+        if N: # Prevent downstream error for common mistakes
+            if isinstance(N, s):
+                self.N = N
+            else:
+                raise ValueError("N parameter must be a string or None; not a "
+                                 "'{type(N).__name__}' object")
+        elif ub:
+            self.N = '#'
+        else:
+            self.N = None
         self._basis = s(basis)
         self._units = s(units)
         self.S = f(S)
@@ -52,7 +62,7 @@ class CostItem:
         self.cost = f(cost)
         self.n = f(n)
         self.kW = f(kW)
-        self.N = '#' if ub and not N else N
+        self.N = N
     
     __getitem__ = object.__getattribute__
     __setitem__ = object.__setattr__
