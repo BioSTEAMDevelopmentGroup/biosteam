@@ -34,3 +34,8 @@ Other changes:
   :class:`~biosteam.System.default_molar_tolerance` and 
   :class:`~biosteam.System.default_temperature_tolerance`.
 
+2.22.2
+------
+
+* Distillation columns can now implement vacuum systems. A vacuum system is 
+  automatically implementented when the operating pressure is set to a value under 1 atm.

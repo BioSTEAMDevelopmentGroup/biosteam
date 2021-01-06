@@ -562,7 +562,8 @@ class System:
         return surface_digraph(self._path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path + [i for i in self.facilities if isinstance(i, Unit)], self.streams, 
+        return digraph_from_units_and_streams(self.unit_path + [i for i in self.facilities if isinstance(i, (Unit, System))], 
+                                              self.streams, 
                                               **graph_attrs)
         
     def _cluster_digraph(self, **graph_attrs):

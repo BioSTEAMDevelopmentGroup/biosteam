@@ -199,7 +199,7 @@ def get_unit_names(f: Digraph, units):
     if bst.LABEL_PATH_NUMBER_IN_DIAGRAMS:
         for i, u in enumerate(units):
             node = u.get_node()
-            unit_names[u] = node['name'] = f"[{i}] {node['name']}"
+            unit_names[u] = node['name'] = f"{i}) {node['name']}"
             f.node(**node)
     else:
         for u in units:

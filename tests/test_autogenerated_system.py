@@ -318,9 +318,9 @@ def test_nested_recycle_loops():
                     recycle=S1-0),
                  S2,
                  Network(
-                    [H3,
-                     M7,
-                     S4],
+                    [M7,
+                     S4,
+                     H3],
                     recycle=H3-0),
                  P8,
                  S3],

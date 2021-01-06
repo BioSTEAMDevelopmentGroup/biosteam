@@ -237,6 +237,7 @@ class TEA:
         self = copy_(other)
         self.units = sorted(system._costunits, key=lambda x: x.line)
         self.system = system
+        system._TEA = self
         return self
 
     def __init__(self, system, IRR, duration, depreciation, income_tax,
