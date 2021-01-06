@@ -655,7 +655,7 @@ class Unit:
         return f
 
     def diagram(self, radius=0, upstream=True, downstream=True, 
-                file=None, format='png', **graph_attrs):
+                file=None, format='png', display=True, **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
         of the unit and all neighboring units within given radius.
@@ -673,6 +673,9 @@ class Unit:
             * [None] Display diagram in console.
         format : str
                  Format of file.
+        display : bool, optional
+            Whether to display diagram in console or to return the graphviz 
+            object.
         
         """
         if radius > 0:
@@ -681,7 +684,10 @@ class Unit:
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
         f = self.get_digraph(format, **graph_attrs)
-        finalize_digraph(f, file, format)
+        if display or file: 
+            finalize_digraph(f, file, format)
+        else:
+            return f
     
     ### Net input and output flows ###
     

@@ -158,7 +158,14 @@ class Flowsheet:
             * **'thorough':** Thoroughly display every unit.
             * **'surface':** Display units and recycle systems.
             * **'minimal':** Minimally display flowsheet as a box with feeds and products.
-        
+        file=None : str, display in console by default
+            File name to save diagram.
+        format='png' : str
+            File format (e.g. "png", "svg").
+        display : bool, optional
+            Whether to display diagram in console or to return the graphviz 
+            object.
+            
         """
         if kind == 'thorough':
             f = digraph_from_units_and_streams(self.unit, self.stream, 
@@ -169,7 +176,10 @@ class Flowsheet:
             f = minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
         else:
             raise ValueError("kind must be either 'thorough', 'surface', or 'minimal'.")
-        finalize_digraph(f, file, format)
+        if display or file: 
+            finalize_digraph(f, file, format)
+        else:
+            return f
     
     def _surface_digraph(self, format, **graph_attrs):
         surface_units = set(self.unit)

@@ -144,7 +144,7 @@ def digraph_from_system(system, **graph_attrs): # pragma: no coverage
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, system.unit_path + [i for i in system.facilities if isinstance(i, bst.Unit)])
+    unit_names = get_unit_names(f, system.unit_path)
     update_digraph_from_path(f, tuple(system.path) + system.facilities, 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)

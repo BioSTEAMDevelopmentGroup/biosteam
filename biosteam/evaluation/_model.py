@@ -290,7 +290,7 @@ class Model(State):
     @property
     def exception_hook(self):
         """
-        [callable(model, exception, sample)] Function called after a failed 
+        [callable(exception, sample)] Function called after a failed 
         evaluation. The exception hook should return either None or metric 
         values given the exception and sample.
         

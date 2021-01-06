@@ -569,8 +569,11 @@ class System:
     def _cluster_digraph(self, **graph_attrs):
         return digraph_from_system(self, **graph_attrs)
         
-    def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
-        """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
+    def diagram(self, kind='surface', file=None, format='png', display=True,
+                **graph_attrs):
+        """
+        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of 
+        the system.
         
         Parameters
         ----------
@@ -583,7 +586,10 @@ class System:
             File name to save diagram.
         format='png' : str
             File format (e.g. "png", "svg").
-        
+        display : bool, optional
+            Whether to display diagram in console or to return the graphviz 
+            object.
+            
         """
         if kind == 'cluster':
             f = self._cluster_digraph(format=format, **graph_attrs)
@@ -595,7 +601,10 @@ class System:
             f = self._minimal_digraph(format=format, **graph_attrs)
         else:
             raise ValueError("kind must be either 'cluster', 'thorough', 'surface', or 'minimal'")
-        finalize_digraph(f, file, format)
+        if display or file: 
+            finalize_digraph(f, file, format)
+        else:
+            return f
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
