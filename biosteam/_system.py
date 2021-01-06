@@ -562,7 +562,7 @@ class System:
         return surface_digraph(self._path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path + [i for i in self.facilities if isinstance(i, (Unit, System))], 
+        return digraph_from_units_and_streams(self.unit_path, 
                                               self.streams, 
                                               **graph_attrs)
         
@@ -716,7 +716,7 @@ class System:
         """[list] All unit operation as ordered in the path."""
         unit_path = []
         isa = isinstance
-        for i in self._path:
+        for i in self._path + self._facilities:
             if isa(i, Unit):
                 unit_path.append(i)
             elif isa(i, System):
