@@ -39,3 +39,8 @@ Other changes:
 
 * Distillation columns can now implement vacuum systems. A vacuum system is 
   automatically implementented when the operating pressure is set to a value under 1 atm.
+
+2.22.3
+------
+
+* Equipment lifetime can now be set in :class:`~biosteam.Unit` subclasses.
