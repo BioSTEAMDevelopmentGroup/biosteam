@@ -246,7 +246,7 @@ class StreamSequence:
             if not isinstance(stream, Stream):
                 raise TypeError(
                     f"'{type(self).__name__}' object can only contain "
-                    f"'Stream' objects; not '{type(item).__name__}'"
+                    f"'Stream' objects; not '{type(stream).__name__}'"
                 )
         elif not isinstance(stream, MissingStream):
             stream = self._create_missing_stream()
