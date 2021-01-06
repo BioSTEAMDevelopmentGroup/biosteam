@@ -69,6 +69,11 @@ class Unit:
         tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
         without having add these costs in the `purchase_costs` dictionary.
+    **_equipment_lifetime=None**
+        [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
+        production venture. Use an integer to specify the lifetime is for all
+        items in the unit purchase costs. Use a dictionary to specify the 
+        lifetime of each purchase cost item.
     **_graphics**
         [biosteam.Graphics, abstract, optional] Settings for diagram
         representation. Defaults to a box with the same number of input
@@ -102,7 +107,7 @@ class Unit:
         Cooling and heating requirements are stored here (not including auxiliary units).
     design_results : dict
         All design requirements (not including auxiliary units).
-    purchase_costs : dict
+    purchase_costs : dict[str, float]
         Itemized purchase costs (not including auxiliary units).
     thermo : Thermo
         The thermodynamic property package used by the unit.
@@ -131,6 +136,7 @@ class Unit:
         if not isabstract:
             if not hasattr(cls, '_BM'): cls._BM = {}
             if not hasattr(cls, '_units'): cls._units = {}
+            if not hasattr(cls, '_equipment_lifetime'): cls._equipment_lifetime = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
@@ -354,6 +360,22 @@ class Unit:
         
         return sum([i.installed_cost for i in self.auxiliary_units],
                    installed_cost)
+    
+    @property
+    def installed_costs(self):
+        """dict[str, float] Installed equipment costs [USD]."""
+        BM = self._BM
+        try:
+            installed_costs = {i: BM[i]*j for i,j in self.purchase_costs.items()}
+        except KeyError:
+            missing = set(self.purchase_costs).difference(BM)
+            raise NotImplementedError("the following purchase cost items have "
+                                      "no defined bare module factor in the "
+                                     f"'{type(self).__name__}._BM' dictionary: {missing}")
+        getfield = getattr
+        for i in self.auxiliary_unit_names:
+            installed_costs[i] = getfield(self, i).installed_cost
+        return installed_costs
     
     @property
     def utility_cost(self):

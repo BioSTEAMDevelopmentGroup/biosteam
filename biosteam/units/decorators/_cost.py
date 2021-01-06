@@ -136,7 +136,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
     return cls
 
 def cost(basis, ID=None, *, CE, cost, n, S=1., ub=0., kW=0., BM=1.,
-         units=None, fsize=None, N=None):    
+         units=None, N=None, lifetime=None, fsize=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up.
     
@@ -162,12 +162,14 @@ def cost(basis, ID=None, *, CE, cost, n, S=1., ub=0., kW=0., BM=1.,
         Bare module factor (installation factor). Defaults to 1.
     units : str, optional
         Units of measure.
+    N : str, optional
+        Attribute name for number of parallel units.
+    lifetime : int, optional
+        Number of operating years until equipment needs to be replaced.
     fsize : function, optional
         Accepts a Unit object argument and returns the size parameter. If not 
         given, defaults to function predefined for given name and units of 
         measure.
-    N : str, optional
-        Attribute name for number of parallel units.
         
     Examples
     --------
@@ -175,9 +177,9 @@ def cost(basis, ID=None, *, CE, cost, n, S=1., ub=0., kW=0., BM=1.,
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, fsize)
+    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, lifetime, fsize)
 
-def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, fsize):
+def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, lifetime, fsize):
     # Make sure new _units dictionary is defined
     if '_units' not in cls.__dict__:
         cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
@@ -201,12 +203,16 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, fsize):
             raise ValueError(f"ID '{ID}' already in use")
         cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, N)
         cls._BM[ID] = BM
+        if lifetime: cls._equipment_lifetime[ID] = lifetime
     else:
         ID = ID or cls.line
         cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, N)}
         if '_BM' not in cls.__dict__:
             cls._BM = cls._BM.copy() if hasattr(cls, '_BM') else {}
+        if '_equipment_lifetime' not in cls.__dict__:
+            cls._equipment_lifetime = cls._equipment_lifetime.copy() if hasattr(cls, '_equipment_lifetime') else {}
         cls._BM[ID] = BM
+        if lifetime: cls._equipment_lifetime[ID] = lifetime
         if '_cost' not in cls.__dict__:
             cls._cost = _decorated_cost
         cls._decorated_cost = _decorated_cost

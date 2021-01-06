@@ -6,6 +6,7 @@ Created on Sat Dec  5 13:25:23 2020
 """
 import pytest
 import biosteam as bst
+from numpy.testing import assert_allclose
 
 def test_unit_connections():
     from biorefineries.sugarcane import flowsheet as f
@@ -43,6 +44,81 @@ def test_unit_connections():
     assert not any(R301.ins + R301.outs)
     R301.take_place_of(unit)
     
+def test_equipment_lifetimes():
+    from biorefineries.sugarcane import create_tea
+    bst.settings.set_thermo(['Water'], cache=True)
+    
+    class A(bst.Unit):
+        _BM = {
+            'Equipment A': 2,
+            'Equipment B': 3,
+        }
+        _equipment_lifetime = {
+            'Equipment A': 10,
+            'Equipment B': 5,
+        }
+        def _cost(self):
+            purchase_costs = self.purchase_costs
+            purchase_costs['Equipment A'] = 1e6
+            purchase_costs['Equipment B'] = 1e5
+            
+    class B(bst.Unit):
+        _BM = {
+            'Equipment A': 2,
+        }
+        _equipment_lifetime = 15
+        def _cost(self):
+            self.purchase_costs['Equipment A'] = 1e6
+
+    class C(bst.Unit):
+        _BM = {
+            'Equipment A': 4,
+        }
+        def _cost(self):
+            self.purchase_costs['Equipment A'] = 1e6
+            
+    @bst.decorators.cost('Flow rate', units='kmol/hr', S=1, BM=3,
+                         cost=1e6, n=0.6, CE=bst.CE, lifetime=8)
+    class D(bst.Unit): pass
+    
+    @bst.decorators.cost('Flow rate', units='kmol/hr', S=1, BM=4,
+                         cost=1e6, n=0.6, CE=bst.CE, lifetime=20)
+    class E(bst.Unit): pass
+    
+    D_feed = bst.Stream('D_feed', Water=1)
+    E_feed = D_feed.copy('E_feed')
+    units = [A(None, 'A_feed'), B(None, 'B_feed'), C(None, 'C_feed'), D(None, D_feed), E(None, E_feed)]
+    test_sys = bst.System('test_sys', units)
+    test_sys.simulate()
+    tea = create_tea(test_sys)
+    table = tea.get_cashflow_table()
+    C_FCI = table['Fixed capital investment [MM$]']
+    # Test with lang factor = 3 (default for sugarcane biorefinery)
+    cashflows_FCI = [6.12, 9.18, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 3.0, 
+                     0.0, 3.3, 0.0, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.0, 0.0]
+    assert_allclose(C_FCI, cashflows_FCI)
+    # Cashflows include maintainance and others, so all entries are not zero
+    cashflows = [-6120000.0, -9945000.0, -4321300.0, -4321300.0, -4321300.0, 
+                 -4321300.0, -4321300.0, -4621300.0, -4321300.0, -4321300.0, 
+                 -7321300.0, -4321300.0, -7621300.0, -4321300.0, -4321300.0, 
+                 -4321300.0, -4321300.0, -4621300.0, -4321300.0, -4321300.0, 
+                 -4321300.0, -3556300.0]
+    assert_allclose(tea.cashflow_array, cashflows)
+    
+    # Test with bare module costs
+    tea.lang_factor = None
+    table = tea.get_cashflow_table()
+    C_FCI = table['Fixed capital investment [MM$]']
+    cashflows_FCI = [6.12, 9.18, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 3.0, 
+                     0.0, 2.3, 0.0, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.0, 0.0]
+    assert_allclose(C_FCI, cashflows_FCI)
+    cashflows = [-6120000.0, -9945000.0, -4321300.0, -4321300.0, -4321300.0, 
+                 -4321300.0, -4321300.0, -4621300.0, -4321300.0, -4321300.0, 
+                 -7321300.0, -4321300.0, -6621300.0, -4321300.0, -4321300.0, 
+                 -4321300.0, -4321300.0, -4621300.0, -4321300.0, -4321300.0, 
+                 -4321300.0, -3556300.0]
+    assert_allclose(tea.cashflow_array, cashflows)
     
 if __name__ == '__main__':
     test_unit_connections()
+    test_equipment_lifetimes()
