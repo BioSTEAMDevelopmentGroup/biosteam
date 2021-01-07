@@ -27,6 +27,10 @@ recycle_yeast
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
+	Bagasse
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"juicing_sys
+System" -> Bagasse
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"sugarcane
 imbibition_water
@@ -45,19 +49,15 @@ vent
 recycle_yeast
 " [style=dashed]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"juicing_sys
-System" -> "ethanol_production_sys
-System" [label=s24]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"yeast
 stripping_water
 denaturant
 " -> "ethanol_production_sys
 System" [style=dashed]
-	Bagasse
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"juicing_sys
-System" -> Bagasse
+System" -> "ethanol_production_sys
+System" [label=s24]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"juicing_sys
 System" -> "filter_cake

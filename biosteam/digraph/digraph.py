@@ -50,7 +50,6 @@ def blank_digraph(format='svg', maxiter='10000000',
 def get_section_inlets_and_outlets(units, streams):
     outs = []
     ins = []
-    units = tuple(units)
     for s in streams:
         source = s._source
         sink = s._sink
@@ -74,7 +73,7 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
     product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]),
                                                   product, None)
     system_box = bst.units.DiagramOnlySystemUnit(ID, feed, product)
-    return digraph_from_units((feed_box, system_box, product_box),
+    return digraph_from_units([feed_box, system_box, product_box],
                               **graph_attrs)
 
 @ignore_docking_warnings

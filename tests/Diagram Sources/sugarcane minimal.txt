@@ -16,8 +16,8 @@ lime
 H3PO4
 rvf_wash_water
 s59
-s57
 s60
+s57
 polymer
 natural_gas
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
@@ -42,29 +42,6 @@ s62
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"s.6
-recirculated_chilled_water
-sugarcane
-makeup_water
-imbibition_water
-yeast
-cooling_tower_makeup_water
-stripping_water
-boiler_makeup_water
-enzyme
-denaturant
-s58
-lime
-H3PO4
-rvf_wash_water
-s59
-s57
-s60
-polymer
-natural_gas
-" -> "sugarcane_sys
-System" [style=dashed]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"sugarcane_sys
 System" -> "s.7
 s.9
@@ -81,4 +58,27 @@ ash_disposal
 fiber_fines
 s62
 " [style=dashed]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"s.6
+recirculated_chilled_water
+sugarcane
+makeup_water
+imbibition_water
+yeast
+cooling_tower_makeup_water
+stripping_water
+boiler_makeup_water
+enzyme
+denaturant
+s58
+lime
+H3PO4
+rvf_wash_water
+s59
+s60
+s57
+polymer
+natural_gas
+" -> "sugarcane_sys
+System" [style=dashed]
 }
