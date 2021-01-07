@@ -43,7 +43,23 @@ def test_unit_connections():
     assert tuple(unit.ins + unit.outs) == (ins + outs)
     assert not any(R301.ins + R301.outs)
     R301.take_place_of(unit)
+
+def test_unit_graphics():
+    bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    M = bst.Mixer(None, outs=None)
+    assert M._graphics.get_inlet_options(M, 2) == {'headport': 'c'}
+    assert M._graphics.get_inlet_options(M, 100) == {'headport': 'c'}
+    assert M._graphics.get_outlet_options(M, 0) == {'tailport': 'e'}
     
+    S = bst.Splitter(None, outs=None, split=0.5)
+    
+    GraphicsWarning = bst.exceptions.GraphicsWarning
+    with pytest.warns(GraphicsWarning):
+        assert S._graphics.get_inlet_options(S, 1) == {'headport': 'c'}
+    
+    with pytest.warns(GraphicsWarning):
+        assert M._graphics.get_outlet_options(M, 1) == {'tailport': 'c'}
+
 def test_equipment_lifetimes():
     from biorefineries.sugarcane import create_tea
     bst.settings.set_thermo(['Water'], cache=True)
@@ -121,4 +137,5 @@ def test_equipment_lifetimes():
     
 if __name__ == '__main__':
     test_unit_connections()
+    test_unit_graphics()
     test_equipment_lifetimes()

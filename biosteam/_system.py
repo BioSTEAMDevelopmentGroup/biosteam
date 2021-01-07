@@ -780,23 +780,6 @@ class System:
         self._iter = 0
         for system in self.subsystems: system._reset_iter()
     
-    def reset_names(self, unit_format=None, stream_format=None):
-        """Reset names of all streams and units according to the path order."""
-        Unit._default_ID = unit_format if unit_format else ['U', 0]
-        Stream._default_ID = stream_format if stream_format else ['d', 0]
-        streams = set()
-        units = set()
-        for i in self.unit_path:
-            if i in units: continue
-            try: i.ID = ''
-            except: continue
-            for s in (i._ins + i._outs):
-                if (s and s._sink and s._source
-                    and s not in streams):
-                    s.ID = ''
-                    streams.add(s)
-            units.add(i)
-    
     def _reset_errors(self):
         #: Molar flow rate error (kmol/hr)
         self._mol_error = 0

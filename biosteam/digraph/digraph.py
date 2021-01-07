@@ -24,7 +24,7 @@ __all__ = ('digraph_from_system',
            'minimal_digraph',
            'surface_digraph',
            'finalize_digraph',
-           'update_surface_units',
+           'extend_surface_units',
            'display_digraph',
            'save_digraph',
            'get_all_connections',
@@ -34,17 +34,20 @@ Connection = namedtuple('Connection',
                         ('source', 'source_index', 'stream', 'sink_index', 'sink'),
                         module=__name__)
 
-def has_path(obj): # pragma: no coverage
+def sort_streams(streams):
+    return sorted(streams, key=lambda x: -x.F_mass + len(x.ID))
+
+def has_path(obj):
     return hasattr(obj, 'path')
 
 def blank_digraph(format='svg', maxiter='10000000', 
-                  Damping='0.995', K='0.5', **graph_attrs): # pragma: no coverage
+                  Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
     f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, **graph_attrs)
     return f
 
-def get_section_inlets_and_outlets(units, streams): # pragma: no coverage
+def get_section_inlets_and_outlets(units, streams):
     outs = []
     ins = []
     units = tuple(units)
@@ -58,12 +61,14 @@ def get_section_inlets_and_outlets(units, streams): # pragma: no coverage
     return ins, outs
 
 @ignore_docking_warnings
-def minimal_digraph(ID, units, streams, **graph_attrs): # pragma: no coverage
+def minimal_digraph(ID, units, streams, **graph_attrs):
     ins, outs = get_section_inlets_and_outlets(units, streams)
     product = Stream(None)
     product._ID = ''
     feed = Stream(None)
     feed._ID = ''
+    ins = sort_streams(ins)
+    outs = sort_streams(outs)
     feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]),
                                                None, feed)
     product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]),
@@ -73,16 +78,16 @@ def minimal_digraph(ID, units, streams, **graph_attrs): # pragma: no coverage
                               **graph_attrs)
 
 @ignore_docking_warnings
-def surface_digraph(path): # pragma: no coverage
-    surface_units = set()  
+def surface_digraph(path):
+    surface_units = []
     old_unit_connections = set()
     isa = isinstance
     Unit = bst.Unit
     for i in path:
         if isa(i, Unit):
-            surface_units.add(i)
+            surface_units.append(i)
         elif has_path(i):
-            update_surface_units(i.ID, i.streams, i.units, 
+            extend_surface_units(i.ID, i.streams, i.units, 
                                  surface_units, old_unit_connections)
     f = digraph_from_units(surface_units)
     for u, ins, outs in old_unit_connections:
@@ -91,7 +96,7 @@ def surface_digraph(path): # pragma: no coverage
     return f
 
 @ignore_docking_warnings
-def update_surface_units(ID, streams, units, surface_units, old_unit_connections): # pragma: no coverage
+def extend_surface_units(ID, streams, units, surface_units, old_unit_connections):
     outs = []
     ins = []
     feeds = []
@@ -116,31 +121,36 @@ def update_surface_units(ID, streams, units, surface_units, old_unit_connections
     if len(feeds) > 1:
         feed = Stream(None)
         feed._ID = ''
-        surface_units.add(StreamUnit('\n'.join([i.ID for i in feeds]),
-                                     None, feed))
+        feeds = sort_streams(feeds)
+        feed_box = StreamUnit('\n'.join([i.ID for i in feeds]), None, feed)
         ins.append(feed)
-    else: ins += feeds
+    else: 
+        feed_box = None
+        ins += feeds
     
     if len(products) > 1:
         product = Stream(None)
         product._ID = ''
-        surface_units.add(StreamUnit('\n'.join([i.ID for i in products]),
-                                     product, None))
+        products = sort_streams(products)
+        product_box = StreamUnit('\n'.join([i.ID for i in products]), product, None)
         outs.append(product)
-    else: outs += products
+    else: 
+        product_box = None
+        outs += products
     
     subsystem_unit = SystemUnit(ID, ins, outs)
-    surface_units.add(subsystem_unit)
+    for i in (feed_box, subsystem_unit, product_box):
+        if i: surface_units.append(i)
 
-def digraph_from_units(units, **graph_attrs): # pragma: no coverage
+def digraph_from_units(units, **graph_attrs):
     streams = bst.utils.streams_from_units(units)
     return digraph_from_units_and_streams(units, streams, **graph_attrs)
 
-def digraph_from_units_and_streams(units, streams, **graph_attrs): # pragma: no coverage
+def digraph_from_units_and_streams(units, streams, **graph_attrs):
     connections = get_all_connections(streams)
     return digraph_from_units_and_connections(units, connections, **graph_attrs)
 
-def digraph_from_system(system, **graph_attrs): # pragma: no coverage
+def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
@@ -155,7 +165,7 @@ def digraph_from_system(system, **graph_attrs): # pragma: no coverage
 
 def update_digraph_from_path(f, path, recycle, depth, unit_names,
                              excluded_connections,
-                             other_streams): # pragma: no coverage
+                             other_streams):
     all_streams = set()
     units = set()
     subsystems = []
@@ -189,7 +199,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
                    style='dashed', bgcolor='#79bf823f')
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
-def digraph_from_units_and_connections(units, connections, **graph_attrs): # pragma: no coverage
+def digraph_from_units_and_connections(units, connections, **graph_attrs):
     f = blank_digraph(**graph_attrs)
     update_digraph_from_units_and_connections(f, units, connections)
     return f
@@ -208,22 +218,22 @@ def get_unit_names(f: Digraph, units):
             unit_names[u] = node['name']
     return unit_names
 
-def update_digraph_from_units_and_connections(f: Digraph, units, connections): # pragma: no coverage
+def update_digraph_from_units_and_connections(f: Digraph, units, connections):
     add_connections(f, connections, get_unit_names(f, units))    
 
-def get_stream_connection(stream): # pragma: no coverage
+def get_stream_connection(stream):
     source = stream._source
     source_index = source._outs.index(stream) if source else None
     sink = stream._sink
     sink_index = sink._ins.index(stream) if sink else None
     return Connection(source, source_index, stream, sink_index, sink)
 
-def get_all_connections(streams): # pragma: no coverage
+def get_all_connections(streams):
     return {get_stream_connection(s)
             for s in streams 
             if (s._source or s._sink)}
 
-def add_connection(f: Digraph, connection, unit_names, edge_options): # pragma: no coverage
+def add_connection(f: Digraph, connection, unit_names, edge_options):
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
@@ -261,7 +271,7 @@ def add_connection(f: Digraph, connection, unit_names, edge_options): # pragma: 
                **inlet_options, **outlet_options, **edge_options)
         f.edge(unit_names[source], unit_names[sink], style='dashed')
 
-def add_connections(f: Digraph, connections, unit_names, **edge_options): # pragma: no coverage
+def add_connections(f: Digraph, connections, unit_names, **edge_options):
     # Set attributes for graph and streams
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
@@ -269,17 +279,27 @@ def add_connections(f: Digraph, connections, unit_names, **edge_options): # prag
     f.attr('graph', overlap='orthoyx',
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')
+    index = {j: i for i, j in unit_names.items()}
+    length = len(index)
+    def key(x):
+        value = index.get(x.source, 0) + index.get(x.sink, length)
+        if x.source_index:
+            value += 1e-3 * x.source_index / len(x.source.outs)
+        if x.sink_index:
+            value += 1e-6 * x.sink_index / len(x.sink.ins)
+        return value
+    connections = sorted(connections, key=key)
     for connection in connections:
         add_connection(f, connection, unit_names, edge_options)
 
-def display_digraph(digraph, format): # pragma: no coverage
+def display_digraph(digraph, format):
     if format == 'svg':
         x = display.SVG(digraph.pipe(format=format))
     else:
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
 
-def save_digraph(digraph, file, format): # pragma: no coverage
+def save_digraph(digraph, file, format):
     if '.' not in file:
         file += '.' + format
     img = digraph.pipe(format=format)
@@ -287,7 +307,7 @@ def save_digraph(digraph, file, format): # pragma: no coverage
     f.write(img)
     f.close()
     
-def finalize_digraph(digraph, file, format): # pragma: no coverage
+def finalize_digraph(digraph, file, format):
     if file:
         save_digraph(digraph, file, format)
     else:

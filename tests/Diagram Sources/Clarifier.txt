@@ -1,0 +1,19 @@
+digraph unit {
+	graph [maxiter=1000 nodesep=1.1 outputorder=edgesfirst ranksep=0.8 ratio=0.5]
+	rankdir=LR
+	"C201
+Clarifier" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
+	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
+	s19
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	s19 -> "C201
+Clarifier"
+	s20
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"C201
+Clarifier" -> s20
+	s21
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"C201
+Clarifier" -> s21
+}
