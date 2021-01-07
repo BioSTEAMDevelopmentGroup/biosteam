@@ -489,6 +489,7 @@ class Distillation(Unit, isabstract=True):
         # Get all important flow rates (both light and heavy keys and non-keys)
         feed = self.feed
         feed.mix_from(self.ins)
+        feed.vle(H=feed.H, P=self.P)
         mol = feed.mol
         LHK_index = self._LHK_index
         LNK_index = self._LNK_index
@@ -539,13 +540,13 @@ class Distillation(Unit, isabstract=True):
     
     def _setup(self):
         distillate, bottoms_product = self.outs
-        distillate.P = bottoms_product.P = self.P
+        self.feed.P = distillate.P = bottoms_product.P = self.P
         distillate.phase = 'g'
         bottoms_product.phase = 'l'
 
     def get_feed_quality(self):
         feed = self.feed
-        feed.P = self.P
+        data = feed.get_data()
         H_feed = feed.H
         try: dp = feed.dew_point_at_P()
         except: pass
@@ -558,7 +559,7 @@ class Distillation(Unit, isabstract=True):
         feed.phase = 'l'
         H_liq = feed.H
         q = (H_vap - H_feed) / (H_vap - H_liq)
-        feed.vle(H=H_feed, P=self.P)
+        feed.set_data(data)
         return q
 
     def _run_condenser_and_boiler(self):
