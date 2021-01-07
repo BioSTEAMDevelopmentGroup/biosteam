@@ -146,8 +146,9 @@ class Flowsheet:
             new.update(flowsheet)
         return new
     
-    def diagram(self, file=None, format='svg', **graph_attrs):
-        """Display all units and attached streams.
+    def diagram(self, file=None, format='svg', display=True, **graph_attrs):
+        """
+        Display all units and attached streams.
         
         Parameters
         ----------
@@ -160,12 +161,7 @@ class Flowsheet:
             object.
             
         """
-        f = digraph_from_units_and_streams(self.unit, self.stream, 
-                                           format=format, **graph_attrs)
-        if display or file: 
-            finalize_digraph(f, file, format)
-        else:
-            return f
+        return self.create_system(None).diagram(file=file, format=format, display=display)
     
     def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
         """

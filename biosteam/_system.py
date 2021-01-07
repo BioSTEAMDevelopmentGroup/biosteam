@@ -255,7 +255,8 @@ class System:
         """
         facilities = Facility.ordered_facilities(facilities)
         isa = isinstance
-        path = [(cls.from_network('', i) if isa(i, Network) else i)
+        name = ID if ID is None else ''
+        path = [(cls.from_network(name, i) if isa(i, Network) else i)
                 for i in network.path]
         self = cls.__new__(cls)
         self.units = network.units
