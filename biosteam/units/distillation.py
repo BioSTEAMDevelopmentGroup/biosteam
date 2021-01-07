@@ -543,9 +543,9 @@ class Distillation(Unit, isabstract=True):
         distillate.phase = 'g'
         bottoms_product.phase = 'l'
 
-    def _get_feed_quality(self):
+    def get_feed_quality(self):
         feed = self.feed
-        feed = feed.copy()
+        feed.P = self.P
         H_feed = feed.H
         try: dp = feed.dew_point_at_P()
         except: pass
@@ -558,6 +558,7 @@ class Distillation(Unit, isabstract=True):
         feed.phase = 'l'
         H_liq = feed.H
         q = (H_vap - H_feed) / (H_vap - H_liq)
+        feed.vle(H=H_feed, P=self.P)
         return q
 
     def _run_condenser_and_boiler(self):
@@ -1056,6 +1057,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Utility cost                                   USD/hr      82.7
     
     """
+    _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
     
     def _run(self):
         self._run_binary_distillation_mass_balance()
@@ -1077,7 +1079,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
         F_mol_LHK = LHK_mol.sum()
         zf = LHK_mol[0]/F_mol_LHK
-        q = self._get_feed_quality()
+        q = self.get_feed_quality()
         
         # Main arguments
         P = self.P
@@ -1086,9 +1088,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
         
         # Cache
         old_args = self._McCabeThiele_args
-        args = np.array([P, k, y_top, x_bot, q, zf])
-        tol = np.array([50, 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
-        if (abs(old_args - args) < tol).all(): return
+        args = np.array([P, k, y_top, x_bot, q, zf], float)
+        if (abs(old_args - args) < self._cache_tolerance).all(): return
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
@@ -1575,26 +1576,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         alpha_LHK_bottoms = K_light/K_heavy
         
         return alpha_LHK_distillate, alpha_LHK_bottoms
-        
-    def _get_feed_quality(self):
-        feed = self.feed
-        feed = feed.copy()
-        H_feed = feed.H
-        try: dp = feed.dew_point_at_P()
-        except: pass
-        else: feed.T = dp.T
-        feed.phase = 'g'
-        H_vap = feed.H
-        try: bp = feed.bubble_point_at_P()
-        except: pass
-        else: feed.T = bp.T
-        feed.phase = 'l'
-        H_liq = feed.H
-        q = (H_vap - H_feed) / (H_vap - H_liq)
-        return q
     
     def _solve_Underwood_constant(self, alpha_mean, alpha_LK):
-        q = self._get_feed_quality()
+        q = self.get_feed_quality()
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
         ub = np.inf
