@@ -1027,35 +1027,35 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Divided Distillation Column                     Units        D1
     Power               Rate                           kW      11.4
                         Cost                       USD/hr     0.894
-    Chilled brine       Duty                        kJ/hr -3.71e+06
-                        Flow                      kmol/hr  2.43e+03
-                        Cost                       USD/hr      30.2
-    Low pressure steam  Duty                        kJ/hr  8.42e+06
-                        Flow                      kmol/hr       217
-                        Cost                       USD/hr      51.6
+    Chilled brine       Duty                        kJ/hr -3.83e+06
+                        Flow                      kmol/hr  2.51e+03
+                        Cost                       USD/hr      31.2
+    Low pressure steam  Duty                        kJ/hr  7.35e+06
+                        Flow                      kmol/hr       189
+                        Cost                       USD/hr        45
     Design              Theoretical feed stage                    5
                         Theoretical stages                        9
-                        Minimum reflux              Ratio     0.433
-                        Reflux                      Ratio     0.866
+                        Minimum reflux              Ratio     0.448
+                        Reflux                      Ratio     0.896
                         Rectifier stages                          9
-                        Stripper stages                          23
+                        Stripper stages                          22
                         Rectifier height               ft      25.8
-                        Stripper height                ft      46.5
-                        Rectifier diameter             ft      6.14
-                        Stripper diameter              ft      4.66
+                        Stripper height                ft        45
+                        Rectifier diameter             ft      6.19
+                        Stripper diameter              ft      4.36
                         Rectifier wall thickness       in     0.375
                         Stripper wall thickness        in     0.312
-                        Rectifier weight               lb   7.6e+03
-                        Stripper weight                lb  9.45e+03
-    Purchase cost       Rectifier trays               USD  1.51e+04
-                        Stripper trays                USD  2.06e+04
-                        Rectifier tower               USD  6.71e+04
-                        Stripper tower                USD  7.94e+04
-                        Vacuum system                 USD  1.36e+04
-                        Condenser                     USD  2.39e+04
-                        Boiler                        USD  2.12e+04
-    Total purchase cost                               USD  2.41e+05
-    Utility cost                                   USD/hr      82.7
+                        Rectifier weight               lb  7.68e+03
+                        Stripper weight                lb  8.54e+03
+    Purchase cost       Rectifier trays               USD  1.53e+04
+                        Stripper trays                USD  1.88e+04
+                        Rectifier tower               USD  6.74e+04
+                        Stripper tower                USD  7.46e+04
+                        Vacuum system                 USD  1.33e+04
+                        Condenser                     USD  2.41e+04
+                        Boiler                        USD  2.08e+04
+    Total purchase cost                               USD  2.34e+05
+    Utility cost                                   USD/hr      77.1
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)

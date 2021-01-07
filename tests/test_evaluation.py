@@ -34,8 +34,7 @@ def test_model():
         def set_efficiency(efficiency):
             R301.efficiency = efficiency
     
-    bst.process_tools.default_utilities()
-    bst.CE = 567.5
+    bst.process_tools.default()
     
 def test_model_exception_hook():
     import biosteam as bst

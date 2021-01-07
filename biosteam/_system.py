@@ -516,7 +516,6 @@ class System:
             raise ValueError("only 'wegstein', 'aitken', and 'fixedpoint' "
                             f"methods are valid, not '{method}'")
 
-    
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
         if unit not in self.units: return []
