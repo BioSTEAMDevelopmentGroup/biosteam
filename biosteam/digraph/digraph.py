@@ -292,14 +292,14 @@ def add_connections(f: Digraph, connections, unit_names, **edge_options):
     for connection in connections:
         add_connection(f, connection, unit_names, edge_options)
 
-def display_digraph(digraph, format):
+def display_digraph(digraph, format): # pragma: no coverage
     if format == 'svg':
         x = display.SVG(digraph.pipe(format=format))
     else:
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
 
-def save_digraph(digraph, file, format):
+def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
         file += '.' + format
     img = digraph.pipe(format=format)
@@ -307,7 +307,7 @@ def save_digraph(digraph, file, format):
     f.write(img)
     f.close()
     
-def finalize_digraph(digraph, file, format):
+def finalize_digraph(digraph, file, format): # pragma: no coverage
     if file:
         save_digraph(digraph, file, format)
     else:

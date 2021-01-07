@@ -58,8 +58,17 @@ def test_system_surface_diagram():
     assert set(f.source.split()) == set(expected_source.split())
     bst.process_tools.default()
     
+def test_system_minimal_diagram():
+    import biorefineries.sugarcane as sc
+    f = sc.sugarcane_sys.diagram('surface', display=DISPLAY)
+    file = os.path.join(folder, 'sugarcane surface.txt')
+    expected_source = open(file).read()
+    assert set(f.source.split()) == set(expected_source.split())
+    bst.process_tools.default()
+    
 if __name__ == '__main__':
     test_unit_diagram()
     test_system_surface_diagram()
     test_system_thorough_diagram()
     test_system_cluster_diagram()
+    test_system_minimal_diagram()
