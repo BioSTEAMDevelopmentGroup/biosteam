@@ -69,7 +69,7 @@ class HeatExchangerNetwork(Facility):
     >>> HXN.simulate()
     >>> # See all results
     >>> round(HXN.actual_heat_util_load/HXN.original_heat_util_load, 2)
-    0.88
+    0.82
     >>> HXN.get_stream_life_cycles()
     [<StreamLifeCycle: Stream_0, cold
      	life_cycle = [
@@ -82,7 +82,7 @@ class HeatExchangerNetwork(Facility):
      		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 3.67e-06 kJ, H_out = 1.45e+04 kJ>
      		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 1.45e+04 kJ, H_out = 6.21e+06 kJ>
      		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 6.21e+06 kJ, H_out = 2.54e+07 kJ>
-     		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.54e+07 kJ, H_out = 4.6e+08 kJ>
+     		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.54e+07 kJ, H_out = 2.79e+08 kJ>
      	]>,
      <StreamLifeCycle: Stream_2, hot
      	life_cycle = [
