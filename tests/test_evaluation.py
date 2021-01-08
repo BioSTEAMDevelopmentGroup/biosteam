@@ -48,7 +48,7 @@ def test_model_exception_hook():
     metrics = [IRR_metric]
     lipidcane_model = bst.Model(lc.lipidcane_sys, metrics)
     baseline = lc.lipidcane.F_mass
-    distribution = shape.Triangle(-baseline , baseline , 2*baseline ) # Negative value should fail
+    distribution = shape.Triangle(-baseline , baseline , 2*baseline) # Negative value should fail
     
     @lipidcane_model.parameter(element=lc.lipidcane, distribution=distribution, units='kg/hr')
     def set_lipidcane_flow_rate(flow_rate):

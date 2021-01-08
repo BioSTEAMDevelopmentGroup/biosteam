@@ -208,6 +208,9 @@ class System:
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
 
+    #: [bool] Whether to allow systems to rotate for more robust convergence.
+    allow_system_rotation = False
+
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
                        ends=None, facility_recycle=None):
@@ -691,7 +694,7 @@ class System:
         
     def _run(self):
         """Run each element in the path. Rotate path if necessary."""
-        if self._recycle:
+        if self.allow_system_rotation and self._recycle:
             N_elements = len(self._path)
             if N_elements <= 1:
                 self._run_path()

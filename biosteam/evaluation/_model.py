@@ -401,6 +401,7 @@ class Model(State):
     def _run_exception_hook(self, exception, sample):
         if self._exception_hook: 
             values = self._exception_hook(exception, sample)
+            self._reset_system()
             if isinstance(values, Sized) and len(values) == len(self.metrics):
                 return values
             elif values is not None:
