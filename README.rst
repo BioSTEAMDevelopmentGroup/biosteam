@@ -25,9 +25,28 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is a fast and flexible package for the design, simulation, and techno-economic analysis of biorefineries under uncertainty [1]_. BioSTEAM's framework is built to streamline and automate early-stage technology evaluations and to enable rigorous sensitivity and uncertainty analyses. Complete biorefinery configurations are available at the `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/biosteam>`_ GitHub repository, BioSTEAM's premier repository for biorefinery models and results. The long-term growth and maintenance of BioSTEAM is supported through both community-led development and the research institutions invested in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and community-lead platform, BioSTEAM aims to foster communication and transparency within the biorefinery research community for an integrated effort to expedite the evaluation of candidate biofuels and bioproducts.
+BioSTEAM is a fast and flexible package for the design, simulation, and 
+techno-economic analysis of biorefineries under uncertainty [1]_. 
+BioSTEAM is built to streamline and automate early-stage technology evaluations 
+and to enable rigorous sensitivity and uncertainty analyses. Complete 
+biorefinery configurations are available at the `Bioindustrial-Park 
+<https://github.com/BioSTEAMDevelopmentGroup/biosteam>`_ GitHub repository, 
+BioSTEAM's premier repository for biorefinery models and results. The long-term 
+growth and maintenance of BioSTEAM is supported through both community-led 
+development and the research institutions invested in BioSTEAM, including the 
+`Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. 
+Through its open-source and community-lead platform, BioSTEAM aims to foster 
+communication and transparency within the biorefinery research community for an 
+integrated effort to expedite the evaluation of candidate biofuels and 
+bioproducts.
 
-All data on chemicals, fitted coefficients, and functions to estimate chemical properties are imported from `chemicals <https://chemicals.readthedocs.io/en/latest/>`_, a community-driven open-source library developed by Caleb Bell. The `thermosteam <https://thermosteam.readthedocs.io/en/latest/>`_ library, BioSTEAM's premire thermodynamic engine, creates thermodynamic property packages by implementing both the mixing rules and the algorithms for thermodynamic equilibrium and by relying on the `chemicals` library for pure component models.
+All data on chemicals, fitted coefficients, and functions to estimate chemical 
+properties are imported from `chemicals <https://chemicals.readthedocs.io/en/latest/>`_,
+a community-driven open-source library developed by Caleb Bell. The 
+`thermosteam <https://thermosteam.readthedocs.io/en/latest/>`_ library, 
+BioSTEAM's premire thermodynamic engine, creates thermodynamic property packages 
+by implementing both the mixing rules and the algorithms for thermodynamic equilibrium 
+and by relying on the `chemicals` library for pure component models.
 
 Installation
 ------------
