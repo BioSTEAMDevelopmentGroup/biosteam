@@ -1,0 +1,84 @@
+digraph {
+	Damping=0.995 K=0.5 maxiter=10000000 rankdir=LR
+	"s.6
+recirculated_chilled_water
+sugarcane
+makeup_water
+imbibition_water
+yeast
+cooling_tower_makeup_water
+stripping_water
+boiler_makeup_water
+enzyme
+denaturant
+s58
+lime
+H3PO4
+rvf_wash_water
+s59
+s60
+s57
+polymer
+natural_gas
+" [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
+	"sugarcane_sys
+System" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=2 shape=box style=filled width=0.6]
+	"s.7
+s.9
+wastewater
+emissions
+s61
+evaporation_and_blowdown
+ethanol
+vent
+recycle_yeast
+filter_cake
+rejected_water_and_blowdown
+ash_disposal
+fiber_fines
+s62
+" [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
+	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
+	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+	edge [dir=foward]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"sugarcane_sys
+System" -> "s.7
+s.9
+wastewater
+emissions
+s61
+evaporation_and_blowdown
+ethanol
+vent
+recycle_yeast
+filter_cake
+rejected_water_and_blowdown
+ash_disposal
+fiber_fines
+s62
+" [style=dashed]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"s.6
+recirculated_chilled_water
+sugarcane
+makeup_water
+imbibition_water
+yeast
+cooling_tower_makeup_water
+stripping_water
+boiler_makeup_water
+enzyme
+denaturant
+s58
+lime
+H3PO4
+rvf_wash_water
+s59
+s60
+s57
+polymer
+natural_gas
+" -> "sugarcane_sys
+System" [style=dashed]
+}

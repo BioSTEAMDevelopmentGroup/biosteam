@@ -10,11 +10,8 @@ As BioSTEAM objects are created, they are automatically registered. The `main_fl
 """
 import biosteam as bst
 from thermosteam.utils import Registry
-from .digraph import (digraph_from_units,
-                      digraph_from_units_and_streams, 
-                      finalize_digraph,
-                      minimal_digraph,
-                      update_surface_units)
+from .digraph import (digraph_from_units_and_streams, 
+                      finalize_digraph)
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
@@ -149,42 +146,22 @@ class Flowsheet:
             new.update(flowsheet)
         return new
     
-    def diagram(self, kind='surface', file=None, format='svg', **graph_attrs):
-        """Display all units and attached streams.
+    def diagram(self, file=None, format='svg', display=True, **graph_attrs):
+        """
+        Display all units and attached streams.
         
         Parameters
         ----------
-        kind='surface' : Must be one of the following
-            * **'thorough':** Thoroughly display every unit.
-            * **'surface':** Display units and recycle systems.
-            * **'minimal':** Minimally display flowsheet as a box with feeds and products.
-        
+        file=None : str, display in console by default
+            File name to save diagram.
+        format='png' : str
+            File format (e.g. "png", "svg").
+        display : bool, optional
+            Whether to display diagram in console or to return the graphviz 
+            object.
+            
         """
-        if kind == 'thorough':
-            f = digraph_from_units_and_streams(self.unit, self.stream, 
-                                               format=format, **graph_attrs)
-        elif kind == 'surface':
-            f = self._surface_digraph(format, **graph_attrs)
-        elif kind == 'minimal':
-            f = minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
-        else:
-            raise ValueError("kind must be either 'thorough', 'surface', or 'minimal'.")
-        finalize_digraph(f, file, format)
-    
-    def _surface_digraph(self, format, **graph_attrs):
-        surface_units = set(self.unit)
-        old_unit_connections = set()
-        for i in self.system:
-            if i.recycle and not any(sub.recycle for sub in i.subsystems):
-                surface_units.difference_update(i.units)
-                update_surface_units(i.ID, i.streams, i.units,
-                                     surface_units, old_unit_connections)
-        
-        f = digraph_from_units(surface_units)
-        for u, ins, outs in old_unit_connections:
-            u._ins[:] = ins
-            u._outs[:] = outs
-        return f
+        return self.create_system(None).diagram(file=file, format=format, display=display)
     
     def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
         """

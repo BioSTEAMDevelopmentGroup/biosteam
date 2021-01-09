@@ -318,9 +318,9 @@ def test_nested_recycle_loops():
                     recycle=S1-0),
                  S2,
                  Network(
-                    [H3,
-                     M7,
-                     S4],
+                    [M7,
+                     S4,
+                     H3],
                     recycle=H3-0),
                  P8,
                  S3],
@@ -403,16 +403,14 @@ def test_sugarcane_ethanol_biorefinery_network():
     assert network == actual_network
     sugarcane_sys.empty_recycles()
     sugarcane_sys.simulate()
-    bst.process_tools.default_utilities()
-    bst.CE = 567.5
+    bst.process_tools.default()
     
 def test_corn_ethanol_biorefinery_system_creation():
     from biorefineries.corn import flowsheet as f
     corn_sys = f.create_system('corn_sys')
     corn_sys.empty_recycles()
     corn_sys.simulate()
-    bst.process_tools.default_utilities()
-    bst.CE = 567.5
+    bst.process_tools.default()
     
     
 if __name__ == '__main__':

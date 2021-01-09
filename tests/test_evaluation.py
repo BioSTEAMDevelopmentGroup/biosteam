@@ -34,8 +34,7 @@ def test_model():
         def set_efficiency(efficiency):
             R301.efficiency = efficiency
     
-    bst.process_tools.default_utilities()
-    bst.CE = 567.5
+    bst.process_tools.default()
     
 def test_model_exception_hook():
     import biosteam as bst
@@ -49,7 +48,7 @@ def test_model_exception_hook():
     metrics = [IRR_metric]
     lipidcane_model = bst.Model(lc.lipidcane_sys, metrics)
     baseline = lc.lipidcane.F_mass
-    distribution = shape.Triangle(-baseline , baseline , 2*baseline ) # Negative value should fail
+    distribution = shape.Triangle(-baseline , baseline , 2*baseline) # Negative value should fail
     
     @lipidcane_model.parameter(element=lc.lipidcane, distribution=distribution, units='kg/hr')
     def set_lipidcane_flow_rate(flow_rate):

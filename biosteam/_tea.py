@@ -12,6 +12,7 @@ import numpy as np
 import flexsolve as flx
 from copy import copy as copy_
 from flexsolve import njitable
+from math import floor
 
 __all__ = ('TEA', 'CombinedTEA')
 
@@ -96,22 +97,56 @@ def solve_payment(payment, loan, interest, years):
                                 maxiter=200, checkiter=False)
     return payment
 
-def taxable_and_nontaxable_cashflows(D, C, S, C_FC, C_WC, Loan, LP,
-                                     FCI, WC, TDC, VOC, FOC, sales,
-                                     startup_time,
-                                     startup_VOCfrac,
-                                     startup_FOCfrac,
-                                     startup_salesfrac,
-                                     construction_schedule,
-                                     finance_interest,
-                                     finance_years,
-                                     finance_fraction,
-                                     start):
+@njitable(cache=True)
+def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
+                                           equipment_lifetime, 
+                                           cashflow_array, 
+                                           venture_years,
+                                           start):
+    N_purchases = floor(venture_years / equipment_lifetime) 
+    for i in range(1, N_purchases):
+        cashflow_array[start + i * equipment_lifetime] += equipment_installed_cost
+
+def add_all_replacement_costs_to_cashflow_array(unit, cashflow_array, 
+                                                venture_years, start,
+                                                lang_factor):
+    equipment_lifetime = unit._equipment_lifetime
+    if equipment_lifetime:
+        if isinstance(equipment_lifetime, int):
+             installed_cost = unit.purchase_cost * lang_factor if lang_factor else unit.installed_cost
+             add_replacement_cost_to_cashflow_array(installed_cost, 
+                                                    equipment_lifetime,
+                                                    cashflow_array,
+                                                    venture_years,
+                                                    start)
+        elif isinstance(equipment_lifetime, dict):
+            if lang_factor:
+                installed_costs = unit.purchase_costs.copy()
+                for i in installed_costs:
+                    installed_costs[i] *= lang_factor
+            else:
+                installed_costs = unit.installed_costs
+            for name, installed_cost in installed_costs.items():
+                lifetime = equipment_lifetime.get(name)
+                if lifetime:
+                    add_replacement_cost_to_cashflow_array(installed_cost, 
+                                                           lifetime,
+                                                           cashflow_array,
+                                                           venture_years,
+                                                           start)
+
+@njitable(cache=True)
+def fill_taxable_and_nontaxable_cashflows_without_loans(
+        D, C, S, C_FC, C_WC, FCI, WC, TDC, VOC, FOC, sales,
+        startup_time,
+        startup_VOCfrac,
+        startup_FOCfrac,
+        startup_salesfrac,
+        construction_schedule,
+        start):
     # Cash flow data and parameters
     # C_FC: Fixed capital
     # C_WC: Working capital
-    # Loan: Money gained from loan
-    # LP: Loan payment
     # D: Depreciation
     # C: Annual operating cost (excluding depreciation)
     # S: Sales
@@ -126,6 +161,41 @@ def taxable_and_nontaxable_cashflows(D, C, S, C_FC, C_WC, Loan, LP,
     C_FC[:start] = FCI * construction_schedule
     C_WC[start-1] = WC
     C_WC[-1] = -WC
+
+def taxable_and_nontaxable_cashflows(
+        unit_operations,
+        D, C, S, C_FC, C_WC, Loan, LP,
+        FCI, WC, TDC, VOC, FOC, sales,
+        startup_time,
+        startup_VOCfrac,
+        startup_FOCfrac,
+        startup_salesfrac,
+        construction_schedule,
+        finance_interest,
+        finance_years,
+        finance_fraction,
+        start, years,
+        lang_factor,
+    ):
+    # Cash flow data and parameters
+    # C_FC: Fixed capital
+    # C_WC: Working capital
+    # Loan: Money gained from loan
+    # LP: Loan payment
+    # D: Depreciation
+    # C: Annual operating cost (excluding depreciation)
+    # S: Sales
+    fill_taxable_and_nontaxable_cashflows_without_loans(
+        D, C, S, C_FC, C_WC, FCI, WC, TDC, VOC, FOC, sales,
+        startup_time,
+        startup_VOCfrac,
+        startup_FOCfrac,
+        startup_salesfrac,
+        construction_schedule,
+        start
+    )
+    for i in unit_operations:
+        add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
     if finance_interest:
         interest = finance_interest
         years = finance_years
@@ -237,6 +307,7 @@ class TEA:
         self = copy_(other)
         self.units = sorted(system._costunits, key=lambda x: x.line)
         self.system = system
+        system._TEA = self
         return self
 
     def __init__(self, system, IRR, duration, depreciation, income_tax,
@@ -475,6 +546,8 @@ class TEA:
         C_FC[:start] = FCI*self._construction_schedule
         C_WC[start-1] = WC
         C_WC[-1] = -WC
+        lang_factor = self.lang_factor
+        for i in self.units: add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
@@ -576,7 +649,8 @@ class TEA:
         depreciation_array = self._depreciation_array
         D[start:start + depreciation_array.size] = TDC * depreciation_array
         WC = self.WC_over_FCI * FCI
-        return taxable_and_nontaxable_cashflows(D, C, S, C_FC, C_WC, Loan, LP,
+        return taxable_and_nontaxable_cashflows(self.units,
+                                                D, C, S, C_FC, C_WC, Loan, LP,
                                                 FCI, WC, TDC, VOC, FOC, self.sales,
                                                 self._startup_time,
                                                 self.startup_VOCfrac,
@@ -586,7 +660,8 @@ class TEA:
                                                 self.finance_interest,
                                                 self.finance_years,
                                                 self.finance_fraction,
-                                                start)
+                                                start, years,
+                                                self.lang_factor)
     
     def _fill_tax(self, tax, taxable_cashflow):
         index = taxable_cashflow > 0.

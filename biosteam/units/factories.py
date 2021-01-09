@@ -14,17 +14,6 @@ import pandas as pd
 import numpy as np
 
 _add_cost = decorators.add_cost
-_index = np.array(('Basis',
-                   'Units',
-                   'Size',
-                   'Upper bound',
-                   'CEPCI',
-                   'Cost (USD)',
-                   'Exponent',
-                   'Electricity (kW)',
-                   'Installation factor',
-                   'Number'))
-
 
 __all__ = ('df2unit', 'xl2dct', 'xl2mod')
 
@@ -65,7 +54,24 @@ def df2dct(df):
 
 def xl2dct(file, sheet_name=0):
     """Return dictionary of unit subclasses from excel file."""
-    return df2dct(pd.read_excel(file, header=[0, 1], nrows=10))
+    df = pd.read_excel(file, header=[0, 1], index_col=0, nrows=11, dtype=object)
+    index = [
+        'Basis',
+        'Units',
+        'Size',
+        'Upper bound',
+        'CEPCI',
+        'Cost (USD)',
+        'Exponent',
+        'Electricity (kW)',
+        'Installation factor',
+        'Number',
+        'Lifetime (yr)',
+    ]
+    if list(df.index) != index:
+        raise RuntimeError(f"could not read '{file}'; index at column A must "
+                           f"have the following entries {index}")
+    return df2dct(df)
 
 def xl2mod(file, module, sheet_name=0):
     dct = xl2dct(file, sheet_name)

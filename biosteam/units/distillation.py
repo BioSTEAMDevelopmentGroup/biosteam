@@ -30,6 +30,7 @@ from .design_tools.specification_factors import  (
     distillation_tray_type_factor,
     material_densities_lb_per_in3)
 from .design_tools import column_design as design
+from .design_tools.vacuum import compute_vacuum_system_power_and_cost
 from .. import Unit
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
@@ -142,7 +143,8 @@ class Distillation(Unit, isabstract=True):
            'Rectifier trays': 4.3,
            'Stripper trays': 4.3,
            'Tower': 4.3,
-           'Trays': 4.3}
+           'Trays': 4.3,
+           'Vacuum system': 1.}
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
@@ -166,7 +168,9 @@ class Distillation(Unit, isabstract=True):
                 foaming_factor=1.0,
                 open_tray_area_fraction=0.1,
                 downcomer_area_fraction=None,
-                is_divided=False):
+                is_divided=False,
+                vacuum_system_preference='Liquid-ring pump',
+        ):
         Unit.__init__(self, ID, ins, outs, thermo)
         
         # Operation specifications
@@ -188,6 +192,7 @@ class Distillation(Unit, isabstract=True):
         self.open_tray_area_fraction = open_tray_area_fraction
         self.downcomer_area_fraction = downcomer_area_fraction
         self.is_divided = is_divided
+        self.vacuum_system_preference = vacuum_system_preference
         
         # Setup components
         thermo = self.thermo
@@ -484,6 +489,7 @@ class Distillation(Unit, isabstract=True):
         # Get all important flow rates (both light and heavy keys and non-keys)
         feed = self.feed
         feed.mix_from(self.ins)
+        feed.vle(H=feed.H, P=self.P)
         mol = feed.mol
         LHK_index = self._LHK_index
         LNK_index = self._LNK_index
@@ -534,13 +540,13 @@ class Distillation(Unit, isabstract=True):
     
     def _setup(self):
         distillate, bottoms_product = self.outs
-        distillate.P = bottoms_product.P = self.P
+        self.feed.P = distillate.P = bottoms_product.P = self.P
         distillate.phase = 'g'
         bottoms_product.phase = 'l'
 
-    def _get_feed_quality(self):
+    def get_feed_quality(self):
         feed = self.feed
-        feed = feed.copy()
+        data = feed.get_data()
         H_feed = feed.H
         try: dp = feed.dew_point_at_P()
         except: pass
@@ -553,6 +559,7 @@ class Distillation(Unit, isabstract=True):
         feed.phase = 'l'
         H_liq = feed.H
         q = (H_vap - H_feed) / (H_vap - H_liq)
+        feed.set_data(data)
         return q
 
     def _run_condenser_and_boiler(self):
@@ -721,7 +728,22 @@ class Distillation(Unit, isabstract=True):
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
             Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
             Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
-        
+    
+    def _cost_vacuum(self, dimensions):
+        P = self.P
+        if not P or P > 1e5: return 
+        Design = self.design_results
+        total_power = 0.
+        total_cost = 0.
+        for length, diameter in dimensions:
+            volume = 0.02832 * np.pi * length * (diameter/2)**2 # ft3
+            power, cost = compute_vacuum_system_power_and_cost(
+                              0., 0., P, volume, self.vacuum_system_preference)
+            total_power += power
+            total_cost += cost
+        self.purchase_costs['Vacuum system'] = cost
+        self.power_utility(total_power)
+    
     def _cost(self):
         Design = self.design_results
         Cost = self.purchase_costs
@@ -741,11 +763,13 @@ class Distillation(Unit, isabstract=True):
             
             # Cost vessel assuming T < 800 F
             W_R = Design['Rectifier weight'] # in lb
-            H_R = Design['Rectifier height']*3.28 # in ft
+            H_R = Design['Rectifier height'] # in ft
             Cost['Rectifier tower'] = design.compute_purchase_cost_of_tower(Di_R, H_R, W_R, F_VM)
             W_S = Design['Stripper weight'] # in lb
-            H_S = Design['Stripper height']*3.28 # in ft
+            H_S = Design['Stripper height'] # in ft
             Cost['Stripper tower'] = design.compute_purchase_cost_of_tower(Di_S, H_S, W_S, F_VM)
+            
+            dimensions = [(H_R, Di_R), (H_S, Di_S)]
         else:
             # Cost trays assuming a partial condenser
             N_T = Design['Actual stages'] - 1
@@ -755,8 +779,11 @@ class Distillation(Unit, isabstract=True):
             
             # Cost vessel assuming T < 800 F
             W = Design['Weight'] # in lb
-            L = Design['Height']*3.28 # in ft
+            L = Design['Height'] # in ft
             Cost['Tower'] = design.compute_purchase_cost_of_tower(Di, L, W, F_VM)
+            
+            dimensions = [(L, Di)]
+        self._cost_vacuum(dimensions)
         self._simulate_components()
 
 
@@ -963,45 +990,75 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper weight                lb  4.43e+03
     Purchase cost       Rectifier trays               USD   1.5e+04
                         Stripper trays                USD  1.25e+04
-                        Rectifier tower               USD  8.18e+04
-                        Stripper tower                USD  6.78e+04
+                        Rectifier tower               USD  5.96e+04
+                        Stripper tower                USD  4.97e+04
                         Condenser                     USD  3.32e+04
                         Boiler                        USD  2.67e+04
-    Total purchase cost                               USD  2.37e+05
+    Total purchase cost                               USD  1.97e+05
     Utility cost                                   USD/hr      64.3
     
-    """
-    auxiliary_unit_names = ('condenser', 'boiler')
-    _graphics = vertical_column_graphics
-    _N_heat_utilities = 0
-    _ins_size_is_fixed = False
-    _N_ins = 1
-    _N_outs = 2
-    _units = {'Minimum reflux': 'Ratio',
-              'Reflux': 'Ratio',
-              'Rectifier height': 'ft',
-              'Rectifier diameter': 'ft',
-              'Rectifier wall thickness': 'in',
-              'Rectifier weight': 'lb',
-              'Stripper height': 'ft',
-              'Stripper diameter': 'ft',
-              'Stripper wall thickness': 'in',
-              'Stripper weight': 'lb',
-              'Height': 'ft',
-              'Diameter': 'ft',
-              'Wall thickness': 'in',
-              'Weight': 'lb'}
-    _BM = {'Rectifier tower': 4.3,
-           'Stripper tower': 4.3,
-           'Rectifier trays': 4.3,
-           'Stripper trays': 4.3,
-           'Tower': 4.3,
-           'Trays': 4.3}
+    Vacuum distillation is also supported:
+        
+    >>> D1.P = 1e4
+    >>> D1.simulate()
+    >>> D1.show(T='degC', P='atm', composition=True)
+    BinaryDistillation: D1
+    ins...
+    [0] feed
+        phase: 'l', T: 76.129 degC, P: 1 atm
+        composition: Water     0.39
+                     Methanol  0.488
+                     Glycerol  0.122
+                     --------  205 kmol/hr
+    outs...
+    [0] distillate
+        phase: 'g', T: 12.22 degC, P: 0.0986923 atm
+        composition: Water     0.01
+                     Methanol  0.99
+                     --------  100 kmol/hr
+    [1] bottoms_product
+        phase: 'l', T: 46.533 degC, P: 0.0986923 atm
+        composition: Water     0.754
+                     Methanol  0.00761
+                     Glycerol  0.239
+                     --------  105 kmol/hr
     
-    # [dict] Bounds for results
-    _bounds = {'Diameter': (3., 24.),
-               'Height': (27., 170.),
-               'Weight': (9000., 2.5e6)}
+    >>> D1.results()
+    Divided Distillation Column                     Units        D1
+    Power               Rate                           kW      11.4
+                        Cost                       USD/hr     0.894
+    Chilled brine       Duty                        kJ/hr -3.83e+06
+                        Flow                      kmol/hr  2.51e+03
+                        Cost                       USD/hr      31.2
+    Low pressure steam  Duty                        kJ/hr  7.35e+06
+                        Flow                      kmol/hr       189
+                        Cost                       USD/hr        45
+    Design              Theoretical feed stage                    5
+                        Theoretical stages                        9
+                        Minimum reflux              Ratio     0.448
+                        Reflux                      Ratio     0.896
+                        Rectifier stages                          9
+                        Stripper stages                          22
+                        Rectifier height               ft      25.8
+                        Stripper height                ft        45
+                        Rectifier diameter             ft      6.19
+                        Stripper diameter              ft      4.36
+                        Rectifier wall thickness       in     0.375
+                        Stripper wall thickness        in     0.312
+                        Rectifier weight               lb  7.68e+03
+                        Stripper weight                lb  8.54e+03
+    Purchase cost       Rectifier trays               USD  1.53e+04
+                        Stripper trays                USD  1.88e+04
+                        Rectifier tower               USD  6.74e+04
+                        Stripper tower                USD  7.46e+04
+                        Vacuum system                 USD  1.33e+04
+                        Condenser                     USD  2.41e+04
+                        Boiler                        USD  2.08e+04
+    Total purchase cost                               USD  2.34e+05
+    Utility cost                                   USD/hr      77.1
+    
+    """
+    _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
     
     def _run(self):
         self._run_binary_distillation_mass_balance()
@@ -1023,7 +1080,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
         F_mol_LHK = LHK_mol.sum()
         zf = LHK_mol[0]/F_mol_LHK
-        q = self._get_feed_quality()
+        q = self.get_feed_quality()
         
         # Main arguments
         P = self.P
@@ -1032,9 +1089,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
         
         # Cache
         old_args = self._McCabeThiele_args
-        args = np.array([P, k, y_top, x_bot, q, zf])
-        tol = np.array([50, 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
-        if (abs(old_args - args) < tol).all(): return
+        args = np.array([P, k, y_top, x_bot, q, zf], float)
+        if (abs(old_args - args) < self._cache_tolerance).all(): return
         self._McCabeThiele_args = args
         
         # Get R_min and the q_line 
@@ -1401,11 +1457,11 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper weight                lb  7.93e+03
     Purchase cost       Rectifier trays               USD  1.52e+04
                         Stripper trays                USD  2.01e+04
-                        Rectifier tower               USD  8.44e+04
-                        Stripper tower                USD  1.01e+05
+                        Rectifier tower               USD  6.19e+04
+                        Stripper tower                USD  7.19e+04
                         Condenser                     USD  4.06e+04
                         Boiler                        USD  2.93e+04
-    Total purchase cost                               USD   2.9e+05
+    Total purchase cost                               USD  2.39e+05
     Utility cost                                   USD/hr      84.9
     
     """
@@ -1521,26 +1577,9 @@ class ShortcutColumn(Distillation, new_graphics=False):
         alpha_LHK_bottoms = K_light/K_heavy
         
         return alpha_LHK_distillate, alpha_LHK_bottoms
-        
-    def _get_feed_quality(self):
-        feed = self.feed
-        feed = feed.copy()
-        H_feed = feed.H
-        try: dp = feed.dew_point_at_P()
-        except: pass
-        else: feed.T = dp.T
-        feed.phase = 'g'
-        H_vap = feed.H
-        try: bp = feed.bubble_point_at_P()
-        except: pass
-        else: feed.T = bp.T
-        feed.phase = 'l'
-        H_liq = feed.H
-        q = (H_vap - H_feed) / (H_vap - H_liq)
-        return q
     
     def _solve_Underwood_constant(self, alpha_mean, alpha_LK):
-        q = self._get_feed_quality()
+        q = self.get_feed_quality()
         z_f = self.ins[0].get_normalized_mol(self._IDs_vle)
         args = (q, z_f, alpha_mean)
         ub = np.inf
@@ -1600,7 +1639,8 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._distillate_recoveries
         flx.aitken(self._recompute_distillate_recoveries,
-                   distillate_recoveries, 1e-8, checkiter=False)
+                   distillate_recoveries, 1e-8, checkiter=False,
+                   checkconvergence=False, convergenceiter=3)
         
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():

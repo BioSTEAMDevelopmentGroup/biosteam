@@ -31,9 +31,9 @@ indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
 # >>> from chaospy import distributions as shape
 # >>> from biorefineries import lipidcane as lc
 # >>> import biosteam as bst
-# >>> solve_IRR = lc.lipidcane_tea.solve_IRR
+# >>> solve_IRR = lambda: 100. * lc.lipidcane_tea.solve_IRR()
 # >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
-# >>> metrics = (bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR, '%'),
+# >>> metrics = (bst.Metric('Internal rate of return', solve_IRR, '%'),
 # ...            bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))
 # >>> model = bst.Model(lc.lipidcane_sys, metrics)
 
@@ -73,7 +73,7 @@ indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
 # ... def set_fermentation_efficiency(efficiency):
 # ...     R301.efficiency = efficiency
 
-# >>> print(model([0.05, 0.85, 8, 100000, 0.040])) # Returns metrics (IRR and utility cost)
+# >>> print(model([0.05, 0.85, 8, 0.6, 0.040])) # Returns metrics (IRR and utility cost)
 
 # >>> import numpy as np
 # >>> np.random.seed(1234) # For consistent results
@@ -117,9 +117,9 @@ class Model(State):
     >>> from chaospy import distributions as shape
     >>> from biorefineries import lipidcane as lc
     >>> import biosteam as bst
-    >>> solve_IRR = lc.lipidcane_tea.solve_IRR
+    >>> solve_IRR = lambda: 100. * lc.lipidcane_tea.solve_IRR()
     >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
-    >>> metrics = (bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR, '%'),
+    >>> metrics = (bst.Metric('Internal rate of return', solve_IRR, '%'),
     ...            bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))
     >>> model = bst.Model(lc.lipidcane_sys, metrics)
     
@@ -221,8 +221,8 @@ class Model(State):
     
     Evaluate sample:
         
-    >>> model([0.05, 0.85, 8, 100000, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   0.099
+    >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
+    Biorefinery  Internal rate of return [%]      9.
                  Utility cost [10^6 USD/yr]     -14.
     dtype: float64
     
@@ -236,18 +236,6 @@ class Model(State):
     >>> model.load_samples(samples)
     >>> model.evaluate(jit=False)
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
-    >>> table['Biorefinery'] # Only biorefinery metrics
-    Variable  Internal rate of return [%]  Utility cost [10^6 USD/yr]
-    0                                0.16                        -15.
-    1                                0.13                        -14.
-    2                                0.18                        -21.
-    3                                0.15                        -16.
-    4                                0.16                        -20.
-    5                                0.17                        -18.
-    6                                0.14                        -16.
-    7                                0.18                        -17.
-    8                                0.18                        -20.
-    9                                0.17                        -19.
     
     Note that coupled parameters are on the left most columns, and are ordered 
     from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
@@ -257,16 +245,15 @@ class Model(State):
     >>> df_spearman = model.spearman()
     >>> df_spearman['Biorefinery', 'Internal rate of return [%]']
     Element            Parameter                   
-    Stream-lipidcane   Lipid fraction                    0.79
-    Fermentation-R301  Efficiency                        0.33
-                       Number of reactors               0.054
-                       Exponential cost coefficient    -0.066
-    Stream-lipidcane   Feedstock price [USD/kg]         -0.49
+    Stream-lipidcane   Lipid fraction                   0.794
+    Fermentation-R301  Efficiency                       0.333
+                       Number of reactors              0.0545
+                       Exponential cost coefficient   -0.0667
+    Stream-lipidcane   Feedstock price [USD/kg]        -0.491
     Name: (Biorefinery, Internal rate of return [%]), dtype: float64
 
-    >>> # Reset for future tests
-    >>> bst.process_tools.default_utilities()
-    >>> bst.CE = 567.5
+    >>> # Reset settings to default for future tests
+    >>> bst.process_tools.default()
 
     """
     __slots__ = ('table',          # [DataFrame] All arguments and results.
@@ -303,7 +290,7 @@ class Model(State):
     @property
     def exception_hook(self):
         """
-        [callable(model, exception, sample)] Function called after a failed 
+        [callable(exception, sample)] Function called after a failed 
         evaluation. The exception hook should return either None or metric 
         values given the exception and sample.
         
@@ -414,6 +401,7 @@ class Model(State):
     def _run_exception_hook(self, exception, sample):
         if self._exception_hook: 
             values = self._exception_hook(exception, sample)
+            self._reset_system()
             if isinstance(values, Sized) and len(values) == len(self.metrics):
                 return values
             elif values is not None:

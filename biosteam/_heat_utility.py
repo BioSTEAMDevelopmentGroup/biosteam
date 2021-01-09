@@ -230,7 +230,7 @@ class HeatUtility:
     .. code-block:: python
     
        >>> hu.ID, hu.duty, hu.flow, hu.cost
-       ('low_pressure_steam', 1052.6315789473686, 0.027116986224992628, 0.006448419324303247)
+       ('low_pressure_steam', 1052., 0.02711, 0.006448)
            
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',

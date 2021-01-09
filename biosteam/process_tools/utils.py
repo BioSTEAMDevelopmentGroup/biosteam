@@ -29,6 +29,7 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'set_construction_material_to_stainless_steel',
            'set_construction_material_to_carbon_steel',
            'default_utilities',
+           'default',
 )
     
 def units_with_costs(units):
@@ -221,3 +222,7 @@ def default_utilities():
     bst.HeatUtility.default_agents()
     bst.PowerUtility.default_price()
     
+def default():
+    """Reset utilities and chemical plant cost index back to BioSTEAM's defaults."""
+    default_utilities()
+    bst.CE = 567.5

@@ -14,7 +14,7 @@ from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Inlets, Outlets, NotImplementedMethod, \
-                   format_unit_line, static
+                   format_unit_line, static, ignore_docking_warnings
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
@@ -69,6 +69,11 @@ class Unit:
         tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
         without having add these costs in the `purchase_costs` dictionary.
+    **_equipment_lifetime=None**
+        [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
+        production venture. Use an integer to specify the lifetime is for all
+        items in the unit purchase costs. Use a dictionary to specify the 
+        lifetime of each purchase cost item.
     **_graphics**
         [biosteam.Graphics, abstract, optional] Settings for diagram
         representation. Defaults to a box with the same number of input
@@ -102,7 +107,7 @@ class Unit:
         Cooling and heating requirements are stored here (not including auxiliary units).
     design_results : dict
         All design requirements (not including auxiliary units).
-    purchase_costs : dict
+    purchase_costs : dict[str, float]
         Itemized purchase costs (not including auxiliary units).
     thermo : Thermo
         The thermodynamic property package used by the unit.
@@ -131,6 +136,7 @@ class Unit:
         if not isabstract:
             if not hasattr(cls, '_BM'): cls._BM = {}
             if not hasattr(cls, '_units'): cls._units = {}
+            if not hasattr(cls, '_equipment_lifetime'): cls._equipment_lifetime = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
@@ -240,6 +246,7 @@ class Unit:
     def get_design_result(self, key, units):
         return convert(self.design_results[key], self._units[key], units)
     
+    @ignore_docking_warnings
     def take_place_of(self, other):
         """Replace inlets and outlets from this unit with that of another unit."""
         self.ins[:] = other.ins
@@ -353,6 +360,22 @@ class Unit:
         
         return sum([i.installed_cost for i in self.auxiliary_units],
                    installed_cost)
+    
+    @property
+    def installed_costs(self):
+        """dict[str, float] Installed equipment costs [USD]."""
+        BM = self._BM
+        try:
+            installed_costs = {i: BM[i]*j for i,j in self.purchase_costs.items()}
+        except KeyError:
+            missing = set(self.purchase_costs).difference(BM)
+            raise NotImplementedError("the following purchase cost items have "
+                                      "no defined bare module factor in the "
+                                     f"'{type(self).__name__}._BM' dictionary: {missing}")
+        getfield = getattr
+        for i in self.auxiliary_unit_names:
+            installed_costs[i] = getfield(self, i).installed_cost
+        return installed_costs
     
     @property
     def utility_cost(self):
@@ -534,8 +557,7 @@ class Unit:
             u_sink = s._sink
             if u_sink: set.add(u_sink)
 
-    @property
-    def _downstream_units(self):
+    def get_downstream_units(self):
         """Return a set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
@@ -552,30 +574,8 @@ class Unit:
                 unit._add_downstream_neighbors_to_set(outer_periphery)
             new_length = len(downstream_units)
         return downstream_units
-        
-    def is_upstream_from(self, other):
-        """
-        Return whether this unit is upstream from another unit.
-
-        Parameters
-        ----------
-        other : :class:`~biosteam.Unit`
-            Another unit operation.
-
-        """
-        neighborhood = set()
-        self._add_downstream_neighbors_to_set(neighborhood)
-        direct_neighborhood = neighborhood
-        while True:
-            neighbors = set()
-            for unit in direct_neighborhood:
-                unit._add_downstream_neighbors_to_set(neighbors)
-            if neighbors == direct_neighborhood: break
-            if other in neighbors: return True
-            direct_neighborhood = neighbors
-        return False
     
-    def _neighborhood(self, radius=1, upstream=True, downstream=True):
+    def neighborhood(self, radius=1, upstream=True, downstream=True):
         """
         Return a set of all neighboring units within given radius.
         
@@ -655,7 +655,7 @@ class Unit:
         return f
 
     def diagram(self, radius=0, upstream=True, downstream=True, 
-                file=None, format='png', **graph_attrs):
+                file=None, format='png', display=True, **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
         of the unit and all neighboring units within given radius.
@@ -673,15 +673,21 @@ class Unit:
             * [None] Display diagram in console.
         format : str
                  Format of file.
+        display : bool, optional
+            Whether to display diagram in console or to return the graphviz 
+            object.
         
         """
         if radius > 0:
-            neighborhood = self._neighborhood(radius, upstream, downstream)
+            neighborhood = self.neighborhood(radius, upstream, downstream)
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
         f = self.get_digraph(format, **graph_attrs)
-        finalize_digraph(f, file, format)
+        if display or file: 
+            finalize_digraph(f, file, format)
+        else:
+            return f
     
     ### Net input and output flows ###
     

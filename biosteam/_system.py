@@ -208,6 +208,9 @@ class System:
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
 
+    #: [bool] Whether to allow systems to rotate for more robust convergence.
+    allow_system_rotation = False
+
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
                        ends=None, facility_recycle=None):
@@ -255,7 +258,8 @@ class System:
         """
         facilities = Facility.ordered_facilities(facilities)
         isa = isinstance
-        path = [(cls.from_network('', i) if isa(i, Network) else i)
+        name = ID if ID is None else ''
+        path = [(cls.from_network(name, i) if isa(i, Network) else i)
                 for i in network.path]
         self = cls.__new__(cls)
         self.units = network.units
@@ -516,7 +520,6 @@ class System:
             raise ValueError("only 'wegstein', 'aitken', and 'fixedpoint' "
                             f"methods are valid, not '{method}'")
 
-    
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
         if unit not in self.units: return []
@@ -562,14 +565,18 @@ class System:
         return surface_digraph(self._path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path + [i for i in self.facilities if isinstance(i, Unit)], self.streams, 
+        return digraph_from_units_and_streams(self.unit_path, 
+                                              self.streams, 
                                               **graph_attrs)
         
     def _cluster_digraph(self, **graph_attrs):
         return digraph_from_system(self, **graph_attrs)
         
-    def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
-        """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
+    def diagram(self, kind='surface', file=None, format='png', display=True,
+                **graph_attrs):
+        """
+        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of 
+        the system.
         
         Parameters
         ----------
@@ -582,7 +589,10 @@ class System:
             File name to save diagram.
         format='png' : str
             File format (e.g. "png", "svg").
-        
+        display : bool, optional
+            Whether to display diagram in console or to return the graphviz 
+            object.
+            
         """
         if kind == 'cluster':
             f = self._cluster_digraph(format=format, **graph_attrs)
@@ -594,7 +604,10 @@ class System:
             f = self._minimal_digraph(format=format, **graph_attrs)
         else:
             raise ValueError("kind must be either 'cluster', 'thorough', 'surface', or 'minimal'")
-        finalize_digraph(f, file, format)
+        if display or file: 
+            finalize_digraph(f, file, format)
+        else:
+            return f
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
@@ -681,7 +694,7 @@ class System:
         
     def _run(self):
         """Run each element in the path. Rotate path if necessary."""
-        if self._recycle:
+        if self.allow_system_rotation and self._recycle:
             N_elements = len(self._path)
             if N_elements <= 1:
                 self._run_path()
@@ -715,7 +728,7 @@ class System:
         """[list] All unit operation as ordered in the path."""
         unit_path = []
         isa = isinstance
-        for i in self._path:
+        for i in self._path + self._facilities:
             if isa(i, Unit):
                 unit_path.append(i)
             elif isa(i, System):
@@ -770,23 +783,6 @@ class System:
     def _reset_iter(self):
         self._iter = 0
         for system in self.subsystems: system._reset_iter()
-    
-    def reset_names(self, unit_format=None, stream_format=None):
-        """Reset names of all streams and units according to the path order."""
-        Unit._default_ID = unit_format if unit_format else ['U', 0]
-        Stream._default_ID = stream_format if stream_format else ['d', 0]
-        streams = set()
-        units = set()
-        for i in self.unit_path:
-            if i in units: continue
-            try: i.ID = ''
-            except: continue
-            for s in (i._ins + i._outs):
-                if (s and s._sink and s._source
-                    and s not in streams):
-                    s.ID = ''
-                    streams.add(s)
-            units.add(i)
     
     def _reset_errors(self):
         #: Molar flow rate error (kmol/hr)
