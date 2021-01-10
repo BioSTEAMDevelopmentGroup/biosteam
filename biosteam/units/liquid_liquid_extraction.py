@@ -1223,8 +1223,8 @@ class MultiStageMixerSettlers(bst.Unit):
     def _run(self):
         stages = self.stages
         stages.simulate_multi_stage_lle_without_side_draws()
-        self.extract.copy_flow(stages[0].extract)
-        self.raffinate.copy_flow(stages[-1].raffinate)
+        self.extract.copy_like(stages[0].extract)
+        self.raffinate.copy_like(stages[-1].raffinate)
         
     def _design(self):
         mixer = self.mixer

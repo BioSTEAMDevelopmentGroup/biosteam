@@ -205,16 +205,22 @@ def digraph_from_units_and_connections(units, connections, **graph_attrs):
 
 def get_unit_names(f: Digraph, units):
     unit_names = {}  # Contains full description (ID and line) by unit
-    if bst.LABEL_PATH_NUMBER_IN_DIAGRAMS:
-        for i, u in enumerate(units):
-            node = u.get_node()
-            unit_names[u] = node['name'] = f"{i}) {node['name']}"
-            f.node(**node)
-    else:
-        for u in units:
-            node = u.get_node()
-            f.node(**node)
-            unit_names[u] = node['name']
+    label = bst.LABEL_PATH_NUMBER_IN_DIAGRAMS
+    profile = bst.PROFILE_UNITS_IN_DIAGRAMS
+    TicToc = bst.utils.TicToc
+    for i, u in enumerate(units):
+        node = u.get_node()
+        name = node['name']
+        info = str(i) + '; ' if label else ''
+        if profile: # pragma: no cover
+            t = TicToc()
+            for n in range(10):
+                t.tic(); u.simulate(); t.toc()
+                if n > 1 and sum(t.record) > 0.2: break 
+            info += f"{1000 * t.mean:.2g} ms"
+        if info: name = f"[{info}] {name}"
+        unit_names[u] = node['name'] = name
+        f.node(**node)
     return unit_names
 
 def update_digraph_from_units_and_connections(f: Digraph, units, connections):
