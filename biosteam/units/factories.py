@@ -68,7 +68,6 @@ def xl2dct(file, sheet_name=0, stacklevel=2):
         warn(f"cost items {removed_columns} removed due to failure in reading "
               "column in excel file",
              stacklevel=stacklevel)
-        
     index = [
         'Basis',
         'Units',
