@@ -802,7 +802,7 @@ class Unit:
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     
     # Representation
-    def _info(self, T, P, flow, composition, N):
+    def _info(self, T, P, flow, composition, N, IDs):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
@@ -815,7 +815,7 @@ class Unit:
                 info += f'[{i}] {stream}\n'
                 i += 1
                 continue
-            stream_info = stream._info(T, P, flow, composition, N)
+            stream_info = stream._info(T, P, flow, composition, N, IDs)
             unit = stream._source
             index = stream_info.index('\n')
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -828,7 +828,7 @@ class Unit:
                 info += f'[{i}] {stream}\n'
                 i += 1
                 continue
-            stream_info = stream._info(T, P, flow, composition, N)
+            stream_info = stream._info(T, P, flow, composition, N, IDs)
             unit = stream._sink
             index = stream_info.index('\n')
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -837,9 +837,9 @@ class Unit:
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
-    def show(self, T=None, P=None, flow=None, composition=None, N=None):
+    def show(self, T=None, P=None, flow=None, composition=None, N=None, IDs=None):
         """Prints information on unit."""
-        print(self._info(T, P, flow, composition, N))
+        print(self._info(T, P, flow, composition, N, IDs))
     
     def _ipython_display_(self):
         if bst.ALWAYS_DISPLAY_DIAGRAMS:

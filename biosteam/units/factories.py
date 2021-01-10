@@ -10,6 +10,7 @@
 from .. import Unit, units
 from ..utils import format_unit_name
 from . import decorators
+from warnings import warn
 import pandas as pd
 import numpy as np
 
@@ -52,9 +53,21 @@ def df2dct(df):
         dct[name] = df2unit(name, cost_items, supercls=supercls)
     return dct
 
-def xl2dct(file, sheet_name=0):
+def xl2dct(file, sheet_name=0, stacklevel=2):
     """Return dictionary of unit subclasses from excel file."""
-    df = pd.read_excel(file, header=[0, 1], index_col=0, nrows=11, dtype=object)
+    df_raw = pd.read_excel(file, header=[0, 1], index_col=0, nrows=11, dtype=object)
+    
+    # Pandas 1.2 has problems with reading excel file; columns that do not exist
+    # are sometimes created with all NaN values. This block removes these columns
+    # and warns when columns with real (user-specified) values are removed due 
+    # to NaN values.
+    df = df_raw.dropna(axis=1) 
+    removed_columns = set(df_raw).difference(df)
+    removed_columns = [i for i in removed_columns if not pd.isnull(df_raw[i]).all()]
+    if removed_columns:
+        warn(f"cost items {removed_columns} removed due to failure in reading "
+              "column in excel file",
+             stacklevel=stacklevel)
     index = [
         'Basis',
         'Units',
@@ -74,7 +87,7 @@ def xl2dct(file, sheet_name=0):
     return df2dct(df)
 
 def xl2mod(file, module, sheet_name=0):
-    dct = xl2dct(file, sheet_name)
+    dct = xl2dct(file, sheet_name, stacklevel=3)
     for i, j in dct.items():
         setattr(module, i, j)
         j.__module__ = module.__name__

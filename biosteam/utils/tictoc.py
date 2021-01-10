@@ -24,7 +24,7 @@ class TicToc: # pragma: no coverage
     def tic(self):
         """Start timer."""
         # Marks the beginning of a time interval
-        self._start = time.clock()
+        self._start = time.perf_counter()
 
     def toc(self):
         """Record time interval since last 'tic'."""
@@ -36,7 +36,7 @@ class TicToc: # pragma: no coverage
 
     @property
     def elapsed_time(self):
-        return time.clock() - self._start
+        return time.perf_counter() - self._start
 
     @property
     def average(self):
