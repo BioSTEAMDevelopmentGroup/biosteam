@@ -8,7 +8,7 @@
 """
 """
 
-__version__ = '2.22.10'
+__version__ = '2.22.11'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
@@ -27,6 +27,9 @@ MINIMAL_UNIT_DIAGRAMS = False
 
 #: Whether to number unit operations in diagrams according to their order in the system path.
 LABEL_PATH_NUMBER_IN_DIAGRAMS = False
+
+#: Whether to clock the simulation time of unit operations in diagrams.
+PROFILE_UNITS_IN_DIAGRAMS = False
 
 # %% Initialize BioSTEAM 
 
