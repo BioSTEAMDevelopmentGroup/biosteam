@@ -39,21 +39,35 @@ class TicToc: # pragma: no coverage
         return time.perf_counter() - self._start
 
     @property
-    def average(self):
-        """The mean value of elapsed time"""
+    def mean(self):
+        """The mean value of elapsed time."""
         return np.mean(self.record)
 
+    @property
+    def standard_deviation(self):
+        """The standard deviation value of elapsed time."""
+        return np.std(self.record)
+
+    std = standard_deviation
+
+    @property
+    def summary(self):
+        """Return statistical summary of the elapsed time as a string."""
+        return f"{self.mean:.2g} \u00B1 {self.std:.2g} s"
+
     def __repr__(self):
-        ID = ': ' + self.ID if self.ID else ''
-        return (f"<{type(self).__name__}{ID}, average={self.average:.2g} seconds>")
+        return f"{type(self).__name__}({self.ID})"
 
     def _info(self):
         ID = ': ' + self.ID if self.ID else ''
         record = np.array(self.record)
-        average = self.average
-        return (f"{type(self).__name__}{ID}\n" + 
-                f" average: {average:.2g} second\n"
+        return (f"{type(self).__name__}{ID}\n" 
+                f" mean: {self.mean:.2g} second\n"
+                f" std: {self.std:.2g} second\n"
                 f" record: {record}\n" )
+    
     def show(self):
         print(self._info())
+    
+    _ipython_display_ = show
         
