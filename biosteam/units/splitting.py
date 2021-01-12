@@ -124,6 +124,28 @@ class Splitter(Unit):
            flow (kmol/hr): Water    18
                            Ethanol  0.1
 
+    Splits can also be altered after creating the splitter:
+        
+    .. code-block:: python
+       
+       >>> S1.split = 0.5
+       >>> S1.isplit 
+       ChemicalIndexer:
+        Water    0.5
+        Ethanol  0.5
+        
+       >>> S1.isplit['Water'] = 1.0
+       >>> S1.isplit
+       ChemicalIndexer:
+        Water    1
+        Ethanol  0.5
+        
+       >>> S1.split = [0.9, 0.8]
+       >>> S1.isplit
+       ChemicalIndexer:
+        Water    0.9
+        Ethanol  0.8
+
     """
     _N_outs = 2
     _graphics = splitter_graphics
@@ -136,6 +158,11 @@ class Splitter(Unit):
     def split(self):
         """[Array] Componentwise split of feed to 0th outlet stream."""
         return self._isplit._data
+    @split.setter
+    def split(self, values):
+        split = self.split
+        if split is not values:
+            split[:] = values
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, split, order=None):
         Unit.__init__(self, ID, ins, outs, thermo)
