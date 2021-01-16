@@ -1143,8 +1143,8 @@ class MultiStageMixerSettlers(bst.Unit):
     Stream: raffinate from <MultiStageMixerSettlers: MSMS1>
      phase: 'l', T: 298.15 K, P: 101325 Pa
      flow (kmol/hr): Water     4.13e+03
-                     Methanol  1.27
-                     Octanol   1.51
+                     Methanol  1.34
+                     Octanol   1.19
     
     >>> MSMS1.results()
     Multi stage mixer settlers                     Units       MSMS1
