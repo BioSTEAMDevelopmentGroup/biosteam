@@ -1080,9 +1080,6 @@ class MultiStageMixerSettlers(bst.Unit):
         Arguments to initialize the "mixer" attribute, a :class:`~biosteam.units.LiquidsMixingTank` object.
     settler_data : dict
         Arguments to initialize the "settler" attribute, a :class:`~biosteam.units.LiquidsSettler` object.
-    update_partition_data : bool,
-        Whether to update partition data (used for all stages) in each 
-        iteration.
     
     Notes
     -----
@@ -1095,7 +1092,7 @@ class MultiStageMixerSettlers(bst.Unit):
     Simulate by rigorous LLE:
     
     >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'], cache=True)
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
     >>> feed = bst.Stream('feed', Water=500, Methanol=50)
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=2)
@@ -1131,7 +1128,7 @@ class MultiStageMixerSettlers(bst.Unit):
     
     >>> import biosteam as bst
     >>> import numpy as np
-    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'], cache=True)
+    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'])
     >>> feed = bst.Stream('feed', Water=5000, Methanol=500)
     >>> solvent = bst.Stream('solvent', Octanol=5000)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=10,
@@ -1170,43 +1167,18 @@ class MultiStageMixerSettlers(bst.Unit):
     Total purchase cost                              USD    3.64e+05
     Utility cost                                  USD/hr        15.5
     
-    Simulate semi-rigorously by recomputing partition data through 
-    liquid-liquid equilibrium of the overall mixture composition (as opposed 
-    to each stage) in each iteration:
-    
-    >>> import biosteam as bst
-    >>> import numpy as np
-    >>> bst.settings.set_thermo(['Water', 'Methanol', 'Octanol'], cache=True)
-    >>> feed = bst.Stream('feed', Water=5000, Methanol=500)
-    >>> solvent = bst.Stream('solvent', Octanol=5000)
-    >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=10,
-    ...     partition_data={},
-    ...     update_partition_data=True,
-    ... )
-    >>> MSMS1.simulate()
-    >>> MSMS1.raffinate.show()
-    Stream: raffinate from <MultiStageMixerSettlers: MSMS1>
-     phase: 'l', T: 298.15 K, P: 101325 Pa
-     flow (kmol/hr): Water     4.13e+03
-                     Methanol  1.32
-                     Octanol   1.2
     """
     _units = MixerSettler._units
     _N_ins = 2
     _N_outs = 2
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
                  partition_data=None, carrier_chemical=None,
-                 mixer_data={}, settler_data={},
-                 update_partition_data=False):
+                 mixer_data={}, settler_data={}):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         
         #: [str] Name of main chemical in the feed (which is not extracted by 
         #: the solvent).
         self.carrier_chemical = carrier_chemical
-        
-        #: [bool] Whether to update partition data (used for all stages) in each 
-        #: iteration.
-        self.update_partition_data = update_partition_data
         
         #: [int] Number of stages.
         self.N_stages = N_stages
@@ -1240,7 +1212,7 @@ class MultiStageMixerSettlers(bst.Unit):
         if args != self._last_args:
             self.stages = sep.MultiStageLLE(
                 self.N_stages, self.feed, self.solvent, self.carrier_chemical, 
-                self.thermo, self.partition_data, self.update_partition_data,
+                self.thermo, self.partition_data
             )
             self._last_args = args
     
