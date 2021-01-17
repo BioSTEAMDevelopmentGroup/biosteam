@@ -27,10 +27,10 @@ __all__ = ('main_flowsheet', 'Flowsheet')
 
 # %% Functions
 
-def get_feeds_from_streams(streams):
+def get_feeds_from_units(units):
     isa = isinstance
-    return [i for i in streams if i._sink and not 
-            (i._source or isa(i._sink, Facility))]
+    return sum([[i for i in u.ins if not i._source]
+                for u in units if not isa(u, Facility)], [])
 
 def sort_feeds_big_to_small(feeds):
     feeds.sort(key=lambda feed: -feed.F_mass)
@@ -184,7 +184,7 @@ class Flowsheet:
         
         """
         if not feeds:
-            feeds = get_feeds_from_streams(self.stream)
+            feeds = get_feeds_from_units(self.unit)
             sort_feeds_big_to_small(feeds)
         if feeds:
             feedstock, *feeds = feeds
@@ -211,7 +211,7 @@ class Flowsheet:
 			ignored.
         
         """
-        feeds = get_feeds_from_streams(self.stream)
+        feeds = get_feeds_from_units(self.unit)
         if feeds:
             sort_feeds_big_to_small(feeds)
             feedstock, *feeds = feeds

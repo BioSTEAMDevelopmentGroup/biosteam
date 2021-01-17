@@ -211,8 +211,9 @@ def get_unit_names(f: Digraph, units):
     for i, u in enumerate(units):
         node = u.get_node()
         name = node['name']
-        info = str(i) + '; ' if label else ''
+        info = str(i) if label else ''
         if profile: # pragma: no cover
+            if info: info += '; '
             t = TicToc()
             for n in range(10):
                 t.tic(); u.simulate(); t.toc()
