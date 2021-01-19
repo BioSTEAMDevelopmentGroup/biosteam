@@ -28,7 +28,6 @@ Unit Operations
 
 """
 import biosteam as bst
-import thermosteam as tmo
 from .splitting import Splitter
 from .design_tools import CEPCI_by_year, geometry, PressureVessel
 from .decorators import cost, copy_algorithm
@@ -1142,9 +1141,9 @@ class MultiStageMixerSettlers(bst.Unit):
     >>> MSMS1.raffinate.show()
     Stream: raffinate from <MultiStageMixerSettlers: MSMS1>
      phase: 'l', T: 298.15 K, P: 101325 Pa
-     flow (kmol/hr): Water     4.13e+03
-                     Methanol  1.34
-                     Octanol   1.19
+     flow (kmol/hr): Water     4.1e+03
+                     Methanol  1.3
+                     Octanol   1.2
     
     >>> MSMS1.results()
     Multi stage mixer settlers                     Units       MSMS1

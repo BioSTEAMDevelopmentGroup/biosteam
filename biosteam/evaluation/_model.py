@@ -245,11 +245,11 @@ class Model(State):
     >>> df_spearman = model.spearman()
     >>> df_spearman['Biorefinery', 'Internal rate of return [%]']
     Element            Parameter                   
-    Stream-lipidcane   Lipid fraction                   0.794
-    Fermentation-R301  Efficiency                       0.333
-                       Number of reactors              0.0545
-                       Exponential cost coefficient   -0.0667
-    Stream-lipidcane   Feedstock price [USD/kg]        -0.491
+    Stream-lipidcane   Lipid fraction                   0.79
+    Fermentation-R301  Efficiency                       0.33
+                       Number of reactors              0.054
+                       Exponential cost coefficient   -0.066
+    Stream-lipidcane   Feedstock price [USD/kg]        -0.49
     Name: (Biorefinery, Internal rate of return [%]), dtype: float64
 
     >>> # Reset settings to default for future tests

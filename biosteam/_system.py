@@ -13,6 +13,7 @@ from .digraph import (digraph_from_units_and_streams,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
+from thermosteam import functional as fn
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
@@ -29,6 +30,14 @@ import biosteam as bst
 import numpy as np
 
 __all__ = ('System',)    
+
+# %% Functions for recycle
+
+def check_recycle_feasibility(material: np.ndarray):
+    if fn.infeasible(material):
+        raise InfeasibleRegion('recycle material flow rate')
+    else:
+        material[material < 0.] = 0. 
 
 # %% Functions for taking care of numerical specifications within a system path
     
@@ -179,6 +188,8 @@ class System:
         '_specification',
         '_mol_error',
         '_T_error',
+        '_rmol_error',
+        '_rT_error',
         '_iter',
         'units',
         'streams',
@@ -187,7 +198,9 @@ class System:
         'products',
         'maxiter',
         'molar_tolerance',
+        'relative_molar_tolerance',
         'temperature_tolerance',
+        'relative_temperature_tolerance',
         'flowsheet',
         '_converge_method',
         '_costunits',
@@ -201,10 +214,16 @@ class System:
     
     #: [float] Default molar tolerance (kmol/hr)
     default_molar_tolerance = 0.50
+
+    #: [float] Default relative molar tolerance
+    default_relative_molar_tolerance = 0.02
     
     #: [float] Default temperature tolerance (K)
     default_temperature_tolerance = 0.10
 
+    #: [float] Default relative temperature tolerance
+    default_relative_temperature_tolerance = 0.001
+    
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
 
@@ -300,6 +319,31 @@ class System:
         self._register(ID)
         self._load_defaults()
     
+    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False):
+        """
+        Set the convergence tolerance of the system.
+
+        Parameters
+        ----------
+        mol : float, optional
+            Molar tolerance.
+        rmol : float, optional
+            Relative molar tolerance.
+        T : float, optional
+            Temperature tolerance.
+        rT : float, optional
+            Relative temperature tolerance.
+        subsystems : bool, optional
+            Whether to also set tolerance of subsystems as well. 
+
+        """
+        if mol: self.molar_tolerance = float(mol)
+        if rmol: self.relative_molar_tolerance = float(rmol)
+        if T: self.temperature_tolerance = float(T)
+        if rT: self.temperature_tolerance = float(rT)
+        if subsystems: 
+            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems)
+    
     def __eq__(self, other):
         return (isinstance(other, System) 
                 and self._path == other._path 
@@ -313,11 +357,18 @@ class System:
         #: [float] Molar tolerance (kmol/hr)
         self.molar_tolerance = self.default_molar_tolerance
         
+        #: [float] Relative molar tolerance
+        self.relative_molar_tolerance = self.default_relative_molar_tolerance
+        
         #: [float] Temperature tolerance (K)
         self.temperature_tolerance = self.default_temperature_tolerance
         
+        #: [float] Relative temperature tolerance
+        self.relative_temperature_tolerance = self.default_relative_temperature_tolerance
+        
         #: [function] Converge method
         self.converge_method = self.default_converge_method
+        
     
     specification = Unit.specification
     save_report = save_report
@@ -431,10 +482,8 @@ class System:
         #: set[:class:`~thermosteam.Stream`] All streams within the system
         self.streams = streams = set()
         
-        for u in self.units:
-            streams.update(u._ins + u._outs)
-        for sys in self.subsystems:
-            streams.update(sys.streams)
+        for u in self.units: streams.update(u._ins + u._outs)
+        for sys in self.subsystems: streams.update(sys.streams)
         
         #: set[:class:`~thermosteam.Stream`] All feed streams in the system.
         self.feeds = bst.utils.feeds(streams)
@@ -621,29 +670,38 @@ class System:
             
         Returns
         -------
-        rmol : numpy.ndarray
+        mol_new : numpy.ndarray
                New recycle molar flow rates.
         unconverged : bool
                       True if recycle has not converged.
             
         """
-        if (mol < 0.).any():
-            raise InfeasibleRegion('material flow')
+        check_recycle_feasibility(mol)
         self._set_recycle_data(mol)
         T = self._get_recycle_temperatures()
         self._run()
-        rmol = self._get_recycle_data()
-        rT = self._get_recycle_temperatures()
-        self._mol_error = mol_error = abs(mol - rmol).sum()
-        self._T_error = T_error = np.sum(abs(T - rT))
+        mol_new = self._get_recycle_data()
+        T_new = self._get_recycle_temperatures()
+        mol_sum = mol.sum()
+        mol_new_sum = mol_new.sum()
+        total_mol = mol_sum or mol_new_sum
+        T_sum = np.sum(T)
+        T_new_sum = np.sum(T_new)
+        self._mol_error = mol_error = np.abs(mol_sum - mol_new_sum)
+        self._rmol_error = rmol_error = mol_error / total_mol if total_mol else 0.
+        self._T_error = T_error = np.abs(T_sum - T_new_sum)
+        self._rT_error = rT_error = T_error / T_sum
         self._iter += 1
-        if mol_error < self.molar_tolerance and T_error < self.temperature_tolerance:
+        if (mol_error < self.molar_tolerance
+            and rmol_error < self.relative_molar_tolerance
+            and T_error < self.temperature_tolerance
+            and rT_error < self.relative_temperature_tolerance):
             unconverged = False
-        elif self._iter == self.maxiter:
+        elif self._iter >= self.maxiter:
             raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
         else:
             unconverged = True
-        return rmol, unconverged
+        return mol_new, unconverged
             
     def _get_recycle_data(self):
         recycle = self._recycle
@@ -689,8 +747,9 @@ class System:
     def _setup(self):
         """Setup each element of the system."""
         isa = isinstance
+        types = (Unit, System)
         for i in self._path:
-            if isa(i, (Unit, System)): i._setup()
+            if isa(i, types): i._setup()
         
     def _run(self):
         """Run each element in the path. Rotate path if necessary."""
@@ -716,16 +775,16 @@ class System:
     def _run_path(self):
         """Rigorously run each element in the path."""
         isa = isinstance
+        run = run_unit_in_path
+        converge = converge_system_in_path
         for i in self._path:
-            if isa(i, Unit):                            
-                run_unit_in_path(i)
-            elif isa(i, System): 
-                converge_system_in_path(i)
+            if isa(i, Unit): run(i)
+            elif isa(i, System): converge(i)
             else: i() # Assume it is a function
     
     @property
     def unit_path(self):
-        """[list] All unit operation as ordered in the path."""
+        """[list] All unit operations as ordered in the path."""
         unit_path = []
         isa = isinstance
         for i in self._path + self._facilities:
@@ -772,13 +831,12 @@ class System:
         for i in self._path:
             if not iscallable(i): try_method_with_object_stamp(i, i._summary)
         isa = isinstance
+        simulate_unit = simulate_unit_in_path
+        simulate_system = simulate_system_in_path
         for i in self._facilities:
-            if isa(i, Unit):
-                simulate_unit_in_path(i)
-            elif isa(i, System):
-                simulate_system_in_path(i)
-            else:
-                i() # Assume it is a function
+            if isa(i, Unit): simulate_unit(i)
+            elif isa(i, System): simulate_system(i)
+            else: i() # Assume it is a function
 
     def _reset_iter(self):
         self._iter = 0
@@ -788,8 +846,14 @@ class System:
         #: Molar flow rate error (kmol/hr)
         self._mol_error = 0
         
+        #: Relative molar flow rate error
+        self._rmol_error = 0
+        
         #: Temperature error (K)
         self._T_error = 0
+        
+        #: Relative temperature error
+        self._rT_error = 0
         
         #: Number of iterations
         self._iter = 0
@@ -953,8 +1017,8 @@ class System:
     def _error_info(self):
         """Return information on convergence."""
         if self._recycle:
-            return (f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
-                    f"\n                    Temperature {self._T_error:.2e} K"
+            return (f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr ({self._rmol_error:.2%})"
+                    f"\n                    Temperature {self._T_error:.2e} K ({self._rT_error:.2%})"
                     f"\n iterations: {self._iter}")
         else:
             return ""
@@ -1003,11 +1067,15 @@ class System:
 class FacilityLoop:
     __slots__ = ('system', '_recycle',
                  'maxiter', 'molar_tolerance', 'temperature_tolerance',
-                 '_converge_method', '_mol_error', '_T_error', '_iter')
+                 'relative_molar_tolerance', 'relative_temperature_tolerance',
+                 '_converge_method', '_mol_error', '_T_error', 
+                 '_rmol_error', '_rT_error','_iter')
     
     default_maxiter = 50
-    default_molar_tolerance = 0.50
-    default_temperature_tolerance = 0.10
+    default_molar_tolerance = System.default_molar_tolerance
+    default_temperature_tolerance = System.default_temperature_tolerance
+    default_relative_molar_tolerance = System.default_relative_molar_tolerance
+    default_relative_temperature_tolerance = System.default_relative_temperature_tolerance
     default_converge_method = System.default_converge_method
     
     def __init__(self, system, recycle):

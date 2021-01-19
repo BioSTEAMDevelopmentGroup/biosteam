@@ -170,6 +170,8 @@ class Distillation(Unit, isabstract=True):
                 downcomer_area_fraction=None,
                 is_divided=False,
                 vacuum_system_preference='Liquid-ring pump',
+                condenser_thermo=None,
+                boiler_thermo=None,
         ):
         Unit.__init__(self, ID, ins, outs, thermo)
         
@@ -201,15 +203,17 @@ class Distillation(Unit, isabstract=True):
         self.feed = tmo.MultiStream(None, thermo=thermo)
         
         #: [HXutility] Condenser.
+        if not condenser_thermo: condenser_thermo = thermo
         self.condenser = HXutility(None,
-                                   ins=tmo.Stream(None, phase='g', thermo=thermo),
-                                   outs=tmo.MultiStream(None, thermo=thermo),
-                                   thermo=thermo)
+                                   ins=tmo.Stream(None, phase='g', thermo=condenser_thermo),
+                                   outs=tmo.MultiStream(None, thermo=condenser_thermo),
+                                   thermo=condenser_thermo)
         #: [HXutility] Boiler.
+        if not boiler_thermo: boiler_thermo = thermo
         self.boiler = HXutility(None,
-                                ins=tmo.Stream(None, thermo=thermo),
-                                outs=tmo.MultiStream(None, thermo=thermo),
-                                thermo=thermo)
+                                ins=tmo.Stream(None, thermo=boiler_thermo),
+                                outs=tmo.MultiStream(None, thermo=boiler_thermo),
+                                thermo=boiler_thermo)
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
         self.reset_cache() # Abstract method
     

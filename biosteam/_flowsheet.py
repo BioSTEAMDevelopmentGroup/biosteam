@@ -18,11 +18,6 @@ from ._facility import Facility
 from ._system import System
 from ._network import Network
 
-try:
-	from .digraph.widget import FlowsheetWidget
-except:
-	pass
-
 __all__ = ('main_flowsheet', 'Flowsheet')
 
 # %% Functions
@@ -99,15 +94,6 @@ class Flowsheet:
             raise TypeError(f"'{type(self).__name__}' object does not support attribute assignment")
         else:
             super().__setattr__(key, value)
-    
-    def view(self):
-        """
-        Create an interactive process flowsheet diagram
-        that autorefreshes itself.
-        """
-        widget = FlowsheetWidget(self)
-        widget.show()
-        return widget
     
     @property
     def ID(self):
@@ -219,13 +205,6 @@ class Flowsheet:
         else:
             network = Network([])
         return network
-    
-    def create_path(self, feeds=None, ends=()):
-        isa = isinstance
-        network = self.create_network(feeds, ends)
-        net2sys = System.from_network
-        return tuple([(net2sys('', i) if isa(i, Network) else i)
-                      for i in network.path])
     
     def get_facilities(self):
         isa = isinstance
