@@ -17,7 +17,7 @@ setup(
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0', 'biorefineries>=2.17.1',
                       'thermosteam>=0.23.8', 'graphviz>=0.8.3',
-                      'chaospy==3.3.9'],
+                      'chaospy>=3.3.9'],
     package_data=
         {'biosteam': ['report/*',
                       'digraph/*',
