@@ -371,7 +371,7 @@ class System:
         self.converge_method = self.default_converge_method
         
         #: [function(recycle, mol, mol_new, T, T_new) -> bool] Function that returns 
-        #: whether the system unconverged (and needs to keep running).
+        #: whether the system has not converged (and needs to keep running).
         self.alternative_convergence_check = None
         
     
@@ -677,7 +677,7 @@ class System:
         -------
         mol_new : numpy.ndarray
                New recycle molar flow rates.
-        unconverged : bool
+        not_converged : bool
                       True if recycle has not converged.
             
         """
@@ -698,17 +698,17 @@ class System:
         self._rT_error = rT_error = T_error / T_sum
         self._iter += 1
         if self.alternative_convergence_check:
-            unconverged = self.alternative_convergence_check(self.recycle, mol, mol_new, T, T_new)
+            not_converged = self.alternative_convergence_check(self.recycle, mol, mol_new, T, T_new)
         elif (mol_error < self.molar_tolerance
             and rmol_error < self.relative_molar_tolerance
             and T_error < self.temperature_tolerance
             and rT_error < self.relative_temperature_tolerance):
-            unconverged = False
+            not_converged = False
         else:
-            unconverged = True
-        if unconverged and self._iter >= self.maxiter:
+            not_converged = True
+        if not_converged and self._iter >= self.maxiter:
             raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
-        return mol_new, unconverged
+        return mol_new, not_converged
             
     def _get_recycle_data(self):
         recycle = self._recycle
