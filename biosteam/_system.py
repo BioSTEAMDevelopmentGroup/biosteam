@@ -202,6 +202,7 @@ class System:
         'temperature_tolerance',
         'relative_temperature_tolerance',
         'flowsheet',
+        'alternative_convergence_check',
         '_converge_method',
         '_costunits',
         '_TEA',
@@ -366,8 +367,12 @@ class System:
         #: [float] Relative temperature tolerance
         self.relative_temperature_tolerance = self.default_relative_temperature_tolerance
         
-        #: [function] Converge method
+        #: [str] Converge method
         self.converge_method = self.default_converge_method
+        
+        #: [function(recycle, mol, mol_new, T, T_new) -> bool] Function that returns 
+        #: whether the system has not converged (and needs to keep running).
+        self.alternative_convergence_check = None
         
     
     specification = Unit.specification
@@ -672,7 +677,7 @@ class System:
         -------
         mol_new : numpy.ndarray
                New recycle molar flow rates.
-        unconverged : bool
+        not_converged : bool
                       True if recycle has not converged.
             
         """
@@ -692,16 +697,18 @@ class System:
         self._T_error = T_error = np.abs(T_sum - T_new_sum)
         self._rT_error = rT_error = T_error / T_sum
         self._iter += 1
-        if (mol_error < self.molar_tolerance
+        if self.alternative_convergence_check:
+            not_converged = self.alternative_convergence_check(self.recycle, mol, mol_new, T, T_new)
+        elif (mol_error < self.molar_tolerance
             and rmol_error < self.relative_molar_tolerance
             and T_error < self.temperature_tolerance
             and rT_error < self.relative_temperature_tolerance):
-            unconverged = False
-        elif self._iter >= self.maxiter:
-            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+            not_converged = False
         else:
-            unconverged = True
-        return mol_new, unconverged
+            not_converged = True
+        if not_converged and self._iter >= self.maxiter:
+            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+        return mol_new, not_converged
             
     def _get_recycle_data(self):
         recycle = self._recycle
@@ -1068,6 +1075,7 @@ class FacilityLoop:
     __slots__ = ('system', '_recycle',
                  'maxiter', 'molar_tolerance', 'temperature_tolerance',
                  'relative_molar_tolerance', 'relative_temperature_tolerance',
+                 'alternative_convergence_check',
                  '_converge_method', '_mol_error', '_T_error', 
                  '_rmol_error', '_rT_error','_iter')
     
