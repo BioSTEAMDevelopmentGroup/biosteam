@@ -360,9 +360,9 @@ class HXutility(HX):
         
     def _run(self):
         feed = self.ins[0]
-        s = self.outs[0]
-        s.copy_flow(feed)
-        s.P = feed.P
+        outlet = self.outs[0]
+        outlet.copy_flow(feed)
+        outlet.P = feed.P
         T = self.T
         V = self.V
         V_given = V is not None
@@ -372,34 +372,39 @@ class HXutility(HX):
                                    "vapor fraction 'V', in a rigorous simulation")
             if V_given:
                 if V == 0:
-                    s.phase = 'l'
-                    s.T = s.bubble_point_at_P().T
+                    outlet.phase = 'l'
+                    outlet.T = outlet.bubble_point_at_P().T
                 elif V == 1:
-                    s.phase = 'g'
-                    s.T = s.dew_point_at_P().T
+                    outlet.phase = 'g'
+                    outlet.T = outlet.dew_point_at_P().T
                 elif 0 < V < 1:
-                    s.vle(V=V, P=s.P)
+                    outlet.vle(V=V, P=outlet.P)
                 else:
                     raise RuntimeError("vapor fraction, 'V', must be a "
                                        "positive fraction")
             else:
-                s.vle(T=T, P=s.P)
+                outlet.vle(T=T, P=outlet.P)
         elif (T or V_given):
+            if T:
+                outlet.T = T
+            else:
+                outlet.T = feed.T
             if V_given:
                 if V == 0:
-                    s.phase = 'l'
+                    outlet.phase = 'l'
                 elif V == 1:
-                    s.phase = 'g'
+                    outlet.phase = 'g'
                 else:
                     raise RuntimeError("vapor fraction, 'V', must be either "
                                        "0 or 1 in a non-rigorous simulation")
+                if V == 1 and feed.vapor_fraction < 1. and (outlet.T + 1e-6) < feed.T:
+                    raise ValueError('outlet cannot be cooler than inlet if boiling')
+                if V == 0 and feed.vapor_fraction > 0. and outlet.T > feed.T + 1e-6:
+                    raise ValueError('outlet cannot be hotter than inlet if condensing')
             else:
                 phase = feed.phase
-                if len(phase) == 1: s.phase = phase
-            if T:
-                s.T = T
-            else:
-                s.T = feed.T
+                if len(phase) == 1: outlet.phase = phase
+            
         else:
             raise RuntimeError("must define either temperature, 'T', and/or "
                                "vapor fraction, 'V', in a non-rigorous "
@@ -432,7 +437,14 @@ class HXutility(HX):
         # Set duty and run heat utility
         if duty is None:
             duty = self.H_out - self.H_in
-        self.heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
+        inlet = self.ins[0]
+        outlet = self.outs[0] 
+        T_in = inlet.T
+        T_out = outlet.T
+        try:
+            self.heat_utilities[0](duty, T_in, T_out)
+        except:
+            inlet.vle(H=self.H, P=self.P)
         self.Q = duty
         super()._design()
 

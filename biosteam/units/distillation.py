@@ -537,8 +537,12 @@ class Distillation(Unit, isabstract=True):
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
-        self._condensate_dew_point = dp = distillate.dew_point_at_P()
-        self._boilup_bubble_point = bp = bottoms_product.bubble_point_at_P()
+        condenser_distillate = self.condenser.outs[0]['g']
+        reboiler_bottoms_product = self.boiler.outs[0]['l']
+        condenser_distillate.copy_like(distillate)
+        reboiler_bottoms_product.copy_like(bottoms_product)
+        self._condensate_dew_point = dp = condenser_distillate.dew_point_at_P()
+        self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P()
         bottoms_product.T = bp.T
         distillate.T = dp.T
     
@@ -736,7 +740,6 @@ class Distillation(Unit, isabstract=True):
     def _cost_vacuum(self, dimensions):
         P = self.P
         if not P or P > 1e5: return 
-        Design = self.design_results
         total_power = 0.
         total_cost = 0.
         for length, diameter in dimensions:
@@ -1016,7 +1019,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
                      --------  205 kmol/hr
     outs...
     [0] distillate
-        phase: 'g', T: 12.22 degC, P: 0.0986923 atm
+        phase: 'g', T: 15.767 degC, P: 0.0986923 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
@@ -1031,9 +1034,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Divided Distillation Column                     Units        D1
     Power               Rate                           kW      11.4
                         Cost                       USD/hr     0.894
-    Chilled brine       Duty                        kJ/hr -3.83e+06
+    Chilled water       Duty                        kJ/hr -3.78e+06
                         Flow                      kmol/hr  2.51e+03
-                        Cost                       USD/hr      31.2
+                        Cost                       USD/hr      18.9
     Low pressure steam  Duty                        kJ/hr  7.35e+06
                         Flow                      kmol/hr       189
                         Cost                       USD/hr        45
@@ -1045,21 +1048,21 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper stages                          22
                         Rectifier height               ft      25.8
                         Stripper height                ft        45
-                        Rectifier diameter             ft      6.19
-                        Stripper diameter              ft      4.36
+                        Rectifier diameter             ft       6.2
+                        Stripper diameter              ft      4.38
                         Rectifier wall thickness       in     0.375
                         Stripper wall thickness        in     0.312
-                        Rectifier weight               lb  7.68e+03
-                        Stripper weight                lb  8.54e+03
+                        Rectifier weight               lb  7.69e+03
+                        Stripper weight                lb  8.57e+03
     Purchase cost       Rectifier trays               USD  1.53e+04
                         Stripper trays                USD  1.88e+04
-                        Rectifier tower               USD  6.74e+04
-                        Stripper tower                USD  7.46e+04
+                        Rectifier tower               USD  6.75e+04
+                        Stripper tower                USD  7.47e+04
                         Vacuum system                 USD  1.33e+04
-                        Condenser                     USD  2.41e+04
+                        Condenser                     USD  3.28e+04
                         Boiler                        USD  2.08e+04
-    Total purchase cost                               USD  2.34e+05
-    Utility cost                                   USD/hr      77.1
+    Total purchase cost                               USD  2.43e+05
+    Utility cost                                   USD/hr      64.8
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)

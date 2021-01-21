@@ -43,6 +43,7 @@ def test_model_exception_hook():
     from chaospy import distributions as shape
     from warnings import simplefilter
     import numpy as np
+    bst.settings.set_thermo(lc.chemicals)
     simplefilter("ignore")
     IRR_metric = bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR)
     metrics = [IRR_metric]
@@ -67,6 +68,7 @@ def test_model_exception_hook():
     def exception_hook(exception, sample): 
         if isinstance(exception, InfeasibleRegion):
             return [0]
+        else: raise exception
     lipidcane_model.exception_hook = exception_hook
     lipidcane_model.evaluate()
     assert not np.isnan(lipidcane_model.table.values).any()

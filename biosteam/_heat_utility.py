@@ -574,11 +574,13 @@ class HeatUtility:
         """Return pinch inlet and outlet temperature of utility."""
         dT = cls.dT
         if iscooling:
-            assert T_in + 1e-6 >= T_out, "inlet temperature must be higher than outlet temperature if cooling"
+            if T_in + 1e-1 < T_out:
+                raise ValueError("inlet must be hotter than outlet if cooling")
             T_pinch_in = T_out - dT
             T_pinch_out = T_in - dT
         else:
-            assert T_in <= T_out + 1e-6, "inlet temperature must be lower than outlet temperature if heating"
+            if T_in > T_out + 1e-1:
+                raise ValueError("inlet must be cooler than outlet if heating")
             T_pinch_in = T_out + dT
             T_pinch_out = T_in + dT
         return T_pinch_in, T_pinch_out

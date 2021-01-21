@@ -12,12 +12,12 @@ import biosteam as bst
 from .. import Unit
 from .mixing import Mixer
 from .heat_exchange import HXutility
-from ._flash import Flash, Evaporator_PV, Evaporator_PQ
+from ._flash import Flash, Evaporator_PQ
 from .design_tools import (
     compute_vacuum_system_power_and_cost,
     compute_heat_transfer_area
 )    
-from thermosteam import MultiStream, Stream, settings
+from thermosteam import MultiStream, settings
 import flexsolve as flx
 from warnings import warn
 from .design_tools import heat_transfer as ht
