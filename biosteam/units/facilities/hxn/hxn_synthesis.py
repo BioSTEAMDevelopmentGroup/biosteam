@@ -92,8 +92,33 @@ class StreamLifeCycle:
         print(info[1:-1])
         
     _ipython_display_ = show
+
+
+class Working_Life_Cycle:
     
+    def __init__(self, index, cold):
+        self.index = index
+        self.name = 's_%s'%index
+        self.cold = cold
+        self.life_cycle = life_cycle = {}
+        life_cycle['cold_side'] = []
+        life_cycle['hot_side'] = []
+        
+    def add_stage(self, s_in, s_out, side):
+        self.life_cycle[side].append(LifeStage(s_in, s_out))
     
+    def sort_stages(self):
+        life_cycle = self.life_cycle
+        reverse = not self.cold
+        life_cycle['cold_side'].sort(key = lambda stage: stage.H, reverse = reverse)
+        life_cycle['cold_side'].sort(key = lambda stage: stage.H, reverse = reverse)
+        hs_life_cycle = life_cycle['hot_side']
+    
+    def get_sorted_life_cycle(self):
+        self.sort_stages()
+        return self.life_cycle
+
+
 def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None):
     hx_utils = [hu for hu in hus\
                 if abs(hu.heat_exchanger.ins[0].T - hu.heat_exchanger.outs[0].T)>0.01]
@@ -163,7 +188,8 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None)
         res_H_vector.append(prev_res_H + H)
         prev_res_H = res_H_vector[len(res_H_vector)-1]
     hot_util_load = - min(res_H_vector)
-    assert hot_util_load>= 0
+    # assert hot_util_load>= 0
+    # print(hot_util_load)
     # the lower temperature of the temperature interval for which the res_H is minimum
     pinch_cold_stream_T = all_Ts_descending[res_H_vector.index(-hot_util_load)+1]
     pinch_hot_stream_T = pinch_cold_stream_T + T_min_app
@@ -289,7 +315,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                 outsIDs = ('%s__s_%s'%(ID,hot), '%s__s_%s'%(ID,cold))
                 new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
                          outs = outsIDs, T_lim0 = T_out_arr[hot],
-                         T_lim1 = pinch_T_arr[cold], dT = T_min_app)
+                         T_lim1 = pinch_T_arr[cold], dT = T_min_app,
+                         thermo = hot_stream.thermo)
                 new_HX.simulate()
                 HXs_cold_side.append(new_HX)
                 stream_HXs_dict[hot].append(new_HX)
@@ -347,7 +374,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                 outsIDs = ('%s__s_%s'%(ID,cold), '%s__s_%s'%(ID,hot))
                 new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
                          outs = outsIDs, T_lim0 = T_out_arr[cold],
-                         T_lim1 = pinch_T_arr[hot], dT = T_min_app)
+                         T_lim1 = pinch_T_arr[hot], dT = T_min_app,
+                         thermo = hot_stream.thermo)
                 new_HX.simulate()
                 HXs_hot_side.append(new_HX)
                 stream_HXs_dict[hot].append(new_HX)
@@ -387,7 +415,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                         outsIDs = ('%s__s_%s'%(ID,hot), '%s__s_%s'%(ID,cold))
                         new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
                                  outs = outsIDs, T_lim0 = T_out_arr[hot],
-                                 T_lim1 = pinch_T_arr[cold], dT = T_min_app)
+                                 T_lim1 = pinch_T_arr[cold], dT = T_min_app,
+                                 thermo = hot_stream.thermo)
                         new_HX.simulate()
                         HXs_cold_side.append(new_HX)
                         stream_HXs_dict[hot].append(new_HX)
@@ -424,7 +453,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                         outsIDs = ('%s__s_%s'%(ID,cold), '%s__s_%s'%(ID,hot))
                         new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
                                  outs = outsIDs, T_lim0 = T_out_arr[cold], 
-                                 T_lim1 = pinch_T_arr[hot], dT = T_min_app)
+                                 T_lim1 = pinch_T_arr[hot], dT = T_min_app,
+                                 thermo = hot_stream.thermo)
                         new_HX.simulate()
                         HXs_hot_side.append(new_HX)                        
                         stream_HXs_dict[hot].append(new_HX)
@@ -449,8 +479,9 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             ID = 'Util_%s_cs'%(hot)
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             outsID = '%s__s_%s'%(ID,hot)
-            new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream,outs = outsID,
-                                              T = T_out_arr[hot], rigorous = True)
+            new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
+                                              T = T_out_arr[hot], rigorous = True,
+                                              thermo = hot_stream.thermo)
             new_HX_util.simulate()
             new_HX_utils.append(new_HX_util)
             stream_HXs_dict[hot].append(new_HX_util)
@@ -462,7 +493,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             outsID = '%s__s_%s'%(ID,hot)
             new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
-                                              T = pinch_T_arr[hot], rigorous = True)
+                                              T = pinch_T_arr[hot], rigorous = True,
+                                              thermo = hot_stream.thermo)
             new_HX_util.simulate()
             new_HX_utils.append(new_HX_util)
             stream_HXs_dict[hot].append(new_HX_util)
@@ -475,7 +507,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             cold_stream.ID = 's_%s__%s'%(cold,ID)
             outsID = '%s__s_%s'%(ID,cold)
             new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
-                                              T = T_out_arr[cold], rigorous = True)
+                                              T = T_out_arr[cold], rigorous = True,
+                                              thermo = cold_stream.thermo)
             new_HX_util.simulate()
             new_HX_utils.append(new_HX_util)
             stream_HXs_dict[cold].append(new_HX_util)
@@ -518,3 +551,4 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
            act_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
            hot_indices, cold_indices, orig_heat_util_load, orig_cool_util_load, Q_percent_error
+
