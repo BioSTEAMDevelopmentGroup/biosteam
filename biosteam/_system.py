@@ -464,16 +464,23 @@ class System:
         costunits = self._costunits
         units = self.units
         isa = isinstance
+        new_facility_units = []
         for i in facilities:
             if isa(i, Unit):
                 i._load_stream_links()
                 units.add(i)
                 if i._cost: costunits.add(i)
-                if isa(i, Facility) and not i._system: i._system = self
+                if isa(i, Facility) and not i._system:
+                    new_facility_units.append(i)
             elif isa(i, System):
                 units.update(i.units)
                 subsystems.append(i)
                 costunits.update(i._costunits)
+        for i in new_facility_units:
+            i._system = self
+            i._other_units = other_units = self.units.copy()
+            other_units.remove(i)
+            
     
     def _set_facility_recycle(self, recycle):
         if recycle:

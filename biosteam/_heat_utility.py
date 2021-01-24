@@ -523,6 +523,7 @@ class HeatUtility:
 
     def mix_from(self, heat_utilities):
         """Mix all heat utilities to this heat utility."""
+        heat_utilities = [i for i in heat_utilities if i.agent]
         N_heat_utilities = len(heat_utilities)
         if N_heat_utilities == 0:
             self.empty()
@@ -531,7 +532,8 @@ class HeatUtility:
         else:
             heat_utility, *other_heat_utilities = heat_utilities
             agent = heat_utility.agent
-            assert all([i.agent is agent for i in other_heat_utilities]), (
+            ID = agent.ID
+            assert all([i.agent.ID == ID for i in other_heat_utilities]), (
                 "utility agent must be the same to mix heat utilities")
             self.load_agent(agent)
             self.flow = self.inlet_utility_stream.F_mol = sum([i.flow for i in heat_utilities])

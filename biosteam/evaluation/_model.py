@@ -497,7 +497,12 @@ class Model(State):
             with pd.ExcelWriter(xlfile) as writer:
                 for i, metric in zip(metric_indices, metric_data):
                     data[:] = metric_data[metric]
-                    data.to_excel(writer, sheet_name=i[1])
+                    name, *_ = i[1].split(' [')
+                    if len(name) > 31:
+                        words = name.split(' ')
+                        words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
+                        name = ' '.join(words)
+                    data.to_excel(writer, sheet_name=name)
         return metric_data
     
     def spearman(self, parameters=(), metrics=()):

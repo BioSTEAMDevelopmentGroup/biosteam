@@ -61,22 +61,21 @@ class CoolingTower(Facility):
         
     def _load_utility_agents(self):
         cwu = self.cooling_water_utilities
-        agent = self.agent
+        ID = self.agent.ID
         cwu.clear()
-        for u in self.system.units:
+        for u in self.other_units:
             if u is self: continue
             for hu in u.heat_utilities:
-                if hu.agent is agent:
-                    cwu.add(hu)
+                agent = hu.agent
+                if agent and agent.ID == ID: cwu.add(hu)
         
     def _design(self):
+        self._load_utility_agents()
         cwu = self.cooling_water_utilities
-        if not cwu: self._load_utility_agents()
         used = self._ins[0]
         hu = self.heat_utilities[0]
         self._load_utility_agents()
-        hu.mix_from(cwu)
-            
+        hu.mix_from(cwu)            
         used.imol['7732-18-5'] = \
         self.design_results['Flow rate'] = \
         self.cooling_water = hu.flow 

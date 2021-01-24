@@ -36,8 +36,13 @@ class Facility(Unit, isabstract=True,
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self._system = None
+        self._other_units = None
     
     @property
     def system(self):
         return self._system
+    
+    @property
+    def other_units(self):
+        return self._other_units
         

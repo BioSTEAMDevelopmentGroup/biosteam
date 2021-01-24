@@ -82,7 +82,8 @@ class TankPurchaseCostAlgorithm:
         self.material = material
 
     def __repr__(self):
-        return f"{type(self).__name__}(f_Cp={self.f_Cp.__name__}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
+        f_name = getattr(self.f_Cp, '__name__', str(self.f_Cp))
+        return f"{type(self).__name__}(f_Cp={f_name}, V_min={self.V_min}, V_max={self.V_max}, CE={self.CE}, material={self.material}, V_units={self.V_units})"
     
     
 def compute_number_of_tanks_and_total_purchase_cost(total_volume,

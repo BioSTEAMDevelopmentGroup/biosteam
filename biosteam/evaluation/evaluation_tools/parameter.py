@@ -28,6 +28,7 @@ def triang(mid, proportion=0.1, addition=0): # pragma: no cover
                           (1.+proportion)*mid + addition)
 
 def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1): # pragma: no cover
+    if lb > ub: ub, lb = lb, ub
     lower = (1.-proportion)*mid - addition
     upper = (1.+proportion)*mid + addition
     if lower < lb: lower = lb

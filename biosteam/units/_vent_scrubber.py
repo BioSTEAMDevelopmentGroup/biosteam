@@ -26,7 +26,7 @@ class VentScrubber(Unit):
         vent_exit, bottoms = self.outs
         vent_exit.copy_like(vent_entry)
         bottoms.copy_flow(vent_exit, self.gas,
-                         remove=True, exclude=True)
+                          remove=True, exclude=True)
         bottoms.mol[:] += water.mol
         
     def _design(self):

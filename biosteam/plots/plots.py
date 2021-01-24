@@ -8,6 +8,7 @@
 """
 """
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from biosteam.utils import colors
 from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
@@ -120,7 +121,7 @@ def plot_montecarlo(data,
                     light_color=light_color,
                     dark_color=dark_color,
                     positions=None,
-                    transpose=False): # pragma: no coverage
+                    transpose=None): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -138,12 +139,17 @@ def plot_montecarlo(data,
     bx : Patch
     
     """
-    if transpose: data = data.transpose()
+    if isinstance(data, pd.DataFrame): data = data.values
+    if transpose is None and data.ndim == 2:
+        N_rows, N_cols = data.shape
+        if N_cols > N_rows: data = data.transpose()
+    elif transpose:
+        data = data.transpose()
     if not positions:
         if data.ndim == 1: 
             positions = (0,)
         else:
-            positions = tuple(range(data.shape[0]))
+            positions = list(range(data.shape[1]))
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
                      widths=0.8, whis=[5, 95],
                      boxprops={'facecolor':light_color,

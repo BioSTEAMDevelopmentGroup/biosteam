@@ -133,14 +133,15 @@ class BoilerTurbogenerator(Facility):
         steam_utilities = self.steam_utilities
         steam_utilities.clear()
         agent = self.agent
-        units = self.system.units.copy()
-        units.remove(self)
+        units = self.other_units
         for agent in (*self.other_agents, agent):
+            ID = agent.ID
             for u in units:
                 for hu in u.heat_utilities:
-                    if hu.agent is agent:
+                    agent = hu.agent
+                    if agent and agent.ID == ID:
                         steam_utilities.add(hu)
-        self.electricity_demand = sum([u.power_utility.rate for u in units if u.power_utility])
+        self.electricity_demand = sum([u.power_utility.consumption for u in units])
 
     def _design(self):
         B_eff = self.boiler_efficiency
