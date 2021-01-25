@@ -31,6 +31,7 @@ def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1): # pragma: no co
     if lb > ub: ub, lb = lb, ub
     lower = (1.-proportion)*mid - addition
     upper = (1.+proportion)*mid + addition
+    if lower > upper: upper, lower = lower, upper
     if lower < lb: lower = lb
     if upper > ub: upper = ub
     return shape.Triangle(lower, mid, upper)
