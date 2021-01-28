@@ -21,3 +21,10 @@ Bug fixes:
   (e.g., mixers), the number of streams stay fixed. Previously, stream-0-mixer would disconnect other streams
   attached to the mixer (not just replace the 0th inlet).  
 * Bug fixes to the :mod:`~biosteam.evaluation` module for compatibility with version 4 of the chaospy library.
+
+2.23.2
+------
+
+Bug fixes:
+
+* Fix import related bugs; "from biosteam import *" was not working before.
