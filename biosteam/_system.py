@@ -730,7 +730,7 @@ class System:
             self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([mol[positive_index], mol_new[positive_index]])).max()
         T_errors = np.abs(T - T_new)
         self._T_error = T_error = T_errors.max()
-        self._rT_error = rT_error = T_errors / T
+        self._rT_error = rT_error = (T_errors / T).max()
         self._iter += 1
         if self.alternative_convergence_check:
             not_converged = self.alternative_convergence_check(self.recycle, mol, mol_new, T, T_new)

@@ -27,4 +27,11 @@ Bug fixes:
 
 Bug fixes:
 
-* Fix import related bugs; "from biosteam import *" was not working before.
+* Fixed import related bugs; "from biosteam import *" was not working before.
+
+2.23.3
+------
+
+Bug fixes:
+
+* Fixed bug with simulating System object with multiple recycle loops (flat; not nested).
