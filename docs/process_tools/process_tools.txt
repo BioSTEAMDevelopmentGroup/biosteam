@@ -5,6 +5,6 @@ process_tools
    :maxdepth: 1
 
    UnitGroup
+   SystemFactory
    BoundedNumericalSpecification
-   system_factory
    utils

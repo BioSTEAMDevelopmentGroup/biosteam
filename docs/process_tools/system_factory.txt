@@ -1,6 +1,0 @@
-system_factory
-==============
-
-.. automodule:: biosteam.process_tools.system_factory
-   :members:
-

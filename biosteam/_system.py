@@ -31,6 +31,17 @@ import numpy as np
 
 __all__ = ('System',)    
 
+# %% Functions for creating deterministic systems
+
+def facilities_from_units(units):
+    isa = isinstance
+    return [i for i in units if isa(i, Facility)]
+    
+def find_blowdown_recycle(facilities):
+    isa = isinstance
+    for i in facilities:
+        if isa(i, bst.BlowdownMixer): return i.outs[0]
+
 # %% Functions for recycle
 
 def check_recycle_feasibility(material: np.ndarray):
@@ -147,7 +158,7 @@ def _notify_run_wrapper(self, func):
     return wrapper
 
 
-# %% Process flow
+# %% Converging recycle systems
 
 @registered('SYS')
 class System:
@@ -162,7 +173,7 @@ class System:
     ID : str
          A unique identification. If ID is None, instance will not be
          registered in flowsheet.
-    path : tuple[Unit, function and/or System]
+    path : tuple[Unit, function and/or System], optional
         A path that is run element by element until the recycle converges.
     recycle=None : :class:`~thermosteam.Stream` or tuple[:class:`~thermosteam.Stream`], optional
         A tear stream for the recycle loop.
@@ -200,6 +211,7 @@ class System:
         'relative_temperature_tolerance',
         'flowsheet',
         'alternative_convergence_check',
+        '__previous_flowsheet_units',
         '_converge_method',
         '_costunits',
         '_TEA',
@@ -256,6 +268,45 @@ class System:
         return cls.from_network(ID, network, facilities, facility_recycle)
 
     @classmethod
+    def from_units(cls, ID="", units=None, feeds=None, ends=(), facility_recycle=None):
+        """
+        Create a System object from all units and streams defined in the flowsheet.
+        
+        Parameters
+        ----------
+        ID : str, optional
+            Name of system.
+        units : Iterable[:class:`biosteam.Unit`], optional
+            Unit operations to be included. 
+        feeds : Iterable[:class:`~thermosteam.Stream`], optional
+            All feeds to the system. Specify this argument if only a section 
+            of the complete system is wanted as it may disregard some units.
+        ends : Iterable[:class:`~thermosteam.Stream`], optional
+            End streams of the system which are not products. Specify this
+            argument if only a section of the complete system is wanted, or if 
+            recycle streams should be ignored.
+        facility_recycle : :class:`~thermosteam.Stream`, optional
+            Recycle stream between facilities and system path. This argument
+            defaults to the outlet of a BlowdownMixer facility (if any).
+        
+        """
+        if units is None: 
+            units = ()
+        elif feeds is None:
+            feeds = bst.utils.feeds_from_units(units)
+            bst.utils.sort_feeds_big_to_small(feeds)
+        if feeds:
+            feedstock, *feeds = feeds
+            facilities = facilities_from_units(units) if units else ()
+            system = cls.from_feedstock(
+                ID, feedstock, feeds, facilities, ends,
+                facility_recycle or find_blowdown_recycle(facilities)
+            )
+        else:
+            system = cls(ID, ())
+        return system
+
+    @classmethod
     def from_network(cls, ID, network, facilities=(), facility_recycle=None):
         """
         Create a System object from a network.
@@ -292,7 +343,7 @@ class System:
         self._load_defaults()
         return self
         
-    def __init__(self, ID, path, recycle=None, facilities=(), 
+    def __init__(self, ID, path=(), recycle=None, facilities=(), 
                  facility_recycle=None, N_runs=None):
         self.recycle = recycle
         self.N_runs = N_runs
@@ -305,6 +356,37 @@ class System:
         self._load_stream_links()
         self._register(ID)
         self._load_defaults()
+    
+    def __enter__(self):
+        if self.path or self.recycle or self.facilities:
+            raise RuntimeError("only empty systems can enter `with` statement")
+        self.__previous_flowsheet_units = set(self.flowsheet.unit)
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        if self.path or self.recycle or self.facilities: return
+        units = [i for i in self.flowsheet.unit if i not in self.__previous_flowsheet_units]
+        ID = self._ID
+        system = self.from_units(ID, units)
+        del self.__previous_flowsheet_units
+        self.ID = ID
+        self._path = system._path
+        self._facilities = system._facilities
+        self._facility_loop = system._facility_loop
+        self._recycle = system._recycle
+        self.units = system.units
+        self.subsystems = system.subsystems
+        self._costunits = system._costunits
+    
+    def copy_like(self, other):
+        """Copy path, facilities and recycle from other system.""" 
+        self._path = other._path
+        self._facilities = other._facilities
+        self._facility_loop = other._facility_loop
+        self._recycle = other._recycle
+        self.units = other.units
+        self.subsystems = other.subsystems
+        self._costunits = other._costunits
     
     def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False):
         """
@@ -1128,5 +1210,6 @@ class FacilityLoop:
 
     def __repr__(self): 
         return f"<{type(self).__name__}: {self.system.ID}>"
-            
+    
+       
 from biosteam import _flowsheet as flowsheet_module

@@ -8,30 +8,15 @@
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
-import biosteam as bst
 from thermosteam.utils import Registry
 from thermosteam import Stream
+from biosteam.utils import feeds_from_units, sort_feeds_big_to_small
 from ._unit import Unit
-from ._facility import Facility
 from ._system import System
 from ._network import Network
 
 __all__ = ('main_flowsheet', 'Flowsheet')
 
-# %% Functions
-
-def get_feeds_from_units(units):
-    isa = isinstance
-    return sum([[i for i in u.ins if not i._source]
-                for u in units if not isa(u, Facility)], [])
-
-def sort_feeds_big_to_small(feeds):
-    feeds.sort(key=lambda feed: -feed.F_mass)
-    
-def find_blowdown_recycle(facilities):
-    isa = isinstance
-    for i in facilities:
-        if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 # %% Flowsheet search      
 
@@ -62,6 +47,7 @@ class Flowsheet:
     :doc:`tutorial/Managing_flowsheets`.
 	
     """
+    
     line = "Flowsheet"
     
     #: [Register] All flowsheets.
@@ -163,31 +149,19 @@ class Flowsheet:
         ----------
         ID : str, optional
             Name of system.
-        feeds : Iterable[:class:`thermosteam.Stream`], optional
-            Feeds to the process ordered in decreasing priority. The 
-            first feed should be your feedstock.
+        feeds : Iterable[:class:`~thermosteam.Stream`], optional
+            All feeds to the system. Specify this argument if only a section 
+            of the complete system is wanted as it may disregard some units.
         ends : Iterable[:class:`~thermosteam.Stream`], optional
-            End streams of the system which are not products. Specify this argument
-			if only a section of the system is wanted, or if recycle streams should be 
-			ignored.
+            End streams of the system which are not products. Specify this
+            argument if only a section of the complete system is wanted, or if 
+            recycle streams should be ignored.
         facility_recycle : :class:`~thermosteam.Stream`, optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
         
         """
-        if not feeds:
-            feeds = get_feeds_from_units(self.unit)
-            sort_feeds_big_to_small(feeds)
-        if feeds:
-            feedstock, *feeds = feeds
-            facilities = self.get_facilities()
-            if not facility_recycle:
-                facility_recycle = find_blowdown_recycle(facilities)
-            system = System.from_feedstock(ID, feedstock, feeds,
-                                           facilities, ends, facility_recycle)
-        else:
-            system = System(ID, ())
-        return system
+        return System.from_units(ID, self.unit, feeds, ends, facility_recycle)
     
     def create_network(self, feeds=None, ends=()):
         """
@@ -203,7 +177,7 @@ class Flowsheet:
 			ignored.
         
         """
-        feeds = get_feeds_from_units(self.unit)
+        feeds = feeds_from_units(self.unit)
         if feeds:
             sort_feeds_big_to_small(feeds)
             feedstock, *feeds = feeds
@@ -211,10 +185,6 @@ class Flowsheet:
         else:
             network = Network([])
         return network
-    
-    def get_facilities(self):
-        isa = isinstance
-        return [i for i in self.unit if isa(i, Facility)]
     
     def __call__(self, ID):
         """
@@ -246,6 +216,9 @@ class MainFlowsheet(Flowsheet):
     biosteam objects as they are created. For a tutorial on flowsheets,
     visit :doc:`tutorial/Managing_flowsheets`.
 	"""
+    
+    __slots__ = ()
+    
     line = "Main flowsheet"
         
     def set_flowsheet(self, flowsheet, new=False):

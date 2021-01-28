@@ -16,7 +16,9 @@ __all__ = ('streams_from_units',
            'products',
            'inlets',
            'outlets',
-           'filter_out_missing_streams',)
+           'filter_out_missing_streams',
+           'sort_feeds_big_to_small',
+           'feeds_from_units')
 
 def inlets(units):
     return set(sum([i._ins for i in units], []))
@@ -43,11 +45,18 @@ def process_streams(streams):
     return {i for i in streams if i._source and i._sink}
 
 def feeds(streams):
-    return {s for s in streams if not s._source}
+    return [s for s in streams if not s._source]
 
 def products(streams):
-    return {s for s in streams if not s._sink}
+    return [s for s in streams if not s._sink]
 
 def filter_out_missing_streams(streams):
     streams.intersection_update([i for i in streams if i])
 
+def sort_feeds_big_to_small(feeds):
+    feeds.sort(key=lambda feed: -feed.F_mass)
+
+def feeds_from_units(units):
+    isa = isinstance; Facility = bst.Facility
+    return sum([[i for i in u.ins if not i._source]
+                for u in units if not isa(u, Facility)], [])
