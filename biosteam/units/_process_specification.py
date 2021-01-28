@@ -51,7 +51,18 @@ class ProcessSpecification(Unit):
     >>> system = main_flowsheet.create_system('mix_ethanol_with_denaturant_sys')
     >>> system.show()
     System: mix_ethanol_with_denaturant_sys
-     path: (PS1, M1)
+    ins...
+    [0] denaturant
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Octane  1
+    [1] ethanol
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    11.1
+                        Ethanol  488
+    outs...
+    [0] denatured_ethanol
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow: 0
     >>> system.simulate()
     >>> M1.outs[0].show(composition=True, flow='kg/hr')
     Stream: denatured_ethanol from <Mixer: M1>

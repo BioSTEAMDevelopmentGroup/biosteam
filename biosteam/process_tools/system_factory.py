@@ -95,7 +95,7 @@ def system_defaults(f=None, ID=None, ins=None, outs=None):
     Examples
     --------
     >>> from biosteam import *
-    >>> @system_factory(
+    >>> @system_defaults(
     ...     ID='heating_sys',
     ...     ins=[dict(ID='cold_stream', Water=100)],
     ...     outs=[dict(ID='hot_stream')]

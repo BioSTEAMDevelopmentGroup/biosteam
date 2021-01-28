@@ -10,12 +10,12 @@
 import pytest
 import numpy as np
 import biosteam as bst
+from biosteam._network import Network
 from numpy.testing import assert_allclose
 from biosteam import (
     main_flowsheet as f,
     Pump, Mixer, Splitter, HXprocess,
-    Stream, settings,
-    System, Network,
+    Stream, settings, System
 )
 
 def test_simple_recycle_loop():

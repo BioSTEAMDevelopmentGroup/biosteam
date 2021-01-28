@@ -127,7 +127,7 @@ class Network:
     >>> from biosteam import (
     ...     main_flowsheet as f,
     ...     Pump, Mixer, Splitter,
-    ...     Stream, settings, Network,
+    ...     Stream, settings
     ... )
     >>> f.set_flowsheet('two_nested_recycle_loops')
     >>> settings.set_thermo(['Water'], cache=True)

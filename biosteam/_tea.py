@@ -287,7 +287,7 @@ class TEA:
     """
     __slots__ = ('system', 'income_tax', 'lang_factor', 'WC_over_FCI',
                  'finance_interest', 'finance_years', 'finance_fraction',
-                 '_construction_schedule', '_startup_time',
+                 'feeds', 'products', '_construction_schedule', '_startup_time',
                  'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
                  'units', '_startup_schedule', '_operating_days',
                  '_operating_hours', '_duration', 
@@ -307,6 +307,8 @@ class TEA:
         self = copy_(other)
         self.units = sorted(system._costunits, key=lambda x: x.line)
         self.system = system
+        self.feeds = system.feeds
+        self.products = system.feeds
         system._TEA = self
         return self
 
@@ -360,8 +362,15 @@ class TEA:
         #: list[Unit] All unit operations considered
         self.units = sorted(system._costunits, key=lambda x: x.line)
         
-        #: [System] Should contain feed and product streams.
+        #: [System] System being evaluated.
         self.system = system
+        
+        #: set[Stream] All product streams.
+        self.products = system.products
+        
+        #: set[Stream] All feed streams.
+        self.feeds = system.feeds
+        
         system._TEA = self
 
     def _DPI(self, installed_equipment_cost):
@@ -465,7 +474,7 @@ class TEA:
     @property
     def material_cost(self):
         """Annual material cost."""
-        return sum([s.cost for s in self.system.feeds if s.price]) * self._operating_hours
+        return sum([s.cost for s in self.feeds if s.price]) * self._operating_hours
     @property
     def annual_depreciation(self):
         """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
@@ -473,7 +482,7 @@ class TEA:
     @property
     def sales(self):
         """Annual sales revenue."""
-        return sum([s.cost for s in self.system.products if s.price]) * self._operating_hours
+        return sum([s.cost for s in self.products if s.price]) * self._operating_hours
     @property
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
@@ -617,7 +626,7 @@ class TEA:
         with_annual_depreciation=True : bool, optional
         
         """
-        coproducts = self.system.products.difference(products)
+        coproducts = self.products.difference(products)
         coproduct_sales = sum([s.cost for s in coproducts if s.price]) * self._operating_hours
         if with_annual_depreciation:
             TDC = self.TDC

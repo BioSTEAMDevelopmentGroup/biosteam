@@ -8,7 +8,7 @@
 """
 """
 
-__version__ = '2.23.1'
+__version__ = '2.23.2'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
@@ -51,7 +51,7 @@ __all__ = ('Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
            'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation', 
            'main_flowsheet', 'Flowsheet', 'Chemical', 'Chemicals', 'Stream',
            'MultiStream', 'settings', 'exceptions', 'speed_up', 'report',
-           'process_tools', 'system_factory', *units.__all__, *evaluation.__all__, 
+           'process_tools', *units.__all__, *evaluation.__all__, 
            *process_tools.__all__,
 )
 
