@@ -40,17 +40,23 @@ All data on chemicals, fitted coefficients, and functions to estimate chemical p
    tutorial/Using_-pipe-_notation
    tutorial/Unit_operation_results
    tutorial/Process_specifications
-   tutorial/Importing_biorefineries
-   tutorial/Techno-economic_analysis
-   tutorial/Building_a_biorefinery
    tutorial/Inheriting_from_Unit
    tutorial/Unit_decorators
-   tutorial/Monte_Carlo
-   tutorial/TRY-Analysis
-
+   tutorial/Importing_biorefineries
+   tutorial/Techno-economic_analysis
 
 .. toctree::
    :maxdepth: 1
+   :numbered:
+   :caption: Advanced Tutorial
+   
+   tutorial/Building_a_biorefinery
+   tutorial/Drop_in_systems
+   tutorial/Monte_Carlo
+   tutorial/TRY-Analysis
+
+.. toctree::
+   :maxdepth: 2
    :caption: BioSTEAM API
    
    Unit
@@ -66,7 +72,6 @@ All data on chemicals, fitted coefficients, and functions to estimate chemical p
    process_tools/process_tools
    evaluation/evaluation
 
-
 .. toctree::
    :maxdepth: 1
    :caption: What's new?
@@ -74,7 +79,7 @@ All data on chemicals, fitted coefficients, and functions to estimate chemical p
    updates/2.20
    updates/2.21
    updates/2.22
-
+   updates/2.23
 
 .. toctree::
    :maxdepth: 1

@@ -101,10 +101,10 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
     >>> T101.results()
     Corn storage                          Units     T101
     Design              Residence time       hr      259
-                        Total volume        m^3 1.27e+04
+                        Total volume        m^3 1.33e+04
                         Number of tanks                1
-    Purchase cost       Tanks               USD 7.26e+04
-    Total purchase cost                     USD 7.26e+04
+    Purchase cost       Tanks               USD 7.62e+04
+    Total purchase cost                     USD 7.62+04
     Utility cost                         USD/hr        0
 
     """

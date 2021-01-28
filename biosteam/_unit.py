@@ -23,6 +23,44 @@ import biosteam as bst
 
 __all__ = ('Unit',)
 
+# %% Inlet and outlet representation
+
+def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
+    info = 'ins...\n'
+    i = 0
+    for stream in ins:
+        if not stream:
+            info += f'[{i}] {stream}\n'
+            i += 1
+            continue
+        unit = stream._source
+        source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
+        if data:
+            stream_info = stream._info(T, P, flow, composition, N, IDs)
+            index = stream_info.index('\n')
+            info += f'[{i}] {stream.ID}' + source_info + stream_info[index+1:] + '\n'
+        else:
+            info += f'[{i}] {stream.ID}' + source_info
+        i += 1
+    info += 'outs...\n'
+    i = 0
+    for stream in outs:
+        if not stream:
+            info += f'[{i}] {stream}\n'
+            i += 1
+            continue
+        unit = stream._sink
+        sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
+        if data:
+            stream_info = stream._info(T, P, flow, composition, N, IDs)
+            index = stream_info.index('\n')
+            info += f'[{i}] {stream.ID}' + sink_info + stream_info[index+1:] + '\n'
+        else:
+            info += f'[{i}] {stream.ID}' + sink_info
+        i += 1
+    info = info.replace('\n ', '\n    ')
+    return info[:-1]
+
 # %% Unit Operation
 
 @thermo_user
@@ -179,7 +217,7 @@ class Unit:
 
     # [int] Used for piping warnings. Should be equal to 6 plus the number of
     # wrappers to Unit.__init__
-    _stacklevel = 6
+    _stacklevel = 5
     
     # [str] The general type of unit, regardless of class
     line = 'Unit'
@@ -257,7 +295,7 @@ class Unit:
         """Source streams."""
         isa = isinstance
         int_types = (int, np.int)
-        if isa(other, Unit):
+        if isa(other, (Unit, bst.System)):
             other._ins[:] = self._outs
             return other
         elif isa(other, int_types):
@@ -269,12 +307,8 @@ class Unit:
             if all([isa(i, int_types) for i in other]):
                 return [self._outs[i] for i in other]
             else:
-                if isa(other, Unit):
-                    self._outs[:] = other._ins
-                    return other
-                else:
-                    self._outs[:] = other
-                    return self
+                self._outs[:] = other
+                return self
         else:
             return other.__rsub__(self)
 
@@ -291,14 +325,10 @@ class Unit:
             if all([isa(i, int_types) for i in other]):
                 return [self._ins[i] for i in other]
             else:
-                if isa(other, Unit):
-                    self._ins[:] = other._outs
-                    return other
-                else:
-                    self._ins[:] = other
-                    return self
+                self._ins[:] = other
+                return self
         else:
-            raise ValueError(f"cannot pipe '{type(other).__name__}' object into unit")
+            raise ValueError(f"cannot pipe '{type(other).__name__}' object")
 
     # Backwards pipping
     __pow__ = __sub__
@@ -395,7 +425,8 @@ class Unit:
         """
         self._load_stream_links()
         self._setup()
-        self._run()
+        specification = self._specification
+        (specification if specification else self._run)()
         self._summary()
 
     def results(self, with_units=True, include_utilities=True,
@@ -802,44 +833,17 @@ class Unit:
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     
     # Representation
-    def _info(self, T, P, flow, composition, N, IDs):
+    def _info(self, T, P, flow, composition, N, IDs, data):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        info += 'ins...\n'
-        i = 0
-        for stream in self.ins:
-            if not stream:
-                info += f'[{i}] {stream}\n'
-                i += 1
-                continue
-            stream_info = stream._info(T, P, flow, composition, N, IDs)
-            unit = stream._source
-            index = stream_info.index('\n')
-            source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
-            info += f'[{i}] {stream.ID}' + source_info + stream_info[index+1:] + '\n'
-            i += 1
-        info += 'outs...\n'
-        i = 0
-        for stream in self.outs:
-            if not stream:
-                info += f'[{i}] {stream}\n'
-                i += 1
-                continue
-            stream_info = stream._info(T, P, flow, composition, N, IDs)
-            unit = stream._sink
-            index = stream_info.index('\n')
-            sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
-            info += f'[{i}] {stream.ID}' + sink_info + stream_info[index+1:] + '\n'
-            i += 1
-        info = info.replace('\n ', '\n    ')
-        return info[:-1]
+        return info + repr_ins_and_outs(self.ins, self.outs, T, P, flow, composition, N, IDs, data)
 
-    def show(self, T=None, P=None, flow=None, composition=None, N=None, IDs=None):
+    def show(self, T=None, P=None, flow=None, composition=None, N=None, IDs=None, data=True):
         """Prints information on unit."""
-        print(self._info(T, P, flow, composition, N, IDs))
+        print(self._info(T, P, flow, composition, N, IDs, data))
     
     def _ipython_display_(self):
         if bst.ALWAYS_DISPLAY_DIAGRAMS:

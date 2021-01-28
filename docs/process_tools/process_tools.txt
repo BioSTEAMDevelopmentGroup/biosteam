@@ -6,4 +6,5 @@ process_tools
 
    UnitGroup
    BoundedNumericalSpecification
+   system_factory
    utils

@@ -12,6 +12,7 @@ This module includes classes and functions concerning Stream objects.
 from thermosteam import Stream, MultiStream
 from warnings import warn
 __all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
+           'InletPort', 'OutletPort', 'StreamPorts', 
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings')
 
@@ -231,8 +232,8 @@ class StreamSequence:
         all_streams = self._streams
         for stream in all_streams[slice]: self._undock(stream)
         all_streams[slice] = streams
-        for stream in all_streams:
-            self._redock(stream, stacklevel)
+        stacklevel += 1
+        for stream in all_streams: self._redock(stream, stacklevel)
         if self._fixed_size:
             size = self._size
             N_streams = len(all_streams)
@@ -262,7 +263,7 @@ class StreamSequence:
     def _set_stream(self, int, stream, stacklevel):
         stream = self._as_stream(stream)
         self._undock(self._streams[int])
-        self._redock(stream, stacklevel)
+        self._redock(stream, stacklevel+1)
         self._streams[int] = stream
     
     def append(self, stream):
@@ -290,13 +291,9 @@ class StreamSequence:
         return stream
 
     def remove(self, stream):
-        streams = self._streams
         self._undock(stream)
-        if self._fixed_size:
-            missing_stream = self._create_missing_stream()
-            self.replace(stream, missing_stream)
-        else:
-            streams.remove(stream)
+        missing_stream = self._create_missing_stream()
+        self.replace(stream, missing_stream)
         
     def clear(self):
         if self._fixed_size:
@@ -305,7 +302,7 @@ class StreamSequence:
             self._streams.clear()
     
     def __iter__(self):
-        yield from self._streams
+        return iter(self._streams)
     
     def __getitem__(self, index):
         return self._streams[index]
@@ -313,9 +310,9 @@ class StreamSequence:
     def __setitem__(self, index, item):
         isa = isinstance
         if isa(index, int):
-            self._set_stream(index, item, 4)
+            self._set_stream(index, item, 2)
         elif isa(index, slice):
-            self._set_streams(index, item, 4)
+            self._set_streams(index, item, 2)
         else:
             raise IndexError("Only intergers and slices are valid "
                              f"indices for '{type(self).__name__}' objects")
@@ -346,6 +343,7 @@ class Inlets(StreamSequence):
     def _redock(self, stream, stacklevel): 
         sink = stream._sink
         if sink:
+            stacklevel += 1
             ins = sink._ins
             if ins is not self:
                 ins.remove(stream)
@@ -384,6 +382,7 @@ class Outlets(StreamSequence):
     def _redock(self, stream, stacklevel): 
         source = stream._source
         if source:
+            stacklevel += 1
             outs = source._outs
             if outs is not self:
                 # Remove from source
@@ -399,7 +398,6 @@ class Outlets(StreamSequence):
     
     def _undock(self, stream): 
         stream._source = None
-
 
 
 # %% Sink and Source object for piping notation
@@ -529,7 +527,117 @@ class Source:
     def __repr__(self):
         return '<' + type(self).__name__ + ': ' + str(self.index) + '-' + self.stream.ID + '>'
 
-# %% Pipping
+# %% System pipping
+
+class InletPort:
+    __slots__ = ('sink', 'index')
+    
+    @classmethod
+    def from_inlet(cls, inlet):
+        sink = inlet.sink
+        index = sink.ins.index(inlet)
+        return cls(sink, index)
+    
+    def __init__(self, sink, index):
+        self.sink = sink
+        self.index = index
+        
+    def _sorting_key(self):
+        return (self.sink.ID[1:], self.sink.ID, self.index)
+        
+    def get_stream(self):
+        return self.sink.ins[self.index]
+    
+    def set_stream(self, stream, stacklevel):
+        self.sink.ins._set_stream(self.index, stream, stacklevel+1)
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({self.sink}, {self.index})"
+
+
+class OutletPort:
+    __slots__ = ('source', 'index')
+    
+    @classmethod
+    def from_outlet(cls, outlet):
+        source = outlet.source
+        index = source.outs.index(outlet)
+        return cls(source, index)
+    
+    def __init__(self, source, index):
+        self.source = source
+        self.index = index
+    
+    def _sorting_key(self):
+        return (self.source.ID[1:], self.source.ID[0], self.index)
+    
+    def get_stream(self):
+        return self.source.outs[self.index]
+    
+    def set_stream(self, stream, stacklevel):
+        self.source.outs._set_stream(self.index, stream, stacklevel+1)
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({self.source}, {self.index})"
+
+
+class StreamPorts:
+    __slots__ = ('_ports',)
+    
+    @classmethod
+    def from_inlets(cls, inlets, sort=None):
+        return cls([InletPort.from_inlet(i) for i in inlets], sort)
+    
+    @classmethod
+    def from_outlets(cls, inlets, sort=None):
+        return cls([OutletPort.from_outlet(i) for i in inlets], sort)
+    
+    def __init__(self, ports, sort=None):
+        if sort: ports = sorted(ports, key=lambda x: x._sorting_key())
+        self._ports = tuple(ports)
+        
+    def __iter__(self):
+        for i in self._ports: yield i.get_stream()
+    
+    def __getitem__(self, index):
+        return self._ports[index].get_stream()
+    
+    def __setitem__(self, index, item):
+        isa = isinstance
+        if isa(index, int):
+            self._set_stream(index, item, 2)
+        elif isa(index, slice):
+            self._set_streams(index, item, 2)
+        else:
+            raise IndexError("Only intergers and slices are valid "
+                            f"indices for '{type(self).__name__}' objects")
+          
+    def _set_stream(self, int, stream, stacklevel):
+        self._ports[int].set_stream(stream, stacklevel+1)
+    
+    def _set_streams(self, slice, streams, stacklevel):
+        ports = self._ports[slice]
+        stacklevel += 1
+        if len(streams) == len(ports):
+            for i, j in zip(ports, streams): i.set_stream(j, stacklevel)
+        else:
+            raise IndexError("number of inlets must match the size of slice")
+        
+    def __repr__(self):
+        ports = []
+        isa = isinstance
+        for i in self._ports:
+            if isa(i, InletPort):
+                ports.append(f"{i.index}-{i.sink}") 
+            elif isa(i, OutletPort):
+                ports.append(f"{i.source}-{i.index}") 
+            else:
+                ports.append(str(i))
+        ports = ', '.join(ports)
+        return f"[{ports}]"
+
+
+# %% Stream pipping
         
 def __sub__(self, index):
     if isinstance(index, int):

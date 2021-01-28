@@ -10,8 +10,6 @@ As BioSTEAM objects are created, they are automatically registered. The `main_fl
 """
 import biosteam as bst
 from thermosteam.utils import Registry
-from .digraph import (digraph_from_units_and_streams, 
-                      finalize_digraph)
 from thermosteam import Stream
 from ._unit import Unit
 from ._facility import Facility
@@ -111,6 +109,9 @@ class Flowsheet:
     def registries(self):
         return (self.stream, self.unit, self.system)
     
+    def clear(self):
+        for registry in self.registries: registry.clear()
+    
     def discard(self, ID):
         for registry in self.registries:
             if ID in registry: 
@@ -132,22 +133,27 @@ class Flowsheet:
             new.update(flowsheet)
         return new
     
-    def diagram(self, file=None, format='svg', display=True, **graph_attrs):
+    def diagram(self, kind=None, file=None, format=None, display=True, **graph_attrs):
         """
         Display all units and attached streams.
         
         Parameters
         ----------
-        file=None : str, display in console by default
+        kind='surface' : 'cluster', 'thorough', 'surface', or 'minimal'
+            * **'cluster':** Display all units clustered by system.
+            * **'thorough':** Display every unit within the path.
+            * **'surface':** Display only elements listed in the path.
+            * **'minimal':** Display path as a box.
+        file : str, display in console by default
             File name to save diagram.
-        format='png' : str
-            File format (e.g. "png", "svg").
+        format : str
+            File format (e.g. "png", "svg"). Defaults to 'png'.
         display : bool, optional
             Whether to display diagram in console or to return the graphviz 
             object.
             
         """
-        return self.create_system(None).diagram(file=file, format=format, display=display)
+        return self.create_system(None).diagram(kind or 'thorough', file, format, display)
     
     def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
         """
@@ -242,12 +248,12 @@ class MainFlowsheet(Flowsheet):
 	"""
     line = "Main flowsheet"
         
-    def set_flowsheet(self, flowsheet):
+    def set_flowsheet(self, flowsheet, new=False):
         """Set main flowsheet that is updated with new biosteam objects."""
         if isinstance(flowsheet, Flowsheet):
             dct = flowsheet.__dict__
         elif isinstance(flowsheet, str):
-            if flowsheet in self.flowsheet:
+            if not new and flowsheet in self.flowsheet:
                 dct = main_flowsheet.flowsheet[flowsheet].__dict__
             else:
                 new_flowsheet = Flowsheet(flowsheet)

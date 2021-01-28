@@ -150,10 +150,10 @@ class Model(State):
     >>> set_N_reactors_parameter = parameters[0]
     >>> set_N_reactors_parameter(5)
     >>> R301.purchase_cost / 1e6
-    1.7
+    1.8
     >>> set_N_reactors_parameter(8)
     >>> R301.purchase_cost / 1e6
-    2.0
+    2.1
     
     Add the fermentation unit base cost as a "cost" parameter with a triangular distribution (which doesn't affect mass and energy balances nor design requirements'):
     
@@ -222,8 +222,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]      9.
-                 Utility cost [10^6 USD/yr]     -14.
+    Biorefinery  Internal rate of return [%]     10.7
+                 Utility cost [10^6 USD/yr]     -17.5
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:

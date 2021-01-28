@@ -19,10 +19,10 @@ from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
-from ._unit import Unit
+from ._unit import Unit, repr_ins_and_outs
 from .report import save_report
 from .exceptions import InfeasibleRegion
-from .utils import colors, strtuple
+from .utils import StreamPorts, colors
 from collections.abc import Iterable
 from collections import deque
 from warnings import warn
@@ -102,8 +102,7 @@ def _evaluate(self, command=None):
                **F.system.__dict__,
                **F.stream.__dict__,
                **F.unit.__dict__,
-               **F.flowsheet.__dict__
-        } 
+               **F.flowsheet.__dict__} 
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -129,7 +128,6 @@ def _method_debug(self, func):
         # Run method and ask to evaluate
         _evaluate(self)
         func(*args, **kwargs)
-        
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     wrapper._original = func
@@ -191,11 +189,10 @@ class System:
         '_rmol_error',
         '_rT_error',
         '_iter',
+        '_ins',
+        '_outs',
         'units',
-        'streams',
         'subsystems',
-        'feeds',
-        'products',
         'maxiter',
         'molar_tolerance',
         'relative_molar_tolerance',
@@ -213,11 +210,11 @@ class System:
     #: [int] Default maximum number of iterations
     default_maxiter = 200
     
-    #: [float] Default molar tolerance (kmol/hr)
-    default_molar_tolerance = 0.50
+    #: [float] Default molar tolerance for each component (kmol/hr)
+    default_molar_tolerance = 1.
 
-    #: [float] Default relative molar tolerance
-    default_relative_molar_tolerance = 0.02
+    #: [float] Default relative molar tolerance for each component 
+    default_relative_molar_tolerance = 0.01
     
     #: [float] Default temperature tolerance (K)
     default_temperature_tolerance = 0.10
@@ -283,9 +280,6 @@ class System:
                 for i in network.path]
         self = cls.__new__(cls)
         self.units = network.units
-        self.streams = streams = network.streams
-        self.feeds = feeds = network.feeds
-        self.products = products = network.products
         self.recycle = network.recycle
         self._set_path(path)
         self._specification = None
@@ -294,14 +288,7 @@ class System:
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
-        if facilities:
-            f_streams = bst.utils.streams_from_path(facilities)
-            f_feeds = bst.utils.feeds(f_streams)
-            f_products = bst.utils.products(f_streams)
-            streams.update(f_streams)
-            feeds.update(f_feeds)
-            products.update(f_products)
-        self._finalize_streams()
+        self._load_stream_links()
         self._load_defaults()
         return self
         
@@ -315,8 +302,7 @@ class System:
         self._reset_errors()
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
-        self._load_streams()
-        self._finalize_streams()
+        self._load_stream_links()
         self._register(ID)
         self._load_defaults()
     
@@ -467,7 +453,6 @@ class System:
         new_facility_units = []
         for i in facilities:
             if isa(i, Unit):
-                i._load_stream_links()
                 units.add(i)
                 if i._cost: costunits.add(i)
                 if isa(i, Facility) and not i._system:
@@ -481,7 +466,6 @@ class System:
             i._other_units = other_units = self.units.copy()
             other_units.remove(i)
             
-    
     def _set_facility_recycle(self, recycle):
         if recycle:
             system = self._downstream_system(recycle.sink)
@@ -489,30 +473,68 @@ class System:
             self._facility_loop = FacilityLoop(system, recycle)
         else:
             self._facility_loop = None
-        
-    def _load_streams(self):
-        #: set[:class:`~thermosteam.Stream`] All streams within the system
-        self.streams = streams = set()
-        
-        for u in self.units: streams.update(u._ins + u._outs)
-        for sys in self.subsystems: streams.update(sys.streams)
-        
-        #: set[:class:`~thermosteam.Stream`] All feed streams in the system.
-        self.feeds = bst.utils.feeds(streams)
-        
-        #: set[:class:`~thermosteam.Stream`] All product streams in the system.
-        self.products = bst.utils.products(streams)
-        
+    
+    @property
+    def streams(self):
+        """set[:class:`~thermosteam.Stream`] All streams within the system."""
+        streams = bst.utils.streams_from_units(self.units)
+        bst.utils.filter_out_missing_streams(streams)
+        return streams
+    @property
+    def feeds(self):
+        """set[:class:`~thermosteam.Stream`] All feeds to the system."""
+        inlets = bst.utils.inlets(self.units)
+        bst.utils.filter_out_missing_streams(inlets)
+        return bst.utils.feeds(inlets)
+    @property
+    def products(self):
+        """set[:class:`~thermosteam.Stream`] All products of the system."""
+        outlets = bst.utils.outlets(self.units)
+        bst.utils.filter_out_missing_streams(outlets)
+        return bst.utils.products(outlets)
+    @property
+    def ins(self):
+        """StreamPorts[:class:`~InletPort`] All inlets to the system."""
+        if hasattr(self, '_ins'):
+            ins = self._ins
+        else:
+            self._ins = ins = StreamPorts.from_inlets(self.feeds, sort=True)
+        return ins
+    @property
+    def outs(self):
+        """StreamPorts[:class:`~OutletPort`] All outlets to the system."""
+        if hasattr(self, '_outs'):
+            outs = self._outs
+        else:
+            self._outs = outs = StreamPorts.from_outlets(self.products, sort=True)
+        return outs
+    
+    def load_inlet_ports(self, inlets):
+        """Load inlet ports to system."""
+        all_inlets = bst.utils.inlets(self.units)
+        for i in inlets: 
+            if i not in all_inlets:
+                raise ValueError(f'{i} is not an inlet')
+        self._ins = StreamPorts.from_inlets(inlets)
+    
+    def load_outlet_ports(self, outlets):
+        """Load outlet ports to system."""
+        all_outlets = bst.utils.outlets(self.units)
+        for i in outlets: 
+            if i not in all_outlets:
+                raise ValueError(f'{i} is not an outlet')
+        self._outs = StreamPorts.from_outlets(outlets)
+            
     def _load_stream_links(self):
         for u in self.unit_path: u._load_stream_links()
         
-    def _filter_out_missing_streams(self):
-        for stream_set in (self.streams, self.feeds, self.products):
-            bst.utils.filter_out_missing_streams(stream_set)
-        
-    def _finalize_streams(self):
-        self._load_stream_links()
-        self._filter_out_missing_streams()
+    # Forward pipping
+    __sub__ = Unit.__sub__
+    __rsub__ = Unit.__rsub__
+
+    # Backwards pipping
+    __pow__ = __sub__
+    __rpow__ = __rsub__
         
     @property
     def TEA(self):
@@ -633,7 +655,7 @@ class System:
     def _cluster_digraph(self, **graph_attrs):
         return digraph_from_system(self, **graph_attrs)
         
-    def diagram(self, kind='surface', file=None, format='png', display=True,
+    def diagram(self, kind=None, file=None, format=None, display=True,
                 **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of 
@@ -641,7 +663,7 @@ class System:
         
         Parameters
         ----------
-        kind='surface' : 'cluster', 'thorough', 'surface', or 'minimal'
+        kind : 'cluster', 'thorough', 'surface', or 'minimal'
             * **'cluster':** Display all units clustered by system.
             * **'thorough':** Display every unit within the path.
             * **'surface':** Display only elements listed in the path.
@@ -655,6 +677,8 @@ class System:
             object.
             
         """
+        if not kind: kind = 'surface'
+        if not format: format = 'png'
         if kind == 'cluster':
             f = self._cluster_digraph(format=format, **graph_attrs)
         elif kind == 'thorough':
@@ -694,19 +718,23 @@ class System:
         self._run()
         mol_new = self._get_recycle_data()
         T_new = self._get_recycle_temperatures()
-        mol_sum = mol.sum()
-        mol_new_sum = mol_new.sum()
-        total_mol = mol_sum or mol_new_sum
-        T_sum = np.sum(T)
-        T_new_sum = np.sum(T_new)
-        self._mol_error = mol_error = np.abs(mol_sum - mol_new_sum)
-        self._rmol_error = rmol_error = mol_error / total_mol if total_mol else 0.
-        self._T_error = T_error = np.abs(T_sum - T_new_sum)
-        self._rT_error = rT_error = T_error / T_sum
+        molar_tolerance = self.molar_tolerance
+        mol_errors = np.abs(mol - mol_new)
+        positive_index = mol > 1e-16
+        mol_errors = mol_errors[positive_index]
+        if mol_errors.size == 0:
+            self._mol_error = mol_error = 0.
+            self._rmol_error = rmol_error = 0.
+        else:
+            self._mol_error = mol_error = mol_errors.max()
+            self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([mol[positive_index], mol_new[positive_index]])).max()
+        T_errors = np.abs(T - T_new)
+        self._T_error = T_error = T_errors.max()
+        self._rT_error = rT_error = T_errors / T
         self._iter += 1
         if self.alternative_convergence_check:
             not_converged = self.alternative_convergence_check(self.recycle, mol, mol_new, T, T_new)
-        elif (mol_error < self.molar_tolerance
+        elif (mol_error < molar_tolerance
             and rmol_error < self.relative_molar_tolerance
             and T_error < self.temperature_tolerance
             and rT_error < self.relative_temperature_tolerance):
@@ -752,11 +780,12 @@ class System:
     def _get_recycle_temperatures(self):
         recycle = self._recycle
         if isinstance(recycle, Stream):
-            return self._recycle.T
+            T = self._recycle.T
         elif isinstance(recycle, Iterable):
-            return np.array([i.T for i in recycle], float)
+            T = [i.T for i in recycle]
         else:
             raise RuntimeError('no recycle available')
+        return np.array(T, float)
     
     def _setup(self):
         """Setup each element of the system."""
@@ -909,6 +938,21 @@ class System:
         self._converge()
         self._summary()
         if self._facility_loop: self._facility_loop()
+     
+    # Other
+    
+    def to_network(self):
+        """Return network that defines the system path."""
+        isa = isinstance
+        path = [(i.to_network() if isa(i, System) else i) for i in self._path]
+        network = Network.__new__(Network)    
+        network.path = path
+        network.recycle = self._recycle
+        network.units = self.units
+        network.subnetworks = [i for i in path if isa(i, Network)]
+        network.feeds = self.feeds
+        network.products = self.products
+        return network
         
     # Debugging
     def _debug_on(self):
@@ -945,32 +989,8 @@ class System:
             print(f'\nFinished debugging{end}')
         else:
             print('\n        Finished debugging')
-
+            
     # Representation
-    def __str__(self):
-        if self.ID: return self.ID
-        else: return type(self).__name__ 
-    
-    def __repr__(self):
-        if self.ID: return f'<{type(self).__name__}: {self.ID}>'
-        else: return f'<{type(self).__name__}>'
-
-    def show(self):
-        """Prints information on unit."""
-        print(self._info())
-    
-    def to_network(self):
-        """Return network that defines the system path."""
-        isa = isinstance
-        path = [(i.to_network() if isa(i, System) else i) for i in self._path]
-        network = Network.__new__(Network)    
-        network.path = path
-        network.recycle = self._recycle
-        network.units = self.units
-        network.subnetworks = [i for i in path if isa(i, Network)]
-        network.feeds = self.feeds
-        network.products = self.products
-        return network
     
     def print(self, spaces=''): # pragma: no cover
         """
@@ -1030,52 +1050,37 @@ class System:
 
     def _error_info(self):
         """Return information on convergence."""
-        if self._recycle:
-            return (f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr ({self._rmol_error:.2%})"
-                    f"\n                    Temperature {self._T_error:.2e} K ({self._rT_error:.2%})"
-                    f"\n iterations: {self._iter}")
+        recycle = self._recycle
+        if recycle:
+            s = '' if isinstance(recycle, Stream) else 's'
+            return (f"\nHighest convergence error among components in recycle"
+                    f"\nstream{s} {self._get_recycle_info()} after {self._iter} loops:"
+                    f"\n- flow rate   {self._mol_error:.2e} kmol/hr ({self._rmol_error*100.:.2g}%)"
+                    f"\n- temperature {self._T_error:.2e} K ({self._rT_error*100.:.2g}%)")
         else:
             return ""
 
-    def _info(self):
+    def __str__(self):
+        if self.ID: return self.ID
+        else: return type(self).__name__ 
+    
+    def __repr__(self):
+        if self.ID: return f'<{type(self).__name__}: {self.ID}>'
+        else: return f'<{type(self).__name__}>'
+
+    def show(self, T=None, P=None, flow=None, composition=None, N=None, 
+             IDs=None, data=True):
+        """Prints information on system."""
+        print(self._info(T, P, flow, composition, N, IDs, data))
+
+    def _info(self, T, P, flow, composition, N, IDs, data):
         """Return string with all specifications."""
-        if self._recycle is None:
-            recycle = ''
-        else:
-            recycle = f"\n recycle: {self._get_recycle_info()}"
         error = self._error_info()
-        path = strtuple(self._path)
-        i = 1; last_i = 0
-        while True:
-            i += 2
-            i = path.find(', ', i)
-            i_next = path.find(', ', i+2)
-            if (i_next-last_i) > 35:
-                path = (path[:i] + '%' + path[i:])
-                last_i = i
-            elif i == -1: break
-        path = path.replace('%, ', ',\n' + ' '*8)
-        
-        if self.facilities:
-            facilities = strtuple(self.facilities)
-            i = 1; last_i = 0
-            while True:
-                i += 2
-                i = facilities.find(', ', i)
-                if (i - last_i) > 35:
-                    facilities = (facilities[:i] + '%' + facilities[i:])
-                    last_i = i
-                elif i == -1: break
-            facilities = facilities.replace('%, ', ',\n'+' '*14)
-            facilities = f"\n facilities: {facilities}" 
-        else:
-            facilities = ''
-        
+        ins_and_outs = repr_ins_and_outs(self.ins, self.outs, 
+                                         T, P, flow, composition, N, IDs, data)
         return (f"System: {self.ID}"
-                + recycle
-                + f"\n path: {path}"
-                + facilities
-                + error)
+                + error + '\n'
+                + ins_and_outs)
 
 
 class FacilityLoop:
@@ -1118,10 +1123,10 @@ class FacilityLoop:
         self._iter = 0
     
     def _run(self): self.system.simulate()
+    
     def __call__(self): self._converge_method()
 
     def __repr__(self): 
         return f"<{type(self).__name__}: {self.system.ID}>"
-    
-        
+            
 from biosteam import _flowsheet as flowsheet_module
