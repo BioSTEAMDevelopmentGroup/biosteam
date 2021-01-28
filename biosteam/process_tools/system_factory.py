@@ -9,6 +9,7 @@
 """
 from thermosteam import Stream
 from biosteam import System
+from inspect import signature
 
 __all__ = ('SystemFactory', )
 
@@ -22,8 +23,9 @@ class SystemFactory:
     
     Paramters
     ---------
-    f : function(ID, ins, outs, *args, **kwargs), optional
-        Should return a System object given the ID, inlets, outlets, and other parameters.
+    f : Callable, optional
+        Should return a System object given the ID, inlets, outlets, and 
+        other parameters. `f` should have a signature of function(ID, ins, outs, *args, **kwargs).
     ID : str, optional
         Default system name.
     ins: list[dict], optional
@@ -49,7 +51,7 @@ class SystemFactory:
     ...
     >>> create_heating_system.show()
     SystemFactory(
-        f=<function create_heating_system at 0x0000029499528160>,
+        f=<create_heating_system(ID, ins, outs, T_out)>,
         ID='heating_sys',
         ins=[dict(ID='cold_stream',
                   Water=100)],
@@ -112,9 +114,10 @@ class SystemFactory:
         dlim = ',' + newline
         dct_dlim = "," + newline + 5 * " "
         outs = repr_items(outs) if outs else str(outs)
+        name = f"<{f.__name__}{signature(f)}>" if hasattr(f, '__name__') else str(f)
         print(
             f"SystemFactory(\n"
-            f"    f={f},\n"
+            f"    f={name},\n"
             f"    ID={repr(ID)},\n"
             f"    ins={ins},\n"
             f"    outs={outs}\n"
