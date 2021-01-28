@@ -35,3 +35,17 @@ Bug fixes:
 Bug fixes:
 
 * Fixed bug with simulating System object with multiple recycle loops (flat; not nested).
+
+2.23.4
+------
+
+Name changes:
+
+* The `system_defaults` decorator is deprecated. Use the :class:`~biosteam.process_tools.SystemFactory`
+  class as a decorator instead.
+
+New features:
+
+* :class:`~biosteam.System` objects now support python with statements to build systems from units created in the
+  indented code-block
+
