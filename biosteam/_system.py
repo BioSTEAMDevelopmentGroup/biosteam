@@ -97,7 +97,8 @@ def raise_recycle_type_error(recycle):
 
 def print_exception_in_debugger(self, func, e):
     print(f"{colors.exception(type(e).__name__+ ':')} {e}")
-    self.show()
+    try: self.show()
+    except: pass
 
 def update_locals_with_flowsheet(lcs):
     f = bst.main_flowsheet
@@ -330,19 +331,24 @@ class System:
         return self
     
     def __exit__(self, type, value, traceback):
-        if self.path or self.recycle or self.facilities: return
-        units = [i for i in self.flowsheet.unit if i not in self.__previous_flowsheet_units]
+        previous_flowsheet_units = self.__previous_flowsheet_units
         ID = self._ID
-        system = self.from_units(ID, units)
         del self.__previous_flowsheet_units
-        self.ID = ID
-        self._path = system._path
-        self._facilities = system._facilities
-        self._facility_loop = system._facility_loop
-        self._recycle = system._recycle
-        self.units = system.units
-        self.subsystems = system.subsystems
-        self._costunits = system._costunits
+        if self.path or self.recycle or self.facilities:
+            system = self.flowsheet.system[ID]
+            if (system is not self 
+                and system.path == self.path
+                and system.recycle == self.recycle
+                and system.facilities == self.facilities):
+                self.ID = ID
+            else:
+                raise RuntimeError('system was modified before exiting `with` statement')
+        else:
+            units = [i for i in self.flowsheet.unit
+                     if i not in previous_flowsheet_units]
+            system = self.from_units(ID, units)
+            self.ID = ID
+            self.copy_like(system)
     
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system.""" 

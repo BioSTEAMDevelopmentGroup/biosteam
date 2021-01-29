@@ -1,5 +1,5 @@
-v2.23
-=====
+2.23
+====
 
 2.23.1
 ------
@@ -46,7 +46,7 @@ Name changes:
 
 New features:
 
-* :class:`~biosteam.System` objects now support `python with statements` to 
+* :class:`~biosteam.System` objects now support python `with` statements to 
   build systems from units created in the indented code-block
 
 2.23.5
@@ -56,3 +56,11 @@ Bug fixes:
 
 * Fixed bug with missing inlets/outlets for default `ins` and `outs` 
   attributes of :class:`~biosteam.System` objects 
+  
+2.23.7
+------
+
+Enhancements:
+
+* Added exception in the case that :class:`~biosteam.System` objects are modified
+  during context management (python `with` statements).
