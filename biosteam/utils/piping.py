@@ -260,6 +260,9 @@ class StreamSequence:
     def __len__(self):
         return self._streams.__len__()
     
+    def __bool__(self):
+        return bool(self._streams)
+    
     def _set_stream(self, int, stream, stacklevel):
         stream = self._as_stream(stream)
         self._undock(self._streams[int])
@@ -595,6 +598,9 @@ class StreamPorts:
     def __init__(self, ports, sort=None):
         if sort: ports = sorted(ports, key=lambda x: x._sorting_key())
         self._ports = tuple(ports)
+        
+    def __bool__(self):
+        return bool(self._ports)
         
     def __iter__(self):
         for i in self._ports: yield i.get_stream()

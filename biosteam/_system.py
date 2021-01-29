@@ -31,6 +31,7 @@ import numpy as np
 
 __all__ = ('System',)    
 
+
 # %% Functions for creating deterministic systems
 
 def facilities_from_units(units):
@@ -94,51 +95,29 @@ def raise_recycle_type_error(recycle):
         "recycle must be either a Stream object, a tuple of Stream objects, or None"
     )
 
-def _evaluate(self, command=None):
-    """
-    Evaluate a command and request user input for next command.
-    If no command, return. This function is used for debugging a System object.
-    """    
-    # Done evaluating if no command, exit debugger if 'exit'
-    if command is None:
-        Next = colors.next('Next: ') + f'{repr(self)}\n'
-        info = colors.info("Enter to continue or type to evaluate:\n")
-        command = input(Next + info + ">>> ")
-    
-    if command == 'exit': raise KeyboardInterrupt()
-    if command:
-        # Build locals dictionary for evaluating command
-        F = bst.main_flowsheet
-        lcs = {self.ID: self, 'bst': bst,
-               **F.system.__dict__,
-               **F.stream.__dict__,
-               **F.unit.__dict__,
-               **F.flowsheet.__dict__} 
-        try:
-            out = eval(command, {}, lcs)            
-        except Exception as err:
-            # Print exception and ask to raise error or continue evaluating
-            err = colors.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
-            info = colors.info("Enter to raise error or type to evaluate:\n")
-            command = input(err + info + ">>> ")
-            if command == '': raise err
-            _evaluate(self, command)        
-        else:
-            # If successful, continue evaluating
-            if out is None: pass
-            elif (not hasattr(out, '_ipython_display_')
-                  or isinstance(out, type)): print(out)
-            else: out._ipython_display_()
-                
-            command = input(">>> ")
-            _evaluate(self, command)
+def print_exception_in_debugger(self, func, e):
+    print(f"{colors.exception(type(e).__name__+ ':')} {e}")
+    self.show()
+
+def update_locals_with_flowsheet(lcs):
+    f = bst.main_flowsheet
+    for i in (f.system, f.stream, f.unit, f.flowsheet): lcs.update(i.__dict__)
+    lcs.update(bst.__dict__)
 
 def _method_debug(self, func):
     """Method decorator for debugging system."""
     def wrapper(*args, **kwargs):
-        # Run method and ask to evaluate
-        _evaluate(self)
-        func(*args, **kwargs)
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            print_exception_in_debugger(self, func, e)
+            update_locals_with_flowsheet(locals())
+            
+            # Greatings from the Yoel, the BDFL of BioSTEAM.
+            # All systems, units, streams, and flowsheets are available as 
+            # local variables. Although this debugging method is meant to 
+            # be for internal development, please feel free to give it a shot.
+            breakpoint()
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     wrapper._original = func
@@ -214,6 +193,7 @@ class System:
         '__previous_flowsheet_units',
         '_converge_method',
         '_costunits',
+        '__dict__',
         '_TEA',
     )
     
@@ -580,7 +560,10 @@ class System:
         if hasattr(self, '_ins'):
             ins = self._ins
         else:
-            self._ins = ins = StreamPorts.from_inlets(self.feeds, sort=True)
+            units = self.units
+            inlets = bst.utils.inlets(units)
+            inlets = [i for i in inlets if i.source not in units]
+            self._ins = ins = StreamPorts.from_inlets(inlets, sort=True)
         return ins
     @property
     def outs(self):
@@ -588,7 +571,10 @@ class System:
         if hasattr(self, '_outs'):
             outs = self._outs
         else:
-            self._outs = outs = StreamPorts.from_outlets(self.products, sort=True)
+            units = self.units
+            outlets = bst.utils.outlets(units)
+            outlets = [i for i in outlets if i.sink not in units]
+            self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
         return outs
     
     def load_inlet_ports(self, inlets):
@@ -1039,25 +1025,27 @@ class System:
     # Debugging
     def _debug_on(self):
         """Turn on debug mode."""
+        self.__dict__ = {}
         self._run = _notify_run_wrapper(self, self._run)
         path = self._path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = _method_debug(item, item._run)
             elif isinstance(item, System):
+                item.__dict__ = {}
                 item._converge = _method_debug(item, item._converge)
             elif callable(item):
                 path[i] = _method_debug(item, item)
 
     def _debug_off(self):
         """Turn off debug mode."""
-        self._run = self._run._original
+        del self.__dict__
         path = self._path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = item._run._original
             elif isinstance(item, System):
-                item._converge = item._converge._original
+                del item.__dict__
             elif callable(item):
                 path[i] = item._original
     

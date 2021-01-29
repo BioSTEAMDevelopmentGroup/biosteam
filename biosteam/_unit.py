@@ -26,38 +26,32 @@ __all__ = ('Unit',)
 # %% Inlet and outlet representation
 
 def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
-    info = 'ins...\n'
-    i = 0
-    for stream in ins:
-        if not stream:
-            info += f'[{i}] {stream}\n'
+    if ins:
+        info = 'ins...\n'
+        i = 0
+        for stream in ins:
+            unit = stream._source
+            source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
+            if stream and data:
+                stream_info = stream._info(T, P, flow, composition, N, IDs)
+                index = stream_info.index('\n')
+                info += f'[{i}] {stream}' + source_info + stream_info[index+1:] + '\n'
+            else:
+                info += f'[{i}] {stream}' + source_info
             i += 1
-            continue
-        unit = stream._source
-        source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
-        if data:
-            stream_info = stream._info(T, P, flow, composition, N, IDs)
-            index = stream_info.index('\n')
-            info += f'[{i}] {stream.ID}' + source_info + stream_info[index+1:] + '\n'
-        else:
-            info += f'[{i}] {stream.ID}' + source_info
-        i += 1
-    info += 'outs...\n'
-    i = 0
-    for stream in outs:
-        if not stream:
-            info += f'[{i}] {stream}\n'
+    if outs:
+        info += 'outs...\n'
+        i = 0
+        for stream in outs:
+            unit = stream._sink
+            sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
+            if stream and data:
+                stream_info = stream._info(T, P, flow, composition, N, IDs)
+                index = stream_info.index('\n')
+                info += f'[{i}] {stream}' + sink_info + stream_info[index+1:] + '\n'
+            else:
+                info += f'[{i}] {stream}' + sink_info
             i += 1
-            continue
-        unit = stream._sink
-        sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
-        if data:
-            stream_info = stream._info(T, P, flow, composition, N, IDs)
-            index = stream_info.index('\n')
-            info += f'[{i}] {stream.ID}' + sink_info + stream_info[index+1:] + '\n'
-        else:
-            info += f'[{i}] {stream.ID}' + sink_info
-        i += 1
     info = info.replace('\n ', '\n    ')
     return info[:-1]
 
