@@ -304,7 +304,6 @@ class Network:
         path = self.path
         isa = isinstance
         done = False
-        subnetworks = self.subnetworks
         has_overlap = True
         path_tuple = tuple(path)
         recycle = self.recycle

@@ -123,19 +123,6 @@ def _method_debug(self, func):
     wrapper._original = func
     return wrapper
 
-def _notify_run_wrapper(self, func):
-    """Decorate a System run method to notify you after each loop"""
-    def wrapper(*args, **kwargs):
-        if self._recycle:
-            func(*args, **kwargs)
-            input(f'        Finished loop #{self._iter}\n')
-        else:
-            func(*args, **kwargs)
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    wrapper._original = func
-    return wrapper
-
 
 # %% Converging recycle systems
 
@@ -193,7 +180,6 @@ class System:
         '__previous_flowsheet_units',
         '_converge_method',
         '_costunits',
-        '__dict__',
         '_TEA',
     )
     
@@ -1025,27 +1011,19 @@ class System:
     # Debugging
     def _debug_on(self):
         """Turn on debug mode."""
-        self.__dict__ = {}
-        self._run = _notify_run_wrapper(self, self._run)
         path = self._path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = _method_debug(item, item._run)
-            elif isinstance(item, System):
-                item.__dict__ = {}
-                item._converge = _method_debug(item, item._converge)
             elif callable(item):
                 path[i] = _method_debug(item, item)
 
     def _debug_off(self):
         """Turn off debug mode."""
-        del self.__dict__
         path = self._path
         for i, item in enumerate(path):
             if isinstance(item, Unit):
                 item._run = item._run._original
-            elif isinstance(item, System):
-                del item.__dict__
             elif callable(item):
                 path[i] = item._original
     
