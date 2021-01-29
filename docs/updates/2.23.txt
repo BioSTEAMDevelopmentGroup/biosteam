@@ -46,8 +46,8 @@ Name changes:
 
 New features:
 
-* :class:`~biosteam.System` objects now support python with statements to build systems from units created in the
-  indented code-block
+* :class:`~biosteam.System` objects now support `python with statements` to 
+  build systems from units created in the indented code-block
 
 2.23.5
 ------
