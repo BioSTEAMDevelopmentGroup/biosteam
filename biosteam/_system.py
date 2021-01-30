@@ -29,7 +29,7 @@ from warnings import warn
 import biosteam as bst
 import numpy as np
 
-__all__ = ('System',)    
+__all__ = ('System', 'MockSystem')    
 
 
 # %% Functions for creating deterministic systems
@@ -70,14 +70,7 @@ def converge_system_in_path(system):
     try_method_with_object_stamp(system, method)
 
 def simulate_unit_in_path(unit):
-    specification = unit._specification
-    if specification:
-        try_method_with_object_stamp(unit, unit._load_stream_links)
-        try_method_with_object_stamp(unit, unit._setup)
-        try_method_with_object_stamp(unit, specification)
-        try_method_with_object_stamp(unit, unit._summary)
-    else:
-        try_method_with_object_stamp(unit, unit.simulate)
+    try_method_with_object_stamp(unit, unit.simulate)
 
 def simulate_system_in_path(system):
     specification = system._specification
@@ -126,6 +119,48 @@ def _method_debug(self, func):
 
 
 # %% Converging recycle systems
+
+class MockSystem:
+    """
+    Create a MockSystem object with inlets and outlets just like System 
+    objects, but without implementing any of the convergence methods nor
+    path related attributes.
+    
+    Notes
+    -----
+    This object is used to prevent the creation of unneeded systems for less 
+    computational effort.
+    
+    """
+    __slots__ = ('_ins', '_outs')
+    
+    def __init__(self, ins, outs):
+        self._ins = StreamPorts.from_inlets(ins)
+        self._outs = StreamPorts.from_outlets(outs)
+        
+    @property
+    def ins(self): return self._ins
+    @property
+    def outs(self): return self._outs
+        
+    __sub__ = Unit.__sub__
+    __rsub__ = Unit.__rsub__
+    __pow__ = __sub__
+    __rpow__ = __rsub__
+    
+    def show(self):
+        print(
+            f"{type(self).__name__}(\n"
+            f"    ins={self.ins},\n"
+            f"    outs={self.outs}\n"
+             ")"
+        )
+        
+    _ipython_display_ = show
+        
+    def __repr__(self):
+        return f"{type(self).__name__}(ins={self.ins}, outs={self.outs})"
+
 
 @registered('SYS')
 class System:
@@ -331,6 +366,7 @@ class System:
         return self
     
     def __exit__(self, type, value, traceback):
+        if value: raise value
         previous_flowsheet_units = self.__previous_flowsheet_units
         ID = self._ID
         del self.__previous_flowsheet_units
@@ -340,13 +376,14 @@ class System:
                 and system.path == self.path
                 and system.recycle == self.recycle
                 and system.facilities == self.facilities):
+                system._ID = None
                 self.ID = ID
             else:
                 raise RuntimeError('system was modified before exiting `with` statement')
         else:
             units = [i for i in self.flowsheet.unit
                      if i not in previous_flowsheet_units]
-            system = self.from_units(ID, units)
+            system = self.from_units('', units)
             self.ID = ID
             self.copy_like(system)
     
@@ -552,9 +589,7 @@ class System:
         if hasattr(self, '_ins'):
             ins = self._ins
         else:
-            units = self.units
-            inlets = bst.utils.inlets(units)
-            inlets = [i for i in inlets if i.source not in units]
+            inlets = bst.utils.feeds_from_units(self.units)
             self._ins = ins = StreamPorts.from_inlets(inlets, sort=True)
         return ins
     @property
@@ -563,9 +598,7 @@ class System:
         if hasattr(self, '_outs'):
             outs = self._outs
         else:
-            units = self.units
-            outlets = bst.utils.outlets(units)
-            outlets = [i for i in outlets if i.sink not in units]
+            outlets = bst.utils.products_from_units(self.units)
             self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
         return outs
     

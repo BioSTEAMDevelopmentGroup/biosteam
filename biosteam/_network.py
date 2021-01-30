@@ -17,17 +17,17 @@ from thermosteam import Stream
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     paths_with_recycle, linear_paths = find_paths_with_and_without_recycle(
         feed, ends)
-    cyclic_paths_with_recycle = set()
+    cyclic_paths_with_recycle = []
     for path_with_recycle in paths_with_recycle:
         cyclic_path_with_recycle = path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle)
-        cyclic_paths_with_recycle.add(cyclic_path_with_recycle)
+        cyclic_paths_with_recycle.append(cyclic_path_with_recycle)
     cyclic_paths_with_recycle = sorted(cyclic_paths_with_recycle, key=lambda x: -len(x[0]))
     return simplify_linear_paths(linear_paths), cyclic_paths_with_recycle
 
 def find_paths_with_and_without_recycle(feed, ends):
     path = []
-    paths_without_recycle  = set()
-    paths_with_recycle = set()
+    paths_without_recycle  = []
+    paths_with_recycle = []
     fill_path(feed, path, paths_with_recycle, paths_without_recycle, ends)
     return paths_with_recycle, paths_without_recycle
 
@@ -43,10 +43,10 @@ def fill_path(feed, path, paths_with_recycle,
                 has_recycle = recycle.sink is unit
                 if has_recycle: break
     if not unit or isinstance(unit, Facility) or has_recycle is False:
-        paths_without_recycle.add(tuple(path))
+        paths_without_recycle.append(tuple(path))
     elif has_recycle or unit in path: 
         path_with_recycle = tuple(path), feed
-        paths_with_recycle.add(path_with_recycle)
+        paths_with_recycle.append(path_with_recycle)
         ends.add(feed)
     else:
         path.append(unit)
@@ -86,6 +86,12 @@ def simplify_linear_path(path, other_paths):
                 simplified_path.remove(unit)
                 break
     return simplified_path
+
+def add_back_ends(path, units):
+    for outlet in path[-1].outs:
+        sink = outlet.sink 
+        if sink in units: 
+            path.append(sink)
 
 def load_network_components(path, units, streams, feeds,
                             products, subnetworks):
@@ -211,7 +217,15 @@ class Network:
         ends = set(ends) or set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
-        network = Network(sum(reversed(linear_paths), []))
+        if any(linear_paths):
+            linear_paths.reverse()
+            units = set(sum(linear_paths, []))
+            for path in linear_paths: add_back_ends(path, units)
+            network, *linear_networks = [Network(path) for path in linear_paths]
+            for linear_network in linear_networks:
+                network.join_network(linear_network)    
+        else:
+            network = Network([])
         recycle_networks = [Network(path, recycle) for path, recycle
                             in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:

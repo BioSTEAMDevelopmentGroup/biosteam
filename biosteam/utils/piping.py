@@ -351,7 +351,9 @@ class Inlets(StreamSequence):
             if ins is not self:
                 ins.remove(stream)
                 stream._sink = new_sink = self._sink
-                if DOCKING_WARNINGS and sink._ID and new_sink._ID:
+                if (DOCKING_WARNINGS 
+                    and sink._ID and new_sink._ID
+                    and sink._ID != new_sink._ID):
                     warn(f"undocked inlet stream {stream} from unit {sink}; "
                          f"{stream} is now docked at {new_sink}", 
                          RuntimeWarning, stacklevel)
@@ -391,7 +393,9 @@ class Outlets(StreamSequence):
                 # Remove from source
                 outs.remove(stream)
                 stream._source = new_source = self._source
-                if DOCKING_WARNINGS and source._ID and new_source._ID:
+                if (DOCKING_WARNINGS 
+                    and source._ID and new_source._ID
+                    and source._ID != new_source._ID):
                     warn(f"undocked outlet stream {stream} from unit {source}; "
                          f"{stream} is now docked at {new_source}", 
                          RuntimeWarning, stacklevel)
@@ -538,6 +542,7 @@ class InletPort:
     @classmethod
     def from_inlet(cls, inlet):
         sink = inlet.sink
+        if not sink: raise ValueError(f'stream {inlet} is not an inlet to any unit')
         index = sink.ins.index(inlet)
         return cls(sink, index)
     
@@ -564,6 +569,7 @@ class OutletPort:
     @classmethod
     def from_outlet(cls, outlet):
         source = outlet.source
+        if not source: raise ValueError(f'stream {outlet} is not an outlet to any unit')
         index = source.outs.index(outlet)
         return cls(source, index)
     

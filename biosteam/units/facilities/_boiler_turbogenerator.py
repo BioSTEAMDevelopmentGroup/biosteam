@@ -186,6 +186,7 @@ class BoilerTurbogenerator(Facility):
             
             combustion_rxns.force_reaction(emissions_mol)
             emissions.imol['O2'] = 0
+            
             H_content = B_eff * H_combustion - emissions.H
             
             #: [float] Total steam produced by the boiler (kmol/hr)
@@ -225,7 +226,7 @@ class BoilerTurbogenerator(Facility):
         blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
                 self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
         )
-        ash_index = self.chemicals.index('Ash')
+        ash_index = self.chemicals.indices([i.ID for i in self.chemicals if not i.formula])
         ash_disposal.mol[ash_index] = F_mass_ash = emissions.mol[ash_index]
         lime.mol[ash_index] = F_mass_lime = 0.21 * F_mass_ash
         chems.mol[ash_index] = F_mass_chems = 0.0002846242774566474 * F_mass_lime

@@ -8,7 +8,7 @@
 """
 """
 
-__version__ = '2.23.7'
+__version__ = '2.23.8'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
@@ -34,28 +34,31 @@ PROFILE_UNITS_IN_DIAGRAMS = False
 # %% Initialize BioSTEAM 
 
 from flexsolve import speed_up
+from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
 from ._heat_utility import HeatUtility, UtilityAgent
 from ._power_utility import PowerUtility
 from ._unit import Unit
-from ._system import System
-from ._tea import CombinedTEA, TEA
-from ._flowsheet import Flowsheet, main_flowsheet
+from . import _system
+from ._system import *
+from . import _tea
+from ._tea import *
+from . import _flowsheet
+from ._flowsheet import *
 from . import utils
 from . import units
+from .units import *
 from . import evaluation
+from .evaluation import *
 from . import exceptions
 from . import process_tools
+from .process_tools import *
 from . import report
 
-__all__ = ('Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
-           'System', 'TEA', 'CombinedTEA', 'utils', 'units', 'evaluation', 
-           'main_flowsheet', 'Flowsheet', 'Chemical', 'Chemicals', 'Stream',
-           'MultiStream', 'settings', 'exceptions', 'speed_up', 'report',
-           'process_tools', *units.__all__, *evaluation.__all__, 
-           *process_tools.__all__,
+__all__ = (
+    'Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
+    'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
+    'MultiStream', 'settings', 'exceptions', 'speed_up', 'report',
+    'process_tools', *_system.__all__, *_flowsheet.__all__, 
+    *_tea.__all__, *units.__all__, *evaluation.__all__, 
+    *process_tools.__all__,
 )
-
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
-from .process_tools import *
-from .evaluation import *
-from .units import *

@@ -7,16 +7,17 @@
 # for license details.
 """
 """
-import re
+from biosteam.utils import format_unit_line
 __all__ = ('element_name',)
 
 def element_name(element):
     if element:
-        if isinstance(element, type):
-            return re.sub(r"\B([A-Z])", r" \1", element.__name__.replace('_', ' ')).capitalize()
-        elif isinstance(element, str):
+        if isinstance(element, str):
             return element.replace('_', ' ')
-        else:
+        elif hasattr(element, 'line'):
             return element.line + '-' + element.ID.replace('_', ' ')
+        else:
+            unformatted_name = (element if isinstance(element, type) else type(element)).__name__
+            return format_unit_line(unformatted_name)
     else:
         return ''

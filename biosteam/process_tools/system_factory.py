@@ -8,7 +8,7 @@
 """
 """
 from thermosteam import Stream
-from biosteam import System
+from biosteam import System, MockSystem
 from inspect import signature
 
 __all__ = ('SystemFactory', )
@@ -71,6 +71,28 @@ class SystemFactory:
         phase: 'l', T: 350 K, P: 101325 Pa
         flow (kmol/hr): Water  100
     
+    Create a mockup version, add a tank, then create the system:
+        
+    >>> sys = create_heating_system(outs=[''], T_out=350, mockup=True) 
+    >>> sys.show() # Mock systems have ins and outs, just like real systems
+    MockSystem(
+        ins=[0-P1],
+        outs=[H1-0]
+    )
+    >>> Tank = StorageTank('T1', sys-0, 'hot_stream')
+    >>> heating_sys = main_flowsheet.create_system('heating_sys')
+    >>> heating_sys.simulate()
+    >>> heating_sys.show() 
+    System: heating_sys
+    ins...
+    [0] cold_stream
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  100
+    outs...
+    [0] hot_stream
+        phase: 'l', T: 350 K, P: 101325 Pa
+        flow (kmol/hr): Water  100
+    
     """
     __slots__ = ('f', 'ID', 'ins', 'outs')
     
@@ -87,15 +109,19 @@ class SystemFactory:
         else:
             return lambda f: cls(f, ID, ins, outs)
     
-    def __call__(self, ID=None, ins=None, outs=None, *args, **kwargs):
+    def __call__(self, ID=None, ins=None, outs=None, mockup=False, *args, **kwargs):
         ins = create_streams(self.ins, ins, 'inlets')
         outs = create_streams(self.outs, outs, 'outlets')
-        if not ID: ID = self.ID
-        with System(ID) as system:
-            user_system = self.f(ID, ins, outs, *args, **kwargs)
-            if user_system: system.copy_like(user_system)
-        system.load_inlet_ports(ins)
-        system.load_outlet_ports(outs)
+        if mockup:
+            self.f(ID or self.ID, ins, outs, *args, **kwargs)
+            system = MockSystem(ins, outs)
+        else:
+            if not ID: ID = self.ID
+            with System(ID) as system:
+                user_system = self.f(ID, ins, outs, *args, **kwargs)
+                if user_system: system.copy_like(user_system)
+            system.load_inlet_ports(ins)
+            system.load_outlet_ports(outs)
         return system
     
     def show(self):

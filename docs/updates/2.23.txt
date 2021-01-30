@@ -64,3 +64,17 @@ Enhancements:
 
 * Added exception in the case that :class:`~biosteam.System` objects are modified
   during context management (python `with` statements).
+
+2.23.8
+------
+
+Enhancements:
+
+* For computational efficiency, :class:`~biosteam.process_tools.SystemFactory` objects can now return a MockSystem object
+  instead of a real System object if mockup=True.
+
+Bug fixes:
+
+* Automatic creation of systems (e.g. via biosteam.main_flowsheet.create_system) is 100% more deterministic and doesn't fail with feed forward systems.
+
+* Fixed bug with creation of systems sections. Feeds to the system section which are outlets to units outside the section were not accounted for (this is fixed now).

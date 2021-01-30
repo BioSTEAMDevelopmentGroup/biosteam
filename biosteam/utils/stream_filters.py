@@ -18,7 +18,8 @@ __all__ = ('streams_from_units',
            'outlets',
            'filter_out_missing_streams',
            'sort_feeds_big_to_small',
-           'feeds_from_units')
+           'feeds_from_units',
+           'products_from_units')
 
 def inlets(units):
     return set(sum([i._ins for i in units], []))
@@ -57,6 +58,11 @@ def sort_feeds_big_to_small(feeds):
     feeds.sort(key=lambda feed: -feed.F_mass)
 
 def feeds_from_units(units):
-    isa = isinstance; Facility = bst.Facility
-    return sum([[i for i in u.ins if not i._source]
-                for u in units if not isa(u, Facility)], [])
+    unit_set = set(units)
+    return sum([[i for i in u._ins if i._source not in unit_set]
+                 for u in units], [])
+
+def products_from_units(units):
+    unit_set = set(units)
+    return sum([[i for i in u._outs if i._sink not in unit_set]
+                 for u in units], [])
