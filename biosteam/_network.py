@@ -21,8 +21,8 @@ def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     for path_with_recycle in paths_with_recycle:
         cyclic_path_with_recycle = path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle)
         cyclic_paths_with_recycle.append(cyclic_path_with_recycle)
-    cyclic_paths_with_recycle = sorted(cyclic_paths_with_recycle, key=lambda x: -len(x[0]))
-    return simplify_linear_paths(linear_paths), cyclic_paths_with_recycle
+    cyclic_paths_with_recycle.sort(key=lambda x: -len(x[0]))
+    return simplified_linear_paths(linear_paths), cyclic_paths_with_recycle
 
 def find_paths_with_and_without_recycle(feed, ends):
     path = []
@@ -40,17 +40,17 @@ def fill_path(feed, path, paths_with_recycle,
         has_recycle = False
         if unit in path:
             for other_path, recycle in paths_with_recycle:
-                has_recycle = recycle.sink is unit
+                has_recycle = recycle._sink is unit
                 if has_recycle: break
     if not unit or isinstance(unit, Facility) or has_recycle is False:
-        paths_without_recycle.append(tuple(path))
+        paths_without_recycle.append(path)
     elif has_recycle or unit in path: 
-        path_with_recycle = tuple(path), feed
+        path_with_recycle = path, feed
         paths_with_recycle.append(path_with_recycle)
         ends.add(feed)
     else:
         path.append(unit)
-        first_outlet, *other_outlets = unit.outs
+        first_outlet, *other_outlets = unit._outs
         for outlet in other_outlets:
             new_path = path.copy()
             fill_path(outlet, new_path,
@@ -68,28 +68,31 @@ def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     recycle_index = path.index(unit)
     return (path[recycle_index:], recycle)
 
-def simplify_linear_paths(linear_paths):
-    simplified_linear_paths = []
-    linear_paths = sorted(linear_paths, key=len)
-    while linear_paths:
-        smaller_path, *linear_paths = linear_paths
-        simplified_path = simplify_linear_path(smaller_path, linear_paths)
-        if simplified_path:
-            simplified_linear_paths.append(simplified_path)
-    return simplified_linear_paths
+def simplified_linear_paths(linear_paths):
+    if not linear_paths: return linear_paths
+    linear_paths.sort(key=len)
+    units, *unit_sets = [set(i) for i in linear_paths]
+    for i in unit_sets: units.update(i)
+    simplified_paths = []
+    for i, path in enumerate(linear_paths):
+        simplify_linear_path(path, unit_sets[i:])
+        if path:
+            add_back_ends(path, units)
+            simplified_paths.append(path)
+    simplified_paths.reverse()
+    return simplified_paths
     
-def simplify_linear_path(path, other_paths):
-    simplified_path = list(path)
-    for unit in path:
-        for other_path in other_paths:
-            if unit in other_path:
-                simplified_path.remove(unit)
-                break
-    return simplified_path
+def simplify_linear_path(path, unit_sets):
+    if path and unit_sets:
+        for unit in path.copy():
+            for unit_set in unit_sets:
+                if unit in unit_set:
+                    path.remove(unit)
+                    break
 
 def add_back_ends(path, units):
-    for outlet in path[-1].outs:
-        sink = outlet.sink 
+    for outlet in path[-1]._outs:
+        sink = outlet._sink 
         if sink in units: 
             path.append(sink)
 
@@ -217,10 +220,7 @@ class Network:
         ends = set(ends) or set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
-        if any(linear_paths):
-            linear_paths.reverse()
-            units = set(sum(linear_paths, []))
-            for path in linear_paths: add_back_ends(path, units)
+        if linear_paths:
             network, *linear_networks = [Network(path) for path in linear_paths]
             for linear_network in linear_networks:
                 network.join_network(linear_network)    
@@ -321,7 +321,7 @@ class Network:
         has_overlap = True
         path_tuple = tuple(path)
         recycle = self.recycle
-        if recycle and subnetwork.recycle and recycle.sink is subnetwork.recycle.sink:
+        if recycle and subnetwork.recycle and recycle._sink is subnetwork.recycle._sink:
             subnetwork.recycle = None # Feed forward scenario
             self._add_subnetwork(subnetwork)
             return
@@ -395,7 +395,3 @@ class Network:
     def show(self):
         print(self._info(spaces=""))
 
-
-
-    
-        

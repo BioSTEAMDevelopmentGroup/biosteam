@@ -486,9 +486,12 @@ class ReverseOsmosis(Unit):
         water.mol[water_index] = water_recovered
         brine.mol[water_index] = water_flow - water_recovered
         
-        
+@bst.SystemFactory(
+    ID='wastewater_treatment_sys',
+    fixed_ins_size=False,
+)
 def create_wastewater_treatment_system(
-        wastewater_streams=(),
+        ID, ins, outs,
         wastewater_treatment_area=600,
         NaOH_price=0.15, 
     ):
@@ -518,21 +521,24 @@ def create_wastewater_treatment_system(
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
                      units='kg/hr', price=NaOH_price*0.5)
     
-    wastewater_mixer = bst.Mixer(f'M{n+1}', wastewater_streams)
+    wastewater_mixer = bst.Mixer(f'M{n+1}', ins)
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
     anaerobic_digestion = AnaerobicDigestion(f'R{n+1}', (WWTC-0, well_water))
     recycled_sludge_mixer = bst.Mixer(f'M{n+2}', (anaerobic_digestion-1, None))
     
     caustic_over_waste = caustic.mol / 2544300.6261793654
     air_over_waste = air.mol / 2544300.6261793654
+    air.mol[:] = 0.
     waste = recycled_sludge_mixer-0
     def update_aerobic_input_streams():
         F_mass_waste = waste.F_mass
         caustic.mol[:] = F_mass_waste * caustic_over_waste
         air.mol[:] = F_mass_waste * air_over_waste
+        aerobic_digestion._run()
     
     aerobic_digestion = AerobicDigestion(f'R{n+2}', (waste, air, caustic),
                                          outs=('evaporated_water', ''))
+    aerobic_digestion.specification = update_aerobic_input_streams
     membrane_bioreactor = MembraneBioreactor(f'S{n+1}', aerobic_digestion-1)
     sludge_splitter = bst.Splitter(f'S{n+2}', membrane_bioreactor-1, split=0.96)
     fresh_sludge_mixer = bst.Mixer(f'M{n+3}', (anaerobic_digestion-2, sludge_splitter-1))
@@ -540,14 +546,3 @@ def create_wastewater_treatment_system(
     sludge_centrifuge-0-1-recycled_sludge_mixer
     reverse_osmosis = ReverseOsmosis(f'S{n+4}', membrane_bioreactor-0,
                                      outs=('treated_water', 'waste_brine'))
-    
-    aerobic_digestion_sys = bst.System('aerobic_digestion_sys',
-                                   path=(recycled_sludge_mixer, update_aerobic_input_streams,
-                                         aerobic_digestion, membrane_bioreactor, sludge_splitter,
-                                         fresh_sludge_mixer, sludge_centrifuge),
-                                   recycle=recycled_sludge_mixer-0)
-    
-    wastewater_treatment = bst.System('wastewater_treatment',
-                                  path=[wastewater_mixer, WWTC, anaerobic_digestion,
-                                        aerobic_digestion_sys, reverse_osmosis])
-    return wastewater_treatment

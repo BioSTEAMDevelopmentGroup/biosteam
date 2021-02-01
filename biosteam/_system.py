@@ -813,7 +813,7 @@ class System:
         T_new = self._get_recycle_temperatures()
         molar_tolerance = self.molar_tolerance
         mol_errors = np.abs(mol - mol_new)
-        positive_index = mol > 1e-16
+        positive_index = mol_errors > 1e-16
         mol_errors = mol_errors[positive_index]
         if mol_errors.size == 0:
             self._mol_error = mol_error = 0.

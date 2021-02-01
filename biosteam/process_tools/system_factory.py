@@ -10,6 +10,7 @@
 from thermosteam import Stream
 from biosteam import System, MockSystem
 from inspect import signature
+from biosteam.utils import as_stream
 
 __all__ = ('SystemFactory', )
 
@@ -94,9 +95,12 @@ class SystemFactory:
         flow (kmol/hr): Water  100
     
     """
-    __slots__ = ('f', 'ID', 'ins', 'outs')
+    __slots__ = ('f', 'ID', 'ins', 'outs',
+                 'fixed_ins_size',
+                 'fixed_outs_size')
     
-    def __new__(cls, f=None, ID=None, ins=None, outs=None):
+    def __new__(cls, f=None, ID=None, ins=None, outs=None,
+                fixed_ins_size=True, fixed_outs_size=True):
         if f:
             ins = ins or []
             outs = outs or []
@@ -105,13 +109,15 @@ class SystemFactory:
             self.ID = ID
             self.ins = ins
             self.outs = outs
+            self.fixed_ins_size = fixed_ins_size
+            self.fixed_outs_size = fixed_outs_size
             return self
         else:
-            return lambda f: cls(f, ID, ins, outs)
+            return lambda f: cls(f, ID, ins, outs, fixed_ins_size, fixed_outs_size)
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, *args, **kwargs):
-        ins = create_streams(self.ins, ins, 'inlets')
-        outs = create_streams(self.outs, outs, 'outlets')
+        ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
+        outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         if mockup:
             self.f(ID or self.ID, ins, outs, *args, **kwargs)
             system = MockSystem(ins, outs)
@@ -152,7 +158,7 @@ class SystemFactory:
         
     _ipython_display_ = show
         
-def create_streams(defaults, user_streams, kind):
+def create_streams(defaults, user_streams, kind, fixed_size):
     if user_streams is None:
         return [Stream(**kwargs) for kwargs in defaults]
     isa = isinstance
@@ -160,7 +166,7 @@ def create_streams(defaults, user_streams, kind):
         user_streams = [user_streams]
     N_defaults = len(defaults)
     N_streams = len(user_streams)
-    if N_streams > N_defaults:
+    if fixed_size and N_streams > N_defaults:
         raise ValueError(f'too many {kind} ({N_streams} given); '
                          f'number of {kind} must be {N_defaults} or less')
     streams = []
@@ -182,4 +188,6 @@ def create_streams(defaults, user_streams, kind):
         index += 1
     if N_streams < N_defaults:
         streams += [Stream(**kwargs) for kwargs in defaults[index:]]
+    elif N_streams > N_defaults:
+        streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams

@@ -180,31 +180,39 @@ class StreamSequence:
         dock = self._dock
         redock = self._redock
         if streams == ():
-                self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
+            self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
             isa = isinstance
+            stream_types = (Stream, MissingStream)
             if fixed_size:
                 self._initialize_missing_streams()
                 if streams:
                     if isa(streams, str):
                         self._streams[0] = dock(Stream(streams, thermo=thermo))
-                    elif isa(streams, (Stream, MultiStream)):
+                    elif isa(streams, stream_types):
                         self._streams[0] = redock(streams, stacklevel)
                     else:
                         N = len(streams)
                         n_missing(size, N) # Make sure size is not too big
-                        self._streams[:N] = [redock(i, stacklevel+1) if isa(i, Stream)
+                        self._streams[:N] = [redock(i, stacklevel+1) if isa(i, stream_types)
                                              else dock(Stream(i, thermo=thermo)) for i in streams]
             else:
                 if streams:
                     if isa(streams, str):
                         self._streams = [dock(Stream(streams, thermo=thermo))]
-                    elif isa(streams, (Stream, MultiStream)):
+                    elif isa(streams, stream_types):
                         self._streams = [redock(streams, stacklevel)]
                     else:
-                        self._streams = [redock(i, stacklevel+1) if isa(i, Stream)
-                                         else dock(Stream(i, thermo=thermo)) 
-                                         for i in streams]
+                        self._streams = loaded_streams = []
+                        for i in streams:
+                            if isa(i, stream_types):
+                                s = redock(i, stacklevel)
+                            elif i is None:
+                                s = self._create_missing_stream()
+                            else:
+                                s = Stream(i, thermo=thermo)
+                                dock(s)
+                            loaded_streams.append(s)
                 else:
                     self._initialize_missing_streams()
         

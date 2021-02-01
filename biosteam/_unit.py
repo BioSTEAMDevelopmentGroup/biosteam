@@ -26,8 +26,9 @@ __all__ = ('Unit',)
 # %% Inlet and outlet representation
 
 def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
+    info = ''
     if ins:
-        info = 'ins...\n'
+        info += 'ins...\n'
         i = 0
         for stream in ins:
             unit = stream._source

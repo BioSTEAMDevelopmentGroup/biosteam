@@ -23,9 +23,10 @@ __all__ = ('load_default_parameters',
 # %% Predefined shapes
 
 def triang(mid, proportion=0.1, addition=0): # pragma: no cover
-    return shape.Triangle((1.-proportion)*mid - addition,
-                          mid,
-                          (1.+proportion)*mid + addition)
+    lb = (1.-proportion)*mid - addition
+    ub = (1.+proportion)*mid + addition
+    if lb > ub: ub, lb = lb, ub
+    return shape.Triangle(lb, mid, ub)
 
 def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1): # pragma: no cover
     if lb > ub: ub, lb = lb, ub
