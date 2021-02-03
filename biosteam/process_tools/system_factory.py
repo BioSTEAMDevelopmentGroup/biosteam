@@ -74,6 +74,7 @@ class SystemFactory:
     
     Create a mockup version, add a tank, then create the system:
         
+    >>> main_flowsheet.clear() # Remove old unit operations
     >>> sys = create_heating_system(outs=[''], T_out=350, mockup=True) 
     >>> sys.show() # Mock systems have ins and outs, just like real systems
     MockSystem(
@@ -191,3 +192,4 @@ def create_streams(defaults, user_streams, kind, fixed_size):
     elif N_streams > N_defaults:
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams
+    

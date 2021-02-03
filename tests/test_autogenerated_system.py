@@ -186,16 +186,18 @@ def test_feed_forward_recycle_loop():
     P3 = Pump('P3', product)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
     network = recycle_loop_sys.to_network()
-    actual_network = Network(
-        [P1,
-         P2,
-         Network(
-            [M1,
-             S1,
-             M2,
-             S2],
-            recycle=S2-0),
-         P3])
+    actual_network = (
+        Network(
+            [P1,
+             P2,
+             Network(
+                [M1,
+                 S1,
+                 M2,
+                 S2],
+                recycle={S2-0, S1-1}),
+             P3])
+    )
     assert network == actual_network 
     recycle_loop_sys.simulate()
     x_nested_solution = np.vstack([recycle.mol, inner_recycle.mol])
@@ -376,6 +378,7 @@ def test_sugarcane_ethanol_biorefinery_network():
          R301,
          T301,
          C301,
+         D301,
          M302,
          P301,
          Network(
@@ -396,7 +399,6 @@ def test_sugarcane_ethanol_biorefinery_network():
          P305,
          M304,
          T304,
-         D301,
          P303,
          M305,
          U202])

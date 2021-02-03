@@ -215,6 +215,10 @@ class Flash(design.PressureVessel, Unit):
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
         
+    def reset_cache(self):
+        self._multi_stream.reset_cache()
+        self.heat_exchanger.reset_cache()
+        
     @property
     def P(self):
         """Operating pressure (Pa)."""

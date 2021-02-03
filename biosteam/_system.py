@@ -22,14 +22,28 @@ from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
 from .report import save_report
 from .exceptions import InfeasibleRegion
-from .utils import StreamPorts, colors
+from .utils import StreamPorts, OutletPort, colors
 from collections.abc import Iterable
 from collections import deque
 from warnings import warn
 import biosteam as bst
 import numpy as np
 
-__all__ = ('System', 'MockSystem')    
+__all__ = ('System', 'MockSystem', 'mark_disjunction', 'unmark_disjunction')    
+
+# %% Customization to system creation
+
+disjunctions = []
+
+def mark_disjunction(stream):
+    port = OutletPort.from_outlet(stream)
+    if port not in disjunctions: 
+        disjunctions.append(port)
+    
+def unmark_disjunction(stream):
+    port = OutletPort.from_outlet(stream)
+    if port in disjunctions:
+        disjunctions.remove(port)
 
 
 # %% Functions for creating deterministic systems
@@ -266,11 +280,12 @@ class System:
             Recycle stream between facilities and system path.
         
         """
-        network = Network.from_feedstock(feedstock, feeds, ends)
+        network = Network.from_feedstock(feedstock, feeds, 
+                                         ends or [i.get_stream() for i in disjunctions])
         return cls.from_network(ID, network, facilities, facility_recycle)
 
     @classmethod
-    def from_units(cls, ID="", units=None, feeds=None, ends=(), facility_recycle=None):
+    def from_units(cls, ID="", units=None, feeds=None, ends=None, facility_recycle=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -656,7 +671,7 @@ class System:
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, Iterable):
-            recycle = tuple(recycle)
+            recycle = set(recycle)
             for i in recycle:
                 if not isa(i, Stream):
                     raise ValueError("recycle streams must be Stream objects; "
@@ -1126,7 +1141,7 @@ class System:
             recycle = recycle._source_info()
         else:
             recycle = ", ".join([i._source_info() for i in recycle])
-            recycle = '[' + recycle + ']'
+            recycle = '{' + recycle + '}'
         return recycle
     
     def _ipython_display_(self):

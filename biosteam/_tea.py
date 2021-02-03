@@ -13,6 +13,7 @@ import flexsolve as flx
 from copy import copy as copy_
 from flexsolve import njitable
 from math import floor
+from warnings import warn
 
 __all__ = ('TEA', 'CombinedTEA')
 
@@ -626,7 +627,8 @@ class TEA:
         with_annual_depreciation=True : bool, optional
         
         """
-        coproducts = self.products.difference(products)
+        coproducts = self.products.copy()
+        for i in products: coproducts.remove(i)
         coproduct_sales = sum([s.cost for s in coproducts if s.price]) * self._operating_hours
         if with_annual_depreciation:
             TDC = self.TDC
@@ -713,7 +715,9 @@ class TEA:
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
-        return stream.F_mass * self._operating_hours
+        F_mass = stream.F_mass
+        if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
+        return F_mass * self._operating_hours
     
     def _NPV_with_sales(self, sales, 
                        taxable_cashflow, 
@@ -744,7 +748,9 @@ class TEA:
         """
         sales = self.solve_incentive()
         price2cost = self._price2cost(stream)
-        if stream.sink:
+        if price2cost == 0.:
+            return np.inf
+        elif stream.sink:
             return stream.price - sales / price2cost
         elif stream.source:
             return stream.price + sales / price2cost
@@ -1053,7 +1059,9 @@ class CombinedTEA(TEA):
         if not TEA: TEA = self.TEAs[0]
         sales = self.solve_incentive(TEA)
         price2cost = TEA._price2cost(stream)
-        if stream.sink:
+        if price2cost == 0:
+            return np.inf
+        elif stream.sink:
             return stream.price - sales / price2cost
         elif stream.source:
             return stream.price + sales / price2cost

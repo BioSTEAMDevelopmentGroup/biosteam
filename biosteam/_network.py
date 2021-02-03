@@ -11,6 +11,7 @@ from ._unit import Unit
 from ._facility import Facility
 from .digraph import digraph_from_units_and_streams, finalize_digraph
 from thermosteam import Stream
+from collections.abc import Iterable
 
 # %% Path tools
 
@@ -196,7 +197,7 @@ class Network:
                                 products, subnetworks)
      
     def __eq__(self, other):
-        return isinstance(other, Network) and self.path == other.path and self.recycle is other.recycle
+        return isinstance(other, Network) and self.path == other.path and self.recycle == other.recycle
         
     @classmethod
     def from_feedstock(cls, feedstock, feeds=(), ends=None):
@@ -217,7 +218,7 @@ class Network:
             process requirements and not by its unit source.
             
         """
-        ends = set(ends) or set()
+        ends = set(ends) if ends else set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
         if linear_paths:
@@ -314,15 +315,50 @@ class Network:
                 path.insert(index, item)
         self._update_from_newly_added_network(network)
     
+    @property
+    def recycle_sink(self):
+        recycle = self.recycle
+        isa = isinstance
+        if isa(recycle, Stream):
+            sink = recycle.sink
+        elif isa(recycle, Iterable):
+            for i in recycle: return i.sink
+        else:
+            sink = None
+        return sink
+    
+    def add_recycle(self, stream):
+        recycle = self.recycle
+        if recycle is stream: return 
+        isa = isinstance
+        if isa(recycle, Stream):
+            if isa(stream, Stream):
+                self.recycle = {self.recycle, stream}
+            elif isa(stream, Iterable):
+                self.recycle = {self.recycle, *stream}
+            else:
+                raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
+        elif isa(recycle, Iterable):
+            if isa(stream, Stream):
+                recycle.add(stream)
+            elif isa(stream, Iterable):
+                recycle.update(stream)
+            else:
+                raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
+        else:
+            raise RuntimeError(f"invalid recycle of type '{type(recycle).__name__}' encountered")
+            
     def _add_subnetwork(self, subnetwork):
         path = self.path
         isa = isinstance
         done = False
         has_overlap = True
         path_tuple = tuple(path)
-        recycle = self.recycle
-        if recycle and subnetwork.recycle and recycle._sink is subnetwork.recycle._sink:
-            subnetwork.recycle = None # Feed forward scenario
+        recycle_sink = self.recycle_sink
+        if recycle_sink and recycle_sink is subnetwork.recycle_sink:
+            # Feed forward scenario
+            self.add_recycle(subnetwork.recycle)
+            subnetwork.recycle = None 
             self._add_subnetwork(subnetwork)
             return
         subunits = subnetwork.units
@@ -383,7 +419,7 @@ class Network:
                 recycle = recycle._source_info()
             else:
                 recycle = ", ".join([i._source_info() for i in recycle])
-                recycle = '[' + recycle + ']'
+                recycle = '{' + recycle + '}'
             info += end + f"recycle={recycle})"
         else:
             info += ')'

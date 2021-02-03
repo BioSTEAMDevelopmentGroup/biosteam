@@ -57,8 +57,8 @@ class UnitGroup:
         
     >>> group.to_dict(with_electricity_production=True)
     {'Installed equipment cost [MM$]': 13.,
-     'Cooling duty [GJ/hr]': 98.,
-     'Heating duty [GJ/hr]': 149.,
+     'Cooling duty [GJ/hr]': 99.,
+     'Heating duty [GJ/hr]': 150.,
      'Electricity consumption [MW]': 0.40,
      'Electricity production [MW]': 0.0}
     
@@ -68,7 +68,7 @@ class UnitGroup:
     13.
     
     >>> group.get_heating_duty()
-    149.
+    150.
     
     """
     __slots__ = ('name', 'units', 'metrics')

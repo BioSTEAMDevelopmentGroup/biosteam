@@ -242,6 +242,12 @@ class MultiEffectEvaporator(Unit):
         self.V_definition = V_definition
         self._V_first_effect = None
         
+    def reset_cache(self):
+        components = self.components
+        evaporators = components['evaporators']
+        for i in evaporators: i.reset_cache()
+        components['condenser'].reset_cache()
+        
     def load_components(self):
         P = self.P
         thermo = self.thermo

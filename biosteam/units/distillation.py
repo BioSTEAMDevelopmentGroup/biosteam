@@ -1072,7 +1072,11 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._update_distillate_and_bottoms_temperature()
 
     def reset_cache(self):
-        self._McCabeThiele_args = np.zeros(6)
+        if not hasattr(self, '_McCabeThiele_args'):
+            self._McCabeThiele_args = np.zeros(6)
+        else:
+            self._McCabeThiele_args = np.zeros(6)
+            for i in self.auxiliary_units: i.reset_cache()
 
     def _run_McCabeThiele(self):
         distillate, bottoms = self.outs

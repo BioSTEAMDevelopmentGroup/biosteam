@@ -21,11 +21,10 @@ Unit Operations
 """
 from .. import Unit
 from .._graphics import splitter_graphics
-from ._process_specification import ProcessSpecification
 from thermosteam import separations
 
 __all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter',
-           'ReversedSplitter', 'ReversedSplit')
+           'ReversedSplitter')
 
 class Splitter(Unit):
     """
@@ -238,12 +237,6 @@ class FakeSplitter(Unit):
     
     def _run(self): pass
     
-    def create_reversed_splitter_process_specification(self, ID='', ins=None, outs=(),
-                                                       description=None):
-        return ProcessSpecification(ID, ins, outs, self.thermo, 
-                                    specification=ReversedSplit(self),
-                                    description=description or 'Reverse split')    
-    
 FakeSplitter.line = 'Splitter'
 
 class ReversedSplitter(Unit):
@@ -266,28 +259,7 @@ class ReversedSplitter(Unit):
         outlets = self.outs
         reversed_split(inlet, outlets)
 
-class ReversedSplit:
-    """
-    When called, sets the inlet stream based on outlet streams. Must have 
-    only one input stream. The outlet streams will have the same temperature, 
-    pressure and phase as the inlet.
-    
-    """
-    __slots__ = ('splitter',)
-    
-    def __init__(self, splitter):
-        self.splitter = splitter
-    
-    @property
-    def __name__(self):
-        return 'ReversedSplit'
-    
-    def __call__(self):
-        splitter = self.splitter
-        inlet, = splitter.ins
-        outlets = splitter.outs
-        reversed_split(inlet, outlets)
-        
+
 def reversed_split(inlet, outlets):
     inlet.mol[:] = sum([i.mol for i in outlets])
     T = inlet.T

@@ -68,6 +68,7 @@ def materialize_connections(streams):
     for stream in streams:
         if not stream: stream.materialize_connection()
 
+
 # %% Dummy Stream object
 
 class MissingStream:
@@ -94,6 +95,9 @@ class MissingStream:
         material_stream = Stream(ID, thermo=source.thermo)
         source._outs.replace(self, material_stream)
         sink._ins.replace(self, material_stream)
+    
+    def reset_cache(self):
+        """Does nothing, MissingStream objects do not contain cache."""
     
     def get_total_flow(units):
         return 0.
@@ -557,7 +561,10 @@ class InletPort:
     def __init__(self, sink, index):
         self.sink = sink
         self.index = index
-        
+      
+    def __eq__(self, other):
+        return self.sink is other.sink and self.index == other.index  
+      
     def _sorting_key(self):
         return (self.sink.ID[1:], self.sink.ID, self.index)
         
@@ -584,6 +591,9 @@ class OutletPort:
     def __init__(self, source, index):
         self.source = source
         self.index = index
+    
+    def __eq__(self, other):
+        return self.source is other.source and self.index == other.index
     
     def _sorting_key(self):
         return (self.source.ID[1:], self.source.ID[0], self.index)

@@ -101,7 +101,8 @@ class Model(State):
     metrics : tuple[Metric]
         Metrics to be evaluated by model.
     specification=None : Function, optional
-        Loads speficications once all parameters are set.
+        Loads speficications once all parameters are set. Specification should 
+        simulate the system as well.
     skip=False : bool, optional
         If True, skip simulation for repeated states.
     params=None : Iterable[Parameter], optional
@@ -222,8 +223,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   9.91
-                 Utility cost [10^6 USD/yr]    -8.2
+    Biorefinery  Internal rate of return [%]    11.8
+                 Utility cost [10^6 USD/yr]    -16.5
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -391,9 +392,11 @@ class Model(State):
     
     def _evaluate_sample_thorough(self, sample):
         for f, s in zip(self._setters, sample): f(s)
-        if self._specification: self._specification()
         try:
-            self._system.simulate()
+            if self._specification: 
+                self._specification()
+            else:
+                self._system.simulate()
             return [i() for i in self._getters]
         except Exception as exception:
             return self._run_exception_hook(exception, sample)

@@ -71,7 +71,7 @@ class UtilityAgent(Stream):
             flow = getattr(self, name)
             flow[:] = self.mol / factor
         self._link = self._sink = self._source = None
-        self._init_cache()
+        self.reset_cache()
         self._register(ID)
         self.T_limit = T_limit
         self.heat_transfer_price = heat_transfer_price
@@ -113,7 +113,7 @@ class UtilityAgent(Stream):
         new._thermo = self._thermo
         new._imol = self._imol.copy()
         new._thermal_condition = self._thermal_condition.copy()
-        new._init_cache()
+        new.reset_cache()
         new._price = 0.
         new.ID = ID
         return new

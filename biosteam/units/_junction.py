@@ -16,7 +16,7 @@ from ..utils.piping import Inlets, Outlets
 __all__ = ('Junction',)
 
 
-# %% Connect between different flowsheets
+# %% Connect between different property packages
 
 chemicals_in_common = lambda upstream, downstream: \
     tuple(set(upstream.chemicals.IDs).intersection(downstream.chemicals.IDs))
@@ -113,6 +113,3 @@ class Junction(Unit):
         downstream.T = upstream.T
         downstream.P = upstream.P
     simulate = _run
-
-
-
