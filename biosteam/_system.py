@@ -123,8 +123,8 @@ def _method_debug(self, func):
             
             # Greatings from the Yoel, the BDFL of BioSTEAM.
             # All systems, units, streams, and flowsheets are available as 
-            # local variables. Although this debugging method is meant to 
-            # be for internal development, please feel free to give it a shot.
+            # local variables. Although this debugging method is meant
+            # for internal development, please feel free to give it a shot.
             breakpoint()
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
@@ -380,8 +380,7 @@ class System:
         self.__previous_flowsheet_units = set(self.flowsheet.unit)
         return self
     
-    def __exit__(self, type, value, traceback):
-        if value: raise value
+    def __exit__(self, type, exception, traceback):
         previous_flowsheet_units = self.__previous_flowsheet_units
         ID = self._ID
         del self.__previous_flowsheet_units
@@ -401,6 +400,7 @@ class System:
             system = self.from_units('', units)
             self.ID = ID
             self.copy_like(system)
+        if exception: raise exception
     
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system.""" 

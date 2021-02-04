@@ -11,7 +11,6 @@ from ._unit import Unit
 from ._facility import Facility
 from .digraph import digraph_from_units_and_streams, finalize_digraph
 from thermosteam import Stream
-from collections.abc import Iterable
 
 # %% Path tools
 
@@ -127,8 +126,8 @@ class Network:
     ----------
     path : Iterable[:class:`~biosteam.Unit` or :class:`~biosteam.Network`]
         A path of unit operations and subnetworks.
-    recycle : :class:`~thermosteam.Stream`
-        A recycle stream, if any.
+    recycle : :class:`~thermosteam.Stream` or set[:class:`~thermosteam.Stream`]
+        A recycle stream(s), if any.
     
     Examples
     --------
@@ -321,7 +320,7 @@ class Network:
         isa = isinstance
         if isa(recycle, Stream):
             sink = recycle.sink
-        elif isa(recycle, Iterable):
+        elif isa(recycle, set):
             for i in recycle: return i.sink
         else:
             sink = None
@@ -334,14 +333,14 @@ class Network:
         if isa(recycle, Stream):
             if isa(stream, Stream):
                 self.recycle = {self.recycle, stream}
-            elif isa(stream, Iterable):
+            elif isa(stream, set):
                 self.recycle = {self.recycle, *stream}
             else:
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
-        elif isa(recycle, Iterable):
+        elif isa(recycle, set):
             if isa(stream, Stream):
                 recycle.add(stream)
-            elif isa(stream, Iterable):
+            elif isa(stream, set):
                 recycle.update(stream)
             else:
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')

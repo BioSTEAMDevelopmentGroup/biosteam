@@ -73,12 +73,6 @@ class Junction(Unit):
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
         self._register(ID)
     
-    def set_spec(self, *args, **kwargs):
-        raise TypeError("{type(self).__name__}' does not support design specifications")
-        
-    def get_spec(self):
-        return None
-    
     def _get_chemicals_in_common(self, upstream, downstream):
         if (upstream, downstream) == self._past_streams:
             IDs = self._chemicals_in_common
@@ -86,23 +80,9 @@ class Junction(Unit):
             self._chemicals_in_common = IDs = chemicals_in_common(upstream, downstream)
         return IDs
     
-    def _get_streams(self):
-        try:
-            upstream, = self._ins
-            downstream, = self._outs
-        except ValueError as error:
-            N_ins = self._ins.size
-            N_outs = self._outs.size
-            if N_ins != 1:
-                raise RuntimeError(f'a Junction object must have 1 input stream, not {N_ins}')
-            elif N_outs != 1:
-                raise RuntimeError(f'a Junction object must have 1 output stream, not {N_outs}')
-            else:
-                raise error
-        return upstream, downstream
-    
     def _run(self):
-        upstream, downstream = self._get_streams()
+        upstream, = self._ins
+        downstream, = self._outs
         IDs = self._get_chemicals_in_common(upstream, downstream)
         if isinstance(upstream, MultiStream):
             downstream.phases = upstream.phases

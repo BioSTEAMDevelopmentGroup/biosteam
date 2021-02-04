@@ -128,11 +128,16 @@ def plot_montecarlo(data,
     Parameters
     ----------
     data : numpy.ndarray or pandas.DataFrame
-        Metric values with uncertainty.
+        Metric values with uncertainty. Each row represents a sample and 
+        each column represents a metric. 
     light_colors : Iterable(numpy.ndarray)
         RGB normalized to 1. Defaults to brown.
     dark_colors : Iterable(numpy.ndarray)
         RGB normalized to 1. Defaults to brown.
+    transpose : bool, optional 
+        If True, data will be transposed. If False, data will not be transposed. 
+        If no values is given, data will be transposed when the number of columns 
+        is greater than the number of rows.
     
     Returns
     -------
@@ -173,7 +178,8 @@ def plot_montecarlo_across_coordinate(xs, ys,
     xs : numpy.ndarray(ndim=1)
         Coordinate values for each column in ``ys``.
     ys : numpy.ndarray(ndim=2)
-        Metric values with uncertainty.
+        Metric values with uncertainty. Each row represents a sample and each 
+        column represent a metric along the x-coordinate.
     light_color : numpy.ndarray
         RGB normalized to 1. Defaults to brown.
     dark_color : numpy.ndarray

@@ -55,6 +55,7 @@ from . import (
     _process_specification, _duplicator,
     _diagram_only_units, _batch_bioreactor,
     _carbon_capture, wastewater,
+    _disjunction
 )
 
 __all__ = ('Unit',

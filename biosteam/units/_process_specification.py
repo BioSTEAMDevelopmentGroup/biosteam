@@ -9,11 +9,10 @@
 """
 from .._unit import Unit
 from .._graphics import process_specification_graphics
-from ..utils import format_unit_line, static
+from ..utils import format_unit_line
 
 __all__ = ('ProcessSpecification',)
 
-@static
 class ProcessSpecification(Unit):
     """
     Create a ProcessSpecification object that runs a function when simulated
