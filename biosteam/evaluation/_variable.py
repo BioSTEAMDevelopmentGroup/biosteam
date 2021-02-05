@@ -93,7 +93,12 @@ class Variable:
             distribution = ' (' + distribution + ')'
         else:
             distribution = ''
-        return name + units + distribution
+        description = name + units + distribution
+        if description:
+            first_letter = description[0]
+            if first_letter.islower(): 
+                description = first_letter.upper() + description[1:]
+        return description
     
     def __repr__(self):
         units = f" ({self.units})" if self.units else ""

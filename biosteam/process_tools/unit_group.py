@@ -92,6 +92,12 @@ class UnitGroup:
     ... def sucrose_flow_rate():
     ...     return float(H1.outs[0].imass['Sucrose'])
     
+    >>> group.show()
+    UnitGroup: Example group
+     units: (P1, T1, H1)
+     metrics: Moisture content
+              Sucrose flow rate [kg/hr]
+    
     >>> group.to_dict()
     {'Installed equipment cost [MM$]': 0.0711,
      'Cooling duty [GJ/hr]': 0.374,
@@ -108,7 +114,7 @@ class UnitGroup:
         self.units = tuple(units) #: tuple[Unit] Unit operations
         self.metrics = metrics or [] #: list[Metric] Metrics to generate results
     
-    def metric(self, getter=None, name=None, units=None):
+    def metric(self, getter=None, name=None, units=None, element=None):
         """
         Define and register metric.
         
@@ -126,10 +132,10 @@ class UnitGroup:
         This method works as a decorator.
         
         """
-        if not getter: return lambda getter: self.metric(getter, name, units)
+        if not getter: return lambda getter: self.metric(getter, name, units, element)
         if not name and hasattr(getter, '__name__'):
             name = format_title(getter.__name__)
-        metric = Metric(name, getter, units, self.name)
+        metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self.metrics)
         self.metrics.append(metric)
         return metric 
@@ -290,11 +296,13 @@ class UnitGroup:
             unit_subgroups.append(subgroup)
         units_newline = "\n" + " " * len(' units: (')
         metric_newline = "\n" + " " * len(' metrics: ')
-        return (
-            f"{type(self).__name__}: {self.name}"
-            f" units: ({units_newline.join(unit_subgroups)})"
+        print (
+            f"{type(self).__name__}: {self.name}\n"
+            f" units: ({units_newline.join(unit_subgroups)})\n"
             f" metrics: {metric_newline.join([i.describe() for i in self.metrics])}"
         )
+        
+    _ipython_display_ = show
 
     def __repr__(self):
         return f"{type(self).__name__}({repr(self.name)}, {self.units}, metrics={self.metrics})"
