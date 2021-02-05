@@ -8,11 +8,13 @@
 
 import pandas as pd
 from matplotlib import pyplot as plt
+from ..utils import format_title
 from . import utils
 from ..evaluation import Metric
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
 from ..plots import style_axis
+from math import ceil
 
 __all__ = ('UnitGroup',)
 
@@ -53,10 +55,10 @@ class UnitGroup:
     >>> from biosteam import *
     >>> settings.set_thermo(chemicals)
     >>> water = Stream('water', Water=100., T=350.)
-    >>> sucrose = Stream('sucrose', Sucrose=5.)
+    >>> sucrose = Stream('sucrose', Sucrose=3.)
     >>> with System('example_sys') as example_sys:
     ...     P1 = Pump('P1', water)
-    ...     T1 = MixTank('T1', P1-0)
+    ...     T1 = MixTank('T1', (P1-0, sucrose))
     ...     H1 = HXutility('H1', T1-0, T=300.)
     >>> example_sys.simulate()
     >>> group = UnitGroup('Example group', example_sys.units)
@@ -64,8 +66,8 @@ class UnitGroup:
     You can get main process results using UnitGroup methods:
         
     >>> group.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [MM$]': 0.0709,
-     'Cooling duty [GJ/hr]': 0.376,
+    {'Installed equipment cost [MM$]': 0.0711,
+     'Cooling duty [GJ/hr]': 0.374,
      'Heating duty [GJ/hr]': 0.0,
      'Electricity consumption [MW]': 0.000821,
      'Electricity production [MW]': 0.0}
@@ -73,10 +75,30 @@ class UnitGroup:
     Each result can be retrieved separately:
     
     >>> group.get_installed_cost()
-    0.0709
+    0.0711
     
     >>> group.get_cooling_duty()
-    0.376
+    0.374
+    
+    The `to_dict` method also returns user-defined metrics:
+        
+    >>> # First define metrics
+    >>> @group.metric # Name of metric defaults to function name
+    ... def moisture_content():
+    ...     product = H1.outs[0]
+    ...     return product.imass['Water'] / product.F_mass
+    
+    >>> @group.metric(units='kg/hr') # This helps for bookkeeping
+    ... def sucrose_flow_rate():
+    ...     return float(H1.outs[0].imass['Sucrose'])
+    
+    >>> group.to_dict()
+    {'Installed equipment cost [MM$]': 0.0711,
+     'Cooling duty [GJ/hr]': 0.374,
+     'Heating duty [GJ/hr]': 0.0,
+     'Electricity consumption [MW]': 0.000821,
+     'Moisture content': 0.636,
+     'Sucrose flow rate [kg/hr]': 1026.889}
     
     """
     __slots__ = ('name', 'units', 'metrics')
@@ -86,10 +108,29 @@ class UnitGroup:
         self.units = tuple(units) #: tuple[Unit] Unit operations
         self.metrics = metrics or [] #: list[Metric] Metrics to generate results
     
-    def metric(self, name, units=None, getter=None):
-        """Add metric to UnitGroup."""
-        if not getter: return lambda getter: self.metric(name, units, getter)
+    def metric(self, getter=None, name=None, units=None):
+        """
+        Define and register metric.
+        
+        Parameters
+        ----------    
+        getter : function, optional
+                 Should return metric.
+        name : str, optional
+               Name of parameter. If None, defaults to the name of the getter.
+        units : str, optional
+                Parameter units of measure
+        
+        Notes
+        -----
+        This method works as a decorator.
+        
+        """
+        if not getter: return lambda getter: self.metric(getter, name, units)
+        if not name and hasattr(getter, '__name__'):
+            name = format_title(getter.__name__)
         metric = Metric(name, getter, units, self.name)
+        Metric.check_index_unique(metric, self.metrics)
         self.metrics.append(metric)
         return metric 
     
@@ -236,6 +277,24 @@ class UnitGroup:
             plt.ylabel('[%]')
             plt.ylim(0, 100)
         style_axis(top=False)
+
+    def show(self):
+        units = self.units
+        N_units = len(units)
+        N_subgroups = int(ceil(N_units / 5))
+        unit_subgroups = []
+        for i in range(N_subgroups):
+            start = i*5
+            end = i*5 + 5
+            subgroup = ', '.join([str(i) for i in units[start:end]])
+            unit_subgroups.append(subgroup)
+        units_newline = "\n" + " " * len(' units: (')
+        metric_newline = "\n" + " " * len(' metrics: ')
+        return (
+            f"{type(self).__name__}: {self.name}"
+            f" units: ({units_newline.join(unit_subgroups)})"
+            f" metrics: {metric_newline.join([i.describe() for i in self.metrics])}"
+        )
 
     def __repr__(self):
         return f"{type(self).__name__}({repr(self.name)}, {self.units}, metrics={self.metrics})"

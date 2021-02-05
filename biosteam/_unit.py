@@ -14,7 +14,7 @@ from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import Inlets, Outlets, NotImplementedMethod, \
-                   format_unit_line, static, ignore_docking_warnings
+                   format_title, static, ignore_docking_warnings
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
@@ -162,7 +162,7 @@ class Unit:
                           new_graphics=True):
         dct = cls.__dict__
         if 'line' not in dct:
-            cls.line = format_unit_line(cls.__name__)
+            cls.line = format_title(cls.__name__)
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)

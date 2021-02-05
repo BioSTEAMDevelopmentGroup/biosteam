@@ -39,7 +39,7 @@ class Variable:
             raise ValueError(
                     f"each {kind} must have a unique element and name; "
                     f"{kind} with element {repr(variable.element)} "
-                     "and name {repr(variable.name)} already present"
+                    f"and name {repr(variable.name)} already present"
                 )
     
     @classmethod
@@ -52,7 +52,7 @@ class Variable:
                 raise ValueError(
                         f"each {kind} must have a unique element and name; "
                         f"more than one {kind} with element {repr(i.element)} "
-                         "and name {repr(i.name)} are present"
+                        f"and name {repr(i.name)} are present"
                     )
             keys.add(key)
     

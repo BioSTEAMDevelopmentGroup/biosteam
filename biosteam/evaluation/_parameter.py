@@ -9,6 +9,7 @@
 """
 __all__ = ('Parameter',)
 from ._variable import Variable
+from ..utils import format_title
 
 class Parameter(Variable):
     """
@@ -44,8 +45,7 @@ class Parameter(Variable):
     def __init__(self, name, setter, simulate,
                  element, system, distribution,
                  units, baseline, bounds):
-        name = name.replace('_', ' ')
-        self.name = name if name.isupper() else name.capitalize()
+        self.name = format_title(name)
         self.setter = setter
         self.simulate = simulate
         self.element = element

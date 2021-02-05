@@ -9,7 +9,7 @@
 """
 from .._unit import Unit
 from .._graphics import process_specification_graphics
-from ..utils import format_unit_line
+from ..utils import format_title
 
 __all__ = ('ProcessSpecification',)
 
@@ -79,7 +79,7 @@ class ProcessSpecification(Unit):
                  specification, description=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.specification = specification
-        self.description = description or format_unit_line(specification.__name__)
+        self.description = description or format_title(specification.__name__)
         
     @property
     def specification(self):

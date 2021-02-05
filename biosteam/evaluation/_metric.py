@@ -28,8 +28,7 @@ class Metric(Variable):
     """
     __slots__ = ('name', 'units', 'getter', 'element')
     distribution = None
-    def __init__(self, name, getter=None, units=None, element='Biorefinery'):
-        if not getter: return lambda getter: Metric(name, getter, units, element)
+    def __init__(self, name, getter, units=None, element='Biorefinery'):
         self.name = name
         self.units = units
         self.getter = getter

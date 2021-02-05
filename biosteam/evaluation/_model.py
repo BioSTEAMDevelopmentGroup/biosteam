@@ -12,6 +12,7 @@ import pandas as pd
 from ._state import State
 from ._metric import Metric
 from ._parameter import Parameter
+from ..utils import format_title
 from biosteam import speed_up
 from collections.abc import Sized
 
@@ -318,6 +319,35 @@ class Model(State):
                                  f"objects, not '{type(i).__name__}'")
         Metric.check_indices_unique(metrics)
         self._metrics = metrics
+    
+    def metric(self, getter=None, name=None, units=None, element='Biorefinery'):
+        """
+        Define and register metric.
+        
+        Parameters
+        ----------    
+        getter : function, optional
+                 Should return metric.
+        name : str, optional
+               Name of parameter. If None, defaults to the name of the getter.
+        units : str, optional
+                Parameter units of measure
+        element : object, optional
+                  Element being evaluated. Works mainly for bookkeeping. 
+                  Defaults to 'Biorefinery'.
+        
+        Notes
+        -----
+        This method works as a decorator.
+        
+        """
+        if not getter: return lambda getter: self.metric(getter, name, units, element)
+        if not name and hasattr(getter, '__name__'):
+            name = format_title(getter.__name__)
+        metric = Metric(name, getter, units, element)
+        Metric.check_index_unique(metric, self._metrics)
+        self._metrics.append(metric)
+        return metric 
     
     def load_samples(self, samples):
         """Load samples for evaluation

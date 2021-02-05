@@ -13,7 +13,7 @@ import biosteam as bst
 from thermosteam import Chemicals
 
 __all__ = ('factor', 'checkbounds', 'strtuple',
-           'format_unit_line', 'format_unit_name',
+           'format_title', 'format_unit_name',
            'remove_undefined_chemicals')
 
 # %% Number functions
@@ -40,7 +40,7 @@ def strtuple(iterable):
     string = '(' + string + ')'
     return string
         
-def format_unit_line(line):
+def format_title(line):
     line = line.replace('_', ' ')
     words = []
     word = ''

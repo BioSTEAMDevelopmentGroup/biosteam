@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from biosteam.utils import format_unit_line
+from biosteam.utils import format_title
 __all__ = ('element_name',)
 
 def element_name(element):
@@ -18,6 +18,6 @@ def element_name(element):
             return element.line + '-' + element.ID.replace('_', ' ')
         else:
             unformatted_name = (element if isinstance(element, type) else type(element)).__name__
-            return format_unit_line(unformatted_name)
+            return format_title(unformatted_name)
     else:
         return ''
