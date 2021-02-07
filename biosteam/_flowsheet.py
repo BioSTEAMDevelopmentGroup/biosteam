@@ -108,6 +108,11 @@ class Flowsheet:
         for registry, other_registry in zip(self.registries, flowsheet.registries):
             registry.__dict__.update(other_registry.__dict__)
     
+    def to_dict(self):
+        return {**self.stream.__dict__,
+                **self.unit.__dict__,
+                **self.system.__dict__}
+    
     @classmethod
     def from_flowsheets(cls, ID, flowsheets):
         """Return a new flowsheet with all registered objects from the given flowsheets."""

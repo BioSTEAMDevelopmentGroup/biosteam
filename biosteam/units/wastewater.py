@@ -491,6 +491,10 @@ class ReverseOsmosis(Unit):
         
 @bst.SystemFactory(
     ID='wastewater_treatment_sys',
+    outs=[dict(ID='methane'),
+          dict(ID='sludge'),
+          dict(ID='treated_water'),
+          dict(ID='waste_brine')],
     fixed_ins_size=False,
 )
 def create_wastewater_treatment_system(
@@ -518,6 +522,7 @@ def create_wastewater_treatment_system(
         
 
     """
+    methane, sludge, treated_water, waste_brine = outs
     n = wastewater_treatment_area
     well_water = bst.Stream('well_water', Water=1, T=15+273.15)
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
@@ -526,7 +531,7 @@ def create_wastewater_treatment_system(
     
     wastewater_mixer = bst.Mixer(f'M{n+1}', ins)
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
-    anaerobic_digestion = AnaerobicDigestion(f'R{n+1}', (WWTC-0, well_water))
+    anaerobic_digestion = AnaerobicDigestion(f'R{n+1}', (WWTC-0, well_water), (methane, '', ''))
     recycled_sludge_mixer = bst.Mixer(f'M{n+2}', (anaerobic_digestion-1, None))
     
     caustic_over_waste = caustic.mol / 2544300.6261793654
@@ -545,7 +550,7 @@ def create_wastewater_treatment_system(
     membrane_bioreactor = MembraneBioreactor(f'S{n+1}', aerobic_digestion-1)
     sludge_splitter = bst.Splitter(f'S{n+2}', membrane_bioreactor-1, split=0.96)
     fresh_sludge_mixer = bst.Mixer(f'M{n+3}', (anaerobic_digestion-2, sludge_splitter-1))
-    sludge_centrifuge = SludgeCentrifuge(f'S{n+3}', fresh_sludge_mixer-0, outs=('', 'sludge'))
+    sludge_centrifuge = SludgeCentrifuge(f'S{n+3}', fresh_sludge_mixer-0, outs=('', sludge))
     sludge_centrifuge-0-1-recycled_sludge_mixer
     reverse_osmosis = ReverseOsmosis(f'S{n+4}', membrane_bioreactor-0,
-                                     outs=('treated_water', 'waste_brine'))
+                                     outs=(treated_water, waste_brine))

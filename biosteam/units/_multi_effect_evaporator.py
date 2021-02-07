@@ -300,6 +300,8 @@ class MultiEffectEvaporator(Unit):
 
         if self.V == 0:
             out_wt_solids.copy_like(ins[0])
+            for i in self.heat_utilities: 
+                i.empty(); i.heat_exchanger = None
             liq.empty()
             return
         

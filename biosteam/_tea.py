@@ -575,8 +575,7 @@ class TEA:
         else:
             taxable_cashflow = S - C - D
             nontaxable_cashflow = D - C_FC - C_WC
-        self._fill_tax(T, taxable_cashflow)
-        self._fill_incentives(I, taxable_cashflow, nontaxable_cashflow, T)
+        self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T)
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
         DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
@@ -674,20 +673,16 @@ class TEA:
                                                 start, years,
                                                 self.lang_factor)
     
-    def _fill_tax(self, tax, taxable_cashflow):
+    def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax):
         index = taxable_cashflow > 0.
         tax[index] = self.income_tax * taxable_cashflow[index]
-    
-    def _fill_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax):
-        pass
     
     def _net_earnings_and_nontaxable_cashflow_arrays(self):
         taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
         size = taxable_cashflow.size
         tax = np.zeros(size)
         incentives = tax.copy()
-        self._fill_tax(tax, taxable_cashflow)
-        self._fill_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
         net_earnings = taxable_cashflow + incentives - tax
         return net_earnings, nontaxable_cashflow
     
@@ -728,8 +723,7 @@ class TEA:
         taxable_cashflow = taxable_cashflow + sales * sales_coefficients
         tax = np.zeros_like(taxable_cashflow)
         incentives = tax.copy()
-        self._fill_tax(tax, taxable_cashflow)
-        self._fill_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
         net_earnings = taxable_cashflow + incentives - tax
         cashflow = net_earnings + nontaxable_cashflow
         NPV = (cashflow/discount_factors).sum()

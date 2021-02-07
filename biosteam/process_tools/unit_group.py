@@ -211,6 +211,10 @@ class UnitGroup:
         """Return the total installed equipment cost in million USD."""
         return utils.get_installed_cost(self.units)
     
+    def get_purchase_cost(self):
+        """Return the total equipment purchase cost in million USD."""
+        return utils.get_purchase_cost(self.units)
+    
     def get_electricity_consumption(self):
         """Return the total electricity consumption in MW."""
         return utils.get_electricity_consumption(self.power_utilities)
@@ -294,7 +298,7 @@ class UnitGroup:
             end = i*5 + 5
             subgroup = ', '.join([str(i) for i in units[start:end]])
             unit_subgroups.append(subgroup)
-        units_newline = "\n" + " " * len(' units: (')
+        units_newline = ",\n" + " " * len(' units: (')
         metric_newline = "\n" + " " * len(' metrics: ')
         print (
             f"{type(self).__name__}: {self.name}\n"

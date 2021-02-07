@@ -14,6 +14,7 @@ __all__ = ('heat_exchanger_utilities_from_units',
            'get_utility_duty',
            'get_power_utilities',
            'get_heat_utilities',
+           'get_purchase_cost',
            'get_installed_cost',
            'get_cooling_duty',
            'get_heating_duty',
@@ -83,6 +84,10 @@ def get_power_utilities(units):
 def get_heat_utilities(units):
     """Return a list of all HeatUtility objects."""
     return sum([i.heat_utilities for i in units], ())
+
+def get_purchase_cost(units):
+    """Return the total equipment purchase cost of all units in million USD."""
+    return sum([i.purchase_cost for i in units]) / 1e6 # millions USD
 
 def get_installed_cost(units):
     """Return the total installed equipment cost of all units in million USD."""
