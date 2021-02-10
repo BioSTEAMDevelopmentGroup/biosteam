@@ -431,8 +431,7 @@ class System:
         if self.path or self.recycle or self.facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
         unit_registry = self.flowsheet.unit
-        self._irrelevant_units = irrelevant_units = set(unit_registry)
-        unit_registry.mark_safe_to_replace(irrelevant_units)
+        self._irrelevant_units = set(unit_registry)
         return self
     
     def __exit__(self, type, exception, traceback):

@@ -151,7 +151,7 @@ class SystemFactory:
             if rename: 
                 unit_registry = system.flowsheet.unit
                 irrelevant_units = system._irrelevant_units
-                unit_registry.mark_safe_to_replace(irrelevant_units)
+                unit_registry.untrack(irrelevant_units)
             self.f(ID, ins, outs, *args, **kwargs)
         system.load_inlet_ports(ins)
         system.load_outlet_ports(outs)
@@ -159,7 +159,7 @@ class SystemFactory:
             units = system.units
             if udct: unit_dct = {i.ID: i for i in units}
             utils.rename_units(units, area)
-            unit_registry.unmark_safe_to_replace(irrelevant_units)
+            unit_registry.track(irrelevant_units)
             if udct: return system, unit_dct
         elif udct:
             raise ValueError('udct must be False if no area given')
