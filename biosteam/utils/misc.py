@@ -73,7 +73,7 @@ def format_unit_name(name):
     return ''.join([i[0].capitalize() + i[1:] for i in name.split(' ')])
     
 def subgroup(items, size=5):
-    return [items[(start:=size*i): start+size] for i in range(int(ceil(len(items) / size)))]
+    return [items[size*i: size*(i+1)] for i in range(int(ceil(len(items) / size)))]
 
 def repr_subgroups(subgroups):
     return [', '.join([str(i) for i in j]) for j in subgroups]
