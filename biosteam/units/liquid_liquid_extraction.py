@@ -10,7 +10,7 @@ This module contains unit operations for mixing.
 
 .. contents:: :local:
     
-Unit Operations
+Unit operations
 ---------------
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LLEUnit
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsCentrifuge

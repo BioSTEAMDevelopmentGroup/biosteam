@@ -86,6 +86,7 @@ The BioSTEAM software has been steadily improved since the original BioSTEAM pub
    updates/2.21
    updates/2.22
    updates/2.23
+   updates/2.24
 
 .. toctree::
    :maxdepth: 1

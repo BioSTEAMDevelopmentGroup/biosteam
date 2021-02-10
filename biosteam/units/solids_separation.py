@@ -10,7 +10,7 @@ This module contains unit operations for the separation of solids.
 
 .. contents:: :local:
     
-Unit Operations
+Unit operations
 ---------------
 .. autoclass:: biosteam.units.solids_separation.SolidsSeparator
 .. autoclass:: biosteam.units.solids_separation.SolidsCentrifuge

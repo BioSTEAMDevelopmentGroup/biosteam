@@ -10,7 +10,7 @@ This module contains unit operations for mixing.
 
 .. contents:: :local:
     
-Unit Operations
+Unit operations
 ---------------
 .. autoclass:: biosteam.units.mixing.Mixer
 .. autoclass:: biosteam.units.mixing.SteamMixer

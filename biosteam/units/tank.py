@@ -10,7 +10,7 @@ This module contains unit operations for tanks.
 
 .. contents:: :local:
     
-Unit Operations
+Unit operations
 ---------------
 .. autoclass:: biosteam.units.tank.Tank
 .. autoclass:: biosteam.units.tank.MixTank

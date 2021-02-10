@@ -10,7 +10,7 @@ This module contains unit operations for splitting flows.
 
 .. contents:: :local:
     
-Unit Operations
+Unit operations
 ---------------
 .. autoclass:: biosteam.units.splitting.Splitter
 .. autoclass:: biosteam.units.splitting.Splitter

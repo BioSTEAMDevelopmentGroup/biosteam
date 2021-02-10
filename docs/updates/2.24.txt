@@ -1,0 +1,18 @@
+2.24
+====
+
+2.24.0
+------
+
+Name changes:
+
+* The `unit_path` property of :class:`~biosteam.System` objects has been
+  renamed to `units`.
+
+New features:
+
+* :class:`~biosteam.process_tools.SystemFactory` objects can now accept
+  an `area` argument that makes units created by the system factory follow the
+  area naming convetion (see examples in the SystemFactory API or the Drop-in 
+  systems tutoral)
+

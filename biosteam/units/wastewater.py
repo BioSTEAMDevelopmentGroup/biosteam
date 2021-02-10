@@ -15,7 +15,7 @@ Data
 ----
 .. autodata:: biosteam.units.wastewater.non_digestables
     
-Unit Operations
+Unit operations
 ---------------
 .. autoclass:: biosteam.units.wastewater.AnaerobicDigestion 
 .. autoclass:: biosteam.units.wastewater.AerobicDigestion
@@ -26,8 +26,10 @@ Utilities
 ---------
 .. autofunction:: biosteam.units.wastewater.get_digestable_organic_chemicals
 
-System Creation
----------------
+System factories
+----------------
+
+.. autofunction:: biosteam.units.wastewater.create_wastewater_treatment_units
 .. autodata:: biosteam.units.wastewater.create_wastewater_treatment_system
 
 References
@@ -453,7 +455,6 @@ class MembraneBioreactor(Splitter):
             remove_undefined_chemicals(split, chemicals)
         Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
         
-
 class ReverseOsmosis(Unit):
     """
     Create a reverse osmosis unit operation for recovering water from brine.
@@ -487,59 +488,37 @@ class ReverseOsmosis(Unit):
         water_recovered = self.water_recovery * water_flow
         water.mol[water_index] = water_recovered
         brine.mol[water_index] = water_flow - water_recovered
-  
-"""
-Create a system for wastewater treatment.
 
-Parameters
-----------
-ID : str, optional
-    Defaults to 'wastewater_treatment_sys'.
-ins : streams, optional
-    Wastewater streams (without solids).
-outs : stream sequence
-    * [0] methane
-    * [1] sludge
-    * [2] treated_water
-    * [3] waste_brine 
-NaOH_price : float, optional
-    Price of NaOH in USD/kg. The default is 0.15.
-mockup : bool, optional
-    Whether to create a mock system.
-area : int, optional
-    If given, all IDs of all units will follow the `area` convention as
-    explained in :func:`~biosteam.process_tools.utils.rename_units`.
 
-Returns
--------
-wastewater_treatment : :class:`~biosteam.System`
-    Wastewater treatment system. The system includes anaerobic and aerobic 
-    digestion, a membrane bioreactor, a sludge centrifuge, and reverse osmosis.
-unit_dct : dict[:class:`~biosteam.Unit`], optional
-    Dictionary of units by original unit IDs. Returned only if `area` is given.
-
-"""
-@bst.SystemFactory(
-    ID='wastewater_treatment_sys',
-    outs=[dict(ID='methane'),
-          dict(ID='sludge'),
-          dict(ID='treated_water'),
-          dict(ID='waste_brine')],
-    fixed_ins_size=False,
-)
-def create_wastewater_treatment_system(
-        ID, ins, outs, NaOH_price=0.15, 
-    ):
+def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
+    """
+    Create units for wastewater treatment, including anaerobic and aerobic 
+    digestion reactors, a membrane bioreactor, a sludge centrifuge, 
+    and a reverse osmosis unit.
+    
+    Parameters
+    ----------
+    ins : streams
+        Wastewater streams (without solids).
+    outs : stream sequence
+        * [0] methane
+        * [1] sludge
+        * [2] treated_water
+        * [3] waste_brine 
+    NaOH_price : float, optional
+        Price of NaOH in USD/kg. The default is 0.15.
+    
+    """
     methane, sludge, treated_water, waste_brine = outs
     well_water = bst.Stream('well_water', Water=1, T=15+273.15)
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
                      units='kg/hr', price=NaOH_price*0.5)
     
-    wastewater_mixer = bst.Mixer(f'M{601}', ins)
+    wastewater_mixer = bst.Mixer('M601', ins)
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
-    anaerobic_digestion = AnaerobicDigestion(f'R{601}', (WWTC-0, well_water), (methane, '', '', ''))
-    recycled_sludge_mixer = bst.Mixer(f'M{602}', (anaerobic_digestion-1, None))
+    anaerobic_digestion = AnaerobicDigestion('R601', (WWTC-0, well_water), (methane, '', '', ''))
+    recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None))
     
     caustic_over_waste = caustic.mol / 2544300.6261793654
     air_over_waste = air.mol / 2544300.6261793654
@@ -551,14 +530,50 @@ def create_wastewater_treatment_system(
         air.mol[:] = F_mass_waste * air_over_waste
         aerobic_digestion._run()
     
-    aerobic_digestion = AerobicDigestion(f'R{602}', (waste, air, caustic),
+    aerobic_digestion = AerobicDigestion('R602', (waste, air, caustic),
                                          outs=('evaporated_water', ''))
     aerobic_digestion.specification = update_aerobic_input_streams
-    membrane_bioreactor = MembraneBioreactor(f'S{601}', aerobic_digestion-1)
-    sludge_splitter = bst.Splitter(f'S{602}', membrane_bioreactor-1, split=0.96)
-    fresh_sludge_mixer = bst.Mixer(f'M{603}', (anaerobic_digestion-2, sludge_splitter-1))
-    sludge_centrifuge = SludgeCentrifuge(f'S{603}', fresh_sludge_mixer-0, outs=('', sludge))
+    membrane_bioreactor = MembraneBioreactor('S601', aerobic_digestion-1)
+    sludge_splitter = bst.Splitter('S602', membrane_bioreactor-1, split=0.96)
+    fresh_sludge_mixer = bst.Mixer('M603', (anaerobic_digestion-2, sludge_splitter-1))
+    sludge_centrifuge = SludgeCentrifuge('S603', fresh_sludge_mixer-0, outs=('', sludge))
     sludge_centrifuge-0-1-recycled_sludge_mixer
-    reverse_osmosis = ReverseOsmosis(f'S{604}', membrane_bioreactor-0,
+    reverse_osmosis = ReverseOsmosis('S604', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
 
+create_wastewater_treatment_system = bst.SystemFactory(
+    f=create_wastewater_treatment_units,
+    ID='wastewater_treatment_sys',
+    outs=[dict(ID='methane'),
+          dict(ID='sludge'),
+          dict(ID='treated_water'),
+          dict(ID='waste_brine')],
+    fixed_ins_size=False,
+)
+"""
+Return a system for wastewater treatment, which includes anaerobic and aerobic 
+digestion reactors, a membrane bioreactor, a sludge centrifuge, and a reverse 
+osmosis unit.
+ 
+Parameters
+----------
+ID : str, optional
+    Defaults to 'wastewater_treatment_sys'.
+ins : streams, optional
+    Wastewater streams (without solids).
+outs : stream sequence
+    * [0] methane
+    * [1] sludge
+    * [2] treated_water
+    * [3] waste_brine 
+mockup : bool, optional
+    Whether to create a mock system.
+area : int, optional
+    If given, IDs of all units will follow the area naming convention as
+    explained in :func:`~biosteam.process_tools.utils.rename_units`.
+udct : bool, optional
+    Whether to also return fictionary of units with their original IDs as keys.
+NaOH_price : float, optional
+    Price of NaOH in USD/kg. The default is 0.15.
+
+"""

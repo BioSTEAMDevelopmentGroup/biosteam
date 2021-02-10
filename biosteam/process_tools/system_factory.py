@@ -123,8 +123,8 @@ class SystemFactory:
                 fixed_ins_size=True, fixed_outs_size=True):
         if f:
             params = list(signature(f).parameters)
-            if params[:3] != ['ID', 'ins', 'outs']:
-                raise ValueError('function must have a signature of function(ID, ins, outs, *args, **kwargs)')
+            if params[:2] != ['ins', 'outs']:
+                raise ValueError('function must have a signature of function(ins, outs, *args, **kwargs)')
             other_params = params[3:]
             for i in ('mockup', 'area', 'udct'):
                 if i in other_params:
@@ -145,14 +145,13 @@ class SystemFactory:
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, *args, **kwargs):
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
-        if not ID: ID = self.ID
         rename = area is not None
-        with (MockSystem() if mockup else System(ID)) as system:
+        with (MockSystem() if mockup else System(ID or self.ID)) as system:
             if rename: 
                 unit_registry = system.flowsheet.unit
                 irrelevant_units = system._irrelevant_units
                 unit_registry.untrack(irrelevant_units)
-            self.f(ID, ins, outs, *args, **kwargs)
+            self.f(ins, outs, *args, **kwargs)
         system.load_inlet_ports(ins)
         system.load_outlet_ports(outs)
         if rename: 

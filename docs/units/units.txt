@@ -7,12 +7,14 @@ units
    decorators
    design_tools/design_tools
    facilities/facilities
+   distillation
    heat_exchange
    liquid_liquid_extraction
    mixing
-   splitting
-   distillation
    tank
+   solids_separation
+   splitting
+   wastewater
    Pump
    BatchBioreactor
    Duplicator

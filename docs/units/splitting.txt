@@ -2,4 +2,3 @@ splitting
 =========
 
 .. automodule:: biosteam.units.splitting
-   :members:
