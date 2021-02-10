@@ -12,6 +12,6 @@ from .decorators import cost
 
 __all__ = ('MagneticSeparator',)
 
-@cost('Flow rate', units='kg/hr', CE=576, cost=533471, S=333333, n=0.6)
+@cost('Flow rate', units='kg/hr', CE=576, cost=533471, S=333333, BM=4.16, n=0.6)
 class MagneticSeparator(Unit): pass
     

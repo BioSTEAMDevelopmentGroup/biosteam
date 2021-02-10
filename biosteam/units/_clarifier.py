@@ -16,7 +16,7 @@ __all__ = ('Clarifier',)
 _iswithin = lambda x, bounds: bounds[0] <= x <= bounds[1]
 # Electricity: 16 hp / 200 ft diameter
 
-@cost('Settling area', cost=2720, CE=567, n=0.58, kW=0.0005)
+@cost('Settling area', cost=2720, CE=567, n=0.58, BM=4.16, kW=0.0005)
 class Clarifier(Splitter):
     _units = {'Settling area': 'ft^2'}
     # Height of the clarifier tank from other designs, estimate (ft)

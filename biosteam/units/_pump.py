@@ -48,7 +48,7 @@ class Pump(Unit):
         Outlet.
     P=101325 : float, optional
         Pressure of output stream (Pa). If the pressure of the outlet is 
-        the same as the inlet, pump is design to increase of pressure
+        the same as the inlet, pump is designed to increase of pressure
         to `dP_design`.
     pump_type='Default' : str
         If 'Default', a pump type is selected based on heuristics.

@@ -11,10 +11,12 @@ This module includes arbitrary classes and functions.
 """
 import biosteam as bst
 from thermosteam import Chemicals
+from math import ceil
 
 __all__ = ('factor', 'checkbounds', 'strtuple',
            'format_title', 'format_unit_name',
-           'remove_undefined_chemicals')
+           'remove_undefined_chemicals', 'subgroup',
+           'repr_subgroups', 'repr_items')
 
 # %% Number functions
 
@@ -68,12 +70,24 @@ def format_title(line):
     return ' '.join(words)
 
 def format_unit_name(name):
-    words = name.split(' ')
-    new_words = []
-    for i in words:
-        new_words.append(i[0].capitalize() + i[1:])
-    return ''.join(new_words)
+    return ''.join([i[0].capitalize() + i[1:] for i in name.split(' ')])
     
+def subgroup(items, size=5):
+    return [items[(start:=size*i): start+size] for i in range(int(ceil(len(items) / size)))]
+
+def repr_subgroups(subgroups):
+    return [', '.join([str(i) for i in j]) for j in subgroups]
+
+def repr_items(start, items, subgroup_size=5, brackets=None):
+    N_spaces = len(start)
+    if brackets:
+        left, right = brackets
+        N_spaces += 1
+    else:
+        left = ''; right = ''
+    subgroups = repr_subgroups(subgroup(items, subgroup_size))
+    dlim = ",\n" + " " * N_spaces
+    return start + left + dlim.join(subgroups) + right
 
 # %% Chemical management
 

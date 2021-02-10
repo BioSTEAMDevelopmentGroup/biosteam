@@ -574,6 +574,9 @@ class InletPort:
     def set_stream(self, stream, stacklevel):
         self.sink.ins._set_stream(self.index, stream, stacklevel+1)
     
+    def __str__(self):
+        return f"{self.index}-{self.sink}"
+    
     def __repr__(self):
         return f"{type(self).__name__}({self.sink}, {self.index})"
 
@@ -604,6 +607,9 @@ class OutletPort:
     def set_stream(self, stream, stacklevel):
         self.source.outs._set_stream(self.index, stream, stacklevel+1)
     
+    def __str__(self):
+        return f"{self.source}-{self.index}"
+    
     def __repr__(self):
         return f"{type(self).__name__}({self.source}, {self.index})"
 
@@ -629,8 +635,14 @@ class StreamPorts:
     def __iter__(self):
         for i in self._ports: yield i.get_stream()
     
+    def __len__(self):
+        return len(self._ports)
+    
     def __getitem__(self, index):
-        return self._ports[index].get_stream()
+        if isinstance(index, slice):
+            return self.__class__(self._ports[index])
+        else:
+            return self._ports[index].get_stream()
     
     def __setitem__(self, index, item):
         isa = isinstance
@@ -654,16 +666,7 @@ class StreamPorts:
             raise IndexError("number of inlets must match the size of slice")
         
     def __repr__(self):
-        ports = []
-        isa = isinstance
-        for i in self._ports:
-            if isa(i, InletPort):
-                ports.append(f"{i.index}-{i.sink}") 
-            elif isa(i, OutletPort):
-                ports.append(f"{i.source}-{i.index}") 
-            else:
-                ports.append(str(i))
-        ports = ', '.join(ports)
+        ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
 
 

@@ -10,6 +10,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from ..utils import format_title
 from . import utils
+from ..utils import misc
 from ..evaluation import Metric
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
@@ -340,16 +341,7 @@ class UnitGroup:
     def show(self):
         units = self.units
         if units:
-            N_units = len(units)
-            N_subgroups = int(ceil(N_units / 5))
-            unit_subgroups = []
-            for i in range(N_subgroups):
-                start = i*5
-                end = i*5 + 5
-                subgroup = ', '.join([str(i) for i in units[start:end]])
-                unit_subgroups.append(subgroup)
-            units_newline = ",\n" + " " * len(' units: ')
-            units = f"\n units: {units_newline.join(unit_subgroups)}"
+            units = '\n' + misc.repr_items(' units: ', units)
         else:
             units = "\n units: (No units)"
         metrics = self.metrics

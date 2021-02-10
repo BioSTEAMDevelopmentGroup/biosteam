@@ -80,7 +80,7 @@ class SystemFactory:
     >>> sys.show() # Mock systems have ins and outs, just like real systems
     MockSystem(
         ins=[0-P1],
-        outs=[H1-0]
+        outs=[H1-0],
         units=[P1, H1]
     )
     >>> T1 = StorageTank('T1', sys-0, 'hot_stream_from_storage')
@@ -162,7 +162,7 @@ class SystemFactory:
             unit_registry.track(irrelevant_units)
             if udct: return system, unit_dct
         elif udct:
-            raise ValueError('udct must be False if no area given')
+            raise ValueError('cannot request unit dictionary if no area given; udct cannot be True')
         return system
     
     def show(self):

@@ -20,6 +20,7 @@ from .exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
+from .utils import repr_items
 from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
@@ -219,14 +220,11 @@ class MockSystem:
     __rpow__ = __rsub__
     
     def show(self):
-        units = '[' + ', '.join([i.ID for i in self.units]) + ']'
-        print(
-            f"{type(self).__name__}(\n"
-            f"    ins={self.ins},\n"
-            f"    outs={self.outs}\n"
-            f"    units={units}\n"
-             ")"
-        )
+        ins = repr_items('    ins=', self.ins._ports, brackets='[]')
+        outs = repr_items('    outs=', self.outs._ports, brackets='[]')
+        units = repr_items('    units=', self.units, brackets='[]')
+        args = ',\n'.join([ins, outs, units])
+        print(f"{type(self).__name__}(\n{args}\n)")
         
     _ipython_display_ = show
         
