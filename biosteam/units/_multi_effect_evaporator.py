@@ -347,7 +347,7 @@ class MultiEffectEvaporator(Unit):
         mixer._run()
         liq.copy_like(mixer.outs[0])
         
-        mixed_stream = MultiStream(thermo=self.thermo)
+        mixed_stream = MultiStream(None, thermo=self.thermo)
         mixed_stream.copy_flow(self.ins[0])
         mixed_stream.vle(P=last_evaporator.P, V=V_overall)
         out_wt_solids.mol = mixed_stream.imol['l']

@@ -8,31 +8,210 @@
 import biosteam as bst
 from .._heat_utility import HeatUtility
 
-__all__ = ('heat_exchanger_utilities_from_units',
-           'units_with_costs',
-           'get_utility_flow',
-           'get_utility_duty',
-           'get_power_utilities',
-           'get_heat_utilities',
-           'get_purchase_cost',
-           'get_installed_cost',
-           'get_cooling_duty',
-           'get_heating_duty',
-           'get_electricity_consumption',
-           'get_electricity_production',
-           'get_tea_results',
-           'group_by_lines',
-           'group_by_types',
-           'filter_by_types',
-           'filter_by_lines',
-           'volume_of_chemical_in_units',
-           'set_construction_material',
-           'set_construction_material_to_stainless_steel',
-           'set_construction_material_to_carbon_steel',
-           'default_utilities',
-           'default',
+__all__ = (
+    'is_storage_unit',
+    'rename_unit',
+    'rename_units',
+    'group_by_area',
+    'heat_exchanger_utilities_from_units',
+    'units_with_costs',
+    'get_utility_flow',
+    'get_utility_duty',
+    'get_power_utilities',
+    'get_heat_utilities',
+    'get_purchase_cost',
+    'get_installed_cost',
+    'get_cooling_duty',
+    'get_heating_duty',
+    'get_electricity_consumption',
+    'get_electricity_production',
+    'get_tea_results',
+    'group_by_lines',
+    'group_by_types',
+    'filter_by_types',
+    'filter_by_lines',
+    'volume_of_chemical_in_units',
+    'set_construction_material',
+    'set_construction_material_to_stainless_steel',
+    'set_construction_material_to_carbon_steel',
+    'default_utilities',
+    'default',
 )
+
+def is_storage_unit(unit):
+    return (
+        ('storage' in unit.line.lower() 
+         or isinstance(unit, bst.StorageTank)) 
+        and (unit.ins[0].isfeed() or unit.outs[0].isproduct())
+    )
+
+def area_convention_letter(unit):
+    isa = isinstance
+    line = unit.line.lower()
+    if 'centrifuge' in line: return 'C'
+    elif isa(unit, bst.Distillation) or 'distillation' in line: return 'D'
+    elif isa(unit, bst.MultiEffectEvaporator) or 'evaporator' in line: return 'E'
+    elif isa(unit, bst.Flash) or 'flash' in line: return 'F'
+    elif (isa(unit, bst.HX)
+          or 'cooler' in line 
+          or 'condenser' in line
+          or 'heater' in line 
+          or 'boiler' in line
+          or 'heat exchanger' in line): return 'H'
+    elif isa(unit, bst.Mixer) or 'mixer' in line: return 'M'
+    elif isa(unit, bst.Pump) or 'pump' in line: return 'P'
+    elif (isa(unit, bst.BatchBioreactor) 
+          or 'reactor' in line
+          or 'digestion' in line): return 'R'
+    elif isa(unit, bst.Splitter) or 'split' in line: return 'S'
+    elif isa(unit, bst.Tank) or 'tank' in line: return 'T'
+    elif isa(unit, bst.Junction): return 'J'
+    elif isa(unit, bst.ProcessSpecification) or 'specification' in line: return 'PS'
+    else: return 'U'
+
+def area_convention_number(unit_registry, letter, number):
+    ID = letter + str(number)
+    if ID in unit_registry:
+        number += 1
+        return area_convention_number(unit_registry, letter, number)
+    else:
+        return number
+
+def register_by_area_convention(unit, area, unit_registry):
+    letter = area_convention_letter(unit)
+    number = area_convention_number(unit_registry, letter, area[letter])
+    area[letter] = number + 1 
+    ID = letter + str(number)
+    unit_registry.register(ID, unit)
+
+def rename_unit(unit, area):
+    """
+    Rename unit according to area convention.
     
+    Parameters
+    ----------
+    unit : :class:`biosteam.Unit`
+        Unit to rename.
+    area : int
+        Ending number.
+        
+    Notes
+    -----
+    The area convention follows "{letter}{area + number}" where the letter depends on
+    the unit operation as follows:
+    * C = Centrifuge
+    * D = Distillation column
+    * E = Evaporator
+    * F = Flash tank
+    * H = Heat exchange
+    * M = Mixer
+    * P = Pump (including conveying belt)
+    * R = Reactor
+    * S = Splitter (including solid/liquid separator)
+    * T = Tank or bin for storage
+    * U = Other units
+    * J = Junction, not a physical unit (serves to adjust streams)
+    * PS = Process specificiation, not a physical unit (serves to adjust streams)
+    
+    Examples
+    --------
+    >>> from biosteam import *
+    >>> main_flowsheet.clear() # Remove any previous data
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> M1 = Mixer('M1')
+    >>> rename_unit(M1, 200)
+    >>> print(M1)
+    M201
+    
+    """
+    unit_registry = bst.main_flowsheet.unit
+    unit_registry.discard(unit)
+    letter = area_convention_letter(unit)
+    number = area_convention_number(unit_registry, letter, int(area) + 1) 
+    ID = letter + str(number)
+    unit_registry.register(ID, unit)
+
+def rename_units(units, area):
+    """
+    Rename units according to area convention.
+    
+    Parameters
+    ----------
+    units : Set[:class:`biosteam.Unit`]
+        Units to rename.
+    area : int
+        Ending number.
+        
+    Notes
+    -----
+    The area convention follows "{letter}{area + number}" where the letter depends on
+    the unit operation as follows:
+    * C = Centrifuge
+    * D = Distillation column
+    * E = Evaporator
+    * F = Flash tank
+    * H = Heat exchange
+    * M = Mixer
+    * P = Pump (including conveying belt)
+    * R = Reactor
+    * S = Splitter (including solid/liquid separator)
+    * T = Tank or bin for storage
+    * U = Other units
+    * J = Junction, not a physical unit (serves to adjust streams)
+    * PS = Process specificiation, not a physical unit (serves to adjust streams)
+    
+    Examples
+    --------
+    >>> from biosteam import *
+    >>> main_flowsheet.clear() # Remove any previous data
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> units = [Mixer(),
+    ...          Mixer(),
+    ...          ShortcutColumn(LHK=['Ethanol', 'Water'], k=1.2, Lr=0.8, Hr=0.9),
+    ...          Flash(P=101325, V=0.5),
+    ...          Pump(),
+    ...          Splitter(split=0.5),
+    ...          MixTank(),
+    ...          StorageTank(),
+    ...          MolecularSieve(split=0.5),
+    ...          MultiEffectEvaporator(P=[101325, 9e4], V=0.5)]
+    >>> rename_units(units, 200)
+    >>> units
+    [<Mixer: M201>,
+     <Mixer: M202>,
+     <ShortcutColumn: D201>,
+     <Flash: F201>,
+     <Pump: P201>,
+     <Splitter: S201>,
+     <MixTank: T201>,
+     <StorageTank: T202>,
+     <MolecularSieve: S202>,
+     <MultiEffectEvaporator: E201>]
+    
+    >>> # ID conflicts are taken care of internally
+    >>> mixer, *other_units = units
+    >>> rename_units(other_units, 200)
+    >>> units
+    [<Mixer: M201>,
+     <Mixer: M202>,
+     <ShortcutColumn: D201>,
+     <Flash: F201>,
+     <Pump: P201>,
+     <Splitter: S201>,
+     <MixTank: T201>,
+     <StorageTank: T202>,
+     <MolecularSieve: S202>,
+     <MultiEffectEvaporator: E201>]
+    
+    """
+    area = int(area)
+    area += 1
+    area_dct = {i: area for i in 'CDEFHMPRSTUJPS'}
+    unit_registry = bst.main_flowsheet.unit
+    units = tuple(units)
+    for i in units: unit_registry.discard(i)
+    for i in units: register_by_area_convention(i, area_dct, unit_registry)
+
 def units_with_costs(units):
     """Filter units that have a cost or design method."""
     return [i for i in units if i._cost or i._design]
@@ -43,6 +222,37 @@ def heat_exchanger_utilities_from_units(units):
     flash vessel heat exchangers."""
     heat_utilities = sum([i.heat_utilities for i in units], ())
     return [i for i in heat_utilities if i.heat_exchanger]
+
+def ID_number(ID):
+    """
+    Return number if ID follows naming convention "{letter}{number}" where 
+    the area is an integer. Returns None if no area is found
+    
+    """
+    ID, *_ = ID.split('_')
+    for i, letter in enumerate(ID):
+        if letter.isdigit(): break
+    for j, letter in enumerate(ID[i:], start=i+1):
+        if not letter.isdigit(): break
+    return ID[i:j]
+    
+def ID_area(ID):
+    """
+    Return area if ID follows naming convention "{letter}{area}{digit}{digit}" 
+    where the area is an integer. Returns None if no area is found
+    
+    """
+    number = ID_number(ID)
+    N_digits = len(number)
+    if N_digits < 3: return 0
+    return int(number[:-2] + '00')
+
+def group_by_area(units):
+    """Create a dictionary containing lists of UnitGroup objects by area."""
+    areas = {ID_area(i.ID) for i in units}
+    groups = {i: [] for i in sorted(areas)}
+    for i in units: groups[ID_area(i.ID)].append(i)
+    return groups
 
 def group_by_lines(units): 
     """Return a dictionary of lists of units grouped by line."""

@@ -309,7 +309,7 @@ class State:
     def _load_parameters(self):
         """Load parameters."""
         system = self._system
-        unit_path = system.unit_path
+        unit_path = system.units
         length = len(unit_path)
         index =  unit_path.index
         self._parameters.sort(key=lambda x: index(parameter_unit(x)) if x.system else length)

@@ -121,9 +121,8 @@ def _method_debug(self, func):
             print_exception_in_debugger(self, func, e)
             update_locals_with_flowsheet(locals())
             
-            # Greatings from the Yoel, the BDFL of BioSTEAM.
             # All systems, units, streams, and flowsheets are available as 
-            # local variables. Although this debugging method is meant
+            # local variables. Although this debugging method is ment
             # for internal development, please feel free to give it a shot.
             breakpoint()
     wrapper.__name__ = func.__name__
@@ -140,33 +139,92 @@ class MockSystem:
     objects, but without implementing any of the convergence methods nor
     path related attributes.
     
+    Parameters
+    ----------
+    units : Iterable[:class:`~biosteam.Unit`], optional
+        Unit operations in mock system.
+    
     Notes
     -----
     This object is used to prevent the creation of unneeded systems for less 
     computational effort.
     
     """
-    __slots__ = ('_ins', '_outs')
+    __slots__ = ('units', 
+                 'flowsheet',
+                 '_ins', 
+                 '_outs', 
+                 '_irrelevant_units')
     
-    def __init__(self, ins, outs):
-        self._ins = StreamPorts.from_inlets(ins)
-        self._outs = StreamPorts.from_outlets(outs)
+    def __init__(self, units=()):
+        self.units = units or list(units)
+        self._load_flowsheet()
+    
+    def _load_flowsheet(self):
+        self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
         
     @property
-    def ins(self): return self._ins
+    def ins(self):
+        """StreamPorts[:class:`~InletPort`] All inlets to the system."""
+        if hasattr(self, '_ins'):
+            ins = self._ins
+        else:
+            inlets = bst.utils.feeds_from_units(self.units)
+            self._ins = ins = StreamPorts.from_inlets(inlets, sort=True)
+        return ins
     @property
-    def outs(self): return self._outs
-        
+    def outs(self):
+        """StreamPorts[:class:`~OutletPort`] All outlets to the system."""
+        if hasattr(self, '_outs'):
+            outs = self._outs
+        else:
+            outlets = bst.utils.products_from_units(self.units)
+            self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
+        return outs
+    
+    def load_inlet_ports(self, inlets):
+        """Load inlet ports to system."""
+        all_inlets = bst.utils.inlets(self.units)
+        for i in inlets: 
+            if i not in all_inlets:
+                raise ValueError(f'{i} is not an inlet')
+        self._ins = StreamPorts.from_inlets(inlets)
+    
+    def load_outlet_ports(self, outlets):
+        """Load outlet ports to system."""
+        all_outlets = bst.utils.outlets(self.units)
+        for i in outlets: 
+            if i not in all_outlets:
+                raise ValueError(f'{i} is not an outlet')
+        self._outs = StreamPorts.from_outlets(outlets)
+    
+    def __enter__(self):
+        if self.units:
+            raise RuntimeError("only empty mock systems can enter `with` statement")
+        self._irrelevant_units = set(self.flowsheet.unit)
+        return self
+    
+    def __exit__(self, type, exception, traceback):
+        irrelevant_units = self._irrelevant_units
+        del self._irrelevant_units
+        if self.units:
+            raise RuntimeError('mock system was modified before exiting `with` statement')
+        self.units = [i for i in self.flowsheet.unit
+                      if i not in irrelevant_units]
+        if exception: raise exception
+    
     __sub__ = Unit.__sub__
     __rsub__ = Unit.__rsub__
     __pow__ = __sub__
     __rpow__ = __rsub__
     
     def show(self):
+        units = '[' + ', '.join([i.ID for i in self.units]) + ']'
         print(
             f"{type(self).__name__}(\n"
             f"    ins={self.ins},\n"
             f"    outs={self.outs}\n"
+            f"    units={units}\n"
              ")"
         )
         
@@ -189,11 +247,11 @@ class System:
     ID : str
          A unique identification. If ID is None, instance will not be
          registered in flowsheet.
-    path : tuple[Unit, function and/or System], optional
+    path : tuple[:class:`~biosteam.Unit`, function and/or :class:`~biosteam.System`], optional
         A path that is run element by element until the recycle converges.
     recycle=None : :class:`~thermosteam.Stream` or tuple[:class:`~thermosteam.Stream`], optional
         A tear stream for the recycle loop.
-    facilities=() : tuple[Unit, function, and/or System], optional
+    facilities=() : tuple[:class:`~biosteam.Unit`, function, and/or :class:`~biosteam.System`], optional
         Offsite facilities that are simulated only after
         completing the path simulation.
     facility_recycle : :class:`~thermosteam.Stream`, optional
@@ -218,8 +276,6 @@ class System:
         '_iter',
         '_ins',
         '_outs',
-        'units',
-        'subsystems',
         'maxiter',
         'molar_tolerance',
         'relative_molar_tolerance',
@@ -227,9 +283,8 @@ class System:
         'relative_temperature_tolerance',
         'flowsheet',
         'alternative_convergence_check',
-        '__previous_flowsheet_units',
+        '_irrelevant_units',
         '_converge_method',
-        '_costunits',
         '_TEA',
     )
     
@@ -342,12 +397,10 @@ class System:
         
         """
         facilities = Facility.ordered_facilities(facilities)
-        isa = isinstance
-        name = ID if ID is None else ''
-        path = [(cls.from_network(name, i) if isa(i, Network) else i)
+        isa = isinstance 
+        path = [(cls.from_network('', i) if isa(i, Network) else i)
                 for i in network.path]
         self = cls.__new__(cls)
-        self.units = network.units
         self.recycle = network.recycle
         self._set_path(path)
         self._specification = None
@@ -377,27 +430,22 @@ class System:
     def __enter__(self):
         if self.path or self.recycle or self.facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
-        self.__previous_flowsheet_units = set(self.flowsheet.unit)
+        unit_registry = self.flowsheet.unit
+        self._irrelevant_units = irrelevant_units = set(unit_registry)
+        unit_registry.mark_safe_to_replace(irrelevant_units)
         return self
     
     def __exit__(self, type, exception, traceback):
-        previous_flowsheet_units = self.__previous_flowsheet_units
+        irrelevant_units = self._irrelevant_units
         ID = self._ID
-        del self.__previous_flowsheet_units
+        del self._irrelevant_units
+        unit_registry = self.flowsheet.unit
         if self.path or self.recycle or self.facilities:
-            system = self.flowsheet.system[ID]
-            if (system is not self 
-                and system.path == self.path
-                and system.recycle == self.recycle
-                and system.facilities == self.facilities):
-                system._ID = None
-                self.ID = ID
-            else:
-                raise RuntimeError('system was modified before exiting `with` statement')
+            raise RuntimeError('system was modified before exiting `with` statement')
         else:
-            units = [i for i in self.flowsheet.unit
-                     if i not in previous_flowsheet_units]
-            system = self.from_units('', units)
+            units = [i for i in unit_registry
+                     if i not in irrelevant_units]
+            system = self.from_units(None, units)
             self.ID = ID
             self.copy_like(system)
         if exception: raise exception
@@ -408,9 +456,6 @@ class System:
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._recycle = other._recycle
-        self.units = other.units
-        self.subsystems = other.subsystems
-        self._costunits = other._costunits
     
     def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False):
         """
@@ -437,11 +482,14 @@ class System:
         if subsystems: 
             for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems)
     
-    def __eq__(self, other):
-        return (isinstance(other, System) 
-                and self._path == other._path 
-                and self._facilities == other._facilities 
-                and self._recycle == other._recycle)
+    ins = MockSystem.ins
+    outs = MockSystem.outs
+    load_inlet_ports = MockSystem.load_inlet_ports
+    load_outlet_ports = MockSystem.load_outlet_ports
+    _load_flowsheet  = MockSystem._load_flowsheet
+    
+    def _load_stream_links(self):
+        for u in self.units: u._load_stream_links()
     
     def _load_defaults(self):
         #: [int] Maximum number of iterations.
@@ -465,7 +513,6 @@ class System:
         #: [function(recycle, mol, mol_new, T, T_new) -> bool] Function that returns 
         #: whether the system has not converged (and needs to keep running).
         self.alternative_convergence_check = None
-        
     
     specification = Unit.specification
     save_report = save_report
@@ -521,52 +568,22 @@ class System:
         self.molar_tolerance *= N_recycles
         self.temperature_tolerance *= N_recycles
     
-    def _load_flowsheet(self):
-        self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
-    
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
         self._path = path = tuple(path)
         
-        #: set[Unit] All units within the system
-        self.units = units = set()
-        
-        #: list[System] All subsystems in the system
-        self.subsystems = subsystems = []
-        
-        #: set[Unit] All units that have costs (including facilities).
-        self._costunits = costunits = set()
-        
-        isa = isinstance
-        for i in path:
-            if isa(i, Unit): 
-                units.add(i)
-                if i._design or i._cost:
-                    costunits.add(i)
-            elif isa(i, System):
-                subsystems.append(i)
-                units.update(i.units)
-                costunits.update(i._costunits)
-    
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
         self._facilities = facilities = tuple(facilities)
         subsystems = self.subsystems
-        costunits = self._costunits
-        units = self.units
         isa = isinstance
         new_facility_units = []
         for i in facilities:
-            if isa(i, Unit):
-                units.add(i)
-                if i._cost: costunits.add(i)
-                if isa(i, Facility) and not i._system:
-                    new_facility_units.append(i)
+            if isa(i, Facility) and not i._system:
+                new_facility_units.append(i)
             elif isa(i, System):
-                units.update(i.units)
                 subsystems.append(i)
-                costunits.update(i._costunits)
         for i in new_facility_units:
             i._system = self
             i._other_units = other_units = self.units.copy()
@@ -579,7 +596,30 @@ class System:
             self._facility_loop = FacilityLoop(system, recycle)
         else:
             self._facility_loop = None
+        
+    # Forward pipping
+    __sub__ = Unit.__sub__
+    __rsub__ = Unit.__rsub__
+
+    # Backwards pipping
+    __pow__ = __sub__
+    __rpow__ = __rsub__
     
+    @property
+    def subsystems(self):
+        """list[System] All subsystems in the system."""
+        return [i for i in self.path if isinstance(i, System)]
+    @property
+    def units(self):
+        """[list] All unit operations as ordered in the path."""
+        units = []
+        isa = isinstance
+        for i in self._path + self._facilities:
+            if isa(i, Unit):
+                units.append(i)
+            elif isa(i, System):
+                units.extend(i.units)
+        return units 
     @property
     def streams(self):
         """set[:class:`~thermosteam.Stream`] All streams within the system."""
@@ -598,52 +638,7 @@ class System:
         outlets = bst.utils.outlets(self.units)
         bst.utils.filter_out_missing_streams(outlets)
         return bst.utils.products(outlets)
-    @property
-    def ins(self):
-        """StreamPorts[:class:`~InletPort`] All inlets to the system."""
-        if hasattr(self, '_ins'):
-            ins = self._ins
-        else:
-            inlets = bst.utils.feeds_from_units(self.units)
-            self._ins = ins = StreamPorts.from_inlets(inlets, sort=True)
-        return ins
-    @property
-    def outs(self):
-        """StreamPorts[:class:`~OutletPort`] All outlets to the system."""
-        if hasattr(self, '_outs'):
-            outs = self._outs
-        else:
-            outlets = bst.utils.products_from_units(self.units)
-            self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
-        return outs
     
-    def load_inlet_ports(self, inlets):
-        """Load inlet ports to system."""
-        all_inlets = bst.utils.inlets(self.units)
-        for i in inlets: 
-            if i not in all_inlets:
-                raise ValueError(f'{i} is not an inlet')
-        self._ins = StreamPorts.from_inlets(inlets)
-    
-    def load_outlet_ports(self, outlets):
-        """Load outlet ports to system."""
-        all_outlets = bst.utils.outlets(self.units)
-        for i in outlets: 
-            if i not in all_outlets:
-                raise ValueError(f'{i} is not an outlet')
-        self._outs = StreamPorts.from_outlets(outlets)
-            
-    def _load_stream_links(self):
-        for u in self.unit_path: u._load_stream_links()
-        
-    # Forward pipping
-    __sub__ = Unit.__sub__
-    __rsub__ = Unit.__rsub__
-
-    # Backwards pipping
-    __pow__ = __sub__
-    __rpow__ = __rsub__
-        
     @property
     def TEA(self):
         """[TEA] Object for Techno-Economic Analysis."""
@@ -756,7 +751,7 @@ class System:
         return surface_digraph(self._path)
 
     def _thorough_digraph(self, **graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path, 
+        return digraph_from_units_and_streams(self.units, 
                                               self.streams, 
                                               **graph_attrs)
         
@@ -933,18 +928,6 @@ class System:
             elif isa(i, System): converge(i)
             else: i() # Assume it is a function
     
-    @property
-    def unit_path(self):
-        """[list] All unit operations as ordered in the path."""
-        unit_path = []
-        isa = isinstance
-        for i in self._path + self._facilities:
-            if isa(i, Unit):
-                unit_path.append(i)
-            elif isa(i, System):
-                unit_path.extend(i.unit_path)
-        return unit_path 
-    
     # Methods for convering the recycle stream    
     def _fixedpoint(self):
         """Converge system recycle iteratively using fixed-point iteration."""
@@ -1056,7 +1039,7 @@ class System:
         network = Network.__new__(Network)    
         network.path = path
         network.recycle = self._recycle
-        network.units = self.units
+        network.units = set(self.units)
         network.subnetworks = [i for i in path if isa(i, Network)]
         network.feeds = self.feeds
         network.products = self.products

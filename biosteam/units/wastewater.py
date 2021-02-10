@@ -28,7 +28,7 @@ Utilities
 
 System Creation
 ---------------
-.. autofunction:: biosteam.units.wastewater.create_wastewater_treatment_system
+.. autodata:: biosteam.units.wastewater.create_wastewater_treatment_system
 
 References
 ----------
@@ -50,7 +50,6 @@ from thermosteam import (
     settings,
     Reaction as Rxn,
     ParallelReaction as PRxn,
-    Chemicals,
 )
 
 __all__ = (
@@ -124,7 +123,7 @@ def aerobic_digestion_reactions(chemicals, MW_sludge, X_combustion=0.74, X_growt
     # organic matter is removed after aerobic digestion, of which 74% is 
     # converted to water and CO2 and 22% to cell mass
     isvalid = utils.is_valid_ID
-    thremo = settings.get_default_thermo(thermo)
+    thermo = settings.get_default_thermo(thermo)
     parsable_name = thermo.chemicals.get_parsable_synonym
     def growth(chemical):
         f = MW_sludge / chemical.MW
@@ -488,7 +487,38 @@ class ReverseOsmosis(Unit):
         water_recovered = self.water_recovery * water_flow
         water.mol[water_index] = water_recovered
         brine.mol[water_index] = water_flow - water_recovered
-        
+  
+"""
+Create a system for wastewater treatment.
+
+Parameters
+----------
+ID : str, optional
+    Defaults to 'wastewater_treatment_sys'.
+ins : streams, optional
+    Wastewater streams (without solids).
+outs : stream sequence
+    * [0] methane
+    * [1] sludge
+    * [2] treated_water
+    * [3] waste_brine 
+NaOH_price : float, optional
+    Price of NaOH in USD/kg. The default is 0.15.
+mockup : bool, optional
+    Whether to create a mock system.
+area : int, optional
+    If given, all IDs of all units will follow the `area` convention as
+    explained in :func:`~biosteam.process_tools.utils.rename_units`.
+
+Returns
+-------
+wastewater_treatment : :class:`~biosteam.System`
+    Wastewater treatment system. The system includes anaerobic and aerobic 
+    digestion, a membrane bioreactor, a sludge centrifuge, and reverse osmosis.
+unit_dct : dict[:class:`~biosteam.Unit`], optional
+    Dictionary of units by original unit IDs. Returned only if `area` is given.
+
+"""
 @bst.SystemFactory(
     ID='wastewater_treatment_sys',
     outs=[dict(ID='methane'),
@@ -498,41 +528,18 @@ class ReverseOsmosis(Unit):
     fixed_ins_size=False,
 )
 def create_wastewater_treatment_system(
-        ID, ins, outs,
-        wastewater_treatment_area=600,
-        NaOH_price=0.15, 
+        ID, ins, outs, NaOH_price=0.15, 
     ):
-    """
-    Create a system for wastewater treatment.
-
-    Parameters
-    ----------
-    wastewater_streams : Iterable[:class:`~thermosteam.Stream`], optional
-        Wastewater streams (without solids).
-    wastewater_treatment_area : int, optional
-        Area number to label unit operations. The default is 600.
-    NaOH_price : float, optional
-        Price of NaOH in USD/kg. The default is 0.15.
-    
-    Returns
-    -------
-    wastewater_treatment : :class:`~biosteam.System`
-        Wastewater treatment system. The system includes anaerobic and aerobic 
-        digestion, a membrane bioreactor, a sludge centrifuge, and reverse osmosis.
-        
-
-    """
     methane, sludge, treated_water, waste_brine = outs
-    n = wastewater_treatment_area
     well_water = bst.Stream('well_water', Water=1, T=15+273.15)
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
                      units='kg/hr', price=NaOH_price*0.5)
     
-    wastewater_mixer = bst.Mixer(f'M{n+1}', ins)
+    wastewater_mixer = bst.Mixer(f'M{601}', ins)
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
-    anaerobic_digestion = AnaerobicDigestion(f'R{n+1}', (WWTC-0, well_water), (methane, '', ''))
-    recycled_sludge_mixer = bst.Mixer(f'M{n+2}', (anaerobic_digestion-1, None))
+    anaerobic_digestion = AnaerobicDigestion(f'R{601}', (WWTC-0, well_water), (methane, '', '', ''))
+    recycled_sludge_mixer = bst.Mixer(f'M{602}', (anaerobic_digestion-1, None))
     
     caustic_over_waste = caustic.mol / 2544300.6261793654
     air_over_waste = air.mol / 2544300.6261793654
@@ -544,13 +551,14 @@ def create_wastewater_treatment_system(
         air.mol[:] = F_mass_waste * air_over_waste
         aerobic_digestion._run()
     
-    aerobic_digestion = AerobicDigestion(f'R{n+2}', (waste, air, caustic),
+    aerobic_digestion = AerobicDigestion(f'R{602}', (waste, air, caustic),
                                          outs=('evaporated_water', ''))
     aerobic_digestion.specification = update_aerobic_input_streams
-    membrane_bioreactor = MembraneBioreactor(f'S{n+1}', aerobic_digestion-1)
-    sludge_splitter = bst.Splitter(f'S{n+2}', membrane_bioreactor-1, split=0.96)
-    fresh_sludge_mixer = bst.Mixer(f'M{n+3}', (anaerobic_digestion-2, sludge_splitter-1))
-    sludge_centrifuge = SludgeCentrifuge(f'S{n+3}', fresh_sludge_mixer-0, outs=('', sludge))
+    membrane_bioreactor = MembraneBioreactor(f'S{601}', aerobic_digestion-1)
+    sludge_splitter = bst.Splitter(f'S{602}', membrane_bioreactor-1, split=0.96)
+    fresh_sludge_mixer = bst.Mixer(f'M{603}', (anaerobic_digestion-2, sludge_splitter-1))
+    sludge_centrifuge = SludgeCentrifuge(f'S{603}', fresh_sludge_mixer-0, outs=('', sludge))
     sludge_centrifuge-0-1-recycled_sludge_mixer
-    reverse_osmosis = ReverseOsmosis(f'S{n+4}', membrane_bioreactor-0,
+    reverse_osmosis = ReverseOsmosis(f'S{604}', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
+

@@ -341,7 +341,7 @@ def test_nested_recycle_loops():
 def test_sugarcane_ethanol_biorefinery_network():
     from biorefineries.sugarcane import flowsheet as f
     sugarcane_sys = f.create_system('sugarcane_sys')
-    globals().update(f.unit.__dict__)
+    globals().update(f.unit.data)
     network = sugarcane_sys.to_network()
     actual_network = Network(
         [U101,

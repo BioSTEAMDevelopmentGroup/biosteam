@@ -9,8 +9,9 @@
 """
 from thermosteam import Stream
 from biosteam import System, MockSystem
-from inspect import signature
 from biosteam.utils import as_stream
+from biosteam.process_tools import utils
+from inspect import signature
 
 __all__ = ('SystemFactory', )
 
@@ -80,8 +81,9 @@ class SystemFactory:
     MockSystem(
         ins=[0-P1],
         outs=[H1-0]
+        units=[P1, H1]
     )
-    >>> Tank = StorageTank('T1', sys-0, 'hot_stream')
+    >>> T1 = StorageTank('T1', sys-0, 'hot_stream_from_storage')
     >>> heating_sys = main_flowsheet.create_system('heating_sys')
     >>> heating_sys.simulate()
     >>> heating_sys.show() 
@@ -91,9 +93,26 @@ class SystemFactory:
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  100
     outs...
-    [0] hot_stream
+    [0] hot_stream_from_storage
         phase: 'l', T: 350 K, P: 101325 Pa
         flow (kmol/hr): Water  100
+    
+    Create the system and assign unit operation IDs by area convention:
+        
+    >>> sys = create_heating_system(outs=[''], T_out=350, area=100, mockup=True) 
+    >>> sorted(main_flowsheet.unit, key=lambda u: u.ID) # Note how previous unit operations still exist in registry
+    [<HXutility: H1>,
+     <HXutility: H101>,
+     <Pump: P1>,
+     <Pump: P101>,
+     <StorageTank: T1>]
+    
+    To access unit operations by the original ID given in the system factory,
+    you can request a unit dictionary as follows:
+        
+    >>> sys, udct = create_heating_system(outs=[''], T_out=350, mockup=True, area=200, udct=True)
+    >>> udct['P1'] # Originally, this unit was named P1
+    <Pump: P201>
     
     """
     __slots__ = ('f', 'ID', 'ins', 'outs',
@@ -103,6 +122,13 @@ class SystemFactory:
     def __new__(cls, f=None, ID=None, ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True):
         if f:
+            params = list(signature(f).parameters)
+            if params[:3] != ['ID', 'ins', 'outs']:
+                raise ValueError('function must have a signature of function(ID, ins, outs, *args, **kwargs)')
+            other_params = params[3:]
+            for i in ('mockup', 'area', 'udct'):
+                if i in other_params:
+                    raise ValueError(f"function cannot accept '{i}' as an argument")
             ins = ins or []
             outs = outs or []
             self = super().__new__(cls)
@@ -116,19 +142,27 @@ class SystemFactory:
         else:
             return lambda f: cls(f, ID, ins, outs, fixed_ins_size, fixed_outs_size)
     
-    def __call__(self, ID=None, ins=None, outs=None, mockup=False, *args, **kwargs):
+    def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, *args, **kwargs):
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
-        if mockup:
-            self.f(ID or self.ID, ins, outs, *args, **kwargs)
-            system = MockSystem(ins, outs)
-        else:
-            if not ID: ID = self.ID
-            with System(ID) as system:
-                user_system = self.f(ID, ins, outs, *args, **kwargs)
-                if user_system: system.copy_like(user_system)
-            system.load_inlet_ports(ins)
-            system.load_outlet_ports(outs)
+        if not ID: ID = self.ID
+        rename = area is not None
+        with (MockSystem() if mockup else System(ID)) as system:
+            if rename: 
+                unit_registry = system.flowsheet.unit
+                irrelevant_units = system._irrelevant_units
+                unit_registry.mark_safe_to_replace(irrelevant_units)
+            self.f(ID, ins, outs, *args, **kwargs)
+        system.load_inlet_ports(ins)
+        system.load_outlet_ports(outs)
+        if rename: 
+            units = system.units
+            if udct: unit_dct = {i.ID: i for i in units}
+            utils.rename_units(units, area)
+            unit_registry.unmark_safe_to_replace(irrelevant_units)
+            if udct: return system, unit_dct
+        elif udct:
+            raise ValueError('udct must be False if no area given')
         return system
     
     def show(self):

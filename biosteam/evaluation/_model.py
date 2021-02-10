@@ -134,7 +134,7 @@ class Model(State):
      
     Add number of fermentation reactors as a "design" parameter (which doesn't affect mass or energy balances'):
         
-    >>> R301 = bst.main_flowsheet.unit.R301 # The Fermentation Unit
+    >>> R301 = lc.flowsheet.unit.R301 # The Fermentation Unit
     >>> @model.parameter(name='Number of reactors',
     ...                  element=R301, kind='design',
     ...                  distribution=shape.Uniform(4, 10))
@@ -224,8 +224,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]    11.8
-                 Utility cost [10^6 USD/yr]    -16.5
+    Biorefinery  Internal rate of return [%]    12.1
+                 Utility cost [10^6 USD/yr]    -17.9
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:

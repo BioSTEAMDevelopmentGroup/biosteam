@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 
 def test_unit_connections():
     from biorefineries.sugarcane import flowsheet as f
-    globals().update(f.unit.__dict__)
+    globals().update(f.unit.data)
     assert R301.neighborhood(1) == {D301, H301, T301, T305}
     assert R301.neighborhood(2) == {C301, D301, H301, M301, M302, R301, T301, T305}
     assert R301.neighborhood(100) == R301.neighborhood(1000) == {P202, T201, U201, D301, M304, 

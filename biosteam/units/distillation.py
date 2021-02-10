@@ -37,7 +37,7 @@ from scipy.optimize import brentq
 from warnings import warn
 from .heat_exchange import HXutility
 
-__all__ = ('BinaryDistillation', 'ShortcutColumn')
+__all__ = ('Distillation', 'BinaryDistillation', 'ShortcutColumn')
 
 # %% Abstract distillation column unit operation
 

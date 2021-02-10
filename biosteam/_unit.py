@@ -263,6 +263,9 @@ class Unit:
             "try using the `thermo` keyword argument to initialize the unit operation "
             "with a compatible thermodynamic property package")
     
+    def set_ID_by_area(self, area):
+        bst.rename_unit(self, area)
+    
     def disconnect(self):
         self._ins[:] = ()
         self._outs[:] = ()

@@ -108,3 +108,6 @@ def test_model_exception_hook():
     
     # Note that the possibilities are infinite here...
     
+if __name__ == '__main__':
+    test_model()
+    test_model_exception_hook()

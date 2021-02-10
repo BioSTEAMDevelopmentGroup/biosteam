@@ -94,7 +94,7 @@ class UnitGroup:
     
     >>> group.show()
     UnitGroup: Example group
-     units: (P1, T1, H1)
+     units: P1, T1, H1
      metrics: Moisture content
               Sucrose flow rate [kg/hr]
     
@@ -110,9 +110,17 @@ class UnitGroup:
     __slots__ = ('name', 'units', 'metrics')
     
     def __init__(self, name, units, metrics=None):
-        self.name = str(name) #: [str] Name of group for bookkeeping
-        self.units = tuple(units) #: tuple[Unit] Unit operations
-        self.metrics = metrics or [] #: list[Metric] Metrics to generate results
+        #: [str] Name of group for bookkeeping
+        self.name = str(name)
+        
+        #: list[Unit] Unit operations
+        self.units = units if isinstance(units, list) else list(units) 
+        
+        if metrics is None: metrics = []
+        elif not isinstance(metrics, list): metrics = list(metrics)
+        
+        #: list[Metric] Metrics to generate results
+        self.metrics = metrics
     
     def metric(self, getter=None, name=None, units=None, element=None):
         """
@@ -173,7 +181,7 @@ class UnitGroup:
     
     @classmethod
     def group_by_types(cls, units, name_types=None):
-        """Create a list of UnitGroup object of given iterable of name-type(s) pairs."""
+        """Create a list of UnitGroup objects for each name-type pair."""
         if name_types:
             if isinstance(name_types, Mapping): name_types = name_types.items()
             return [cls.filter_by_types(name, units, types) for name, types in name_types]
@@ -183,13 +191,54 @@ class UnitGroup:
     
     @classmethod
     def group_by_lines(cls, units, name_lines=None):
-        """Create a list of UnitGroup object of given iterable of name-type(s) pairs."""
+        """Create a list of UnitGroup objects for each name-line pair."""
         if name_lines:
             if isinstance(name_lines, Mapping): name_lines = name_lines.items()
             return [cls.filter_by_lines(name, units, lines) for name, lines in name_lines]
         else:
             groups = utils.group_by_lines(units)
             return [cls(i, j) for i, j in groups.items()]
+    
+    @classmethod
+    def group_by_area(cls, units):
+        """
+        Create a list of UnitGroup objects for each area available.
+        
+        Examples
+        --------
+        >>> from biosteam import *
+        >>> from biorefineries.cornstover import cornstover_sys
+        >>> areas = UnitGroup.group_by_area(cornstover_sys.units)
+        >>> for i in areas: i.show()
+        UnitGroup: 0
+         units: H2SO4_storage, Ammonia_storage, WWTC, FT, DAP_storage,
+                CSL_storage, BT, CWP, CIP_package, ADP,
+                CT, PWC
+        UnitGroup: 100
+         units: U101        
+        UnitGroup: 200
+         units: T201, M201, M202, M203, R201,
+                P201, T202, F201, M205, T203,
+                P202, M204, H201        
+        UnitGroup: 300
+         units: H301, M301, R301, M302, R302,
+                T301, M303, T302, S301, S302        
+        UnitGroup: 400
+         units: D401, M401, P401, H401, D402,
+                P402, S401, M402, D403, H402,
+                U401, H403, P403        
+        UnitGroup: 500
+         units: M501        
+        UnitGroup: 600
+         units: M601, R601, M602, R602, S601,
+                S602, M603, S603, S604        
+        UnitGroup: 700
+         units: T701, P701, T702, P702, M701,
+                T703
+        
+        >>> default() # Bring biosteam settings back to default
+        """
+        return [cls(i, j) for i, j in utils.group_by_area(units).items()]
     
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in GJ/hr"""
@@ -290,20 +339,29 @@ class UnitGroup:
 
     def show(self):
         units = self.units
-        N_units = len(units)
-        N_subgroups = int(ceil(N_units / 5))
-        unit_subgroups = []
-        for i in range(N_subgroups):
-            start = i*5
-            end = i*5 + 5
-            subgroup = ', '.join([str(i) for i in units[start:end]])
-            unit_subgroups.append(subgroup)
-        units_newline = ",\n" + " " * len(' units: (')
-        metric_newline = "\n" + " " * len(' metrics: ')
+        if units:
+            N_units = len(units)
+            N_subgroups = int(ceil(N_units / 5))
+            unit_subgroups = []
+            for i in range(N_subgroups):
+                start = i*5
+                end = i*5 + 5
+                subgroup = ', '.join([str(i) for i in units[start:end]])
+                unit_subgroups.append(subgroup)
+            units_newline = ",\n" + " " * len(' units: ')
+            units = f"\n units: {units_newline.join(unit_subgroups)}"
+        else:
+            units = "\n units: (No units)"
+        metrics = self.metrics
+        if metrics:
+            metric_newline = "\n" + " " * len(' metrics: ')
+            metrics = f"\n metrics: {metric_newline.join([i.describe() for i in self.metrics])}"
+        else:
+            metrics = ""
         print (
-            f"{type(self).__name__}: {self.name}\n"
-            f" units: ({units_newline.join(unit_subgroups)})\n"
-            f" metrics: {metric_newline.join([i.describe() for i in self.metrics])}"
+            f"{type(self).__name__}: {self.name}"
+            + units
+            + metrics
         )
         
     _ipython_display_ = show

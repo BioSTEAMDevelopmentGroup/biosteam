@@ -8,10 +8,10 @@ Clarifier" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 mar
 	edge [arrowhead=none arrowtail=none headport=c tailport=e]
 	s21 -> "C201
 Clarifier"
-	s1
+	s4
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"C201
-Clarifier" -> s1
+Clarifier" -> s4
 	s22
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"C201

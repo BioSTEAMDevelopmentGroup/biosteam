@@ -106,12 +106,12 @@ class Flowsheet:
     
     def update(self, flowsheet):
         for registry, other_registry in zip(self.registries, flowsheet.registries):
-            registry.__dict__.update(other_registry.__dict__)
+            registry.data.update(other_registry.data)
     
     def to_dict(self):
-        return {**self.stream.__dict__,
-                **self.unit.__dict__,
-                **self.system.__dict__}
+        return {**self.stream.data,
+                **self.unit.data,
+                **self.system.data}
     
     @classmethod
     def from_flowsheets(cls, ID, flowsheets):

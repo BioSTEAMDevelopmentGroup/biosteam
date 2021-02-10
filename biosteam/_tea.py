@@ -306,7 +306,7 @@ class TEA:
     def like(system, other):
         """Create a TEA object from `system` with the same settings as `other`."""
         self = copy_(other)
-        self.units = sorted(system._costunits, key=lambda x: x.line)
+        self.units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
         self.system = system
         self.feeds = system.feeds
         self.products = system.feeds
@@ -361,7 +361,7 @@ class TEA:
         self._sales = 0
         
         #: list[Unit] All unit operations considered
-        self.units = sorted(system._costunits, key=lambda x: x.line)
+        self.units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
         
         #: [System] System being evaluated.
         self.system = system
