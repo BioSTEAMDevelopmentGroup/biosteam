@@ -99,6 +99,7 @@ def rename_unit(unit, area):
     -----
     The area convention follows "{letter}{area + number}" where the letter depends on
     the unit operation as follows:
+    
     * C = Centrifuge
     * D = Distillation column
     * E = Evaporator
@@ -146,6 +147,7 @@ def rename_units(units, area):
     -----
     The area convention follows "{letter}{area + number}" where the letter depends on
     the unit operation as follows:
+    
     * C = Centrifuge
     * D = Distillation column
     * E = Evaporator
