@@ -1038,8 +1038,6 @@ class System:
         network.recycle = self._recycle
         network.units = set(self.units)
         network.subnetworks = [i for i in path if isa(i, Network)]
-        network.feeds = self.feeds
-        network.products = self.products
         return network
         
     # Debugging

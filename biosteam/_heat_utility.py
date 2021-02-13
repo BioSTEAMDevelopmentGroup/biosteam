@@ -8,6 +8,7 @@
 """
 """
 from thermosteam.units_of_measure import convert, DisplayUnits
+from thermosteam.utils import unregistered
 from thermosteam import Thermo, Stream, ThermalCondition
 from math import copysign
 
@@ -20,6 +21,7 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 
 # %% Utility agents
 
+@unregistered
 class UtilityAgent(Stream):
     """
     Create a UtilityAgent object that defines a utility option.
