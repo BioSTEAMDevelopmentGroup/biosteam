@@ -74,7 +74,7 @@ class SystemFactory:
         flow (kmol/hr): Water  100
     
     Create a mockup version, add a tank, then create the system:
-        
+    
     >>> main_flowsheet.clear() # Remove old unit operations
     >>> sys = create_heating_system(outs=[''], T_out=350, mockup=True) 
     >>> sys.show() # Mock systems have ins and outs, just like real systems
@@ -98,7 +98,7 @@ class SystemFactory:
         flow (kmol/hr): Water  100
     
     Create the system and assign unit operation IDs by area convention:
-        
+    
     >>> sys = create_heating_system(outs=[''], T_out=350, area=100, mockup=True) 
     >>> sorted(main_flowsheet.unit, key=lambda u: u.ID) # Note how previous unit operations still exist in registry
     [<HXutility: H1>,
@@ -129,13 +129,11 @@ class SystemFactory:
             for i in ('mockup', 'area', 'udct'):
                 if i in other_params:
                     raise ValueError(f"function cannot accept '{i}' as an argument")
-            ins = ins or []
-            outs = outs or []
             self = super().__new__(cls)
             self.f = f
             self.ID = ID
-            self.ins = ins
-            self.outs = outs
+            self.ins = ins or []
+            self.outs = outs or []
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
             return self

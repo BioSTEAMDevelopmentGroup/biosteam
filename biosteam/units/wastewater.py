@@ -570,7 +570,7 @@ mockup : bool, optional
     Whether to create a mock system.
 area : int, optional
     If given, IDs of all units will follow the area naming convention as
-    explained in :func:`~biosteam.process_tools.utils.rename_units`.
+    explained in :func:`~biosteam.process_tools.utils.rename_unit`.
 udct : bool, optional
     Whether to also return fictionary of units with their original IDs as keys.
 NaOH_price : float, optional

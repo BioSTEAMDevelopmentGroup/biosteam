@@ -53,6 +53,62 @@ cycle_colors = ('aliceblue', 'chocolate', 'peachpuff',
                 'lightgreen', 'thistle', 'darkolivegreen', 'lightsteelblue',
                 'cadetblue')
 
+# %% Helpful functions
+
+def stream_cost(stream):
+    return abs(stream.cost)
+
+def abbreviate_word(word):
+    if len(word) < 5: return word 
+    original_word = word
+    word = word.lower()
+    vocals = 'aeiouy'
+    for index, letter in enumerate(word):
+        if letter in vocals: break
+    for index, letter in enumerate(word[index:], index + 1):
+        if letter not in vocals: break
+    for index, letter in enumerate(word[index:], index + 1):
+        if letter in vocals: 
+            index -= 1
+            break
+    if index < len(word):
+        return original_word[:index] + '.'
+    else:
+        return original_word
+            
+def abbreviate_name(name):
+    words = name.split(' ')
+    return ' '.join([abbreviate_word(i) for i in words])
+
+def reduced_feed(feeds, unit_group):
+    feed = bst.Stream.sum(feeds)
+    feed._ID = ''
+    feed._sink = unit_group.units[0]
+    return feed
+
+def reduced_product(products, unit_group):
+    product = bst.Stream.sum(products)
+    product._ID = ''
+    product._source = unit_group.units[0]
+    return product
+
+def reduced_feeds(feeds, unit_groups):
+    groups = [([], i) for i in unit_groups]
+    for feed_group, unit_group in groups:
+        for u in unit_group.units:
+            for feed in feeds:
+                if feed in u.ins: feed_group.append(feed)
+    return [(reduced_feed(i, j) if len(i) > 1 else i[0]) for i, j in groups if i]
+
+def reduced_products(products, unit_groups):
+    groups = [([], i) for i in unit_groups]
+    for product_group, unit_group in groups:
+        for u in unit_group.units:
+            for product in products:
+                if product in u.outs: product_group.append(product)
+    return [(reduced_product(i, j) if len(i) > 1 else i[0]) for i, j in groups if i]
+
+
 # %% Main class used to handle the creating of Sankey plots
 
 class Handle: # pragma: no coverage
@@ -71,11 +127,19 @@ class Handle: # pragma: no coverage
         through colors defined in the variable, `biosteam.plots.sankey.color_cycle`.
     
     """
-    __slots__ = ('size', 'nodes_index')
+    __slots__ = (
+        'size', 'nodes_index',
+        'main_feeds', 'max_feeds',
+        'main_products', 'max_products'
+    )
     
-    def __init__(self):
+    def __init__(self, main_feeds=None, main_products=None, max_feeds=3, max_products=3):
         self.nodes_index = {} #: Dict[Object, ProcessNode] Object - node pairs.
         self.size = 0 #: [int] Number of process nodes created.
+        self.main_feeds = main_feeds
+        self.main_products = main_products
+        self.max_feeds = max_feeds
+        self.max_products = max_products
     
     def filter_streams(self, streams):
         has_width = self.stream_width
@@ -100,30 +164,32 @@ class Handle: # pragma: no coverage
         self.nodes_index[product] = product_node
         return product_node
     
-    def process_node(self, name, units):
-        process_node = ProcessNode(self, name, self.next_index(), units)
+    def process_node(self, unit_group):
+        units = unit_group.units
+        process_node = ProcessNode(self, unit_group.name, self.next_index(), units)
         for i in units: self.nodes_index[i] = process_node 
         return process_node
     
-    def nodes(self, *unit_groups, **units):
+    def nodes(self, unit_groups):
+        if isinstance(unit_groups, dict):
+            unit_groups = [bst.UnitGroup(i, j) for i,j in unit_groups.items()]
         nodes = []
         streams = set()
         streams_from_units = bst.utils.streams_from_units
         for group in unit_groups:
-            node = self.process_node(group.name, group.units)
-            nodes.append(node)
+            nodes.append(self.process_node(group))
             streams.update(streams_from_units(group.units))
-        for name, units in units.items():
-            node = self.process_node(name.replace('_', ' '), units)
-            nodes.append(node)
-            streams.update(streams_from_units(units))
         streams = self.filter_streams(streams)
         nodes_index = self.nodes_index
         feeds = [i for i in streams if i._source not in nodes_index and i._sink]
-        products = [i for i in streams if i._sink not in nodes_index and i._source]
+        main_feeds = self.main_feeds or sorted(feeds, key=stream_cost, reverse=True)[:self.max_feeds]
+        feeds = main_feeds + reduced_feeds([i for i in feeds if i not in main_feeds], unit_groups)            
         for feed in feeds:
             node = self.feed_node(feed)
             nodes.append(node)
+        products = [i for i in streams if i._sink not in nodes_index and i._source]
+        main_products = self.main_products or sorted(products, key=stream_cost, reverse=True)[:self.max_products]
+        products = main_products + reduced_products([i for i in products if i not in main_products], unit_groups)
         for product in products:
             node = self.product_node(product)
             nodes.append(node)
@@ -139,7 +205,7 @@ class Handle: # pragma: no coverage
 
 class CapitalNodeHandle(Handle): # pragma: no coverage
     """
-    Create a CapitalHandle object that represents node colors by installed 
+    Create a CapitalNodeHandle object that represents node colors by installed 
     equipment cost of the process.
     
     """
