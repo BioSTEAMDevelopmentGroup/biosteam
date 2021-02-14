@@ -45,7 +45,7 @@ class SystemFactory:
     ...     ins=[dict(ID='cold_stream', Water=100)],
     ...     outs=[dict(ID='hot_stream')]
     ... )
-    ... def create_heating_system(ID, ins, outs, T_out):
+    ... def create_heating_system(ins, outs, T_out):
     ...     cold_stream, = ins
     ...     hot_stream, = outs
     ...     P1 = Pump('P1', ins=cold_stream)
@@ -53,7 +53,7 @@ class SystemFactory:
     ...
     >>> create_heating_system.show()
     SystemFactory(
-        f=<create_heating_system(ID, ins, outs, T_out)>,
+        f=<create_heating_system(ins, outs, T_out)>,
         ID='heating_sys',
         ins=[dict(ID='cold_stream',
                   Water=100)],

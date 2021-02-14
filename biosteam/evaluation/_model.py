@@ -27,68 +27,6 @@ indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
                                             names=names or ('Element', 'Variable'),
                                         )
 
-# %% Documentation example code for copy pasting to console; DO NOT DELETE
-
-# >>> from chaospy import distributions as shape
-# >>> from biorefineries import lipidcane as lc
-# >>> import biosteam as bst
-# >>> solve_IRR = lambda: 100. * lc.lipidcane_tea.solve_IRR()
-# >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
-# >>> metrics = (bst.Metric('Internal rate of return', solve_IRR, '%'),
-# ...            bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))
-# >>> model = bst.Model(lc.lipidcane_sys, metrics)
-
-# >>> R301 = bst.main_flowsheet.unit.R301 # The Fermentation Unit
-# >>> @model.parameter(name='Number of reactors',
-# ...                  element=R301, kind='design',
-# ...                  distribution=shape.Uniform(4, 10))
-# ... def set_N_reactors(N):
-# ...     R301.N = round(N)
-
-# >>> reactors_cost_coefficients = R301.cost_items['Reactors']
-# >>> mid = reactors_cost_coefficients.n # Most probable at baseline value
-# >>> lb = mid - 0.1 # Minimum
-# >>> ub = mid + 0.1 # Maximum
-# >>> @model.parameter(element=R301, kind='cost',
-# ...              distribution=shape.Triangle(lb, mid, ub))
-# ... def set_exponential_cost_coefficient(exponential_cost_coefficient):
-# ...     reactors_cost_coefficients.n = exponential_cost_coefficient
-
-# >>> lipidcane = lc.lipidcane # The feedstock stream
-# >>> lb = lipidcane.price * 0.9 # Minimum price
-# >>> ub = lipidcane.price * 1.1 # Maximum price
-# >>> @model.parameter(element=lipidcane, kind='isolated', units='USD/kg',
-# ...                  distribution=shape.Uniform(lb, ub))
-# ... def set_feed_price(feedstock_price):
-# ...     lipidcane.price = feedstock_price 
-
-# >>> from biorefineries.lipidcane.utils import set_lipid_fraction
-# >>> # Note that if the setter function is already made,
-# >>> # you can pass it as the first argument
-# >>> set_lipid_fraction = model.parameter(set_lipid_fraction,
-# ...                                      element=lipidcane, kind='coupled',
-# ...                                      distribution=shape.Uniform(0.05, 0.10))
-
-# >>> @model.parameter(element=R301, kind='coupled',
-# ...                  distribution=shape.Triangle(0.85, 0.90, 0.95))
-# ... def set_fermentation_efficiency(efficiency):
-# ...     R301.efficiency = efficiency
-
-# >>> print(model([0.05, 0.85, 8, 0.6, 0.040])) # Returns metrics (IRR and utility cost)
-
-# >>> import numpy as np
-# >>> np.random.seed(1234) # For consistent results
-# >>> N_samples = 10
-# >>> rule = 'L' # For Latin-Hypercube sampling
-# >>> samples = model.sample(N_samples, rule)
-# >>> model.load_samples(samples)
-# >>> model.evaluate(jit=False)
-# >>> table = model.table # All evaluations are stored as a pandas DataFrame
-# >>> print(table['Biorefinery']) # Only biorefinery metrics
-
-# >>> df_spearman = model.spearman()
-# >>> print(df_spearman['Biorefinery', 'Internal rate of return [%]'])
-
 # %% Grid of simulation blocks
 
 class Model(State):
@@ -224,7 +162,7 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]    12.1
+    Biorefinery  Internal rate of return [%]    11.6
                  Utility cost [10^6 USD/yr]    -17.9
     dtype: float64
     
