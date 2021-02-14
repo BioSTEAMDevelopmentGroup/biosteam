@@ -43,7 +43,7 @@ def test_simple_recycle_loop():
     x_flat_solution = recycle.mol.copy()
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
-def test_recycle_loop():
+def test_inner_recycle_loop():
     f.set_flowsheet('simple_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
     feedstock = Stream('feedstock', Water=1000)
@@ -68,6 +68,43 @@ def test_recycle_loop():
     x_nested_solution = recycle.mol.copy()
     recycle_loop_sys.flatten()
     assert recycle_loop_sys.path == (P1, P2, M1, S1)
+    recycle_loop_sys.empty_recycles()
+    recycle_loop_sys.simulate()
+    x_flat_solution = recycle.mol.copy()
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    
+def test_inner_recycle_loop_with_forked_side_feed():
+    f.set_flowsheet('simple_recycle_loop')
+    settings.set_thermo(['Water'], cache=True)
+    feedstock = Stream('feedstock', Water=1000)
+    water = Stream('water', Water=10)
+    recycle = Stream('recycle')
+    product = Stream('product')
+    side_product = Stream('side_product')
+    P1 = Pump('P1', feedstock)
+    P2 = Pump('P2', water)
+    S1 = Splitter('S1', P2-0, split=0.5)
+    M1 = Mixer('M1', [P1-0, S1-1, recycle])
+    S2 = Splitter('S2', M1-0, [side_product, ''], split=0.5)
+    M2 = Mixer('M2', [S1-0, S2-1])
+    S3 = Splitter('S3', M2-0, [product, recycle], split=0.5)
+    recycle_loop_sys = f.create_system('recycle_loop_sys')
+    network = recycle_loop_sys.to_network()
+    actual_network = Network(
+        [P1,
+         P2,
+         S1,
+         Network(
+            [M1,
+             S2,
+             M2,
+             S3],
+            recycle=S3-1)])
+    assert network == actual_network
+    recycle_loop_sys.simulate()
+    x_nested_solution = recycle.mol.copy()
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (P1, P2, S1, M1, S2, M2, S3)
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = recycle.mol.copy()
@@ -417,7 +454,8 @@ def test_corn_ethanol_biorefinery_system_creation():
     
 if __name__ == '__main__':
     test_simple_recycle_loop()
-    test_recycle_loop()
+    test_inner_recycle_loop()
+    test_inner_recycle_loop_with_forked_side_feed()
     test_two_recycle_loops_with_complete_overlap()
     test_two_recycle_loops_with_partial_overlap()
     test_feed_forward_recycle_loop()

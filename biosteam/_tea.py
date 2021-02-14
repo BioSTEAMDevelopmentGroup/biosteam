@@ -261,7 +261,7 @@ class TEA:
         Lang factor for getting fixed capital investment
         from total purchase cost. If no lang factor, estimate
         capital investment using bare module factors.
-    construction_schedule : tuple[float]
+    construction_schedule : 1d array [float]
         Construction investment fractions per year (e.g. (0.5, 0.5) for 50%
         capital investment in the first year and 50% investment in the second).
     startup_months : float
@@ -415,7 +415,7 @@ class TEA:
     @property
     def construction_schedule(self):
         """tuple[float] Construction investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5)."""
-        return tuple(self._construction_schedule)
+        return self._construction_schedule
     @construction_schedule.setter
     def construction_schedule(self, schedule):
         self._construction_schedule = np.array(schedule, dtype=float)
@@ -539,10 +539,10 @@ class TEA:
         FOC = self._FOC(FCI)
         VOC = self.VOC
         sales = self.sales
-        length = start+years
+        length = start + years
         C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, NE, CF, DF, NPV, CNPV = data = np.zeros((17, length))
         depreciation = self._depreciation_array
-        D[start:start+len(depreciation)] = TDC*depreciation
+        D[start:start+len(depreciation)] = TDC * depreciation
         w0 = self._startup_time
         w1 = 1. - w0
         C[start] = (w0*self.startup_VOCfrac*VOC + w1*VOC
