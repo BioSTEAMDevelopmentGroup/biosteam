@@ -363,7 +363,9 @@ class System:
         if units is None: 
             units = ()
         elif feeds is None:
-            feeds = bst.utils.feeds_from_units(units)
+            isa = isinstance
+            Facility = bst.Facility
+            feeds = bst.utils.feeds_from_units([i for i in units if not isa(i, Facility)])
             bst.utils.sort_feeds_big_to_small(feeds)
         if feeds:
             feedstock, *feeds = feeds
@@ -807,9 +809,9 @@ class System:
         Returns
         -------
         mol_new : numpy.ndarray
-               New recycle molar flow rates.
+            New recycle molar flow rates.
         not_converged : bool
-                      True if recycle has not converged.
+            True if recycle has not converged.
             
         """
         check_recycle_feasibility(mol)
@@ -1037,7 +1039,6 @@ class System:
         network.path = path
         network.recycle = self._recycle
         network.units = set(self.units)
-        network.subnetworks = [i for i in path if isa(i, Network)]
         return network
         
     # Debugging
