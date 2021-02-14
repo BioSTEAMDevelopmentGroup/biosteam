@@ -212,27 +212,27 @@ class UnitGroup:
         >>> areas = UnitGroup.group_by_area(cornstover_sys.units)
         >>> for i in areas: i.show()
         UnitGroup: 0
-         units: H2SO4_storage, Ammonia_storage, WWTC, FT, DAP_storage,
-                CSL_storage, BT, CWP, CIP_package, ADP,
+         units: H2SO4_storage, Ammonia_storage, DAP_storage, CSL_storage, WWTC,
+                FT, BT, CWP, CIP_package, ADP,
                 CT, PWC
         UnitGroup: 100
-         units: U101        
+         units: U101
         UnitGroup: 200
          units: T201, M201, M202, M203, R201,
                 P201, T202, F201, M205, T203,
-                P202, M204, H201        
+                P202, M204, H201
         UnitGroup: 300
-         units: H301, M301, R301, M302, R302,
-                T301, M303, T302, S301, S302        
+         units: H301, M301, S301, S302, R301,
+                M302, R302, T301, M303, T302
         UnitGroup: 400
          units: D401, M401, P401, H401, D402,
                 P402, S401, M402, D403, H402,
-                U401, H403, P403        
+                U401, H403, P403
         UnitGroup: 500
-         units: M501        
+         units: M501
         UnitGroup: 600
          units: M601, R601, M602, R602, S601,
-                S602, M603, S603, S604        
+                S602, M603, S603, S604
         UnitGroup: 700
          units: T701, P701, T702, P702, M701,
                 T703
