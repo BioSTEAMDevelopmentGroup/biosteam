@@ -745,23 +745,23 @@ class System:
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
         return system
     
-    def _minimal_digraph(self, **graph_attrs):
+    def _minimal_digraph(self, graph_attrs):
         """Return digraph of the path as a box."""
         return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
 
-    def _surface_digraph(self, **graph_attrs):
-        return surface_digraph(self._path)
+    def _surface_digraph(self, graph_attrs):
+        return surface_digraph(self._path, **graph_attrs)
 
-    def _thorough_digraph(self, **graph_attrs):
+    def _thorough_digraph(self, graph_attrs):
         return digraph_from_units_and_streams(self.units, 
-                                              self.streams, 
+                                              self.streams,
                                               **graph_attrs)
         
-    def _cluster_digraph(self, **graph_attrs):
+    def _cluster_digraph(self, graph_attrs):
         return digraph_from_system(self, **graph_attrs)
         
-    def diagram(self, kind=None, file=None, format=None, display=True,
-                **graph_attrs):
+    def diagram(self, kind=None, file=None, format=None, display=True, 
+                number=None, profile=None, label=None, **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of 
         the system.
@@ -780,24 +780,42 @@ class System:
         display : bool, optional
             Whether to display diagram in console or to return the graphviz 
             object.
+        number : bool, optional
+            Whether to number unit operations according to their 
+            order in the system path.
+        profile : bool, optional
+            Whether to clock the simulation time of unit operations.
+        label : bool, optional
+            Whether to label the ID of streams with sources and sinks.
             
         """
         if not kind: kind = 'surface'
-        if not format: format = 'png'
-        if kind == 'cluster':
-            f = self._cluster_digraph(format=format, **graph_attrs)
-        elif kind == 'thorough':
-            f = self._thorough_digraph(format=format, **graph_attrs)
-        elif kind == 'surface':
-            f = self._surface_digraph(format=format, **graph_attrs)
-        elif kind == 'minimal':
-            f = self._minimal_digraph(format=format, **graph_attrs)
-        else:
-            raise ValueError("kind must be either 'cluster', 'thorough', 'surface', or 'minimal'")
-        if display or file: 
-            finalize_digraph(f, file, format)
-        else:
-            return f
+        graph_attrs['format'] = format or 'png'
+        original = (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
+                    bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
+                    bst.PROFILE_UNITS_IN_DIAGRAMS)
+        if number is not None: bst.LABEL_PATH_NUMBER_IN_DIAGRAMS = number
+        if label is not None: bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS = label
+        if profile is not None: bst.PROFILE_UNITS_IN_DIAGRAMS = profile
+        try:
+            if kind == 'cluster':
+                f = self._cluster_digraph(graph_attrs)
+            elif kind == 'thorough':
+                f = self._thorough_digraph(graph_attrs)
+            elif kind == 'surface':
+                f = self._surface_digraph(graph_attrs)
+            elif kind == 'minimal':
+                f = self._minimal_digraph(graph_attrs)
+            else:
+                raise ValueError("kind must be either 'cluster', 'thorough', 'surface', or 'minimal'")
+            if display or file: 
+                finalize_digraph(f, file, format)
+            else:
+                return f
+        finally:
+            (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS, 
+             bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
+             bst.PROFILE_UNITS_IN_DIAGRAMS) = original
             
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):

@@ -1,6 +1,15 @@
 2.24
 ====
 
+2.24.2
+------
+
+
+New features:
+
+* :class:`~biosteam.Unit` objects can be initialized following the area naming convention (see examples in the :doc:`../tutorial/Creating_a_Unit` tutorial)
+
+
 2.24.0
 ------
 
@@ -13,6 +22,6 @@ New features:
 
 * :class:`~biosteam.process_tools.SystemFactory` objects can now accept
   an `area` argument that makes units created by the system factory follow the
-  area naming convetion (see examples in the SystemFactory API or the Drop-in 
-  systems tutoral)
+  area naming convetion (see examples in the SystemFactory API or 
+  the :doc:`../tutorial/Creating_a_System.ipynb`
 

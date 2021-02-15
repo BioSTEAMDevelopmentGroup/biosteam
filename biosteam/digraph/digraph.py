@@ -77,7 +77,7 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
                               **graph_attrs)
 
 @ignore_docking_warnings
-def surface_digraph(path):
+def surface_digraph(path, **graph_attrs):
     surface_units = []
     old_unit_connections = set()
     isa = isinstance
@@ -88,7 +88,7 @@ def surface_digraph(path):
         elif has_path(i):
             extend_surface_units(i.ID, i.streams, i.units, 
                                  surface_units, old_unit_connections)
-    f = digraph_from_units(surface_units)
+    f = digraph_from_units(surface_units, **graph_attrs)
     for u, ins, outs in old_unit_connections:
         u._ins[:] = ins
         u._outs[:] = outs    

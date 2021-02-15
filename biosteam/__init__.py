@@ -8,12 +8,12 @@
 """
 """
 
-__version__ = '2.24.1'
+__version__ = '2.24.2'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
 
-#: Whether to add label the ID of streams with sources and sinks in process 
+#: Whether to label the ID of streams with sources and sinks in process 
 #: flow diagrams.
 LABEL_PROCESS_STREAMS_IN_DIAGRAMS = True
 

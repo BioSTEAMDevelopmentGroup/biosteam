@@ -124,7 +124,8 @@ class Flowsheet:
             new.update(flowsheet)
         return new
     
-    def diagram(self, kind=None, file=None, format=None, display=True, **graph_attrs):
+    def diagram(self, kind=None, file=None, format=None, display=True,
+                number=None, profile=None, label=None, **graph_attrs):
         """
         Display all units and attached streams.
         
@@ -142,9 +143,18 @@ class Flowsheet:
         display : bool, optional
             Whether to display diagram in console or to return the graphviz 
             object.
+        number : bool, optional
+            Whether to number unit operations according to their 
+            order in the system path.
+        profile : bool, optional
+            Whether to clock the simulation time of unit operations.
+        label : bool, optional
+            Whether to label the ID of streams with sources and sinks.
             
         """
-        return self.create_system(None).diagram(kind or 'thorough', file, format, display)
+        return self.create_system(None).diagram(kind or 'thorough', file, format,
+                                                display, number, profile, label,
+                                                **graph_attrs)
     
     def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
         """
