@@ -77,7 +77,7 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # p
         
     """
     writer = ExcelWriter(file)
-    units = list(system._costunits)
+    units = [i for i in system.units if i._design or i._cost]
     try:
         system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
     except:

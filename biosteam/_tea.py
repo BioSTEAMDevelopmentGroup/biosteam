@@ -309,7 +309,7 @@ class TEA:
         self.units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
         self.system = system
         self.feeds = system.feeds
-        self.products = system.feeds
+        self.products = system.products
         system._TEA = self
         return self
 
