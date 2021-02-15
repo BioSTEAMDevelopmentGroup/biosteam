@@ -20,7 +20,7 @@ def get_recycle_sink(recycle):
         return recycle._sink
     elif isinstance(recycle, set):
         for i in recycle: return i._sink
-    else:
+    else: # pragma: no cover
         raise ValueError('recycle must be either a stream or a set; not a '
                         f"'{type(recycle).__name__}' object")
 
@@ -115,7 +115,7 @@ def nested_network_units(path):
             units.add(i)
         elif isa(i, Network):
             units.update(i.units)
-        else:
+        else: # pragma: no cover
             raise ValueError("path elements must be either Unit or Network "
                             f"objects not '{type(i).__name__}' objects")
     return units
@@ -220,12 +220,9 @@ class Network:
         ends = set(ends) if ends else set()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
-        if linear_paths:
-            network, *linear_networks = [Network(i) for i in linear_paths]
-            for linear_network in linear_networks:
-                network.join_linear_network(linear_network) 
-        else:
-            network = Network([])
+        network, *linear_networks = [Network(i) for i in linear_paths]
+        for linear_network in linear_networks:
+            network.join_linear_network(linear_network) 
         recycle_networks = [Network(*i) for i in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
@@ -263,7 +260,7 @@ class Network:
                 return i
             elif isa(i, Network) and not i.units.isdisjoint(units):
                 return i.first_unit(units)
-        raise ValueError('network does not contain any of the given units')
+        raise ValueError('network does not contain any of the given units') # pragma: no cover
     
     def isdisjoint(self, network):
         return self.units.isdisjoint(network.units)
@@ -283,7 +280,7 @@ class Network:
             elif unit == item:
                 self._insert_linear_network(index, network)
                 return
-        raise RuntimeError(f'{repr(unit)} not in path')
+        raise RuntimeError(f'{repr(unit)} not in path') # pragma: no cover
     
     def join_linear_network(self, linear_network):
         path = self.path
@@ -297,10 +294,27 @@ class Network:
         self._append_linear_network(linear_network)
     
     def join_recycle_network(self, network):
-        if self.isdisjoint(network):
-            self._append_recycle_network(network)
-        else:
-            self._add_recycle_subnetwork(network)
+        if self.recycle_sink is network.recycle_sink:
+            # Feed forward scenario
+            self.add_recycle(network.recycle)
+            network.recycle_sink = network.recycle = None 
+            self._add_linear_network(network)
+            return
+        path = self.path
+        isa = isinstance
+        path_tuple = tuple(path)
+        self._remove_overlap(network, path_tuple)
+        subunits = network.units
+        for index, i in enumerate(path_tuple):
+            if isa(i, Network) and not network.isdisjoint(i):
+                i.join_recycle_network(network)
+                self.units.update(subunits)
+                return
+        for index, item in enumerate(path_tuple):
+            if isa(item, Unit) and item in subunits:
+                self._insert_recycle_network(index, network)
+                return
+        raise ValueError('networks must have units in common to join') # pragma: no cover
     
     def add_recycle(self, stream):
         recycle = self.recycle
@@ -311,16 +325,16 @@ class Network:
                 self.recycle = {self.recycle, stream}
             elif isa(stream, set):
                 self.recycle = {self.recycle, *stream}
-            else:
+            else: # pragma: no cover
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
         elif isa(recycle, set):
             if isa(stream, Stream):
                 recycle.add(stream)
             elif isa(stream, set):
                 recycle.update(stream)
-            else:
+            else: # pragma: no cover
                 raise ValueError(f'recycles must be stream objects; not {type(stream).__name__}')
-        else:
+        else: # pragma: no cover
             raise RuntimeError(f"invalid recycle of type '{type(recycle).__name__}' encountered")
      
     def _remove_overlap(self, network, path_tuple):
@@ -339,7 +353,15 @@ class Network:
         self.units.update(network.units)
     
     def _append_network(self, network):
-        if network.recycle:
+        if self.recycle:
+            cls = type(self)
+            new = cls.__new__(cls)
+            new.path = self.path; new.units = self.units
+            new.recycle = self.recycle; new.recycle_sink = self.recycle_sink
+            self.recycle = self.recycle_sink = None
+            self.path = [new, network] if network.recycle else [new, *network.path]
+            self.units = self.units.union(network.units)
+        elif network.recycle:
             self._append_recycle_network(network)
         else:
             self._append_linear_network(network)
@@ -354,58 +376,30 @@ class Network:
         path.insert(index, network)
         self.units.update(network.units)
         if len(path) == 1:
-            subnetwork = path[0]
-            if isinstance(subnetwork, Network):
-                self.path = subnetwork.path
-                self.recycle = subnetwork.recycle
-                self.recycle_sink = subnetwork.recycle_sink
-    
-    def _add_recycle_subnetwork(self, subnetwork):
-        if self.recycle_sink is subnetwork.recycle_sink:
-            # Feed forward scenario
-            self.add_recycle(subnetwork.recycle)
-            subnetwork.recycle_sink = subnetwork.recycle = None 
-            self._add_linear_subnetwork(subnetwork)
-            return
+            network = path[0]
+            if isinstance(network, Network):
+                self.path = network.path
+                self.recycle = network.recycle
+                self.recycle_sink = network.recycle_sink
+
+    def _add_linear_network(self, network):
         path = self.path
         isa = isinstance
         path_tuple = tuple(path)
-        self._remove_overlap(subnetwork, path_tuple)
-        subunits = subnetwork.units
+        self._remove_overlap(network, path_tuple)
+        subunits = network.units
         for index, i in enumerate(path_tuple):
-            if isa(i, Network) and not subnetwork.isdisjoint(i):
-                i._add_recycle_subnetwork(subnetwork)
+            if isa(i, Network) and not network.isdisjoint(i):
+                i._add_linear_network(network)
                 self.units.update(subunits)
                 return
         for index, item in enumerate(path_tuple):
             if isa(item, Unit) and item in subunits:
-                self._insert_recycle_network(index, subnetwork)
+                self._insert_linear_network(index, network)
                 return
-        self._append_recycle_network(subnetwork)
-
-    def _add_linear_subnetwork(self, subnetwork):
-        path = self.path
-        isa = isinstance
-        path_tuple = tuple(path)
-        self._remove_overlap(subnetwork, path_tuple)
-        subunits = subnetwork.units
-        for index, i in enumerate(path_tuple):
-            if isa(i, Network) and not subnetwork.isdisjoint(i):
-                i._add_linear_subnetwork(subnetwork)
-                self.units.update(subunits)
-                return
-        for index, item in enumerate(path_tuple):
-            if isa(item, Unit) and item in subunits:
-                self._insert_linear_network(index, subnetwork)
-                return
-        self._append_linear_network(subnetwork)
-
-    def diagram(self, file=None, format='png'):
-        units = self.units
-        f = digraph_from_units_and_streams(units)
-        finalize_digraph(f, file, format)
+        self._append_linear_network(network)
     
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         recycle = self.recycle
         if recycle:
             return f"{type(self).__name__}(path={self.path}, recycle={self.recycle})"

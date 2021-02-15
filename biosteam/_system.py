@@ -58,6 +58,7 @@ def find_blowdown_recycle(facilities):
     for i in facilities:
         if isa(i, bst.BlowdownMixer): return i.outs[0]
 
+
 # %% Functions for recycle
 
 def check_recycle_feasibility(material: np.ndarray):
@@ -65,6 +66,7 @@ def check_recycle_feasibility(material: np.ndarray):
         raise InfeasibleRegion('recycle material flow rate')
     else:
         material[material < 0.] = 0. 
+
 
 # %% Functions for taking care of numerical specifications within a system path
     
@@ -94,6 +96,7 @@ def simulate_system_in_path(system):
     else:
         method = system.simulate
     try_method_with_object_stamp(system, method)
+
 
 # %% Debugging and exception handling
 

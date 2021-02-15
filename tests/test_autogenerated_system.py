@@ -18,6 +18,45 @@ from biosteam import (
     Stream, settings, System
 )
 
+def test_trivial_case():
+    f.set_flowsheet('trivial_case')
+    settings.set_thermo(['Water'], cache=True)
+    trivial_sys_a = f.create_system('trivial_sys_a')
+    network_a = trivial_sys_a.to_network()
+    Stream('feedstock', Water=1000)
+    Stream('water', Water=10)
+    trivial_sys_b = f.create_system('trivial_sys_b')
+    network_b = trivial_sys_b.to_network()
+    actual_network = Network(
+        [])
+    assert network_a == network_b == actual_network
+    trivial_sys_b.simulate()
+    trivial_sys_b.flatten()
+    assert trivial_sys_b.path == ()
+    trivial_sys_b.empty_recycles()
+    trivial_sys_b.simulate()
+
+def test_linear_case():
+    f.set_flowsheet('linear_case')
+    settings.set_thermo(['Water'], cache=True)
+    feedstock = Stream('feedstock', Water=1000)
+    water = Stream('water', Water=10)
+    byproduct = Stream('byproduct')
+    product = Stream('product')
+    M1 = Mixer('M1', [feedstock, water])
+    S1 = Splitter('S1', M1-0, [product, byproduct], split=0.5)
+    linear_sys = f.create_system('linear_sys')
+    network = linear_sys.to_network()
+    actual_network = Network(
+        [M1,
+         S1])
+    assert network == actual_network
+    linear_sys.simulate()
+    linear_sys.flatten()
+    assert linear_sys.path == (M1, S1)
+    linear_sys.empty_recycles()
+    linear_sys.simulate()
+
 def test_simple_recycle_loop():
     f.set_flowsheet('simple_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
@@ -43,6 +82,129 @@ def test_simple_recycle_loop():
     x_flat_solution = recycle.mol.copy()
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
+def test_unconnected_case():
+    f.set_flowsheet('unconnected_case')
+    settings.set_thermo(['Water'], cache=True)
+    feedstock_a = Stream('feedstock_a', Water=1000)
+    water_a = Stream('water_a', Water=10)
+    byproduct_a = Stream('byproduct_a')
+    product_a = Stream('product_a')
+    M1_a = Mixer('M1_a', [feedstock_a, water_a])
+    S1_a = Splitter('S1_a', M1_a-0, [product_a, byproduct_a], split=0.5)
+    
+    feedstock_b = Stream('feedstock_b', Water=1000)
+    water_b = Stream('water_b', Water=10)
+    byproduct_b = Stream('byproduct_b')
+    product_b = Stream('product_b')
+    M1_b = Mixer('M1_b', [feedstock_b, water_b])
+    S1_b = Splitter('S1_b', M1_b-0, [product_b, byproduct_b], split=0.5)
+    parallel_sys = f.create_system('parallel_sys')
+    network = parallel_sys.to_network()
+    actual_network = Network(
+        [M1_a,
+         S1_a,
+         M1_b,
+         S1_b])
+    assert network == actual_network
+    parallel_sys.simulate()
+    parallel_sys.flatten()
+    assert parallel_sys.path == (M1_a, S1_a, M1_b, S1_b)
+    parallel_sys.empty_recycles()
+    parallel_sys.simulate()
+
+def test_unconnected_recycle_loop():
+    f.set_flowsheet('unconnected_case')
+    settings.set_thermo(['Water'], cache=True)
+    feedstock_a = Stream('feedstock_a', Water=1000)
+    water_a = Stream('water_a', Water=10)
+    recycle_a = Stream('recycle_a')
+    product_a = Stream('product_a')
+    M1_a = Mixer('M1_a', [feedstock_a, water_a, recycle_a])
+    S1_a = Splitter('S1_a', M1_a-0, [product_a, recycle_a], split=0.5)
+    
+    feedstock_b = Stream('feedstock_b', Water=800)
+    water_b = Stream('water_b', Water=10)
+    recycle_b = Stream('recycle_b')
+    byproduct_b = Stream('byproduct_b')
+    product_b = Stream('product_b')
+    M1_b = Mixer('M1_b', [feedstock_b, water_b])
+    S1_b = Splitter('S1_b', M1_b-0, [product_b, byproduct_b], split=0.5)
+    recycle_loop_sys = f.create_system('recycle_loop_sys')
+    network = recycle_loop_sys.to_network()
+    actual_network = Network(
+        [Network(
+            [M1_a,
+             S1_a],
+            recycle=S1_a-1),
+         M1_b,
+         S1_b])
+    assert network == actual_network
+    recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (M1_a, S1_a, M1_b, S1_b)
+    recycle_loop_sys.empty_recycles()
+    recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    
+    feedstock_b.F_mol = 1200 # Larger flow means b has higher priority
+    recycle_loop_sys = f.create_system('recycle_loop_sys')
+    network = recycle_loop_sys.to_network()
+    actual_network = Network(
+        [M1_b,
+         S1_b,
+         Network(
+            [M1_a,
+             S1_a],
+            recycle=S1_a-1)])
+    assert network == actual_network
+    recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (M1_b, S1_b, M1_a, S1_a)
+    recycle_loop_sys.empty_recycles()
+    recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+
+def test_unconnected_recycle_loops():
+    f.set_flowsheet('unconnected_case')
+    settings.set_thermo(['Water'], cache=True)
+    feedstock_a = Stream('feedstock_a', Water=1000)
+    water_a = Stream('water_a', Water=10)
+    recycle_a = Stream('recycle_a')
+    product_a = Stream('product_a')
+    M1_a = Mixer('M1_a', [feedstock_a, water_a, recycle_a])
+    S1_a = Splitter('S1_a', M1_a-0, [product_a, recycle_a], split=0.5)
+    
+    feedstock_b = Stream('feedstock_b', Water=800)
+    water_b = Stream('water_b', Water=10)
+    recycle_b = Stream('recycle_b')
+    product_b = Stream('product_b')
+    M1_b = Mixer('M1_b', [feedstock_b, water_b, recycle_b])
+    S1_b = Splitter('S1_b', M1_b-0, [product_b, recycle_b], split=0.5)
+    recycle_loop_sys = f.create_system('recycle_loop_sys')
+    network = recycle_loop_sys.to_network()
+    actual_network = Network(
+        [Network(
+            [M1_a,
+             S1_a],
+            recycle=S1_a-1),
+         Network(
+            [M1_b,
+             S1_b],
+            recycle=S1_b-1)])
+    assert network == actual_network
+    recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (M1_a, S1_a, M1_b, S1_b)
+    recycle_loop_sys.empty_recycles()
+    recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    
 def test_inner_recycle_loop():
     f.set_flowsheet('simple_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
@@ -73,8 +235,8 @@ def test_inner_recycle_loop():
     x_flat_solution = recycle.mol.copy()
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
     
-def test_inner_recycle_loop_with_forked_side_feed():
-    f.set_flowsheet('simple_recycle_loop')
+def test_inner_recycle_loop_with_bifurcated_feed():
+    f.set_flowsheet('simple_recycle_loop_with_bifurcated_feed')
     settings.set_thermo(['Water'], cache=True)
     feedstock = Stream('feedstock', Water=1000)
     water = Stream('water', Water=10)
@@ -109,7 +271,64 @@ def test_inner_recycle_loop_with_forked_side_feed():
     recycle_loop_sys.simulate()
     x_flat_solution = recycle.mol.copy()
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+
+def test_bifurcated_recycle_loops():
+    f.set_flowsheet('bifurcated_recycle_loops')
+    settings.set_thermo(['Water'], cache=True)
+    feed_a = Stream('feed_a', Water=10)
+    water_a = Stream('water_a', Water=10)
+    recycle_a = Stream('recycle_a')
+    P1_a = Pump('P1_a', feed_a)
+    P2_a = Pump('P2_a', water_a)
+    S1_a = Splitter('S1_a', P2_a-0, split=0.5)
+    M1_a = Mixer('M1_a', [P1_a-0, S1_a-1, recycle_a])
+    S2_a = Splitter('S2_a', M1_a-0, split=0.5)
+    M2_a = Mixer('M2_a', [S1_a-0, S2_a-1])
+    S3_a = Splitter('S3_a', M2_a-0, ['', recycle_a], split=0.5)
     
+    feedstock_b = Stream('feedstock_b', Water=1000)
+    recycle_b = Stream('recycle_b')
+    product_b = Stream('product_b')
+    side_product_b = Stream('side_product_b')
+    P1_b = Pump('P1_b', feedstock_b)
+    P2_b = Pump('P2_b', S2_a-0)
+    S1_b = Splitter('S1_b', P2_b-0, split=0.5)
+    M1_b = Mixer('M1_b', [P1_b-0, S1_b-1, recycle_b])
+    S2_b = Splitter('S2_b', M1_b-0, [side_product_b, ''], split=0.5)
+    M2_b = Mixer('M2_b', [S1_b-0, S2_b-1, S3_a-0])
+    S3_b = Splitter('S3_b', M2_b-0, [product_b, recycle_b], split=0.5)
+    recycle_loop_sys = f.create_system('recycle_loop_sys')
+    network = recycle_loop_sys.to_network()
+    actual_network = Network(
+        [P1_b,
+         P1_a,
+         P2_a,
+         S1_a,
+         Network(
+            [M1_a,
+             S2_a,
+             M2_a,
+             S3_a],
+            recycle=S3_a-1),
+         P2_b,
+         S1_b,
+         Network(
+            [M1_b,
+             S2_b,
+             M2_b,
+             S3_b],
+            recycle=S3_b-1)])
+    assert network == actual_network
+    recycle_loop_sys.simulate()
+    x_nested_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    recycle_loop_sys.flatten()
+    assert recycle_loop_sys.path == (P1_b, P1_a, P2_a, S1_a, M1_a, S2_a, M2_a, 
+                                     S3_a, P2_b, S1_b, M1_b, S2_b, M2_b, S3_b)
+    recycle_loop_sys.empty_recycles()
+    recycle_loop_sys.simulate()
+    x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+
 def test_two_recycle_loops_with_complete_overlap():
     f.set_flowsheet('two_recycle_loops_with_complete_overlap')
     settings.set_thermo(['Water'], cache=True)
@@ -453,9 +672,15 @@ def test_corn_ethanol_biorefinery_system_creation():
     
     
 if __name__ == '__main__':
+    test_trivial_case()
+    test_linear_case()
+    test_unconnected_case()
     test_simple_recycle_loop()
+    test_unconnected_recycle_loop()
+    test_unconnected_recycle_loops()
     test_inner_recycle_loop()
-    test_inner_recycle_loop_with_forked_side_feed()
+    test_inner_recycle_loop_with_bifurcated_feed()
+    test_bifurcated_recycle_loops()
     test_two_recycle_loops_with_complete_overlap()
     test_two_recycle_loops_with_partial_overlap()
     test_feed_forward_recycle_loop()
