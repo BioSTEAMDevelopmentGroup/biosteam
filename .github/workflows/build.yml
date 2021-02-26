@@ -59,6 +59,7 @@ jobs:
         pytest . -v --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"
         coveralls --service=github
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_REPO_TOKEN: ${{ secrets.coveralls }}
         COVERALLS_PARALLEL: true
   finish:
