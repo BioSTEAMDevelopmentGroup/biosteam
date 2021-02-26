@@ -18,12 +18,10 @@ from biorefineries.tests.test_biorefineries import (
 # If you have the PyPI installation, these tests will not run.
 # This is OK, the loss in coverage is very small.
 
-try: from biorefineries.tests import test_LAOs
-except: test_LAOs = lambda: None
+# from biorefineries.tests import (
+#     test_LAOs,
+#     test_ethanol_adipic,
+#     test_lactic
+# )    
 
 # Lactic acid tests failing for now due to some refractoring
-# try: from biorefineries.tests import test_lactic
-# except: test_lactic = lambda: None
-
-try: from biorefineries.tests import test_ethanol_adipic
-except: test_ethanol_adipic = lambda: None
