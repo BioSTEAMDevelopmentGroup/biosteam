@@ -10,16 +10,15 @@
 from biorefineries.tests.test_biorefineries import (
     test_sugarcane,
     test_lipidcane,
-    test_cornstover
+    test_cornstover,
+    test_LAOs
 )
-
 
 # To run these following tests, you'll need to get the github version.
 # If you have the PyPI installation, these tests will not run.
 # This is OK, the loss in coverage is very small.
 
 # from biorefineries.tests import (
-#     test_LAOs,
 #     test_ethanol_adipic,
 #     test_lactic
 # )    
