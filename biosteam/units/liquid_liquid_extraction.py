@@ -563,6 +563,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
 
 # %% Mixing
 
+# Cost base on table 16.32 of Seider's Product and Process Design Principles, 3rd edition
 @cost('Power', 'Turbine agitator', N='Number of agitators',
       ub=60, CE=567, cost=3730, n=0.54, BM=2.25)
 class LiquidsMixingTank(bst.Unit, PressureVessel):

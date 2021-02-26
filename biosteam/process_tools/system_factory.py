@@ -126,7 +126,8 @@ class SystemFactory:
             if params[:2] != ['ins', 'outs']:
                 raise ValueError('function must have a signature of function(ins, outs, *args, **kwargs)')
             other_params = params[3:]
-            for i in ('mockup', 'area', 'udct'):
+            reserved_parameters = ('mockup', 'area', 'udct')
+            for i in reserved_parameters:
                 if i in other_params:
                     raise ValueError(f"function cannot accept '{i}' as an argument")
             self = super().__new__(cls)

@@ -309,9 +309,6 @@ class System:
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
 
-    #: [bool] Whether to allow systems to rotate for more robust convergence.
-    allow_system_rotation = False
-
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
                        ends=None, facility_recycle=None):
@@ -336,8 +333,7 @@ class System:
             Recycle stream between facilities and system path.
         
         """
-        network = Network.from_feedstock(feedstock, feeds, 
-                                         ends or [i.get_stream() for i in disjunctions])
+        network = Network.from_feedstock(feedstock, feeds, ends)
         return cls.from_network(ID, network, facilities, facility_recycle)
 
     @classmethod
@@ -373,6 +369,8 @@ class System:
         if feeds:
             feedstock, *feeds = feeds
             facilities = facilities_from_units(units) if units else ()
+            if not ends:
+                ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
             system = cls.from_feedstock(
                 ID, feedstock, feeds, facilities, ends,
                 facility_recycle or find_blowdown_recycle(facilities)
@@ -545,20 +543,6 @@ class System:
             else:
                 path.append(i)
     
-    def _get_recycle_streams(self):
-        recycles = []
-        recycle = self._recycle
-        if recycle:
-            if isinstance(recycle, Stream):
-                recycles.append(recycle)
-            elif isinstance(recycle, Iterable):
-                recycles.extend(recycle)
-            else:
-                raise_recycle_type_error(recycle)
-        for i in self.subsystems:
-            recycles.extend(i._get_recycle_streams())
-        return recycles
-    
     def flatten(self):
         """Flatten system by removing subsystems."""
         recycles = []
@@ -569,6 +553,10 @@ class System:
         N_recycles = len(recycles)
         self.molar_tolerance *= N_recycles
         self.temperature_tolerance *= N_recycles
+    
+    def to_unit_group(self, name=None):
+        """Return a UnitGroup object of all units within the system."""
+        return bst.UnitGroup(name, self.units)
     
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element
@@ -918,27 +906,6 @@ class System:
             if isa(i, types): i._setup()
         
     def _run(self):
-        """Run each element in the path. Rotate path if necessary."""
-        if self.allow_system_rotation and self._recycle:
-            N_elements = len(self._path)
-            if N_elements <= 1:
-                self._run_path()
-            else:
-                max_rotations = N_elements - 1
-                for n in range(N_elements):
-                    try:
-                        self._run_path()
-                    except Exception as error:
-                        if n == max_rotations: raise error
-                        if not n: self._path = deque(self._path)
-                        self._path.rotate()
-                    else:
-                        break
-                if n: self._path = tuple(self._path)
-        else:
-            self._run_path()
-        
-    def _run_path(self):
         """Rigorously run each element in the path."""
         isa = isinstance
         run = run_unit_in_path

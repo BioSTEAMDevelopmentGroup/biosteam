@@ -7,6 +7,7 @@
 # for license details.
 
 import pandas as pd
+import biosteam as bst
 from matplotlib import pyplot as plt
 from ..utils import format_title
 from . import utils
@@ -39,9 +40,9 @@ class UnitGroup:
     
     Parameters
     ----------
-    name : str
+    name : str, optional
         Name of group for bookkeeping.
-    units : tuple[Unit]
+    units : tuple[Unit], optional
         Unit operations.
     metrics=None : list[Metric], optional
         Metrics to generate results. These metrics are computed when 
@@ -62,11 +63,11 @@ class UnitGroup:
     ...     T1 = MixTank('T1', (P1-0, sucrose))
     ...     H1 = HXutility('H1', T1-0, T=300.)
     >>> example_sys.simulate()
-    >>> group = UnitGroup('Example group', example_sys.units)
+    >>> ugroup = UnitGroup('Example group', example_sys.units)
     
     You can get main process results using UnitGroup methods:
         
-    >>> group.to_dict(with_electricity_production=True)
+    >>> ugroup.to_dict(with_electricity_production=True)
     {'Installed equipment cost [MM$]': 0.0711,
      'Cooling duty [GJ/hr]': 0.374,
      'Heating duty [GJ/hr]': 0.0,
@@ -75,31 +76,31 @@ class UnitGroup:
     
     Each result can be retrieved separately:
     
-    >>> group.get_installed_cost()
+    >>> ugroup.get_installed_cost()
     0.0711
     
-    >>> group.get_cooling_duty()
+    >>> ugroup.get_cooling_duty()
     0.374
     
     The `to_dict` method also returns user-defined metrics:
         
     >>> # First define metrics
-    >>> @group.metric # Name of metric defaults to function name
+    >>> @ugroup.metric # Name of metric defaults to function name
     ... def moisture_content():
     ...     product = H1.outs[0]
     ...     return product.imass['Water'] / product.F_mass
     
-    >>> @group.metric(units='kg/hr') # This helps for bookkeeping
+    >>> @ugroup.metric(units='kg/hr') # This helps for bookkeeping
     ... def sucrose_flow_rate():
     ...     return float(H1.outs[0].imass['Sucrose'])
     
-    >>> group.show()
+    >>> ugroup.show()
     UnitGroup: Example group
      units: P1, T1, H1
      metrics: Moisture content
               Sucrose flow rate [kg/hr]
     
-    >>> group.to_dict()
+    >>> ugroup.to_dict()
     {'Installed equipment cost [MM$]': 0.0711,
      'Cooling duty [GJ/hr]': 0.374,
      'Heating duty [GJ/hr]': 0.0,
@@ -110,9 +111,9 @@ class UnitGroup:
     """
     __slots__ = ('name', 'units', 'metrics')
     
-    def __init__(self, name, units, metrics=None):
+    def __init__(self, name=None, units=(), metrics=None):
         #: [str] Name of group for bookkeeping
-        self.name = str(name)
+        self.name = 'Unnamed' if name is None else str(name)
         
         #: list[Unit] Unit operations
         self.units = units if isinstance(units, list) else list(units) 
@@ -122,6 +123,54 @@ class UnitGroup:
         
         #: list[Metric] Metrics to generate results
         self.metrics = metrics
+    
+    def to_system(self, ID=None):
+        """Return a System object of all units."""
+        return bst.System.from_units(ID, self.units)
+    
+    def split(self, stream, upstream_name=None, downstream_name=None):
+        """
+        Split unit group in two; upstream and downstream.
+        
+        Parameters
+        ----------    
+        stream : Iterable[:class:~thermosteam.Stream], optional
+            Stream where unit group will be split.
+        upstream_name : str, optional
+            Name of upstream UnitGroup object.
+        downstream_name : str, optional
+            Name of downstream UnitGroup object.
+        
+        Examples
+        --------
+        >>> from biorefineries.cornstover import cornstover_sys, M201
+        >>> ugroup = cornstover_sys.to_unit_group()
+        >>> upstream, downstream = ugroup.split(M201-0)
+        >>> upstream.show()
+        UnitGroup: Unnamed
+         units: U101, H2SO4_storage, T201, M201
+        >>> downstream.show()
+        UnitGroup: Unnamed
+         units: M202, M203, R201, P201, T202,
+                F201, Ammonia_storage, M205, T203, P202,
+                H301, M301, CSL_storage, S302, DAP_storage,
+                S301, R301, M302, R302, T301,
+                M303, D401, M401, T302, P401,
+                H401, D402, P402, S401, M204,
+                H201, M601, WWTC, R601, M602,
+                R602, S601, S602, M603, S603,
+                M501, M402, D403, H402, U401,
+                H403, T701, P701, T702, P702,
+                M701, T703, S604, P403, FT,
+                BT, CWP, CIP_package, ADP, CT,
+                PWC
+        
+        """
+        sys = self.to_system()
+        units = sys.units
+        index = units.index(stream.sink)
+        return (UnitGroup(upstream_name, units[:index]),
+                UnitGroup(downstream_name, units[index:]))
     
     def metric(self, getter=None, name=None, units=None, element=None):
         """
@@ -241,6 +290,62 @@ class UnitGroup:
         """
         return [cls(i, j) for i, j in utils.group_by_area(units).items()]
     
+    def get_inlet_flow(self, units, key=None):
+        """
+        Return total flow across all inlets.
+        
+        Parameters
+        ----------
+        units : str
+            Units of measure.
+        key : tuple[str] or str, optional
+            Chemical identifiers. If none given, the sum of all chemicals returned
+            
+        Examples
+        --------
+        >>> from biorefineries.cornstover import cornstover_sys
+        >>> from biosteam import *
+        >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
+        >>> ugroup.get_inlet_flow('kg/s') # Sum of all chemicals
+        5623.87
+        >>> ugroup.get_inlet_flow('kg/s', 'Water') # Just water
+        5032.91
+        >>> default() # Bring biosteam settings back to default
+        
+        """
+        if key:
+            return sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
+        else:
+            return sum([i.get_total_flow(units) for i in bst.utils.inlets(self.units)])
+    
+    def get_outlet_flow(self, units, key=None):
+        """
+        Return total flow across all outlets.
+        
+        Parameters
+        ----------
+        units : str
+            Units of measure.
+        key : tuple[str] or str, optional
+            Chemical identifiers. If none given, the sum of all chemicals returned
+            
+        Examples
+        --------
+        >>> from biorefineries.cornstover import cornstover_sys
+        >>> from biosteam import *
+        >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
+        >>> ugroup.get_outlet_flow('kg/s') # Sum of all chemicals
+        5639.91
+        >>> ugroup.get_outlet_flow('kg/s', 'Water') # Just water
+        5038.65
+        >>> default() # Bring biosteam settings back to default
+        
+        """
+        if key:
+            return sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
+        else:
+            return sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
+    
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in GJ/hr"""
         return utils.get_utility_duty(self.heat_utilities, agent)
@@ -301,7 +406,10 @@ class UnitGroup:
         for i in self.metrics:
             dct[i.name_with_units] = i()
         return dct
-                
+            
+    def diagram(self, *args, **kwargs):
+        return bst.System(None, self.units).diagram(*args, **kwargs)
+    
     def to_series(self, with_electricity_production=False, shorthand=False, with_units=True):
         """Return a pandas.Series object of results."""
         return pd.Series(self.to_dict(with_electricity_production, shorthand, with_units), name=self.name)

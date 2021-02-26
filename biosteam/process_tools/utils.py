@@ -45,30 +45,6 @@ def is_storage_unit(unit):
         and (unit.ins[0].isfeed() or unit.outs[0].isproduct())
     )
 
-def area_convention_letter(unit):
-    isa = isinstance
-    line = unit.line.lower()
-    if 'centrifuge' in line: return 'C'
-    elif isa(unit, bst.Distillation) or 'distillation' in line: return 'D'
-    elif isa(unit, bst.MultiEffectEvaporator) or 'evaporator' in line: return 'E'
-    elif isa(unit, bst.Flash) or 'flash' in line: return 'F'
-    elif (isa(unit, bst.HX)
-          or 'cooler' in line 
-          or 'condenser' in line
-          or 'heater' in line 
-          or 'boiler' in line
-          or 'heat exchanger' in line): return 'H'
-    elif isa(unit, bst.Mixer) or 'mixer' in line: return 'M'
-    elif isa(unit, bst.Pump) or 'pump' in line: return 'P'
-    elif (isa(unit, bst.BatchBioreactor) 
-          or 'reactor' in line
-          or 'digestion' in line): return 'R'
-    elif isa(unit, bst.Splitter) or 'split' in line: return 'S'
-    elif isa(unit, bst.Tank) or 'tank' in line: return 'T'
-    elif isa(unit, bst.Junction): return 'J'
-    elif isa(unit, bst.ProcessSpecification) or 'specification' in line: return 'PS'
-    else: return 'U'
-
 def area_convention_number(unit_registry, letter, number):
     ID = letter + str(number)
     if ID in unit_registry:
@@ -78,7 +54,7 @@ def area_convention_number(unit_registry, letter, number):
         return number
 
 def register_by_area_convention(unit, area, unit_registry):
-    letter = area_convention_letter(unit)
+    letter = unit.ticket_name
     number = area_convention_number(unit_registry, letter, area[letter])
     area[letter] = number + 1 
     ID = letter + str(number)
@@ -127,9 +103,10 @@ def rename_unit(unit, area):
     """
     unit_registry = bst.main_flowsheet.unit
     unit_registry.discard(unit)
-    letter = area_convention_letter(unit)
+    letter = unit.ticket_name
     number = area_convention_number(unit_registry, letter, int(area) + 1) 
     ID = letter + str(number)
+    unit_registry.discard(unit)
     unit_registry.register(ID, unit)
 
 def rename_units(units, area):
@@ -187,7 +164,7 @@ def rename_units(units, area):
      <Splitter: S201>,
      <MixTank: T201>,
      <StorageTank: T202>,
-     <MolecularSieve: S202>,
+     <MolecularSieve: U201>,
      <MultiEffectEvaporator: E201>]
     
     >>> # ID conflicts are taken care of internally
@@ -202,15 +179,15 @@ def rename_units(units, area):
      <Splitter: S201>,
      <MixTank: T201>,
      <StorageTank: T202>,
-     <MolecularSieve: S202>,
+     <MolecularSieve: U201>,
      <MultiEffectEvaporator: E201>]
     
     """
     area = int(area)
     area += 1
-    area_dct = {i: area for i in 'CDEFHMPRSTUJPS'}
-    unit_registry = bst.main_flowsheet.unit
     units = tuple(units)
+    area_dct = {i.ticket_name: area for i in units}
+    unit_registry = bst.main_flowsheet.unit
     for i in units: unit_registry.discard(i)
     for i in units: register_by_area_convention(i, area_dct, unit_registry)
 

@@ -99,7 +99,10 @@ class MissingStream:
     def reset_cache(self):
         """Does nothing, MissingStream objects do not contain cache."""
     
-    def get_total_flow(units):
+    def get_total_flow(self, units):
+        return 0.
+    
+    def get_flow(self, units, key=None):
         return 0.
     
     @property

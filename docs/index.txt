@@ -22,7 +22,7 @@ Key Features & Capabilities
 Benchmarks
 ----------
 
-The BioSTEAM software has been steadily improved since the original BioSTEAM publication [1]_. In particular, more rigorous thermodynamic and unit operation models have been implemented, improving the accuracy of the software. In the figures below, the applicability of BioSTEAM is demonstrated in the context of (i) the co-production of biodiesel and ethanol from lipid-cane and (ii) the production of second-generation ethanol from corn stover. All results were generated under uncertainty through Monte Carlo simulations, whereby thousands of biorefinery designs were evaluated across a joint distribution of uncertain parameters. Economic metrics evaluated in BioSTEAM closely match benchmark designs modeled in proprietary software (SuperPro Designer, Aspen Plus). Estimates for the net steam demand and electricity production of the co-heat and power facilities have improved significantly since the orignal BioSTEAM publication. It is thanks to both community involvement and the institutions supporting BioSTEAM that continuous improvements like these are made possible.
+The BioSTEAM software has been steadily improved since the original BioSTEAM publication [1]_. In particular, more rigorous thermodynamic and unit operation models have been implemented, improving the accuracy of the software. In the figures below, the applicability of BioSTEAM is demonstrated in the context of (i) the co-production of biodiesel and ethanol from lipid-cane and (ii) the production of second-generation ethanol from corn stover. All results were generated under uncertainty through Monte Carlo simulations, whereby thousands of biorefinery designs were evaluated across a joint distribution of uncertain parameters. Economic metrics evaluated in BioSTEAM closely match benchmark designs modeled in proprietary software (SuperPro Designer, Aspen Plus). Estimates for the net steam demand and electricity production of the co-heat and power facilities have improved significantly since the original BioSTEAM publication. It is thanks to both community involvement and the institutions supporting BioSTEAM that continuous improvements like these are made possible.
 
 .. figure:: ./images/lipidcane_biorefinery_benchmarks_under_uncertainty.png
 
@@ -43,7 +43,7 @@ The BioSTEAM software has been steadily improved since the original BioSTEAM pub
    tutorial/Getting_started
    tutorial/Creating_a_Unit
    tutorial/Managing_flowsheets
-   tutorial/Using_-pipe-_notation
+   tutorial/-pipe-_notation
    tutorial/Unit_operation_results
    tutorial/Process_specifications
    tutorial/Inheriting_from_Unit

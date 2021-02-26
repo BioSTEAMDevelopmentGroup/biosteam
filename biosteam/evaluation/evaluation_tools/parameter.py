@@ -75,7 +75,7 @@ def load_default_parameters(self, feedstock, shape=triang,
 
 def add_all_cost_item_params(model, shape, exp_shape): # pragma: no cover
     system = model._system
-    costunits = system._costunits
+    costunits = [i for i in system.units if i._design or i._cost]
     
     # Get all cost options (without repetition)
     all_unit_lines = []

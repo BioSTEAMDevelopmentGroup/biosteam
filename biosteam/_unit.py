@@ -163,6 +163,26 @@ class Unit:
         dct = cls.__dict__
         if 'line' not in dct:
             cls.line = format_title(cls.__name__)
+        if 'ticket_name' not in dct:
+            line = cls.line.lower()
+            if 'centrifuge' in line: cls.ticket_name = 'C'
+            elif 'distillation' in line: cls.ticket_name = 'D'
+            elif 'evaporator' in line: cls.ticket_name = 'E'
+            elif 'flash' in line: cls.ticket_name = 'F'
+            elif ('cooler' in line 
+                  or 'condenser' in line
+                  or 'heater' in line 
+                  or 'boiler' in line
+                  or 'heat exchanger' in line): cls.ticket_name = 'H'
+            elif 'mixer' in line: cls.ticket_name = 'M'
+            elif 'pump' in line: cls.ticket_name = 'P'
+            elif 'reactor' in line or 'digestion' in line: cls.ticket_name = 'R'
+            elif 'split' in line: cls.ticket_name = 'S'
+            elif 'tank' in line: cls.ticket_name = 'T'
+            elif 'junction' == line: cls.ticket_name = 'J'
+            elif 'specification' in line: cls.ticket_name = 'PS'
+            else: cls.ticket_name = 'U'
+            cls.ticket_number = 0
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
@@ -262,9 +282,6 @@ class Unit:
             "unit operation chemicals are incompatible with inlet and outlet streams; "
             "try using the `thermo` keyword argument to initialize the unit operation "
             "with a compatible thermodynamic property package")
-    
-    def set_ID_by_area(self, area):
-        bst.rename_unit(self, area)
     
     def disconnect(self):
         self._ins[:] = ()
@@ -603,6 +620,24 @@ class Unit:
                 unit._add_downstream_neighbors_to_set(outer_periphery)
             new_length = len(downstream_units)
         return downstream_units
+    
+    def get_upstream_units(self):
+        """Return a set of all units upstream."""
+        upstream_units = set()
+        outer_periphery = set()
+        self._add_upstream_neighbors_to_set(outer_periphery)
+        inner_periphery = None
+        old_length = -1
+        new_length = 0
+        while new_length != old_length:
+            old_length = new_length
+            inner_periphery = outer_periphery
+            upstream_units.update(inner_periphery)
+            outer_periphery = set()
+            for unit in inner_periphery:
+                unit._add_upstream_neighbors_to_set(outer_periphery)
+            new_length = len(upstream_units)
+        return upstream_units
     
     def neighborhood(self, radius=1, upstream=True, downstream=True):
         """

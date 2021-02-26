@@ -24,24 +24,18 @@ class PowerUtility:
     
     >>> pu = PowerUtility()
     >>> pu
-    <PowerUtility: 0 kW, 0 USD/hr>
-       
-    Call object to calculate cost:
-        
-    >>> pu(rate=500.)
-    >>> pu
-    <PowerUtility: 500 kW, 39.1 USD/hr>
-       
-    Results are accessible:
-        
-    >>> pu.rate, pu.cost
-    (500.0, 39.1)
+    PowerUtility(consumption=0.0, production=0.0)
     
     PowerUtility objects have `consumption` and `production` attributes
     which are updated when setting the rate with the assumption that
     a positive rate means no production (only consumption) and a negative
     rate means no consumption (only consumption).
     
+    >>> pu(rate=-500)
+    >>> pu.consumption, pu.production
+    (0.0, 500.0)
+    
+    >>> pu(rate=500.)
     >>> pu.consumption, pu.production
     (500.0, 0.0)
     
@@ -52,7 +46,21 @@ class PowerUtility:
     >>> pu.rate
     400.0
     
-    Notice how the rate is equal the consumption minus the production.
+    Notice how the rate is equal to the consumption minus the production.
+    
+    The cost is available as a property:
+    
+    >>> pu.cost # USD/hr
+    31.28
+    
+    It may be useful to print results in different units of measure:
+    
+    >>> pu.show(rate='BTU/s')
+    PowerUtility:
+     consumption: 474 BTU/s
+     production: 94.8 BTU/s
+     rate: -379 BTU/s
+     cost: 31.3 USD/hr
     
     """
     __slots__ = ('consumption', 'production')
@@ -60,12 +68,12 @@ class PowerUtility:
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(rate='kW', cost='USD/hr')
     
-    def __init__(self):
+    def __init__(self, consumption=0., production=0.):
         #: Electricity consumption [kW]
-        self.consumption = 0.
+        self.consumption = consumption
         
         #: Electricity production [kW]
-        self.production = 0.
+        self.production = production
     
     @classmethod
     def default_price(cls):
@@ -99,7 +107,20 @@ class PowerUtility:
         self.rate = rate
     
     def mix_from(self, power_utilities):
-        """Mix in requirements of power utilities."""
+        """
+        Mix in requirements of power utilities.
+        
+        Examples
+        --------
+        >>> pus = [PowerUtility(production=100),
+        ...        PowerUtility(consumption=50),
+        ...        PowerUtility(production=20)]
+        >>> pu = PowerUtility()
+        >>> pu.mix_from(pus)
+        >>> pu
+        PowerUtility(consumption=50.0, production=120.0)
+        
+        """
         self.consumption = sum([i.consumption for i in power_utilities])
         self.production = sum([i.production for i in power_utilities])
     
@@ -117,6 +138,16 @@ class PowerUtility:
     def sum(cls, power_utilities):
         """
         Return a PowerUtility object that represents the sum of power utilities.
+        
+        Examples
+        --------
+        >>> pus = [PowerUtility(production=100),
+        ...        PowerUtility(consumption=50),
+        ...        PowerUtility(production=20)]
+        >>> pu = PowerUtility.sum(pus)
+        >>> pu
+        PowerUtility(consumption=50.0, production=120.0)
+        
         """
         power_utility = cls()
         power_utility.mix_from(power_utilities)
@@ -127,12 +158,18 @@ class PowerUtility:
         display_units = self.display_units
         rate_units = rate or display_units.rate
         cost_units = cost or display_units.cost
-        rate = convert(self.rate, 'kW', rate_units)
+        production = convert(self.production, 'kW', rate_units)
+        consumption = convert(self.consumption, 'kW', rate_units)
+        rate = production - consumption
         cost = convert(self.cost, 'USD/hr', cost_units)
-        return (f'<{type(self).__name__}: {rate:.3g} {rate_units}, {cost:.3g} {cost_units}>')
-    _ipython_display = show    
+        print(f'{type(self).__name__}:\n'
+              f' consumption: {consumption:.3g} {rate_units}\n'
+              f' production: {production:.3g} {rate_units}\n'
+              f' rate: {rate:.3g} {rate_units}\n'
+              f' cost: {cost:.3g} {cost_units}')
+    _ipython_display_ = show    
     
     def __repr__(self):
-        return (f'<{type(self).__name__}: {self.rate:.3g} kW, {self.cost:.3g} USD/hr>')
+        return f'{type(self).__name__}(consumption={self.consumption}, production={self.production})'
     
 PowerUtility.default_price()
