@@ -233,15 +233,11 @@ class TEA:
     _FOC(FCI) -> FOC
         Should take fixed capital investment as an arguments and return
         fixed operating cost without depreciation. 
-    _fill_tax(tax, taxable_cashflow)
-        Should take an empty 1d array and fill it with tax cash flows. 
+    _fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        Should take two empty 1d arrays and fill them with incentive and tax cash flows.
         Additional parameters include taxable_cashflow (sales - costs - 
-        depreciation - payments).
-    _fill_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
-        Should take an empty 1d array and fill it with incentive cash flows.
-        Additional parameters include taxable_cashflow (sales - costs - 
-        depreciation - payments), nontaxable_cashflow (depreciation - capital 
-        cost - working capital), and tax arrays.
+        depreciation - payments), and nontaxable_cashflow (depreciation - capital 
+        cost - working capital).
     
     Parameters
     ----------
@@ -596,7 +592,8 @@ class TEA:
         return self._FOC(FCI) + self.VOC
     
     def production_cost(self, products, with_annual_depreciation=True):
-        """Return production cost of products [USD/yr].
+        """
+        Return production cost of products [USD/yr].
         
         Parameters
         ----------
@@ -617,7 +614,8 @@ class TEA:
         return weights * self.total_production_cost(products, with_annual_depreciation)
         
     def total_production_cost(self, products, with_annual_depreciation):
-        """Return total production cost of products [USD/yr].
+        """
+        Return total production cost of products [USD/yr].
         
         Parameters
         ----------

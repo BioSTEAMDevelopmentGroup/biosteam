@@ -182,7 +182,7 @@ class Unit:
             elif 'junction' == line: cls.ticket_name = 'J'
             elif 'specification' in line: cls.ticket_name = 'PS'
             else: cls.ticket_name = 'U'
-            cls.ticket_number = 0
+        cls.ticket_number = 0
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
@@ -281,7 +281,8 @@ class Unit:
         assert all([s.chemicals is chemicals for s in streams if s]), (
             "unit operation chemicals are incompatible with inlet and outlet streams; "
             "try using the `thermo` keyword argument to initialize the unit operation "
-            "with a compatible thermodynamic property package")
+            "with a compatible thermodynamic property package"
+        )
     
     def disconnect(self):
         self._ins[:] = ()

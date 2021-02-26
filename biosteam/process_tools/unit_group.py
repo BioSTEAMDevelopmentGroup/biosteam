@@ -386,7 +386,6 @@ class UnitGroup:
             elec_production = ELEC_PRODUCTION
         else:
             inst_cost = INSTALLED_EQUIPMENT_COST
-            
             elec_consumption = ELECTRICITY_CONSUMPTION
             elec_production = ELECTRICITY_PRODUCTION
         cooling_duty = COOLING_DUTY
