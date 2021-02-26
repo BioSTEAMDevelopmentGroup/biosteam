@@ -261,6 +261,8 @@ class System:
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
 
+    
+
     """
     __slots__ = (
         '_ID',
@@ -283,7 +285,6 @@ class System:
         'temperature_tolerance',
         'relative_temperature_tolerance',
         'flowsheet',
-        'alternative_convergence_check',
         '_irrelevant_units',
         '_converge_method',
         '_TEA',
@@ -509,10 +510,6 @@ class System:
         
         #: [str] Converge method
         self.converge_method = self.default_converge_method
-        
-        #: [function(recycle, mol, mol_new, T, T_new) -> bool] Function that returns 
-        #: whether the system has not converged (and needs to keep running).
-        self.alternative_convergence_check = None
     
     specification = Unit.specification
     save_report = save_report
@@ -843,9 +840,7 @@ class System:
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
         self._iter += 1
-        if self.alternative_convergence_check:
-            not_converged = self.alternative_convergence_check(self.recycle, mol, mol_new, T, T_new)
-        elif (mol_error < molar_tolerance
+        if (mol_error < molar_tolerance
             and rmol_error < self.relative_molar_tolerance
             and T_error < self.temperature_tolerance
             and rT_error < self.relative_temperature_tolerance):
@@ -1156,7 +1151,6 @@ class FacilityLoop:
     __slots__ = ('system', '_recycle',
                  'maxiter', 'molar_tolerance', 'temperature_tolerance',
                  'relative_molar_tolerance', 'relative_temperature_tolerance',
-                 'alternative_convergence_check',
                  '_converge_method', '_mol_error', '_T_error', 
                  '_rmol_error', '_rT_error','_iter')
     
