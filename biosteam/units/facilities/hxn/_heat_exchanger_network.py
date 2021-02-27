@@ -288,8 +288,8 @@ class HeatExchangerNetwork(Facility):
             len_stages = len(stages)
             for stage in stages:
                 original_unit = original_hxs[stream][0].ID
-                if original_hxs[stream][1] is not '':
-                     original_unit+= ' - ' + original_hxs[stream][1]
+                if original_hxs[stream][1]:
+                    original_unit+= ' - ' + original_hxs[stream][1]
                 
                 hxn_unit = stage.unit
                 hxn_unit_ID = hxn_unit.ID
