@@ -113,7 +113,7 @@ def test_unconnected_case():
     parallel_sys.simulate()
 
 def test_unconnected_recycle_loop():
-    f.set_flowsheet('unconnected_case')
+    f.set_flowsheet('unconnected_recycle_loop')
     settings.set_thermo(['Water'], cache=True)
     feedstock_a = Stream('feedstock_a', Water=1000)
     water_a = Stream('water_a', Water=10)
@@ -169,7 +169,7 @@ def test_unconnected_recycle_loop():
     assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
 
 def test_unconnected_recycle_loops():
-    f.set_flowsheet('unconnected_case')
+    f.set_flowsheet('unconnected_recycle_loops')
     settings.set_thermo(['Water'], cache=True)
     feedstock_a = Stream('feedstock_a', Water=1000)
     water_a = Stream('water_a', Water=10)
@@ -510,7 +510,7 @@ def test_separate_recycle_loops():
     assert recycle_loop_sys.path == (P1_a, P2_a, M1_a, S1_a, P1_b, P2_b, M1_b, S1_b)
     
 def test_nested_recycle_loops():
-    f.set_flowsheet('feed_forward_recycle_loop')
+    f.set_flowsheet('nested_recycle_loops')
     settings.set_thermo(['Water'], cache=True)
     feedstock = Stream('feedstock', Water=1000)
     recycle_1, recycle_2, recycle_3, recycle_4, recycle_5 = recycles = [

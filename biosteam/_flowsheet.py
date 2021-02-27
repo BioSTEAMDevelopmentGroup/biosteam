@@ -21,7 +21,20 @@ __all__ = ('main_flowsheet', 'Flowsheet')
 # %% Flowsheet search      
 
 class Flowsheets:
-    __getattribute__ = __getitem__ = object.__getattribute__
+    __getitem__ = object.__getattribute__
+    
+    def clear(self):
+        self.__dict__.clear()
+        main_flowsheet.set_flowsheet('default')
+    
+    def __contains__(self, obj):
+        dct = self.__dict__
+        if isinstance(obj, str):
+            return obj in dct
+        elif isinstance(obj, Flowsheet):
+            return obj.ID in dct and dct[obj.ID] is obj
+        else:
+            return False
     
     def __setattr__(self, key, value):
         raise TypeError(f"'{type(self).__name__}' object does not support attribute assignment")
@@ -95,8 +108,11 @@ class Flowsheet:
     def registries(self):
         return (self.stream, self.unit, self.system)
     
-    def clear(self):
+    def clear(self, reset_ticket_numbers=True):
         for registry in self.registries: registry.clear()
+        self.flowsheet.clear()
+        if reset_ticket_numbers:
+            for i in (Stream, Unit, System): i.ticket_numbers.clear()
     
     def discard(self, ID):
         for registry in self.registries:

@@ -79,7 +79,7 @@ class HeatExchangerNetwork(Facility):
      	]>,
      <StreamLifeCycle: Stream_1, cold
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 3.67e-06 kJ, H_out = 1.45e+04 kJ>
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 3.63e-06 kJ, H_out = 1.45e+04 kJ>
      		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 1.45e+04 kJ, H_out = 6.21e+06 kJ>
      		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 6.21e+06 kJ, H_out = 2.54e+07 kJ>
      		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.54e+07 kJ, H_out = 2.79e+08 kJ>

@@ -228,9 +228,9 @@ def ID_area(ID):
 
 def group_by_area(units):
     """Create a dictionary containing lists of UnitGroup objects by area."""
-    areas = {ID_area(i.ID) for i in units}
-    groups = {i: [] for i in sorted(areas)}
-    for i in units: groups[ID_area(i.ID)].append(i)
+    areas = [ID_area(i.ID) for i in units]
+    groups = {i: [] for i in sorted(set(areas))}
+    for a, u in zip(areas, units): groups[a].append(u)
     return groups
 
 def group_by_lines(units): 
@@ -416,7 +416,15 @@ def default_utilities():
     bst.HeatUtility.default_agents()
     bst.PowerUtility.default_price()
     
-def default():
-    """Reset utilities and chemical plant cost index back to BioSTEAM's defaults."""
-    default_utilities()
-    bst.CE = 567.5
+def default(utilities=True, CEPCI=True, flowsheet=False):
+    """
+    Reset utilities, and chemical plant cost index (CEPCI) back to 
+    BioSTEAM's defaults. May also reset all flowsheets if requested.
+    
+    """
+    if utilities: default_utilities()
+    if CEPCI: bst.CE = 567.5
+    for i in (bst.Stream, bst.Unit, bst.System): i.ticket_numbers.clear()
+    if flowsheet: 
+        for i in bst.main_flowsheet.flowsheet: i.clear(False)
+    

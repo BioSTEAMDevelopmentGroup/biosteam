@@ -23,6 +23,11 @@ import biosteam as bst
 
 __all__ = ('Unit',)
 
+_count = [0]
+def count():
+    _count[0] += 1
+    print(_count)
+
 # %% Inlet and outlet representation
 
 def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
@@ -182,7 +187,6 @@ class Unit:
             elif 'junction' == line: cls.ticket_name = 'J'
             elif 'specification' in line: cls.ticket_name = 'PS'
             else: cls.ticket_name = 'U'
-        cls.ticket_number = 0
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
@@ -441,8 +445,7 @@ class Unit:
         """
         self._load_stream_links()
         self._setup()
-        specification = self._specification
-        (specification if specification else self._run)()
+        (self._specification or self._run)()
         self._summary()
 
     def results(self, with_units=True, include_utilities=True,

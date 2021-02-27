@@ -89,14 +89,6 @@ def converge_system_in_path(system):
 def simulate_unit_in_path(unit):
     try_method_with_object_stamp(unit, unit.simulate)
 
-def simulate_system_in_path(system):
-    specification = system._specification
-    if specification:
-        method = specification
-    else:
-        method = system.simulate
-    try_method_with_object_stamp(system, method)
-
 
 # %% Debugging and exception handling
 
@@ -126,7 +118,7 @@ def _method_debug(self, func):
             update_locals_with_flowsheet(locals())
             
             # All systems, units, streams, and flowsheets are available as 
-            # local variables. Although this debugging method is ment
+            # local variables. Although this debugging method is meant
             # for internal development, please feel free to give it a shot.
             breakpoint()
     wrapper.__name__ = func.__name__
@@ -261,7 +253,8 @@ class System:
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
 
-    
+    Examples
+    --------
 
     """
     __slots__ = (
@@ -578,9 +571,11 @@ class System:
             
     def _set_facility_recycle(self, recycle):
         if recycle:
-            system = self._downstream_system(recycle.sink)
+            sys = self._downstream_system(recycle.sink)
+            sys.recycle = recycle
+            sys.__class__ = FacilityLoop
             #: [FacilityLoop] Recycle loop for converging facilities
-            self._facility_loop = FacilityLoop(system, recycle)
+            self._facility_loop = sys
         else:
             self._facility_loop = None
         
@@ -864,7 +859,7 @@ class System:
         recycle = self._recycle
         isa = isinstance
         if isa(recycle, Stream):
-            recycle.imol.data[:] = data
+            recycle._imol._data[:] = data
         elif isa(recycle, Iterable):
             length = len
             N_rows = data.shape[0]
@@ -875,10 +870,10 @@ class System:
             for i in recycle:
                 if isa(i, MultiStream):
                     next_index = index + length(i)
-                    i.imol.data[:] = data[index:next_index, :]
+                    i._imol._data[:] = data[index:next_index, :]
                     index = next_index
                 else:
-                    i.imol.data[:] = data[index, :]
+                    i._imol._data[:] = data[index, :]
                     index += 1
         else:
             raise RuntimeError('no recycle available')
@@ -903,8 +898,8 @@ class System:
     def _run(self):
         """Rigorously run each element in the path."""
         isa = isinstance
-        run = run_unit_in_path
         converge = converge_system_in_path
+        run = run_unit_in_path
         for i in self._path:
             if isa(i, Unit): run(i)
             elif isa(i, System): converge(i)
@@ -948,10 +943,11 @@ class System:
             if not iscallable(i): try_method_with_object_stamp(i, i._summary)
         isa = isinstance
         simulate_unit = simulate_unit_in_path
-        simulate_system = simulate_system_in_path
         for i in self._facilities:
             if isa(i, Unit): simulate_unit(i)
-            elif isa(i, System): simulate_system(i)
+            elif isa(i, System): 
+                converge_system_in_path(i)
+                i._summary()
             else: i() # Assume it is a function
 
     def _reset_iter(self):
@@ -974,12 +970,6 @@ class System:
         #: Number of iterations
         self._iter = 0
     
-    def reset_flows(self):
-        """Reset all process streams to zero flow."""
-        from warnings import warn
-        warn(DeprecationWarning("'reset_flows' will be depracated; please use 'empty_process_streams'"))
-        self.empty_process_streams()
-        
     def empty_process_streams(self):
         """Reset all process streams to zero flow."""
         self._reset_errors()        
@@ -1010,7 +1000,7 @@ class System:
         self._setup()
         self._converge()
         self._summary()
-        if self._facility_loop: self._facility_loop()
+        if self._facility_loop: self._facility_loop._converge()
      
     # Other
     
@@ -1145,52 +1135,13 @@ class System:
         return (f"System: {self.ID}"
                 + error + '\n'
                 + ins_and_outs)
-
-
-class FacilityLoop:
-    __slots__ = ('system', '_recycle',
-                 'maxiter', 'molar_tolerance', 'temperature_tolerance',
-                 'relative_molar_tolerance', 'relative_temperature_tolerance',
-                 '_converge_method', '_mol_error', '_T_error', 
-                 '_rmol_error', '_rT_error','_iter')
-    
-    default_maxiter = 50
-    default_molar_tolerance = System.default_molar_tolerance
-    default_temperature_tolerance = System.default_temperature_tolerance
-    default_relative_molar_tolerance = System.default_relative_molar_tolerance
-    default_relative_temperature_tolerance = System.default_relative_temperature_tolerance
-    default_converge_method = System.default_converge_method
-    
-    def __init__(self, system, recycle):
-        self.system = system
-        self._recycle = recycle
-        self._reset_errors()
-        self._load_defaults()
-        
-    recycle = System.recycle
-    converge_method = System.converge_method
-    _get_recycle_temperatures = System._get_recycle_temperatures
-    _get_recycle_data = System._get_recycle_data
-    _set_recycle_data = System._set_recycle_data
-    _reset_errors = System._reset_errors
-    _error_info = System._error_info
-    _iter_run = System._iter_run
-    _fixedpoint = System._fixedpoint
-    _aitken = System._aitken
-    _wegstein = System._wegstein
-    _solve = System._solve
-    _load_defaults = System._load_defaults
-    
-    def _reset_iter(self):
-        self.system._reset_iter()
-        self._iter = 0
-    
-    def _run(self): self.system.simulate()
-    
-    def __call__(self): self._converge_method()
-
-    def __repr__(self): 
-        return f"<{type(self).__name__}: {self.system.ID}>"
-    
        
+class FacilityLoop(System):
+    __slots__ = ()
+    def _run(self):
+        obj = super()
+        obj._run()
+        self._summary()
+        
+    
 from biosteam import _flowsheet as flowsheet_module

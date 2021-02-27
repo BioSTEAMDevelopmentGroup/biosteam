@@ -1,6 +1,7 @@
 pyyaml
 pytest-cov
 coveralls
+nbval
 sympy
 IPython>=7.9.0
 biorefineries>=2.16.7
