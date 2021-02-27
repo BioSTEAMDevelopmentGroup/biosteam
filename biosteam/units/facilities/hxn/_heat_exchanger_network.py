@@ -43,10 +43,9 @@ class HeatExchangerNetwork(Facility):
     Examples
     --------
     >>> from biosteam.units import ShortcutColumn, HXutility, Flash
-    >>> from biosteam import Flowsheet
+    >>> from biosteam import Flowsheet, Stream, settings, default, main_flowsheet as f
     >>> from biosteam.units.facilities import HeatExchangerNetwork
-    >>> from biosteam import Stream, settings
-    >>> from biosteam import main_flowsheet as f
+    >>> default() # Back to biosteam defaults
     >>> flowsheet = Flowsheet('trial')
     >>> f.set_flowsheet(flowsheet)
     >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
