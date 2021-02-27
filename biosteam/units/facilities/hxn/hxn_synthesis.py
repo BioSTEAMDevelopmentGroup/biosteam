@@ -29,11 +29,11 @@ class LifeStage:
         def _info(self, N_tabs=1):
             tabs = N_tabs*'\t'
             return (f"{type(self).__name__}: {self.unit.ID}\n"
-                    + tabs + f"H_in = {self.H_in:.3g} kJ\n"
-                    + tabs + f"H_out = {self.H_out:.3g} kJ")
+                    + tabs + f"H_in = {round(self.H_in, 4):.3g} kJ\n"
+                    + tabs + f"H_out = {round(self.H_out, 4):.3g} kJ")
                     
         def __repr__(self):
-            return (f"<{type(self).__name__}: {repr(self.unit)}, H_in = {self.H_in:.3g} kJ, H_out = {self.H_out:.3g} kJ>")
+            return (f"<{type(self).__name__}: {repr(self.unit)}, H_in = {round(self.H_in, 4):.3g} kJ, H_out = {round(self.H_out, 4):.3g} kJ>")
             
         def show(self):
             print(self._info())
