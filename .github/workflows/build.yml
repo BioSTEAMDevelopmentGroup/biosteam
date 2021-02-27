@@ -53,6 +53,7 @@ jobs:
         python -c "import platform; print(platform.platform()); print(platform.architecture())"
         python -m pip install --upgrade pip
         python -m pip install wheel
+        pip install .
         pip install -r requirements_test.txt
     - name: Test with pytest
       run: |
