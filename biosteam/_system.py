@@ -1097,9 +1097,7 @@ class System:
         return recycle
     
     def _ipython_display_(self):
-        if bst.ALWAYS_DISPLAY_DIAGRAMS:
-            try: self.diagram('minimal')
-            except: pass
+        if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram('minimal')
         self.show()
 
     def _error_info(self):

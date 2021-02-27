@@ -883,9 +883,7 @@ class Unit:
         print(self._info(T, P, flow, composition, N, IDs, data))
     
     def _ipython_display_(self):
-        if bst.ALWAYS_DISPLAY_DIAGRAMS:
-            try: self.diagram()
-            except: pass
+        if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram()
         self.show()
 
     def __repr__(self):

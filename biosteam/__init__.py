@@ -31,6 +31,9 @@ LABEL_PATH_NUMBER_IN_DIAGRAMS = False
 #: Whether to clock the simulation time of unit operations in diagrams.
 PROFILE_UNITS_IN_DIAGRAMS = False
 
+#: Whether to raise exception regarding problems displaying graphviz diagrams
+RAISE_GRAPHVIZ_EXCEPTION = False
+
 # %% Initialize BioSTEAM 
 
 from flexsolve import speed_up

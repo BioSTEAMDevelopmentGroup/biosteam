@@ -299,11 +299,14 @@ def add_connections(f: Digraph, connections, unit_names, **edge_options):
         add_connection(f, connection, unit_names, edge_options)
 
 def display_digraph(digraph, format): # pragma: no coverage
-    if format == 'svg':
-        x = display.SVG(digraph.pipe(format=format))
-    else:
-        x = display.Image(digraph.pipe(format='png'))
-    display.display(x)
+    try:
+        if format == 'svg':
+            x = display.SVG(digraph.pipe(format=format))
+        else:
+            x = display.Image(digraph.pipe(format='png'))
+        display.display(x)
+    except Exception as e: 
+        if bst.RAISE_GRAPHVIZ_EXCEPTION: raise e
 
 def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
