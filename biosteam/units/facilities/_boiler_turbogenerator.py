@@ -12,6 +12,7 @@ from . import Facility
 from ..decorators import cost
 import flexsolve as flx
 import biosteam as bst
+import thermosteam as tmo
 
 __all__ = ('BoilerTurbogenerator',)
 
@@ -27,6 +28,8 @@ __all__ = ('BoilerTurbogenerator',)
       CE=551, cost=305e3, S=235803, n=0.6, BM=3.0)
 @cost('Flow rate', 'Boiler',
       CE=551, cost=28550e3, kW=1371, S=238686, n=0.6, BM=1.8)
+@cost('Ash disposal', 'Baghouse bags',
+      CE=551, cost=466183. / 4363., n=1.0, lifetime=5)
 class BoilerTurbogenerator(Facility):
     """
     Create a BoilerTurbogenerator object that will calculate electricity
@@ -89,7 +92,8 @@ class BoilerTurbogenerator(Facility):
     _N_outs = 3
     _N_heat_utilities = 0
     _units = {'Flow rate': 'kg/hr',
-              'Work': 'kW'}
+              'Work': 'kW',
+              'Ash disposal': 'kg/hr'}
     
     def __init__(self, ID='', ins=None, 
                  outs=('emissions',
@@ -112,6 +116,26 @@ class BoilerTurbogenerator(Facility):
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = other_agents
+        chemicals = self.chemicals
+        if 'SO2' in chemicals:
+            CAS_lime = '1305-62-0'
+            if CAS_lime in chemicals or 'Ca(OH)2' in chemicals:
+                if 'Ca(OH)2' not in chemicals:
+                    chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
+                self.desulfurization_reaction =  tmo.Reaction(
+                    'SO2 + Ca(OH)2 + 0.5 O2 -> CaSO4 + H2O', 'SO2', 0.92
+                )
+                self._ID_lime = 'Ca(OH)2'
+                return
+            CAS_lime = '1305-78-8'
+            if CAS_lime in chemicals or 'CaO' in chemicals:
+                if 'CaO' not in chemicals:
+                    chemicals.set_synonym(CAS_lime, 'CaO')
+                self.desulfurization_reaction =  tmo.Reaction(
+                    'SO2 + CaO + 0.5 O2 -> CaSO4', 'SO2', 0.92
+                )
+                self._ID_lime = 'CaO'
+                return
     
     @property
     def makeup_water(self):
@@ -148,6 +172,7 @@ class BoilerTurbogenerator(Facility):
         TG_eff = self.turbogenerator_efficiency
         steam_demand = self.steam_demand
         Design = self.design_results
+        chemicals = self.chemicals
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
         feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
@@ -169,7 +194,7 @@ class BoilerTurbogenerator(Facility):
         emissions.T = self.agent.T
         emissions.P = 101325
         emissions.phase = 'g'
-        combustion_rxns = self.chemicals.get_combustion_reactions()
+        combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
@@ -222,16 +247,34 @@ class BoilerTurbogenerator(Facility):
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = (*hus_heating, hu_cooling)
-        water_index = self.chemicals.index('7732-18-5')
+        water_index = chemicals.index('7732-18-5')
         blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
                 self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
         )
-        ash_index = self.chemicals.indices([i.ID for i in self.chemicals if not i.formula])
-        ash_disposal.mol[ash_index] = F_mass_ash = emissions.mol[ash_index]
-        lime.mol[ash_index] = F_mass_lime = 0.21 * F_mass_ash
-        chems.mol[ash_index] = F_mass_chems = 0.0002846242774566474 * F_mass_lime
-        ash_disposal.mol[ash_index] += F_mass_chems +  F_mass_lime
-        emissions.mol[ash_index] = 0.
+        ash_IDs = [i.ID for i in self.chemicals if not i.formula]
+        emissions_mol = emissions.mol
+        if 'SO2' in chemicals: 
+            ash_IDs.append('CaSO4')
+            lime_index = chemicals.index(self._ID_lime)
+            self.desulfurization_reaction.force_reaction(emissions)
+            # FGD lime scaled based on SO2 generated,	
+            # 20% stoichiometetric excess based on P52 of ref [1]
+            
+            lime.mol[lime_index] = lime_mol = max(0, - emissions_mol[lime_index] * 1.2)
+            emissions_mol[emissions_mol < 0.] = 0.
+        # About 0.4536 kg/hr of boiler chemicals are needed per 234484 kg/hr steam produced
+        chems.imol['Ash'] = boiler_chems = 1.9345e-06 * Design['Flow rate']
+        ash_disposal.empty()
+        ash_disposal.copy_flow(emissions, IDs=tuple(ash_IDs), remove=True)
+        ash_disposal.imol['Ash'] += boiler_chems
+        dry_ash = ash_disposal.F_mass
+        ash_disposal.imass['Water'] = moisture = dry_ash * 0.3 # ~20% moisture
+        Design['Ash disposal'] = dry_ash + moisture
+        if 'SO2' in chemicals:
+            if self._ID_lime == '1305-62-0': # Ca(OH)2
+                lime.imol['Water'] = 4 * lime_mol # Its a slurry
+            else: # CaO
+                lime.imol['Water'] = 5 * lime_mol 
         
     def _cost(self):
         self._decorated_cost()

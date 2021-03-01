@@ -29,8 +29,8 @@ class LifeStage:
         def _info(self, N_tabs=1):
             tabs = N_tabs*'\t'
             return (f"{type(self).__name__}: {self.unit.ID}\n"
-                    + tabs + f"H_in = {round(self.H_in, 4):.3g} kJ\n"
-                    + tabs + f"H_out = {round(self.H_out, 4):.3g} kJ")
+                    + tabs + f"H_in = {self.H_in:.3g} kJ\n"
+                    + tabs + f"H_out = {self.H_out:.3g} kJ")
                     
         def __repr__(self):
             return (f"<{type(self).__name__}: {repr(self.unit)}, H_in = {round(self.H_in, 4):.3g} kJ, H_out = {round(self.H_out, 4):.3g} kJ>")
@@ -188,13 +188,13 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None)
         res_H_vector.append(prev_res_H + H)
         prev_res_H = res_H_vector[len(res_H_vector)-1]
     hot_util_load = - min(res_H_vector)
-    # assert hot_util_load>= 0
+    assert hot_util_load>= 0, 'Hot utility load is negative'
     # print(hot_util_load)
     # the lower temperature of the temperature interval for which the res_H is minimum
     pinch_cold_stream_T = all_Ts_descending[res_H_vector.index(-hot_util_load)+1]
     pinch_hot_stream_T = pinch_cold_stream_T + T_min_app
     cold_util_load = res_H_vector[len(res_H_vector)-1] + hot_util_load
-    assert cold_util_load>=0
+    assert cold_util_load>=0, 'Cold utility load is negative'
     pinch_T_arr = []
     
     for i in range(len(T_in_arr)):
@@ -543,9 +543,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     Q_bal = Q_new/Q_prev
     Q_percent_error = 100*(Q_bal - 1)
     if abs(Q_percent_error)>2:
-        msg = '\n\n\n WARNING: Q balance of HXN off by %s p.c.,\ which is more than 2 p.c.\n\n\n'\
-              %(Q_percent_error)
-        warn(msg, UserWarning, stacklevel =2)
+        msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
+        warn(msg, UserWarning, stacklevel=2)
     
     return matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, act_heat_util_load,\
            act_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\

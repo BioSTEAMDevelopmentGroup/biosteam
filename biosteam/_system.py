@@ -253,9 +253,6 @@ class System:
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
 
-    Examples
-    --------
-
     """
     __slots__ = (
         '_ID',
@@ -970,12 +967,23 @@ class System:
         #: Number of iterations
         self._iter = 0
     
-    def empty_process_streams(self):
-        """Reset all process streams to zero flow."""
-        self._reset_errors()        
-        feeds = self.feeds
-        for stream in self.streams:
-            if stream not in feeds: stream.empty()
+    def empty_outlet_streams(self):
+        """Reset all outlet streams to zero flow."""
+        self._reset_errors()
+        units = self.units
+        streams = bst.utils.streams_from_units(units)
+        bst.utils.filter_out_missing_streams(streams)
+        streams_by_data = {}
+        for i in streams:
+            data = i.imol.data
+            data_id = id(data)
+            if data_id in streams_by_data:
+                streams_by_data[data_id].append(i)
+            else:
+                streams_by_data[data_id] = [i]
+        for streams in streams_by_data.values():
+            if all([i.source in units for i in streams]):
+                streams[0].empty()
 
     def empty_recycles(self):
         """Reset all recycle streams to zero flow."""

@@ -43,9 +43,10 @@ class HeatExchangerNetwork(Facility):
     Examples
     --------
     >>> from biosteam.units import ShortcutColumn, HXutility, Flash
-    >>> from biosteam import Flowsheet, Stream, settings, default, main_flowsheet as f
+    >>> from biosteam import Flowsheet
     >>> from biosteam.units.facilities import HeatExchangerNetwork
-    >>> default() # Back to biosteam defaults
+    >>> from biosteam import Stream, settings
+    >>> from biosteam import main_flowsheet as f
     >>> flowsheet = Flowsheet('trial')
     >>> f.set_flowsheet(flowsheet)
     >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'])
@@ -174,7 +175,8 @@ class HeatExchangerNetwork(Facility):
                         #     next_stage_unit.simulate()
                         #     stages.remove(stage)
                         # except:
-                        next_stage_unit.ins[pointer].T = stream_in_at_stage.T
+                        # next_stage_unit.ins[pointer].T = stream_in_at_stage.T
+                        next_stage_unit.ins[pointer].copy_like(stream_in_at_stage)
                         # next_stage_unit.ins[pointer].H = stream_in_at_stage.H
                         next_stage_unit.simulate()
                         stages.remove(stage)
@@ -289,7 +291,7 @@ class HeatExchangerNetwork(Facility):
             for stage in stages:
                 original_unit = original_hxs[stream][0].ID
                 if original_hxs[stream][1]:
-                    original_unit+= ' - ' + original_hxs[stream][1]
+                     original_unit+= ' - ' + original_hxs[stream][1]
                 
                 hxn_unit = stage.unit
                 hxn_unit_ID = hxn_unit.ID

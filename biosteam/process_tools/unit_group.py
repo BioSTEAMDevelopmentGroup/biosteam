@@ -68,19 +68,19 @@ class UnitGroup:
     You can get main process results using UnitGroup methods:
         
     >>> ugroup.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [MM$]': 0.0711,
-     'Cooling duty [GJ/hr]': 0.374,
+    {'Installed equipment cost [MM$]': 0.071,
+     'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
-     'Electricity consumption [MW]': 0.000821,
+     'Electricity consumption [MW]': 0.00082,
      'Electricity production [MW]': 0.0}
     
     Each result can be retrieved separately:
     
     >>> ugroup.get_installed_cost()
-    0.0711
+    0.071
     
     >>> ugroup.get_cooling_duty()
-    0.374
+    0.37
     
     The `to_dict` method also returns user-defined metrics:
         
@@ -101,12 +101,12 @@ class UnitGroup:
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.0711,
-     'Cooling duty [GJ/hr]': 0.374,
+    {'Installed equipment cost [MM$]': 0.071,
+     'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
-     'Electricity consumption [MW]': 0.000821,
-     'Moisture content': 0.636,
-     'Sucrose flow rate [kg/hr]': 1026.889}
+     'Electricity consumption [MW]': 0.00082,
+     'Moisture content': 0.63,
+     'Sucrose flow rate [kg/hr]': 1026.88}
     
     """
     __slots__ = ('name', 'units', 'metrics')
@@ -163,7 +163,7 @@ class UnitGroup:
                 H403, T701, P701, T702, P702,
                 M701, T703, S604, P403, FT,
                 BT, CWP, CIP_package, ADP, CT,
-                PWC
+                PWC, blowdown_mixer
         
         """
         sys = self.to_system()
@@ -263,7 +263,7 @@ class UnitGroup:
         UnitGroup: 0
          units: H2SO4_storage, Ammonia_storage, DAP_storage, CSL_storage, WWTC,
                 FT, BT, CWP, CIP_package, ADP,
-                CT, PWC
+                CT, PWC, blowdown_mixer
         UnitGroup: 100
          units: U101
         UnitGroup: 200
@@ -307,9 +307,9 @@ class UnitGroup:
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
         >>> ugroup.get_inlet_flow('kg/s') # Sum of all chemicals
-        5623.87
+        5846.08
         >>> ugroup.get_inlet_flow('kg/s', 'Water') # Just water
-        5032.91
+        5252.83
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -335,9 +335,9 @@ class UnitGroup:
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
         >>> ugroup.get_outlet_flow('kg/s') # Sum of all chemicals
-        5639.91
+        5862.43
         >>> ugroup.get_outlet_flow('kg/s', 'Water') # Just water
-        5038.65
+        5258.90
         >>> default() # Bring biosteam settings back to default
         
         """
