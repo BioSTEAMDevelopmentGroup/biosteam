@@ -181,7 +181,7 @@ class Unit:
                   or 'heat exchanger' in line): cls.ticket_name = 'H'
             elif 'mixer' in line: cls.ticket_name = 'M'
             elif 'pump' in line: cls.ticket_name = 'P'
-            elif 'reactor' in line or 'digestion' in line: cls.ticket_name = 'R'
+            elif 'reactor' in line or 'digestion' in line or 'ferment' in line: cls.ticket_name = 'R'
             elif 'split' in line: cls.ticket_name = 'S'
             elif 'tank' in line: cls.ticket_name = 'T'
             elif 'junction' == line: cls.ticket_name = 'J'

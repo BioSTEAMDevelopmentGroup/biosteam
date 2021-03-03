@@ -10,6 +10,7 @@ This module includes classes and functions concerning Stream objects.
 
 """
 from thermosteam import Stream, MultiStream
+from collections.abc import Iterable
 from warnings import warn
 __all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
            'InletPort', 'OutletPort', 'StreamPorts', 
@@ -678,17 +679,11 @@ class StreamPorts:
 def __sub__(self, index):
     if isinstance(index, int):
         return Sink(self, index)
-    elif isinstance(index, Stream):
-        raise TypeError("unsupported operand type(s) for -: "
-                        f"'{type(self)}' and '{type(index)}'")
     return index.__rsub__(self)
 
 def __rsub__(self, index):
     if isinstance(index, int):
         return Source(self, index)
-    elif isinstance(index, Stream):
-        raise TypeError("unsupported operand type(s) for -: "
-                        "'{type(self)}' and '{type(index)}'")
     return index.__sub__(self)
 
 Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping

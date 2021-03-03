@@ -17,7 +17,6 @@ from ._network import Network
 
 __all__ = ('main_flowsheet', 'Flowsheet')
 
-
 # %% Flowsheet search      
 
 class Flowsheets:

@@ -14,6 +14,8 @@ from ._metric import Metric
 from ._parameter import Parameter
 from ..utils import format_title
 from biosteam import speed_up
+from biosteam.exceptions import FailedEvaluation
+from warnings import warn
 from collections.abc import Sized
 
 __all__ = ('Model',)
@@ -26,6 +28,7 @@ indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
                                             indices,
                                             names=names or ('Element', 'Variable'),
                                         )
+
 
 # %% Grid of simulation blocks
 
@@ -90,19 +93,19 @@ class Model(State):
     >>> set_N_reactors_parameter = parameters[0]
     >>> set_N_reactors_parameter(5)
     >>> R301.purchase_cost / 1e6
-    1.8
+    1.7
     >>> set_N_reactors_parameter(8)
     >>> R301.purchase_cost / 1e6
-    2.1
+    2.0
     
     Add the fermentation unit base cost as a "cost" parameter with a triangular distribution (which doesn't affect mass and energy balances nor design requirements'):
     
     >>> reactors_cost_coefficients = R301.cost_items['Reactors']
-    >>> mid = reactors_cost_coefficients.n # Most probable at baseline value
-    >>> lb = mid - 0.1 # Minimum
-    >>> ub = mid + 0.1 # Maximum
+    >>> n_baseline = reactors_cost_coefficients.n # Most probable at baseline value
+    >>> lb = n_baseline - 0.1 # Minimum
+    >>> ub = n_baseline + 0.1 # Maximum
     >>> @model.parameter(element=R301, kind='cost',
-    ...              distribution=shape.Triangle(lb, mid, ub))
+    ...                  distribution=shape.Triangle(lb, n_baseline, ub))
     ... def set_exponential_cost_coefficient(exponential_cost_coefficient):
     ...     reactors_cost_coefficients.n = exponential_cost_coefficient
     
@@ -163,7 +166,7 @@ class Model(State):
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
     Biorefinery  Internal rate of return [%]    11.6
-                 Utility cost [10^6 USD/yr]    -17.9
+                 Utility cost [10^6 USD/yr]      -18
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -194,6 +197,7 @@ class Model(State):
 
     >>> # Reset settings to default for future tests
     >>> bst.process_tools.default()
+    >>> reactors_cost_coefficients.n = n_baseline
 
     """
     __slots__ = ('table',          # [DataFrame] All arguments and results.
@@ -206,10 +210,10 @@ class Model(State):
                  '_metric_indices', # list[Hashable] Cached metric indices.
                  '_exception_hook', # [callable(model, exception, sample)] Should return either None or metric value given an exception and the sample.
     )
-    def __init__(self, system, metrics, specification=None, skip=False, 
-                 parameters=None, exception_hook=None):
+    def __init__(self, system, metrics=None, specification=None, skip=False, 
+                 parameters=None, exception_hook='warn'):
         super().__init__(system, specification, skip, parameters)
-        self.metrics = metrics
+        self.metrics = metrics or ()
         self.exception_hook = exception_hook
         self._samples = self.table = None
         
@@ -240,16 +244,28 @@ class Model(State):
     def exception_hook(self, exception_hook):
         if not exception_hook or callable(exception_hook):
             self._exception_hook = exception_hook
+            return
+        if isinstance(exception_hook, str):
+            if exception_hook == 'ignore':
+                self._exception_hook = lambda exception, sample: None
+            elif exception_hook == 'warn':
+                self._exception_hook = lambda exception, sample: warn(FailedEvaluation(f"[{type(exception).__name__}] {exception}"), stacklevel=6)
+            elif exception_hook == 'raise':
+                def raise_exception(exception, sample): raise exception
+                self._exception_hook = raise_exception
+            else:
+                raise ValueError(f"invalid exception hook name '{exception_hook}'; "
+                                  "valid names include 'ignore', 'warn', and 'raise'")
         else:
-            raise ValueError('exception hook must be callable or None')
+            raise ValueError('exception hook must be either a callable, a string, or None')
     
     @property
     def metrics(self):
         """tuple[Metric] Metrics to be evaluated by model."""
-        return self._metrics
+        return tuple(self._metrics)
     @metrics.setter
     def metrics(self, metrics):
-        metrics = tuple(metrics)
+        metrics = list(metrics)
         isa = isinstance
         for i in metrics:
             if not isa(i, Metric):
@@ -318,7 +334,7 @@ class Model(State):
         N_metrics = len(metrics)
         empty_metric_data = np.zeros((N_samples, N_metrics))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                  columns=var_columns(tuple(parameters) + metrics))
+                                  columns=var_columns(parameters + metrics))
         self._samples = samples
         self._setters = [i.setter for i in parameters]
         self._getters = [i.getter for i in metrics]
@@ -366,31 +382,31 @@ class Model(State):
             else:
                 self._system.simulate()
             return [i() for i in self._getters]
-        except Exception as exception:
-            return self._run_exception_hook(exception, sample)
+        except:
+            return self._run_exception_hook(sample)
     
-    def _run_exception_hook(self, exception, sample):
-        if self._exception_hook: 
-            values = self._exception_hook(exception, sample)
-            self._reset_system()
-            if isinstance(values, Sized) and len(values) == len(self.metrics):
-                return values
-            elif values is not None:
-                raise RuntimeError('exception hook must return either None or '
-                                   'an array of metric values for the given sample')
+    def _run_exception_hook(self, sample):
         self._reset_system()
         try:
             self._system.simulate()
             return [i() for i in self._getters]
-        except:
+        except Exception as exception:
+            if self._exception_hook: 
+                values = self._exception_hook(exception, sample)
+                self._reset_system()
+                if isinstance(values, Sized) and len(values) == len(self.metrics):
+                    return values
+                elif values is not None:
+                    raise RuntimeError('exception hook must return either None or '
+                                       'an array of metric values for the given sample')
             return self._failed_evaluation()
     
     def _evaluate_sample_smart(self, sample):
         try:
             self._update(sample, self._specification)
             return [i() for i in self._getters]
-        except Exception as exception:
-            return self._exception_hook(exception, sample)
+        except:
+            return self._exception_hook(sample)
     
     def _reset_system(self):
         self._system.empty_recycles()

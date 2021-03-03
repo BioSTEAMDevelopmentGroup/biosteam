@@ -104,28 +104,37 @@ def print_exception_in_debugger(self, func, e):
     except: pass
 
 def update_locals_with_flowsheet(lcs):
-    f = bst.main_flowsheet
-    for i in (f.system, f.stream, f.unit, f.flowsheet): lcs.update(i.__dict__)
+    lcs.update(bst.main_flowsheet.to_dict())
     lcs.update(bst.__dict__)
 
-def _method_debug(self, func):
+def _method_debug(self, f):
     """Method decorator for debugging system."""
-    def wrapper(*args, **kwargs):
+    def g(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            f(*args, **kwargs)
         except Exception as e:
-            print_exception_in_debugger(self, func, e)
+            print_exception_in_debugger(self, f, e)
             update_locals_with_flowsheet(locals())
-            
             # All systems, units, streams, and flowsheets are available as 
             # local variables. Although this debugging method is meant
             # for internal development, please feel free to give it a shot.
             breakpoint()
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    wrapper._original = func
-    return wrapper
+    g.__name__ = f.__name__
+    g.__doc__ = f.__doc__
+    g._original = f
+    return g
 
+def _method_profile(self, f):
+    self._total_excecution_time_ = 0.
+    t = bst.utils.TicToc()
+    def g():
+        t.tic()
+        f()
+        self._total_excecution_time_ += t.elapsed_time
+    g.__name__ = f.__name__
+    g.__doc__ = f.__doc__
+    g._original = f
+    return g
 
 # %% Converging recycle systems
 
@@ -432,7 +441,7 @@ class System:
         del self._irrelevant_units
         unit_registry = self.flowsheet.unit
         if self.path or self.recycle or self.facilities:
-            raise RuntimeError('system was modified before exiting `with` statement')
+            raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             units = [i for i in unit_registry
                      if i not in irrelevant_units]
@@ -529,6 +538,62 @@ class System:
                     i._extend_flattend_path_and_recycles(path, recycles, stacklevel)
             else:
                 path.append(i)
+    
+    def split(self, stream, ID_upstream=None, ID_downstream=None):
+        """
+        Split system in two; upstream and downstream.
+        
+        Parameters
+        ----------    
+        stream : Iterable[:class:~thermosteam.Stream], optional
+            Stream where unit group will be split.
+        ID_upstream : str, optional
+            ID of upstream system.
+        ID_downstream : str, optional
+            ID of downstream system.
+        
+        Examples
+        --------
+        >>> from biorefineries.cornstover import cornstover_sys, M201
+        >>> from biosteam import default
+        >>> upstream_sys, downstream_sys = cornstover_sys.split(M201-0)
+        >>> upstream_group = upstream_sys.to_unit_group()
+        >>> upstream_group.show()
+        UnitGroup: Unnamed
+         units: U101, H2SO4_storage, T201, M201
+        >>> downstream_group = downstream_sys.to_unit_group()
+        >>> downstream_group.show()
+        UnitGroup: Unnamed
+         units: M202, M203, R201, P201, T202,
+                F201, Ammonia_storage, M205, T203, P202,
+                H301, M301, DAP_storage, S301, CSL_storage,
+                S302, R301, M302, R302, T301,
+                M303, D401, M401, T302, P401,
+                H401, D402, P402, S401, M204,
+                H201, M601, WWTC, R601, M602,
+                R602, S601, S602, M603, S603,
+                M501, M402, D403, H402, U401,
+                H403, T701, P701, T702, P702,
+                M701, T703, S604, P403, FT,
+                BT, CWP, CIP_package, ADP, CT,
+                PWC, blowdown_mixer
+        >>> default() # Reset to biosteam defaults
+        
+        """
+        if self.recycle: raise RuntimeError('cannot split system with recycle')
+        path = self.path
+        self.streams
+        surface_units = {i for i in path if isinstance(i, Unit)}
+        if stream.source in surface_units:
+            index = path.index(stream.source) + 1
+        elif stream.sink in surface_units:
+            index = path.index(stream.sink)
+        elif stream not in self.streams:
+            raise ValueError('stream not in system')
+        else:
+            raise ValueError('stream cannot reside within a subsystem')
+        return (System(ID_upstream, path[:index], None),
+                System(ID_downstream, path[index:], None, self.facilities))
     
     def flatten(self):
         """Flatten system by removing subsystems."""
@@ -900,7 +965,7 @@ class System:
         for i in self._path:
             if isa(i, Unit): run(i)
             elif isa(i, System): converge(i)
-            else: i() # Assume it is a function
+            else: i() # Assume it's a function
     
     # Methods for convering the recycle stream    
     def _fixedpoint(self):
@@ -1011,7 +1076,6 @@ class System:
         if self._facility_loop: self._facility_loop._converge()
      
     # Other
-    
     def to_network(self):
         """Return network that defines the system path."""
         isa = isinstance
@@ -1023,37 +1087,60 @@ class System:
         return network
         
     # Debugging
-    def _debug_on(self):
-        """Turn on debug mode."""
-        path = self._path
-        for i, item in enumerate(path):
-            if isinstance(item, Unit):
-                item._run = _method_debug(item, item._run)
-            elif callable(item):
-                path[i] = _method_debug(item, item)
+    def _turn_on(self, mode):
+        """Turn on special simulation modes like `profile` or `debug`."""
+        if not isinstance(mode, str):
+            raise TypeError(f"mode must be a string; not a {type(mode).__name__} object")
+        mode = mode.lower()
+        if mode == 'debug':
+            _wrap_method = _method_debug
+        elif mode == 'profile': 
+            _wrap_method = _method_profile
+        else:
+            raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
+        for u in self.units:
+            if u.specification:
+                u.specification = _wrap_method(u, u.specification)
+            else:
+                u._run = _wrap_method(u, u._run)
+            u._design = _wrap_method(u, u._design)
+            u._cost = _wrap_method(u, u._cost)
 
-    def _debug_off(self):
-        """Turn off debug mode."""
-        path = self._path
-        for i, item in enumerate(path):
-            if isinstance(item, Unit):
-                item._run = item._run._original
-            elif callable(item):
-                path[i] = item._original
+    def _turn_off(self):
+        """Turn off special simulation modes like `profile` or `debug`."""
+        for u in self.units:
+            if u.specification:
+                u.specification = u.specification._original
+            else:
+                u._run = u._run._original
+            u._design = u._design._original
+            u._cost = u._cost._original
     
     def debug(self):
-        """Converge in debug mode. Just try it!"""
-        self._debug_on()
-        try: self._converge()
-        finally: self._debug_off()
-        end = self._error_info()
-        if end:
-            print(f'\nFinished debugging{end}')
-        else:
-            print('\n        Finished debugging')
+        """Simulate in debug mode. If an exception is raised, it will 
+        automatically enter in a breakpoint"""
+        self._turn_on('debug')
+        try: self.simulate()
+        finally: self._turn_off()
+            
+    def profile(self):
+        """
+        Simulate system in profile mode and return a DataFrame object of unit 
+        operation simulation times.
+        
+        """
+        import pandas as pd
+        self._turn_on('profile')
+        try: self.simulate()
+        finally: self._turn_off()
+        units = self.units
+        units.sort(key=(lambda u: u._total_excecution_time_), reverse=True)
+        data = [(u.line, 1000. * u._total_excecution_time_) for u in units]
+        for u in units: del u._total_excecution_time_
+        return pd.DataFrame(data, index=[u.ID for u in units],
+                            columns=('Unit Operation', 'Time (ms)'))
             
     # Representation
-    
     def print(self, spaces=''): # pragma: no cover
         """
         Print in a format that you can use recreate the system.

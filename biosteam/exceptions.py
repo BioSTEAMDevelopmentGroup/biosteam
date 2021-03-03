@@ -20,3 +20,6 @@ class DesignError(RuntimeError):
     
 class GraphicsWarning(RuntimeWarning):
     """RuntimeWarning regarding diagrams."""
+    
+class FailedEvaluation(RuntimeWarning):
+    """RuntimeWarning regarding failed model evaluation."""

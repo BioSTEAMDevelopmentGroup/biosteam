@@ -722,10 +722,8 @@ class TEA:
         tax = np.zeros_like(taxable_cashflow)
         incentives = tax.copy()
         self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
-        net_earnings = taxable_cashflow + incentives - tax
-        cashflow = net_earnings + nontaxable_cashflow
-        NPV = (cashflow/discount_factors).sum()
-        return NPV
+        cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
+        return (cashflow/discount_factors).sum()
     
     def solve_price(self, stream):
         """

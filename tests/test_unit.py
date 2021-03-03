@@ -27,10 +27,11 @@ def test_unit_connections():
                                                                  P304, U103, T202, M305, T206, 
                                                                  M301, D302, T303, R301, T203, 
                                                                  P305}
-    assert R301.get_downstream_units() == {T301, M303, H303, P304, C301, 
-                                           H304, P301, M305, D301, T302, 
-                                           M304, D302, U301, D303, P302, 
-                                           H302, P303, M302, T304}
+    assert R301.get_downstream_units() == {M305, T304, C301, D301, P303, 
+                                           M302, H303, U301, R301, T301, 
+                                           P302, H304, P304, P301, H302, 
+                                           T302, D303, M304, T305, M303, 
+                                           D302}
     
     ins = tuple(R301.ins)
     outs = tuple(R301.outs)

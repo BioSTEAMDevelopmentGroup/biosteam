@@ -81,31 +81,31 @@ class Fermentation(BatchBioreactor):
     ins...
     [0] feed
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     6.66e+03
-                        Glucose   10.5
-                        Sucrose   62.5
-                        Yeast  1.03e+04
+        flow (kmol/hr): Water    6.66e+03
+                        Glucose  10.5
+                        Sucrose  62.5
+                        Yeast    1.03e+04
     [1] missing stream
     outs...
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    2.5
-                        Ethanol  0.582
+        flow (kmol/hr): Water    1.95
+                        Ethanol  0.421
                         CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     6.6e+03
-                        Ethanol   243
-                        Glucose   13.6
-                        Yeast  1.03e+04
+        flow (kmol/hr): Water    6.6e+03
+                        Ethanol  244
+                        Glucose  4.07
+                        Yeast    1.2e+04
     >>> F1.results()
     Fermentation                                       Units        F1
-    Power               Rate                              kW      11.6
-                        Cost                          USD/hr     0.908
+    Power               Rate                              kW      11.7
+                        Cost                          USD/hr     0.915
     Chilled water       Duty                           kJ/hr -1.05e+07
                         Flow                         kmol/hr  7.06e+03
                         Cost                          USD/hr      52.7
-    Design              Reactor volume                    m3       246
+    Design              Reactor volume                    m3       247
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Number of reactors                           8
@@ -113,10 +113,10 @@ class Fermentation(BatchBioreactor):
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
     Purchase cost       Heat exchangers                  USD  4.17e+04
-                        Reactors                         USD  2.08e+06
-                        Agitators                        USD  1.16e+05
-                        Cleaning in place                USD  8.87e+04
-    Total purchase cost                                  USD  2.32e+06
+                        Reactors                         USD  1.88e+06
+                        Agitators                        USD  1.17e+05
+                        Cleaning in place                USD  8.91e+04
+    Total purchase cost                                  USD  2.12e+06
     Utility cost                                      USD/hr      53.6
     
     References
@@ -167,6 +167,8 @@ class Fermentation(BatchBioreactor):
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
         self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
+        self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, basis='wt')
+        cell_growth.basis = 'mol'
         self.iskinetic = iskinetic
         self.efficiency = efficiency
         
@@ -255,4 +257,5 @@ class Fermentation(BatchBioreactor):
         if self.iskinetic:
             self.fermentation_reaction.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation_reaction(effluent_mol)
+        self.cell_growth_reaction(effluent_mol)
         vent.receive_vent(effluent)
