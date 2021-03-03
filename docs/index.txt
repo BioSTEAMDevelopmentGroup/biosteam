@@ -34,7 +34,7 @@ The BioSTEAM software has been steadily improved since the original BioSTEAM pub
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :numbered:
    :caption: Tutorial
    
@@ -52,7 +52,7 @@ The BioSTEAM software has been steadily improved since the original BioSTEAM pub
    tutorial/Techno-economic_analysis
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :numbered:
    :caption: Advanced Tutorial
    
