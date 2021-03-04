@@ -8,5 +8,6 @@ biorefineries>=2.16.7
 thermosteam>=0.22.7
 graphviz>=0.8.3
 chaospy==3.3.9
+SALib
 pyglet
 ipykernel

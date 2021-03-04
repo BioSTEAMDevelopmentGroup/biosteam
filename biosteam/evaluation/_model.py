@@ -185,8 +185,8 @@ class Model(State):
 
     Model objects also presents methods for sensitivity analysis such as Spearman's correlation:        
 
-    >>> df_spearman = model.spearman()
-    >>> df_spearman['Biorefinery', 'Internal rate of return [%]']
+    >>> df_rho, df_p = model.spearman_r()
+    >>> df_rho['Biorefinery', 'Internal rate of return [%]']
     Element            Parameter                   
     Stream-lipidcane   Lipid fraction                   0.79
     Fermentation-R301  Efficiency                       0.33
@@ -492,37 +492,193 @@ class Model(State):
                     data.to_excel(writer, sheet_name=name)
         return metric_data
     
-    def spearman(self, parameters=(), metrics=()):
+    def spearman(self, parameters=None, metrics=None):
+        warn(DeprecationWarning('this method will be depracated in biosteam 2.25; '
+                                'use spearman_r instead'), stacklevel=2)
+        return self.spearman_r(parameters, metrics)[0]
+    
+    def spearman_r(self, parameters=None, metrics=None, filter=None): # pragma: no cover
         """
-        Return DataFrame of Spearman's rank correlation for metrics vs parameters.
+        Return two DataFrame objects of Spearman's rho and p-values between metrics 
+        and parameters.
         
         Parameters
         ----------
-        parameters=() : Iterable[Parameter], defaults to all parameters
-            Parameters to be correlated with metrics .
-        metrics=() : Iterable[Metric], defaults to all metrics
-            Metrics to be correlated with parameters.
+        parameters : Iterable[Parameter], optional
+            Parameters to be correlated with metrics. Defaults to all parameters.
+        metrics : Iterable[Metric], optional 
+            Metrics to be correlated with parameters. Defaults to all metrics.
+        filter : Callable(x, y) -> x, y, or string, optional
+            Function that returns filtered x and y values to correlate. If 
+            filter is 'omit nan', all NaN values are ignored in correlation.
+        
+        See Also
+        --------
+        `scipy.stats.spearmanr <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html>`_
         
         """
         from scipy.stats import spearmanr
+        return self._correlation(spearmanr, parameters, metrics, filter)
+    
+    def pearson_r(self, parameters=None, metrics=None, filter=None):
+        """
+        Return two DataFrame objects of Pearson's rho and p-values between metrics 
+        and parameters.
+        
+        Parameters
+        ----------
+        parameters : Iterable[Parameter], optional
+            Parameters to be correlated with metrics. Defaults to all parameters.
+        metrics : Iterable[Metric], optional 
+            Metrics to be correlated with parameters. Defaults to all metrics.
+        filter : Callable(x, y) -> x, y, or string, optional
+            Function that returns filtered x and y values to correlate. If 
+            filter is 'omit nan', all NaN values are ignored in correlation.
+        
+        See Also
+        --------
+        `scipy.stats.pearsonr <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html>`_
+        
+        """
+        from scipy.stats import pearsonr
+        return self._correlation(pearsonr, parameters, metrics, filter)
+    
+    def kendall_tau(self, parameters=None, metrics=None, filter=None):
+        """
+        Return two DataFrame objects of Kendall's tau and p-values between metrics 
+        and parameters.
+        
+        Parameters
+        ----------
+        parameters : Iterable[Parameter], optional
+            Parameters to be correlated with metrics. Defaults to all parameters.
+        metrics : Iterable[Metric], optional 
+            Metrics to be correlated with parameters. Defaults to all metrics.
+        filter : Callable(x, y) -> x, y, or string, optional
+            Function that returns filtered x and y values to correlate. If 
+            filter is 'omit nan', all NaN values are ignored in correlation.
+        
+        See Also
+        --------
+        `scipy.stats.kendalltau <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html>`_
+        
+        """
+        from scipy.stats import kendalltau
+        return self._correlation(kendalltau, parameters, metrics, filter)
+    
+    def kolmogorov_smirnov_d(self, parameters=None, metrics=None, filter=None):
+        """
+        Return two DataFrame objects of Kolmogorov–Smirnov's D and p-values 
+        between metrics and parameters.
+        
+        Parameters
+        ----------
+        parameters : Iterable[Parameter], optional
+            Parameters to be correlated with metrics. Defaults to all parameters.
+        metrics : Iterable[Metric], optional 
+            Metrics to be correlated with parameters. Defaults to all metrics.
+        filter : Callable(x, y) -> x, y, or string, optional
+            Function that returns filtered x and y values to correlate. If 
+            filter is 'omit nan', all NaN values are ignored in correlation.
+        
+        See Also
+        --------
+        `scipy.stats.kstest <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html>`_
+        
+        """
+        from scipy.stats import kstest
+        return self._correlation(kstest, parameters, metrics, filter)
+    
+    def correlation(self, name, parameters=None, metrics=None, filter=None):
+        """
+        Return two DataFrame objects of statistics and p-values between metrics 
+        and parameters.
+        
+        Parameters
+        ----------
+        name : str
+            * "Pearson" for Pearson's r
+            * "Spearman" for Spearman's rho
+            * "Kendall" for Kendall's tau
+            * "KS" for Kolmogorov–Smirnov's D
+        parameters : Iterable[Parameter], optional
+            Parameters to be correlated with metrics. Defaults to all parameters.
+        metrics : Iterable[Metric], optional 
+            Metrics to be correlated with parameters. Defaults to all metrics.
+        filter : Callable(x, y) -> x, y, or string, optional
+            Function that returns filtered x and y values to correlate. If 
+            filter is 'omit nan', all NaN values are ignored in correlation.
+        
+        See Also
+        --------
+        `scipy.stats.pearsonr <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html>`_
+        
+        `scipy.stats.spearmanr <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html>`_
+        
+        `scipy.stats.kendalltau <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html>`_
+        
+        `scipy.stats.kstest <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kstest.html>`_
+        
+        """
+        name_ = name.upper()
+        if name_ == 'SPEARMAN':
+            return self.pearson_r(parameters, metrics, filter)
+        elif name_ == 'PEARSON':
+            return self.spearman_r(parameters, metrics, filter)
+        elif name_ == 'KENDALL':
+            return self.kendall_tau(parameters, metrics, filter)
+        elif name_ == 'KS':
+            return self.kolmogorov_smirnov_d(parameters, metrics, filter)
+        else:
+            raise ValueError(f"invalid name '{name}' name must be either "
+                              "'Spearman', 'Pearson', 'Kendall' or 'KS'")
+    
+    def _correlation(self, f, parameters, metrics, filter):
+        """
+        Return two DataFrame objects of statistics and p-values between metrics 
+        and parameters.
+        
+        Parameters
+        ----------
+        f : callable(x, y) -> stat, p
+            Function to calculate correlation.
+        parameters : Iterable[Parameter], optional
+            Parameters to be correlated with metrics. Defaults to all parameters.
+        metrics : Iterable[Metric], optional 
+            Metrics to be correlated with parameters. Defaults to all metrics.
+        filter : Callable(x, y) -> x, y, or string, optional
+            Function that returns filtered x and y values to correlate. If 
+            filter is 'omit nan', all NaN values are ignored in correlation.
+        
+        """
         if not parameters: parameters = self._parameters
         table = self.table
+        values = table.values.transpose()
+        index = table.columns.get_loc
         parameter_indices = var_indices(parameters)
-        parameter_data = [table[i] for i in parameter_indices]
+        parameter_data = [values[index(i)] for i in parameter_indices]
         metric_indices = var_indices(metrics) if metrics else self._metric_indices 
-        metric_data = [table[i] for i in metric_indices]
-        rhos = [[spearmanr(p, m)[0] for m in metric_data] for p in parameter_data]
-        return pd.DataFrame(rhos, 
-                            index=indices_to_multiindex(
-                                parameter_indices, 
-                                ('Element', 'Parameter')
-                            ),
-                            columns=indices_to_multiindex(
-                                metric_indices,
-                                ('Element', 'Metric')
-                            )
-               )
-    
+        metric_data = [values[index(i)] for i in metric_indices]
+        clean = filter
+        if clean: 
+            if isinstance(clean, str):
+                clean = clean.lower()
+                if clean == 'omit nan':
+                    def clean(x, y):
+                        index = ~(np.isnan(x) | np.isnan(y))
+                        return x[index], y[index]
+                else: #: pragma: no cover
+                    raise ValueError(f"filter name must be 'omit nan'; not '{filter}'")
+            elif not callable(clean): #: pragma: no cover
+                raise TypeError("filter must be either a string or a callable; "
+                                "not a '{type(filter).__name__}' object")
+        else:
+            clean = lambda x, y: (x, y)
+        data = np.array([[f(*clean(p, m)) for m in metric_data] for p in parameter_data])
+        index = indices_to_multiindex(parameter_indices, ('Element', 'Parameter'))
+        columns = indices_to_multiindex(metric_indices, ('Element', 'Metric'))        
+        return [pd.DataFrame(i, index=index, columns=columns) for i in (data[..., 0], data[..., 1])]
+        
     def create_fitted_model(self, parameters, metrics): # pragma: no cover
         from pipeml import FittedModel
         Xdf = self.table[[i.index for i in parameters]]

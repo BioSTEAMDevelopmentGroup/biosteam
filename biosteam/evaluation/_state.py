@@ -247,9 +247,28 @@ class State:
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()
-        return setter
+        return p
     
-    def sample(self, N, rule, uniform=False): 
+    def problem(self):
+        """
+        Return a dictionary of parameter metadata (referred to as "problem") 
+        to be used for sampling by ``SALib``.
+        
+        See Also
+        --------
+        `SALib basics <https://salib.readthedocs.io/en/latest/basics.html#an-example>`_
+        
+        """
+        params = self.get_parameters()
+        return {
+            'num_vars': len(params),
+            'names': [i.name for i in params],
+            'bounds': [i.bounds if i.bounds
+                       else (i.distribution.lower[0], i.distribution.upper[0])
+                       for i in params]
+        }
+
+    def sample(self, N, rule, **kwargs): 
         """
         Return N samples from parameter distribution at given rule.
         
@@ -259,13 +278,16 @@ class State:
             Number of samples.
         rule : str
             Sampling rule.
-        uniform=False : bool, optional
-            Whether to assume a joint uniform distribution across parameter bounds. 
-            Otherwise, sample from a joint distribution of all parameters.
+        
+        Other Parameters
+        ----------------
+        kwargs : 
+            Key word arguments for sensitivity analysis sampling.
         
         Notes
         -----
-        Use the following ``rule`` flag for sampling:
+        For sampling from a joint distribution of all parameters, use the 
+        following ``rule`` flags:
         
         +-------+-------------------------------------------------+
         | key   | Description                                     |
@@ -291,16 +313,45 @@ class State:
         | ``M`` | Hammersley low-discrepancy sequence.            |
         +-------+-------------------------------------------------+
             
+        If sampling for sensitivity analysis, use the following ``rule`` flags:
+        
+        +------------+--------------------------------------------+
+        | key        | Description                                     |
+        +============+============================================+
+        | ``MORRIS`` | Samples for Morris One-at-A-Time (OAT)     |
+        +------------+--------------------------------------------+
+        | ``RBD``    | Chebyshev nodes adjusted to ensure nested. |
+        +------------+--------------------------------------------+
+        | ``FAST``   | Korobov lattice.                           |
+        +------------+--------------------------------------------+
+        | ``SOBOL``  | Classical (Pseudo-) Random samples.         |
+        +------------+--------------------------------------------+
+        
+        This method relies on the ``SALib`` library for sampling schemes 
+        specific to sensitivity analysis.
+        
         """
         if not self._update: self._load_parameters()
         parameters = self._parameters
-        shape = cp.distributions
-        if uniform:
-            Uniform = shape.Uniform
-            distributions = [Uniform(*i.bounds) for i in parameters]
-        else:
+        problem = self.problem()
+        rule = rule.upper()
+        if rule in ('C', 'NC', 'K', 'R', 'RG', 'NG', 'L', 'S', 'H', 'M'):
+            shape = cp.distributions
             distributions = [i.distribution for i in parameters]
-        return shape.J(*distributions).sample(N, rule).transpose()
+            samples = shape.J(*distributions).sample(N, rule).transpose()
+        else:
+            if rule == 'MORRIS':
+                from SALib.sample import morris as sampler
+            elif rule in ('FAST', 'EFAST'):
+                from SALib.sample import fast_sampler as sampler
+            elif rule == 'RBD':
+                from SALib.sample import latin as sampler
+            elif rule == 'SOBOL':
+                from SALib.sample import saltelli as sampler
+            else:
+                raise ValueError(f"invalid rule '{rule}'")
+            samples = sampler.sample(problem, N=N, **kwargs)
+        return samples
     
     def _erase(self):
         """Erase cached data."""

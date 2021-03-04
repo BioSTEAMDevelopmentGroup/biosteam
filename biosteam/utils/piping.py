@@ -7,7 +7,6 @@
 # for license details.
 """
 This module includes classes and functions concerning Stream objects.
-
 """
 from thermosteam import Stream, MultiStream
 from collections.abc import Iterable
@@ -204,25 +203,24 @@ class StreamSequence:
                         n_missing(size, N) # Make sure size is not too big
                         self._streams[:N] = [redock(i, stacklevel+1) if isa(i, stream_types)
                                              else dock(Stream(i, thermo=thermo)) for i in streams]
-            else:
-                if streams:
-                    if isa(streams, str):
-                        self._streams = [dock(Stream(streams, thermo=thermo))]
-                    elif isa(streams, stream_types):
-                        self._streams = [redock(streams, stacklevel)]
-                    else:
-                        self._streams = loaded_streams = []
-                        for i in streams:
-                            if isa(i, stream_types):
-                                s = redock(i, stacklevel)
-                            elif i is None:
-                                s = self._create_missing_stream()
-                            else:
-                                s = Stream(i, thermo=thermo)
-                                dock(s)
-                            loaded_streams.append(s)
+            elif streams:
+                if isa(streams, str):
+                    self._streams = [dock(Stream(streams, thermo=thermo))]
+                elif isa(streams, stream_types):
+                    self._streams = [redock(streams, stacklevel)]
                 else:
-                    self._initialize_missing_streams()
+                    self._streams = loaded_streams = []
+                    for i in streams:
+                        if isa(i, stream_types):
+                            s = redock(i, stacklevel)
+                        elif i is None:
+                            s = self._create_missing_stream()
+                        else:
+                            s = Stream(i, thermo=thermo)
+                            dock(s)
+                        loaded_streams.append(s)
+            else:
+                self._initialize_missing_streams()
         
     def _create_missing_stream(self):
         return MissingStream(None, None)
@@ -362,7 +360,6 @@ class Inlets(StreamSequence):
     def _redock(self, stream, stacklevel): 
         sink = stream._sink
         if sink:
-            stacklevel += 1
             ins = sink._ins
             if ins is not self:
                 ins.remove(stream)
@@ -372,7 +369,7 @@ class Inlets(StreamSequence):
                     and sink._ID != new_sink._ID):
                     warn(f"undocked inlet stream {stream} from unit {sink}; "
                          f"{stream} is now docked at {new_sink}", 
-                         RuntimeWarning, stacklevel)
+                         RuntimeWarning, stacklevel + 1)
         else:
             stream._sink = self._sink
         return stream
@@ -403,10 +400,8 @@ class Outlets(StreamSequence):
     def _redock(self, stream, stacklevel): 
         source = stream._source
         if source:
-            stacklevel += 1
             outs = source._outs
             if outs is not self:
-                # Remove from source
                 outs.remove(stream)
                 stream._source = new_source = self._source
                 if (DOCKING_WARNINGS 
@@ -414,7 +409,7 @@ class Outlets(StreamSequence):
                     and source._ID != new_source._ID):
                     warn(f"undocked outlet stream {stream} from unit {source}; "
                          f"{stream} is now docked at {new_source}", 
-                         RuntimeWarning, stacklevel)
+                         RuntimeWarning, stacklevel + 1)
         else:
             stream._source = self._source
         return stream
@@ -694,7 +689,5 @@ def __rsub__(self, index):
 
 Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
 Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
-Stream.sink = property(lambda self: self._sink)
-Stream.source = property(lambda self: self._source)
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                    f"{pipe_info(self._source, self._sink)}\n")

@@ -8,8 +8,102 @@
 """
 """
 import pytest
+from numpy.testing import assert_allclose
+import numpy as np
+    
+@pytest.fixture
+def model():
+    import biosteam as bst
+    from chaospy.distributions import Uniform
+    sys = bst.System(None, ())
+    model = bst.Model(sys)
+    
+    parameter_box = [100.]
+    @model.parameter(bounds=[90, 110],
+                     distribution=Uniform(90, 110),
+                     units='kg/hr')
+    def set_parameter(parameter_1):
+        parameter_box[0] = parameter_1
+    
+    @model.parameter(bounds=[0., 1.],
+                     distribution=Uniform(0., 1.))
+    def set_parameter(parameter_2): ...
+    
+    @model.metric
+    def good_metric():
+        p = parameter_box[0]
+        return 2. * p * p / (p + 100.) 
+    
+    switch_box = [False]
+    @model.metric
+    def bad_metric():
+        give_nan = switch_box[0]
+        switch_box[0] = not give_nan
+        p = parameter_box[0]
+        return float('Nan') if give_nan else 2. * p * p / (p + 100.) 
+    
+    @model.metric
+    def non_correlated_metric():
+        return float(switch_box[0])
+    
+    sample = model.sample(1000, 'L')
+    model.load_samples(sample)
+    model.evaluate()
+    return model
+    
+def test_pearson_r(model):
+    with pytest.raises(ValueError):
+        rho, p = model.pearson_r()
+    
+    rho, p = model.pearson_r(filter='omit nan')
+    expected = np.array([[1., 1., 0.],
+                         [0,  0., 0.]])
+    assert_allclose(rho, expected, atol=0.15)
+    assert_allclose(rho, model.correlation('Pearson', filter='omit nan')[0], atol=0.01)
 
-def test_model():
+def test_spearman_r(model):
+    rho, p = model.spearman_r()
+    NaN = float('NaN')
+    expected = np.array([[1., NaN, 0.],
+                         [0,  NaN, 0.]])
+    index = ~np.isnan(expected)
+    assert_allclose(rho.values[index], expected[index], atol=0.15)
+    
+    rho, p = model.spearman_r(filter='omit nan')
+    expected = np.array([[1., 1., 0.],
+                         [0,  0., 0.]])
+    assert_allclose(rho, expected, atol=0.15)
+    assert_allclose(rho, model.correlation('Spearman', filter='omit nan')[0], atol=0.01)
+    
+def test_kendall_tau(model):
+    rho, p = model.kendall_tau()
+    NaN = float('NaN')
+    expected = np.array([[1., NaN, 0.],
+                         [0,  NaN, 0.]])
+    index = ~np.isnan(expected)
+    assert_allclose(rho.values[index], expected[index], atol=0.15)
+    
+    tau, p = model.kendall_tau(filter='omit nan')
+    expected = np.array([[1., 1., 0.],
+                         [0,  0., 0.]])
+    assert_allclose(tau, expected, atol=0.15)
+    assert_allclose(tau, model.correlation('Kendall', filter='omit nan')[0])
+    
+def test_kolmogorov_smirnov_d(model):
+    rho, p = model.kolmogorov_smirnov_d()
+    NaN = float('NaN')
+    expected = np.array([[0.17, NaN, 1.0],
+                         [1.0,  NaN, 0.5]])
+    index = ~np.isnan(expected)
+    assert_allclose(rho.values[index], expected[index], atol=0.15)
+    
+    d, p = model.kolmogorov_smirnov_d(filter='omit nan')
+    expected = np.array([[0.17, 0.194, 1.0],
+                         [1.0,  1.0, 0.5]])
+    assert_allclose(d, expected, atol=0.15)
+    assert_allclose(d, model.correlation('KS', filter='omit nan')[0])
+    
+def test_model_index():
     from biorefineries.sugarcane import sugarcane_sys, flowsheet as f
     import biosteam as bst
     
@@ -34,6 +128,10 @@ def test_model():
             R301.efficiency = efficiency
     
     bst.default()
+    
+def test_model_sample(model):
+    # Just make sure they run
+    for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule)
     
 def test_model_exception_hook():
     import biosteam as bst
@@ -108,6 +206,3 @@ def test_model_exception_hook():
     
     # Note that the possibilities are infinite here...
     
-if __name__ == '__main__':
-    test_model()
-    test_model_exception_hook()
