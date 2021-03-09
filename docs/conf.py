@@ -60,6 +60,7 @@ nbsphinx_execute = 'never'
 # Specify the baseurls for the projects I want to link to
 intersphinx_mapping = {
     'thermosteam':  ('https://thermosteam.readthedocs.io/en/latest/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
 }
 
 # Allow exceptions to occur in notebooks
