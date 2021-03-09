@@ -347,7 +347,8 @@ class State:
                 from SALib.sample import saltelli as sampler
             else:
                 raise ValueError(f"invalid rule '{rule}'")
-            samples = sampler.sample(kwargs.get('problem') or self.problem(), N=N, **kwargs)
+            problem = kwargs.pop('problem') if 'problem' in kwargs else self.problem()
+            samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
     def _erase(self):
