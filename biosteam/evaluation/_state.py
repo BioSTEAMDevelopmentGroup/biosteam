@@ -278,16 +278,13 @@ class State:
             Number of samples.
         rule : str
             Sampling rule.
-        
-        Other Parameters
-        ----------------
-        kwargs : 
-            Key word arguments for sensitivity analysis sampling.
+        **kwargs :
+            Keyword arguments passed to sampler.
         
         Notes
         -----
-        For sampling from a joint distribution of all parameters, use the 
-        following ``rule`` flags:
+        For sampling from a joint distribution of all parameters, 
+        use the following ``rule`` flags:
         
         +-------+-------------------------------------------------+
         | key   | Description                                     |
@@ -312,11 +309,11 @@ class State:
         +-------+-------------------------------------------------+
         | ``M`` | Hammersley low-discrepancy sequence.            |
         +-------+-------------------------------------------------+
-            
+        
         If sampling for sensitivity analysis, use the following ``rule`` flags:
         
         +------------+--------------------------------------------+
-        | key        | Description                                     |
+        | key        | Description                                |
         +============+============================================+
         | ``MORRIS`` | Samples for Morris One-at-A-Time (OAT)     |
         +------------+--------------------------------------------+
@@ -324,16 +321,16 @@ class State:
         +------------+--------------------------------------------+
         | ``FAST``   | Korobov lattice.                           |
         +------------+--------------------------------------------+
-        | ``SOBOL``  | Classical (Pseudo-) Random samples.         |
+        | ``SOBOL``  | Classical (Pseudo-) Random samples.        |
         +------------+--------------------------------------------+
         
-        This method relies on the ``SALib`` library for sampling schemes 
+        This method relies on the ``chaospy`` library for sampling from 
+        distributions, and the``SALib`` library for sampling schemes 
         specific to sensitivity analysis.
         
         """
         if not self._update: self._load_parameters()
         parameters = self._parameters
-        problem = self.problem()
         rule = rule.upper()
         if rule in ('C', 'NC', 'K', 'R', 'RG', 'NG', 'L', 'S', 'H', 'M'):
             shape = cp.distributions
@@ -346,11 +343,11 @@ class State:
                 from SALib.sample import fast_sampler as sampler
             elif rule == 'RBD':
                 from SALib.sample import latin as sampler
-            elif rule == 'SOBOL':
+            elif rule == 'SOBOL' or rule == 'SALTELLI':
                 from SALib.sample import saltelli as sampler
             else:
                 raise ValueError(f"invalid rule '{rule}'")
-            samples = sampler.sample(problem, N=N, **kwargs)
+            samples = sampler.sample(kwargs.get('problem') or self.problem(), N=N, **kwargs)
         return samples
     
     def _erase(self):

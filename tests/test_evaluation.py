@@ -11,8 +11,7 @@ import pytest
 from numpy.testing import assert_allclose
 import numpy as np
     
-@pytest.fixture
-def model():
+def create_evaluation_model():
     import biosteam as bst
     from chaospy.distributions import Uniform
     sys = bst.System(None, ())
@@ -50,16 +49,30 @@ def model():
     model.load_samples(sample)
     model.evaluate()
     return model
+
+@pytest.fixture
+def model():
+    return create_evaluation_model()
     
 def test_pearson_r(model):
     with pytest.raises(ValueError):
-        rho, p = model.pearson_r()
+        rho, p = model.pearson_r(filter='none')
+    
+    rho, p = model.pearson_r(filter='propagate nan')
+    NaN = float('NaN')
+    expected = np.array([[1., NaN, 0.],
+                         [0,  NaN, 0.]])
+    index = ~np.isnan(expected)
+    assert_allclose(rho.values[index], expected[index], atol=0.15)
+    
+    with pytest.raises(ValueError):
+        rho, p = model.pearson_r(filter='raise nan error')
     
     rho, p = model.pearson_r(filter='omit nan')
     expected = np.array([[1., 1., 0.],
                          [0,  0., 0.]])
     assert_allclose(rho, expected, atol=0.15)
-    assert_allclose(rho, model.correlation('Pearson', filter='omit nan')[0], atol=0.01)
+    assert_allclose(rho, model.pearson_r(filter='omit nan')[0], atol=0.01)
 
 def test_spearman_r(model):
     rho, p = model.spearman_r()
@@ -73,7 +86,7 @@ def test_spearman_r(model):
     expected = np.array([[1., 1., 0.],
                          [0,  0., 0.]])
     assert_allclose(rho, expected, atol=0.15)
-    assert_allclose(rho, model.correlation('Spearman', filter='omit nan')[0], atol=0.01)
+    assert_allclose(rho, model.spearman_r(filter='omit nan')[0], atol=0.01)
     
 def test_kendall_tau(model):
     rho, p = model.kendall_tau()
@@ -87,7 +100,7 @@ def test_kendall_tau(model):
     expected = np.array([[1., 1., 0.],
                          [0,  0., 0.]])
     assert_allclose(tau, expected, atol=0.15)
-    assert_allclose(tau, model.correlation('Kendall', filter='omit nan')[0])
+    assert_allclose(tau, model.kendall_tau(filter='omit nan')[0])
     
 def test_kolmogorov_smirnov_d(model):
     rho, p = model.kolmogorov_smirnov_d()
@@ -101,7 +114,7 @@ def test_kolmogorov_smirnov_d(model):
     expected = np.array([[0.17, 0.194, 1.0],
                          [1.0,  1.0, 0.5]])
     assert_allclose(d, expected, atol=0.15)
-    assert_allclose(d, model.correlation('KS', filter='omit nan')[0])
+    assert_allclose(d, model.kolmogorov_smirnov_d(filter='omit nan')[0])
     
 def test_model_index():
     from biorefineries.sugarcane import sugarcane_sys, flowsheet as f
@@ -132,6 +145,8 @@ def test_model_index():
 def test_model_sample(model):
     # Just make sure they run
     for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule)
+    problem = model.problem()
+    for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule, problem=problem)
     
 def test_model_exception_hook():
     import biosteam as bst
