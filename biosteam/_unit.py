@@ -438,6 +438,21 @@ class Unit:
         getfield = getattr
         return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
 
+    def mass_balance_error(self):
+        """Return error in stoichiometric mass balance. If positive,
+        mass is being created. If negative, mass is being destroyed."""
+        return self.F_mass_out - self.F_mass_in
+
+    def atomic_balance_error(self):
+        """Return a dictionary of errors in stoichiometric atomic balances. 
+        If value is positive, the atom is being created. If negative, the atom 
+        is being destroyed."""
+        from chemicals import elements
+        mol = sum([i.mol for i in self.outs]) - sum([i.mol for i in self.ins])
+        formula_array = self.chemicals.formula_array
+        unbalanced_array = formula_array @ mol
+        return elements.array_to_atoms(unbalanced_array)
+
     def simulate(self):
         """
         Run rigourous simulation and determine all design requirements.
