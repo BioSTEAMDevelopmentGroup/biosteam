@@ -309,6 +309,9 @@ class System:
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
 
+    #: [bool] Whether to raise a RuntimeError when system doesn't converge
+    strict_convergence = True
+
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
                        ends=None, facility_recycle=None):
@@ -905,7 +908,8 @@ class System:
         else:
             not_converged = True
         if not_converged and self._iter >= self.maxiter:
-            raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+            if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
+            else: not_converged = False
         return mol_new, not_converged
             
     def _get_recycle_data(self):

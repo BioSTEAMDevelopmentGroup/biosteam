@@ -52,7 +52,9 @@ class MetricBar(NamedTuple): # pragma: no coverage
         cbar_ax.set_title(self.title)
         format_yticks = self.format_yticks
         if format_yticks:
-            cbar_ax.set_yticklabels([format_yticks(float(y.get_text())) for y in cbar_ax.get_yticklabels()])
+            ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
+            ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
+            cbar_ax.set_yticklabels([format_yticks(float(y)) for y in ylabels])
         return cbar
         
 # %% Helpful functions
