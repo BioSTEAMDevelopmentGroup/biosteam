@@ -58,40 +58,6 @@ following in your local biosteam directory:
 .. code-block:: bash
     
    $ pytest
-    =================================== test session starts ===================================
-    platform win32 -- Python 3.7.6, pytest-5.3.5, py-1.8.1, pluggy-0.13.1
-    rootdir: C:\Users\...\biosteam, inifile: pytest.ini
-    plugins: hypothesis-5.5.4, arraydiff-0.3, astropy-header-0.1.2, doctestplus-0.5.0, 
-    openfiles-0.4.0, remotedata-0.3.2
-    collected 30 items
-    
-    biosteam\_heat_utility.py ..                                                         [  6%]
-    biosteam\_power_utility.py .                                                         [ 10%]
-    biosteam\examples\ethanol_subsystem_example.py .                                     [ 13%]
-    biosteam\process_tools\unit_group.py .                                               [ 16%]
-    biosteam\units\_balance.py .                                                         [ 20%]
-    biosteam\units\_binary_distillation.py .                                             [ 23%]
-    biosteam\units\_duplicator.py .                                                      [ 26%]
-    biosteam\units\_fermentation.py .                                                    [ 30%]
-    biosteam\units\_flash.py .                                                           [ 33%]
-    biosteam\units\_hx.py ..                                                             [ 40%]
-    biosteam\units\_junction.py .                                                        [ 43%]
-    biosteam\units\_liquids_centrifuge.py .                                              [ 46%]
-    biosteam\units\_lle_unit.py .                                                        [ 50%]
-    biosteam\units\_mixer.py .                                                           [ 53%]
-    biosteam\units\_molecular_sieve.py .                                                 [ 56%]
-    biosteam\units\_process_specification.py .                                           [ 60%]
-    biosteam\units\_pump.py .                                                            [ 63%]
-    biosteam\units\_shortcut_column.py .                                                 [ 66%]
-    biosteam\units\_splitter.py .                                                        [ 70%]
-    biosteam\units\_tank.py .                                                            [ 73%]
-    biosteam\units\design_tools\heat_transfer.py .                                       [ 76%]
-    biosteam\units\design_tools\tank_design.py ..                                        [ 83%]
-    biosteam\utils\functors.py .                                                         [ 86%]
-    biosteam\utils\piping.py ..                                                          [ 93%]
-    tests\test_example_sugarcane_subsystem.py ..                                         [100%]
-    
-    =================================== 30 passed in 5.84s ====================================
     
 This runs all the `doctests <https://docs.python.org/3.6/library/doctest.html>`__
 in BioSTEAM, which covers most of the API, including unit operations. If any test 
@@ -112,21 +78,7 @@ accepted so long as all results of the unit operation is tested.
     towards rigorous testing is welcome!
 
 The `biorefineries <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`__ 
-package can also be tested by running the following in your local biorefineries repository:
-
-.. code-block:: bash
-
-    $ pytest
-    =================================== test session starts ===================================
-    platform win32 -- Python 3.7.6, pytest-5.3.5, py-1.8.1, pluggy-0.13.1
-    rootdir: C:\Users\...\Bioindustrial-Park\BioSTEAM 2.x.x
-    plugins: hypothesis-5.5.4, arraydiff-0.3, astropy-header-0.1.2, doctestplus-0.5.0, 
-    openfiles-0.4.0, remotedata-0.3.2
-    collected 2 items
-    
-    tests\test_biorefineries.py ....                                                     [100%]
-    
-    =================================== 2 passed in 4.62s =====================================
+package can also be tested by running pytest in your local biorefineries repository:
 
 If you are uploading a new biorefinery to the `biorefineries` package, make sure
 you include tests for the following results:
@@ -161,7 +113,22 @@ Concise and thorough documentation is required for any contribution. Make sure t
 * Mention and reference any equations or methods used and make sure to include the chapter and page number if it is a book or a long document.
 * Include a text file with the sphix autodoc in the "docs" folder.
 * Preview the docs before making a pull request (open your cmd/terminal in the "docs" folder, run "make html", and open "docs/_build/html/index.html").
-    
+
+Authorship
+----------
+
+Authorship must be acknowledged for anyone contributing code, significant resources, 
+expertise, and/or other impactful efforts. Additionally, authorship should be 
+included at the module-level, with a short description of the general contribution. 
+
+If any code or implementation was copied from a third party, it should be rightfully
+noted in the module-level documentation along with the corresponding copyright.
+
+Any third-party code copied to the BioSTEAM software must be strictly open-source 
+(not copy-left or open-access). Additionally, if the license is different, 
+the module should add the third-party license as an option (dual licensing is OK).
+
+
 Best practices
 --------------
 

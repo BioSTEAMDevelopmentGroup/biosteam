@@ -2,9 +2,9 @@
 The BioSTEAM project is under the University of Illinois/NCSA Open Source License
 ===================================================================================================
 
-Copyright (c) 2019-2021 Yoel Cortes-Peña and Jeremy Guest. All rights reserved.
+Copyright (c) 2019-2021 BioSTEAM Development Group. All rights reserved.
 
-Developed by: Yoel Cortes-Peña and BioSTEAM Development Group
+Developed by: BioSTEAM Development Group
               University of Illinois at Urbana-Champaign
               https://illinois.edu/
 
@@ -21,7 +21,7 @@ furnished to do so, subject to the following conditions:
   conditions and the following disclaimers in the documentation and/or other materials provided
   with the distribution.
 
-* Neither the names of Yoel Cortes-Peña, Jeremy Guest, the University of Illinois, nor the names
+* Neither the names of the BioSTEAM Development Group, the University of Illinois, nor the names
   of its contributors may be used to endorse or promote products derived from this Software
   without specific prior written permission.
 
