@@ -139,7 +139,7 @@ technologies and chart development pathways for various bioproducts:
    :caption: Developer's guide
    
    AUTHORS
-   LICENCE
+   LICENSE
    CONTRIBUTING
    CODE_OF_CONDUCT
 
