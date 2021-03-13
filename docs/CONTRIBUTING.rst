@@ -116,7 +116,7 @@ Concise and thorough documentation is required for any contribution. Make sure t
 Authorship
 ----------
 
-Authorship must be acknowledged for anyone contributing code, significant resources, 
+Authorship must be acknowledged for anyone contributing code, significant  
 expertise, and/or other impactful efforts. Additionally, authorship should be 
 included at the module-level, with a short description of the general contribution. 
 
