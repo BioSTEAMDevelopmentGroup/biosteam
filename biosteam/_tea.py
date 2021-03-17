@@ -36,38 +36,6 @@ cashflow_columns = ('Depreciable capital [MM$]',
                     'Net present value (NPV) [MM$]',
                     'Cumulative NPV [MM$]')
 
-
-# %% Depreciation data
-
-_MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
-                              .1152, .1152, .0576]),
-          
-          'MACRS7':  np.array([.1429, .2449, .1749,
-                               .1249, .0893, .0892,
-                               .0893, .0446]),
-          
-          'MACRS10': np.array([.1000, .1800, .1440,
-                               .1152, .0922, .0737,
-                               .0655, .0655, .0656,
-                               .0655, .0328]),
-
-          'MACRS15': np.array([.0500, .0950, .0855,
-                               .0770, .0693, .0623,
-                               .0590, .0590, .0591,
-                               .0590, .0591, .0590,
-                               .0591, .0590, .0591,
-                               .0295]),
-
-          'MACRS20': np.array([0.03750, 0.07219, 0.06677,
-                               0.06177, 0.05713, 0.05285,
-                               0.04888, 0.04522, 0.4462,
-                               0.04461, 0.04462, 0.04461,
-                               0.04462, 0.04461, 0.04462,
-                               0.04461, 0.04462, 0.04461,
-                               0.04462, 0.04461, 0.02231])}
-
-# TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
-
 # %% Utilities
 
 @njitable(cache=True)
@@ -292,6 +260,55 @@ class TEA:
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
     
+    
+    # TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
+    #: dict[str, 1d-array] Available depreciation schedules.
+    depreciation_schedules = {
+        'MACRS5': np.array([.2000, .3200, .1920,
+                            .1152, .1152, .0576]),
+              
+        'MACRS7':  np.array([.1429, .2449, .1749,
+                             .1249, .0893, .0892,
+                             .0893, .0446]),
+        
+        'MACRS10': np.array([.1000, .1800, .1440,
+                             .1152, .0922, .0737,
+                             .0655, .0655, .0656,
+                             .0655, .0328]),
+      
+        'MACRS15': np.array([.0500, .0950, .0855,
+                             .0770, .0693, .0623,
+                             .0590, .0590, .0591,
+                             .0590, .0591, .0590,
+                             .0591, .0590, .0591,
+                             .0295]),
+      
+        'MACRS20': np.array([0.03750, 0.07219, 0.06677,
+                             0.06177, 0.05713, 0.05285,
+                             0.04888, 0.04522, 0.4462,
+                             0.04461, 0.04462, 0.04461,
+                             0.04462, 0.04461, 0.04462,
+                             0.04461, 0.04462, 0.04461,
+                             0.04462, 0.04461, 0.02231])
+    }
+    
+    #: dict[str, float] Investment site factors used to multiply the total permanent 
+    #: investment (TPI), also known as total fixed capital (FCI), to 
+    #: account for locality cost differences based on labor availability,
+    #: workforce efficiency, local rules, etc.
+    investment_site_factors = {
+        'U.S. Gulf Coast': 1.0,
+        'U.S. Southwest': 0.95,
+        'U.S. Northwest': 1.10,
+        'U.S. Midwest': 1.15,
+        'U.S. West Coast': 1.25,
+        'Western Europe': 1.2,
+        'Mexico': 0.95,
+        'Japan': 1.15,
+        'Pacific Rim': 1.0,
+        'India': 0.85,
+    }
+
     def __init_subclass__(self, isabstract=False):
         if isabstract: return
         for method in ('_DPI', '_TDC', '_FCI', '_FOC'):
@@ -367,7 +384,7 @@ class TEA:
         
         #: set[Stream] All feed streams.
         self.feeds = system.feeds
-        
+            
         system._TEA = self
 
     def _DPI(self, installed_equipment_cost):
@@ -403,7 +420,7 @@ class TEA:
     @depreciation.setter
     def depreciation(self, depreciation):
         try:
-            self._depreciation_array = _MACRS[depreciation]
+            self._depreciation_array = self.depreciation_schedules[depreciation]
         except KeyError:
             raise ValueError(f"depreciation must be either 'MACRS5', 'MACRS7', 'MACRS10' or 'MACRS15 (not {repr(depreciation)})")
         self._depreciation = depreciation
@@ -653,9 +670,12 @@ class TEA:
         years = self._years
         FOC = self._FOC(FCI)
         VOC = self.VOC
-        D, C_FC, C_WC, Loan, LP, C, S = np.zeros((7, start+years))
+        D, C_FC, C_WC, Loan, LP, C, S = np.zeros((7, start + years))
         depreciation_array = self._depreciation_array
-        D[start:start + depreciation_array.size] = TDC * depreciation_array
+        N_depreciation_years = depreciation_array.size
+        if N_depreciation_years > years:
+            raise RuntimeError('depreciation schedule is longer than plant lifetime')
+        D[start:start + N_depreciation_years] = TDC * depreciation_array
         WC = self.WC_over_FCI * FCI
         return taxable_and_nontaxable_cashflows(self.units,
                                                 D, C, S, C_FC, C_WC, Loan, LP,

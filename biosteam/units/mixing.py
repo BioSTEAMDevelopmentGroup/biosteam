@@ -124,9 +124,6 @@ class SteamMixer(Unit):
         Mixed product.
     P : float
         Outlet pressure.
-    utility: str, optional
-        ID of steam utility to set conditions of inlet stream. 
-        Defaults to low_pressure_steam. 
     
     """
     _N_outs = 1
@@ -134,10 +131,18 @@ class SteamMixer(Unit):
     _N_heat_utilities = 1
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, utility='low_pressure_steam'):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
-        self.utility = utility
+    
+    @property
+    def steam(self):
+        return self.ins[1]
+    
+    def reset_cache(self): 
+        for utility in bst.HeatUtility.heating_agents:
+            if utility.P > self.P: break
+        self.steam.copy_like(utility)
     
     def pressure_objective_function(self, steam_mol):
         feed, steam = self.ins
@@ -149,9 +154,7 @@ class SteamMixer(Unit):
         return self.P - P_new
     
     def _setup(self):
-        steam = self.ins[1]
-        if steam.isempty():
-            steam.copy_like(bst.HeatUtility.get_heating_agent(self.utility))
+        if self.steam.isempty(): self.reset_cache()
         self.outs[0].P = self.P
     
     def _run(self):
