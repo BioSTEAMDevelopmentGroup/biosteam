@@ -212,7 +212,7 @@ class Model(State):
                  '_getters',        # list[function] Cached metric getters.
                  '_failed_metrics', # list[np.nan] Cached NaN values for failed evaluations.
                  '_metric_indices', # list[Hashable] Cached metric indices.
-                 '_exception_hook', # [callable(model, exception, sample)] Should return either None or metric value given an exception and the sample.
+                 '_exception_hook', # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
     )
     def __init__(self, system, metrics=None, specification=None, skip=False, 
                  parameters=None, exception_hook='warn'):

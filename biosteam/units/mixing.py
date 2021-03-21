@@ -162,7 +162,9 @@ class SteamMixer(Unit):
         steam_mol = steam.F_mol
         steam_mol = flx.aitken_secant(self.pressure_objective_function,
                                       steam_mol, steam_mol+0.1, 
-                                      1e-4, 1e-4, checkroot=False)
+                                      1e-2, 1e-4, 
+                                      maxiter=500,
+                                      checkroot=False)
         
     def _design(self): 
         steam = self.ins[1]

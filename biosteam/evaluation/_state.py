@@ -175,6 +175,14 @@ class State:
         if not self._update: self._load_parameters()
         return tuple(self._parameters)
     
+    def get_joint_distribution(self):
+        """
+        Return a chaospy joint distribution object constituting of all
+        parameter objects.
+        
+        """
+        return cp.distributions.J(*[i.distribution for i in self.get_parameters()])
+    
     def get_distribution_summary(self):
         """Return dictionary of shape name-DataFrame pairs."""
         parameters = self.get_parameters()
@@ -283,6 +291,10 @@ class State:
         
         Notes
         -----
+        This method relies on the ``chaospy`` library for sampling from 
+        distributions, and the``SALib`` library for sampling schemes 
+        specific to sensitivity analysis.
+        
         For sampling from a joint distribution of all parameters, 
         use the following ``rule`` flags:
         
@@ -324,18 +336,14 @@ class State:
         | ``SOBOL``  | Classical (Pseudo-) Random samples.        |
         +------------+--------------------------------------------+
         
-        This method relies on the ``chaospy`` library for sampling from 
-        distributions, and the``SALib`` library for sampling schemes 
-        specific to sensitivity analysis.
+        Note that only distribution bounds (i.e. lower and upper bounds) are 
+        taken into account for sensitivity analysis, the type of distribution
+        (e.g., triangle vs. uniform) do not affect the sampling. 
         
         """
-        if not self._update: self._load_parameters()
-        parameters = self._parameters
         rule = rule.upper()
         if rule in ('C', 'NC', 'K', 'R', 'RG', 'NG', 'L', 'S', 'H', 'M'):
-            shape = cp.distributions
-            distributions = [i.distribution for i in parameters]
-            samples = shape.J(*distributions).sample(N, rule).transpose()
+            samples = self.get_joint_distribution().sample(N, rule).transpose()
         else:
             if rule == 'MORRIS':
                 from SALib.sample import morris as sampler
