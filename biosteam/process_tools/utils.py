@@ -6,6 +6,8 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 import biosteam as bst
+import numpy as np
+import pandas as pd
 from .._heat_utility import HeatUtility
 
 __all__ = (
@@ -34,6 +36,7 @@ __all__ = (
     'set_construction_material',
     'set_construction_material_to_stainless_steel',
     'set_construction_material_to_carbon_steel',
+    'heat_exchanger_operation',
     'default_utilities',
     'default',
 )
@@ -384,6 +387,32 @@ def set_construction_material_to_carbon_steel(units):
     set_construction_material(units, 'Carbon steel', 'Carbon steel', 
                               'Carbon steel', 'Carbon steel/carbon steel', 
                               'Cast iron')
+
+def heat_exchanger_operation(units):
+    """
+    Return a pandas DataFrame object of the capacity flow rate, 
+    inlet temperature, and outlet temperature of all heat exchangers
+    associated to the given units.
+    
+    """
+    index = []
+    T_in = []
+    T_out = []
+    C = []
+    for u in units:
+        for i, hu in enumerate(u.heat_utilities):
+            hx = hu.heat_exchanger
+            if hu.heat_exchanger:
+                feed = hx.ins[0]
+                index.append((u.line, u.ID, str(i)))
+                T_in.append(feed.T)
+                T_out.append(hx.outs[0].T)
+                C.append(feed.C)
+    return pd.DataFrame(
+        data=np.array([C, T_in, T_out]).transpose(),
+        index=pd.MultiIndex.from_tuples(index, names=['Unit', 'ID', 'index']),
+        columns=['C [kJ/hr]', 'T_in [K]', 'T_out [K]'],
+    )
 
 def get_tea_results(tea, product=None, feedstock=None):
     """Return a dictionary with general TEA results."""
