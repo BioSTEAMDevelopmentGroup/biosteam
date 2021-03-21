@@ -170,7 +170,6 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None)
                     T_changes_tuples[stream_index][1]<= T_end) or
                     (T_changes_tuples[stream_index][1]>= T_start and
                      T_changes_tuples[stream_index][0]<= T_end)):
-                stream_indices_for_T_intervals[(T_start, T_end)].append(stream_index)
                 multiplier = 1
                 if is_cold_stream_index(stream_index):
                     multiplier = -1
@@ -254,6 +253,7 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
 
 def synthesize_network(hus, ID_original, T_min_app=5.):  
     bst.main_flowsheet.set_flowsheet('%s_HXN'%ID_original)
+    for registry in bst.main_flowsheet.registries: registry.clear()
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
         hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged =\
@@ -276,14 +276,12 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     HXs_hot_side = []
     HXs_cold_side = []
     
-                            # ------------- Cold side design ------------- # 
-    unavailables = []
+    # ------------- Cold side design ------------- # 
     unavailables = set([i for i in hot_indices if T_out_arr[i] >= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_in_arr[i] >= pinch_T_arr[i]])
     for hot in hot_indices:
         stream_quenched = False
         original_hot_stream = streams[hot]
-        # T_transient_cold_side[hot]  = min(T_transient_cold_side[hot], T_transient_hot_side[hot] )
         potential_matches = []
         for cold in cold_indices:
             if (C_flow_vector[hot]>= C_flow_vector[cold] and
@@ -292,10 +290,10 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     (cold not in matches_cs[hot]) and (cold in candidate_cold_streams)): 
                 potential_matches.append(cold)
         
-        potential_matches = sorted(potential_matches, key = lambda pot_cold:
-                      (min(C_flow_vector[hot], C_flow_vector[pot_cold])
-                       * (T_transient_cold_side[hot] 
-                          - T_transient_cold_side[cold] - T_min_app)),
+        potential_matches = sorted(potential_matches, key = lambda x:
+                      (min(C_flow_vector[hot], C_flow_vector[x])
+                        * (T_transient_cold_side[hot] 
+                          - T_transient_cold_side[x] - T_min_app)),
                       reverse = True)
         for cold in potential_matches:
             original_cold_stream = streams[cold]
@@ -332,30 +330,30 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             if stream_quenched:
                 break
                 
-                            # ------------- Hot side design ------------- #                            
+    # ------------- Hot side design ------------- #                            
     unavailables = set([i for i in hot_indices if T_in_arr[i] <= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_out_arr[i] <= pinch_T_arr[i]])
     for cold in cold_indices:
         stream_quenched = False
         original_cold_stream = streams[cold]
         T_transient_hot_side[cold] = min(T_transient_hot_side[cold], T_transient_cold_side[cold])
+        potential_matches = []
         for hot in candidate_hot_streams:
-            if ((cold in matches_cs.keys() and hot in matches_cs[cold])
-                or (cold in matches_hs.keys() and hot in matches_hs[cold])):
-                pass
-            potential_matches = []
+            if ((cold in matches_cs and hot in matches_cs[cold])
+                or (cold in matches_hs and hot in matches_hs[cold])):
+                continue
             if (C_flow_vector[cold]>= C_flow_vector[hot] and
                     T_transient_hot_side[hot] > T_transient_hot_side[cold] + T_min_app and
                     (hot not in unavailables) and (cold not in unavailables) and
                     (hot not in matches_hs[cold]) and (hot in candidate_hot_streams)):
                 potential_matches.append(hot)
                 
-        potential_matches = sorted(potential_matches, key = lambda pot_hot:
-                                   (min(C_flow_vector[cold], C_flow_vector[pot_hot])
-                                       * ( T_transient_hot_side[pot_hot] 
+        potential_matches = sorted(potential_matches, key = lambda x:
+                                    (min(C_flow_vector[cold], C_flow_vector[x])
+                                        * ( T_transient_hot_side[x] 
                                           - T_transient_hot_side[cold] - T_min_app)),
-                                   reverse = True)
-            
+                                    reverse = True)
+        stream_quenched = False
         for hot in potential_matches:
             original_hot_stream = streams[hot]
             try:
@@ -396,8 +394,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
         original_cold_stream = streams[cold]
         if Q_cold_side[cold][0]=='heat' and Q_cold_side[cold][1]>0:
             for hot in hot_indices:
-                if ((cold in matches_cs.keys() and hot in matches_cs[cold])
-                    or (cold in matches_hs.keys() and hot in matches_hs[cold])):
+                if ((cold in matches_cs and hot in matches_cs[cold])
+                    or (cold in matches_hs and hot in matches_hs[cold])):
                     break
                 original_hot_stream = streams[hot]
                 if (Q_cold_side[hot][0]=='cool' and Q_cold_side[hot][1]>0 and
@@ -429,13 +427,14 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     except:
                         pass     
                     
-    # Offset cooling requirement on hot side    
+    # Offset cooling requirement on hot side  
     for hot in hot_indices:
         original_hot_stream = streams[hot]
+        stream_quenched = False
         if Q_hot_side[hot][0]=='cool' and Q_hot_side[hot][1]>0:
             for cold in cold_indices:
-                if ((hot in matches_cs.keys() and cold in matches_cs[hot])
-                    or (hot in matches_hs.keys() and cold in matches_hs[hot])):
+                if ((hot in matches_cs and cold in matches_cs[hot])
+                    or (hot in matches_hs and cold in matches_hs[hot])):
                     break
                 original_cold_stream = streams[cold]
                 if (Q_hot_side[cold][0]=='heat' and Q_hot_side[cold][1]>0 and
@@ -466,7 +465,9 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                         stream_quenched = T_transient_hot_side[cold] >= T_out_arr[cold]                    
                         matches_hs[cold].append(hot)                    
                     except:
-                        pass     
+                        pass
+                    if stream_quenched:
+                        break
                     
     # Add final utility HXs
     new_HX_utils = []    
