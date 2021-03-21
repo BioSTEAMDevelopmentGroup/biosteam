@@ -212,7 +212,6 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None)
             else:
                 pinch_T_arr.append(pinch_cold_stream_T)
     pinch_T_arr = np.array(pinch_T_arr)
-    
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            T_hot_side_arr, T_cold_side_arr, hus_heating,\
            hus_cooling, hxs_heating, hxs_cooling, hxs, hot_indices,\
@@ -223,10 +222,8 @@ def load_duties(streams, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q
     for index in indices:
         stream = streams[index].copy()
         H_in = stream.H
-        stream.T = pinch_T_arr[index]
         stream.vle(T = pinch_T_arr[index], P = stream.P)
         H_pinch = stream.H
-        stream.T = T_out_arr[index]
         stream.vle(T = T_out_arr[index], P = stream.P)
         H_out = stream.H
         if not is_cold(index):
@@ -275,7 +272,6 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     candidate_cold_streams = list(cold_indices)
     HXs_hot_side = []
     HXs_cold_side = []
-    
     # ------------- Cold side design ------------- # 
     unavailables = set([i for i in hot_indices if T_out_arr[i] >= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_in_arr[i] >= pinch_T_arr[i]])
@@ -289,7 +285,6 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     (hot not in unavailables) and (cold not in unavailables) and
                     (cold not in matches_cs[hot]) and (cold in candidate_cold_streams)): 
                 potential_matches.append(cold)
-        
         potential_matches = sorted(potential_matches, key = lambda x:
                       (min(C_flow_vector[hot], C_flow_vector[x])
                         * (T_transient_cold_side[hot] 
