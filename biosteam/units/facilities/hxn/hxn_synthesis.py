@@ -117,7 +117,7 @@ class Working_Life_Cycle:
     def get_sorted_life_cycle(self):
         self.sort_stages()
         return self.life_cycle
-
+    
 
 def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None):
     hx_utils = [hu for hu in hus\
@@ -336,7 +336,7 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
         for hot in candidate_hot_streams:
             if ((cold in matches_cs and hot in matches_cs[cold])
                 or (cold in matches_hs and hot in matches_hs[cold])):
-                continue
+                break
             if (C_flow_vector[cold]>= C_flow_vector[hot] and
                     T_transient_hot_side[hot] > T_transient_hot_side[cold] + T_min_app and
                     (hot not in unavailables) and (cold not in unavailables) and
@@ -463,7 +463,25 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                         pass
                     if stream_quenched:
                         break
-                    
+                 
+    # def get_T_max_from_life_cycle(cold):
+    #     T_max_cold = 0.
+    #     for u in HXN_F.unit:
+    #         for s in u.outs:
+    #             if 's_%s__'%(cold) in s.ID:
+    #                 if s.T>T_max_cold:
+    #                     T_max_cold = s.T
+    #     return T_max_cold
+    
+    # def get_T_min_from_life_cycle(hot):
+    #     T_min_hot = 0.
+    #     for u in HXN_F.unit:
+    #         for s in u.outs:
+    #             if 's_%s__'%(hot) in s.ID:
+    #                 if s.T<T_min_hot:
+    #                     T_min_hot = s.T
+    #     return T_min_hot
+             
     # Add final utility HXs
     new_HX_utils = []    
     for hot in hot_indices:
@@ -475,6 +493,7 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             ID = 'Util_%s_cs'%(hot)
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             outsID = '%s__s_%s'%(ID,hot)
+            # T_in = get_T_min_from_life_cycles(hot)
             new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
                                               T = T_out_arr[hot], rigorous = True,
                                               thermo = hot_stream.thermo)
@@ -502,6 +521,7 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
             ID = 'Util_%s_hs'%(cold)
             cold_stream.ID = 's_%s__%s'%(cold,ID)
             outsID = '%s__s_%s'%(ID,cold)
+            # T_in = get_T_max_from_life_cycles(cold)
             new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
                                               T = T_out_arr[cold], rigorous = True,
                                               thermo = cold_stream.thermo)
