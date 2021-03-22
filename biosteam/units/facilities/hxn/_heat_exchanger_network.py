@@ -12,6 +12,7 @@ Created on Sat Aug 22 21:58:19 2020
 from .. import Facility
 import biosteam as bst
 from .hxn_synthesis import synthesize_network, StreamLifeCycle
+from warnings import warn
 
 __all__ = ('HeatExchangerNetwork',)
 
@@ -127,8 +128,7 @@ class HeatExchangerNetwork(Facility):
         matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, actual_heat_util_load,\
         actual_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
         T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-        hot_indices, cold_indices, original_heat_util_load, original_cool_util_load,\
-        Q_percent_error =\
+        hot_indices, cold_indices, original_heat_util_load, original_cool_util_load = \
         synthesize_network(hx_utils, ID_original=sysname, T_min_app=self.T_min_app)
         bst.main_flowsheet.set_flowsheet(original_flowsheet)
         original_purchase_costs= [hx.purchase_cost for hx in hxs]
@@ -188,7 +188,13 @@ class HeatExchangerNetwork(Facility):
         # to change sign on duty without switching heat/cool (i.e. negative costs):
         for hu in hu_sums1: hu.reverse()
         hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
-
+        
+        Q_bal = (2.*sum([abs(i.Q) for i in new_HXs]) + sum([abs(i.Q) for i in new_HX_utils])) / sum([abs(i.duty) for i in hx_utils_rearranged])
+        Q_percent_error = 100*(Q_bal - 1)
+        if abs(Q_percent_error)>2:
+            msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
+            warn(msg, UserWarning, stacklevel=2)
+        
         self._installed_cost = (sum(new_installed_costs_HXp) + sum(new_installed_costs_HXu)) \
             - (sum(original_installed_costs))
         self.heat_utilities = hus_final
