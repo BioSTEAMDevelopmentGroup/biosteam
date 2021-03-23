@@ -129,23 +129,26 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
     hxs_cooling = [hu.heat_exchanger for hu in hx_utils if hu.duty < 0]
     streams_heating = [hx.ins[0].copy() for hx in hxs_heating]
     streams_cooling = [hx.ins[0].copy() for hx in hxs_cooling]
-    init_heat_util, init_cool_util, init_Q = 0, 0, 0
     hx_utils_rearranged = hus_heating + hus_cooling
     hxs = hxs_heating + hxs_cooling
+    streams_cooled = [i.outs[0].copy() for i in hxs_cooling]
+    streams_heated = [i.outs[0].copy() for i in hxs_heating]
+    streams_quenched = streams_heated + streams_cooled
+    for i in streams_quenched: i.vle(H=i.H, P=i.P)
+    H_out_arr = [i.H for i in streams_quenched]
     streams = streams_heating + streams_cooling
     for i in range(len(streams)):
         stream = streams[i]
         stream.vle(H = stream.H, P = stream.P)
         ID = 'Util_%s'%i
         stream.ID = 's_%s__%s'%(i,ID)
-        
     len_hxs_heating = len(hxs_heating)
     is_cold_stream_index = lambda x: x<len_hxs_heating
     T_in_arr = np.array([stream.T for stream in streams])
-    T_out_arr = np.array([hx.outs[0].T for hx in hxs])
+    T_out_arr = np.array([i.T for i in streams_quenched])
     T_hot_side_arr = np.array([stream.T for stream in streams_heating]\
-                               + [hx.outs[0].T for hx in hxs_cooling])
-    T_cold_side_arr = np.array([hx.outs[0].T for hx in hxs_heating]\
+                               + [i.T for i in streams_cooled])
+    T_cold_side_arr = np.array([i.T for i in streams_heated]\
                                 + [stream.T for stream in streams_cooling])
     adj_T_in_arr = T_in_arr.copy()
     adj_T_in_arr[:len(hxs_heating)] -= T_min_app
@@ -215,7 +218,7 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            T_hot_side_arr, T_cold_side_arr, hus_heating,\
            hus_cooling, hxs_heating, hxs_cooling, hxs, hot_indices,\
-           cold_indices, streams, hx_utils_rearranged
+           cold_indices, streams, hx_utils_rearranged, H_out_arr
             
         
 def load_duties(streams, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side):
@@ -251,8 +254,8 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
 def synthesize_network(hus, T_min_app=5.):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
-        hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged =\
-        temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
+        hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged, \
+        H_out_arr = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
     duties = np.array([abs(hx.Q) for hx in hxs])
     C_flow_vector = duties/np.abs(T_in_arr - T_out_arr)
     Q_hot_side = {}
@@ -263,7 +266,6 @@ def synthesize_network(hus, T_min_app=5.):
     stream_HXs_dict = {i:[] for i in indices}
     is_cold = lambda x: x in cold_indices
     load_duties(streams, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
-    
     matches_hs = {i: [] for i in cold_indices}
     matches_cs = {i: [] for i in hot_indices}
     candidate_hot_streams = list(hot_indices)
@@ -323,39 +325,39 @@ def synthesize_network(hus, T_min_app=5.):
             reverse = True
         )
         for cold in potential_matches:
+            T_cold_in = T_transient_cold_side[cold]
+            T_hot_in = T_transient_cold_side[hot]
             original_cold_stream = streams[cold]
-            try:
-                Q_hstr = Q_cold_side[hot][1]
-                Q_cstr = Q_cold_side[cold][1]
-                Q_res = Q_cstr - Q_hstr
-                hot_stream = original_hot_stream.copy()
-                hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
-                cold_stream = original_cold_stream.copy()
-                cold_stream.vle(T = T_transient_cold_side[cold], P = cold_stream.P)
-                if abs(T_transient_cold_side[cold] - pinch_T_arr[cold])<= 0.01:
-                    continue
-                ID = 'HX_%s_%s_cs'%(hot, cold)
-                hot_stream.ID = 's_%s__%s'%(hot,ID)
-                cold_stream.ID = 's_%s__%s'%(cold,ID)
-                outsIDs = ('%s__s_%s'%(ID,hot), '%s__s_%s'%(ID,cold))
-                new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
-                         outs = outsIDs, T_lim0 = T_out_arr[hot],
-                         T_lim1 = pinch_T_arr[cold], dT = T_min_app,
-                         thermo = hot_stream.thermo)
-                new_HX.simulate()
-                for i in new_HX.ins + new_HX.outs: 
-                    if i.isempty(): breakpoint()
-                HXs_cold_side.append(new_HX)
-                stream_HXs_dict[hot].append(new_HX)
-                stream_HXs_dict[cold].append(new_HX)
-                Q_cold_side[hot][1] -= new_HX.Q
-                Q_cold_side[cold][1] -= new_HX.Q
-                T_transient_cold_side[hot] = new_HX.outs[0].T
-                T_transient_cold_side[cold] = new_HX.outs[1].T
-                stream_quenched = T_transient_cold_side[hot] <= T_out_arr[hot]
-                matches_cs[hot].append(cold)
-            except:
-                pass
+            Q_hstr = Q_cold_side[hot][1]
+            Q_cstr = Q_cold_side[cold][1]
+            Q_res = Q_cstr - Q_hstr
+            hot_stream = original_hot_stream.copy()
+            hot_stream.vle(T = T_hot_in, P = hot_stream.P)
+            cold_stream = original_cold_stream.copy()
+            cold_stream.vle(T = T_cold_in, P = cold_stream.P)
+            if abs(T_transient_cold_side[cold] - pinch_T_arr[cold])<= 0.01:
+                continue
+            ID = 'HX_%s_%s_cs'%(hot, cold)
+            hot_stream.ID = 's_%s__%s'%(hot,ID)
+            cold_stream.ID = 's_%s__%s'%(cold,ID)
+            outsIDs = ('%s__s_%s'%(ID,hot), '%s__s_%s'%(ID,cold))
+            H_lim = H_out_arr[hot]
+            new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
+                     outs = outsIDs, H_lim0 = H_lim, 
+                     T_lim1 = pinch_T_arr[cold], dT = T_min_app,
+                     thermo = hot_stream.thermo)
+            new_HX.simulate()
+            HXs_cold_side.append(new_HX)
+            stream_HXs_dict[hot].append(new_HX)
+            stream_HXs_dict[cold].append(new_HX)
+            Q_cold_side[hot][1] -= new_HX.Q
+            Q_cold_side[cold][1] -= new_HX.Q
+            T_transient_cold_side[hot] = new_HX.outs[0].T
+            T_transient_cold_side[cold] = new_HX.outs[1].T
+            H_out = new_HX.outs[0].H
+            assert H_out - new_HX.ins[0].H <= 0.
+            stream_quenched = H_out < H_lim or np.allclose(H_out, H_lim)
+            matches_cs[hot].append(cold)
             if stream_quenched:
                 break
                 
@@ -384,39 +386,39 @@ def synthesize_network(hus, T_min_app=5.):
                                     reverse = True)
         stream_quenched = False
         for hot in potential_matches:
+            T_cold_in = T_transient_hot_side[cold]
+            T_hot_in = T_transient_hot_side[hot]
             original_hot_stream = streams[hot]
-            try:
-                Q_hstr = Q_hot_side[hot][1]
-                Q_cstr = Q_hot_side[cold][1]
-                Q_res = Q_cstr - Q_hstr
-                cold_stream = original_cold_stream.copy()
-                cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)
-                hot_stream = original_hot_stream.copy()
-                hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)
-                if abs(T_transient_hot_side[hot] - pinch_T_arr[hot])<= 0.01:
-                    continue
-                ID = 'HX_%s_%s_hs'%(cold, hot)
-                cold_stream.ID = 's_%s__%s'%(cold,ID)
-                hot_stream.ID = 's_%s__%s'%(hot,ID)
-                outsIDs = ('%s__s_%s'%(ID,cold), '%s__s_%s'%(ID,hot))
-                new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
-                         outs = outsIDs, T_lim0 = T_out_arr[cold],
-                         T_lim1 = pinch_T_arr[hot], dT = T_min_app,
-                         thermo = hot_stream.thermo)
-                new_HX.simulate()
-                for i in new_HX.ins + new_HX.outs: 
-                    if i.isempty(): breakpoint()
-                HXs_hot_side.append(new_HX)
-                stream_HXs_dict[hot].append(new_HX)
-                stream_HXs_dict[cold].append(new_HX)
-                Q_hot_side[hot][1] -= new_HX.Q
-                Q_hot_side[cold][1] -= new_HX.Q
-                T_transient_hot_side[cold] = new_HX.outs[0].T
-                T_transient_hot_side[hot] = new_HX.outs[1].T
-                stream_quenched = T_transient_hot_side[cold] >= T_out_arr[cold]
-                matches_hs[cold].append(hot)
-            except:
-                pass
+            Q_hstr = Q_hot_side[hot][1]
+            Q_cstr = Q_hot_side[cold][1]
+            Q_res = Q_cstr - Q_hstr
+            cold_stream = original_cold_stream.copy()
+            cold_stream.vle(T = T_cold_in, P = cold_stream.P)
+            hot_stream = original_hot_stream.copy()
+            hot_stream.vle(T = T_hot_in, P = hot_stream.P)
+            if abs(T_hot_in - pinch_T_arr[hot])<= 0.01:
+                continue
+            ID = 'HX_%s_%s_hs'%(cold, hot)
+            cold_stream.ID = 's_%s__%s'%(cold,ID)
+            hot_stream.ID = 's_%s__%s'%(hot,ID)
+            outsIDs = ('%s__s_%s'%(ID,cold), '%s__s_%s'%(ID,hot))
+            H_lim = H_out_arr[cold]
+            new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
+                     outs = outsIDs, H_lim0 = H_lim,
+                     T_lim1 = pinch_T_arr[hot], dT = T_min_app,
+                     thermo = hot_stream.thermo)
+            new_HX.simulate()
+            HXs_hot_side.append(new_HX)
+            stream_HXs_dict[hot].append(new_HX)
+            stream_HXs_dict[cold].append(new_HX)
+            Q_hot_side[hot][1] -= new_HX.Q
+            Q_hot_side[cold][1] -= new_HX.Q
+            T_transient_hot_side[cold] = new_HX.outs[0].T
+            T_transient_hot_side[hot] = new_HX.outs[1].T
+            H_out = new_HX.outs[0].H
+            assert H_out - new_HX.ins[0].H >= 0.
+            stream_quenched = H_out > H_lim or np.allclose(H_out, H_lim)
+            matches_hs[cold].append(hot)
             if stream_quenched:
                 break
                 
@@ -425,40 +427,37 @@ def synthesize_network(hus, T_min_app=5.):
         original_cold_stream = streams[cold]
         if Q_cold_side[cold][0]=='heat' and Q_cold_side[cold][1]>0:
             for hot in hot_indices:
+                T_cold_in = T_transient_cold_side[cold]
+                T_hot_in = T_transient_cold_side[hot]
                 if ((cold in matches_cs and hot in matches_cs[cold])
                     or (cold in matches_hs and hot in matches_hs[cold])):
                     break
                 original_hot_stream = streams[hot]
                 if (Q_cold_side[hot][0]=='cool' and Q_cold_side[hot][1]>0 and
-                        T_transient_cold_side[hot] - T_transient_cold_side[cold] >= T_min_app):
-                    try:
-                        hot_stream = original_hot_stream.copy()
-                        hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
-                        cold_stream = original_cold_stream.copy()
-                        cold_stream.vle(T = T_transient_cold_side[cold], P = cold_stream.P)
-                        if abs(T_transient_cold_side[cold] - pinch_T_arr[cold])<= 0.01:
-                            continue
-                        ID = 'HX_%s_%s_cs'%(hot, cold)
-                        hot_stream.ID = 's_%s__%s'%(hot,ID)
-                        cold_stream.ID = 's_%s__%s'%(cold,ID)
-                        outsIDs = ('%s__s_%s'%(ID,hot), '%s__s_%s'%(ID,cold))
-                        new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
-                                 outs = outsIDs, T_lim0 = T_out_arr[hot],
-                                 T_lim1 = pinch_T_arr[cold], dT = T_min_app,
-                                 thermo = hot_stream.thermo)
-                        new_HX.simulate()
-                        for i in new_HX.ins + new_HX.outs: 
-                            if i.isempty(): breakpoint()
-                        HXs_cold_side.append(new_HX)
-                        stream_HXs_dict[hot].append(new_HX)
-                        stream_HXs_dict[cold].append(new_HX)                    
-                        Q_cold_side[hot][1] -= new_HX.Q
-                        Q_cold_side[cold][1] -= new_HX.Q                        
-                        T_transient_cold_side[hot] = new_HX.outs[0].T
-                        T_transient_cold_side[cold] = new_HX.outs[1].T                        
-                        matches_cs[hot].append(cold)
-                    except:
-                        pass     
+                        T_hot_in - T_cold_in >= T_min_app):
+                    hot_stream = original_hot_stream.copy()
+                    hot_stream.vle(T = T_hot_in, P = hot_stream.P)
+                    cold_stream = original_cold_stream.copy()
+                    cold_stream.vle(T = T_cold_in, P = cold_stream.P)
+                    if abs(T_transient_cold_side[cold] - pinch_T_arr[cold])<= 0.01:
+                        continue
+                    ID = 'HX_%s_%s_cs'%(hot, cold)
+                    hot_stream.ID = 's_%s__%s'%(hot,ID)
+                    cold_stream.ID = 's_%s__%s'%(cold,ID)
+                    outsIDs = ('%s__s_%s'%(ID,hot), '%s__s_%s'%(ID,cold))
+                    new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
+                             outs = outsIDs, H_lim0 = H_out_arr[hot],
+                             T_lim1 = pinch_T_arr[cold], dT = T_min_app,
+                             thermo = hot_stream.thermo)
+                    new_HX.simulate()
+                    HXs_cold_side.append(new_HX)
+                    stream_HXs_dict[hot].append(new_HX)
+                    stream_HXs_dict[cold].append(new_HX)                    
+                    Q_cold_side[hot][1] -= new_HX.Q
+                    Q_cold_side[cold][1] -= new_HX.Q                        
+                    T_transient_cold_side[hot] = new_HX.outs[0].T
+                    T_transient_cold_side[cold] = new_HX.outs[1].T                        
+                    matches_cs[hot].append(cold)
                     
     # Offset cooling requirement on hot side  
     for hot in hot_indices:
@@ -470,38 +469,37 @@ def synthesize_network(hus, T_min_app=5.):
                     or (hot in matches_hs and cold in matches_hs[hot])):
                     break
                 original_cold_stream = streams[cold]
-                T_transient_hot_side_cold = get_T_max_from_life_cycle(cold, HXs_cold_side+HXs_cold_side)
+                T_cold_in = get_T_max_from_life_cycle(cold, HXs_cold_side+HXs_cold_side) # T_transient_hot_side_cold 
+                T_hot_in = T_transient_hot_side[hot]
                 if (Q_hot_side[cold][0]=='heat' and Q_hot_side[cold][1]>0 and
-                        T_transient_hot_side[hot] - T_transient_hot_side_cold>= T_min_app):                    
-                    try:
-                        cold_stream = original_cold_stream.copy()
-                        cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)                        
-                        hot_stream = original_hot_stream.copy()
-                        hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)                        
-                        if abs(T_transient_hot_side[hot] - pinch_T_arr[hot])<= 0.01:
-                            continue                        
-                        ID = 'HX_%s_%s_hs'%(cold, hot)
-                        cold_stream.ID = 's_%s__%s'%(cold,ID)
-                        hot_stream.ID = 's_%s__%s'%(hot,ID)
-                        outsIDs = ('%s__s_%s'%(ID,cold), '%s__s_%s'%(ID,hot))
-                        new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
-                                 outs = outsIDs, T_lim0 = T_out_arr[cold], 
-                                 T_lim1 = pinch_T_arr[hot], dT = T_min_app,
-                                 thermo = hot_stream.thermo)
-                        new_HX.simulate()
-                        for i in new_HX.ins + new_HX.outs: 
-                            if i.isempty(): breakpoint()
-                        HXs_hot_side.append(new_HX)                        
-                        stream_HXs_dict[hot].append(new_HX)
-                        stream_HXs_dict[cold].append(new_HX)                        
-                        Q_hot_side[hot][1] -= new_HX.Q
-                        Q_hot_side[cold][1] -= new_HX.Q                        
-                        T_transient_hot_side_cold= new_HX.outs[0].T
-                        T_transient_hot_side[hot] = new_HX.outs[1].T       
-                        stream_quenched = T_transient_hot_side_cold>= T_out_arr[cold]                    
-                        matches_hs[cold].append(hot)                    
-                    except:
-                        pass
+                        T_hot_in - T_cold_in>= T_min_app):                    
+                    cold_stream = original_cold_stream.copy()
+                    cold_stream.vle(T = T_cold_in, P = cold_stream.P)                        
+                    hot_stream = original_hot_stream.copy()
+                    hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)                        
+                    if abs(T_hot_in - pinch_T_arr[hot])<= 0.01:
+                        continue                        
+                    ID = 'HX_%s_%s_hs'%(cold, hot)
+                    cold_stream.ID = 's_%s__%s'%(cold,ID)
+                    hot_stream.ID = 's_%s__%s'%(hot,ID)
+                    outsIDs = ('%s__s_%s'%(ID,cold), '%s__s_%s'%(ID,hot))
+                    H_lim = H_out_arr[cold]
+                    new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
+                             outs = outsIDs, H_lim0 = H_lim, 
+                             T_lim1 = pinch_T_arr[hot], dT = T_min_app,
+                             thermo = hot_stream.thermo)
+                    new_HX.simulate()
+                    HXs_hot_side.append(new_HX)                        
+                    stream_HXs_dict[hot].append(new_HX)
+                    stream_HXs_dict[cold].append(new_HX)                        
+                    Q_hot_side[hot][1] -= new_HX.Q
+                    Q_hot_side[cold][1] -= new_HX.Q                        
+                    T_transient_hot_side_cold= new_HX.outs[0].T
+                    T_transient_hot_side[hot] = new_HX.outs[1].T       
+                    H_out = new_HX.outs[0].H
+                    assert H_out - new_HX.ins[0].H >= 0.
+                    stream_quenched = H_out > H_lim or np.allclose(H_out, H_lim)                   
+                    matches_hs[cold].append(hot)                    
                     if stream_quenched:
                         break
     # Add final utility HXs
@@ -510,23 +508,24 @@ def synthesize_network(hus, T_min_app=5.):
         new_HX_util = None
         T_transient_hot_actual = get_T_min_from_life_cycle(hot, HXs_cold_side+HXs_hot_side)
         # if T_transient_cold_side[hot] > T_out_arr[hot]:
-        if T_transient_hot_actual > T_out_arr[hot]:
-            original_hot_stream = streams[hot]
-            hot_stream = original_hot_stream.copy()
-            # hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
-            hot_stream.vle(T = T_transient_hot_actual, P = hot_stream.P)
-            ID = 'Util_%s_cs'%(hot)
-            hot_stream.ID = 's_%s__%s'%(hot,ID)
-            outsID = '%s__s_%s'%(ID,hot)
-            new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
-                                               T = T_out_arr[hot], rigorous = True,
-                                              thermo = hot_stream.thermo)
-            new_HX_util.simulate()
-            for i in new_HX_util.ins + new_HX_util.outs: 
-                if i.isempty(): breakpoint()
-            original_hot_stream.copy_like(new_HX_util-0)
-            new_HX_utils.append(new_HX_util)
-            stream_HXs_dict[hot].append(new_HX_util)
+        # if T_transient_hot_actual > T_out_arr[hot]:
+        original_hot_stream = streams[hot]
+        hot_stream = original_hot_stream.copy()
+        # hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
+        hot_stream.vle(T = T_transient_hot_actual, P = hot_stream.P)
+        ID = 'Util_%s_cs'%(hot)
+        hot_stream.ID = 's_%s__%s'%(hot,ID)
+        outsID = '%s__s_%s'%(ID,hot)
+        new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
+                                          H = H_out_arr[hot], rigorous = True,
+                                          thermo = hot_stream.thermo)
+        new_HX_util.simulate()
+        s_out = new_HX_util-0
+        np.testing.assert_allclose(s_out.H, H_out_arr[hot], rtol=1e-3)
+        np.testing.assert_allclose(s_out.T, T_out_arr[hot], rtol=1e-3)
+        original_hot_stream.copy_like(new_HX_util-0)
+        new_HX_utils.append(new_HX_util)
+        stream_HXs_dict[hot].append(new_HX_util)
             
         # if T_transient_hot_side[hot] > pinch_T_arr[hot] + 0.05:
         #     original_hot_stream = streams[hot]
@@ -545,23 +544,24 @@ def synthesize_network(hus, T_min_app=5.):
     for cold in cold_indices:
         T_transient_cold_actual = get_T_max_from_life_cycle(cold, HXs_cold_side+HXs_hot_side)
         # if T_transient_hot_side[cold] < T_out_arr[cold]:
-        if T_transient_cold_actual < T_out_arr[cold]:
-            original_cold_stream = streams[cold]
-            cold_stream = original_cold_stream.copy()
-            # cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)
-            cold_stream.vle(T = T_transient_cold_actual, P = cold_stream.P)
-            ID = 'Util_%s_hs'%(cold)
-            cold_stream.ID = 's_%s__%s'%(cold,ID)
-            outsID = '%s__s_%s'%(ID,cold)
-            new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
-                                               T = T_out_arr[cold], rigorous = True,
-                                              thermo = cold_stream.thermo)
-            new_HX_util.simulate()
-            for i in new_HX_util.ins + new_HX_util.outs: 
-                if i.isempty(): breakpoint()
-            original_cold_stream.copy_like(new_HX_util-0)
-            new_HX_utils.append(new_HX_util)
-            stream_HXs_dict[cold].append(new_HX_util)
+        # if T_transient_cold_actual < T_out_arr[cold]:
+        original_cold_stream = streams[cold]
+        cold_stream = original_cold_stream.copy()
+        # cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)
+        cold_stream.vle(T = T_transient_cold_actual, P = cold_stream.P)
+        ID = 'Util_%s_hs'%(cold)
+        cold_stream.ID = 's_%s__%s'%(cold,ID)
+        outsID = '%s__s_%s'%(ID,cold)
+        new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
+                                          H = H_out_arr[cold], rigorous = True,
+                                          thermo = cold_stream.thermo)
+        new_HX_util.simulate()
+        s_out = new_HX_util-0
+        np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-3)
+        np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=1e-3)
+        original_cold_stream.copy_like(new_HX_util-0)
+        new_HX_utils.append(new_HX_util)
+        stream_HXs_dict[cold].append(new_HX_util)
         # if T_transient_cold_side[cold] + 0.05 < pinch_T_arr[cold]:
         #     original_cold_stream = streams[cold]
         #     cold_stream = original_cold_stream.copy()

@@ -11,6 +11,7 @@ Created on Sat Aug 22 21:58:19 2020
 """
 from .. import Facility
 import biosteam as bst
+import numpy as np
 from .hxn_synthesis import synthesize_network, StreamLifeCycle
 from warnings import warn
 
@@ -140,7 +141,6 @@ class HeatExchangerNetwork(Facility):
         self.new_HXs = new_HXs
         self.new_HX_utils = new_HX_utils
         self.streams = streams
-        
         stream_life_cycles = self.get_stream_life_cycles()
         for life_cycle in stream_life_cycles:
             stages = life_cycle.life_cycle
@@ -171,15 +171,13 @@ class HeatExchangerNetwork(Facility):
                         stages.remove(stage)
                         break
         all_units = new_HXs + new_HX_utils
-        for life_cycle in stream_life_cycles:
+        for life_cycle in self.get_stream_life_cycles():
             s_out = None
             for i in life_cycle.life_cycle:
                 unit = i.unit
                 if s_out: unit.ins[i.index] = s_out
                 s_out = unit.outs[i.index]
-        for i in all_units: 
-            for i in i.ins + i.outs:
-                if i.isempty(): breakpoint()
+        self.stream_life_cycles_final = stream_life_cycles
         self.HXN_sys = sys = bst.System.from_units(None, all_units)
         sys._converge()
         for u in sys.units: 
@@ -200,11 +198,16 @@ class HeatExchangerNetwork(Facility):
         self.purchase_costs['Heat exchangers'] = (sum(new_purchase_costs_HXp) + sum(new_purchase_costs_HXu)) \
             - (sum(original_purchase_costs))
         hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
-        hu_sums2 = bst.HeatUtility.sum_by_agent(sum([hx.heat_utilities for hx in new_HX_utils], ()))
+        new_heat_utils = sum([hx.heat_utilities for hx in new_HX_utils], ())
+        hu_sums2 = bst.HeatUtility.sum_by_agent(new_heat_utils)
         # to change sign on duty without switching heat/cool (i.e. negative costs):
         for hu in hu_sums1: hu.reverse()
         hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
-        Q_bal = (2.*sum([abs(i.Q) for i in new_HXs]) + sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums2])) / sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums1])
+        Q_bal = (
+            (2.*sum([abs(i.Q) for i in new_HXs])
+             + sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums2]))
+            / sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums1])
+        )
         Q_percent_error = 100*(Q_bal - 1)
         if abs(Q_percent_error)>2:
             msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
@@ -228,7 +231,13 @@ class HeatExchangerNetwork(Facility):
         self.actual_heat_util_load = actual_heat_util_load
         self.actual_cool_util_load = actual_cool_util_load
         bst.main_flowsheet.set_flowsheet(original_flowsheet)
-        
+        for i in range(len(stream_life_cycles)):
+            s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
+            lc = stream_life_cycles[i].life_cycle[-1]
+            s_lc = lc.unit.outs[lc.index]
+            np.testing.assert_allclose(s_util.mol, s_lc.mol)
+            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3)
+            
     @property
     def installed_cost(self):
         return self._installed_cost
