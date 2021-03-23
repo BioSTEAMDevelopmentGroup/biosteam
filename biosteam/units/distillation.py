@@ -548,7 +548,7 @@ class Distillation(Unit, isabstract=True):
     
     def _setup(self):
         distillate, bottoms_product = self.outs
-        self.feed.P = distillate.P = bottoms_product.P = self.P
+        self.boiler.ins[0].P = self.condenser.ins[0].P = self.feed.P = distillate.P = bottoms_product.P = self.P
         distillate.phase = 'g'
         bottoms_product.phase = 'l'
 
