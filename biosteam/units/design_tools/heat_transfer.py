@@ -23,33 +23,62 @@ __all__ = ('counter_current_heat_exchange',
 
 # %% Functional heat exchanger
 
-def heat_exchange_to_condition(s_in, s_out, T, phase=None, heating=None):
+def heat_exchange_to_condition(s_in, s_out, T=None, phase=None, 
+                               H_lim=None, heating=None):
     """
     Set the outlet stream condition and return duty required to achieve 
     said condition.
     """
+    H_lim_given = H_lim is not None
+    H_in = s_in.H
+    if H_lim_given:
+        if heating:
+            if H_in > H_lim: return 0.
+        else:
+            if H_in < H_lim: return 0.
     if phase:
         s_out.T = T
         s_out.phase = phase
+        if H_lim_given:
+            if heating:
+                if s_out.H > H_lim: s_out.H = H_lim
+            else:
+                if s_out.H < H_lim: s_out.H = H_lim
     elif len(s_out.vle_chemicals) == 1 and heating is not None:
         bp = s_in.bubble_point_at_P()
         tol = 1e-3
         dT = T - bp.T
+        s_out.T = T
         if dT < -tol:
             s_out.phase = 'l'
+            if H_lim_given:
+                if heating:
+                    if s_out.H > H_lim: s_out.H = H_lim
+                else:
+                    if s_out.H < H_lim: s_out.vle(H=H_lim , P=s_out.P)
         elif dT > tol:
             s_out.phase = 'g'
+            if H_lim_given:
+                if heating:
+                    if s_out.H > H_lim: s_out.vle(H=H_lim , P=s_out.P)
+                else:
+                    if s_out.H < H_lim: s_out.H = H_lim
         else:
             s_out.phase = 'g' if heating else 'l'
-        s_out.T = T
     else:
         s_out.vle(T=T, P=s_out.P)
-    return s_out.H - s_in.H
+        if H_lim_given:
+            if heating:
+                if s_out.H > H_lim: s_out.vle(H=H_lim , P=s_out.P)
+            else:
+                if s_out.H < H_lim: s_out.vle(H=H_lim , P=s_out.P)
+    return s_out.H - H_in
     
 
 def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
                                   dT, T_lim0=None, T_lim1=None,
-                                  phase0=None, phase1=None):
+                                  phase0=None, phase1=None,
+                                  H_lim0=None, H_lim1=None):
     """
     Allow outlet streams to exchange heat until either the given temperature 
     limits or the pinch temperature and return the total heat transfer 
@@ -66,6 +95,8 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
         s_cold_out = s1_out
         T_lim_coldside = T_lim0
         T_lim_hotside = T_lim1
+        H_lim_coldside = H_lim0
+        H_lim_hotside = H_lim1
         phase_coldside = phase0
         phase_hotside = phase1
     else:
@@ -75,6 +106,8 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
         s_hot_out = s1_out
         T_lim_hotside = T_lim0
         T_lim_coldside = T_lim1
+        H_lim_hotside = H_lim0
+        H_lim_coldside = H_lim1
         phase_hotside = phase0
         phase_coldside = phase1
     
@@ -98,15 +131,18 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
     # Pinch on the cold side
     Q_hot_stream = heat_exchange_to_condition(s_hot_in, s_hot_out, 
                                               T_lim_coldside, phase_coldside,
-                                              heating=False)
+                                              H_lim_coldside, heating=False)
     
     # Pinch on the hot side
     Q_cold_stream = heat_exchange_to_condition(s_cold_in, s_cold_out, 
                                                T_lim_hotside, phase_hotside,
-                                               heating=True)
+                                               H_lim_hotside, heating=True)
+    
+    if Q_hot_stream == Q_cold_stream == 0.: return 0.
     
     if Q_hot_stream > 0 or Q_cold_stream < 0:
         # Sanity check
+        if Q_hot_stream / s_hot_in.C < 0.1 or Q_cold_stream / s_cold_in.C > -0.1: return 0.
         raise RuntimeError('inlet stream not in vapor-liquid equilibrium')
     
     if Q_cold_stream < -Q_hot_stream:
