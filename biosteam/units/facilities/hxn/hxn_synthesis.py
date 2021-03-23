@@ -7,37 +7,39 @@ Created on Sat May  2 16:44:24 2020
 import numpy as np
 import copy
 import biosteam as bst
-from warnings import warn
 
 __all__ = ('StreamLifeCycle', 'synthesize_network')
 
 class LifeStage:
         
-        def __init__(self, s_in, s_out):
-            self.s_in = s_in
-            self.s_out = s_out
+    def __init__(self, unit, index):
+        self.unit = unit
+        self.index = index
+    
+    @property
+    def s_in(self): return self.unit.ins[self.index]
+    
+    @property
+    def s_out(self): return self.unit.outs[self.index]
+    
+    @property
+    def H_in(self): return self.s_in.H
+    
+    @property
+    def H_out(self): return self.s_out.H
+    
+    def _info(self, N_tabs=1):
+        tabs = N_tabs*'\t'
+        return (f"{type(self).__name__}: {self.unit.ID}\n"
+                + tabs + f"H_in = {self.H_in:.3g} kJ\n"
+                + tabs + f"H_out = {self.H_out:.3g} kJ")
+                
+    def __repr__(self):
+        return (f"<{type(self).__name__}: {repr(self.unit)}, H_in = {round(self.H_in, 4):.3g} kJ, H_out = {round(self.H_out, 4):.3g} kJ>")
         
-        @property
-        def H_in(self): return self.s_in.H
-        
-        @property
-        def H_out(self): return self.s_out.H
-        
-        @property
-        def unit(self): return self.s_in.sink
-        
-        def _info(self, N_tabs=1):
-            tabs = N_tabs*'\t'
-            return (f"{type(self).__name__}: {self.unit.ID}\n"
-                    + tabs + f"H_in = {self.H_in:.3g} kJ\n"
-                    + tabs + f"H_out = {self.H_out:.3g} kJ")
-                    
-        def __repr__(self):
-            return (f"<{type(self).__name__}: {repr(self.unit)}, H_in = {round(self.H_in, 4):.3g} kJ, H_out = {round(self.H_out, 4):.3g} kJ>")
-            
-        def show(self):
-            print(self._info())
-        _ipython_display_ = show
+    def show(self):
+        print(self._info())
+    _ipython_display_ = show
         
         
 class StreamLifeCycle:
@@ -57,15 +59,14 @@ class StreamLifeCycle:
         index = self.index
         name = self.name
         cold = self.cold
-        us_index = '_%s_'%index
         new_HXs_relevant, new_HX_utils_relevant =\
             self.get_relevant_units(index, new_HXs, new_HX_utils)
-        life_cycle = [LifeStage(unit.ins[0], unit.outs[0])\
-                      for unit in new_HXs_relevant if name in unit.ins[0].ID]\
-                      + [LifeStage(unit.ins[1], unit.outs[1])\
-                      for unit in new_HXs_relevant if name in unit.ins[1].ID]\
-                      + [LifeStage(unit.ins[0], unit.outs[0])\
-                      for unit in new_HX_utils_relevant if name in unit.ins[0].ID]
+        life_cycle = [LifeStage(unit, 0)\
+                      for unit in new_HXs_relevant if name + '_' in unit.ins[0].ID]\
+                      + [LifeStage(unit, 1)\
+                      for unit in new_HXs_relevant if name + '_' in unit.ins[1].ID]\
+                      + [LifeStage(unit, 0)\
+                      for unit in new_HX_utils_relevant if name + '_' in unit.ins[0].ID]
         life_cycle.sort(key = lambda pt: pt.H_out, reverse = not cold)
         self.life_cycle = life_cycle
         return life_cycle
@@ -119,7 +120,7 @@ class Working_Life_Cycle:
         return self.life_cycle
     
 
-def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None):
+def temperature_interval_pinch_analysis(hus, T_min_app = 10):
     hx_utils = [hu for hu in hus\
                 if abs(hu.heat_exchanger.ins[0].T - hu.heat_exchanger.outs[0].T)>0.01]
     hus_heating = [hu for hu in hx_utils if hu.duty > 0]
@@ -134,7 +135,6 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None)
     streams = streams_heating + streams_cooling
     for i in range(len(streams)):
         stream = streams[i]
-        hx = hxs[i]
         stream.vle(H = stream.H, P = stream.P)
         ID = 'Util_%s'%i
         stream.ID = 's_%s__%s'%(i,ID)
@@ -187,7 +187,7 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, ID_original = None)
         res_H_vector.append(prev_res_H + H)
         prev_res_H = res_H_vector[len(res_H_vector)-1]
     hot_util_load = - min(res_H_vector)
-    assert hot_util_load>= 0, 'Hot utility load is negative'
+    # assert hot_util_load>= 0, 'Hot utility load is negative'
     # print(hot_util_load)
     # the lower temperature of the temperature interval for which the res_H is minimum
     pinch_cold_stream_T = all_Ts_descending[res_H_vector.index(-hot_util_load)+1]
@@ -248,13 +248,11 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
     return T_transient
 
 
-def synthesize_network(hus, ID_original, T_min_app=5.):  
-    bst.main_flowsheet.set_flowsheet('%s_HXN'%ID_original)
-    for registry in bst.main_flowsheet.registries: registry.clear()
+def synthesize_network(hus, T_min_app=5.):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
         hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged =\
-        temperature_interval_pinch_analysis(hus, T_min_app = T_min_app, ID_original = None)        
+        temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
     duties = np.array([abs(hx.Q) for hx in hxs])
     C_flow_vector = duties/np.abs(T_in_arr - T_out_arr)
     Q_hot_side = {}
@@ -272,6 +270,37 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     candidate_cold_streams = list(cold_indices)
     HXs_hot_side = []
     HXs_cold_side = []
+    
+    def get_T_max_from_life_cycle(cold, units):
+        T_max_cold = T_in_arr[cold]
+        for u in units:
+            for s in u.outs:
+                if '_%s_'%(cold) in s.ID and '__s_%s'%(cold) in s.ID:
+                    if s.T>T_max_cold:
+                        T_max_cold = s.T
+        # for u in HXs_cold_side:
+        #     for s in u.outs:
+        #         if '_%s_'%(cold) in s.ID and '__s_%s'%(cold) in s.ID:
+        #             if s.T>T_max_cold:
+        #                 T_max_cold = s.T
+        # print(cold, T_max_cold)
+        return T_max_cold
+    
+    def get_T_min_from_life_cycle(hot, units):
+        T_min_hot = T_in_arr[hot]
+        for u in units:
+            for s in u.outs:
+                if '_%s_'%(hot) in s.ID and '__s_%s'%(hot) in s.ID:
+                    if s.T<T_min_hot:
+                        T_min_hot = s.T
+        # for u in HXs_hot_side:
+        #     for s in u.outs:
+        #         if '_%s_'%(hot) in s.ID and '__s_%s'%(hot) in s.ID:
+        #             if s.T<T_min_hot:
+        #                 T_min_hot = s.T
+        # print(hot, T_min_hot)
+        return T_min_hot
+    
     # ------------- Cold side design ------------- # 
     unavailables = set([i for i in hot_indices if T_out_arr[i] >= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_in_arr[i] >= pinch_T_arr[i]])
@@ -285,11 +314,14 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     (hot not in unavailables) and (cold not in unavailables) and
                     (cold not in matches_cs[hot]) and (cold in candidate_cold_streams)): 
                 potential_matches.append(cold)
-        potential_matches = sorted(potential_matches, key = lambda x:
-                      (min(C_flow_vector[hot], C_flow_vector[x])
-                        * (T_transient_cold_side[hot] 
-                          - T_transient_cold_side[x] - T_min_app)),
-                      reverse = True)
+        potential_matches = sorted(
+            potential_matches, 
+            key = lambda pot_cold: min(C_flow_vector[hot], C_flow_vector[pot_cold])
+                                    * (T_transient_cold_side[hot] 
+                                       - T_transient_cold_side[pot_cold] 
+                                       - T_min_app),
+            reverse = True
+        )
         for cold in potential_matches:
             original_cold_stream = streams[cold]
             try:
@@ -311,6 +343,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                          T_lim1 = pinch_T_arr[cold], dT = T_min_app,
                          thermo = hot_stream.thermo)
                 new_HX.simulate()
+                for i in new_HX.ins + new_HX.outs: 
+                    if i.isempty(): breakpoint()
                 HXs_cold_side.append(new_HX)
                 stream_HXs_dict[hot].append(new_HX)
                 stream_HXs_dict[cold].append(new_HX)
@@ -328,8 +362,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     # ------------- Hot side design ------------- #                            
     unavailables = set([i for i in hot_indices if T_in_arr[i] <= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_out_arr[i] <= pinch_T_arr[i]])
+    
     for cold in cold_indices:
-        stream_quenched = False
         original_cold_stream = streams[cold]
         T_transient_hot_side[cold] = min(T_transient_hot_side[cold], T_transient_cold_side[cold])
         potential_matches = []
@@ -370,6 +404,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                          T_lim1 = pinch_T_arr[hot], dT = T_min_app,
                          thermo = hot_stream.thermo)
                 new_HX.simulate()
+                for i in new_HX.ins + new_HX.outs: 
+                    if i.isempty(): breakpoint()
                 HXs_hot_side.append(new_HX)
                 stream_HXs_dict[hot].append(new_HX)
                 stream_HXs_dict[cold].append(new_HX)
@@ -411,6 +447,8 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                                  T_lim1 = pinch_T_arr[cold], dT = T_min_app,
                                  thermo = hot_stream.thermo)
                         new_HX.simulate()
+                        for i in new_HX.ins + new_HX.outs: 
+                            if i.isempty(): breakpoint()
                         HXs_cold_side.append(new_HX)
                         stream_HXs_dict[hot].append(new_HX)
                         stream_HXs_dict[cold].append(new_HX)                    
@@ -432,8 +470,9 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                     or (hot in matches_hs and cold in matches_hs[hot])):
                     break
                 original_cold_stream = streams[cold]
+                T_transient_hot_side_cold = get_T_max_from_life_cycle(cold, HXs_cold_side+HXs_cold_side)
                 if (Q_hot_side[cold][0]=='heat' and Q_hot_side[cold][1]>0 and
-                        T_transient_hot_side[hot] - T_transient_hot_side[cold] >= T_min_app):                    
+                        T_transient_hot_side[hot] - T_transient_hot_side_cold>= T_min_app):                    
                     try:
                         cold_stream = original_cold_stream.copy()
                         cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)                        
@@ -450,82 +489,77 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
                                  T_lim1 = pinch_T_arr[hot], dT = T_min_app,
                                  thermo = hot_stream.thermo)
                         new_HX.simulate()
+                        for i in new_HX.ins + new_HX.outs: 
+                            if i.isempty(): breakpoint()
                         HXs_hot_side.append(new_HX)                        
                         stream_HXs_dict[hot].append(new_HX)
                         stream_HXs_dict[cold].append(new_HX)                        
                         Q_hot_side[hot][1] -= new_HX.Q
                         Q_hot_side[cold][1] -= new_HX.Q                        
-                        T_transient_hot_side[cold] = new_HX.outs[0].T
+                        T_transient_hot_side_cold= new_HX.outs[0].T
                         T_transient_hot_side[hot] = new_HX.outs[1].T       
-                        stream_quenched = T_transient_hot_side[cold] >= T_out_arr[cold]                    
+                        stream_quenched = T_transient_hot_side_cold>= T_out_arr[cold]                    
                         matches_hs[cold].append(hot)                    
                     except:
                         pass
                     if stream_quenched:
                         break
-                 
-    # def get_T_max_from_life_cycle(cold):
-    #     T_max_cold = 0.
-    #     for u in HXN_F.unit:
-    #         for s in u.outs:
-    #             if 's_%s__'%(cold) in s.ID:
-    #                 if s.T>T_max_cold:
-    #                     T_max_cold = s.T
-    #     return T_max_cold
-    
-    # def get_T_min_from_life_cycle(hot):
-    #     T_min_hot = 0.
-    #     for u in HXN_F.unit:
-    #         for s in u.outs:
-    #             if 's_%s__'%(hot) in s.ID:
-    #                 if s.T<T_min_hot:
-    #                     T_min_hot = s.T
-    #     return T_min_hot
-             
     # Add final utility HXs
     new_HX_utils = []    
     for hot in hot_indices:
         new_HX_util = None
-        if T_transient_cold_side[hot] > T_out_arr[hot]:
+        T_transient_hot_actual = get_T_min_from_life_cycle(hot, HXs_cold_side+HXs_hot_side)
+        # if T_transient_cold_side[hot] > T_out_arr[hot]:
+        if T_transient_hot_actual > T_out_arr[hot]:
             original_hot_stream = streams[hot]
             hot_stream = original_hot_stream.copy()
-            hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
+            # hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
+            hot_stream.vle(T = T_transient_hot_actual, P = hot_stream.P)
             ID = 'Util_%s_cs'%(hot)
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             outsID = '%s__s_%s'%(ID,hot)
-            # T_in = get_T_min_from_life_cycles(hot)
             new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
-                                              T = T_out_arr[hot], rigorous = True,
+                                               T = T_out_arr[hot], rigorous = True,
                                               thermo = hot_stream.thermo)
             new_HX_util.simulate()
+            for i in new_HX_util.ins + new_HX_util.outs: 
+                if i.isempty(): breakpoint()
+            original_hot_stream.copy_like(new_HX_util-0)
             new_HX_utils.append(new_HX_util)
             stream_HXs_dict[hot].append(new_HX_util)
-        if T_transient_hot_side[hot] > pinch_T_arr[hot] + 0.05:
-            original_hot_stream = streams[hot]
-            hot_stream = original_hot_stream.copy()
-            hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)
-            ID = 'Util_%s_hs'%(hot)
-            hot_stream.ID = 's_%s__%s'%(hot,ID)
-            outsID = '%s__s_%s'%(ID,hot)
-            new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
-                                              T = pinch_T_arr[hot], rigorous = True,
-                                              thermo = hot_stream.thermo)
-            new_HX_util.simulate()
-            new_HX_utils.append(new_HX_util)
-            stream_HXs_dict[hot].append(new_HX_util)
+            
+        # if T_transient_hot_side[hot] > pinch_T_arr[hot] + 0.05:
+        #     original_hot_stream = streams[hot]
+        #     hot_stream = original_hot_stream.copy()
+        #     hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)
+        #     ID = 'Util_%s_hs'%(hot)
+        #     hot_stream.ID = 's_%s__%s'%(hot,ID)
+        #     outsID = '%s__s_%s'%(ID,hot)
+        #     new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
+        #                                       T = pinch_T_arr[hot], rigorous = True,
+        #                                       thermo = hot_stream.thermo)
+        #     new_HX_util.simulate()
+        #     new_HX_utils.append(new_HX_util)
+        #     stream_HXs_dict[hot].append(new_HX_util)
+            
     for cold in cold_indices:
-        if T_transient_hot_side[cold] < T_out_arr[cold]:
+        T_transient_cold_actual = get_T_max_from_life_cycle(cold, HXs_cold_side+HXs_hot_side)
+        # if T_transient_hot_side[cold] < T_out_arr[cold]:
+        if T_transient_cold_actual < T_out_arr[cold]:
             original_cold_stream = streams[cold]
             cold_stream = original_cold_stream.copy()
-            cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)
+            # cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)
+            cold_stream.vle(T = T_transient_cold_actual, P = cold_stream.P)
             ID = 'Util_%s_hs'%(cold)
             cold_stream.ID = 's_%s__%s'%(cold,ID)
             outsID = '%s__s_%s'%(ID,cold)
-            # T_in = get_T_max_from_life_cycles(cold)
             new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
-                                              T = T_out_arr[cold], rigorous = True,
+                                               T = T_out_arr[cold], rigorous = True,
                                               thermo = cold_stream.thermo)
             new_HX_util.simulate()
+            for i in new_HX_util.ins + new_HX_util.outs: 
+                if i.isempty(): breakpoint()
+            original_cold_stream.copy_like(new_HX_util-0)
             new_HX_utils.append(new_HX_util)
             stream_HXs_dict[cold].append(new_HX_util)
         # if T_transient_cold_side[cold] + 0.05 < pinch_T_arr[cold]:
@@ -546,24 +580,24 @@ def synthesize_network(hus, ID_original, T_min_app=5.):
     act_heat_util_load = sum([hu.duty for hu in new_hus if hu.duty>0])
     orig_heat_util_load = sum([hu.duty for hu in hus_heating])
     orig_cool_util_load = sum([abs(hu.duty) for hu in hus_cooling])
-    Q_prev_heating = sum([hx.Q for hx in hxs_heating])
-    Q_prev_cooling = sum([abs(hx.Q) for hx in hxs_cooling])
-    Q_prev = Q_prev_heating + Q_prev_cooling
-    Q_HXp = sum([hx.Q for hx in HXs_hot_side]) + sum([hx.Q for hx in HXs_cold_side])
-    Q_new_heating = sum([hx_util.Q for hx_util in new_HX_utils
-                         if hx_util.ins[0].T < hx_util.outs[0].T])
-    Q_new_cooling = sum([abs(hx_util.Q) for hx_util in new_HX_utils
-                         if hx_util.ins[0].T > hx_util.outs[0].T])
-    Q_new_utils = Q_new_heating + Q_new_cooling
-    Q_new = 2*Q_HXp + Q_new_utils
-    Q_bal = Q_new/Q_prev
-    Q_percent_error = 100*(Q_bal - 1)
-    if abs(Q_percent_error)>2:
-        msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
-        warn(msg, UserWarning, stacklevel=2)
+    # Q_prev_heating = sum([hx.Q for hx in hxs_heating])
+    # Q_prev_cooling = sum([abs(hx.Q) for hx in hxs_cooling])
+    # Q_prev = Q_prev_heating + Q_prev_cooling
+    # Q_HXp = sum([hx.Q for hx in HXs_hot_side]) + sum([hx.Q for hx in HXs_cold_side])
+    # Q_new_heating = sum([hx_util.Q for hx_util in new_HX_utils
+    #                      if hx_util.ins[0].T <= hx_util.outs[0].T])
+    # Q_new_cooling = sum([abs(hx_util.Q) for hx_util in new_HX_utils
+    #                      if hx_util.ins[0].T >= hx_util.outs[0].T])
+    # Q_new_utils = Q_new_heating + Q_new_cooling
+    # Q_new = 2*Q_HXp + Q_new_utils
+    # Q_bal = Q_new/Q_prev
+    # Q_percent_error = 100*(Q_bal - 1)
+    # if abs(Q_percent_error)>2:
+    #     msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
+    #     warn(msg, UserWarning, stacklevel=2)
     
     return matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, act_heat_util_load,\
            act_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-           hot_indices, cold_indices, orig_heat_util_load, orig_cool_util_load, Q_percent_error
+           hot_indices, cold_indices, orig_heat_util_load, orig_cool_util_load
 

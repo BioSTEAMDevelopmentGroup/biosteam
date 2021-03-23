@@ -610,23 +610,27 @@ class Unit:
         """All output streams."""
         return self._outs
 
-    def _add_upstream_neighbors_to_set(self, set):
+    def _add_upstream_neighbors_to_set(self, set, ends=None):
         """Add upsteam neighboring units to set."""
         for s in self._ins:
             u_source = s._source
-            if u_source: set.add(u_source)
+            if not u_source: continue
+            if not ends or s in ends:
+                set.add(u_source)
 
-    def _add_downstream_neighbors_to_set(self, set):
+    def _add_downstream_neighbors_to_set(self, set, ends=None):
         """Add downstream neighboring units to set."""
         for s in self._outs:
             u_sink = s._sink
-            if u_sink: set.add(u_sink)
+            if not u_sink: continue
+            if not ends or s in ends:
+                set.add(u_sink)
 
-    def get_downstream_units(self):
+    def get_downstream_units(self, ends=None):
         """Return a set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
-        self._add_downstream_neighbors_to_set(outer_periphery)
+        self._add_downstream_neighbors_to_set(outer_periphery, ends)
         inner_periphery = None
         old_length = -1
         new_length = 0
@@ -636,15 +640,15 @@ class Unit:
             downstream_units.update(inner_periphery)
             outer_periphery = set()
             for unit in inner_periphery:
-                unit._add_downstream_neighbors_to_set(outer_periphery)
+                unit._add_downstream_neighbors_to_set(outer_periphery, ends)
             new_length = len(downstream_units)
         return downstream_units
     
-    def get_upstream_units(self):
+    def get_upstream_units(self, ends=None):
         """Return a set of all units upstream."""
         upstream_units = set()
         outer_periphery = set()
-        self._add_upstream_neighbors_to_set(outer_periphery)
+        self._add_upstream_neighbors_to_set(outer_periphery, ends)
         inner_periphery = None
         old_length = -1
         new_length = 0
@@ -654,7 +658,7 @@ class Unit:
             upstream_units.update(inner_periphery)
             outer_periphery = set()
             for unit in inner_periphery:
-                unit._add_upstream_neighbors_to_set(outer_periphery)
+                unit._add_upstream_neighbors_to_set(outer_periphery, ends)
             new_length = len(upstream_units)
         return upstream_units
     

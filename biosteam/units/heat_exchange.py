@@ -386,7 +386,10 @@ class HXutility(HX):
                     raise RuntimeError("vapor fraction, 'V', must be a "
                                        "positive fraction")
             else:
-                outlet.vle(T=T, P=outlet.P)
+                if outlet.isempty():
+                    outlet.T = T
+                else:
+                    outlet.vle(T=T, P=outlet.P)
         elif (T or V_given):
             if T:
                 outlet.T = T
@@ -447,7 +450,7 @@ class HXutility(HX):
         try:
             self.heat_utilities[0](duty, T_in, T_out)
         except:
-            inlet.vle(H=self.H, P=self.P)
+            inlet.vle(H=duty, P=self.P)
         self.Q = duty
         super()._design()
 

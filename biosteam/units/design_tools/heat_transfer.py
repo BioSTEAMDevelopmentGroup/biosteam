@@ -23,7 +23,7 @@ __all__ = ('counter_current_heat_exchange',
 
 # %% Functional heat exchanger
 
-def heat_exchange_to_condition(s_in, s_out, T, phase=None):
+def heat_exchange_to_condition(s_in, s_out, T, phase=None, heating=None):
     """
     Set the outlet stream condition and return duty required to achieve 
     said condition.
@@ -31,9 +31,21 @@ def heat_exchange_to_condition(s_in, s_out, T, phase=None):
     if phase:
         s_out.T = T
         s_out.phase = phase
+    elif len(s_out.vle_chemicals) == 1 and heating is not None:
+        bp = s_in.bubble_point_at_P()
+        tol = 1e-3
+        dT = T - bp.T
+        if dT < -tol:
+            s_out.phase = 'l'
+        elif dT > tol:
+            s_out.phase = 'g'
+        else:
+            s_out.phase = 'g' if heating else 'l'
+        s_out.T = T
     else:
         s_out.vle(T=T, P=s_out.P)
     return s_out.H - s_in.H
+    
 
 def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
                                   dT, T_lim0=None, T_lim1=None,
@@ -85,11 +97,13 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
        
     # Pinch on the cold side
     Q_hot_stream = heat_exchange_to_condition(s_hot_in, s_hot_out, 
-                                              T_lim_coldside, phase_coldside)
+                                              T_lim_coldside, phase_coldside,
+                                              heating=False)
     
     # Pinch on the hot side
     Q_cold_stream = heat_exchange_to_condition(s_cold_in, s_cold_out, 
-                                               T_lim_hotside, phase_hotside)
+                                               T_lim_hotside, phase_hotside,
+                                               heating=True)
     
     if Q_hot_stream > 0 or Q_cold_stream < 0:
         # Sanity check

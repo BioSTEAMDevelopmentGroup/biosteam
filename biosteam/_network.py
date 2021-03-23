@@ -12,6 +12,7 @@ from ._facility import Facility
 from .utils import streams_from_units
 from .digraph import digraph_from_units_and_streams, finalize_digraph
 from thermosteam import Stream
+import biosteam as bst
 
 # %% Other tools
 
@@ -25,6 +26,32 @@ def get_recycle_sink(recycle):
                         f"'{type(recycle).__name__}' object")
 
 # %% Path tools
+
+class PathSource:
+    
+    __slots__ = ('source', 'units')
+    
+    def __init__(self, source, ends=None):
+        self.source = source
+        if isinstance(source, bst.Unit):
+            self.units = source.get_downstream_units(ends=ends)
+        elif isinstance(source, Network):
+            self.units = units = set()
+            for i in source.units: units.update(i.get_downstream_units(ends=ends))
+        else:
+            raise TypeError('source must be a unit or a network; '
+                           f'not a {type(source).__name__} object')
+            
+    def downstream_from(self, other):
+        source = self.source
+        if isinstance(source, bst.Unit):
+            return source in other.units
+        else:
+            return any([i in other.units for i in source.units])
+        
+    def __repr__(self):
+        return f"{type(self).__name__}({str(self.source)})"
+        
 
 def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     paths_with_recycle, linear_paths = find_paths_with_and_without_recycle(
@@ -198,6 +225,24 @@ class Network:
     def __eq__(self, other):
         return isinstance(other, Network) and self.path == other.path
     
+    def sort(self, ends):
+        path_sources = [PathSource(i, ends) for i in self.path]
+        N = len(path_sources)
+        if not N: return
+        sort = True
+        while sort:
+            sort = False
+            for i in range(N - 1):
+                upstream_source = path_sources[i]
+                for j in range(i + 1, N):
+                    downstream_source = path_sources[j]
+                    if upstream_source.downstream_from(downstream_source): 
+                        path_sources.remove(downstream_source)
+                        path_sources.insert(i, downstream_source)
+                        sort = True
+                        break
+        self.path = [i.source for i in path_sources]
+    
     @classmethod
     def from_feedstock(cls, feedstock, feeds=(), ends=None):
         """
@@ -223,6 +268,7 @@ class Network:
         network, *linear_networks = [Network(i) for i in linear_paths]
         for linear_network in linear_networks:
             network.join_linear_network(linear_network) 
+        network.sort(ends)
         recycle_networks = [Network(*i) for i in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
@@ -247,6 +293,7 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
+        network.sort(ends)
         return network
     
     @property
