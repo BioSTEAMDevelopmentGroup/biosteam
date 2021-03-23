@@ -925,7 +925,10 @@ class System:
         recycle = self._recycle
         isa = isinstance
         if isa(recycle, Stream):
-            recycle._imol._data[:] = data
+            try:
+                recycle._imol._data[:] = data
+            except:
+                raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
         elif isa(recycle, Iterable):
             length = len
             N_rows = data.shape[0]
