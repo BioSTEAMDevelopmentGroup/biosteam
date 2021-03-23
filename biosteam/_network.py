@@ -268,7 +268,6 @@ class Network:
         network, *linear_networks = [Network(i) for i in linear_paths]
         for linear_network in linear_networks:
             network.join_linear_network(linear_network) 
-        network.sort(ends)
         recycle_networks = [Network(*i) for i in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
