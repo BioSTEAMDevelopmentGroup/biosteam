@@ -308,14 +308,15 @@ class HXutility(HX):
     _graphics = utility_heat_exchanger_graphics
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 T=None, V=None, rigorous=False, U=None,
+                 T=None, V=None, rigorous=False, U=None, H=None,
                  heat_exchanger_type="Floating head",
                  material="Carbon steel/carbon steel",
                  N_shells=2,
                  ft=None):
         super().__init__(ID, ins, outs, thermo)
-        self.T = T #: Temperature of outlet stream (K).
-        self.V = V #: Vapor fraction of outlet stream.
+        self.T = T #: [float] Temperature of outlet stream (K).
+        self.V = V #: [float] Vapor fraction of outlet stream.
+        self.H = H #: [float] Enthalpy of outlet stream.
         
         #: [bool] If true, calculate vapor liquid equilibrium
         self.rigorous = rigorous
@@ -368,11 +369,19 @@ class HXutility(HX):
         outlet.P = feed.P
         T = self.T
         V = self.V
+        H = self.H
+        T_given = T is not None
         V_given = V is not None
+        H_given = H is not None
+        N_given = T_given + V_given + H_given
+        if N_given == 0:
+            raise RuntimeError("no specification available; must define at either "
+                               "temperature 'T', vapor fraction, 'V', or enthalpy 'H'")
         if self.rigorous:
-            if T and V_given:
-                raise RuntimeError("may only define either temperature, 'T', or "
-                                   "vapor fraction 'V', in a rigorous simulation")
+            if N_given > 1:
+                raise RuntimeError("may only specify either temperature, 'T', "
+                                   "vapor fraction 'V', or enthalpy 'H', "
+                                   "in a rigorous simulation")
             if V_given:
                 if V == 0:
                     outlet.phase = 'l'
@@ -385,13 +394,18 @@ class HXutility(HX):
                 else:
                     raise RuntimeError("vapor fraction, 'V', must be a "
                                        "positive fraction")
-            else:
+            elif T_given:
                 if outlet.isempty():
                     outlet.T = T
                 else:
                     outlet.vle(T=T, P=outlet.P)
-        elif (T or V_given):
-            if T:
+            else:
+                outlet.vle(H=H, P=outlet.P)
+        else:
+            if T_given and H_given:
+                raise RuntimeError("cannot specify both temperature, 'T' "
+                                   "and enthalpy 'H'")
+            if T_given:
                 outlet.T = T
             else:
                 outlet.T = feed.T
@@ -410,11 +424,8 @@ class HXutility(HX):
             else:
                 phase = feed.phase
                 if len(phase) == 1: outlet.phase = phase
-            
-        else:
-            raise RuntimeError("must define either temperature, 'T', and/or "
-                               "vapor fraction, 'V', in a non-rigorous "
-                               "simulation")
+            if H_given:
+                outlet.H = H
 
     def get_streams(self):
         """
@@ -450,7 +461,7 @@ class HXutility(HX):
         try:
             self.heat_utilities[0](duty, T_in, T_out)
         except:
-            inlet.vle(H=duty, P=self.P)
+            inlet.vle(H=duty, P=inlet.P)
         self.Q = duty
         super()._design()
 
@@ -486,6 +497,10 @@ class HXprocess(HX):
         User enforced phase of outlet stream at index 0.
     phase1=None : 'l' or 'g', optional
         User enforced phase of outlet stream at index 1.
+    H_lim0 : float, optional
+        Enthalpy limit of outlet stream at index 0.
+    H_lim1 : float, optional
+        Enthalpy limit of outlet stream at index 1.
     
     Examples
     --------
@@ -584,7 +599,9 @@ class HXprocess(HX):
                  heat_exchanger_type="Floating head",
                  N_shells=2, ft=None, 
                  phase0=None,
-                 phase1=None):
+                 phase1=None,
+                 H_lim0=None,
+                 H_lim1=None):
         super().__init__(ID, ins, outs, thermo)
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
@@ -607,6 +624,12 @@ class HXprocess(HX):
         
         #: [float] Temperature limit of outlet stream at index 1.
         self.T_lim1 = T_lim1
+        
+        #: [float] Temperature limit of outlet stream at index 0.
+        self.H_lim0 = H_lim0
+        
+        #: [float] Temperature limit of outlet stream at index 1.
+        self.H_lim1 = H_lim1
         
         #: Enforced phase of outlet at index 0
         self.phase0 = phase0
@@ -649,4 +672,5 @@ class HXprocess(HX):
     def _run_counter_current_heat_exchange(self):
         self.Q = ht.counter_current_heat_exchange(*self._ins, *self._outs,
                                                   self.dT, self.T_lim0, self.T_lim1,
-                                                  self.phase0, self.phase1)
+                                                  self.phase0, self.phase1, 
+                                                  self.H_lim0, self.H_lim1)
