@@ -488,7 +488,9 @@ class Model(State):
             with pd.ExcelWriter(xlfile) as writer:
                 for i, metric in zip(metric_indices, metric_data):
                     data[:] = metric_data[metric]
-                    name, *_ = i[1].split(' [')
+                    element, name = i
+                    name, *_ = name.split(' [')
+                    name = ' '.join([element, name])
                     if len(name) > 31:
                         words = name.split(' ')
                         words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
