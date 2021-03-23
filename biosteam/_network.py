@@ -229,9 +229,8 @@ class Network:
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
-        sort = True
-        while sort:
-            sort = False
+        for i in range(50):
+            stop = True
             for i in range(N - 1):
                 upstream_source = path_sources[i]
                 for j in range(i + 1, N):
@@ -239,8 +238,8 @@ class Network:
                     if upstream_source.downstream_from(downstream_source): 
                         path_sources.remove(downstream_source)
                         path_sources.insert(i, downstream_source)
-                        sort = True
-                        break
+                        stop = False
+            if stop: break
         self.path = [i.source for i in path_sources]
     
     @classmethod
