@@ -218,17 +218,16 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            T_hot_side_arr, T_cold_side_arr, hus_heating,\
            hus_cooling, hxs_heating, hxs_cooling, hxs, hot_indices,\
-           cold_indices, streams, hx_utils_rearranged, H_out_arr
+           cold_indices, streams, hx_utils_rearranged, H_out_arr, streams_quenched
             
         
-def load_duties(streams, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side):
+def load_duties(streams, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side):
     for index in indices:
         stream = streams[index].copy()
         H_in = stream.H
         stream.vle(T = pinch_T_arr[index], P = stream.P)
         H_pinch = stream.H
-        stream.vle(T = T_out_arr[index], P = stream.P)
-        H_out = stream.H
+        H_out = streams_quenched[index].H
         if not is_cold(index):
             dH1 = abs(H_pinch - H_in)
             dH2 = abs(H_out - H_pinch)
@@ -255,7 +254,7 @@ def synthesize_network(hus, T_min_app=5.):
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
         hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged, \
-        H_out_arr = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
+        H_out_arr, streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
     duties = np.array([abs(hx.Q) for hx in hxs])
     C_flow_vector = duties/np.abs(T_in_arr - T_out_arr)
     Q_hot_side = {}
@@ -265,7 +264,7 @@ def synthesize_network(hus, T_min_app=5.):
     indices = hot_indices + cold_indices
     stream_HXs_dict = {i:[] for i in indices}
     is_cold = lambda x: x in cold_indices
-    load_duties(streams, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
+    load_duties(streams, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
     matches_hs = {i: [] for i in cold_indices}
     matches_cs = {i: [] for i in hot_indices}
     candidate_hot_streams = list(hot_indices)
@@ -332,9 +331,9 @@ def synthesize_network(hus, T_min_app=5.):
             Q_cstr = Q_cold_side[cold][1]
             Q_res = Q_cstr - Q_hstr
             hot_stream = original_hot_stream.copy()
-            hot_stream.vle(T = T_hot_in, P = hot_stream.P)
+            if hot_stream.T != T_hot_in: hot_stream.vle(T = T_hot_in, P = hot_stream.P)
             cold_stream = original_cold_stream.copy()
-            cold_stream.vle(T = T_cold_in, P = cold_stream.P)
+            if cold_stream.T != T_cold_in: cold_stream.vle(T = T_cold_in, P = cold_stream.P)
             if abs(T_transient_cold_side[cold] - pinch_T_arr[cold])<= 0.01:
                 continue
             ID = 'HX_%s_%s_cs'%(hot, cold)
@@ -393,9 +392,9 @@ def synthesize_network(hus, T_min_app=5.):
             Q_cstr = Q_hot_side[cold][1]
             Q_res = Q_cstr - Q_hstr
             cold_stream = original_cold_stream.copy()
-            cold_stream.vle(T = T_cold_in, P = cold_stream.P)
+            if cold_stream.T != T_cold_in: cold_stream.vle(T = T_cold_in, P = cold_stream.P)
             hot_stream = original_hot_stream.copy()
-            hot_stream.vle(T = T_hot_in, P = hot_stream.P)
+            if hot_stream.T != T_hot_in: hot_stream.vle(T = T_hot_in, P = hot_stream.P)
             if abs(T_hot_in - pinch_T_arr[hot])<= 0.01:
                 continue
             ID = 'HX_%s_%s_hs'%(cold, hot)
@@ -436,9 +435,9 @@ def synthesize_network(hus, T_min_app=5.):
                 if (Q_cold_side[hot][0]=='cool' and Q_cold_side[hot][1]>0 and
                         T_hot_in - T_cold_in >= T_min_app):
                     hot_stream = original_hot_stream.copy()
-                    hot_stream.vle(T = T_hot_in, P = hot_stream.P)
+                    if hot_stream.T != T_hot_in: hot_stream.vle(T = T_hot_in, P = hot_stream.P)
                     cold_stream = original_cold_stream.copy()
-                    cold_stream.vle(T = T_cold_in, P = cold_stream.P)
+                    if cold_stream.T != T_cold_in: cold_stream.vle(T = T_cold_in, P = cold_stream.P)
                     if abs(T_transient_cold_side[cold] - pinch_T_arr[cold])<= 0.01:
                         continue
                     ID = 'HX_%s_%s_cs'%(hot, cold)
@@ -474,9 +473,9 @@ def synthesize_network(hus, T_min_app=5.):
                 if (Q_hot_side[cold][0]=='heat' and Q_hot_side[cold][1]>0 and
                         T_hot_in - T_cold_in>= T_min_app):                    
                     cold_stream = original_cold_stream.copy()
-                    cold_stream.vle(T = T_cold_in, P = cold_stream.P)                        
+                    if cold_stream.T != T_cold_in: cold_stream.vle(T = T_cold_in, P = cold_stream.P)                        
                     hot_stream = original_hot_stream.copy()
-                    hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)                        
+                    if hot_stream.T != T_hot_in: hot_stream.vle(T = T_transient_hot_side[hot], P = hot_stream.P)                        
                     if abs(T_hot_in - pinch_T_arr[hot])<= 0.01:
                         continue                        
                     ID = 'HX_%s_%s_hs'%(cold, hot)
@@ -505,14 +504,13 @@ def synthesize_network(hus, T_min_app=5.):
     # Add final utility HXs
     new_HX_utils = []    
     for hot in hot_indices:
-        new_HX_util = None
         T_transient_hot_actual = get_T_min_from_life_cycle(hot, HXs_cold_side+HXs_hot_side)
         # if T_transient_cold_side[hot] > T_out_arr[hot]:
         # if T_transient_hot_actual > T_out_arr[hot]:
         original_hot_stream = streams[hot]
         hot_stream = original_hot_stream.copy()
         # hot_stream.vle(T = T_transient_cold_side[hot], P = hot_stream.P)
-        hot_stream.vle(T = T_transient_hot_actual, P = hot_stream.P)
+        if hot_stream.T != T_transient_hot_actual: hot_stream.vle(T = T_transient_hot_actual, P = hot_stream.P)
         ID = 'Util_%s_cs'%(hot)
         hot_stream.ID = 's_%s__%s'%(hot,ID)
         outsID = '%s__s_%s'%(ID,hot)
@@ -548,7 +546,7 @@ def synthesize_network(hus, T_min_app=5.):
         original_cold_stream = streams[cold]
         cold_stream = original_cold_stream.copy()
         # cold_stream.vle(T = T_transient_hot_side[cold], P = cold_stream.P)
-        cold_stream.vle(T = T_transient_cold_actual, P = cold_stream.P)
+        if cold_stream.T != T_transient_cold_actual: cold_stream.vle(T = T_transient_cold_actual, P = cold_stream.P)
         ID = 'Util_%s_hs'%(cold)
         cold_stream.ID = 's_%s__%s'%(cold,ID)
         outsID = '%s__s_%s'%(ID,cold)
