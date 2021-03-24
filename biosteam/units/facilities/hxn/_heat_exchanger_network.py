@@ -134,10 +134,10 @@ class HeatExchangerNetwork(Facility):
         bst.main_flowsheet.set_flowsheet(HXN_ID)
         self.HXN_flowsheet = HXN_F = bst.main_flowsheet
         for i in HXN_F.registries: i.clear()
-        matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, actual_heat_util_load,\
-        actual_cool_util_load, HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
+        matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables,\
+        HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
         T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-        hot_indices, cold_indices, original_heat_util_load, original_cool_util_load = \
+        hot_indices, cold_indices = \
         synthesize_network(hx_utils, T_min_app=self.T_min_app)
         original_purchase_costs= [hx.purchase_cost for hx in hxs]
         original_installed_costs = [hx.installed_cost for hx in hxs]
@@ -184,7 +184,8 @@ class HeatExchangerNetwork(Facility):
                 s_out = unit.outs[i.index]
         self.stream_life_cycles_final = stream_life_cycles
         self.HXN_sys = sys = bst.System.from_units(None, all_units)
-        sys._converge()
+        try: sys._converge()
+        except: pass
         for u in sys.units: 
             u._design()
             u._cost()
@@ -231,10 +232,13 @@ class HeatExchangerNetwork(Facility):
         self.pinch_Ts = pinch_T_arr
         self.inlet_Ts = T_in_arr
         self.outlet_Ts = T_out_arr
-        self.original_heat_util_load = original_heat_util_load
-        self.original_cool_util_load = original_cool_util_load
-        self.actual_heat_util_load = actual_heat_util_load
-        self.actual_cool_util_load = actual_cool_util_load
+        new_hus = bst.process_tools.heat_exchanger_utilities_from_units(new_HX_utils)
+        hus_heating = [hu for hu in hx_utils if hu.duty > 0]
+        hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
+        self.original_heat_util_load = sum([hu.duty for hu in hus_heating])
+        self.original_cool_util_load = sum([abs(hu.duty) for hu in hus_cooling])
+        self.actual_heat_util_load = sum([hu.duty for hu in new_hus if hu.duty>0])
+        self.actual_cool_util_load = sum([abs(hu.duty) for hu in new_hus if hu.duty<0])
         bst.main_flowsheet.set_flowsheet(original_flowsheet)
         for i in range(len(stream_life_cycles)):
             s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
@@ -242,10 +246,7 @@ class HeatExchangerNetwork(Facility):
             s_lc = lc.unit.outs[lc.index]
             np.testing.assert_allclose(s_util.mol, s_lc.mol)
             np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3)
-            try:
-                np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3)
-            except:
-                breakpoint()
+            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3)
             
     @property
     def installed_cost(self):
