@@ -519,7 +519,7 @@ def synthesize_network(hus, T_min_app=5.):
         stream_HXs_dict[hot].append(new_HX_util)
             
     for cold in cold_indices:
-        cold_stream = get_stream_at_H_max(cold).copy()
+        cold_stream = get_hottest_stream_from_life_cycle(cold).copy()
         ID = 'Util_%s_hs'%(cold)
         cold_stream.ID = 's_%s__%s'%(cold,ID)
         outsID = '%s__s_%s'%(ID,cold)
