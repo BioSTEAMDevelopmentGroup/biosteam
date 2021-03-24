@@ -32,6 +32,7 @@ from .design_tools.specification_factors import  (
 from .design_tools import column_design as design
 from .design_tools.vacuum import compute_vacuum_system_power_and_cost
 from .. import Unit
+from .splitting import FakeSplitter
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
@@ -172,6 +173,7 @@ class Distillation(Unit, isabstract=True):
                 vacuum_system_preference='Liquid-ring pump',
                 condenser_thermo=None,
                 boiler_thermo=None,
+                partial_condenser=True,
         ):
         Unit.__init__(self, ID, ins, outs, thermo)
         
@@ -180,6 +182,7 @@ class Distillation(Unit, isabstract=True):
         self.P = P
         self.Rmin = Rmin
         self.LHK = LHK
+        self._partial_condenser = partial_condenser
         self._set_distillation_product_specifications(product_specification_format,
                                                       x_bot, y_top, Lr, Hr)
         
@@ -204,16 +207,32 @@ class Distillation(Unit, isabstract=True):
         
         #: [HXutility] Condenser.
         if not condenser_thermo: condenser_thermo = thermo
-        self.condenser = HXutility(None,
-                                   ins=tmo.Stream(None, phase='g', thermo=condenser_thermo),
-                                   outs=tmo.MultiStream(None, thermo=condenser_thermo),
-                                   thermo=condenser_thermo)
+        if partial_condenser:
+            self.condenser = HXutility(None,
+                                       ins=tmo.Stream(None, phase='g', thermo=condenser_thermo),
+                                       outs=tmo.MultiStream(None, thermo=condenser_thermo),
+                                       thermo=condenser_thermo)
+            self.condensate = self.condenser.outs[0]['l']
+            self.distillate = self.condenser.outs[0]['g']
+        else:
+            self.condenser = HXutility(None,
+                                       ins=tmo.Stream(None, phase='g', thermo=condenser_thermo),
+                                       outs=tmo.Stream(None, thermo=condenser_thermo),
+                                       thermo=condenser_thermo)
+            self.splitter = FakeSplitter(None,
+                                         ins = self.condenser-0,
+                                         outs=[tmo.Stream(None, thermo=condenser_thermo),
+                                               tmo.Stream(None, thermo=condenser_thermo)])
+            self.distillate = self.splitter-0
+            self.condensate = self.splitter-1
+        
         #: [HXutility] Boiler.
         if not boiler_thermo: boiler_thermo = thermo
         self.boiler = HXutility(None,
                                 ins=tmo.Stream(None, thermo=boiler_thermo),
                                 outs=tmo.MultiStream(None, thermo=boiler_thermo),
                                 thermo=boiler_thermo)
+        self.boilup = self.boiler.outs[0]['g']  
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
         self.reset_cache() # Abstract method
     
@@ -229,14 +248,7 @@ class Distillation(Unit, isabstract=True):
         else:
             raise AttributeError("product specification format must be either "
                                  "'Composition' or 'Recovery'")
-        self._product_specification_format = spec
-    
-    @property
-    def condensate(self):
-        return self.condenser.outs[0]['l']
-    @property
-    def boilup(self):
-        return self.boiler.outs[0]['g']    
+        self._product_specification_format = spec  
     
     @property
     def LHK(self):
@@ -537,19 +549,23 @@ class Distillation(Unit, isabstract=True):
     
     def _update_distillate_and_bottoms_temperature(self):
         distillate, bottoms_product = self.outs
-        condenser_distillate = self.condenser.outs[0]['g']
+        condenser_distillate = self.distillate
         reboiler_bottoms_product = self.boiler.outs[0]['l']
         condenser_distillate.copy_like(distillate)
         reboiler_bottoms_product.copy_like(bottoms_product)
-        self._condensate_dew_point = dp = condenser_distillate.dew_point_at_P()
         self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P()
         bottoms_product.T = bp.T
-        distillate.T = dp.T
-    
+        if self._partial_condenser: 
+            self._condenser_operation = p = condenser_distillate.dew_point_at_P()
+        else:
+            self._condenser_operation = p = condenser_distillate.bubble_point_at_P()
+        self.condenser.T = self.condensate.T = condenser_distillate.T = distillate.T = p.T
+        self.condenser.P = self.condensate.P = condenser_distillate.P = distillate.P = p.P
+            
     def _setup(self):
         distillate, bottoms_product = self.outs
-        self.boiler.ins[0].P = self.condenser.ins[0].P = self.feed.P = distillate.P = bottoms_product.P = self.P
-        distillate.phase = 'g'
+        self.boiler.ins[0].P = self.condenser.ins[0].P = self.condenser.outs[0].P = self.feed.P = distillate.P = bottoms_product.P = self.P
+        distillate.phase = 'g' if self._partial_condenser else 'l'
         bottoms_product.phase = 'l'
 
     def get_feed_quality(self):
@@ -578,22 +594,22 @@ class Distillation(Unit, isabstract=True):
         R = self.design_results['Reflux']
         
         # Set condenser conditions
-        condenser.outs[0].imol['g'] = distillate.mol
+        self.distillate.mol[:] = distillate.mol
         self._F_mol_distillate = F_mol_distillate = distillate.F_mol
         self._F_mol_condensate = F_mol_condensate = R * F_mol_distillate
-        dp = self._condensate_dew_point
-        condensate_x_mol = dp.x
+        p = self._condenser_operation
         condensate = self.condensate
         condensate.empty()
-        condensate.imol[dp.IDs] = condensate_x_mol * F_mol_condensate
-        condensate.T = dp.T
-        condensate.P = dp.P
+        condensate.imol[p.IDs] = p.x * F_mol_condensate
+        condensate.T = p.T
+        condensate.P = p.P
         vap = condenser.ins[0]
         vap.mol = distillate.mol + condensate.mol
         vap_T = vap.dew_point_at_P().T
-        if vap_T < dp.T: vap_T = dp.T + 0.1
+        if vap_T < p.T: vap_T = p.T + 0.1
         vap.T = vap_T
         vap.P = distillate.P
+        if not self._partial_condenser: self.splitter.ins[0].mix_from(self.splitter.outs)
         
         # Set boiler conditions
         boiler.outs[0].imol['l'] = bottoms_product.mol
@@ -686,7 +702,7 @@ class Distillation(Unit, isabstract=True):
         V = L*(R+1)/R
         vap = self.condenser.ins[0]
         V_vol = vap.get_total_flow('m^3/s')
-        rho_V = distillate.rho
+        rho_V = vap.rho
         F_LV = design.compute_flow_parameter(L, V, rho_V, rho_L)
         C_sbf = design.compute_max_capacity_parameter(TS, F_LV)
         F_F = self._F_F
@@ -1622,10 +1638,10 @@ class ShortcutColumn(Distillation, new_graphics=False):
         IDs = self._IDs_vle
         z_distillate = distillate.get_normalized_mol(IDs)
         z_bottoms = bottoms.get_normalized_mol(IDs)
-        dp = dew_point(z_distillate, P=self.P)
+        dp = (dew_point if self._partial_condenser else bubble_point)(z_distillate, P=self.P)
         bp = bubble_point(z_bottoms, P=self.P)
-        K_distillate = compute_partition_coefficients(dp.z, dp.x)
-        K_bottoms = compute_partition_coefficients(bp.y, bp.z)
+        K_distillate = compute_partition_coefficients(dp.y, dp.x)
+        K_bottoms = compute_partition_coefficients(bp.y, bp.x)
         HK_index = self._LHK_vle_index[1]
         alpha_mean = compute_mean_volatilities_relative_to_heavy_key(K_distillate,
                                                                      K_bottoms,

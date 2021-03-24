@@ -458,11 +458,7 @@ class HXutility(HX):
         outlet = self.outs[0] 
         T_in = inlet.T
         T_out = outlet.T
-        try:
-            self.heat_utilities[0](duty, T_in, T_out)
-        except:
-            inlet.vle(H=duty, P=inlet.P)
-            self.heat_utilities[0](duty, T_in, T_out)
+        self.heat_utilities[0](duty, T_in, T_out)
         self.Q = duty
         super()._design()
 
