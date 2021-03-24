@@ -462,6 +462,7 @@ class HXutility(HX):
             self.heat_utilities[0](duty, T_in, T_out)
         except:
             inlet.vle(H=duty, P=inlet.P)
+            self.heat_utilities[0](duty, T_in, T_out)
         self.Q = duty
         super()._design()
 
