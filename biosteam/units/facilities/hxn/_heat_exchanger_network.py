@@ -71,41 +71,37 @@ class HeatExchangerNetwork(Facility):
     >>> HXN.simulate()
     >>> # See all results
     >>> round(HXN.actual_heat_util_load/HXN.original_heat_util_load, 2)
-    >>> 0.92
+    >>> 0.88
     >>> abs(HXN.energy_balance_percent_error) < 0.01
     True
     >>> HXN.stream_life_cycles
     [<StreamLifeCycle: Stream_0, cold
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_3_hs>, H_in = 5.91e+06 kJ, H_out = 2.33e+07 kJ>
-     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 2.33e+07 kJ, H_out = 4.36e+07 kJ>
-     		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.36e+07 kJ, H_out = 7.11e+07 kJ>
+     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 5.91e+06 kJ, H_out = 4.25e+07 kJ>
+     		<LifeStage: <HXutility: Util_0_hs>, H_in = 4.25e+07 kJ, H_out = 7.11e+07 kJ>
      	]>,
      <StreamLifeCycle: Stream_1, cold
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 0 kJ, H_out = 2.46e+04 kJ>
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 2.46e+04 kJ, H_out = 2.46e+04 kJ>
-     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.46e+04 kJ, H_out = 2.46e+04 kJ>
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 2.46e+04 kJ, H_out = 2.18e+07 kJ>
-     		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.18e+07 kJ, H_out = 4.6e+08 kJ>
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 0 kJ, H_out = 3.35e+04 kJ>
+     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.35e+04 kJ, H_out = 5.54e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 5.54e+06 kJ, H_out = 2.47e+07 kJ>
+     		<LifeStage: <HXutility: Util_1_hs>, H_in = 2.47e+07 kJ, H_out = 4.6e+08 kJ>
      	]>,
      <StreamLifeCycle: Stream_2, hot
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 2.49e+07 kJ>
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 2.49e+07 kJ, H_out = 3.09e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 3.09e+06 kJ, H_out = 3.07e+06 kJ>
-     		<LifeStage: <HXutility: Util_2_cs>, H_in = 3.07e+06 kJ, H_out = 1.14e+06 kJ>
+     		<LifeStage: <HXprocess: HX_0_2_hs>, H_in = 4.52e+07 kJ, H_out = 8.6e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_2_hs>, H_in = 8.6e+06 kJ, H_out = 3.1e+06 kJ>
+     		<LifeStage: <HXutility: Util_2_cs>, H_in = 3.1e+06 kJ, H_out = 1.14e+06 kJ>
      	]>,
      <StreamLifeCycle: Stream_3, hot
      	life_cycle = [
-     		<LifeStage: <HXprocess: HX_0_3_hs>, H_in = 2.18e+07 kJ, H_out = 4.42e+06 kJ>
-     		<LifeStage: <HXutility: Util_3_cs>, H_in = 4.42e+06 kJ, H_out = 2.6e+06 kJ>
-     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.6e+06 kJ, H_out = 2.6e+06 kJ>
+     		<LifeStage: <HXprocess: HX_1_3_hs>, H_in = 2.18e+07 kJ, H_out = 2.6e+06 kJ>
+     		<LifeStage: <HXutility: Util_3_cs>, H_in = 2.6e+06 kJ, H_out = 2.6e+06 kJ>
      	]>,
      <StreamLifeCycle: Stream_4, hot
      	life_cycle = [
+     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.49e+05 kJ, H_out = 7.15e+05 kJ>
      		<LifeStage: <HXutility: Util_4_cs>, H_in = 7.15e+05 kJ, H_out = 7.15e+05 kJ>
-     		<LifeStage: <HXprocess: HX_1_4_hs>, H_in = 7.15e+05 kJ, H_out = 7.15e+05 kJ>
      	]>]
         
     """
