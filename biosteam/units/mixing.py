@@ -160,11 +160,10 @@ class SteamMixer(Unit):
     def _run(self):
         steam = self.ins[1]
         steam_mol = steam.F_mol
-        steam_mol = flx.aitken_secant(self.pressure_objective_function,
-                                      steam_mol, steam_mol+0.1, 
-                                      1e-2, 1e-4, 
-                                      maxiter=500,
-                                      checkroot=False)
+        f = self.pressure_objective_function
+        steam_mol = flx.IQ_interpolation(f, *flx.find_bracket(f, 0., steam_mol, None, None), 
+                                         xtol=1e-2, ytol=1e-4, 
+                                         maxiter=500, checkroot=False)
         
     def _design(self): 
         steam = self.ins[1]
