@@ -899,13 +899,13 @@ class System:
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
         self._iter += 1
-        if (mol_error < self.molar_tolerance
-            or rmol_error < self.relative_molar_tolerance
-            and T_error < self.temperature_tolerance
-            and rT_error < self.relative_temperature_tolerance):
-            not_converged = False
-        else:
-            not_converged = True
+        not_converged = not (
+            (mol_error < self.molar_tolerance
+             or rmol_error < self.relative_molar_tolerance)
+            and
+            (T_error < self.temperature_tolerance
+             or rT_error < self.relative_temperature_tolerance)
+        )
         if not_converged and self._iter >= self.maxiter:
             if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             else: not_converged = False
