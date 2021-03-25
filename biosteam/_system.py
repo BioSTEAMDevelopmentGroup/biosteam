@@ -886,7 +886,6 @@ class System:
         self._run()
         mol_new = self._get_recycle_data()
         T_new = self._get_recycle_temperatures()
-        molar_tolerance = self.molar_tolerance
         mol_errors = np.abs(mol - mol_new)
         positive_index = mol_errors > 1e-16
         mol_errors = mol_errors[positive_index]
@@ -900,8 +899,8 @@ class System:
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
         self._iter += 1
-        if (mol_error < molar_tolerance
-            and rmol_error < self.relative_molar_tolerance
+        if (mol_error < self.molar_tolerance
+            or rmol_error < self.relative_molar_tolerance
             and T_error < self.temperature_tolerance
             and rT_error < self.relative_temperature_tolerance):
             not_converged = False
