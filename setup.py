@@ -15,7 +15,7 @@ setup(
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
-    install_requires=['IPython>=7.9.0', 'biorefineries>=2.19.3',
+    install_requires=['IPython>=7.9.0', 'biorefineries>=2.19.4',
                       'thermosteam>=0.24.7', 'graphviz>=0.8.3',
                       'chaospy>=3.3.9'],
     package_data=
