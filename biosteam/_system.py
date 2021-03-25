@@ -1018,6 +1018,8 @@ class System:
                 converge_system_in_path(i)
                 i._summary()
             else: i() # Assume it is a function
+        for i in self._facilities:
+            if isa(i, bst.BoilerTurbogenerator): simulate_unit(i)
 
     def _reset_iter(self):
         self._iter = 0
