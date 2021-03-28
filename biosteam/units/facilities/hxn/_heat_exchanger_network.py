@@ -143,35 +143,9 @@ class HeatExchangerNetwork(Facility):
         self.new_HX_utils = new_HX_utils
         self.streams = streams
         stream_life_cycles = self.get_stream_life_cycles()
-        for life_cycle in stream_life_cycles:
-            stages = life_cycle.life_cycle
-            stream = life_cycle.index
-            if stream not in cold_indices:
-                for i in range(len(stages) - 1):
-                    stage = stages[i]
-                    hxn_unit = stage.unit
-                    if hxn_unit.ID == 'Util_%s_hs'%stream:
-                        new_HX_utils.remove(hxn_unit)
-                        stream_in_at_stage = hxn_unit.ins[0]
-                        
-                        next_stage_unit = stages[i+1].unit
-                        next_stage_unit_ID = next_stage_unit.ID
-                        pointer = 1
-                        if 'HX_%s_'%stream in next_stage_unit_ID\
-                            or 'Util_%s_'%stream in next_stage_unit_ID:
-                            pointer = 0
-                        # try:
-                        #     next_stage_unit.ins[pointer].vle(stream_in_at_stage.T, stream_in_at_stage.P)
-                        #     next_stage_unit.simulate()
-                        #     stages.remove(stage)
-                        # except:
-                        # next_stage_unit.ins[pointer].T = stream_in_at_stage.T
-                        next_stage_unit.ins[pointer].copy_like(stream_in_at_stage)
-                        # next_stage_unit.ins[pointer].H = stream_in_at_stage.H
-                        next_stage_unit.simulate()
-                        stages.remove(stage)
-                        break
         all_units = new_HXs + new_HX_utils
+        IDs = set([i.ID for i in all_units])
+        assert len(all_units) == len(IDs)
         for life_cycle in self.get_stream_life_cycles():
             s_out = None
             for i in life_cycle.life_cycle:

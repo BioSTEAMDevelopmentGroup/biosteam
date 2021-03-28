@@ -43,6 +43,7 @@ class PathSource:
                            f'not a {type(source).__name__} object')
             
     def downstream_from(self, other):
+        if self is other: return False
         source = self.source
         if isinstance(source, bst.Unit):
             return source in other.units
@@ -229,7 +230,7 @@ class Network:
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
-        for i in range(50):
+        for i in range(N * N):
             stop = True
             for i in range(N - 1):
                 upstream_source = path_sources[i]
@@ -238,9 +239,13 @@ class Network:
                     if upstream_source.downstream_from(downstream_source): 
                         path_sources.remove(downstream_source)
                         path_sources.insert(i, downstream_source)
+                        upstream_source = downstream_source
                         stop = False
-            if stop: break
-        self.path = [i.source for i in path_sources]
+            if stop: 
+                self.path = [i.source for i in path_sources]
+                return
+        raise RuntimeError('network path could not be determined')
+            
     
     @classmethod
     def from_feedstock(cls, feedstock, feeds=(), ends=None):
