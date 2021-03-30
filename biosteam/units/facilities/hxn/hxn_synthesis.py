@@ -522,8 +522,8 @@ def synthesize_network(hus, T_min_app=5.):
                                           thermo = hot_stream.thermo)
         new_HX_util._run()
         s_out = new_HX_util-0
-        np.testing.assert_allclose(s_out.H, H_out_arr[hot], rtol=5e-3)
-        np.testing.assert_allclose(s_out.T, T_out_arr[hot], rtol=5e-3)
+        np.testing.assert_allclose(s_out.H, H_out_arr[hot], rtol=5e-3, atol=1.)
+        np.testing.assert_allclose(s_out.T, T_out_arr[hot], rtol=5e-3, atol=0.001)
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[hot].append(new_HX_util)
             
@@ -537,8 +537,8 @@ def synthesize_network(hus, T_min_app=5.):
                                           thermo = cold_stream.thermo)
         new_HX_util._run()
         s_out = new_HX_util-0
-        np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-2)
-        np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=1e-2)
+        np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-2, atol=1.)
+        np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=1e-2, atol=0.001)
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[cold].append(new_HX_util)
             

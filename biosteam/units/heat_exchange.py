@@ -470,7 +470,18 @@ class HXutility(HX):
         outlet = self.outs[0] 
         T_in = inlet.T
         T_out = outlet.T
-        self.heat_utilities[0](duty, T_in, T_out)
+        iscooling = duty < 0.
+        if any(['gl' in i.phase for i in (inlet, outlet)]):
+            if iscooling:
+                if T_out > T_in: T_in = T_out
+            else:
+                if T_out < T_in: T_out = T_in
+        try:
+            self.heat_utilities[0](duty, T_in, T_out)
+        except:
+            inlet.show()
+            outlet.show()
+            breakpoint()
         self.Q = duty
         super()._design()
 

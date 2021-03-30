@@ -215,8 +215,8 @@ class HeatExchangerNetwork(Facility):
             lc = stream_life_cycles[i].life_cycle[-1]
             s_lc = lc.unit.outs[lc.index]
             np.testing.assert_allclose(s_util.mol, s_lc.mol)
-            np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3)
-            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3)
+            np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             
     @property
     def installed_cost(self):

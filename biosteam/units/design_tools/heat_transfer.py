@@ -138,11 +138,17 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
                                                T_lim_hotside, phase_hotside,
                                                H_lim_hotside, heating=True)
     
-    if Q_hot_stream == Q_cold_stream == 0.: return 0.
+    if Q_hot_stream == Q_cold_stream == 0.:
+        s0_out.copy_like(s0_in)
+        s1_in.copy_like(s1_out)
+        return 0.
     
     if Q_hot_stream > 0 or Q_cold_stream < 0:
         # Sanity check
-        if Q_hot_stream / s_hot_in.C < 0.1 or Q_cold_stream / s_cold_in.C > -0.1: return 0.
+        if Q_hot_stream / s_hot_in.C < 0.1 or Q_cold_stream / s_cold_in.C > -0.1:
+            s0_out.copy_like(s0_in)
+            s1_in.copy_like(s1_out)
+            return 0.
         raise RuntimeError('inlet stream not in vapor-liquid equilibrium')
     
     if Q_cold_stream < -Q_hot_stream:
