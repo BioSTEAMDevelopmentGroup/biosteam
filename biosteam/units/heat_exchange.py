@@ -400,7 +400,8 @@ class HXutility(HX):
                 else:
                     try:
                         outlet.vle(T=T, P=outlet.P)
-                    except:
+                    except RuntimeError as e:
+                        if len(outlet.phases) > 1: raise e
                         T_bubble = outlet.bubble_point_at_P().T
                         if T <= T_bubble:
                             outlet.phase = 'l'

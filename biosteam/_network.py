@@ -237,6 +237,10 @@ class Network:
                 for j in range(i + 1, N):
                     downstream_source = path_sources[j]
                     if upstream_source.downstream_from(downstream_source): 
+                        assert not downstream_source.downstream_from(upstream_source), (
+                            'recycle system encountered in network sorting algorithm; '
+                            'please report problem to the biosteam bugtracker'
+                        )
                         path_sources.remove(downstream_source)
                         path_sources.insert(i, downstream_source)
                         upstream_source = downstream_source

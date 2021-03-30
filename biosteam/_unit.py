@@ -623,7 +623,7 @@ class Unit:
         for s in self._outs:
             u_sink = s._sink
             if not u_sink: continue
-            if not ends or s in ends:
+            if not ends or s not in ends:
                 set.add(u_sink)
 
     def get_downstream_units(self, ends=None):
