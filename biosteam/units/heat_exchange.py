@@ -398,7 +398,18 @@ class HXutility(HX):
                 if outlet.isempty():
                     outlet.T = T
                 else:
-                    outlet.vle(T=T, P=outlet.P)
+                    try:
+                        outlet.vle(T=T, P=outlet.P)
+                    except:
+                        T_bubble = outlet.bubble_point_at_P().T
+                        if T <= T_bubble:
+                            outlet.phase = 'l'
+                        else:
+                            T_dew = outlet.dew_point_at_P().T
+                            if T_dew >= T:
+                                outlet.phase = 'g'
+                            else:
+                                raise RuntimeError('outlet in vapor-liquid equilibrium, but stream is linked')
             else:
                 outlet.vle(H=H, P=outlet.P)
         else:
