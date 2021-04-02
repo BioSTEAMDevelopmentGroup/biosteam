@@ -403,6 +403,7 @@ class MixTank(Tank):
 
     """
     _N_ins = 2
+    _ins_size_is_fixed = False
     _run = Mixer._run
     _default_vessel_type = 'Conventional'
     _default_tau = 1

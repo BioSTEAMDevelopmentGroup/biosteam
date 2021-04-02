@@ -12,8 +12,7 @@ from .splitting import Splitter
 
 __all__ = ('VibratingScreen',)
 
-@cost('Area', units='ft^2', ub=200, CE=567, cost=1010, n=0.91, BM=1.73, N='Number of screens',
-      fsize=lambda self, _: self.ins[0].F_mass/(self.capacity*self.mesh_opening))
+@cost('Area', ub=200, CE=567, cost=1010, n=0.91, BM=1.73, N='Number of screens')
 class VibratingScreen(Splitter):
     # Assume 3-deck vibrating screen
     
@@ -22,3 +21,8 @@ class VibratingScreen(Splitter):
     
     #: Mesh opening (mm)
     mesh_opening = 8
+    
+    _units = {'Area': 'ft^2'}
+    
+    def _design(self):
+        self.design_results['Area'] = self.ins[0].F_mass/(self.capacity*self.mesh_opening)

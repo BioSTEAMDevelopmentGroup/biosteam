@@ -52,7 +52,7 @@ class DesignCenter:
         functions[name] = design_basis
         return design_basis
     
-    def __call__(self, name, units, fsize=None):    
+    def __call__(self, name, units):    
         """
         Return a Unit class decorator that adds a size/design requirement to the class.
         
@@ -62,14 +62,11 @@ class DesignCenter:
             Name of design item            
         units : str
             Units of measure of design item.            
-        fsize : function
-            Should return design item given the Unit object.
-            If None, defaults to function predefined for given name and units.
         
         """
-        return lambda cls: self.add_design_basis_to_cls(cls, name, units, fsize)
+        return lambda cls: self.add_design_basis_to_cls(cls, name, units)
     
-    def add_design_basis_to_cls(self, cls, name, units, fsize=None):
+    def add_design_basis_to_cls(self, cls, name, units):
         """
         Add size/design requirement to class.
         
@@ -79,10 +76,7 @@ class DesignCenter:
         name : str
             Name of design item.        
         units : str
-            Units of measure of design item.        
-        fsize : function
-            Should return design item given the Unit object.
-            If None, defaults to function predefined for given name and units.
+            Units of measure of design item.
             
         Examples
         --------
@@ -90,7 +84,7 @@ class DesignCenter:
         :doc:`Unit decorators`
         
         """
-        f = fsize or self.design_basis_functions[name.capitalize()]
+        f = self.design_basis_functions[name.capitalize()]
         
         # Make sure design basis is not defined
         if name in cls._units:

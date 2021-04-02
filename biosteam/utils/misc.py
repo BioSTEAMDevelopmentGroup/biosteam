@@ -15,7 +15,8 @@ from math import ceil
 
 __all__ = ('factor', 'checkbounds', 'strtuple',
            'format_title', 'format_unit_name',
-           'remove_undefined_chemicals', 'subgroup',
+           'remove_undefined_chemicals',
+           'default_chemical_dict', 'subgroup',
            'repr_subgroups', 'repr_items')
 
 # %% Number functions
@@ -94,3 +95,15 @@ def repr_items(start, items, subgroup_size=5, brackets=None):
 def remove_undefined_chemicals(data: dict, chemicals: Chemicals):
     for i in tuple(data):
         if i not in chemicals: del data[i]
+
+def default_chemical_dict(dct, chemicals, g, l, s, n=None):
+    if n is None: n = l
+    for i in chemicals:
+        ID = i.ID
+        if ID not in dct:
+            locked_state = i.locked_state
+            if locked_state == 'g': dct[ID] = g
+            elif locked_state == 'l': dct[ID] = l
+            elif locked_state == 's': dct[ID] = s
+            elif locked_state is None: dct[ID] = n
+            else: raise RuntimeError(f"unknown locked state '{locked_state}' of chemical '{i}'")

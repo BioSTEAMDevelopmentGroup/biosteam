@@ -6,7 +6,8 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for the separation of solids.
+This module contains unit operations for the separation of solids 
+(e.g. centrifugation, expression, filtration).
 
 .. contents:: :local:
     
@@ -16,6 +17,7 @@ Unit operations
 .. autoclass:: biosteam.units.solids_separation.SolidsCentrifuge
 .. autoclass:: biosteam.units.solids_separation.RotaryVacuumFilter 
 .. autoclass:: biosteam.units.solids_separation.PressureFilter
+.. autoclass:: biosteam.units.solids_separation.ScrewPress
 
 """
 from .decorators import cost
@@ -24,13 +26,15 @@ from .design_tools import compute_vacuum_system_power_and_cost
 from warnings import warn
 from ..utils.unit_warnings import lb_warning
 from .decorators import cost
-from biosteam.utils import remove_undefined_chemicals
+from biosteam.utils import remove_undefined_chemicals, default_chemical_dict
 import numpy as np
 import biosteam as bst
 from thermosteam import separations
+from math import exp, log
 
 __all__ = ('SolidsSeparator', 'RotaryVacuumFilter', 'CrushingMill', 
-           'PressureFilter', 'SolidsCentrifuge', 'RVF')
+           'PressureFilter', 'SolidsCentrifuge', 'RVF',
+           'ScrewPress',)
 
 class SolidsSeparator(Splitter):
     """
@@ -82,7 +86,7 @@ class SolidsCentrifuge(SolidsSeparator):
     outs : stream sequence
         * [0] Solids-rich stream.
         * [1] Liquid-rich stream.
-    split: array_like
+    split : array_like or dict[str, float]
            Component splits.
     order=None : Iterable[str]
         Species order of split. Defaults to Stream.chemicals.IDs.
@@ -141,6 +145,8 @@ class RotaryVacuumFilter(SolidsSeparator):
     outs : stream sequence 
         * [0] Retentate
         * [1] Permeate
+    split : array_like or dict[str, float]
+           Component splits.
     moisture_content : float
                        Fraction of water in retentate.
     
@@ -238,6 +244,8 @@ class CrushingMill(SolidsSeparator):
     outs : stream sequence 
         * [0] Bagasse
         * [1] Juice
+    split : array_like or dict[str, float]
+        Splits of chemicals to the bagasse.
     moisture_content : float
                        Fraction of water in Baggasse.
     
@@ -286,11 +294,11 @@ class PressureFilter(SolidsSeparator):
     outs : stream sequence
         * [0] Retentate (i.e. solids)
         * [1] Filtrate
-    moisture_content : float, optional
-        Moisture content of retentate. Defaults to 0.35
     split : array_like or dict[str, float]
         Splits of chemicals to the retantate. Defaults to values used in
         the 2011 NREL report on cellulosic ethanol as given in [1]_.
+    moisture_content : float, optional
+        Moisture content of retentate. Defaults to 0.35
     
     References
     ----------
@@ -358,6 +366,28 @@ class PressureFilter(SolidsSeparator):
         bst.SolidsSeparator.__init__(self, ID, ins, outs, thermo, 
                                      moisture_content=moisture_content,
                                      split=split)
+        default_chemical_dict(split, chemicals, 0.03714, 0.03714, 0.9811)
     
     def _design(self):
         self.design_results['Retentate flow rate'] = self.outs[0].F_mass
+
+@cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, kW=0.001,
+      f=lambda S: exp((11.0991 - 0.3580*log(S) + 0.05853*log(S)**2)))
+class ScrewPress(SolidsSeparator):
+    """
+    Create screw press unit operation for the 
+    expression of liquids from solids.
+    
+    Parameters
+    ----------
+    ins : stream sequence
+        * [0] Solids
+    outs : stream sequence 
+        * [0] Liquids
+        * [1] Solids
+    split : array_like or dict[str, float]
+           Component splits.
+    moisture_content : float
+        Fraction of water in solids.
+                       
+    """

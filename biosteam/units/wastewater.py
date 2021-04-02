@@ -44,7 +44,7 @@ References
 from .._unit import Unit
 from .decorators import cost
 from .splitting import Splitter
-from biosteam.utils import remove_undefined_chemicals
+from biosteam.utils import remove_undefined_chemicals, default_chemical_dict
 import biosteam as bst
 import thermosteam as tmo
 from thermosteam import (
@@ -70,16 +70,6 @@ __all__ = (
 non_digestables = ('WWTsludge', 'Cellulose', 'Xylan', 'CellulaseNutrients',
                    'Mannan', 'Lignin', 'Galactan', 'Glucan', 'Acetate',
                    'Biomass', 'Arabinan', 'Tar', 'CO', 'CO2', 'CH4')
-def default_splits(sludge_split, chemicals, g, l, s, n=None):
-    if n is None: n = l
-    for i in chemicals:
-        if i.ID not in sludge_split:
-            locked_state = i.locked_state
-            if locked_state == 'g': return g
-            elif locked_state == 'l': return l
-            elif locked_state == 's': return s
-            elif locked_state is None: return n
-            else: raise RuntimeError(f"unknown locked state '{locked_state}' of chemical '{i}'")
 
 def get_digestable_organic_chemicals(chemicals):
     """
@@ -249,7 +239,7 @@ class AnaerobicDigestion(Unit):
                 Cellulase=0.07084
             )
             remove_undefined_chemicals(sludge_split, chemicals)
-            default_splits(sludge_split, chemicals, 0.07087, 0.07087, 0.744)
+            default_chemical_dict(sludge_split, chemicals, 0.07087, 0.07087, 0.744)
         self.sludge_split = chemicals.isplit(sludge_split)
         self.multi_stream = tmo.MultiStream(thermo=self.thermo)
     
@@ -400,7 +390,7 @@ class SludgeCentrifuge(Splitter):
                 Cellulase=0.935
             )
             remove_undefined_chemicals(split, chemicals)
-            default_splits(split, chemicals, 0.9394, 0.9286, 0.04991)
+            default_chemical_dict(split, chemicals, 0.9394, 0.9286, 0.04991)
         Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
         
 # TODO: Split values seem arbitrary in NREL 2011 model, perhaps work on a better model
@@ -465,7 +455,7 @@ class MembraneBioreactor(Splitter):
                 Cellulase=0.145
             )
             remove_undefined_chemicals(split, chemicals)
-            default_splits(split, chemicals, 0.15, 0.125, 0.145)
+            default_chemical_dict(split, chemicals, 0.15, 0.125, 0.145)
         Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
         
 class ReverseOsmosis(Unit):
