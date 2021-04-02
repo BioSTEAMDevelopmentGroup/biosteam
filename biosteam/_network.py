@@ -34,10 +34,10 @@ class PathSource:
     def __init__(self, source, ends=None):
         self.source = source
         if isinstance(source, bst.Unit):
-            self.units = source.get_downstream_units(ends=ends)
+            self.units = source.get_downstream_units(ends=ends, facilities=False)
         elif isinstance(source, Network):
             self.units = units = set()
-            for i in source.units: units.update(i.get_downstream_units(ends=ends))
+            for i in source.units: units.update(i.get_downstream_units(ends=ends, facilities=False))
         else:
             raise TypeError('source must be a unit or a network; '
                            f'not a {type(source).__name__} object')
@@ -262,9 +262,6 @@ class Network:
             Main feedstock of the process.
         feeds : Iterable[:class:`~thermosteam.Stream`]
             Additional feeds to the process.
-        facilities : Iterable[:class:`~biosteam.Facility`]
-            Offsite facilities that are simulated only after 
-            completing the path simulation.
         ends : Iterable[:class:`~thermosteam.Stream`]
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.

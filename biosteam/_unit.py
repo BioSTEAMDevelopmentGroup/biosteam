@@ -610,27 +610,25 @@ class Unit:
         """All output streams."""
         return self._outs
 
-    def _add_upstream_neighbors_to_set(self, set, ends=None):
+    def _add_upstream_neighbors_to_set(self, set, ends, facilities):
         """Add upsteam neighboring units to set."""
         for s in self._ins:
-            u_source = s._source
-            if not u_source: continue
-            if not ends or s in ends:
-                set.add(u_source)
+            u = s._source
+            if u and (facilities or not isinstance(u, bst.Facility)) and (not ends or s in ends):
+                set.add(u)
 
-    def _add_downstream_neighbors_to_set(self, set, ends=None):
+    def _add_downstream_neighbors_to_set(self, set, ends, facilities):
         """Add downstream neighboring units to set."""
         for s in self._outs:
-            u_sink = s._sink
-            if not u_sink: continue
-            if not ends or s not in ends:
-                set.add(u_sink)
+            u = s._sink
+            if u and (facilities or not isinstance(u, bst.Facility)) and (not ends or s in ends):
+                set.add(u)
 
-    def get_downstream_units(self, ends=None):
+    def get_downstream_units(self, ends=None, facilities=True):
         """Return a set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
-        self._add_downstream_neighbors_to_set(outer_periphery, ends)
+        self._add_downstream_neighbors_to_set(outer_periphery, ends, facilities)
         inner_periphery = None
         old_length = -1
         new_length = 0
@@ -640,15 +638,15 @@ class Unit:
             downstream_units.update(inner_periphery)
             outer_periphery = set()
             for unit in inner_periphery:
-                unit._add_downstream_neighbors_to_set(outer_periphery, ends)
+                unit._add_downstream_neighbors_to_set(outer_periphery, ends, facilities)
             new_length = len(downstream_units)
         return downstream_units
     
-    def get_upstream_units(self, ends=None):
+    def get_upstream_units(self, ends=None, facilities=True):
         """Return a set of all units upstream."""
         upstream_units = set()
         outer_periphery = set()
-        self._add_upstream_neighbors_to_set(outer_periphery, ends)
+        self._add_upstream_neighbors_to_set(outer_periphery, ends, facilities)
         inner_periphery = None
         old_length = -1
         new_length = 0
@@ -658,7 +656,7 @@ class Unit:
             upstream_units.update(inner_periphery)
             outer_periphery = set()
             for unit in inner_periphery:
-                unit._add_upstream_neighbors_to_set(outer_periphery, ends)
+                unit._add_upstream_neighbors_to_set(outer_periphery, ends, facilities)
             new_length = len(upstream_units)
         return upstream_units
     
