@@ -614,14 +614,14 @@ class Unit:
         """Add upsteam neighboring units to set."""
         for s in self._ins:
             u = s._source
-            if u and (facilities or not isinstance(u, bst.Facility)) and (not ends or s in ends):
+            if u and (facilities or not isinstance(u, bst.Facility)) and not (ends and s in ends):
                 set.add(u)
 
     def _add_downstream_neighbors_to_set(self, set, ends, facilities):
         """Add downstream neighboring units to set."""
         for s in self._outs:
             u = s._sink
-            if u and (facilities or not isinstance(u, bst.Facility)) and (not ends or s in ends):
+            if u and (facilities or not isinstance(u, bst.Facility)) and not (ends and s in ends):
                 set.add(u)
 
     def get_downstream_units(self, ends=None, facilities=True):

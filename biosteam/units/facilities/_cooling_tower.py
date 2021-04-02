@@ -10,6 +10,7 @@
 from . import Facility
 from ..decorators import cost
 from ... import HeatUtility
+from thermosteam import Stream
 # from copy import copy
 
 __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
@@ -43,7 +44,8 @@ class CoolingTower(Facility):
     network_priority = 1
     _units = {'Flow rate': 'kmol/hr'}
     _N_heat_utilities = 1
-    _N_outs = _N_ins = 2
+    _N_ins = 3
+    _N_outs = 2 
     evaporation = 0.01
     blowdown = 0.001
     def __init__(self, ID='', agent=None):
@@ -51,9 +53,11 @@ class CoolingTower(Facility):
         self.makeup_water = makeup_water = cooling_water.to_stream('cooling_tower_makeup_water')
         return_cooling_water = cooling_water.to_stream()
         cooling_water = return_cooling_water.flow_proxy()
+        cooling_tower_chemicals = return_cooling_water.copy('cooling_tower_chemicals')
+        cooling_tower_chemicals.price=3 
         loss = makeup_water.flow_proxy()
         loss.ID = 'evaporation_and_blowdown'
-        super().__init__(ID, (return_cooling_water, makeup_water),
+        super().__init__(ID, (return_cooling_water, makeup_water, cooling_tower_chemicals),
                          (cooling_water, loss), thermo=cooling_water.thermo)
         self.cooling_water_utilities = set()
         
@@ -72,7 +76,8 @@ class CoolingTower(Facility):
     def _design(self):
         self._load_utility_agents()
         cwu = self.cooling_water_utilities
-        used = self._ins[0]
+        used, makeup_water, cooling_tower_chemicals = self._ins
+        cooling_tower_chemicals.imass['Water'] = 2 * used.F_mol / 4.4e+05
         hu = self.heat_utilities[0]
         self._load_utility_agents()
         hu.mix_from(cwu)            

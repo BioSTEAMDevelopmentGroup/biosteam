@@ -226,6 +226,19 @@ class Network:
     def __eq__(self, other):
         return isinstance(other, Network) and self.path == other.path
     
+    def get_all_recycles(self, all_recycles=None):
+        if all_recycles is None:
+            all_recycles = set()
+        recycle = self.recycle
+        if recycle:
+            if isinstance(recycle, Stream):
+                all_recycles.add(recycle)
+            else:
+                all_recycles.update(recycle)
+        for i in self.path:
+            if isinstance(i, Network): i.get_all_recycles(all_recycles)
+        return all_recycles
+    
     def sort(self, ends):
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
@@ -268,6 +281,7 @@ class Network:
             
         """
         ends = set(ends) if ends else set()
+        recycle_ends = ends.copy()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
         network, *linear_networks = [Network(i) for i in linear_paths]
@@ -277,7 +291,6 @@ class Network:
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
         isa = isinstance
-        recycle_ends = ends.copy()
         ends.update(network.streams)
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
@@ -298,6 +311,7 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
+        recycle_ends.update(network.get_all_recycles())
         network.sort(recycle_ends)
         return network
     

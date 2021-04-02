@@ -526,18 +526,19 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
     well_water = bst.Stream('well_water', Water=1, T=15+273.15)
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
-                     units='kg/hr', price=NaOH_price*0.5)
+                     units='kg/hr', price=NaOH_price)
     
     wastewater_mixer = bst.Mixer('M601', ins)
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
     anaerobic_digestion = AnaerobicDigestion('R601', (WWTC-0, well_water), (methane, '', '', ''))
     recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None))
     
-    caustic_over_waste = caustic.mol / 2544300.6261793654
-    air_over_waste = air.mol / 2544300.6261793654
+    caustic_over_waste = 2. * caustic.mol / 2544301
+    air_over_waste = air.mol / 2544301
     air.mol[:] = 0.
     waste = recycled_sludge_mixer-0
     def update_aerobic_input_streams():
+        waste, air, caustic = aerobic_digestion.ins
         F_mass_waste = waste.F_mass
         caustic.mol[:] = F_mass_waste * caustic_over_waste
         air.mol[:] = F_mass_waste * air_over_waste
