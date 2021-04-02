@@ -26,10 +26,12 @@ class CostItem:
         Units of measure.
     S : float
         Size.
+    lb : float, optional
+        Lower size bound.
     ub : float
-         Size limit.
+        Upper Size bound.
     CE : float
-         Chemical engineering plant cost index.
+        Chemical engineering plant cost index.
     cost : float
         Purchase cost of item.
     n : float
@@ -40,28 +42,28 @@ class CostItem:
         Attribute name for number of parallel units.
     
     """
-    __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
+    __slots__ = ('_basis', '_units', 'S', 'lb', 'ub', 'CE',
                  'cost', 'n', 'kW', 'N')
-    def __init__(self, basis, units, S, ub, CE, cost, n, kW, N):
-        s = str; f = float; b = bool
-        if N: # Prevent downstream error for common mistakes
-            if isinstance(N, s):
-                self.N = N
-            else:
-                raise ValueError("N parameter must be a string or None; not a "
-                                 "'{type(N).__name__}' object")
-        elif ub:
-            self.N = '#'
+    def __init__(self, basis, units, S, lb, ub, CE, cost, n, kW, N):
+        s = str; f = float
+        if lb is not None: lb = f(lb)
+        if ub is not None: ub = f(ub)
+        if N and not isinstance(N, s): # Prevent downstream error for common mistakes
+            raise ValueError("N parameter must be a string or None; not a "
+                             "'{type(N).__name__}' object")
+        elif ub is not None:
+            N = '#'
         else:
-            self.N = None
+            N = None
         self._basis = s(basis)
         self._units = s(units)
         self.S = f(S)
-        self.ub = f(ub)
+        self.lb = lb
+        self.ub = ub
         self.CE = f(CE)
-        self.cost = f(cost)
+        self.cost = 0. if cost is None else f(cost)
         self.n = f(n)
-        self.kW = f(kW)
+        self.kW = 0. if kW is None else f(kW)
         self.N = N
     
     __getitem__ = object.__getattribute__
@@ -80,12 +82,13 @@ class CostItem:
     def _ipython_display_(self):
         print(f"{type(self).__name__}: {self._basis} ({self._units})\n"
              +f" S     {self.S:.3g}\n"
+            +(f" lb    {self.lb:.3g}\n" if self.lb is not None else "")
              +f" ub    {self.ub:.3g}\n"
              +f" CE    {self.CE:.3g}\n"
              +f" cost  {self.cost:.3g}\n"
              +f" n     {self.n:.3g}\n"
              +f" kW    {self.kW:.3g}\n"
-            +(f" N     '{self.N}'" if self.N else ""))
+            +(f" N     '{self.N}'" if self.N is not None else ""))
     show = _ipython_display_
 
 def _decorated_cost(self):
@@ -94,13 +97,16 @@ def _decorated_cost(self):
     kW = 0
     for i, x in self.cost_items.items():
         S = D[x._basis]
-        if x.ub:
+        if x.lb is not None and S < x.lb:
+            S = x.lb
+        elif x.ub is not None:
             D[x.N or '#' + i] = N = ceil(S/x.ub)
             q = S/x.S
             F = q/N
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
             kW += x.kW*q
-        elif x.N:
+            continue
+        if x.N:
             N = getattr(self, x.N, None) or D[x.N]
             F = S/x.S
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
@@ -135,7 +141,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
         except: pass
     return cls
 
-def cost(basis, ID=None, *, CE, cost, n, S=1., ub=0., kW=0., BM=1.,
+def cost(basis, ID=None, *, CE, cost, n, S=1., lb=None, ub=None, kW=None, BM=1.,
          units=None, N=None, lifetime=None, fsize=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up.
@@ -177,9 +183,9 @@ def cost(basis, ID=None, *, CE, cost, n, S=1., ub=0., kW=0., BM=1.,
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, lifetime, fsize)
+    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, fsize)
 
-def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, lifetime, fsize):
+def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, fsize):
     # Make sure new _units dictionary is defined
     if '_units' not in cls.__dict__:
         cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
@@ -201,12 +207,12 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, N, lifetime, fsi
             raise ValueError("must pass an 'ID' for purchase cost item")
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
-        cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, N)
+        cls.cost_items[ID] = CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N)
         cls._BM[ID] = BM
         if lifetime: cls._equipment_lifetime[ID] = lifetime
     else:
         ID = ID or cls.line
-        cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, N)}
+        cls.cost_items = {ID: CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N)}
         if '_BM' not in cls.__dict__:
             cls._BM = cls._BM.copy() if hasattr(cls, '_BM') else {}
         if '_equipment_lifetime' not in cls.__dict__:

@@ -36,6 +36,7 @@ __all__ = (
     'set_construction_material',
     'set_construction_material_to_stainless_steel',
     'set_construction_material_to_carbon_steel',
+    'get_OSBL',
     'heat_exchanger_operation',
     'default_utilities',
     'default',
@@ -387,6 +388,15 @@ def set_construction_material_to_carbon_steel(units):
     set_construction_material(units, 'Carbon steel', 'Carbon steel', 
                               'Carbon steel', 'Carbon steel/carbon steel', 
                               'Cast iron')
+
+def get_OSBL(units):
+    """
+    Return a list of unit operations that would typically be classified as
+    out-of-boundary-limits, just as storage tanks, cooling towers, and other
+    facilities.
+    
+    """
+    return [i for i in units if isinstance(i, (bst.Facility, bst.StorageTank)) or 'storage' in i.line]
 
 def heat_exchanger_operation(units):
     """

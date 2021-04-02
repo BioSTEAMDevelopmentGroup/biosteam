@@ -230,7 +230,7 @@ class Network:
         path_sources = [PathSource(i, ends) for i in self.path]
         N = len(path_sources)
         if not N: return
-        for i in range(N * N):
+        for _ in range(N * N):
             stop = True
             for i in range(N - 1):
                 upstream_source = path_sources[i]
@@ -280,6 +280,7 @@ class Network:
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
         isa = isinstance
+        recycle_ends = ends.copy()
         ends.update(network.streams)
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
@@ -300,7 +301,7 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
-        network.sort(ends)
+        network.sort(recycle_ends)
         return network
     
     @property

@@ -27,8 +27,6 @@ from ._fermentation import *
 from ._transesterification import *
 from ._enzyme_treatment import *
 from ._clarifier import *
-from ._particle_size_reduction import *
-from ._shredder import *
 from ._screw_feeder import *
 from ._magnetic_separator import *
 from ._molecular_sieve import *
@@ -36,25 +34,49 @@ from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._carbon_capture import *
+from .drying import *
+from .size_reduction import *
+from .size_enlargement import *
 from .liquid_liquid_extraction import *
 from .wastewater import *
 from .facilities import *
 
 
 from . import (
-    liquid_liquid_extraction,
-    _flash, mixing, splitting, 
-    _pump, heat_exchange, _multi_effect_evaporator, 
-    distillation, tank, _magnetic_separator,
-    _molecular_sieve, _conveying_belt, _vent_scrubber,
-    _vibrating_screen, _junction, solids_separation,
-    _transesterification, _fermentation, 
-    _enzyme_treatment, _clarifier, _particle_size_reduction,
-    _balance, _shredder, _screw_feeder,
-    decorators, design_tools, facilities,
-    _process_specification, _duplicator,
-    _diagram_only_units, _batch_bioreactor,
-    _carbon_capture, wastewater,
+    _flash, 
+    _pump, 
+    _multi_effect_evaporator, 
+    _magnetic_separator,
+    _molecular_sieve, 
+    _conveying_belt, 
+    _vent_scrubber,
+    _vibrating_screen,
+    _junction, 
+    _transesterification, 
+    _fermentation, 
+    _enzyme_treatment, 
+    _clarifier, 
+    _balance,  
+    _screw_feeder,
+    size_reduction, 
+    size_enlargement,
+    drying,
+    distillation, 
+    tank, 
+    liquid_liquid_extraction, 
+    mixing, 
+    splitting, 
+    heat_exchange, 
+    solids_separation,
+    wastewater,
+    decorators, 
+    design_tools, 
+    facilities, 
+    _process_specification, 
+    _duplicator,
+    _diagram_only_units, 
+    _batch_bioreactor,
+    _carbon_capture, 
 )
 
 __all__ = ('Unit',
@@ -78,9 +100,9 @@ __all__ = ('Unit',
            *_fermentation.__all__, 
            *_enzyme_treatment.__all__,
            *_clarifier.__all__,
-           *_particle_size_reduction.__all__,
+           *size_reduction.__all__,
+           *size_enlargement.__all__,
            *_balance.__all__, 
-           *_shredder.__all__,
            *_screw_feeder.__all__,
            *_magnetic_separator.__all__,
            *facilities.__all__,
@@ -89,6 +111,8 @@ __all__ = ('Unit',
            *_batch_bioreactor.__all__,
            *_carbon_capture.__all__,
            *wastewater.__all__,
+           *drying.__all__,
+           'drying',
            'tank',
            'mixing',
            'splitting',
@@ -100,6 +124,8 @@ __all__ = ('Unit',
            'heat_exchange',
            'solids_separation',
            'liquid_liquid_extraction',
+           'size_reduction',
+           'size_enlargement',
 )
 
 

@@ -1,0 +1,210 @@
+# -*- coding: utf-8 -*-
+# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# for license details.
+"""
+This module contains unit operations for drying solids.
+
+.. contents:: :local:
+    
+Unit operations
+---------------
+.. autoclass:: biosteam.units.drying.DrumDryer
+
+
+"""
+import numpy as np
+from thermosteam import separations as sep
+from .design_tools import (
+    CEPCI_by_year,
+    cylinder_diameter_from_volume, 
+    cylinder_area,
+)
+from .decorators import cost
+from .._unit import Unit
+
+__all__ = ('DrumDryer', 'ThermalOxidizer')
+
+# TODO: The drum dryer is carbon steel. Add material factors later
+@cost('Peripheral drum area', CE=CEPCI_by_year[2007], ub=7854.0, BM=2.06,
+      S=1235.35, units='m2', n=0.6, cost=0.52 * 2268000., kW=938.866)
+class DrumDryer(Unit):
+    """
+    Create a drum dryer that dries solids by passing hot air 
+    (heated by burning natural gas).
+    
+    Parameters
+    ----------
+    ins : stream sequence
+        [0] Wet solids.
+        [1] Air.
+        [2] Natural gas.
+    outs : stream sequence
+        [0] Dried solids
+        [1] Hot air
+        [2] Emissions
+    split : dict[str, float]
+        Component splits to hot air (stream [1]).
+    R : float, optional
+        Flow of hot air over evaporation. Defaults to 1.4 wt gas / wt evap.
+    H : float, optional
+        Specific evaporation rate [kg/hr/m3]. Defaults to 20. 
+    length_to_diameter : float, optional
+        Note that the drum is horizontal. Defaults to 25.
+    T : float, optional
+        Operating temperature [K]. Defaults to 343.15.
+    natural_gas_price : float
+        Price of natural gas [USD/kg]. Defaults to 0.218.
+    moisture_content : float
+        Moisutre content of solids [wt / wt]. Defaults to 0.10.
+        
+    Notes
+    -----
+    The flow rate for air in the inlet is varied to meet the `R` specification
+    (i.e. flow of hot air over flow rate evaporated). The flow rate of inlet natural
+    gas is also altered to meet the heat demand.
+    
+    The default parameter values are based on heuristics for drying 
+    dried distillers grains with solubles (DDGS).
+    
+    """
+    _units = {'Evaporation': 'kg/hr',
+              'Peripheral drum area': 'm2',
+              'Diameter': 'm'}
+    _N_ins = 3
+    _N_outs = 3
+    
+    @property
+    def isplit(self):
+        """[ChemicalIndexer] Componentwise split of feed to 0th outlet stream."""
+        return self._isplit
+    @property
+    def split(self):
+        """[Array] Componentwise split of feed to 0th outlet stream."""
+        return self._isplit._data
+    
+    @property
+    def natural_gas(self):
+        """[Stream] Natural gas to satisfy steam and electricity requirements."""
+        return self.ins[2]
+    
+    @property
+    def utility_cost(self):
+        return super().utility_cost + self.natural_gas_cost
+    
+    @property
+    def natural_gas_cost(self):
+        return self.natural_gas_price * self.natural_gas.F_mass
+    
+    def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
+                 split, R=1.4, H=20., length_to_diameter=25, T=343.15,
+                 natural_gas_price=0.289, moisture_content=0.10):
+        super().__init__(ID, ins, outs, thermo)
+        self._isplit = self.chemicals.isplit(split)
+        self.T = T
+        self.R = R
+        self.H = H
+        self.length_to_diameter = length_to_diameter
+        self.natural_gas_price = natural_gas_price
+        self.moisture_content = moisture_content
+        
+    def _run(self):
+        wet_solids, air, natural_gas = self.ins
+        dry_solids, hot_air, emissions = self.outs
+        sep.split(wet_solids, hot_air, dry_solids, self.split)
+        sep.adjust_moisture_content(dry_solids, hot_air, self.moisture_content)
+        design_results = self.design_results
+        design_results['Evaporation'] = evaporation = hot_air.F_mass
+        air.imass['N2', 'O2'] = np.array([0.78, 0.32]) * self.R * evaporation
+        hot_air.mol += air.mol
+        dry_solids.T = hot_air.T = self.T
+        duty = (dry_solids.H + hot_air.H) - (wet_solids.H + air.H)
+        natural_gas.empty()
+        CO2 = CH4 = duty / self.chemicals.CH4.LHV
+        H2O = 2. * CH4
+        natural_gas.imol['CH4'] = CH4
+        emissions.imol['CO2', 'H2O'] = [CO2, H2O]
+        emissions.T = self.T + 30.
+        emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
+        
+    def _design(self):
+        length_to_diameter = self.length_to_diameter
+        design_results = self.design_results
+        design_results['Volume'] = volume = design_results['Evaporation'] / self.H 
+        design_results['Diameter'] = diameter = cylinder_diameter_from_volume(volume, length_to_diameter)
+        design_results['Length'] = length = diameter * length_to_diameter
+        design_results['Peripheral drum area'] = cylinder_area(diameter, length)
+        
+        
+class ThermalOxidizer(Unit):
+    """
+    Create a ThermalOxidizer that burns any remaining combustibles.
+    
+    Parameters
+    ----------
+    ins : stream sequence
+        [0] Feed gas
+        [1] Air
+    outs : stream
+        Emissions.
+    tau : float, optional
+        Residence time [hr]. Defaults to 0.00014 (0.5 seconds).
+    kW_per_m3 : float, optional
+        Power requirement [kW/m3]. Defaults to 18.47.
+    V_wf : float, optional
+        Fraction of working volume. Defaults to 0.95.
+    
+    Notes
+    -----
+    Adiabatic operation is assummed. Simulation and cost is based on [1]_.
+    
+    References
+    ----------
+    .. [1] Kwiatkowski, J. R.; McAloon, A. J.; Taylor, F.; Johnston, D. B. 
+        Modeling the Process and Costs of Fuel Ethanol Production by the Corn 
+        Dry-Grind Process. Industrial Crops and Products 2006, 23 (3), 288–296.
+        https://doi.org/10.1016/j.indcrop.2005.08.004.
+
+    """
+    _N_ins = 2
+    _N_outs = 1
+    max_volume = 20. # m3
+    _BM = {'Vessels': 2.06} # Assume same as dryer
+    
+    def __init__(self, *args, tau=0.00014, kW_per_m3=18.47, V_wf=0.95, **kwargs):
+        Unit.__init__(self, *args, **kwargs)
+        self.tau = tau
+        self.kW_per_m3 = kW_per_m3
+        self.V_wf = V_wf
+
+    def _run(self):
+        feed, air = self.ins
+        emissions, = self.outs
+        emissions.copy_like(feed)
+        combustion_rxns = self.chemicals.get_combustion_reactions()
+        combustion_rxns.force_reaction(emissions)
+        O2 = max(-emissions.imol['O2'], 0.)
+        emissions.copy_like(feed)
+        air.imol['N2', 'O2'] = [0.78/0.32 * O2, O2]
+        emissions.mol += air.mol
+        combustion_rxns.adiabatic_reaction(emissions)
+        
+    def _design(self):
+        design_results = self.design_results
+        volume = self.tau * self.outs[0].F_vol / self.V_wf
+        V_max = self.max_volume
+        design_results['Number of vessels'] = N = np.ceil(volume / V_max)
+        design_results['Vessel volume'] = volume / N
+        design_results['Total volume'] = volume
+        
+    def _cost(self):
+        design_results = self.design_results
+        total_volume = design_results['Total volume']
+        N = design_results['Number of vessels']
+        vessel_volume = design_results['Vessel volume']
+        self.power_utility.consumption = total_volume * self.kW_per_m3
+        purchase_costs = self.purchase_costs
+        purchase_costs['Vessels'] = N * 918300. * (vessel_volume / 13.18)**0.6

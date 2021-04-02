@@ -24,7 +24,7 @@ def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
     if not metacls: metacls = type(supercls)
     cls = metacls.__new__(metacls, clsname, superclasses, {})
     for ID in cost_items:
-        _add_cost(cls, ID, *cost_items[ID], None)
+        _add_cost(cls, ID, *[(None if i is False else i) for i in cost_items[ID]], None)
     return cls
 
 def df2dct(df):
@@ -55,7 +55,7 @@ def df2dct(df):
 
 def xl2dct(file, sheet_name=0, stacklevel=2):
     """Return dictionary of unit subclasses from excel file."""
-    df_raw = pd.read_excel(file, header=[0, 1], index_col=0, nrows=11, dtype=object)
+    df_raw = pd.read_excel(file, header=[0, 1], index_col=0, nrows=12, dtype=object)
     
     # Pandas 1.2 has problems with reading excel file; columns that do not exist
     # are sometimes created with all NaN values. This block removes these columns
@@ -72,6 +72,7 @@ def xl2dct(file, sheet_name=0, stacklevel=2):
         'Basis',
         'Units',
         'Size',
+        'Lower bound',
         'Upper bound',
         'CEPCI',
         'Cost (USD)',

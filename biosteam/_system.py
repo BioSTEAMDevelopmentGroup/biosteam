@@ -436,6 +436,7 @@ class System:
             raise RuntimeError("only empty systems can enter `with` statement")
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
+        unit_registry._open_dump(self)
         return self
     
     def __exit__(self, type, exception, traceback):
@@ -443,11 +444,11 @@ class System:
         ID = self._ID
         del self._irrelevant_units
         unit_registry = self.flowsheet.unit
+        dump = unit_registry._close_dump(self)
         if self.path or self.recycle or self.facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
-            units = [i for i in unit_registry
-                     if i not in irrelevant_units]
+            units = [i for i in dump if i not in irrelevant_units]
             system = self.from_units(None, units)
             self.ID = ID
             self.copy_like(system)
