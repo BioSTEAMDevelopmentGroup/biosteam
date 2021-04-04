@@ -315,13 +315,13 @@ class Unit:
         
         Notes
         -----
-        The f.o.b. purchase cost is given by:
+        As explained in [1]_, the f.o.b. purchase cost is given by:
         
         .. math::
         
            C_{P} = C_{Pb}F_{D}F_{P}F_{M}
         
-        The installed equipment cost is given by:
+        And the installed equipment cost is given by:
         
         .. math::
         
@@ -337,11 +337,18 @@ class Unit:
         Values for the design, pressure, and material factors of each equipment
         should be stored in the `_F_D`, `_F_P`, and `_F_M` dictionaries.
         
+        
         Warning
         -------
         If an item is listed in the `purchase_costs` dictionary but not in the
         `baseline_purchase_costs` dictionary, the baseline purchase cost is 
         assumed to be the same as the purchase cost.
+        
+        References
+        ----------
+        .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
         baseline_purchase_costs = self.baseline_purchase_costs
