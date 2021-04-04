@@ -143,7 +143,7 @@ class Distillation(Unit, isabstract=True):
            'Stripper tower': 4.3,
            'Rectifier trays': 4.3,
            'Stripper trays': 4.3,
-           'Platform and ladders': 4.3,
+           'Platform and ladders': 1.,
            'Rectifier platform and ladders': 1.,
            'Stripper platform and ladders': 1.,
            'Tower': 4.3,
