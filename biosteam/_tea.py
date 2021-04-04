@@ -76,25 +76,27 @@ def add_replacement_cost_to_cashflow_array(equipment_installed_cost,
     for i in range(1, N_purchases):
         cashflow_array[start + i * equipment_lifetime] += equipment_installed_cost
 
+def compute_installed_costs(unit, lang_factor):
+    baseline_purchase_costs = unit.baseline_purchase_costs
+    installed_costs = {}
+    for name, Cp in baseline_purchase_costs.items():
+        F = unit._F_D.get(name, 1.) * unit._F_P.get(name, 1.) * unit._F_M.get(name, 1.)
+        installed_costs[name] = Cp * (lang_factor + F - 1.)
+    return installed_costs
+
 def add_all_replacement_costs_to_cashflow_array(unit, cashflow_array, 
                                                 venture_years, start,
                                                 lang_factor):
     equipment_lifetime = unit._equipment_lifetime
     if equipment_lifetime:
+        installed_costs = compute_installed_costs(unit, lang_factor) if lang_factor else unit.installed_costs
         if isinstance(equipment_lifetime, int):
-             installed_cost = unit.purchase_cost * lang_factor if lang_factor else unit.installed_cost
-             add_replacement_cost_to_cashflow_array(installed_cost, 
+             add_replacement_cost_to_cashflow_array(sum(installed_costs.values()), 
                                                     equipment_lifetime,
                                                     cashflow_array,
                                                     venture_years,
                                                     start)
         elif isinstance(equipment_lifetime, dict):
-            if lang_factor:
-                installed_costs = unit.purchase_costs.copy()
-                for i in installed_costs:
-                    installed_costs[i] *= lang_factor
-            else:
-                installed_costs = unit.installed_costs
             for name, installed_cost in installed_costs.items():
                 lifetime = equipment_lifetime.get(name)
                 if lifetime:
@@ -453,11 +455,15 @@ class TEA:
     @property
     def installed_equipment_cost(self):
         """Total installed cost (USD)."""
-        return self.purchase_cost * self.lang_factor if self.lang_factor else sum([u.installed_cost for u in self.units])
+        lang_factor = self.lang_factor
+        if lang_factor:
+            return sum([sum(compute_installed_costs(u, lang_factor).values()) for u in self.units])
+        else:
+            return sum([u.installed_cost for u in self.units])
     @property
     def DPI(self):
         """Direct permanent investment."""
-        return self._DPI(self.purchase_cost * self.lang_factor if self.lang_factor else self.installed_equipment_cost)
+        return self._DPI(self.installed_equipment_cost)
     @property
     def TDC(self):
         """Total depreciable capital."""
