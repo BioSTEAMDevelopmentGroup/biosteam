@@ -23,24 +23,22 @@ from flexsolve import njitable
 import biosteam as bst
 __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_vertical_vessel_purchase_cost',
+           'compute_horizontal_vessel_platform_and_ladders_purchase_cost',
+           'compute_vertical_vessel_platform_and_ladders_purchase_cost',
            'GTable', 'HNATable', 'ceil_half_step',
            'compute_vessel_weight_and_wall_thickness',
            'compute_Stokes_law_York_Demister_K_value')
 
 @njitable(cache=True)
-def compute_horizontal_vessel_purchase_cost(W, D, F_M):
+def compute_horizontal_vessel_purchase_cost(W):
     """
     Return the purchase cost [Cp; in USD] of a horizontal vessel,
-    including the cost of platforms and ladders.
+    without the cost of the platform and ladders.
     
     Parameters
     ----------
     W : float
         Weight [lb].
-    D : float
-        Diameter [ft].
-    F_M : float
-        Vessel material factor.
     
     Notes
     -----
@@ -49,28 +47,63 @@ def compute_horizontal_vessel_purchase_cost(W, D, F_M):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    # C_v: Vessel cost
-    # C_pl: Platforms and ladders cost
     C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
-    C_pl = 2275*D**0.20294
-    return bst.CE/567 * (F_M * C_v + C_pl)
+    return bst.CE/567 * C_v
 
 @njitable(cache=True)
-def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
+def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
+    """
+    Return the purchase cost [Cp; in USD] of the platform and ladders for a 
+    horizontal vessel.
+    
+    Parameters
+    ----------
+    D : float
+        Diameter [ft].
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    The purchase cost is scaled according to BioSTEAM's Chemical
+    Plant Cost Index, `biosteam.CE`.
+    
+    """
+    C_pl = 2275*D**0.20294
+    return bst.CE/567 * C_pl
+
+@njitable(cache=True)
+def compute_vertical_vessel_purchase_cost(W):
     """
     Return the purchase cost [Cp; in USD] of a vertical vessel,
-    including the cost of platforms and ladders.
+    without the cost of the platform and ladders.
     
     Parameters
     ----------
     W : float
         Weight [lb].
+    
+    Notes
+    -----
+    The purchase cost is given by [1]_. See source code for details.
+    The purchase cost is scaled according to BioSTEAM's Chemical
+    Plant Cost Index, `biosteam.CE`.
+    
+    """
+    C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
+    return bst.CE/567 * C_v
+
+@njitable(cache=True)
+def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
+    """
+    Return the purchase cost [Cp; in USD] of the platform and ladders for a 
+    vertical vessel.
+    
+    Parameters
+    ----------
     D : float
         Diameter [ft].
     L : float
         Length [ft].
-    F_M : float
-        Vessel material factor.
     
     Notes
     -----
@@ -79,11 +112,8 @@ def compute_vertical_vessel_purchase_cost(W, D, L, F_M):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    # C_v: Vessel cost
-    # C_pl: Platforms and ladders cost
-    C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
     C_pl = 410*D**0.7396*L**0.70684
-    return bst.CE/567 * (F_M * C_v + C_pl)
+    return bst.CE/567 * C_pl
 
 def GTable(DRho, Hlr):
     """

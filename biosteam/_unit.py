@@ -9,6 +9,7 @@
 """
 import numpy as np
 import pandas as pd
+from warnings import warn
 from graphviz import Digraph
 from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
@@ -270,13 +271,31 @@ class Unit:
         self.power_utility = PowerUtility()
     
     def _init_results(self):
-        # [dict] All purchase cost results in USD.
-        self.purchase_costs = {}
+        #: [dict] All design factors for each purchase cost.
+        self._F_D = {}
+        
+        #: [dict] All pressure factors for each purchase cost.
+        self._F_P = {}
+        
+        #: [dict] All material factors for each purchase cost.
+        self._F_M = {}
         
         # [dict] All design results.
         self.design_results = {}
         
-        # [dict] Greenhouse gas emissions
+        # [dict] All purchase costs in USD.
+        self.purchase_costs = {}
+        
+        # [dict] All installed costs accounting for bare module, design, 
+        # pressure, and material factors.
+        self.installed_costs = {}
+        
+        # [dict] All baseline purchase costs without accounting for design, 
+        # pressure, and material factors.
+        self.baseline_purchase_costs = {}
+        
+        #: [dict] Greenhouse gas emissions for use in BioSTEAM-LCA 
+        #: (https://github.com/scyjth/biosteam_lca)
         self._GHGs = {}
     
     def _assert_compatible_property_package(self):
@@ -287,6 +306,80 @@ class Unit:
             "try using the `thermo` keyword argument to initialize the unit operation "
             "with a compatible thermodynamic property package"
         )
+    
+    def _load_capital_costs(self):
+        r"""
+        Calculate and save free on board (f.o.b.) purchase costs and
+        installed equipment costs for each item in the 
+        `baseline_purchase_costs` dictionary.
+        
+        Notes
+        -----
+        The f.o.b. purchase cost is given by:
+        
+        .. math::
+        
+           C_{P} = C_{Pb}F_{D}F_{P}F_{M}
+        
+        The installed equipment cost is given by:
+        
+        .. math::
+        
+           C_{BM} = C_{Pb} (F_{BM} + F_{D}F_{P}F_{M} - 1)
+        
+        Where:
+            * :math:`C_{Pb}`: Baseline purchase cost.
+            * :math:`F_{BM}`: Bare module factor.
+            * :math:`F_{D}`: Design factor.
+            * :math:`F_{P}`: Pressure factor.
+            * :math:`F_{M}`: Material factor.
+        
+        Values for the design, pressure, and material factors of each equipment
+        should be stored in the `_F_D`, `_F_P`, and `_F_M` dictionaries.
+        
+        Warning
+        -------
+        If an item is listed in the `purchase_costs` dictionary but not in the
+        `baseline_purchase_costs` dictionary, the baseline purchase cost is 
+        assumed to be the same as the purchase cost.
+        
+        """
+        baseline_purchase_costs = self.baseline_purchase_costs
+        purchase_costs = self.purchase_costs
+        installed_costs = self.installed_costs
+        BM = self._BM
+        F_D = self._F_D
+        F_P = self._F_P
+        F_M = self._F_M
+        for i in purchase_costs:
+            if i not in baseline_purchase_costs:
+                warning = RuntimeWarning(
+                    "adding items to the `purchase_costs` dictionary is "
+                    "deprecated; add items to `baseline_purchase_costs` "
+                    "dictionary instead"
+                 )
+                warn(warning)
+                baseline_purchase_costs[i] = purchase_costs[i]
+        for name, Cp in baseline_purchase_costs.items(): 
+            F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
+            purchase_costs[name] = Cp * F
+            try:
+                installed_costs[name] = Cp * (BM[name] + F - 1.)
+            except KeyError:
+                missing = set(baseline_purchase_costs).difference(BM)
+                warning = RuntimeWarning(
+                    "the following purchase cost items have "
+                    "no defined bare module factor in the "
+                  f"'{type(self).__name__}._BM' dictionary: {missing}"
+                 )
+                warn(warning)
+                installed_costs[name] = Cp * F
+    
+    def _setup(self):
+        self.design_results.clear()
+        self.baseline_purchase_costs.clear()
+        self.purchase_costs.clear()
+        self.installed_costs.clear()
     
     def disconnect(self):
         self._ins[:] = ()
@@ -378,6 +471,7 @@ class Unit:
         """Calculate all results from unit run."""
         self._design()
         self._cost()
+        self._load_capital_costs()
     
     @property
     def specification(self):
@@ -399,33 +493,7 @@ class Unit:
     @property
     def installed_cost(self):
         """Total installed equipment cost [USD]."""
-        BM = self._BM
-        try:
-            installed_cost = sum([BM[i]*j for i,j in self.purchase_costs.items()])
-        except KeyError:
-            missing = set(self.purchase_costs).difference(BM)
-            raise NotImplementedError("the following purchase cost items have "
-                                      "no defined bare module factor in the "
-                                     f"'{type(self).__name__}._BM' dictionary: {missing}")
-        
-        return sum([i.installed_cost for i in self.auxiliary_units],
-                   installed_cost)
-    
-    @property
-    def installed_costs(self):
-        """dict[str, float] Installed equipment costs [USD]."""
-        BM = self._BM
-        try:
-            installed_costs = {i: BM[i]*j for i,j in self.purchase_costs.items()}
-        except KeyError:
-            missing = set(self.purchase_costs).difference(BM)
-            raise NotImplementedError("the following purchase cost items have "
-                                      "no defined bare module factor in the "
-                                     f"'{type(self).__name__}._BM' dictionary: {missing}")
-        getfield = getattr
-        for i in self.auxiliary_unit_names:
-            installed_costs[i] = getfield(self, i).installed_cost
-        return installed_costs
+        return sum(self.installed_costs.values())
     
     @property
     def utility_cost(self):

@@ -262,7 +262,7 @@ class Flash(design.PressureVessel, Unit):
 
     def _cost(self):
         D = self.design_results
-        self.purchase_costs.update(
+        self.baseline_purchase_costs.update(
             self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
         )
         self._cost_vacuum()
@@ -297,7 +297,7 @@ class Flash(design.PressureVessel, Unit):
         
         power, cost = design.compute_vacuum_system_power_and_cost(
                           F_mass, F_vol, P, volume, self.vacuum_system_preference)
-        self.purchase_costs['Liquid-ring pump'] = cost
+        self.baseline_purchase_costs['Liquid-ring pump'] = cost
         self.power_utility(power)
 
     def _design_parameters(self):

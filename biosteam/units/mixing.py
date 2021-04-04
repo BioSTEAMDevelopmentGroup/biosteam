@@ -154,6 +154,7 @@ class SteamMixer(Unit):
         return self.P - P_new
     
     def _setup(self):
+        super()._setup()
         if self.steam.isempty(): self.reset_cache()
         self.outs[0].P = self.P
     

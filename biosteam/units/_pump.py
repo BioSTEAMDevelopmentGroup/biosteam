@@ -133,7 +133,7 @@ class Pump(Unit):
     @material.setter    
     def material(self, material):
         try:
-            self._F_M = pump_material_factors[material]
+            self._F_M['Pump'] = pump_material_factors[material]
         except KeyError:
             raise ValueError("material must be one of the following: "
                             f"{', '.join(pump_material_factors)}")
@@ -153,6 +153,7 @@ class Pump(Unit):
         self.ignore_NPSH = ignore_NPSH
     
     def _setup(self):
+        super()._setup()
         s_in, = self.ins
         s_out, = self.outs
         s_out.P = self.P
@@ -239,18 +240,13 @@ class Pump(Unit):
         self.power_utility(power/N/1.341) # Set power in kW
     
     def _cost(self):
-        if self.ins[0].isempty(): 
-            self.purchase_costs.clear()
-            return
-        
-        # Parameters
         Design = self.design_results
-        Cost = self.purchase_costs
+        if not Design: return
+        Cost = self.baseline_purchase_costs
         pump_type = Design['Type']
         q = Design['Flow rate']
         h = Design['Head']
         p = Design['Pump power']
-        F_M = self._F_M
         I = bst.CE/567
         lnp = ln(p)
         
@@ -258,12 +254,12 @@ class Pump(Unit):
         # Head and flow rate is too small, so make conservative estimate on cost
         if q < 50: q = 50
         if h < 50: h = 50
+        F_T = 1 # Assumption
         
         # Cost pump
         if 'Centrifugal' in pump_type:
             # Find pump factor
             F_Tdict = pump_centrifugal_factors
-            F_T = 1 # Assumption
             if p < 75 and 50 <= q <= 900 and 50 <= h <= 400:
                 F_T = F_Tdict['VSC3600']
             elif p < 200 and 50 <= q <= 3500 and 50 <= h <= 2000:
@@ -294,16 +290,18 @@ class Pump(Unit):
             lnS = ln(S_new)
             Cb = exp(12.1656-1.1448*lnS+0.0862*lnS**2)
             Cb *= S/S_new
-            Cost['Pump'] = F_M*F_T*Cb*I
+            Cost['Pump'] = Cb*I
         elif pump_type == 'Gear':
             q_new = q if q > 50 else 50
             lnq = ln(q_new)
             Cb = exp(8.2816 - 0.2918*lnq + 0.0743*lnq**2)
             Cb *= q/q_new
-            Cost['Pump'] = F_M*Cb*I
+            Cost['Pump'] = Cb*I
         elif pump_type == 'MeteringPlunger':
             Cb = exp(7.9361 + 0.26986*lnp + 0.06718*lnp**2)
-            Cost['Pump'] = F_M*Cb*I
+            Cost['Pump'] = Cb*I
+        
+        self._F_D['Pump'] = F_T
         
         # Cost electric motor
         lnp2 = lnp**2

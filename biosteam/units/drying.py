@@ -206,5 +206,5 @@ class ThermalOxidizer(Unit):
         N = design_results['Number of vessels']
         vessel_volume = design_results['Vessel volume']
         self.power_utility.consumption = total_volume * self.kW_per_m3
-        purchase_costs = self.purchase_costs
-        purchase_costs['Vessels'] = N * 918300. * (vessel_volume / 13.18)**0.6
+        C = self.baseline_purchase_costs
+        C['Vessels'] = N * 918300. * (vessel_volume / 13.18)**0.6

@@ -354,17 +354,14 @@ class MultiEffectEvaporator(Unit):
         liq.mol = mixed_stream.imol['g']
         
     def _design(self):
-        if self.V == 0:
-            self.design_results.clear()
-            self.purchase_costs.clear()
-            return
+        if self.V == 0: return
         
         # This functions also finds the cost
         A_range, C_func, U, _ = self._evap_data
         components = self.components
         evaporators = components['evaporators']
         Design = self.design_results
-        Cost = self.purchase_costs
+        Cost = self.baseline_purchase_costs
         CE = bst.CE
         
         first_evaporator = evaporators[0]
@@ -379,7 +376,7 @@ class MultiEffectEvaporator(Unit):
         LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
         ft = 1
         A = abs(compute_heat_transfer_area(LMTD, U, Q, ft))
-        first_evaporator.purchase_costs['Evaporator'] = C = C_func(A, CE)
+        first_evaporator.baseline_purchase_costs['Evaporator'] = C = C_func(A, CE)
         self._evap_costs = evap_costs = [C]
         
         # Find condenser requirements

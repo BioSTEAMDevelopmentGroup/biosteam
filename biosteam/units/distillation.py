@@ -143,6 +143,9 @@ class Distillation(Unit, isabstract=True):
            'Stripper tower': 4.3,
            'Rectifier trays': 4.3,
            'Stripper trays': 4.3,
+           'Platform and ladders': 4.3,
+           'Rectifier platform and ladders': 1.,
+           'Stripper platform and ladders': 1.,
            'Tower': 4.3,
            'Trays': 4.3,
            'Vacuum system': 1.}
@@ -409,7 +412,8 @@ class Distillation(Unit, isabstract=True):
     def tray_type(self, tray_type):
         if tray_type in distillation_tray_type_factor:
             self._tray_type = tray_type
-            self._F_TT = distillation_tray_type_factor[tray_type]
+            F_D = self._F_D
+            F_D['Trays'] = F_D['Stripper trays'] = F_D['Rectifier trays'] = distillation_tray_type_factor[tray_type]
         else:
             raise ValueError("tray type must be one of the following: "
                             f"{', '.join(distillation_tray_type_factor)}")
@@ -435,7 +439,8 @@ class Distillation(Unit, isabstract=True):
     def vessel_material(self, vessel_material):
         if vessel_material in distillation_column_material_factors:
             self._vessel_material = vessel_material
-            self._F_VM = distillation_column_material_factors[vessel_material]
+            F_M = self._F_M
+            F_M['Rectifier tower'] = F_M['Stripper tower'] = F_M['Tower'] = distillation_column_material_factors[vessel_material]            
         else:
             raise ValueError("vessel material must be one of the following: "
                             f"{', '.join(distillation_column_material_factors)}")
@@ -563,6 +568,7 @@ class Distillation(Unit, isabstract=True):
         self.condenser.P = self.condensate.P = condenser_distillate.P = distillate.P = p.P
             
     def _setup(self):
+        super()._setup()
         distillate, bottoms_product = self.outs
         self.boiler.ins[0].P = self.condenser.ins[0].P = self.condenser.outs[0].P = self.feed.P = distillate.P = bottoms_product.P = self.P
         distillate.phase = 'g' if self._partial_condenser else 'l'
@@ -764,48 +770,51 @@ class Distillation(Unit, isabstract=True):
                               0., 0., P, volume, self.vacuum_system_preference)
             total_power += power
             total_cost += cost
-        self.purchase_costs['Vacuum system'] = cost
+        self.baseline_purchase_costs['Vacuum system'] = cost
         self.power_utility(total_power)
     
     def _cost(self):
         Design = self.design_results
-        Cost = self.purchase_costs
+        Cost = self.baseline_purchase_costs
         Cost.clear() # Prevent having previous results if `is_divided` changed
-        F_TT = self._F_TT
-        F_VM = self._F_VM
+        F_M = self._F_M
         if self.is_divided:
             # Number of trays assuming a partial condenser
             N_RT = Design['Rectifier stages'] - 1
             Di_R = Design['Rectifier diameter']
-            F_TM = self._F_TM_function(Di_R)
-            Cost['Rectifier trays'] = design.compute_purchase_cost_of_trays(N_RT, Di_R, F_TT, F_TM)
+            Cost['Rectifier trays'] = design.compute_purchase_cost_of_trays(N_RT, Di_R)
+            F_M['Rectifier trays'] = self._F_TM_function(Di_R)
             N_ST = Design['Stripper stages'] - 1
             Di_S = Design['Stripper diameter']
-            F_TM = self._F_TM_function(Di_R)
-            Cost['Stripper trays'] = design.compute_purchase_cost_of_trays(N_ST, Di_S, F_TT, F_TM)
+            Cost['Stripper trays'] = design.compute_purchase_cost_of_trays(N_ST, Di_S)
+            F_M['Stripper trays'] = self._F_TM_function(Di_S)
             
             # Cost vessel assuming T < 800 F
             W_R = Design['Rectifier weight'] # in lb
             H_R = Design['Rectifier height'] # in ft
-            Cost['Rectifier tower'] = design.compute_purchase_cost_of_tower(Di_R, H_R, W_R, F_VM)
+            Cost['Rectifier tower'] = design.compute_empty_tower_cost(W_R)
+            Cost['Stripper platform and ladders'] = design.compute_plaform_ladder_cost(Di_R, H_R)
             W_S = Design['Stripper weight'] # in lb
             H_S = Design['Stripper height'] # in ft
-            Cost['Stripper tower'] = design.compute_purchase_cost_of_tower(Di_S, H_S, W_S, F_VM)
+            Cost['Stripper tower'] = design.compute_empty_tower_cost(W_S)
+            Cost['Rectifier platform and ladders'] = design.compute_plaform_ladder_cost(Di_S, H_S)
             
             dimensions = [(H_R, Di_R), (H_S, Di_S)]
         else:
             # Cost trays assuming a partial condenser
             N_T = Design['Actual stages'] - 1
             Di = Design['Diameter']
-            F_TM = self._F_TM_function(Di)
-            Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM)
+            F_M['Trays'] = self._F_TM_function(Di)
+            Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di)
             
             # Cost vessel assuming T < 800 F
             W = Design['Weight'] # in lb
-            L = Design['Height'] # in ft
-            Cost['Tower'] = design.compute_purchase_cost_of_tower(Di, L, W, F_VM)
+            H = Design['Height'] # in ft
+            Cost['Tower'] = design.compute_empty_tower_cost(W)
             
-            dimensions = [(L, Di)]
+            Cost['Platform and ladders'] = design.compute_plaform_ladder_cost(Di, H)
+            
+            dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
         self._simulate_components()
 

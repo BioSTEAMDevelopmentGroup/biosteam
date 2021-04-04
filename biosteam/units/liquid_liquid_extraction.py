@@ -1208,6 +1208,7 @@ class MultiStageMixerSettlers(bst.Unit):
     extract = MixerSettler.extract
     
     def _setup(self):
+        super()._setup()
         args = (self.stages, self.feed, self.solvent, self.carrier_chemical)
         if args != self._last_args:
             self.stages = sep.MultiStageLLE(

@@ -34,7 +34,8 @@ class PressureVessel:
     
     # Bare module factors
     _BM = {'Horizontal pressure vessel': 3.05,
-           'Vertical pressure vessel': 4.16}
+           'Vertical pressure vessel': 4.16,
+           'Platform and ladders': 1.}
     
     @property
     def vessel_type(self):
@@ -55,7 +56,9 @@ class PressureVessel:
         return self._vessel_material
     @vessel_material.setter
     def vessel_material(self, material):
-        try: self._F_M = pressure_vessel_material_factors[material]
+        try: 
+            F_M = self._F_M
+            F_M['Vertical pressure vessel'] = F_M['Horizontal pressure vessel'] = pressure_vessel_material_factors[material]
         except KeyError:
             raise ValueError(f"no material factor available for '{material}'; "
                               "only the following materials are available: "
@@ -132,7 +135,9 @@ class PressureVessel:
         return method(weight, diameter, length)
 
     def _horizontal_vessel_purchase_cost(self, weight, diameter, length=None) -> dict:
-        return {'Horizontal pressure vessel': design.compute_horizontal_vessel_purchase_cost(weight, diameter, self._F_M)}
+        return {'Horizontal pressure vessel': design.compute_horizontal_vessel_purchase_cost(weight),
+                'Platform and ladders': design.compute_horizontal_vessel_platform_and_ladders_purchase_cost(diameter)}
 
     def _vertical_vessel_purchase_cost(self, weight, diameter, length) -> dict:
-        return {'Vertical pressure vessel': design.compute_vertical_vessel_purchase_cost(weight, diameter, length, self._F_M)}
+        return {'Vertical pressure vessel': design.compute_vertical_vessel_purchase_cost(weight),
+                'Platform and ladders': design.compute_vertical_vessel_platform_and_ladders_purchase_cost(diameter, length)}

@@ -27,7 +27,6 @@ import biosteam as bst
 from warnings import warn
 
 __all__ = ('compute_purchase_cost_of_trays',
-           'compute_purchase_cost_of_tower',
            'compute_empty_tower_cost',
            'compute_plaform_ladder_cost',
            'compute_tower_weight',
@@ -47,7 +46,7 @@ def minimum_thickness_from_diameter(D):
     return 0.03125 * D + 0.125
 
 @njitable(cache=True)
-def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
+def compute_purchase_cost_of_trays(N_T, Di):
     """
     Return total cost of all trays at BioSTEAM's CEPCI.
     
@@ -57,10 +56,6 @@ def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
         Number of trays.
     Di : float
         Inner diameter [ft].
-    F_TT : float
-        Tray type factor.
-    F_TM : float
-        Tray material factor.
     
     Notes
     -----
@@ -72,40 +67,12 @@ def compute_purchase_cost_of_trays(N_T, Di, F_TT, F_TM):
     F_CE = bst.CE/500
     C_BT = compute_tray_base_purchase_cost(Di)
     F_NT = compute_n_trays_factor(N_T)
-    return N_T * F_CE * F_NT * F_TT * F_TM * C_BT
-
-@njitable(cache=True)
-def compute_purchase_cost_of_tower(Di, L, W, F_VM):
-    """
-    Return cost of tower at BioSTEAM's CEPCI.
-    
-    Parameters
-    ----------
-    Di : float
-        Inner diameter [ft]
-    L : float
-        length [ft]
-    W : float
-        weight [lb].
-    F_VM : float
-        Tower material factor.
-    
-    Notes
-    -----
-    The purchase cost is given by [1]_. See source code for details.
-    The purchase cost is scaled according to BioSTEAM's Chemical
-    Plant Cost Index, `biosteam.CE`.
-    
-    """
-    F_CE = bst.CE/500
-    C_V = compute_empty_tower_cost(W)
-    C_PL = compute_plaform_ladder_cost(Di, L)
-    return F_CE * (F_VM * C_V + C_PL)
+    return N_T * F_CE * F_NT * C_BT
 
 @njitable(cache=True)
 def compute_empty_tower_cost(W):
     """
-    Return the cost [C_V; in USD] of an empty tower vessel assuming a CE of 500.
+    Return the cost [C_V; in USD] of an empty tower vessel at BioSTEAM's CEPCI.
     
     Parameters
     ----------
@@ -118,12 +85,12 @@ def compute_empty_tower_cost(W):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    return np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
+    return bst.CE/500 * np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
 
 @njitable(cache=True)
 def compute_plaform_ladder_cost(Di, L):
     """
-    Return the cost [C_PL; in USD] of platforms and ladders assuming a CE of 500.
+    Return the cost [C_PL; in USD] of platforms and ladders at BioSTEAM's CEPCI.
     
     Parameters
     ----------
@@ -137,7 +104,7 @@ def compute_plaform_ladder_cost(Di, L):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    return 300.9*Di**0.63316*L**0.80161
+    return bst.CE/500 * 300.9*Di**0.63316*L**0.80161
 
 @njitable(cache=True)
 def compute_tower_weight(Di, L, tv, rho_M):

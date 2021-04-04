@@ -57,9 +57,10 @@ class CostItem:
             self.n = 1. if n is None else float(n)
         if lb is not None: lb = float(lb)
         if ub is not None: ub = float(ub)
-        if N and not isinstance(N, str): # Prevent downstream error for common mistakes
-            raise ValueError("N parameter must be a string or None; not a "
-                             "'{type(N).__name__}' object")
+        if N:
+            if not isinstance(N, str): # Prevent downstream error for common mistakes
+                raise ValueError("N parameter must be a string or None; not a "
+                                 "'{type(N).__name__}' object")
         elif ub is not None:
             N = '#'
         else:
@@ -91,7 +92,7 @@ class CostItem:
         print(f"{type(self).__name__}: {self._basis} ({self._units})\n"
              +f" S     {self.S:.3g}\n"
             +(f" lb    {self.lb:.3g}\n" if self.lb is not None else "")
-             +f" ub    {self.ub:.3g}\n"
+            +(f" ub    {self.ub:.3g}\n" if self.ub is not None else "")
              +f" CE    {self.CE:.3g}\n"
              +f" cost  {self.cost:.3g}\n"
              +f" n     {self.n:.3g}\n"
@@ -101,7 +102,7 @@ class CostItem:
 
 def _decorated_cost(self):
     D = self.design_results
-    C = self.purchase_costs
+    C = self.baseline_purchase_costs
     kW = 0
     for i, x in self.cost_items.items():
         S = D[x._basis]

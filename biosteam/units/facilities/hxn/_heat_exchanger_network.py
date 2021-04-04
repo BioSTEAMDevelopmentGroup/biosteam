@@ -116,6 +116,7 @@ class HeatExchangerNetwork(Facility):
     def __init__(self, ID='', T_min_app=5.):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
+        self._installed_cost = 0.
         
     def _run(self):
         pass

@@ -165,9 +165,7 @@ class HX(Unit, isabstract=True):
 
     def _cost(self):
         Design = self.design_results
-        if not Design: 
-            self.purchase_costs.clear()
-            return
+        if not Design: return
             
         A = Design['Area']
         L = Design['Total tube length']
@@ -195,7 +193,10 @@ class HX(Unit, isabstract=True):
             C_b = self._Cb_func(A, bst.CE)
         
         # Free on board purchase prize
-        self.purchase_costs[heat_exchanger_type] = F_p * F_l * F_m * C_b
+        self._F_M[heat_exchanger_type] = F_m
+        self._F_P[heat_exchanger_type] = F_p
+        self._F_D[heat_exchanger_type] = F_l
+        self.baseline_purchase_costs[heat_exchanger_type] = C_b
 
 
 class HXutility(HX):
@@ -476,12 +477,7 @@ class HXutility(HX):
                 if T_out > T_in: T_in = T_out
             else:
                 if T_out < T_in: T_out = T_in
-        try:
-            self.heat_utilities[0](duty, T_in, T_out)
-        except:
-            inlet.show()
-            outlet.show()
-            breakpoint()
+        self.heat_utilities[0](duty, T_in, T_out)
         self.Q = duty
         super()._design()
 
@@ -666,6 +662,7 @@ class HXprocess(HX):
         return s_in_a, s_in_b, s_out_a, s_out_b
     
     def _setup(self):
+        super()._setup()
         for i in self._ins:
             if i.source: i.empty()
             

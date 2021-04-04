@@ -226,21 +226,15 @@ class Tank(Unit, isabstract=True):
         self._vessel_material = material
         default_material = self.purchase_cost_algorithm.material
         if material == default_material:
-            self._F_M = 1.0
+            self._F_M['Tanks'] = vessel_material_factors.get(default_material, 1.)
         else:
             try:
-                F_M_new = vessel_material_factors[material]
+                self._F_M['Tanks'] = vessel_material_factors[material]
             except:
                 raise ValueError("no material factor available for "
                                 f"vessel construction material '{material}';"
                                  "only the following materials are "
                                 f"available: {', '.join(vessel_material_factors)}")
-            try:
-                F_M_old = vessel_material_factors[default_material]
-            except KeyError:
-                raise ValueError(f"only '{default_material}' is a valid "
-                                    "material for given vessel type")
-            self._F_M = F_M_new / F_M_old        
     
     @property
     def vessel_type(self):
@@ -264,9 +258,10 @@ class Tank(Unit, isabstract=True):
     def _cost(self):
         design_results = self.design_results
         V = design_results['Total volume']
-        design_results['Number of tanks'], self.purchase_costs['Tanks'] = compute_number_of_tanks_and_total_purchase_cost(
-            V, self.purchase_cost_algorithm, self._F_M
+        design_results['Number of tanks'], Cp = compute_number_of_tanks_and_total_purchase_cost(
+            V, self.purchase_cost_algorithm
         )
+        self.baseline_purchase_costs['Tanks']  = Cp / vessel_material_factors.get(self._vessel_material, 1.)
         self.power_utility.consumption = self.kW_per_m3 * V
 
 

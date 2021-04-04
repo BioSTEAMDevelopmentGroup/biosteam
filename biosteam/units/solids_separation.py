@@ -188,7 +188,7 @@ class RotaryVacuumFilter(SolidsSeparator):
         Design['Individual area'] = iArea
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
-        self.purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
+        self.baseline_purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
     
     def _power(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs
@@ -217,7 +217,7 @@ class RotaryVacuumFilter(SolidsSeparator):
         # Assume same volume of air comes in as volume of liquid
         F_vol = s_vacuumed.F_vol
         F_mass = F_vol * 1.2041 # multiply by density of air kg/m3 
-        work_vacuum, self.purchase_costs['Liquid-ring pump'] = compute_vacuum_system_power_and_cost(
+        work_vacuum, self.baseline_purchase_costs['Liquid-ring pump'] = compute_vacuum_system_power_and_cost(
                 F_mass, F_vol, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
         self.power_utility(work_vacuum)
@@ -371,7 +371,8 @@ class PressureFilter(SolidsSeparator):
     def _design(self):
         self.design_results['Retentate flow rate'] = self.outs[0].F_mass
 
-@cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, kW=0.001,
+#: TODO: Check BM assumption. Use 1.39 for crushing unit operations for now.
+@cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, kW=0.001, BM=1.39, 
       f=lambda S: exp((11.0991 - 0.3580*log(S) + 0.05853*log(S)**2)))
 class ScrewPress(SolidsSeparator):
     """

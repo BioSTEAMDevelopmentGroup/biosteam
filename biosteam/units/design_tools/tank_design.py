@@ -87,8 +87,7 @@ class TankPurchaseCostAlgorithm:
     
     
 def compute_number_of_tanks_and_total_purchase_cost(total_volume,
-                                                    purchase_cost_algorithm,
-                                                    material_factor):
+                                                    purchase_cost_algorithm):
     """
     Return number of tanks and total purchase cost of all tanks.
 
@@ -98,12 +97,9 @@ def compute_number_of_tanks_and_total_purchase_cost(total_volume,
         Total volume required [m^3].
     purchase_cost_algorithm : TankPurchaseCostAlgorithm
         All costing options.
-    material_factor : float
-        Material purchase cost factor.
     
     """
     V_total = total_volume
-    F_M = material_factor
     V_units = purchase_cost_algorithm.V_units
     V_total /= V_units.conversion_factor('m^3')
     V_min = purchase_cost_algorithm.V_min
@@ -116,7 +112,7 @@ def compute_number_of_tanks_and_total_purchase_cost(total_volume,
     if N:
         V = V_total / N
         F_CE = bst.CE / purchase_cost_algorithm.CE
-        Cp = N * F_M * F_CE * purchase_cost_algorithm.f_Cp(V)
+        Cp = N * F_CE * purchase_cost_algorithm.f_Cp(V)
     else:
         Cp = 0.
     return N, Cp

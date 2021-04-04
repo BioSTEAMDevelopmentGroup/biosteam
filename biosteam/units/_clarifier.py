@@ -40,7 +40,7 @@ class Clarifier(Splitter):
 _cost = Clarifier._cost
 def _extended_cost(self):
     _cost(self)
-    self.purchase_costs['Clarifier'] *= 1.4 if self.design_results['Material']=='Steel' else 1
+    self.baseline_purchase_costs['Clarifier'] *= 1.4 if self.design_results['Material']=='Steel' else 1
 Clarifier._cost = _extended_cost
         
         
