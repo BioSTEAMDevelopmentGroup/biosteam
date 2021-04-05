@@ -310,7 +310,7 @@ class Unit:
     def _load_capital_costs(self):
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
-        installed equipment costs for each item in the 
+        installed equipment costs (i.e. bare-module cost) for each item in the 
         `baseline_purchase_costs` dictionary.
         
         Notes
@@ -336,7 +336,6 @@ class Unit:
         
         Values for the design, pressure, and material factors of each equipment
         should be stored in the `_F_D`, `_F_P`, and `_F_M` dictionaries.
-        
         
         Warning
         -------
@@ -369,18 +368,18 @@ class Unit:
                 baseline_purchase_costs[i] = purchase_costs[i]
         for name, Cp in baseline_purchase_costs.items(): 
             F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
-            purchase_costs[name] = Cp * F
             try:
                 installed_costs[name] = Cp * (BM[name] + F - 1.)
             except KeyError:
-                missing = set(baseline_purchase_costs).difference(BM)
                 warning = RuntimeWarning(
-                    "the following purchase cost items have "
+                   f"the purchase cost item, '{name}', has "
                     "no defined bare module factor in the "
-                  f"'{type(self).__name__}._BM' dictionary: {missing}"
+                  f"'{type(self).__name__}._BM' dictionary"
                  )
                 warn(warning)
-                installed_costs[name] = Cp * F
+                installed_costs[name] = purchase_costs[name] = Cp * F
+            else:
+                purchase_costs[name] = Cp * F
     
     def _setup(self):
         self.design_results.clear()
