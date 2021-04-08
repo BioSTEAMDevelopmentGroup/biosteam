@@ -10,9 +10,10 @@ This module includes classes and functions concerning Stream objects.
 """
 from thermosteam import Stream, MultiStream
 from collections.abc import Iterable
+from collections import namedtuple
 from warnings import warn
 __all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
-           'InletPort', 'OutletPort', 'StreamPorts', 
+           'InletPort', 'OutletPort', 'StreamPorts', 'Connection', 
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings')
 
@@ -82,6 +83,13 @@ class MissingStream:
         self._source = source
         self._sink = sink
     
+    def get_connection(self):
+        source = self._source
+        source_index = source._outs.index(self) if source else None
+        sink = self._sink
+        sink_index = sink._ins.index(self) if sink else None
+        return Connection(source, source_index, self, sink_index, sink)
+    
     def materialize_connection(self, ID=""):
         """
         Disconnect this missing stream from any unit operations and 
@@ -98,6 +106,11 @@ class MissingStream:
     
     def reset_cache(self):
         """Does nothing, MissingStream objects do not contain cache."""
+    
+    def get_data(self):
+        return None
+    
+    def set_data(self, data): pass
     
     def get_total_flow(self, units):
         return 0.
@@ -668,6 +681,12 @@ class StreamPorts:
         ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
 
+# %% Configuration bookkeeping
+
+Connection = namedtuple('Connection', 
+                        ('source', 'source_index', 'stream', 'sink_index', 'sink'),
+                        module=__name__)
+
 
 # %% Stream pipping
         
@@ -687,6 +706,7 @@ def __rsub__(self, index):
                        f"'{type(index).__name__}' and '{type(self).__name__}'")
     return index.__sub__(self)
 
+Stream.get_connection = MissingStream.get_connection
 Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
 Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"

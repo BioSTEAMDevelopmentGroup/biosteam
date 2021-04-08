@@ -29,33 +29,31 @@ class Duplicator(Unit, isabstract=True):
     --------
     Create a Duplicator object with an ID and any number of outlet streams:
 
-    .. code-block:: python
-
-        >>> from biosteam import settings, Stream, units
-        >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
-        >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-        >>> D1 = units.Duplicator('D1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
-        >>> D1.simulate()
-        >>> D1.show()
-        Duplicator: D1
-        ins...
-        [0] feed
-            phase: 'l', T: 340 K, P: 101325 Pa
-            flow (kmol/hr): Water    20
-                            Ethanol  10
-        outs...
-        [0] out_a
-            phase: 'l', T: 340 K, P: 101325 Pa
-            flow (kmol/hr): Water    20
-                            Ethanol  10
-        [1] out_b
-            phase: 'l', T: 340 K, P: 101325 Pa
-            flow (kmol/hr): Water    20
-                            Ethanol  10
-        [2] out_c
-            phase: 'l', T: 340 K, P: 101325 Pa
-            flow (kmol/hr): Water    20
-                            Ethanol  10
+    >>> from biosteam import settings, Stream, units
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+    >>> D1 = units.Duplicator('D1', ins=feed, outs=('out_a', 'out_b', 'out_c'))
+    >>> D1.simulate()
+    >>> D1.show()
+    Duplicator: D1
+    ins...
+    [0] feed
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
+    outs...
+    [0] out_a
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
+    [1] out_b
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
+    [2] out_c
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
 
     """
     _N_outs = 2

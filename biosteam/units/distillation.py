@@ -412,7 +412,7 @@ class Distillation(Unit, isabstract=True):
     def tray_type(self, tray_type):
         if tray_type in distillation_tray_type_factor:
             self._tray_type = tray_type
-            F_D = self._F_D
+            F_D = self.F_D
             F_D['Trays'] = F_D['Stripper trays'] = F_D['Rectifier trays'] = distillation_tray_type_factor[tray_type]
         else:
             raise ValueError("tray type must be one of the following: "
@@ -439,7 +439,7 @@ class Distillation(Unit, isabstract=True):
     def vessel_material(self, vessel_material):
         if vessel_material in distillation_column_material_factors:
             self._vessel_material = vessel_material
-            F_M = self._F_M
+            F_M = self.F_M
             F_M['Rectifier tower'] = F_M['Stripper tower'] = F_M['Tower'] = distillation_column_material_factors[vessel_material]            
         else:
             raise ValueError("vessel material must be one of the following: "
@@ -601,8 +601,8 @@ class Distillation(Unit, isabstract=True):
         
         # Set condenser conditions
         self.distillate.mol[:] = distillate.mol
-        self._F_mol_distillate = F_mol_distillate = distillate.F_mol
-        self._F_mol_condensate = F_mol_condensate = R * F_mol_distillate
+        self.F_Mol_distillate = F_mol_distillate = distillate.F_mol
+        self.F_Mol_condensate = F_mol_condensate = R * F_mol_distillate
         p = self._condenser_operation
         condensate = self.condensate
         condensate.empty()
@@ -620,7 +620,7 @@ class Distillation(Unit, isabstract=True):
         # Set boiler conditions
         boiler.outs[0].imol['l'] = bottoms_product.mol
         F_vap_feed = feed.imol['g'].sum()
-        self._F_mol_boilup = F_mol_boilup = (R+1)*F_mol_distillate - F_vap_feed
+        self.F_Mol_boilup = F_mol_boilup = (R+1)*F_mol_distillate - F_vap_feed
         bp = self._boilup_bubble_point
         boilup_flow = bp.y * F_mol_boilup
         boilup = self.boilup
@@ -670,8 +670,8 @@ class Distillation(Unit, isabstract=True):
             condensate = self.condensate
             mu = condensate.get_property('mu', 'mPa*s')
             alpha_LHK_distillate, alpha_LHK_bottoms = self._get_relative_volatilities_LHK()
-            F_mol_distillate = self._F_mol_distillate
-            L_Rmol = self._F_mol_condensate
+            F_mol_distillate = self.F_Mol_distillate
+            L_Rmol = self.F_Mol_condensate
             V_Rmol = (R+1) * F_mol_distillate
             E_rectifier = design.compute_murphree_stage_efficiency(mu,
                                                             alpha_LHK_distillate,
@@ -679,7 +679,7 @@ class Distillation(Unit, isabstract=True):
             
             # Calculate Murphree Efficiency for stripping section
             mu = liq.get_property('mu', 'mPa*s')
-            V_Smol = self._F_mol_boilup
+            V_Smol = self.F_Mol_boilup
             L_Smol = R*F_mol_distillate + feed.imol['g'].sum()
             E_stripper = design.compute_murphree_stage_efficiency(mu,
                                                            alpha_LHK_bottoms,
@@ -777,7 +777,7 @@ class Distillation(Unit, isabstract=True):
         Design = self.design_results
         Cost = self.baseline_purchase_costs
         Cost.clear() # Prevent having previous results if `is_divided` changed
-        F_M = self._F_M
+        F_M = self.F_M
         if self.is_divided:
             # Number of trays assuming a partial condenser
             N_RT = Design['Rectifier stages'] - 1
@@ -999,35 +999,37 @@ class BinaryDistillation(Distillation, new_graphics=False):
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
-    Divided Distillation Column                     Units        D1
-    Cooling water       Duty                        kJ/hr -4.87e+06
-                        Flow                      kmol/hr  3.33e+03
-                        Cost                       USD/hr      1.62
-    Low pressure steam  Duty                        kJ/hr  1.02e+07
-                        Flow                      kmol/hr       263
-                        Cost                       USD/hr      62.6
-    Design              Theoretical feed stage                    9
-                        Theoretical stages                       13
-                        Minimum reflux              Ratio     0.687
-                        Reflux                      Ratio      1.37
-                        Rectifier stages                         15
-                        Stripper stages                          13
-                        Rectifier height               ft      34.7
-                        Stripper height                ft      31.7
-                        Rectifier diameter             ft      3.93
-                        Stripper diameter              ft      3.19
-                        Rectifier wall thickness       in     0.312
-                        Stripper wall thickness        in     0.312
-                        Rectifier weight               lb  6.01e+03
-                        Stripper weight                lb  4.43e+03
-    Purchase cost       Rectifier trays               USD   1.5e+04
-                        Stripper trays                USD  1.25e+04
-                        Rectifier tower               USD  5.96e+04
-                        Stripper tower                USD  4.97e+04
-                        Condenser                     USD  3.32e+04
-                        Boiler                        USD  2.67e+04
-    Total purchase cost                               USD  1.97e+05
-    Utility cost                                   USD/hr      64.3
+    Divided Distillation Column                           Units        D1
+    Cooling water       Duty                              kJ/hr -4.87e+06
+                        Flow                            kmol/hr  3.33e+03
+                        Cost                             USD/hr      1.62
+    Low pressure steam  Duty                              kJ/hr  1.02e+07
+                        Flow                            kmol/hr       263
+                        Cost                             USD/hr      62.6
+    Design              Theoretical feed stage                          9
+                        Theoretical stages                             13
+                        Minimum reflux                    Ratio     0.687
+                        Reflux                            Ratio      1.37
+                        Rectifier stages                               15
+                        Stripper stages                                13
+                        Rectifier height                     ft      34.7
+                        Stripper height                      ft      31.7
+                        Rectifier diameter                   ft      3.93
+                        Stripper diameter                    ft      3.19
+                        Rectifier wall thickness             in     0.312
+                        Stripper wall thickness              in     0.312
+                        Rectifier weight                     lb     6e+03
+                        Stripper weight                      lb  4.43e+03
+    Purchase cost       Condenser - Floating head           USD  3.32e+04
+                        Boiler - Floating head              USD  2.67e+04
+                        Rectifier trays                     USD   1.5e+04
+                        Stripper trays                      USD  1.25e+04
+                        Rectifier tower                     USD  4.57e+04
+                        Stripper platform and ladders       USD  1.39e+04
+                        Stripper tower                      USD  3.83e+04
+                        Rectifier platform and ladders      USD  1.14e+04
+    Total purchase cost                                     USD  1.97e+05
+    Utility cost                                         USD/hr      64.3
     
     Vacuum distillation is also supported:
         
@@ -1056,38 +1058,40 @@ class BinaryDistillation(Distillation, new_graphics=False):
                      --------  105 kmol/hr
     
     >>> D1.results()
-    Divided Distillation Column                     Units        D1
-    Power               Rate                           kW      11.4
-                        Cost                       USD/hr     0.894
-    Chilled water       Duty                        kJ/hr -3.78e+06
-                        Flow                      kmol/hr  2.51e+03
-                        Cost                       USD/hr      18.9
-    Low pressure steam  Duty                        kJ/hr  7.35e+06
-                        Flow                      kmol/hr       189
-                        Cost                       USD/hr        45
-    Design              Theoretical feed stage                    5
-                        Theoretical stages                        9
-                        Minimum reflux              Ratio     0.448
-                        Reflux                      Ratio     0.896
-                        Rectifier stages                          9
-                        Stripper stages                          22
-                        Rectifier height               ft      25.8
-                        Stripper height                ft        45
-                        Rectifier diameter             ft       6.2
-                        Stripper diameter              ft      4.38
-                        Rectifier wall thickness       in     0.375
-                        Stripper wall thickness        in     0.312
-                        Rectifier weight               lb  7.69e+03
-                        Stripper weight                lb  8.57e+03
-    Purchase cost       Rectifier trays               USD  1.53e+04
-                        Stripper trays                USD  1.88e+04
-                        Rectifier tower               USD  6.75e+04
-                        Stripper tower                USD  7.47e+04
-                        Vacuum system                 USD  1.33e+04
-                        Condenser                     USD  3.28e+04
-                        Boiler                        USD  2.08e+04
-    Total purchase cost                               USD  2.43e+05
-    Utility cost                                   USD/hr      64.8
+    Divided Distillation Column                           Units        D1
+    Power               Rate                                 kW      11.4
+                        Cost                             USD/hr     0.894
+    Chilled water       Duty                              kJ/hr -3.36e+06
+                        Flow                            kmol/hr  1.04e+04
+                        Cost                             USD/hr      16.8
+    Low pressure steam  Duty                              kJ/hr  7.41e+06
+                        Flow                            kmol/hr       191
+                        Cost                             USD/hr      45.4
+    Design              Theoretical feed stage                          5
+                        Theoretical stages                              9
+                        Minimum reflux                    Ratio     0.448
+                        Reflux                            Ratio     0.896
+                        Rectifier stages                                9
+                        Stripper stages                                22
+                        Rectifier height                     ft      25.8
+                        Stripper height                      ft        45
+                        Rectifier diameter                   ft      5.71
+                        Stripper diameter                    ft      4.38
+                        Rectifier wall thickness             in     0.312
+                        Stripper wall thickness              in     0.312
+                        Rectifier weight                     lb     7e+03
+                        Stripper weight                      lb  8.57e+03
+    Purchase cost       Condenser - Floating head           USD  3.32e+04
+                        Boiler - Floating head              USD  2.67e+04
+                        Rectifier trays                     USD  1.42e+04
+                        Stripper trays                      USD  1.88e+04
+                        Rectifier tower                     USD     5e+04
+                        Stripper platform and ladders       USD  1.39e+04
+                        Stripper tower                      USD  5.63e+04
+                        Rectifier platform and ladders      USD  1.84e+04
+                        Vacuum system                       USD  1.33e+04
+    Total purchase cost                                     USD  2.45e+05
+    Utility cost                                         USD/hr      63.1
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
@@ -1470,35 +1474,37 @@ class ShortcutColumn(Distillation, new_graphics=False):
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
-    Divided Distillation Column                     Units        D1
-    Cooling water       Duty                        kJ/hr -7.52e+06
-                        Flow                      kmol/hr  5.14e+03
-                        Cost                       USD/hr      2.51
-    Low pressure steam  Duty                        kJ/hr  1.35e+07
-                        Flow                      kmol/hr       347
-                        Cost                       USD/hr      82.4
-    Design              Theoretical feed stage                    8
-                        Theoretical stages                       16
-                        Minimum reflux              Ratio      1.06
-                        Reflux                      Ratio      2.12
-                        Rectifier stages                         13
-                        Stripper stages                          26
-                        Rectifier height               ft      31.7
-                        Stripper height                ft      50.9
-                        Rectifier diameter             ft      4.53
-                        Stripper diameter              ft      3.65
-                        Rectifier wall thickness       in     0.312
-                        Stripper wall thickness        in     0.312
-                        Rectifier weight               lb  6.46e+03
-                        Stripper weight                lb  7.93e+03
-    Purchase cost       Rectifier trays               USD  1.52e+04
-                        Stripper trays                USD  2.01e+04
-                        Rectifier tower               USD  6.19e+04
-                        Stripper tower                USD  7.19e+04
-                        Condenser                     USD  4.06e+04
-                        Boiler                        USD  2.93e+04
-    Total purchase cost                               USD  2.39e+05
-    Utility cost                                   USD/hr      84.9
+    Divided Distillation Column                           Units        D1
+    Cooling water       Duty                              kJ/hr -7.52e+06
+                        Flow                            kmol/hr  5.14e+03
+                        Cost                             USD/hr      2.51
+    Low pressure steam  Duty                              kJ/hr  1.35e+07
+                        Flow                            kmol/hr       347
+                        Cost                             USD/hr      82.4
+    Design              Theoretical feed stage                          8
+                        Theoretical stages                             16
+                        Minimum reflux                    Ratio      1.06
+                        Reflux                            Ratio      2.12
+                        Rectifier stages                               13
+                        Stripper stages                                26
+                        Rectifier height                     ft      31.7
+                        Stripper height                      ft      50.9
+                        Rectifier diameter                   ft      4.52
+                        Stripper diameter                    ft      3.65
+                        Rectifier wall thickness             in     0.312
+                        Stripper wall thickness              in     0.312
+                        Rectifier weight                     lb  6.45e+03
+                        Stripper weight                      lb  7.93e+03
+    Purchase cost       Condenser - Floating head           USD  4.06e+04
+                        Boiler - Floating head              USD  2.93e+04
+                        Rectifier trays                     USD  1.52e+04
+                        Stripper trays                      USD  2.01e+04
+                        Rectifier tower                     USD  4.76e+04
+                        Stripper platform and ladders       USD  1.42e+04
+                        Stripper tower                      USD  5.38e+04
+                        Rectifier platform and ladders      USD  1.81e+04
+    Total purchase cost                                     USD  2.39e+05
+    Utility cost                                         USD/hr      84.9
     
     """
     line = 'Distillation'

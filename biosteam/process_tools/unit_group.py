@@ -68,7 +68,7 @@ class UnitGroup:
     You can get main process results using UnitGroup methods:
         
     >>> ugroup.to_dict(with_electricity_production=True)
-    {'Installed equipment cost [MM$]': 0.071,
+    {'Installed equipment cost [MM$]': 0.056,
      'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
      'Electricity consumption [MW]': 0.00082,
@@ -77,7 +77,7 @@ class UnitGroup:
     Each result can be retrieved separately:
     
     >>> ugroup.get_installed_cost()
-    0.071
+    0.056
     
     >>> ugroup.get_cooling_duty()
     0.37
@@ -101,7 +101,7 @@ class UnitGroup:
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.071,
+    {'Installed equipment cost [MM$]': 0.056,
      'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
      'Electricity consumption [MW]': 0.00082,
@@ -124,6 +124,9 @@ class UnitGroup:
         #: list[Metric] Metrics to generate results
         self.metrics = metrics
     
+    def __iter__(self):
+        return iter(self.units)
+    
     def to_system(self, ID=None):
         """Return a System object of all units."""
         return bst.System.from_units(ID, self.units)
@@ -144,26 +147,15 @@ class UnitGroup:
         Examples
         --------
         >>> from biorefineries.cornstover import cornstover_sys, M201
+        >>> from biosteam import default
         >>> ugroup = cornstover_sys.to_unit_group()
         >>> upstream, downstream = ugroup.split(M201-0)
         >>> upstream.show()
         UnitGroup: Unnamed
          units: U101, H2SO4_storage, T201, M201
-        >>> downstream.show()
-        UnitGroup: Unnamed
-         units: M202, M203, R201, P201, T202,
-                F201, Ammonia_storage, M205, T203, P202,
-                H301, M301, CSL_storage, S302, DAP_storage,
-                S301, R301, M302, R302, T301,
-                M303, D401, M401, T302, P401,
-                H401, D402, P402, S401, M204,
-                H201, M601, WWTC, R601, M602,
-                R602, S601, S602, M603, S603,
-                M501, M402, D403, H402, U401,
-                H403, T701, P701, T702, P702,
-                M701, T703, S604, P403, FT,
-                BT, CWP, CIP_package, ADP, CT,
-                PWC, blowdown_mixer
+        >>> for i in upstream: assert i not in downstream.units
+        >>> assert set(upstream.units + downstream.units) == set(cornstover_sys.units)
+        >>> default() # Reset to biosteam defaults
         
         """
         sys = self.to_system()
@@ -259,24 +251,7 @@ class UnitGroup:
         >>> from biosteam import *
         >>> from biorefineries.cornstover import cornstover_sys
         >>> areas = UnitGroup.group_by_area(cornstover_sys.units)
-        >>> for i in areas: i.show()
-        UnitGroup: 0
-         units: H2SO4_storage, Ammonia_storage, DAP_storage, CSL_storage, WWTC,
-                FT, BT, CWP, CIP_package, ADP,
-                CT, PWC, blowdown_mixer
-        UnitGroup: 100
-         units: U101
-        UnitGroup: 200
-         units: T201, M201, M202, M203, R201,
-                P201, T202, F201, M205, T203,
-                P202, M204, H201
-        UnitGroup: 300
-         units: H301, M301, S301, S302, R301,
-                M302, R302, T301, M303, T302
-        UnitGroup: 400
-         units: D401, M401, P401, H401, D402,
-                P402, S401, M402, D403, H402,
-                U401, H403, P403
+        >>> for i in areas[-3:]: i.show()
         UnitGroup: 500
          units: M501
         UnitGroup: 600
@@ -307,9 +282,9 @@ class UnitGroup:
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
         >>> ugroup.get_inlet_flow('kg/s') # Sum of all chemicals
-        5846.08
+        6113.37
         >>> ugroup.get_inlet_flow('kg/s', 'Water') # Just water
-        5252.83
+        5473.52
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -335,9 +310,9 @@ class UnitGroup:
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
         >>> ugroup.get_outlet_flow('kg/s') # Sum of all chemicals
-        5862.43
+        6129.68
         >>> ugroup.get_outlet_flow('kg/s', 'Water') # Just water
-        5258.90
+        5479.78
         >>> default() # Bring biosteam settings back to default
         
         """

@@ -381,8 +381,7 @@ class MultiEffectEvaporator(Unit):
         
         # Find condenser requirements
         condenser = components['condenser']
-        condenser._design()
-        condenser._cost()
+        condenser._summary()
         Cost['Condenser'] = condenser.purchase_cost
         
         # Find area and cost of evaporators

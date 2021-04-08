@@ -7,12 +7,11 @@
 # for license details.
 """
 """
-from biosteam.utils.piping import ignore_docking_warnings
+from biosteam.utils.piping import ignore_docking_warnings, Connection
 from warnings import warn
 import biosteam as bst
 from graphviz import Digraph
 from IPython import display
-from collections import namedtuple
 from thermosteam import Stream
 
 __all__ = ('digraph_from_system',
@@ -27,12 +26,9 @@ __all__ = ('digraph_from_system',
            'extend_surface_units',
            'display_digraph',
            'save_digraph',
-           'get_all_connections',
-           'get_stream_connection')
+           'get_all_connections')
 
-Connection = namedtuple('Connection', 
-                        ('source', 'source_index', 'stream', 'sink_index', 'sink'),
-                        module=__name__)
+
 
 def sort_streams(streams):
     return sorted(streams, key=lambda x: -x.F_mass + len(x.ID))
@@ -227,15 +223,8 @@ def get_unit_names(f: Digraph, units):
 def update_digraph_from_units_and_connections(f: Digraph, units, connections):
     add_connections(f, connections, get_unit_names(f, units))    
 
-def get_stream_connection(stream):
-    source = stream._source
-    source_index = source._outs.index(stream) if source else None
-    sink = stream._sink
-    sink_index = sink._ins.index(stream) if sink else None
-    return Connection(source, source_index, stream, sink_index, sink)
-
 def get_all_connections(streams):
-    return {get_stream_connection(s)
+    return {s.get_connection()
             for s in streams 
             if (s._source or s._sink)}
 

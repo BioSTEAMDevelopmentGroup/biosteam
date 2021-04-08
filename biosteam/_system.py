@@ -20,12 +20,11 @@ from .exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
-from .utils import repr_items
+from .utils import repr_items, ignore_docking_warnings
 from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
 from collections.abc import Iterable
-from collections import deque
 from warnings import warn
 import biosteam as bst
 import numpy as np
@@ -206,7 +205,9 @@ class MockSystem:
     def __enter__(self):
         if self.units:
             raise RuntimeError("only empty mock systems can enter `with` statement")
-        self._irrelevant_units = set(self.flowsheet.unit)
+        unit_registry = self.flowsheet.unit
+        self._irrelevant_units = set(unit_registry)
+        unit_registry._open_dump(self)
         return self
     
     def __exit__(self, type, exception, traceback):
@@ -214,8 +215,9 @@ class MockSystem:
         del self._irrelevant_units
         if self.units:
             raise RuntimeError('mock system was modified before exiting `with` statement')
-        self.units = [i for i in self.flowsheet.unit
-                      if i not in irrelevant_units]
+        unit_registry = self.flowsheet.unit
+        dump = unit_registry._close_dump(self)
+        self.units = [i for i in dump if i not in irrelevant_units]
         if exception: raise exception
     
     __sub__ = Unit.__sub__
@@ -284,6 +286,7 @@ class System:
         'temperature_tolerance',
         'relative_temperature_tolerance',
         'flowsheet',
+        '_connections',
         '_irrelevant_units',
         '_converge_method',
         '_TEA',
@@ -415,6 +418,7 @@ class System:
         self._register(ID)
         self._load_stream_links()
         self._load_defaults()
+        self._save_configuration()
         return self
         
     def __init__(self, ID, path=(), recycle=None, facilities=(), 
@@ -430,6 +434,7 @@ class System:
         self._load_stream_links()
         self._register(ID)
         self._load_defaults()
+        self._save_configuration()
     
     def __enter__(self):
         if self.path or self.recycle or self.facilities:
@@ -454,12 +459,79 @@ class System:
             self.copy_like(system)
         if exception: raise exception
     
+    def _save_configuration(self):
+        self._connections = [i.get_connection() for i in self.streams]
+    
+    @ignore_docking_warnings
+    def _load_configuration(self):
+        for i in self._connections:
+            if i.source:
+                i.source.outs[i.source_index] = i.stream
+            if i.sink:
+                i.sink.ins[i.sink_index] = i.stream
+    
+    def get_scenario_costs(self, operating_hours):
+        """
+        Return a ScenarioCosts object with data on variable operating costs
+        (i.e. utility and material costs) and sales.
+
+        Parameters
+        ----------
+        operating_hours : float
+            Number of hours the system operates within a year.
+        
+        Examples
+        --------
+        Create a simple heat exchanger system and get scenario costs:
+            
+        >>> import biosteam as bst
+        >>> bst.default() # Reset to biosteam defaults
+        >>> bst.settings.set_thermo(['Water'])
+        >>> feed = bst.Stream('feed', Water=100)
+        >>> product = bst.Stream('product')
+        >>> HX1 = bst.HXutility('HX1', feed, product, T=350)
+        >>> SYS1 = bst.System.from_units('SYS1', [HX1])
+        >>> SYS1.simulate()
+        >>> operating_days = 300
+        >>> operating_hours = 24 * operating_days
+        >>> scenario_costs = SYS1.get_scenario_costs(operating_hours)
+        
+        A ScenarioCosts object has useful properties that may according to
+        stream prices and the number of operating hours, but not with 
+        flow rates or unit simulations:
+            
+        >>> assert scenario_costs.utility_cost == HX1.utility_cost * operating_hours
+        >>> assert scenario_costs.material_cost == feed.cost == 0.
+        >>> assert scenario_costs.sales == product.cost == 0.
+        >>> # Note how the feed price affects material costs
+        >>> feed.price = 0.05
+        >>> assert scenario_costs.material_cost == feed.cost * operating_hours
+        >>> # Yet simulations and changes to material flow rates do not affect costs
+        >>> feed.set_total_flow(200, 'kmol/hr')
+        >>> HX1.T = 370
+        >>> HX1.simulate()
+        >>> assert scenario_costs.material_cost != feed.cost * operating_hours
+        >>> assert scenario_costs.utility_cost != HX1.utility_cost * operating_hours
+        
+        """
+        feeds = self.feeds
+        products = self.products
+        units = [i for i in self.units if i._design or i._cost]
+        return ScenarioCosts(
+            {i: i.get_capital_costs() for i in units},
+            sum([i.utility_cost for i in units]),
+            feeds, products,
+            {i: i.F_mass for i in feeds + products},
+            operating_hours,
+        )
+    
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system.""" 
         self._path = other._path
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._recycle = other._recycle
+        self._connections = other._connections
     
     def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False):
         """
@@ -566,33 +638,20 @@ class System:
         UnitGroup: Unnamed
          units: U101, H2SO4_storage, T201, M201
         >>> downstream_group = downstream_sys.to_unit_group()
-        >>> downstream_group.show()
-        UnitGroup: Unnamed
-         units: M202, M203, R201, P201, T202,
-                F201, Ammonia_storage, M205, T203, P202,
-                H301, M301, DAP_storage, S301, CSL_storage,
-                S302, R301, M302, R302, T301,
-                M303, D401, M401, T302, P401,
-                H401, D402, P402, S401, M204,
-                H201, M601, WWTC, R601, M602,
-                R602, S601, S602, M603, S603,
-                M501, M402, D403, H402, U401,
-                H403, T701, P701, T702, P702,
-                M701, T703, S604, P403, FT,
-                BT, CWP, CIP_package, ADP, CT,
-                PWC, blowdown_mixer
+        >>> for i in upstream_group: assert i not in downstream_group.units
+        >>> assert set(upstream_group.units + downstream_group.units) == set(cornstover_sys.units)
         >>> default() # Reset to biosteam defaults
         
         """
         if self.recycle: raise RuntimeError('cannot split system with recycle')
         path = self.path
-        self.streams
+        streams = self.streams
         surface_units = {i for i in path if isinstance(i, Unit)}
         if stream.source in surface_units:
             index = path.index(stream.source) + 1
         elif stream.sink in surface_units:
             index = path.index(stream.sink)
-        elif stream not in self.streams:
+        elif stream not in streams:
             raise ValueError('stream not in system')
         else:
             raise ValueError('stream cannot reside within a subsystem')
@@ -621,19 +680,18 @@ class System:
         
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
-        self._facilities = facilities = tuple(facilities)
-        subsystems = self.subsystems
+        self._facilities = tuple(facilities)
+        self._load_facilities()
+        
+    def _load_facilities(self):
         isa = isinstance
-        new_facility_units = []
-        for i in facilities:
-            if isa(i, Facility) and not i._system:
-                new_facility_units.append(i)
-            elif isa(i, System):
-                subsystems.append(i)
-        for i in new_facility_units:
-            i._system = self
-            i._other_units = other_units = self.units.copy()
-            other_units.remove(i)
+        units = self.units.copy()
+        for i in self._facilities:
+            if isa(i, Facility):
+                i._system = self
+                i._other_units = other_units = units.copy()
+                other_units.remove(i)
+            
             
     def _set_facility_recycle(self, recycle):
         if recycle:
@@ -835,6 +893,7 @@ class System:
             Whether to label the ID of streams with sources and sinks.
             
         """
+        self._load_configuration()
         if not kind: kind = 'surface'
         graph_attrs['format'] = format or 'png'
         original = (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
@@ -959,6 +1018,8 @@ class System:
     
     def _setup(self):
         """Setup each element of the system."""
+        self._load_facilities()
+        self._load_configuration()
         isa = isinstance
         types = (Unit, System)
         for i in self._path:
@@ -1224,15 +1285,15 @@ class System:
         if self.ID: return f'<{type(self).__name__}: {self.ID}>'
         else: return f'<{type(self).__name__}>'
 
-    def show(self, T=None, P=None, flow=None, composition=None, N=None, 
+    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None, 
              IDs=None, data=True):
         """Prints information on system."""
-        print(self._info(T, P, flow, composition, N, IDs, data))
+        print(self._info(layout, T, P, flow, composition, N, IDs, data))
 
-    def _info(self, T, P, flow, composition, N, IDs, data):
+    def _info(self, layout, T, P, flow, composition, N, IDs, data):
         """Return string with all specifications."""
         error = self._error_info()
-        ins_and_outs = repr_ins_and_outs(self.ins, self.outs, 
+        ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs, 
                                          T, P, flow, composition, N, IDs, data)
         return (f"System: {self.ID}"
                 + error + '\n'
@@ -1245,5 +1306,38 @@ class FacilityLoop(System):
         obj._run()
         self._summary()
         
-    
 from biosteam import _flowsheet as flowsheet_module
+del ignore_docking_warnings
+
+
+# %% Working with different scenarios
+
+class ScenarioCosts:
+    
+    __slots__ = ('unit_capital_costs', 'steady_state_utility_cost', 
+                 '_feeds', '_products', 'flow_rates', 'operating_hours')
+    
+    def __init__(self, unit_capital_costs, steady_state_utility_cost, 
+                 feeds, products, flow_rates, operating_hours):
+        self.unit_capital_costs = unit_capital_costs
+        self.steady_state_utility_cost = steady_state_utility_cost
+        self._feeds = feeds
+        self._products = products
+        self.flow_rates = flow_rates
+        self.operating_hours = operating_hours
+        
+    @property
+    def utility_cost(self):
+        return self.operating_hours * self.steady_state_utility_cost
+    
+    @property
+    def material_cost(self):
+        flow_rates = self.flow_rates
+        operating_hours = self.operating_hours
+        return sum([flow_rates[i] * i.price * operating_hours for i in self._feeds])
+    
+    @property
+    def sales(self):
+        flow_rates = self.flow_rates
+        operating_hours = self.operating_hours
+        return sum([flow_rates[i] * i.price * operating_hours for i in self._products])

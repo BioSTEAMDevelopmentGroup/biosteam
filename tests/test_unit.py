@@ -16,22 +16,17 @@ def test_unit_connections():
     globals().update(f.unit.data)
     assert R301.neighborhood(1) == {D301, H301, T301, T305}
     assert R301.neighborhood(2) == {C301, D301, H301, M301, M302, R301, T301, T305}
-    assert R301.neighborhood(100) == R301.neighborhood(1000) == {P202, T201, U201, D301, M304, 
-                                                                 P201, P303, S201, T304, M201, 
-                                                                 H303, S301, C201, P301, H301, 
-                                                                 C202, U301, T205, P302, H302, 
-                                                                 T305, T301, M303, C301, H304, 
-                                                                 T204, M202, S202, P306, P203, 
-                                                                 BT,   U202, T302, U101, F301, 
-                                                                 D303, U102, M302, H202, H201, 
-                                                                 P304, U103, T202, M305, T206, 
-                                                                 M301, D302, T303, R301, T203, 
-                                                                 P305}
-    assert R301.get_downstream_units() == {M305, T304, C301, D301, P303, 
-                                           M302, H303, U301, R301, T301, 
-                                           P302, H304, P304, P301, H302, 
-                                           T302, D303, M304, T305, M303, 
-                                           D302}
+    assert R301.neighborhood(100) == R301.neighborhood(1000) == {
+        U301, H304, P304, T302, T305, C201, P306, P203, C202, S202, T303, 
+        U102, P305, T201, M304, S201, U201, H202, T304, U202, M201, P301, 
+        P302, M305, H302, S301, D303, T202, F301, T204, M301, M303, H301, 
+        H201, T203, P201, R301, T301, U103, U101, D302, T205, P202, C301,
+        D301, M202, M302, P303, T206, H303
+    }
+    assert R301.get_downstream_units() == {
+        T301, U301, P301, P302, D302, M305, H304, P304, H302, D303, T302, 
+        T305, M304, M303, C301, T304, D301, M302, P303, H303, R301,
+    }
     
     ins = tuple(R301.ins)
     outs = tuple(R301.outs)
@@ -78,7 +73,7 @@ def test_equipment_lifetimes():
             'Equipment B': 5,
         }
         def _cost(self):
-            purchase_costs = self.purchase_costs
+            purchase_costs = self.baseline_purchase_costs
             purchase_costs['Equipment A'] = 1e6
             purchase_costs['Equipment B'] = 1e5
             
@@ -88,14 +83,14 @@ def test_equipment_lifetimes():
         }
         _equipment_lifetime = 15
         def _cost(self):
-            self.purchase_costs['Equipment A'] = 1e6
+            self.baseline_purchase_costs['Equipment A'] = 1e6
 
     class C(bst.Unit):
         _BM = {
             'Equipment A': 4,
         }
         def _cost(self):
-            self.purchase_costs['Equipment A'] = 1e6
+            self.baseline_purchase_costs['Equipment A'] = 1e6
             
     @bst.decorators.cost('Flow rate', units='kmol/hr', S=1, BM=3,
                          cost=1e6, n=0.6, CE=bst.CE, lifetime=8)

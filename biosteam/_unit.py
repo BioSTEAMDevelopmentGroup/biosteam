@@ -14,8 +14,8 @@ from graphviz import Digraph
 from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
-from .utils import Inlets, Outlets, NotImplementedMethod, \
-                   format_title, static, ignore_docking_warnings
+from .utils import NotImplementedMethod, format_title, static
+from .utils import piping
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
@@ -31,7 +31,7 @@ def count():
 
 # %% Inlet and outlet representation
 
-def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
+def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
     info = ''
     if ins:
         info += 'ins...\n'
@@ -40,7 +40,7 @@ def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
             unit = stream._source
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
             if stream and data:
-                stream_info = stream._info(T, P, flow, composition, N, IDs)
+                stream_info = stream._info(layout, T, P, flow, composition, N, IDs)
                 index = stream_info.index('\n')
                 info += f'[{i}] {stream}' + source_info + stream_info[index+1:] + '\n'
             else:
@@ -53,7 +53,7 @@ def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
             unit = stream._sink
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
             if stream and data:
-                stream_info = stream._info(T, P, flow, composition, N, IDs)
+                stream_info = stream._info(layout, T, P, flow, composition, N, IDs)
                 index = stream_info.index('\n')
                 info += f'[{i}] {stream}' + sink_info + stream_info[index+1:] + '\n'
             else:
@@ -61,6 +61,15 @@ def repr_ins_and_outs(ins, outs, T, P, flow, composition, N, IDs, data):
             i += 1
     info = info.replace('\n ', '\n    ')
     return info[:-1]
+
+# %% Agile unit operation utilities
+
+class AccountedEquipmentCost(float):
+    """
+    Create an AccountedEquipmentCost object that represents a cost reference to
+    another scenario.
+    
+    """
 
 # %% Unit Operation
 
@@ -83,7 +92,7 @@ class Unit:
     _design()
         Add design requirements to the `design_results` dictionary.
     _cost()
-        Add itemized purchse costs to the `purchase_costs` dictionary.
+        Add itemized purchse costs to the `baseline_purchase_costs` dictionary.
 
     **Abstract class attributes**
     
@@ -110,7 +119,7 @@ class Unit:
         without having add these costs in the `purchase_costs` dictionary.
     **_equipment_lifetime=None**
         [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
-        production venture. Use an integer to specify the lifetime is for all
+        production venture. Use an integer to specify the lifetime for all
         items in the unit purchase costs. Use a dictionary to specify the 
         lifetime of each purchase cost item.
     **_graphics**
@@ -256,11 +265,13 @@ class Unit:
     
     def _init_ins(self, ins):
         # Inlets[:class:`~thermosteam.Stream`] Input streams
-        self._ins = Inlets(self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel)
+        self._ins = piping.Inlets(self, self._N_ins, ins, self._thermo, 
+                                  self._ins_size_is_fixed, self._stacklevel)
     
     def _init_outs(self, outs):
         # Outlets[:class:`~thermosteam.Stream`] Output streams
-        self._outs = Outlets(self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel)
+        self._outs = piping.Outlets(self, self._N_outs, outs, self._thermo,
+                                    self._outs_size_is_fixed, self._stacklevel)
     
     def _init_utils(self):
         # tuple[HeatUtility] All heat utilities associated to unit
@@ -272,13 +283,13 @@ class Unit:
     
     def _init_results(self):
         #: [dict] All design factors for each purchase cost.
-        self._F_D = {}
+        self.F_D = {}
         
         #: [dict] All pressure factors for each purchase cost.
-        self._F_P = {}
+        self.F_P = {}
         
         #: [dict] All material factors for each purchase cost.
-        self._F_M = {}
+        self.F_M = {}
         
         # [dict] All design results.
         self.design_results = {}
@@ -298,6 +309,49 @@ class Unit:
         #: (https://github.com/scyjth/biosteam_lca)
         self._GHGs = {}
     
+    def get_capital_costs(self):
+        return UnitCapitalCosts(
+            self, self._F_BM, self.F_D.copy(), self.F_P.copy(), self.F_M.copy(), 
+            self.baseline_purchase_costs.copy(), self.purchase_costs.copy(),
+            self.installed_costs.copy(),
+        )
+    
+    def get_agile_capital_costs(self, capital_costs: list):
+        names = (
+            'F_BM', 'F_D', 'F_P', 'F_M',
+            'baseline_purchase_costs', 'purchase_costs', 'installed_costs',
+        )
+        agile_scenario = {i: {} for i in names}
+        self._fill_agile_capital_costs(agile_scenario, capital_costs)
+        agile_scenario['unit'] = self
+        return UnitCapitalCosts(**agile_scenario)
+                
+    def _fill_agile_capital_costs(self, agile_scenario, capital_costs):
+        for results in capital_costs:
+            for name, maxdct in agile_scenario.items():
+                dct = getattr(results, name)
+                for i, j in dct.items():
+                    if i in maxdct:
+                        if abs(j) > abs(maxdct[i]):
+                            maxdct[i] = j
+                    else:
+                        maxdct[i] = j
+        F_BM = agile_scenario['F_BM']
+        F_D = agile_scenario['F_D']
+        F_P = agile_scenario['F_P']
+        F_M = agile_scenario['F_M']
+        baseline_purchase_costs = agile_scenario['baseline_purchase_costs']
+        purchase_costs = agile_scenario['purchase_costs']
+        installed_costs = agile_scenario['installed_costs']
+        for name, Cp in baseline_purchase_costs.items():
+            F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
+            installed_cost = Cp * (F_BM[name] + F - 1.)
+            purchase_cost = Cp * F
+            if installed_cost > installed_costs[name]:
+                installed_costs[name] = installed_cost
+            if purchase_cost > purchase_costs[name]:
+                purchase_costs[name] = purchase_cost
+    
     def _assert_compatible_property_package(self):
         chemicals = self.chemicals
         streams = self._ins + self._outs
@@ -307,11 +361,51 @@ class Unit:
             "with a compatible thermodynamic property package"
         )
     
+    def _load_auxiliary_capital_costs(self):
+        for i in self.auxiliary_units: i._load_capital_costs()
+        baseline_purchase_costs = self.baseline_purchase_costs
+        purchase_costs = self.purchase_costs
+        installed_costs = self.installed_costs
+        F_BM = self._F_BM
+        F_D = self.F_D
+        F_P = self.F_P
+        F_M = self.F_M
+        for name in self.auxiliary_unit_names:
+            unit = getattr(self, name)
+            if not unit: continue
+            F_BM_auxiliary = unit._F_BM
+            F_D_auxiliary = unit.F_D
+            F_P_auxiliary = unit.F_P
+            F_M_auxiliary = unit.F_M
+            bpc_auxiliary = unit.baseline_purchase_costs
+            pc_auxiliary = unit.purchase_costs
+            ic_auxiliary = unit.installed_costs
+            for i in unit.baseline_purchase_costs:
+                j = ' - '.join([name.capitalize(), i])
+                if j in baseline_purchase_costs: 
+                    raise RuntimeError(
+                        f"'{j}' already in `baseline_purchase_cost` "
+                         "dictionary of {repr(self)}; try using a different key"
+                    )
+                else:
+                    F_D[j] = fd = F_D_auxiliary.get(i, 1.)
+                    F_P[j] = fp = F_P_auxiliary.get(i, 1.)
+                    F_M[j] = fm = F_M_auxiliary.get(i, 1.)
+                    baseline_purchase_costs[j] = Cpb = bpc_auxiliary[i]
+                    purchase_costs[j] = pc_auxiliary[i]
+                    installed_costs[j] = Cbm = ic_auxiliary[i]
+                    try:
+                        F_BM[j] = F_BM_auxiliary[i]
+                    except KeyError:
+                        # Assume costs already added elsewhere using another method.
+                        # Calculate BM as an estimate.
+                        F_BM[j] = Cbm / Cpb + 1 - fd * fp * fm
+    
     def _load_capital_costs(self):
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
         installed equipment costs (i.e. bare-module cost) for each item in the 
-        `baseline_purchase_costs` dictionary.
+        `baseline_purchase_costs` dictionary and in auxiliary units.
         
         Notes
         -----
@@ -335,7 +429,7 @@ class Unit:
             * :math:`F_{M}`: Material factor.
         
         Values for the design, pressure, and material factors of each equipment
-        should be stored in the `_F_D`, `_F_P`, and `_F_M` dictionaries.
+        should be stored in the `F_D`, `F_P`, and `F_M` dictionaries.
         
         Warning
         -------
@@ -350,13 +444,14 @@ class Unit:
         Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
+        self._F_BM = F_BM = self._BM.copy() # F_BM is used to not add auxiliary items to `_BM`
+        F_D = self.F_D
+        F_P = self.F_P
+        F_M = self.F_M
+        self._load_auxiliary_capital_costs()
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
-        BM = self._BM
-        F_D = self._F_D
-        F_P = self._F_P
-        F_M = self._F_M
         for i in purchase_costs:
             if i not in baseline_purchase_costs:
                 warning = RuntimeWarning(
@@ -366,23 +461,26 @@ class Unit:
                  )
                 warn(warning)
                 baseline_purchase_costs[i] = purchase_costs[i]
-        for name, Cp in baseline_purchase_costs.items(): 
+        for name, Cpb in baseline_purchase_costs.items(): 
+            if name in installed_costs and name in purchase_costs: 
+                continue # Assume costs already added elsewhere using another method
             F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
             try:
-                installed_costs[name] = Cp * (BM[name] + F - 1.)
+                installed_costs[name] = Cpb * (F_BM[name] + F - 1.)
             except KeyError:
                 warning = RuntimeWarning(
                    f"the purchase cost item, '{name}', has "
-                    "no defined bare module factor in the "
-                  f"'{type(self).__name__}._BM' dictionary"
+                    "no defined bare-module factor in the "
+                  f"'{type(self).__name__}._BM' dictionary; "
+                   "bare-module factor now has a default value of 1"
                  )
                 warn(warning)
-                installed_costs[name] = purchase_costs[name] = Cp * F
+                F_BM[name] = 1.
+                installed_costs[name] = purchase_costs[name] = Cpb * F
             else:
-                purchase_costs[name] = Cp * F
+                purchase_costs[name] = Cpb * F
     
     def _setup(self):
-        self.design_results.clear()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -403,7 +501,7 @@ class Unit:
     def get_design_result(self, key, units):
         return convert(self.design_results[key], self._units[key], units)
     
-    @ignore_docking_warnings
+    @piping.ignore_docking_warnings
     def take_place_of(self, other):
         """Replace inlets and outlets from this unit with that of another unit."""
         self.ins[:] = other.ins
@@ -415,18 +513,18 @@ class Unit:
         isa = isinstance
         int_types = (int, np.int)
         if isa(other, (Unit, bst.System)):
-            other._ins[:] = self._outs
+            other.ins[:] = self.outs
             return other
         elif isa(other, int_types):
             return self.outs[other]
         elif isa(other, Stream):
-            self._outs[:] = (other,)
+            self.outs[:] = (other,)
             return self
         elif isa(other, (tuple, list, np.ndarray)):
             if all([isa(i, int_types) for i in other]):
-                return [self._outs[i] for i in other]
+                return [self.outs[i] for i in other]
             else:
-                self._outs[:] = other
+                self.outs[:] = other
                 return self
         else:
             return other.__rsub__(self)
@@ -436,15 +534,15 @@ class Unit:
         isa = isinstance
         int_types = (int, np.int)
         if isa(other, int_types):
-            return self._ins[other]
+            return self.ins[other]
         elif isa(other, Stream):
-            self._ins[:] = (other,)
+            self.ins[:] = (other,)
             return self
         elif isa(other, (tuple, list, np.ndarray)):
             if all([isa(i, int_types) for i in other]):
-                return [self._ins[i] for i in other]
+                return [self.ins[i] for i in other]
             else:
-                self._ins[:] = other
+                self.ins[:] = other
                 return self
         else:
             raise ValueError(f"cannot pipe '{type(other).__name__}' object")
@@ -456,15 +554,11 @@ class Unit:
     # Abstract methods
     reset_cache = NotImplementedMethod
     _run = NotImplementedMethod
-    _setup = NotImplementedMethod
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
     
     def _get_design_info(self): 
         return ()
-    def _get_cost_info(self): 
-        return [(i.capitalize().replace('_', ' '), j.purchase_cost) for i,j in 
-                zip(self.auxiliary_unit_names, self.auxiliary_units)]
         
     def _load_stream_links(self):
         options = self._stream_link_options
@@ -473,8 +567,14 @@ class Unit:
             s_out = self._outs[0]
             s_out.link_with(s_in, options.flow, options.phase, options.TP)
     
+    def _reevaluate(self):
+        """Reevaluate design and costs."""
+        self._setup()
+        self._summary()
+    
     def _summary(self):
         """Calculate all results from unit run."""
+        if not (self._design or self._cost): return
         self._design()
         self._cost()
         self._load_capital_costs()
@@ -491,10 +591,15 @@ class Unit:
         self._specification = specification
     
     @property
+    def baseline_purchase_cost(self):
+        """Total baseline purchase cost, without accounting for design ,
+        pressure, and material factors [USD]."""
+        return sum(self.baseline_purchase_cost.values())
+    
+    @property
     def purchase_cost(self):
         """Total purchase cost [USD]."""
-        return (sum(self.purchase_costs.values())
-                + sum([i.purchase_cost for i in self.auxiliary_units]))
+        return sum(self.purchase_costs.values())
     
     @property
     def installed_cost(self):
@@ -581,9 +686,6 @@ class Unit:
             for ki, vi in Cost.items():
                 addkey(('Purchase cost', ki))
                 addval(('USD', vi))
-            for ki, vi in self._get_cost_info():
-                addkey(('Purchase cost', ki))
-                addval(('USD', vi))
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(('USD', self.purchase_cost))
@@ -638,12 +740,9 @@ class Unit:
             for ki, vi, ui in self._get_design_info():
                 addkey(('Design', ki))
                 addval(vi)
-            for ki, vi in self._get_cost_info():
-                addkey(('Purchase cost', ki))
-                addval(vi)
             for ki, vi in self.purchase_costs.items():
                 addkey(('Purchase cost', ki))
-                addval(vi)    
+                addval(vi)
             if self._GHGs:
                 GHG_units = self._GHG_units
                 for ko, vo in self._GHGs.items():
@@ -734,7 +833,7 @@ class Unit:
             new_length = len(upstream_units)
         return upstream_units
     
-    def neighborhood(self, radius=1, upstream=True, downstream=True):
+    def neighborhood(self, radius=1, upstream=True, downstream=True, ends=None, facilities=None):
         """
         Return a set of all neighboring units within given radius.
         
@@ -751,14 +850,14 @@ class Unit:
         radius -= 1
         neighborhood = set()
         if radius < 0: return neighborhood
-        if upstream:self._add_upstream_neighbors_to_set(neighborhood)
-        if downstream: self._add_downstream_neighbors_to_set(neighborhood)
+        if upstream:self._add_upstream_neighbors_to_set(neighborhood, ends, facilities)
+        if downstream: self._add_downstream_neighbors_to_set(neighborhood, ends, facilities)
         direct_neighborhood = neighborhood
         for i in range(radius):
             neighbors = set()
             for unit in direct_neighborhood:
-                if upstream: unit._add_upstream_neighbors_to_set(neighbors)
-                if downstream: unit._add_downstream_neighbors_to_set(neighbors)
+                if upstream: unit._add_upstream_neighbors_to_set(neighbors, ends, facilities)
+                if downstream: unit._add_downstream_neighbors_to_set(neighbors, ends, facilities)
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
@@ -961,17 +1060,17 @@ class Unit:
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     
     # Representation
-    def _info(self, T, P, flow, composition, N, IDs, data):
+    def _info(self, layout, T, P, flow, composition, N, IDs, data):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        return info + repr_ins_and_outs(self.ins, self.outs, T, P, flow, composition, N, IDs, data)
+        return info + repr_ins_and_outs(layout, self.ins, self.outs, T, P, flow, composition, N, IDs, data)
 
-    def show(self, T=None, P=None, flow=None, composition=None, N=None, IDs=None, data=True):
+    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None, IDs=None, data=True):
         """Prints information on unit."""
-        print(self._info(T, P, flow, composition, N, IDs, data))
+        print(self._info(layout, T, P, flow, composition, N, IDs, data))
     
     def _ipython_display_(self):
         if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram()
@@ -982,5 +1081,42 @@ class Unit:
             return f'<{type(self).__name__}: {self.ID}>'
         else:
             return f'<{type(self).__name__}>'
+
+
+class UnitCapitalCosts:
+    
+    __slots__ = (
+        'unit',
+        'F_BM',
+        'F_D',
+        'F_P',
+        'F_M',
+        'baseline_purchase_costs',
+        'purchase_costs',
+        'installed_costs',
+    )
+    
+    baseline_purchase_cost = Unit.baseline_purchase_cost
+    purchase_cost = Unit.purchase_cost
+    installed_cost = Unit.installed_cost
+    
+    def __init__(self, 
+            unit, F_BM, F_D, F_P, F_M,
+            baseline_purchase_costs: dict,
+            purchase_costs: dict,
+            installed_costs: dict,
+        ):
+        self.unit = unit
+        self.F_BM = F_BM
+        self.F_D = F_D
+        self.F_P = F_P
+        self.F_M = F_M
+        self.baseline_purchase_costs = baseline_purchase_costs
+        self.purchase_costs = purchase_costs
+        self.installed_costs = installed_costs
+
+    @property
+    def _equipment_lifetime(self):
+        return self.unit._equipment_lifetime
 
 del thermo_user, registered

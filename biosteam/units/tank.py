@@ -226,10 +226,10 @@ class Tank(Unit, isabstract=True):
         self._vessel_material = material
         default_material = self.purchase_cost_algorithm.material
         if material == default_material:
-            self._F_M['Tanks'] = vessel_material_factors.get(default_material, 1.)
+            self.F_M['Tanks'] = vessel_material_factors.get(default_material, 1.)
         else:
             try:
-                self._F_M['Tanks'] = vessel_material_factors[material]
+                self.F_M['Tanks'] = vessel_material_factors[material]
             except:
                 raise ValueError("no material factor available for "
                                 f"vessel construction material '{material}';"

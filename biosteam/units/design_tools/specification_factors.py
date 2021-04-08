@@ -42,8 +42,8 @@ pressure_vessel_material_factors = {
     'Monel-400': 3.6,
     'Inconel-600': 3.9,
     'Incoloy-825': 3.7,
-    'Titanium': 7.7}
-
+    'Titanium': 7.7
+}
 #: Material factors for ordinary vessels
 vessel_material_factors = {
     'Carbon steel': 1.0,
@@ -51,8 +51,8 @@ vessel_material_factors = {
     'Stainless steel': 2.0,
     'Nickel': 2.5,
     'Titanium clad': 3.0,
-    'Titanium': 6.0}
-
+    'Titanium': 6.0
+}
 #: Material densities in lb/ft^3
 material_densities_lb_per_ft3 = {
     'Carbon steel': 490,
@@ -64,8 +64,8 @@ material_densities_lb_per_ft3 = {
     'Monel-400': None,
     'Inconel-600': None,
     'Incoloy-825': None,
-    'Titanium': None}
-
+    'Titanium': None
+}
 #: Material densities in lb/in^3
 material_densities_lb_per_in3 = {
     'Carbon steel': 0.284 ,
@@ -77,8 +77,8 @@ material_densities_lb_per_in3 = {
     'Monel-400': None,
     'Inconel-600': None,
     'Incoloy-825': None,
-    'Titanium': None}
-
+    'Titanium': None
+}
 # %% Pumps
 
 #: Material factors for pumps
@@ -91,14 +91,14 @@ pump_material_factors = {
     'Hastelloy C':     2.95,
     'Monel':           3.3,
     'Nickel':          3.5,
-    'Titanium':        9.7}
-
+    'Titanium':        9.7
+}
 #: Gear-type cost factors for pumps
 pump_gear_factors = {
     'OpenDripProof':           1,
     'EnclosedFanCooled':       1.4,
-    'ExplosionProofEnclosure': 1.8}
-
+    'ExplosionProofEnclosure': 1.8
+}
 #: Centrifugal-type cost factors for pumps.
 #: Keys are case-split orientation and shaft rpm.
 pump_centrifugal_factors = {
@@ -107,8 +107,8 @@ pump_centrifugal_factors = {
     'HSC3600':   1.7,
     'HSC1800':   2,
     '2HSC3600':  2.7,
-    '2+HSC3600': 8.9}
-
+    '2+HSC3600': 8.9
+}
 
 # %% Distillation
 
@@ -116,8 +116,8 @@ pump_centrifugal_factors = {
 distillation_tray_type_factor = {
     'Sieve': 1,
     'Valve': 1.18,
-    'Bubble cap': 1.87}
-
+    'Bubble cap': 1.87
+}
 # Tray material factors (inner diameter, Di, in ft)
 def compute_carbon_steel_material_factor(Di):
     return 1
@@ -140,8 +140,8 @@ tray_material_factor_functions = {
     'Stainless steel 304': compute_stainless_steel_304_material_factor,
     'Stainless steel 316': compute_stainless_steel_316_material_factor,
     'Carpenter 20CB-3': compute_carpenter_20CB3_material_factor,
-    'Monel': compute_monel_material_factor}
-
+    'Monel': compute_monel_material_factor
+}
 #: Material cost factors for distillation columns.
 distillation_column_material_factors = {
     'Carbon steel': 1.0,
@@ -153,7 +153,8 @@ distillation_column_material_factors = {
     'Monel-400': 3.6,
     'Inconel-600': 3.9,
     'Incoloy-825': 3.7,
-    'Titanium': 7.7}
+    'Titanium': 7.7
+}
 
 # %% Shell & tube heat exchangers
 
@@ -170,7 +171,8 @@ shell_and_tube_material_factor_coefficients =  {
     'Cr-Mo steel/Cr-Mo steel':	        (1.7,  0.07),
     'Stainless steel/stainless steel':  (2.7,  0.07),
     'Monel/Monel':	                    (3.3,  0.08),
-    'Titanium/titanium':	            (9.6,  0.06)}
+    'Titanium/titanium':	            (9.6,  0.06)
+}
 
 def compute_shell_and_tube_material_factor(A, a, b):
     r"""

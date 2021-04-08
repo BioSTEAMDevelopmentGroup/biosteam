@@ -60,12 +60,10 @@ def parameter(system, element, setter, kind, name,
         block = Block(element, system); simulate = block.simulate
     elif kind == 'isolated':
         block = Block(element, None); simulate = None
-    elif kind == 'design':
-        block = Block(element, None); simulate = element._summary
-    elif kind == 'cost':
-        block = Block(element, None); simulate = element._cost
+    elif kind == 'design' or 'cost':
+        block = Block(element, None); simulate = element._reevaluate
     else:
-        raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
+        raise ValueError(f"kind must be either 'coupled', 'isolated', or 'design' (not {kind}).")
     return block.parameter(setter, simulate, name, distribution, 
                            units, baseline, bounds)
 
@@ -226,8 +224,7 @@ class State:
         kind : {'coupled', 'isolated', 'design', 'cost'}
             * 'coupled': parameter is coupled to the system.
             * 'isolated': parameter does not affect the system but does affect the element (if any).
-            * 'design': parameter only affects design and cost of the element.
-            * 'cost': parameter only affects cost of the element.
+            * 'design': parameter only affects design and/or cost of the element.
         name : str
                Name of parameter. If None, default to argument name of setter.
         distribution : chaospy.Dist

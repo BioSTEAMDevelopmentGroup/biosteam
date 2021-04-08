@@ -14,8 +14,9 @@ from copy import copy as copy_
 from flexsolve import njitable
 from math import floor
 from warnings import warn
+import biosteam as bst
 
-__all__ = ('TEA', 'CombinedTEA')
+__all__ = ('TEA', 'CombinedTEA', 'AgileTEA')
 
 
 cashflow_columns = ('Depreciable capital [MM$]',
@@ -76,20 +77,15 @@ def add_replacement_cost_to_cashflow_array(equipment_installed_cost,
     for i in range(1, N_purchases):
         cashflow_array[start + i * equipment_lifetime] += equipment_installed_cost
 
-def compute_installed_costs(unit, lang_factor):
-    baseline_purchase_costs = unit.baseline_purchase_costs
-    installed_costs = {}
-    for name, Cp in baseline_purchase_costs.items():
-        F = unit._F_D.get(name, 1.) * unit._F_P.get(name, 1.) * unit._F_M.get(name, 1.)
-        installed_costs[name] = Cp * (lang_factor + F - 1.)
-    return installed_costs
-
-def add_all_replacement_costs_to_cashflow_array(unit, cashflow_array, 
+def add_all_replacement_costs_to_cashflow_array(unit_capital_cost, cashflow_array, 
                                                 venture_years, start,
                                                 lang_factor):
-    equipment_lifetime = unit._equipment_lifetime
+    equipment_lifetime = unit_capital_cost._equipment_lifetime
     if equipment_lifetime:
-        installed_costs = compute_installed_costs(unit, lang_factor) if lang_factor else unit.installed_costs
+        if lang_factor:
+            installed_costs =  {i: j*lang_factor for i, j in unit_capital_cost.purchase_costs.items()}
+        else:
+            installed_costs = unit_capital_cost.installed_costs
         if isinstance(equipment_lifetime, int):
              add_replacement_cost_to_cashflow_array(sum(installed_costs.values()), 
                                                     equipment_lifetime,
@@ -134,7 +130,7 @@ def fill_taxable_and_nontaxable_cashflows_without_loans(
     C_WC[-1] = -WC
 
 def taxable_and_nontaxable_cashflows(
-        unit_operations,
+        unit_capital_costs,
         D, C, S, C_FC, C_WC, Loan, LP,
         FCI, WC, TDC, VOC, FOC, sales,
         startup_time,
@@ -165,7 +161,7 @@ def taxable_and_nontaxable_cashflows(
         construction_schedule,
         start
     )
-    for i in unit_operations:
+    for i in unit_capital_costs:
         add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
     if finance_interest:
         interest = finance_interest
@@ -180,6 +176,21 @@ def taxable_and_nontaxable_cashflows(
         nontaxable_cashflow = D - C_FC - C_WC
     return taxable_cashflow, nontaxable_cashflow
 
+def NPV_with_sales(
+        sales, 
+        taxable_cashflow, 
+        nontaxable_cashflow,
+        sales_coefficients,
+        discount_factors,
+        fill_tax_and_incentives,
+    ):
+    """Return NPV with an additional annualized sales."""
+    taxable_cashflow = taxable_cashflow + sales * sales_coefficients
+    tax = np.zeros_like(taxable_cashflow)
+    incentives = tax.copy()
+    fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+    cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
+    return (cashflow/discount_factors).sum()
 
 # %% Techno-Economic Analysis
 
@@ -311,11 +322,15 @@ class TEA:
         'India': 0.85,
     }
 
-    def __init_subclass__(self, isabstract=False):
+    def __init_subclass__(cls, isabstract=False):
         if isabstract: return
         for method in ('_DPI', '_TDC', '_FCI', '_FOC'):
-            if not hasattr(self, method):
-                raise NotImplementedError(f"subclass must implement a '{method}' method unless the 'isabstract' keyword argument is True")
+            if not hasattr(cls, method):
+                breakpoint()
+                raise NotImplementedError(
+                    f"subclass must implement a '{method}' method unless the "
+                     "'isabstract' keyword argument is True"
+                )
 
     @staticmethod
     def like(system, other):
@@ -381,13 +396,16 @@ class TEA:
         #: [System] System being evaluated.
         self.system = system
         
-        #: set[Stream] All product streams.
+        #: list[Stream] All product streams.
         self.products = system.products
         
-        #: set[Stream] All feed streams.
+        #: list[Stream] All feed streams.
         self.feeds = system.feeds
             
         system._TEA = self
+
+    def _get_duration(self):
+        return (self._start, self._years)
 
     def _DPI(self, installed_equipment_cost):
         return installed_equipment_cost # Default for backwards compatibility
@@ -457,7 +475,7 @@ class TEA:
         """Total installed cost (USD)."""
         lang_factor = self.lang_factor
         if lang_factor:
-            return sum([sum(compute_installed_costs(u, lang_factor).values()) for u in self.units])
+            return sum([u.purchase_cost * lang_factor for u in self.units])
         else:
             return sum([u.installed_cost for u in self.units])
     @property
@@ -530,6 +548,13 @@ class TEA:
             _duration_array_cache[key] = duration_array = np.arange(-start+1, years+1, dtype=float)
         return duration_array
 
+    def _fill_depreciation_array(self, D, start, years, TDC):
+        depreciation_array = self._depreciation_array
+        N_depreciation_years = depreciation_array.size
+        if N_depreciation_years > years:
+            raise RuntimeError('depreciation schedule is longer than plant lifetime')
+        D[start:start + N_depreciation_years] = TDC * depreciation_array
+
     def get_cashflow_table(self):
         """Return DataFrame of the cash flow analysis."""
         # Cash flow data and parameters
@@ -560,8 +585,7 @@ class TEA:
         sales = self.sales
         length = start + years
         C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, T, I, NE, CF, DF, NPV, CNPV = data = np.zeros((17, length))
-        depreciation = self._depreciation_array
-        D[start:start+len(depreciation)] = TDC * depreciation
+        self._fill_depreciation_array(D, start, years, TDC)
         w0 = self._startup_time
         w1 = 1. - w0
         C[start] = (w0*self.startup_VOCfrac*VOC + w1*VOC
@@ -608,55 +632,16 @@ class TEA:
     @property
     def NPV(self):
         """Net present value."""
-        return NPV_at_IRR(self.IRR, self.cashflow_array, self._get_duration_array())
+        taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
+        tax = np.zeros_like(taxable_cashflow)
+        incentives = tax.copy()
+        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
+        return NPV_at_IRR(self.IRR, cashflow, self._get_duration_array())
     
     def _AOC(self, FCI):
         """Return AOC at given FCI"""
         return self._FOC(FCI) + self.VOC
-    
-    def production_cost(self, products, with_annual_depreciation=True):
-        """
-        Return production cost of products [USD/yr].
-        
-        Parameters
-        ----------
-        products : Iterable[:class:`~thermosteam.Stream`]
-            Main products of the system
-        with_annual_depreciation=True : bool, optional
-        
-        Notes
-        -----
-        If there is more than one main product, The production cost is
-        proportionally allocated to each of the main products with respect to
-        their marketing values. The marketing value of each product is
-        determined by the annual production multiplied by its selling price.
-        """
-        market_values = np.array([i.cost for i in products])
-        total_market_value = market_values.sum()
-        weights = market_values/total_market_value
-        return weights * self.total_production_cost(products, with_annual_depreciation)
-        
-    def total_production_cost(self, products, with_annual_depreciation):
-        """
-        Return total production cost of products [USD/yr].
-        
-        Parameters
-        ----------
-        products : Iterable[:class:`~thermosteam.Stream`]
-                    Main products of the system
-        with_annual_depreciation=True : bool, optional
-        
-        """
-        coproducts = self.products.copy()
-        for i in products: coproducts.remove(i)
-        coproduct_sales = sum([s.cost for s in coproducts if s.price]) * self._operating_hours
-        if with_annual_depreciation:
-            TDC = self.TDC
-            annual_depreciation = TDC/(self.duration[1]-self.duration[0])
-            AOC = self._AOC(self._FCI(TDC))
-            return AOC - coproduct_sales + annual_depreciation
-        else:
-            return self.AOC - coproduct_sales
     
     def _taxable_and_nontaxable_cashflow_arrays(self):
         """Return taxable and nontaxable cash flows by year as a tuple[1d array, 1d array]."""
@@ -677,11 +662,7 @@ class TEA:
         FOC = self._FOC(FCI)
         VOC = self.VOC
         D, C_FC, C_WC, Loan, LP, C, S = np.zeros((7, start + years))
-        depreciation_array = self._depreciation_array
-        N_depreciation_years = depreciation_array.size
-        if N_depreciation_years > years:
-            raise RuntimeError('depreciation schedule is longer than plant lifetime')
-        D[start:start + N_depreciation_years] = TDC * depreciation_array
+        self._fill_depreciation_array(D, start, years, TDC)
         WC = self.WC_over_FCI * FCI
         return taxable_and_nontaxable_cashflows(self.units,
                                                 D, C, S, C_FC, C_WC, Loan, LP,
@@ -720,6 +701,53 @@ class TEA:
         """[1d array] Net earnings by year."""
         return self._net_earnings_and_nontaxable_cashflow_arrays()[0]
     
+    
+    def market_value(self, stream):
+        """Return the market value of a stream [USD/yr]."""
+        return stream.cost
+    
+    def production_costs(self, products, with_annual_depreciation=True):
+        """
+        Return production cost of products [USD/yr].
+        
+        Parameters
+        ----------
+        products : Iterable[:class:`~thermosteam.Stream`]
+            Main products of the system
+        with_annual_depreciation=True : bool, optional
+        
+        Notes
+        -----
+        If there is more than one main product, The production cost is
+        proportionally allocated to each of the main products with respect to
+        their marketing values. The marketing value of each product is
+        determined by the annual production multiplied by its selling price.
+        """
+        market_values = np.array([self.market_value(i) for i in products])
+        total_market_value = market_values.sum()
+        weights = market_values/total_market_value
+        return weights * self.total_production_cost(products, with_annual_depreciation)
+        
+    def total_production_cost(self, products, with_annual_depreciation):
+        """
+        Return total production cost of products [USD/yr].
+        
+        Parameters
+        ----------
+        products : Iterable[:class:`~thermosteam.Stream`]
+                    Main products of the system
+        with_annual_depreciation=True : bool, optional
+        
+        """
+        coproduct_sales = self.sales - sum([self.market_value(i) for i in products])
+        if with_annual_depreciation:
+            TDC = self.TDC
+            annual_depreciation = TDC/(self.duration[1]-self.duration[0])
+            AOC = self._AOC(self._FCI(TDC))
+            return AOC - coproduct_sales + annual_depreciation
+        else:
+            return self.AOC - coproduct_sales
+    
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         IRR = self._IRR
@@ -738,19 +766,6 @@ class TEA:
         if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
         return F_mass * self._operating_hours
     
-    def _NPV_with_sales(self, sales, 
-                       taxable_cashflow, 
-                       nontaxable_cashflow,
-                       sales_coefficients,
-                       discount_factors):
-        """Return NPV with an additional annualized sales."""
-        taxable_cashflow = taxable_cashflow + sales * sales_coefficients
-        tax = np.zeros_like(taxable_cashflow)
-        incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
-        cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
-        return (cashflow/discount_factors).sum()
-    
     def solve_price(self, stream):
         """
         Return the price (USD/kg) of stream at the break even point (NPV = 0)
@@ -762,7 +777,7 @@ class TEA:
             Stream with variable selling price.
             
         """
-        sales = self.solve_incentive()
+        sales = self.solve_sales()
         price2cost = self._price2cost(stream)
         if price2cost == 0.:
             return np.inf
@@ -773,10 +788,10 @@ class TEA:
         else:
             raise ValueError("stream must be either a feed or a product")
     
-    def solve_incentive(self):
+    def solve_sales(self):
         """
-        Return the required incentive (USD) to reach the break even point (NPV = 0)
-        through cash flow analysis. 
+        Return the required additional salse (USD) to reach the break even 
+        point (NPV = 0) through cash flow analysis. 
         
         """
         discount_factors = (1 + self.IRR)**self._get_duration_array()
@@ -791,15 +806,16 @@ class TEA:
         args = (taxable_cashflow, 
                 nontaxable_cashflow, 
                 sales_coefficients,
-                discount_factors)
-        sales = flx.aitken_secant(self._NPV_with_sales,
+                discount_factors,
+                self._fill_tax_and_incentives)
+        sales = flx.aitken_secant(NPV_with_sales,
                                   sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
                                   maxiter=300, args=args, checkiter=False)
         self._sales = sales
         return sales
     
     def __repr__(self):
-        return f'<{type(self).__name__}: {self.system.ID}>'
+        return f'{type(self).__name__}({self.system.ID}, ...)'
     
     def _info(self):
         return (f'{type(self).__name__}: {self.system.ID}\n'
@@ -809,9 +825,11 @@ class TEA:
         """Prints information on unit."""
         print(self._info())
     _ipython_display_ = show
-                
-    
-class CombinedTEA(TEA):
+
+
+# %% Groups of TEA
+
+class CombinedTEA:
     """
     Create a CombinedTEA object that performs techno-economic analysis by 
     using data from many TEA objects that correspond to different areas
@@ -830,13 +848,22 @@ class CombinedTEA(TEA):
         Internal rate of return.
     
     """
-    _TDC = _FCI = _FOC = NotImplemented
+    __slots__ = ('TEAs', 'IRR', '_IRR', '_sales', 'system')
     
-    __slots__ = ('TEAs',)
+    _net_earnings_and_nontaxable_cashflow_arrays = TEA._net_earnings_and_nontaxable_cashflow_arrays
+    net_earnings_array = TEA.net_earnings_array
+    cashflow_array = TEA.cashflow_array
+    NPV = TEA.NPV
     
     def __init__(self, TEAs, IRR, system=None):
-        #: Iterable[TEA] All TEA objects for cashflow calculation
-        self.TEAs = TEAs
+        all_units = sum([i.units for i in TEAs], [])
+        N_units = len(all_units)
+        N_units_set = len(set(all_units))
+        if N_units > N_units_set:
+            raise ValueError('TEAs cannot have overlapping unit operations')
+        
+        #: tuple[TEA] All TEA objects for cashflow calculation
+        self.TEAs = TEAs = tuple(TEAs)
         
         #: [float] Internal rate of return (fraction)
         self.IRR = IRR
@@ -848,23 +875,33 @@ class CombinedTEA(TEA):
         self._sales = 0
         
         if system: system._TEA = self
+        self.system = system
+    
+    def _get_duration(self):
+        first, *others = [i._get_duration() for i in self.TEAs]
+        for i in others:
+            if first != i: 
+                raise RuntimeError(
+                    'each TEA object must have the same number of operating '
+                    'years and the same number of construction years '
+                    '(as determined by the duration and construction schedule)'
+                )
+        return first
     
     def _get_duration_array(self):
         TEAs = self.TEAs
-        if not TEAs: raise RuntimeError('no TEA objects available')
-        first, *others = [(i._start, i._years) for i in TEAs]
-        for i in others:
-            if first != i: 
-                raise RuntimeError('each TEA object must have the same number '
-                                   'of operating years and the same number of '
-                                   'construction years (as determined by the '
-                                   'length of the contruction schedule)')
         return TEAs[0]._get_duration_array()
+    
+    
+    
+    def _taxable_and_nontaxable_cashflow_arrays(self):
+        taxable_cashflow_arrays, nontaxable_cashflow_arrays = zip(*[i._taxable_and_nontaxable_cashflow_arrays() for i in self.TEAs])
+        return sum(taxable_cashflow_arrays), sum(nontaxable_cashflow_arrays)
     
     @property
     def units(self):
         """All unit operations used for TEA."""
-        return tuple(sum([i.units for i in self.TEAs], []))
+        return sum([i.units for i in self.TEAs], [])
     
     @property
     def operating_days(self):
@@ -914,24 +951,25 @@ class CombinedTEA(TEA):
         vector[:] = income_tax
         for i, j in zip(self.TEAs, vector): i.income_tax = j
     
-    def _taxable_and_nontaxable_cashflow_arrays(self):
-        taxable_cashflow_arrays, nontaxable_cashflow_arrays = zip(*[i._taxable_and_nontaxable_cashflow_arrays() for i in self.TEAs])
-        return sum(taxable_cashflow_arrays), sum(nontaxable_cashflow_arrays)
-    
     @property
     def utility_cost(self):
         """Total utility cost (USD/yr)."""
         return sum([i.utility_cost for i in self.TEAs])
     
     @property
-    def purchase_cost(self):
-        """Total purchase cost (USD)."""
-        return sum([i.purchase_cost for i in self.TEAs])
-    
-    @property
     def installed_equipment_cost(self):
         """Total installation cost (USD)."""
         return sum([i.installed_equipment_cost for i in self.TEAs])
+    
+    @property
+    def cashflow_array(self):
+        """[1d array] Cash flows by year."""
+        return sum(self._net_earnings_and_nontaxable_cashflow_arrays())
+    
+    @property
+    def net_earnings_array(self):
+        """[1d array] Net earnings by year."""
+        return self._net_earnings_and_nontaxable_cashflow_arrays()[0]
     
     @property
     def DPI(self):
@@ -1003,6 +1041,18 @@ class CombinedTEA(TEA):
         """Pay back period (yr) without accounting for annualized depreciation."""
         return self.FCI/self.net_earnings
     
+    @property
+    def _fill_tax_and_incentives(self):
+        return self.TEAs[0]._fill_tax_and_incentives
+    
+    @property
+    def _startup_time(self):
+        return self.TEAs[0]._startup_time
+    
+    @property
+    def startup_VOCfrac(self):
+        return self.TEAs[0].startup_VOCfrac
+    
     def get_cashflow_table(self):
         """Return DataFrame of the cash flow analysis."""
         IRR = self.IRR
@@ -1023,7 +1073,7 @@ class CombinedTEA(TEA):
         for IRR, TEA in zip(IRRs, TEAs): TEA.IRR = IRR
         return table    
     
-    def production_cost(self, products, with_annual_depreciation=True):
+    def production_costs(self, products, with_annual_depreciation=True):
         """
         Return production cost of products [USD/yr].
         
@@ -1073,7 +1123,7 @@ class CombinedTEA(TEA):
             
         """
         if not TEA: TEA = self.TEAs[0]
-        sales = self.solve_incentive(TEA)
+        sales = self.solve_sales(TEA)
         price2cost = TEA._price2cost(stream)
         if price2cost == 0:
             return np.inf
@@ -1084,10 +1134,10 @@ class CombinedTEA(TEA):
         else:
             raise ValueError("stream must be either a feed or a product")
     
-    def solve_incentive(self, TEA=None):
+    def solve_sales(self, TEA=None):
         """
-        Return the required incentive (USD) to reach the break even point (NPV = 0)
-        through cash flow analysis. 
+        Return the required additional sales (USD) to reach the break even 
+        point (NPV = 0) through cash flow analysis. 
         
         Parameters
         ----------
@@ -1110,18 +1160,251 @@ class CombinedTEA(TEA):
         args = (taxable_cashflow, 
                 nontaxable_cashflow, 
                 sales_coefficients,
-                discount_factors)
-        sales = flx.aitken_secant(TEA._NPV_with_sales,
+                discount_factors,
+                TEA._fill_tax_and_incentives)
+        sales = flx.aitken_secant(NPV_with_sales,
                                   sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
                                   maxiter=300, args=args, checkiter=False)
         self._sales = sales
         return sales
     
     def __repr__(self):
-        return f'<{type(self).__name__}: {", ".join([i.system.ID for i in self.TEAs])}>'
+        return f'{type(self).__name__}([{", ".join([str(i) for i in self.TEAs])}])'
     
     def _info(self):
-        return (f'{type(self).__name__}: {", ".join([i.system.ID for i in self.TEAs])}\n'
+        return (f'{type(self).__name__}: {", ".join([str(i) for i in self.TEAs])}\n'
+                f' NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
+    
+    def show(self):
+        """Prints information on TEA."""
+        print(self._info())
+    _ipython_display_ = show
+
+
+# %% Agile TEA
+    
+class AgileTEA:
+    """
+    Abstract AgileTEA class for cash flow analysis.
+    
+    **Abstract methods**
+    
+    _DPI(installed_equipment_cost) -> DPI
+        Should return the direct permanent investment given the
+        installed equipment cost.
+    _TDC(DPI) -> TDC
+        Should take direct permanent investment as an argument
+        and return total depreciable capital.
+    _FCI(TDC) -> FCI
+        Should take total depreciable capital as an argument and return
+        fixed capital investment.
+    _FOC(FCI) -> FOC
+        Should take fixed capital investment as an arguments and return
+        fixed operating cost without depreciation. 
+    _fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        Should take two empty 1d arrays and fill them with incentive and tax cash flows.
+        Additional parameters include taxable_cashflow (sales - costs - 
+        depreciation - payments), and nontaxable_cashflow (depreciation - capital 
+        cost - working capital).
+    
+    Parameters
+    ----------
+    IRR : float
+        Internal rate of return (fraction).
+    duration : tuple[int, int]
+        Start and end year of venture (e.g. (2018, 2038)).
+    depreciation : str
+        'MACRS' + number of years (e.g. 'MACRS7').
+    income_tax : float
+        Combined federal and state income tax rate (fraction).
+    lang_factor : float
+        Lang factor for getting fixed capital investment
+        from total purchase cost. If no lang factor, estimate
+        capital investment using bare module factors.
+    construction_schedule : 1d array [float]
+        Construction investment fractions per year (e.g. (0.5, 0.5) for 50%
+        capital investment in the first year and 50% investment in the second).
+    startup_months : float
+        Startup time in months.
+    startup_FOCfrac : float
+        Fraction of fixed operating costs incurred during startup.
+    startup_VOCfrac : float
+        Fraction of variable operating costs incurred during startup.
+    startup_salesfrac : float
+        Fraction of sales achieved during startup.
+    WC_over_FCI : float
+        Working capital as a fraction of fixed capital investment.
+    finanace_interest : float
+        Yearly interest of capital cost financing as a fraction.
+    finance_years : int
+                    Number of years the loan is paid for.
+    finance_fraction : float
+                       Fraction of capital cost that needs to be financed.
+    scenarios : list, optional
+        A list of Scenario objects for retrieving variable costs and capital 
+        costs of systems.
+        
+    Examples
+    --------
+    :doc:`tutorial/Techno-economic_analysis` 
+
+    """
+    __slots__ = ('scenarios', 'income_tax', 'lang_factor', 'WC_over_FCI',
+                 'finance_interest', 'finance_years', 'finance_fraction',
+                 'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
+                 '_construction_schedule', '_startup_time',
+                 '_startup_schedule', '_duration', 
+                 '_depreciation_array', '_depreciation', '_years',
+                 '_duration', '_start',  'IRR', '_IRR', '_sales',
+                 '_duration_array_cache', '_units')
+    
+    
+    def add_system_scenario(self, system, operating_hours):
+        if isinstance(system, bst.System):
+            self.append(system.get_scenario_costs(operating_hours))
+        else:
+            raise ValueError('system must be a System object; '
+                            f'not a {type(system).__name__}')
+    
+    def compile_scenarios(self):
+        scenarios = self.scenarios
+        units = set(sum([list(i.unit_capital_costs) for i in scenarios], []))
+        unit_scenarios = {i: [] for i in units}
+        for scenario in scenarios:
+            unit_capital_costs = scenario.unit_capital_costs
+            for i, j in unit_capital_costs.items(): unit_scenarios[i].append(j)
+        self._units = [i.get_agile_capital_costs(j) for i, j in unit_scenarios.items()]
+    
+    @property
+    def units(self):
+        try:
+            return self._units
+        except AttributeError:
+            self.compile_scenarios()
+            return self._units
+    
+    @property
+    def operating_days(self):
+        return sum([i.operating_hours for i in self.scenarios]) / 24.
+    @property
+    def utility_cost(self):
+        return sum([i.utility_cost for i in self.scenarios])
+    @property
+    def material_cost(self):
+        return sum([i.material_cost for i in self.scenarios])
+    @property
+    def sales(self):
+        return sum([i.sales for i in self.scenarios])
+    
+    # TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
+    #: dict[str, 1d-array] Available depreciation schedules.
+    depreciation_schedules = TEA.depreciation_schedules
+    
+    #: dict[str, float] Investment site factors used to multiply the total permanent 
+    #: investment (TPI), also known as total fixed capital (FCI), to 
+    #: account for locality cost differences based on labor availability,
+    #: workforce efficiency, local rules, etc.
+    investment_site_factors = TEA.investment_site_factors
+
+    # __init_subclass__ = TEA.__init_subclass__
+
+    def __init__(self, IRR, duration, depreciation, income_tax,
+                 lang_factor, construction_schedule, startup_months, 
+                 startup_FOCfrac, startup_VOCfrac,
+                 startup_salesfrac, WC_over_FCI, finance_interest,
+                 finance_years, finance_fraction, scenarios=None):
+        self.scenarios = scenarios or []
+        self.duration = duration
+        self.depreciation = depreciation
+        self.construction_schedule = construction_schedule
+        self.startup_months = startup_months
+        
+        #: [float]  Internal rate of return (fraction).
+        self.IRR = IRR
+        
+        #: [float] Combined federal and state income tax rate (fraction).
+        self.income_tax = income_tax
+        
+        #: [float] Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.
+        self.lang_factor = lang_factor
+        
+        #: [float] Fraction of fixed operating costs incurred during startup.
+        self.startup_FOCfrac = startup_FOCfrac
+        
+        #: [float] Fraction of variable operating costs incurred during startup.
+        self.startup_VOCfrac = startup_VOCfrac
+        
+        #: [float] Fraction of sales achieved during startup.
+        self.startup_salesfrac = startup_salesfrac
+        
+        #: [float] Working capital as a fraction of fixed capital investment.
+        self.WC_over_FCI = WC_over_FCI
+        
+        #: [float] Yearly interest of capital cost financing as a fraction.
+        self.finance_interest = finance_interest
+        
+        #: [int] Number of years the loan is paid for.
+        self.finance_years = finance_years
+        
+        #: [float] Fraction of capital cost that needs to be financed.
+        self.finance_fraction = finance_fraction
+        
+        #: Guess IRR for solve_IRR method
+        self._IRR = IRR
+        
+        #: Guess cost for solve_price method
+        self._sales = 0
+        
+    _get_duration_array = TEA._get_duration_array
+    _fill_depreciation_array = TEA._fill_depreciation_array
+    _get_duration = TEA._get_duration
+    _taxable_and_nontaxable_cashflow_arrays = TEA._taxable_and_nontaxable_cashflow_arrays
+    _net_earnings_and_nontaxable_cashflow_arrays = TEA._net_earnings_and_nontaxable_cashflow_arrays
+    _fill_tax_and_incentives = TEA._fill_tax_and_incentives
+    _DPI = TEA._DPI
+    _TDC = TEA._TDC
+    _AOC = TEA._AOC
+    duration = TEA.duration
+    depreciation = TEA.depreciation
+    construction_schedule = TEA.construction_schedule
+    startup_months = TEA.startup_months
+    working_capital = TEA.working_capital
+    annual_depreciation = TEA.annual_depreciation
+    net_earnings = TEA.net_earnings
+    purchase_cost = TEA.purchase_cost
+    installed_equipment_cost = TEA.installed_equipment_cost
+    cashflow_array = TEA.cashflow_array
+    net_earnings_array = TEA.net_earnings_array
+    production_costs = TEA.production_costs
+    total_production_cost = TEA.total_production_cost
+    solve_IRR = TEA.solve_IRR
+    solve_price = TEA.solve_price
+    solve_sales = TEA.solve_sales
+    DPI = TEA.DPI
+    TDC = TEA.TDC
+    FCI = TEA.FCI
+    TCI = TEA.TCI
+    FOC = TEA.FOC
+    VOC = TEA.VOC
+    AOC = TEA.AOC
+    ROI = TEA.ROI
+    PBP = TEA.PBP
+    NPV = TEA.NPV
+    
+    def market_value(self, stream):
+        """Return the market value of a stream [USD/yr]."""
+        return sum([i.flow_rates[stream] * i.operating_hours
+                    for i in self.scenarios]) * stream.price
+    
+    def _price2cost(self, stream):
+        """Get factor to convert stream price to cost for cash flow in solve_price method."""
+        F_mass = sum([i.flow_rates[stream] * i.operating_hours
+                      for i in self.scenarios if stream in i.flow_rates])
+        if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
+        return F_mass
+    
+    def _info(self):
+        return (f'{type(self).__name__}: \n'
                 f' NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
     
     def show(self):
@@ -1129,9 +1412,3 @@ class CombinedTEA(TEA):
         print(self._info())
     _ipython_display_ = show
     
-    
-    
-# def update_loan_principal(loan_principal, loan, loan_payment, interest):
-#     principal = 0
-#     for i, loan_i in enumerate(loan):
-#         loan_principal[i] = principal = loan_i + principal * interest - loan_payment[i]

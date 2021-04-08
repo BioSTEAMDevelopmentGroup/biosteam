@@ -592,7 +592,7 @@ def test_nested_recycle_loops():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([i.mol for i in recycles])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=5e-2)
 
 def test_sugarcane_ethanol_biorefinery_network():
     from biorefineries.sugarcane import flowsheet as f
@@ -671,7 +671,6 @@ def test_corn_ethanol_biorefinery_system_creation():
     corn_sys.empty_recycles()
     corn_sys.simulate()
     bst.process_tools.default()
-    
     
 if __name__ == '__main__':
     test_trivial_case()

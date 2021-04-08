@@ -29,7 +29,10 @@ class HeatExchangerNetwork(Facility):
         Unique name for the facility.
     T_min_app : float
         Minimum approach temperature observed during synthesis of heat exchanger network.
-
+    units : Iterable[Unit], optional
+        All unit operations available to the heat exchanger network. Defaults
+        to all unit operations in the system.
+    
     Notes
     -----
     Original system Stream and HX objects are preserved. All Stream copies and new HX objects 
@@ -113,17 +116,17 @@ class HeatExchangerNetwork(Facility):
     _units= {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
-    def __init__(self, ID='', T_min_app=5.):
+    def __init__(self, ID='', T_min_app=5., units=None):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
-        self._installed_cost = 0.
+        self.units = units
         
-    def _run(self):
-        pass
+    def _run(self): pass
+    def _design(self): pass
     
     def _cost(self):
         sys = self.system
-        hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(sys.units)
+        hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(self.units or sys.units)
         hx_utils = [i for i in hx_utils if i.duty]
         hx_utils.sort(key = lambda x: x.duty)
         original_flowsheet = sys.flowsheet
@@ -172,8 +175,6 @@ class HeatExchangerNetwork(Facility):
         for new_HX in new_HXs:
             new_purchase_costs_HXp.append(new_HX.purchase_cost)
             new_installed_costs_HXp.append(new_HX.installed_cost)
-        self.purchase_costs['Heat exchangers'] = (sum(new_purchase_costs_HXp) + sum(new_purchase_costs_HXu)) \
-            - (sum(original_purchase_costs))
         hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
         new_heat_utils = sum([hx.heat_utilities for hx in new_HX_utils], ())
         hu_sums2 = bst.HeatUtility.sum_by_agent(new_heat_utils)
@@ -188,9 +189,17 @@ class HeatExchangerNetwork(Facility):
         Q_percent_error = 100*(Q_bal - 1)
         if abs(Q_percent_error)>2:
             msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
-            warn(msg, UserWarning, stacklevel=2)
-        self._installed_cost = (sum(new_installed_costs_HXp) + sum(new_installed_costs_HXu)) \
-            - (sum(original_installed_costs))
+            warn(msg, RuntimeWarning, stacklevel=2)
+        self.installed_costs['Heat exchangers'] = (
+                sum(new_installed_costs_HXp)
+                + sum(new_installed_costs_HXu)
+                - sum(original_installed_costs)
+        )
+        self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
+            sum(new_purchase_costs_HXp) 
+            + sum(new_purchase_costs_HXu)
+            - sum(original_purchase_costs)
+        )
         self.heat_utilities = hus_final
         self.energy_balance_percent_error = Q_percent_error
         self.original_heat_utils = hx_utils_rearranged
@@ -218,12 +227,6 @@ class HeatExchangerNetwork(Facility):
             np.testing.assert_allclose(s_util.mol, s_lc.mol)
             np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
             np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
-            
-    @property
-    def installed_cost(self):
-        return self._installed_cost
-    
-    def _design(self): pass
     
     def get_stream_life_cycles(self):
         # if hasattr(self, 'stream_life_cycles'): 

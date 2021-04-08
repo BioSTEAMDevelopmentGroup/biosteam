@@ -76,94 +76,74 @@ Conveying belt" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"H304
-Cooling" -> "T302
-Storage tank" [label=s48]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS2
-System" -> "S202
-Vibrating screen" [label=s4]
+	vent
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"D301
+Vent scrubber" -> vent
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"T303
 Storage tank" -> "P305
 Pump" [label=s51]
-	denaturant
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	denaturant -> "T303
-Storage tank"
-	wastewater
-	edge [arrowhead=none arrowtail=none headport=w tailport=e]
-	"M305
-Mixer" -> wastewater
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"H201
-Heating" -> "T203
-Mix tank" [label=s12]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"U101
-Conveying belt" -> "U102
-Magnetic separator" [label=s2]
-	lime
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	lime -> "T204
-Mix tank"
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"T201
-Enzyme treatment" -> "SYS1
-System" [label=s5]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"U103
-Shredder" -> "T201
-Enzyme treatment" [label=s1]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=e]
-	"M301
-Mixer" -> "H301
-Cooling" [label=s28]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS1
-System" -> "T202
-Storage tank" [label=s10]
+	"T205
+Mix tank" -> "P202
+Pump" [label=s16]
 	edge [arrowhead=normal arrowtail=none headport=w tailport=c]
 	"S202
 Vibrating screen" -> "S301
 Splitter" [label=screened_juice]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"T203
-Mix tank" -> "P201
-Pump" [label=s13]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P301
-Pump" -> "SYS4
-System" [label=s38]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=e]
-	"M304
-Mixer" -> "T304
-Storage tank" [label=s53]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"T302
 Storage tank" -> "P304
 Pump" [label=s49]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS3
-System" -> "M302
-Mixer" [label=s34]
+	"S301
+Splitter" -> "M301
+Mixer" [label=s25]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"T202
+Storage tank" -> "H201
+Heating" [label=s11]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"SYS1
+System" -> "T202
+Storage tank" [label=s10]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"P305
+Pump" -> "M304
+Mixer" [label=s52]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"U102
 Magnetic separator" -> "U103
 Shredder" [label=s3]
+	lime
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	lime -> "T204
+Mix tank"
+	edge [arrowhead=normal arrowtail=none headport=c tailport=e]
+	"M301
+Mixer" -> "H301
+Cooling" [label=s28]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"F301
-Multi-Effect Evaporator" -> "P306
-Pump" [label=s27]
+	"H201
+Heating" -> "T203
+Mix tank" [label=s12]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P202
-Pump" -> "SYS2
-System" [label=s17]
-	ethanol
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
-	"T304
-Storage tank" -> ethanol
+	"SYS5
+System" -> "P303
+Pump" [label=s44]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"P201
+Pump" -> "T205
+Mix tank" [label=s14]
+	denaturant
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	denaturant -> "T303
+Storage tank"
+	stripping_water
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	stripping_water -> "D301
+Vent scrubber"
 	edge [arrowhead=normal arrowtail=none headport=c tailport=e]
 	"M302
 Mixer" -> "P301
@@ -172,111 +152,131 @@ Pump" [label=s24]
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"U202
 Conveying belt" -> bagasse
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P305
-Pump" -> "M304
-Mixer" [label=s52]
-	vent
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
-	"D301
-Vent scrubber" -> vent
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"T202
-Storage tank" -> "H201
-Heating" [label=s11]
 	sugarcane
 	edge [arrowhead=none arrowtail=none headport=c tailport=e]
 	sugarcane -> "U101
 Conveying belt"
-	stripping_water
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	stripping_water -> "D301
-Vent scrubber"
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P201
-Pump" -> "T205
-Mix tank" [label=s14]
+	"F301
+Multi-Effect Evaporator" -> "P306
+Pump" [label=s27]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS5
-System" -> "P303
-Pump" [label=s44]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"H301
-Cooling" -> "SYS3
-System" [label=s29]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"S301
-Splitter" -> "M301
-Mixer" [label=s25]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"T205
-Mix tank" -> "P202
-Pump" [label=s16]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS4
-System" -> "M305
-Mixer" [label=stillage]
-	H3PO4
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	H3PO4 -> "T203
-Mix tank"
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P306
-Pump" -> "M301
-Mixer" [label=s36]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"T204
-Mix tank" -> "T205
-Mix tank" [label=s15]
-	enzyme
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	enzyme -> "T201
-Enzyme treatment"
-	imbibition_water
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	imbibition_water -> "SYS1
-System"
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P303
-Pump" -> "M305
-Mixer" [label=stripper_bottoms_product]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"P304
-Pump" -> "M304
-Mixer" [label=s50]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"rvf_wash_water
-polymer
-" -> "SYS2
-System" [style=dashed]
-	filter_cake
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
-	"SYS2
-System" -> filter_cake
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS1
-System" -> "U202
-Conveying belt" [label=s7]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"S202
-Vibrating screen" -> "M305
-Mixer" [label=fiber_fines]
+	"P202
+Pump" -> "SYS2
+System" [label=s17]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"SYS4
 System" -> "SYS5
 System" [label=s37]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"T203
+Mix tank" -> "P201
+Pump" [label=s13]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"H301
+Cooling" -> "SYS3
+System" [label=s29]
+	ethanol
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"T304
+Storage tank" -> ethanol
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"P301
+Pump" -> "SYS4
+System" [label=s38]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"H304
+Cooling" -> "T302
+Storage tank" [label=s48]
+	wastewater
+	edge [arrowhead=none arrowtail=none headport=w tailport=e]
+	"M305
+Mixer" -> wastewater
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"T201
+Enzyme treatment" -> "SYS1
+System" [label=s5]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"SYS2
+System" -> "S202
+Vibrating screen" [label=s4]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"U103
+Shredder" -> "T201
+Enzyme treatment" [label=s1]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"U101
+Conveying belt" -> "U102
+Magnetic separator" [label=s2]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=e]
+	"M304
+Mixer" -> "T304
+Storage tank" [label=s53]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"P304
+Pump" -> "M304
+Mixer" [label=s50]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"P303
+Pump" -> "M305
+Mixer" [label=stripper_bottoms_product]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"T204
+Mix tank" -> "T205
+Mix tank" [label=s15]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"P306
+Pump" -> "M301
+Mixer" [label=s36]
+	H3PO4
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	H3PO4 -> "T203
+Mix tank"
+	imbibition_water
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	imbibition_water -> "SYS1
+System"
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"rvf_wash_water
+polymer
+" -> "SYS2
+System" [style=dashed]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"SYS3
+System" -> "D301
+Vent scrubber" [label=CO2]
+	enzyme
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	enzyme -> "T201
+Enzyme treatment"
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"SYS3
+System" -> "M302
+Mixer" [label=s34]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"S202
+Vibrating screen" -> "M305
+Mixer" [label=fiber_fines]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"SYS1
+System" -> "U202
+Conveying belt" [label=s7]
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"S301
 Splitter" -> "F301
 Multi-Effect Evaporator" [label=s26]
+	filter_cake
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"SYS2
+System" -> filter_cake
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"SYS5
 System" -> "H304
 Cooling" [label=s47]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"SYS3
-System" -> "D301
-Vent scrubber" [label=CO2]
+	"SYS4
+System" -> "M305
+Mixer" [label=vinasse]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"D301
 Vent scrubber" -> "M302

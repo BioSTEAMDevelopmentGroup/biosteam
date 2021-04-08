@@ -11,6 +11,7 @@ from ._unit import Unit
 from ._facility import Facility
 from .utils import streams_from_units
 from .digraph import digraph_from_units_and_streams, finalize_digraph
+from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
 
@@ -34,21 +35,24 @@ class PathSource:
     def __init__(self, source, ends=None):
         self.source = source
         if isinstance(source, bst.Unit):
-            self.units = source.get_downstream_units(ends=ends, facilities=False)
+            self.units = units = source.get_downstream_units(ends=ends, facilities=False)
         elif isinstance(source, Network):
             self.units = units = set()
             for i in source.units: units.update(i.get_downstream_units(ends=ends, facilities=False))
         else:
             raise TypeError('source must be a unit or a network; '
                            f'not a {type(source).__name__} object')
+        assert not self.downstream_from(self), (
+            'recycle system encountered in network sorting algorithm; '
+            'please report problem to the biosteam bugtracker'
+        )
             
     def downstream_from(self, other):
-        if self is other: return False
         source = self.source
         if isinstance(source, bst.Unit):
             return source in other.units
         else:
-            return any([i in other.units for i in source.units])
+            return self is not other and any([i in other.units for i in source.units])
         
     def __repr__(self):
         return f"{type(self).__name__}({str(self.source)})"
@@ -79,7 +83,7 @@ def fill_path(feed, path, paths_with_recycle,
         has_recycle = False
         if unit in path:
             for other_path, recycle in paths_with_recycle:
-                has_recycle = recycle._sink is unit
+                has_recycle = recycle.sink is unit
                 if has_recycle: break
     if not unit or isinstance(unit, Facility) or has_recycle is False:
         paths_without_recycle.append(path)
@@ -250,10 +254,6 @@ class Network:
                 for j in range(i + 1, N):
                     downstream_source = path_sources[j]
                     if upstream_source.downstream_from(downstream_source): 
-                        assert not downstream_source.downstream_from(upstream_source), (
-                            'recycle system encountered in network sorting algorithm; '
-                            'please report problem to the biosteam bugtracker'
-                        )
                         path_sources.remove(downstream_source)
                         path_sources.insert(i, downstream_source)
                         upstream_source = downstream_source
@@ -261,8 +261,7 @@ class Network:
             if stop: 
                 self.path = [i.source for i in path_sources]
                 return
-        raise RuntimeError('network path could not be determined')
-            
+        warn(RuntimeWarning('network path could not be determined'))
     
     @classmethod
     def from_feedstock(cls, feedstock, feeds=(), ends=None):
@@ -312,13 +311,14 @@ class Network:
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
         recycle_ends.update(network.get_all_recycles())
+        recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         return network
     
     @property
     def streams(self):
         return streams_from_units(self.units)
-        
+    
     def first_unit(self, units):
         isa = isinstance
         for i in self.path:

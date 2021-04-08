@@ -106,6 +106,9 @@ class PowerUtility:
         """Set rate in kW."""
         self.rate = rate
     
+    def copy(self):
+        return self.__class__(self.consumption, self.production)
+    
     def mix_from(self, power_utilities):
         """
         Mix in requirements of power utilities.

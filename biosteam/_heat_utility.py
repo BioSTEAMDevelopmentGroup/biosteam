@@ -328,17 +328,23 @@ class HeatUtility:
                               chilled_water, 
                               chilled_brine]
 
+    def copy(self):
+        hu = HeatUtility()
+        hu.copy_like(self)
+        return hu
+
     def copy_like(self, other):
         """Copy all data from another heat utility."""
-        self.inlet_utility_stream = other.inlet_utility_stream.copy()
-        self.outlet_utility_stream = other.outlet_utility_stream.copy()
+        if other.agent:
+            self.load_agent(other.agent)
+            self.inlet_utility_stream = other.inlet_utility_stream.copy()
+            self.outlet_utility_stream = other.outlet_utility_stream.copy()
         self.flow = other.flow
         self.duty = other.duty
         self.cost = other.cost
         self.heat_transfer_efficiency = other.heat_transfer_efficiency
         self.T_pinch = other.T_pinch
         self.iscooling = other.iscooling
-        self.agent = other.agent
 
     def scale(self, factor):
         """Scale utility data."""

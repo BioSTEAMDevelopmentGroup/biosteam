@@ -55,7 +55,7 @@ def filter_out_missing_streams(streams):
     streams.intersection_update([i for i in streams if i])
 
 def sort_feeds_big_to_small(feeds):
-    feeds.sort(key=lambda feed: -feed.F_mass)
+    feeds.sort(key=lambda feed: -feed.F_mass if feed else 1.)
 
 def feeds_from_units(units):
     unit_set = set(units)

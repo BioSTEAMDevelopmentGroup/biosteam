@@ -112,11 +112,11 @@ class Fermentation(BatchBioreactor):
                         Reactor duty                   kJ/hr  1.05e+07
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers                  USD  4.17e+04
+    Purchase cost       Heat exchangers                  USD  1.29e+05
                         Reactors                         USD  1.88e+06
                         Agitators                        USD  1.17e+05
                         Cleaning in place                USD  8.91e+04
-    Total purchase cost                                  USD  2.12e+06
+    Total purchase cost                                  USD  2.21e+06
     Utility cost                                      USD/hr      53.6
     
     References

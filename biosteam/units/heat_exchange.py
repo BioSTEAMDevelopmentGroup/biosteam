@@ -193,9 +193,9 @@ class HX(Unit, isabstract=True):
             C_b = self._Cb_func(A, bst.CE)
         
         # Free on board purchase prize
-        self._F_M[heat_exchanger_type] = F_m
-        self._F_P[heat_exchanger_type] = F_p
-        self._F_D[heat_exchanger_type] = F_l
+        self.F_M[heat_exchanger_type] = F_m
+        self.F_P[heat_exchanger_type] = F_p
+        self.F_D[heat_exchanger_type] = F_l
         self.baseline_purchase_costs[heat_exchanger_type] = C_b
 
 
@@ -303,7 +303,7 @@ class HXutility(HX):
     Purchase cost       Floating head                           USD 2.61e+04
     Total purchase cost                                         USD 2.61e+04
     Utility cost                                             USD/hr      119
-    
+
     """
     line = 'Heat Exchanger'
     _graphics = utility_heat_exchanger_graphics
@@ -544,8 +544,8 @@ class HXprocess(HX):
         flow (kmol/hr): (g) Ethanol  31.3
                         (l) Ethanol  18.7
     [1] out_b
-        phases: ('g', 'l'), T: 346.43 K, P: 101325 Pa
-        flow (kmol/hr): (l) Water  200
+        phase: 'l', T: 346.43 K, P: 101325 Pa
+        flow (kmol/hr): Water  200
     
     >>> hx.results()
     Heat Exchanger                                            Units       hx

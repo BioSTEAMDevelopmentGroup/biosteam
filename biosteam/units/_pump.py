@@ -133,14 +133,14 @@ class Pump(Unit):
     @material.setter    
     def material(self, material):
         try:
-            self._F_M['Pump'] = pump_material_factors[material]
+            self.F_M['Pump'] = pump_material_factors[material]
         except KeyError:
             raise ValueError("material must be one of the following: "
                             f"{', '.join(pump_material_factors)}")
-        self._F_Mstr = material  
+        self._material = material  
         
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 P=101325,
+                 P=None,
                  pump_type='Default',
                  material='Cast iron',
                  dP_design=405300,
@@ -152,17 +152,14 @@ class Pump(Unit):
         self.dP_design = dP_design
         self.ignore_NPSH = ignore_NPSH
     
-    def _setup(self):
-        super()._setup()
-        s_in, = self.ins
-        s_out, = self.outs
-        s_out.P = self.P
-    
     def _run(self):
         s_in, = self.ins
         s_out, = self.outs
         s_out.T = s_in.T
-        if self.P < s_in.P: s_out.P = s_in.P 
+        if self.P: 
+            s_out.P = self.P 
+        else:
+            s_out.P = s_in.P 
     
     def _design(self):
         Design = self.design_results
@@ -301,7 +298,7 @@ class Pump(Unit):
             Cb = exp(7.9361 + 0.26986*lnp + 0.06718*lnp**2)
             Cost['Pump'] = Cb*I
         
-        self._F_D['Pump'] = F_T
+        self.F_D['Pump'] = F_T
         
         # Cost electric motor
         lnp2 = lnp**2

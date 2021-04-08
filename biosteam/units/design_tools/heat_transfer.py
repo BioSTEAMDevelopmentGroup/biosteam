@@ -487,5 +487,5 @@ def compute_LMTD(Thi, Tho, Tci, Tco, counterflow=True):
     if abs(dTF21) < 1e-8:
         LMTD = dTF1
     else:
-        LMTD = dTF21/ln(dTF2/dTF1)
+        LMTD = dTF21/ln(dTF2 / dTF1)
     return LMTD
