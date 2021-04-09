@@ -121,21 +121,18 @@ def test_equipment_lifetimes():
     assert_allclose(tea.cashflow_array, cashflows)
     
     # Test with bare module costs
-    breakpoint()
     tea.lang_factor = None
     table = tea.get_cashflow_table()
     C_FCI = table['Fixed capital investment [MM$]']
     cashflows_FCI = [6.12, 9.18, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 3.0, 
                      0.0, 2.3, 0.0, 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.0, 0.0]
-    # assert_allclose(C_FCI, cashflows_FCI)
+    assert_allclose(C_FCI, cashflows_FCI)
     cashflows = [-6120000.0, -9945000.0, -4321300.0, -4321300.0, -4321300.0, 
                  -4321300.0, -4321300.0, -4621300.0, -4321300.0, -4321300.0, 
                  -7321300.0, -4321300.0, -6621300.0, -4321300.0, -4321300.0, 
                  -4321300.0, -4321300.0, -4621300.0, -4321300.0, -4321300.0, 
                  -4321300.0, -3556300.0]
-    # assert_allclose(tea.cashflow_array, cashflows)
-    print(C_FCI)
-    print(tea.cashflow_array)
+    assert_allclose(tea.cashflow_array, cashflows)
     
 if __name__ == '__main__':
     test_unit_connections()
