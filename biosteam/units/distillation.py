@@ -139,7 +139,7 @@ class Distillation(Unit, isabstract=True):
               'Diameter': 'ft',
               'Wall thickness': 'in',
               'Weight': 'lb'}
-    _F_BM_defaults = {'Rectifier tower': 4.3,
+    _F_BM_default = {'Rectifier tower': 4.3,
                       'Stripper tower': 4.3,
                       'Rectifier trays': 4.3,
                       'Stripper trays': 4.3,

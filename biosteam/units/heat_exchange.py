@@ -82,11 +82,11 @@ class HX(Unit, isabstract=True):
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
-    _F_BM_defaults = {'Double pipe': 1.8,
-                      'Floating head': 3.17,
-                      'Fixed head': 3.17,
-                      'U tube': 3.17,
-                      'Kettle vaporizer': 3.17}
+    _F_BM_default = {'Double pipe': 1.8,
+                     'Floating head': 3.17,
+                     'Fixed head': 3.17,
+                     'U tube': 3.17,
+                     'Kettle vaporizer': 3.17}
     
     @property
     def material(self):

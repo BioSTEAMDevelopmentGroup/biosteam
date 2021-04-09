@@ -172,7 +172,7 @@ class ThermalOxidizer(Unit):
     _N_ins = 2
     _N_outs = 1
     max_volume = 20. # m3
-    _F_BM_defaults = {'Vessels': 2.06} # Assume same as dryer
+    _F_BM_default = {'Vessels': 2.06} # Assume same as dryer
     
     def __init__(self, *args, tau=0.00014, kW_per_m3=18.47, V_wf=0.95, **kwargs):
         Unit.__init__(self, *args, **kwargs)

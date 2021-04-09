@@ -121,7 +121,7 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
         '_default_kW_per_m3': kW_per_m3,
     }
     if BM: 
-        dct['_F_BM_defaults'] = {'Tanks': BM}
+        dct['_F_BM_default'] = {'Tanks': BM}
     if mixing:
         dct['_ins_size_is_fixed'] = False
         dct['_N_ins'] = 2
@@ -181,7 +181,7 @@ class Tank(Unit, isabstract=True):
     _default_kW_per_m3 = 0.
     _units = {'Total volume': 'm^3',
               'Residence time': 'hr'}
-    _F_BM_defaults = {'Tanks': 2.3}
+    _F_BM_default = {'Tanks': 2.3}
     _N_outs = 1
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,

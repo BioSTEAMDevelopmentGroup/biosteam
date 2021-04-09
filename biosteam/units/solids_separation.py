@@ -151,8 +151,8 @@ class RotaryVacuumFilter(SolidsSeparator):
                        Fraction of water in retentate.
     
     """
-    _F_BM_defaults = {'Vessels': 2.32,
-                      'Liquid-ring pump': 1.0}
+    _F_BM_default = {'Vessels': 2.32,
+                     'Liquid-ring pump': 1.0}
     
     #: Revolutions per second
     rps = 20/3600

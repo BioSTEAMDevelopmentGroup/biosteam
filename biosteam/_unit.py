@@ -210,6 +210,11 @@ class Unit:
                         'the `_BM` class attribute for bare-module factors is '
                         'deprecated; implement `_F_BM_default` instead'
                     )
+                elif hasattr(cls, '_F_BM_defaults'):
+                    raise NotImplementedError(
+                        '`_F_BM_defaults` is incorrect; implement '
+                        '`_F_BM_default` insterad'
+                    )
                 else:
                     cls._F_BM_default = {}
             if not hasattr(cls, '_units'): cls._units = {}
@@ -510,7 +515,7 @@ class Unit:
                 warning = RuntimeWarning(
                    f"the purchase cost item, '{name}', has "
                     "no defined bare-module factor in the "
-                  f"'{type(self).__name__}._BM' dictionary; "
+                  f"'{type(self).__name__}.F_BM' dictionary; "
                    "bare-module factor now has a default value of 1"
                  )
                 warn(warning)

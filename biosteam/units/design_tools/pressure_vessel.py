@@ -33,9 +33,9 @@ class PressureVessel:
                'Vertical vessel length': (12, 40)}
     
     # Bare module factors
-    _F_BM_defaults = {'Horizontal pressure vessel': 3.05,
-                      'Vertical pressure vessel': 4.16,
-                      'Platform and ladders': 1.}
+    _F_BM_default = {'Horizontal pressure vessel': 3.05,
+                     'Vertical pressure vessel': 4.16,
+                     'Platform and ladders': 1.}
     
     @property
     def vessel_type(self):
