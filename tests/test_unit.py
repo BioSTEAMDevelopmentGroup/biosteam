@@ -64,11 +64,11 @@ def test_equipment_lifetimes():
     bst.settings.set_thermo(['Water'], cache=True)
     
     class A(bst.Unit):
-        _BM = {
+        _F_BM_default = {
             'Equipment A': 2,
             'Equipment B': 3,
         }
-        _equipment_lifetime = {
+        _default_equipment_lifetime = {
             'Equipment A': 10,
             'Equipment B': 5,
         }
@@ -78,15 +78,15 @@ def test_equipment_lifetimes():
             purchase_costs['Equipment B'] = 1e5
             
     class B(bst.Unit):
-        _BM = {
+        _F_BM_default = {
             'Equipment A': 2,
         }
-        _equipment_lifetime = 15
+        _default_equipment_lifetime = 15
         def _cost(self):
             self.baseline_purchase_costs['Equipment A'] = 1e6
 
     class C(bst.Unit):
-        _BM = {
+        _F_BM_default = {
             'Equipment A': 4,
         }
         def _cost(self):

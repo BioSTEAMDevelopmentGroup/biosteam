@@ -152,8 +152,8 @@ class Flash(design.PressureVessel, Unit):
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
-    _F_BM_defaults = {'Liquid-ring pump': 1.0,
-                      **design.PressureVessel._F_BM_default}
+    _F_BM_default = {'Liquid-ring pump': 1.0,
+                     **design.PressureVessel._F_BM_default}
     _graphics = vertical_vessel_graphics 
     _N_outs = 2
     _N_heat_utilities = 0

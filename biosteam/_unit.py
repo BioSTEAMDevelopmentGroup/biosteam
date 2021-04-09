@@ -204,7 +204,7 @@ class Unit:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
         if not isabstract:
-            if not hasattr(cls, '_F_BM_default'):
+            if cls is not Unit:
                 if hasattr(cls, '_BM'): 
                     raise NotImplementedError(
                         'the `_BM` class attribute for bare-module factors is '

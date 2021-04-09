@@ -27,7 +27,7 @@ class ChemicalCapitalInvestment(Facility):
         Price of chemical [USD / m^3].
     
     """
-    _F_BM_defaults = {'Chemical': 1.}
+    _F_BM_default = {'Chemical': 1.}
     _N_heat_utilities = 0
     network_priority = 3
     _N_outs = _N_ins = 0
