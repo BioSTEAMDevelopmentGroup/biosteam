@@ -20,6 +20,7 @@ from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
 from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
+from copy import copy
 import biosteam as bst
 
 __all__ = ('Unit',)
@@ -100,7 +101,9 @@ class Unit:
         [str] Name denoting the type of Unit class. Defaults to the class
         name of the first child class.
     **_BM** 
-        dict[str, float] Bare module factors for each purchase cost item.
+        dict[str, float] Default bare module factors for each purchase cost item.
+        Items in this dictionary are copied to the `F_BM` attribute during 
+        initialization.
     **_units**
         [dict] Units of measure for `design_results` dictionary.
     **_N_ins=1**
@@ -201,9 +204,23 @@ class Unit:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
         if not isabstract:
-            if not hasattr(cls, '_BM'): cls._BM = {}
+            if not hasattr(cls, '_F_BM_default'):
+                if hasattr(cls, '_BM'): 
+                    raise NotImplementedError(
+                        'the `_BM` class attribute for bare-module factors is '
+                        'deprecated; implement `_F_BM_default` instead'
+                    )
+                else:
+                    cls._F_BM_default = {}
             if not hasattr(cls, '_units'): cls._units = {}
-            if not hasattr(cls, '_equipment_lifetime'): cls._equipment_lifetime = {}
+            if not hasattr(cls, '_default_equipment_lifetime'): 
+                if hasattr(cls, '_equipment_lifetime'):
+                    raise NotImplementedError(
+                        'the `_equipment_lifetime` class attribute is '
+                        'deprecated; implement `_default_equipment_lifetime` instead'
+                    )
+                else:
+                    cls._default_equipment_lifetime = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
@@ -282,6 +299,10 @@ class Unit:
         self.power_utility = PowerUtility()
     
     def _init_results(self):
+        #: [dict] All bare-module factors for each purchase cost.
+        #: Defaults to values in the class attribute `_F_BM_default`.
+        self.F_BM = self._F_BM_default.copy()
+        
         #: [dict] All design factors for each purchase cost.
         self.F_D = {}
         
@@ -294,6 +315,10 @@ class Unit:
         # [dict] All design results.
         self.design_results = {}
         
+        # [dict] All baseline purchase costs without accounting for design, 
+        # pressure, and material factors.
+        self.baseline_purchase_costs = {}
+        
         # [dict] All purchase costs in USD.
         self.purchase_costs = {}
         
@@ -301,9 +326,11 @@ class Unit:
         # pressure, and material factors.
         self.installed_costs = {}
         
-        # [dict] All baseline purchase costs without accounting for design, 
-        # pressure, and material factors.
-        self.baseline_purchase_costs = {}
+        #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
+        #: the class attribute `_default_equipment_lifetime`. Use an integer 
+        #: to specify the lifetime for all items in the unit purchase costs.
+        #: Use a dictionary to specify the lifetime of each purchase cost item.
+        self.equipment_lifetime = copy(self._default_equipment_lifetime)
         
         #: [dict] Greenhouse gas emissions for use in BioSTEAM-LCA 
         #: (https://github.com/scyjth/biosteam_lca)
@@ -311,7 +338,7 @@ class Unit:
     
     def get_capital_costs(self):
         return UnitCapitalCosts(
-            self, self._F_BM, self.F_D.copy(), self.F_P.copy(), self.F_M.copy(), 
+            self, self.F_BM.copy(), self.F_D.copy(), self.F_P.copy(), self.F_M.copy(), 
             self.baseline_purchase_costs.copy(), self.purchase_costs.copy(),
             self.installed_costs.copy(),
         )
@@ -366,14 +393,14 @@ class Unit:
         baseline_purchase_costs = self.baseline_purchase_costs
         purchase_costs = self.purchase_costs
         installed_costs = self.installed_costs
-        F_BM = self._F_BM
+        F_BM = self.F_BM
         F_D = self.F_D
         F_P = self.F_P
         F_M = self.F_M
         for name in self.auxiliary_unit_names:
             unit = getattr(self, name)
             if not unit: continue
-            F_BM_auxiliary = unit._F_BM
+            F_BM_auxiliary = unit.F_BM
             F_D_auxiliary = unit.F_D
             F_P_auxiliary = unit.F_P
             F_M_auxiliary = unit.F_M
@@ -428,8 +455,9 @@ class Unit:
             * :math:`F_{P}`: Pressure factor.
             * :math:`F_{M}`: Material factor.
         
-        Values for the design, pressure, and material factors of each equipment
-        should be stored in the `F_D`, `F_P`, and `F_M` dictionaries.
+        Values for the bare-module, design, pressure, and material factors of 
+        each equipment should be stored in the `F_BM`, `F_D`, `F_P`, and 
+        `F_M` dictionaries.
         
         Warning
         -------
@@ -444,7 +472,7 @@ class Unit:
         Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
-        self._F_BM = F_BM = self._BM.copy() # F_BM is used to not add auxiliary items to `_BM`
+        F_BM = self.F_BM
         F_D = self.F_D
         F_P = self.F_P
         F_M = self.F_M
@@ -594,7 +622,7 @@ class Unit:
     def baseline_purchase_cost(self):
         """Total baseline purchase cost, without accounting for design ,
         pressure, and material factors [USD]."""
-        return sum(self.baseline_purchase_cost.values())
+        return sum(self.baseline_purchase_costs.values())
     
     @property
     def purchase_cost(self):
@@ -1116,7 +1144,7 @@ class UnitCapitalCosts:
         self.installed_costs = installed_costs
 
     @property
-    def _equipment_lifetime(self):
-        return self.unit._equipment_lifetime
+    def equipment_lifetime(self):
+        return self.unit.equipment_lifetime
 
 del thermo_user, registered

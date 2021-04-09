@@ -136,7 +136,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
         if '_cost' in dct: raise RuntimeError('cost method already implemented')
         cls._cost = other._cost
         try:
-            cls._BM = other._BM
+            cls._F_BM_defaults = other._F_BM_defaults
             cls.cost_items = other.cost_items
         except: pass
     if design:
@@ -213,17 +213,17 @@ def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime,
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
         cls.cost_items[ID] = CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f)
-        cls._BM[ID] = BM
-        if lifetime: cls._equipment_lifetime[ID] = lifetime
+        cls._F_BM_defaults[ID] = BM
+        if lifetime: cls._default_equipment_lifetime[ID] = lifetime
     else:
         ID = ID or cls.line
         cls.cost_items = {ID: CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f)}
-        if '_BM' not in cls.__dict__:
-            cls._BM = cls._BM.copy() if hasattr(cls, '_BM') else {}
-        if '_equipment_lifetime' not in cls.__dict__:
-            cls._equipment_lifetime = cls._equipment_lifetime.copy() if hasattr(cls, '_equipment_lifetime') else {}
-        cls._BM[ID] = BM
-        if lifetime: cls._equipment_lifetime[ID] = lifetime
+        if '_F_BM_defaults' not in cls.__dict__:
+            cls._F_BM_defaults = cls._F_BM_defaults.copy() if hasattr(cls, '_F_BM_defaults') else {}
+        if '_default_equipment_lifetime' not in cls.__dict__:
+            cls._default_equipment_lifetime = cls._default_equipment_lifetime.copy() if hasattr(cls, '_default_equipment_lifetime') else {}
+        cls._F_BM_defaults[ID] = BM
+        if lifetime: cls._default_equipment_lifetime[ID] = lifetime
         if '_cost' not in cls.__dict__:
             cls._cost = _decorated_cost
         cls._decorated_cost = _decorated_cost
