@@ -594,7 +594,7 @@ class Unit:
     def baseline_purchase_cost(self):
         """Total baseline purchase cost, without accounting for design ,
         pressure, and material factors [USD]."""
-        return sum(self.baseline_purchase_cost.values())
+        return sum(self.baseline_purchase_costs.values())
     
     @property
     def purchase_cost(self):
