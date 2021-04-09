@@ -215,17 +215,22 @@ class Unit:
                         '`_F_BM_defaults` is incorrect; implement '
                         '`_F_BM_default` insterad'
                     )
-                else:
+                elif cls._F_BM_default is Unit._F_BM_default:
                     cls._F_BM_default = {}
-            if not hasattr(cls, '_units'): cls._units = {}
-            if not hasattr(cls, '_default_equipment_lifetime'): 
+                
                 if hasattr(cls, '_equipment_lifetime'):
                     raise NotImplementedError(
                         'the `_equipment_lifetime` class attribute is '
                         'deprecated; implement `_default_equipment_lifetime` instead'
                     )
-                else:
+                elif hasattr(cls, '_default_equipment_lifetimes'):
+                    raise NotImplementedError(
+                        '`_default_equipment_lifetimes` is incorrect; implement '
+                        '`_default_equipment_lifetime` insterad'
+                    )
+                elif Unit._default_equipment_lifetime is cls._default_equipment_lifetime: 
                     cls._default_equipment_lifetime = {}
+            if not hasattr(cls, '_units'): cls._units = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
