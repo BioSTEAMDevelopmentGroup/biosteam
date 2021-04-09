@@ -80,7 +80,7 @@ def add_replacement_cost_to_cashflow_array(equipment_installed_cost,
 def add_all_replacement_costs_to_cashflow_array(unit_capital_cost, cashflow_array, 
                                                 venture_years, start,
                                                 lang_factor):
-    equipment_lifetime = unit_capital_cost._equipment_lifetime
+    equipment_lifetime = unit_capital_cost.equipment_lifetime
     if equipment_lifetime:
         if lang_factor:
             installed_costs =  {i: j*lang_factor for i, j in unit_capital_cost.purchase_costs.items()}

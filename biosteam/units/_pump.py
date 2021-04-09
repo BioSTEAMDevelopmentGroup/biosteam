@@ -113,8 +113,8 @@ class Pump(Unit):
               'Head': 'ft',
               'NPSH': 'ft',
               'Flow rate': 'gpm'}
-    _BM = {'Pump': 3.3,
-           'Motor': 3.3}
+    _F_BM_default = {'Pump': 3.3,
+                     'Motor': 3.3}
 
     @property
     def pump_type(self):

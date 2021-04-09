@@ -100,8 +100,8 @@ class Unit:
     **line='Unit'**
         [str] Name denoting the type of Unit class. Defaults to the class
         name of the first child class.
-    **_BM** 
-        dict[str, float] Default bare module factors for each purchase cost item.
+    **_F_BM_default** 
+        dict[str, float] Default bare-module factors for each purchase cost item.
         Items in this dictionary are copied to the `F_BM` attribute during 
         initialization.
     **_units**
@@ -120,7 +120,7 @@ class Unit:
         tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
         without having add these costs in the `purchase_costs` dictionary.
-    **_equipment_lifetime=None**
+    **_default_equipment_lifetime=None**
         [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
         production venture. Use an integer to specify the lifetime for all
         items in the unit purchase costs. Use a dictionary to specify the 
@@ -234,6 +234,17 @@ class Unit:
             cls._stacklevel += 1
         
     ### Abstract Attributes ###
+    
+    # dict[str, float] Default bare module factors for each purchase cost item.
+    # Items in this dictionary are copied to the `F_BM` attribute during 
+    # initialization.
+    _F_BM_default = {}
+    
+    # [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
+    # production venture. Use an integer to specify the lifetime for all
+    # items in the unit purchase costs. Use a dictionary to specify the 
+    # lifetime of each purchase cost item.
+    _default_equipment_lifetime = {}
     
     # tuple[str] Name of attributes that are auxiliary units. These units
     # will be accounted for in the purchase and installed equipment costs

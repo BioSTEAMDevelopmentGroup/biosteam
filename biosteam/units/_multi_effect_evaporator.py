@@ -192,9 +192,9 @@ class MultiEffectEvaporator(Unit):
     line = 'Multi-Effect Evaporator'
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
-    _BM = {'Evaporators': 2.45,
-           'Liquid-ring pump': 1.0,
-           'Condenser': 3.17}
+    _F_BM_defaults = {'Evaporators': 2.45,
+                      'Liquid-ring pump': 1.0,
+                      'Condenser': 3.17}
     _N_outs = 2
     _N_heat_utilities = 2
 

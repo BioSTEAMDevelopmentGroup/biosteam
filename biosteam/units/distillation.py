@@ -139,16 +139,16 @@ class Distillation(Unit, isabstract=True):
               'Diameter': 'ft',
               'Wall thickness': 'in',
               'Weight': 'lb'}
-    _BM = {'Rectifier tower': 4.3,
-           'Stripper tower': 4.3,
-           'Rectifier trays': 4.3,
-           'Stripper trays': 4.3,
-           'Platform and ladders': 1.,
-           'Rectifier platform and ladders': 1.,
-           'Stripper platform and ladders': 1.,
-           'Tower': 4.3,
-           'Trays': 4.3,
-           'Vacuum system': 1.}
+    _F_BM_defaults = {'Rectifier tower': 4.3,
+                      'Stripper tower': 4.3,
+                      'Rectifier trays': 4.3,
+                      'Stripper trays': 4.3,
+                      'Platform and ladders': 1.,
+                      'Rectifier platform and ladders': 1.,
+                      'Stripper platform and ladders': 1.,
+                      'Tower': 4.3,
+                      'Trays': 4.3,
+                      'Vacuum system': 1.}
     
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
