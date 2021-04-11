@@ -214,7 +214,7 @@ class Boiler(Facility):
         excess_heat = calculate_excess_heat_at_natual_gas_flow(0)
         if excess_heat < -1:
             f = calculate_excess_heat_at_natual_gas_flow
-            lb = excess_heat * 3600 / feed_CH4.chemicals.CH4.LHV
+            lb = 0.
             ub = 10 * lb
             while f(ub) < 0.: 
                 lb = ub
