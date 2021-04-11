@@ -150,15 +150,22 @@ class AgileModel:
                                        for i in enumerate(self._index)]
     
     def _evaluate_sample(self, sample, parameters, metrics):
-        for f, s in zip(parameters, sample): f.setter(s)
+        Nf = len(self._parameters)
+        for f, s in zip(parameters[:Nf], sample[:Nf]): f.setter(s)
         agile_scenario = self._agile_scenario
         scenarios = []
+        metrics = []
         for i in self._models:
+            N = Nf
+            Nf = N + len(i._parameters)
+            for f, s in zip(parameters[N:Nf], sample[N:Nf]): f.setter(s)
             i.simulate()
             scenario = agile_scenario.create_scenario(i.system)
             scenarios.append(scenario)
+            metrics.extend([i() for i in i._metrics])
+        metrics.extend([i() for i in self._metrics])
         agile_scenario.compile_scenarios(scenarios)
-        return [i() for i in metrics]
+        return metrics
     
     def problem(self):
         """
