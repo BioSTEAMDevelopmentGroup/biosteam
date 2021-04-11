@@ -224,11 +224,9 @@ class Boiler(Facility):
             raise RuntimeError('excess combustibles fed to boiler; '
                                'consider using a turbogenerator')
         
-        hu_cooling = bst.HeatUtility()
-        hu_cooling(self.cooling_duty, steam_demand.T)
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
-        self.heat_utilities = (*hus_heating, hu_cooling)
+        self.heat_utilities = tuple(hus_heating)
         water_index = chemicals.index('7732-18-5')
         blowdown_water.mol[water_index] = makeup_water.mol[water_index] = (
                 self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)

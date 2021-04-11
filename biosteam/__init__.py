@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.27.2'
+__version__ = '2.27.3'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
