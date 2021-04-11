@@ -215,7 +215,7 @@ class Boiler(Facility):
         if excess_heat < -1:
             f = calculate_excess_heat_at_natual_gas_flow
             lb = 0.
-            ub = 10 * lb
+            ub = 100.
             while f(ub) < 0.: 
                 lb = ub
                 ub *= 2
