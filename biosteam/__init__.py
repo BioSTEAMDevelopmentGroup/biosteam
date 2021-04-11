@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.27.1'
+__version__ = '2.27.2'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
@@ -55,12 +55,14 @@ from . import evaluation
 from .evaluation import *
 from . import exceptions
 from . import report
+from . import agile
+from .agile import *
 
 __all__ = (
     'Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
     'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'speed_up', 'report',
-    'process_tools', *_system.__all__, *_flowsheet.__all__, 
+    'process_tools', 'agile', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *evaluation.__all__, 
-    *process_tools.__all__,
+    *process_tools.__all__, *agile.__all__,
 )

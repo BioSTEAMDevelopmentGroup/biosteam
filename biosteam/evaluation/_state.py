@@ -7,10 +7,8 @@
 # for license details.
 """
 """
-from ._block import Block
 from ._parameter import Parameter
 from .. import Unit
-from thermosteam import Stream
 import numpy as np
 import pandas as pd
 from .evaluation_tools import load_default_parameters
@@ -49,30 +47,12 @@ del version_components, CP_MAJOR, CP_MINOR, CP4
 
 # %% Functions
 
-def parameter_unit(parameter):
-    element = parameter.element
-    if isinstance(element, Unit): return element
-    elif isinstance(element, Stream): return element._sink
-
-def parameter(system, element, setter, kind, name,
-              distribution, units, baseline, bounds):
-    if kind == 'coupled':
-        block = Block(element, system); simulate = block.simulate
-    elif kind == 'isolated':
-        block = Block(element, None); simulate = None
-    elif kind == 'design' or 'cost':
-        block = Block(element, None); simulate = element._reevaluate
-    else:
-        raise ValueError(f"kind must be either 'coupled', 'isolated', or 'design' (not {kind}).")
-    return block.parameter(setter, simulate, name, distribution, 
-                           units, baseline, bounds)
-
 class UpdateWithSkipping:
     __slots__ = ('cache', 'parameters')
     def __init__(self, parameters):
         self.parameters = tuple(parameters)
         self.cache = None
-    def __call__(self, sample, specification=None):
+    def __call__(self, sample, specification=None, thorough=True):
         try:
             same_arr = self.cache==sample
             for p, x, same in zip(self.parameters, sample, same_arr):
@@ -81,27 +61,12 @@ class UpdateWithSkipping:
             if specification: specification()
             for p, x, same in zip(self.parameters, sample, same_arr):
                 if same: continue
-                if p.system: 
-                    p.simulate()
-                    break
-                else: p.simulate()
+                p.simulate()
+                if p.kind == 'coupled': break
             self.cache = sample.copy()
         except Exception as Error:
             self.cache = None
             raise Error
-
-class UpdateWithoutSkipping:
-    __slots__ = ('parameters',)
-    def __init__(self, parameters):
-        self.parameters = tuple(parameters)
-    def __call__(self, sample, specification=None):
-        for p, x in zip(self.parameters, sample): p.setter(x)
-        if specification: specification()
-        for p, x in zip(self.parameters, sample): 
-            if p.system: 
-                p.simulate()
-                break
-            else: p.simulate()
 
 
 # %%
@@ -116,32 +81,33 @@ class State:
     system : System
     specification=None : Function, optional
         Loads speficications once all parameters are set.
-    skip=False : bool, optional
-        If True, skip simulation for repeated states.
     parameters=None : Iterable[Parameter], optional
         Parameters to sample from.
     
     """
     __slots__ = ('_system', # [System]
                  '_parameters', # list[Parameter] All parameters.
-                 '_update', # [function] Updates system state.
+                 '_N_parameters_cache', # [int] Number of parameters previously loaded
                  '_specification', # [function] Loads speficications once all parameters are set.
-                 '_skip') # [bool] If True, skip simulation for repeated states
+                 '_sample_cache') # [1d array] Last sample evaluated.
     
     load_default_parameters = load_default_parameters
     
-    def __init__(self, system, specification=None, skip=False, parameters=None):
+    def __init__(self, system, specification=None, parameters=None):
         self.specification = specification
         if parameters:
             self.set_parameters(parameters)
         else:
             self._parameters = []
         self._system = system
-        self._update = None
-        self._skip = skip
+        self._N_parameters_cache = None
     
     specification = Unit.specification
-        
+    
+    @property
+    def system(self):
+        return self._system
+    
     def __len__(self):
         return len(self._parameters)
     
@@ -150,13 +116,17 @@ class State:
         copy = self.__new__(type(self))
         copy._parameters = list(self._parameters)
         copy._system = self._system
-        copy._update = self._update
+        copy._N_parameters_cache = self._N_parameters_cache
         copy._specification = self._specification
         copy._skip = self._skip
         return copy
     
     def get_baseline_sample(self):
         return np.array([i.baseline for i in self.get_parameters()])
+    
+    def _erase(self):
+        """Erase cached data."""
+        self._N_parameters_cache = self._sample_cache = None
     
     def set_parameters(self, parameters):
         """Set parameters."""
@@ -170,7 +140,7 @@ class State:
     
     def get_parameters(self):
         """Return parameters."""
-        if not self._update: self._load_parameters()
+        self._load_parameters()
         return tuple(self._parameters)
     
     def get_joint_distribution(self):
@@ -247,8 +217,8 @@ class State:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
                                                  bounds)
-        p = parameter(self._system, element, setter, kind, name, 
-                      distribution, units, baseline, bounds)
+        p = Parameter(name, setter, element, self.system, distribution,
+                      units, baseline, bounds, kind)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()
@@ -356,24 +326,45 @@ class State:
             samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
-    def _erase(self):
-        """Erase cached data."""
-        self._update = None
-    
     def _load_parameters(self):
         """Load parameters."""
-        system = self._system
-        unit_path = system.units
-        length = len(unit_path)
-        index =  unit_path.index
-        self._parameters.sort(key=lambda x: index(parameter_unit(x)) if x.system else length)
-        self._update = (UpdateWithSkipping if self._skip 
-                        else UpdateWithoutSkipping)(self._parameters)
+        N_parameters = len(self._parameters)
+        if N_parameters != self._N_parameters_cache:
+            self._N_parameters_cache = N_parameters
+            system = self._system
+            unit_path = system.units
+            length = len(unit_path)
+            def key(parameter):
+                if parameter.kind == 'coupled':
+                    unit = parameter.unit
+                    if unit: return unit_path.index(unit) 
+                return length
+            self._parameters.sort(key=key)
     
-    def __call__(self, sample):
+    def _update_state(self, sample, thorough=True):
+        try:
+            if thorough: 
+                for f, s in zip(self._parameters, sample): f.setter(s)
+                self._specification() if self._specification else self._system.simulate()
+            else:
+                same_arr = self._sample_cache==sample
+                for p, x, same in zip(self._parameters, sample, same_arr):
+                    if same: continue
+                    p.setter(x)
+                if self._specification: self._specification()
+                for p, x, same in zip(self._parameters, sample, same_arr):
+                    if same: continue
+                    p.simulate()
+                    if p.kind == 'coupled': break
+                self._sample_cache = sample.copy()
+        except Exception as Error:
+            self._sample_cache = None
+            raise Error
+    
+    def __call__(self, sample, thorough=True):
         """Update state given sample of parameters."""
-        if not self._update: self._load_parameters()
-        self._update(np.asarray(sample, dtype=float), self._specification)
+        self._load_parameters()
+        self._update_state(np.asarray(sample, dtype=float), self._specification)
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'
@@ -382,22 +373,22 @@ class State:
         return '<' + self._repr() + '>'
     
     def _info(self):
-        if not self._update: self._load_parameters()
         if not self._parameters: return f'{self._repr()}\n (No parameters)'
+        self._load_parameters()
         lines = []
-        lenghts_block = []
+        lengths_block = []
         lastblk = None
         for i in self._parameters:
             blk = i.element_name
             element = len(blk)*' ' if blk==lastblk else blk
             lines.append(f" {element}${i.name}\n")
             lastblk = blk
-            lenghts_block.append(len(blk))
-        maxlen_block = max(lenghts_block)
+            lengths_block.append(len(blk))
+        maxlen_block = max(lengths_block)
         out = f'{self._repr()}\n'
         maxlen_block = max(maxlen_block, 7)
         out += ' Element:' + (maxlen_block - 7)*' ' + ' Parameter:\n'
-        for newline, len_ in zip(lines, lenghts_block):
+        for newline, len_ in zip(lines, lengths_block):
             newline = newline.replace('$', ' '*(maxlen_block-len_) + '  ')
             out += newline
         return out.rstrip('\n ')

@@ -8,7 +8,7 @@
 """
 """
 from thermosteam import Stream
-from biosteam import System, MockSystem
+import biosteam as bst
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
@@ -141,16 +141,17 @@ class SystemFactory:
         else:
             return lambda f: cls(f, ID, ins, outs, fixed_ins_size, fixed_outs_size)
     
-    def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, *args, **kwargs):
+    def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
+                 operating_hours=None, **kwargs):
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
-        with (MockSystem() if mockup else System(ID or self.ID)) as system:
+        with (bst.MockSystem() if mockup else bst.System(ID or self.ID, operating_hours=operating_hours)) as system:
             if rename: 
                 unit_registry = system.flowsheet.unit
                 irrelevant_units = system._irrelevant_units
                 unit_registry.untrack(irrelevant_units)
-            self.f(ins, outs, *args, **kwargs)
+            self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins)
         system.load_outlet_ports(outs)
         if rename: 

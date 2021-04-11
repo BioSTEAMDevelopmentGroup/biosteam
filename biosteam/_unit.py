@@ -393,7 +393,7 @@ class Unit:
         installed_costs = agile_scenario['installed_costs']
         for name, Cp in baseline_purchase_costs.items():
             F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
-            installed_cost = Cp * (F_BM[name] + F - 1.)
+            installed_cost = Cp * (F_BM.get(name, 1.) + F - 1.)
             purchase_cost = Cp * F
             if installed_cost > installed_costs[name]:
                 installed_costs[name] = installed_cost

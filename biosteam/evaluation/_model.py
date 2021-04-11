@@ -16,6 +16,7 @@ import pandas as pd
 from ._state import State
 from ._metric import Metric
 from ._parameter import Parameter
+from ._utils import var_indices, var_columns, indices_to_multiindex
 from ..utils import format_title
 from biosteam import speed_up
 from biosteam.exceptions import FailedEvaluation
@@ -23,15 +24,6 @@ from warnings import warn
 from collections.abc import Sized
 
 __all__ = ('Model',)
-
-# %% Functions
-
-var_indices = lambda vars: [var.index for var in vars]
-var_columns = lambda vars, names=None: indices_to_multiindex(var_indices(vars), names)
-indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
-                                            indices,
-                                            names=names or ('Element', 'Variable'),
-                                        )
 
 
 # %% Grid of simulation blocks
@@ -49,8 +41,6 @@ class Model(State):
     specification=None : Function, optional
         Loads speficications once all parameters are set. Specification should 
         simulate the system as well.
-    skip=False : bool, optional
-        If True, skip simulation for repeated states.
     params=None : Iterable[Parameter], optional
         Parameters to sample from.
     exception_hook : callable(exception, sample)
@@ -155,7 +145,7 @@ class Model(State):
      Fermentation-R301  Efficiency
                         Number of reactors
                         Exponential cost coefficient
-     Stream-lipidcane   Feedstock price        
+     Stream-lipidcane   Feedstock price       
 
     Get dictionary that contain DataFrame objects of parameter distributions:
 
@@ -204,28 +194,26 @@ class Model(State):
     >>> reactors_cost_coefficients.n = n_baseline
 
     """
-    __slots__ = ('table',          # [DataFrame] All arguments and results.
-                 '_metrics',        # tuple[Metric] Metrics to be evaluated by model.
-                 '_index',          # list[int] Order of sample evaluation for performance.
-                 '_samples',        # [array] Argument sample space.
-                 '_setters',        # list[function] Cached parameter setters.
-                 '_getters',        # list[function] Cached metric getters.
-                 '_failed_metrics', # list[np.nan] Cached NaN values for failed evaluations.
-                 '_metric_indices', # list[Hashable] Cached metric indices.
-                 '_exception_hook', # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
+    __slots__ = (
+        'table',          # [DataFrame] All arguments and results.
+        '_metrics',        # tuple[Metric] Metrics to be evaluated by model.
+        '_index',          # list[int] Order of sample evaluation for performance.
+        '_samples',        # [array] Argument sample space.
+        '_exception_hook', # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
     )
-    def __init__(self, system, metrics=None, specification=None, skip=False, 
+    def __init__(self, system, metrics=None, specification=None, 
                  parameters=None, exception_hook='warn'):
-        super().__init__(system, specification, skip, parameters)
+        super().__init__(system, specification, parameters)
         self.metrics = metrics or ()
         self.exception_hook = exception_hook
-        self._samples = self.table = None
+        self.table = None
+        self._erase()
         
     def copy(self):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
-        if self._update:
+        if self._N_parameters_cache:
             copy.table = self.table.copy()
         else:
             copy._samples = copy.table = None
@@ -233,7 +221,8 @@ class Model(State):
     
     def _erase(self):
         """Erase cached data."""
-        self._update = self._samples = None
+        super()._erase()
+        self._samples = None
     
     @property
     def exception_hook(self):
@@ -307,6 +296,13 @@ class Model(State):
         self._metrics.append(metric)
         return metric 
     
+    def _sorted_samples(self, samples, parameters):
+        key = lambda x: samples[x, i]
+        index = list(range(samples.shape[0]))
+        for i in range(self._N_parameters_cache-1,  -1, -1):
+            index.sort(key=key)
+        return np.array([samples[i] for i in index])
+        
     def load_samples(self, samples):
         """Load samples for evaluation
         
@@ -315,10 +311,10 @@ class Model(State):
         samples : numpy.ndarray, dim=2
         
         """
-        if not self._update: self._load_parameters()
+        self._load_parameters()
         parameters = self._parameters
         Parameter.check_indices_unique(parameters)
-        N_parameters = len(parameters)
+        N_parameters = self._N_parameters_cache
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
         if samples.ndim == 1:
@@ -327,33 +323,23 @@ class Model(State):
             raise ValueError('samples must be 2 dimensional')
         if samples.shape[1] != N_parameters:
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(N_parameters)})')
-        key = lambda x: samples[x][i]
-        N_samples = len(samples)
-        index = list(range(N_samples))
-        for i in range(N_parameters-1,  -1, -1):
-            if not parameters[i].system: break
-            index.sort(key=key)
-        self._index = index
         metrics = self._metrics
-        N_metrics = len(metrics)
-        empty_metric_data = np.zeros((N_samples, N_metrics))
+        samples = self._sorted_samples(samples, parameters)
+        empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
-        self._setters = [i.setter for i in parameters]
-        self._getters = [i.getter for i in metrics]
-        self._failed_metrics = N_metrics * [np.nan]
-        self._metric_indices = var_indices(metrics)
         
     def evaluate(self, thorough=True, jit=True, notify=False):
         """
-        Evaluate metric over the argument sample space and save values to `table`.
+        Evaluate metrics over the loaded samples and save values to `table`.
         
         Parameters
         ----------
         thorough : bool
             If True, simulate the whole system with each sample.
-            If False, simulate only the affected parts of the system.
+            If False, simulate only the affected parts of the system and
+            skip simulation for repeated states.
         jit : bool
             Whether to JIT compile functions with Numba to speed up simulation.
         notify=False : bool, optional
@@ -363,29 +349,25 @@ class Model(State):
         if jit: speed_up()
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
-        evaluate_sample = self._evaluate_sample_thorough if thorough else self._evaluate_sample_smart
+        evaluate_sample = self._evaluate_sample
         table = self.table
         if notify:
             from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
-            def evaluate(sample, count=[0]):
+            def evaluate(sample, thorough, count=[0]):
                 count[0] += 1
-                values = evaluate_sample(sample)
+                values = evaluate_sample(sample, thorough)
                 print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
         else:
             evaluate = evaluate_sample
-        table[self._metric_indices] = [evaluate(samples[i]) for i in self._index]
+        table[var_indices(self.metrics)] = [evaluate(i, thorough) for i in self._samples]
     
-    def _evaluate_sample_thorough(self, sample):
-        for f, s in zip(self._setters, sample): f(s)
+    def _evaluate_sample(self, sample, thorough):
         try:
-            if self._specification: 
-                self._specification()
-            else:
-                self._system.simulate()
-            return [i() for i in self._getters]
+            self._update_state(sample, thorough)
+            return [i() for i in self.metrics]
         except:
             return self._run_exception_hook(sample)
     
@@ -393,7 +375,7 @@ class Model(State):
         self._reset_system()
         try:
             self._system.simulate()
-            return [i() for i in self._getters]
+            return [i() for i in self.metrics]
         except Exception as exception:
             if self._exception_hook: 
                 values = self._exception_hook(exception, sample)
@@ -405,20 +387,13 @@ class Model(State):
                                        'an array of metric values for the given sample')
             return self._failed_evaluation()
     
-    def _evaluate_sample_smart(self, sample):
-        try:
-            self._update(sample, self._specification)
-            return [i() for i in self._getters]
-        except:
-            return self._exception_hook(sample)
-    
     def _reset_system(self):
         self._system.empty_recycles()
         self._system.reset_cache()
     
     def _failed_evaluation(self):
         self._reset_system()
-        return self._failed_metrics
+        return [np.nan] * len(self.metrics)
     
     def metrics_at_baseline(self):
         """Return metric values at baseline sample."""
@@ -453,7 +428,7 @@ class Model(State):
         N_points = len(coordinate)
         
         # Initialize data containers
-        metric_indices = self._metric_indices
+        metric_indices = var_indices(self.metrics)
         shape = (N_samples, N_points)
         metric_data = {i: np.zeros(shape) for i in metric_indices}
         
@@ -691,7 +666,7 @@ class Model(State):
         index = table.columns.get_loc
         parameter_indices = var_indices(parameters)
         parameter_data = [values[index(i)] for i in parameter_indices]
-        metric_indices = var_indices(metrics) if metrics else self._metric_indices 
+        metric_indices = var_indices(metrics or self.metrics)
         metric_data = [values[index(i)] for i in metric_indices]
         if not filter: filter = 'propagate nan'
         if isinstance(filter, str):

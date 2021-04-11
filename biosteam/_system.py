@@ -24,12 +24,14 @@ from .utils import repr_items, ignore_docking_warnings
 from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
+from .process_tools import utils
 from collections.abc import Iterable
 from warnings import warn
 import biosteam as bst
 import numpy as np
 
-__all__ = ('System', 'MockSystem', 'mark_disjunction', 'unmark_disjunction')    
+__all__ = ('System', 'MockSystem', 'ScenarioCosts', 
+           'mark_disjunction', 'unmark_disjunction')    
 
 # %% Customization to system creation
 
@@ -263,6 +265,10 @@ class System:
     N_runs : int, optional
         Number of iterations to run system. This parameter is applicable 
         only to systems with no recycle loop.
+    operating_hours : float, optional
+        Number of operating hours in a year. This parameter is used to
+        compute convinience properties such as utility cost and material cost
+        on a per year basis. 
 
     """
     __slots__ = (
@@ -285,6 +291,7 @@ class System:
         'relative_molar_tolerance',
         'temperature_tolerance',
         'relative_temperature_tolerance',
+        'operating_hours',
         'flowsheet',
         '_connections',
         '_irrelevant_units',
@@ -317,7 +324,7 @@ class System:
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
-                       ends=None, facility_recycle=None):
+                       ends=None, facility_recycle=None, operating_hours=None):
         """
         Create a System object from a feedstock.
         
@@ -337,13 +344,19 @@ class System:
             process requirements and not by its unit source.
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path.
+        operating_hours : float, optional
+            Number of operating hours in a year. This parameter is used to
+            compute convinience properties such as utility cost and material cost
+            on a per year basis. 
         
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
-        return cls.from_network(ID, network, facilities, facility_recycle)
+        return cls.from_network(ID, network, facilities, 
+                                facility_recycle, operating_hours)
 
     @classmethod
-    def from_units(cls, ID="", units=None, feeds=None, ends=None, facility_recycle=None):
+    def from_units(cls, ID="", units=None, feeds=None, ends=None,
+                   facility_recycle=None, operating_hours=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -363,6 +376,10 @@ class System:
         facility_recycle : :class:`~thermosteam.Stream`, optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
+        operating_hours : float, optional
+            Number of operating hours in a year. This parameter is used to
+            compute convinience properties such as utility cost and material cost
+            on a per year basis. 
         
         """
         if units is None: 
@@ -379,14 +396,16 @@ class System:
                 ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
             system = cls.from_feedstock(
                 ID, feedstock, feeds, facilities, ends,
-                facility_recycle or find_blowdown_recycle(facilities)
+                facility_recycle or find_blowdown_recycle(facilities),
+                operating_hours=operating_hours,
             )
         else:
-            system = cls(ID, ())
+            system = cls(ID, (), operating_hours=operating_hours)
         return system
 
     @classmethod
-    def from_network(cls, ID, network, facilities=(), facility_recycle=None):
+    def from_network(cls, ID, network, facilities=(), facility_recycle=None,
+                     operating_hours=None):
         """
         Create a System object from a network.
         
@@ -401,6 +420,10 @@ class System:
             completing the path simulation.
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path.
+        operating_hours : float, optional
+            Number of operating hours in a year. This parameter is used to
+            compute convinience properties such as utility cost and material cost
+            on a per year basis. 
         
         """
         facilities = Facility.ordered_facilities(facilities)
@@ -419,10 +442,11 @@ class System:
         self._load_stream_links()
         self._load_defaults()
         self._save_configuration()
+        if operating_hours is not None: self.operating_hours = operating_hours
         return self
         
     def __init__(self, ID, path=(), recycle=None, facilities=(), 
-                 facility_recycle=None, N_runs=None):
+                 facility_recycle=None, N_runs=None, operating_hours=None):
         self.recycle = recycle
         self.N_runs = N_runs
         self._set_path(path)
@@ -435,6 +459,7 @@ class System:
         self._register(ID)
         self._load_defaults()
         self._save_configuration()
+        if operating_hours is not None: self.operating_hours = operating_hours
     
     def __enter__(self):
         if self.path or self.recycle or self.facilities:
@@ -468,62 +493,7 @@ class System:
             if i.source:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
-                i.sink.ins[i.sink_index] = i.stream
-    
-    def get_scenario_costs(self, operating_hours):
-        """
-        Return a ScenarioCosts object with data on variable operating costs
-        (i.e. utility and material costs) and sales.
-
-        Parameters
-        ----------
-        operating_hours : float
-            Number of hours the system operates within a year.
-        
-        Examples
-        --------
-        Create a simple heat exchanger system and get scenario costs:
-            
-        >>> import biosteam as bst
-        >>> bst.default() # Reset to biosteam defaults
-        >>> bst.settings.set_thermo(['Water'])
-        >>> feed = bst.Stream('feed', Water=100)
-        >>> product = bst.Stream('product')
-        >>> HX1 = bst.HXutility('HX1', feed, product, T=350)
-        >>> SYS1 = bst.System.from_units('SYS1', [HX1])
-        >>> SYS1.simulate()
-        >>> operating_days = 300
-        >>> operating_hours = 24 * operating_days
-        >>> scenario_costs = SYS1.get_scenario_costs(operating_hours)
-        
-        A ScenarioCosts object has useful properties that may according to
-        stream prices and the number of operating hours, but not with 
-        flow rates or unit simulations:
-            
-        >>> assert scenario_costs.utility_cost == HX1.utility_cost * operating_hours
-        >>> assert scenario_costs.material_cost == feed.cost == 0.
-        >>> assert scenario_costs.sales == product.cost == 0.
-        >>> # Note how the feed price affects material costs
-        >>> feed.price = 0.05
-        >>> assert scenario_costs.material_cost == feed.cost * operating_hours
-        >>> # Yet simulations and changes to material flow rates do not affect costs
-        >>> feed.set_total_flow(200, 'kmol/hr')
-        >>> HX1.T = 370
-        >>> HX1.simulate()
-        >>> assert scenario_costs.material_cost != feed.cost * operating_hours
-        >>> assert scenario_costs.utility_cost != HX1.utility_cost * operating_hours
-        
-        """
-        feeds = self.feeds
-        products = self.products
-        units = [i for i in self.units if i._design or i._cost]
-        return ScenarioCosts(
-            {i: i.get_capital_costs() for i in units},
-            sum([i.utility_cost for i in units]),
-            feeds, products,
-            {i: i.F_mass for i in feeds + products},
-            operating_hours,
-        )
+                i.sink.ins[i.sink_index] = i.stream    
     
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system.""" 
@@ -836,7 +806,7 @@ class System:
     def _downstream_system(self, unit):
         """Return a system with a path composed of the `unit` and
         everything downstream (facilities included)."""
-        if unit is self._path[0]: return self
+        if self.recycle or unit is self._path[0]: return self
         path = self._downstream_path(unit)
         if path:
             facilities = self._facilities            
@@ -1020,10 +990,7 @@ class System:
         """Setup each element of the system."""
         self._load_facilities()
         self._load_configuration()
-        isa = isinstance
-        types = (Unit, System)
-        for i in self._path:
-            if isa(i, types): i._setup()
+        for i in self.units: i._setup()
         
     def _run(self):
         """Rigorously run each element in the path."""
@@ -1080,7 +1047,7 @@ class System:
                 i._summary()
             else: i() # Assume it is a function
         for i in self._facilities:
-            if isa(i, bst.BoilerTurbogenerator): simulate_unit(i)
+            if isa(i, (bst.BoilerTurbogenerator, bst.Boiler)): simulate_unit(i)
 
     def _reset_iter(self):
         self._iter = 0
@@ -1144,7 +1111,105 @@ class System:
         self._converge()
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
-     
+    
+    # Convinience methods
+    
+    @property
+    def heat_utilities(self):
+        """[tuple] All HeatUtility objects."""
+        return utils.get_heat_utilities(self.units)
+    
+    @property
+    def power_utilities(self):
+        """[tuple] All PowerUtility objects."""
+        return tuple(utils.get_power_utilities(self.units))
+    
+    def get_inlet_flow(self, units, key=None):
+        """
+        Return total flow across all inlets.
+        
+        Parameters
+        ----------
+        units : str
+            Units of measure.
+        key : tuple[str] or str, optional
+            Chemical identifiers. If none given, the sum of all chemicals returned
+            
+        Examples
+        --------
+        >>> from biorefineries.cornstover import cornstover_sys
+        >>> from biosteam import default
+        >>> cornstover_sys.get_inlet_flow('tonne/s') # Sum of all chemicals
+        51411.02
+        >>> cornstover_sys.get_inlet_flow('tonne/s', 'Water') # Just water
+        46030.11
+        >>> default() # Bring biosteam settings back to default
+        
+        """
+        if key:
+            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
+        else:
+            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.inlets(self.units)])
+    
+    def get_outlet_flow(self, units, key=None):
+        """
+        Return total flow across all outlets.
+        
+        Parameters
+        ----------
+        units : str
+            Units of measure.
+        key : tuple[str] or str, optional
+            Chemical identifiers. If none given, the sum of all chemicals returned
+            
+        Examples
+        --------
+        >>> from biorefineries.cornstover import cornstover_sys
+        >>> from biosteam import default
+        >>> cornstover_sys.get_outlet_flow('tonne/s') # Sum of all chemicals
+        51548.22
+        >>> cornstover_sys.get_outlet_flow('tonne/s', 'Water') # Just water
+        46082.80
+        >>> default() # Bring biosteam settings back to default
+        
+        """
+        if key:
+            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
+        else:
+            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
+    
+    def get_electricity_consumption(self):
+        """Return the total electricity consumption in MW."""
+        return self.operating_hours * utils.get_electricity_consumption(self.power_utilities)
+
+    def get_electricity_production(self):
+        """Return the total electricity production in MW."""
+        return self.operating_hours * utils.get_electricity_production(self.power_utilities)
+    
+    def get_utility_duty(self, agent):
+        """Return the total utility duty for given agent in GJ/hr"""
+        return self.operating_hours * utils.get_utility_duty(self.heat_utilities, agent)
+    
+    def get_utility_flow(self, agent):
+        """Return the total utility flow for given agent in MT/hr"""
+        return self.operating_hours * utils.get_utility_flow(self.heat_utilities, agent)
+    
+    def get_cooling_duty(self):
+        """Return the total cooling duty in GJ/hr."""
+        return self.operating_hours * utils.get_cooling_duty(self.heat_utilities)
+    
+    def get_heating_duty(self):
+        """Return the total heating duty in GJ/hr."""
+        return self.operating_hours * utils.get_heating_duty(self.heat_utilities)
+    
+    def get_purchase_cost(self):
+        """Return the total equipment purchase cost in million USD."""
+        return utils.get_purchase_cost(self.units)
+    
+    def get_installed_equipment_cost(self):
+        """Return the total installed equipment cost in million USD."""
+        return utils.get_installed_cost(self.units)
+    
     # Other
     def to_network(self):
         """Return network that defines the system path."""
@@ -1325,7 +1390,63 @@ class ScenarioCosts:
         self._products = products
         self.flow_rates = flow_rates
         self.operating_hours = operating_hours
+    
+    @classmethod
+    def from_system(cls, system):
+        """
+        Return a ScenarioCosts object with data on variable operating costs
+        (i.e. utility and material costs) and sales.
+
+        Parameters
+        ----------
+        operating_hours : float
+            Number of hours the system operates within a year.
         
+        Examples
+        --------
+        Create a simple heat exchanger system and get scenario costs:
+            
+        >>> import biosteam as bst
+        >>> bst.default() # Reset to biosteam defaults
+        >>> bst.settings.set_thermo(['Water'])
+        >>> feed = bst.Stream('feed', Water=100)
+        >>> product = bst.Stream('product')
+        >>> HX1 = bst.HXutility('HX1', feed, product, T=350)
+        >>> operating_days = 300
+        >>> operating_hours = 24 * operating_days
+        >>> SYS1 = bst.System.from_units('SYS1', [HX1], operating_hours=operating_hours)
+        >>> SYS1.simulate()
+        >>> scenario_costs = ScenarioCosts.from_system(SYS1)
+        
+        A ScenarioCosts object has useful properties that may according to
+        stream prices and the number of operating hours, but not with 
+        flow rates or unit simulations:
+            
+        >>> assert scenario_costs.utility_cost == HX1.utility_cost * operating_hours
+        >>> assert scenario_costs.material_cost == feed.cost == 0.
+        >>> assert scenario_costs.sales == product.cost == 0.
+        >>> # Note how the feed price affects material costs
+        >>> feed.price = 0.05
+        >>> assert scenario_costs.material_cost == feed.cost * operating_hours
+        >>> # Yet simulations and changes to material flow rates do not affect costs
+        >>> feed.set_total_flow(200, 'kmol/hr')
+        >>> HX1.T = 370
+        >>> HX1.simulate()
+        >>> assert scenario_costs.material_cost != feed.cost * operating_hours
+        >>> assert scenario_costs.utility_cost != HX1.utility_cost * operating_hours
+        
+        """
+        feeds = system.feeds
+        products = system.products
+        units = [i for i in system.units if i._design or i._cost]
+        return cls(
+            {i: i.get_capital_costs() for i in units},
+            sum([i.utility_cost for i in units]),
+            feeds, products,
+            {i: i.F_mass for i in feeds + products},
+            system.operating_hours,
+        )
+    
     @property
     def utility_cost(self):
         return self.operating_hours * self.steady_state_utility_cost

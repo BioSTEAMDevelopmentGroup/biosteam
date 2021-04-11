@@ -8,8 +8,11 @@
 """
 """
 __all__ = ('Parameter',)
+
 from ._variable import Variable
 from ..utils import format_title
+import biosteam as bst
+from inspect import signature
 
 class Parameter(Variable):
     """
@@ -22,8 +25,6 @@ class Parameter(Variable):
         Name of parameter.
     setter : function
         Should set the parameter.
-    simulate : function
-        Should simulate parameter effects.
     element : object
         Element associated to parameter.
     system : System
@@ -38,22 +39,56 @@ class Parameter(Variable):
         Lower and upper bounds of parameter.
     
     """
-    __slots__ = ('name', 'setter', 'simulate', 'element',
-                 'system', 'distribution', 'units', 'baseline',
-                 'bounds')
+    __slots__ = ('name', 'setter', 'element',
+                 'system', 'distribution', 
+                 'units', 'baseline',
+                 'bounds', 'kind')
     
-    def __init__(self, name, setter, simulate,
-                 element, system, distribution,
-                 units, baseline, bounds):
+    def __init__(self, name, setter, element, system, distribution,
+                 units, baseline, bounds, kind):
+        if not name: name, *_ = signature(setter).parameters.keys()
         self.name = format_title(name)
         self.setter = setter
-        self.simulate = simulate
         self.element = element
         self.system = system
         self.distribution = distribution
         self.units = units
         self.baseline = baseline
         self.bounds = bounds
+        self.kind = kind
+    
+    @property
+    def unit(self):
+        """Unit operation directly associated to parameter."""
+        element = self.element
+        if isinstance(element, bst.Unit): return element
+        elif isinstance(element, bst.Stream): return element._sink
+    
+    @property
+    def subsystem(self):
+        """Subsystem directly associated to parameter."""
+        system = self.system
+        if not system:
+            return None
+        else:
+            unit = self.unit
+            return system._downstream_system(unit) if unit else system
+    
+    def simulate(self):
+        """Simulate paramater."""
+        kind = self.kind
+        if kind in ('design', 'cost'):
+            unit = self.unit
+            if not unit: raise RuntimeError(f'no unit to run {kind} algorithm')
+            unit._reevaluate()
+        elif kind == 'coupled':
+            subsystem = self.subsystem
+            if not subsystem: raise RuntimeError(f'no system to run {kind} algorithm')
+            self.subsystem.simulate()
+        elif kind == 'isolated':
+            pass
+        else:
+            raise RuntimeError(f"invalid parameter kind '{kind}'")
     
     def __call__(self, value):
         self.setter(value)
