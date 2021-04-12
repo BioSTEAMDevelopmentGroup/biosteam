@@ -276,9 +276,9 @@ class Model(State):
         getter : function, optional
                  Should return metric.
         name : str, optional
-               Name of parameter. If None, defaults to the name of the getter.
+               Name of metric. If None, defaults to the name of the getter.
         units : str, optional
-                Parameter units of measure
+                Metric units of measure
         element : object, optional
                   Element being evaluated. Works mainly for bookkeeping. 
                   Defaults to 'Biorefinery'.
@@ -296,12 +296,12 @@ class Model(State):
         self._metrics.append(metric)
         return metric 
     
-    def _sorted_samples(self, samples, parameters):
+    def _load_sample_order(self, samples, parameters):
         key = lambda x: samples[x, i]
         index = list(range(samples.shape[0]))
         for i in range(self._N_parameters_cache-1,  -1, -1):
             index.sort(key=key)
-        return np.array([samples[i] for i in index])
+        self._index = index
         
     def load_samples(self, samples):
         """Load samples for evaluation
@@ -324,7 +324,7 @@ class Model(State):
         if samples.shape[1] != N_parameters:
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(N_parameters)})')
         metrics = self._metrics
-        samples = self._sorted_samples(samples, parameters)
+        self._load_sample_order(samples, parameters)
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics))
@@ -362,7 +362,11 @@ class Model(State):
                 return values
         else:
             evaluate = evaluate_sample
-        table[var_indices(self.metrics)] = [evaluate(i, thorough) for i in self._samples]
+        index = self._index
+        values = [None] * len(index)
+        for i in index:
+            values[i] = evaluate(samples[i], thorough)
+        table[var_indices(self.metrics)] = values
     
     def _evaluate_sample(self, sample, thorough):
         try:

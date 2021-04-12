@@ -128,6 +128,14 @@ class State:
         """Erase cached data."""
         self._N_parameters_cache = self._sample_cache = None
     
+    @property
+    def parameters(self):
+        """tuple[Parameter] All parameters added to the model."""
+        return self.get_parameters()
+    @parameters.setter
+    def parameters(self, parameters):
+        self.set_parameters(parameters)
+    
     def set_parameters(self, parameters):
         """Set parameters."""
         parameters = list(parameters)

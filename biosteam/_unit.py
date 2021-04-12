@@ -215,7 +215,7 @@ class Unit:
                         '`_F_BM_defaults` is incorrect; implement '
                         '`_F_BM_default` insterad'
                     )
-                elif cls._F_BM_default is Unit._F_BM_default:
+                elif not hasattr(cls, '_F_BM_default'):
                     cls._F_BM_default = {}
                 
                 if hasattr(cls, '_equipment_lifetime'):
@@ -228,7 +228,7 @@ class Unit:
                         '`_default_equipment_lifetimes` is incorrect; implement '
                         '`_default_equipment_lifetime` insterad'
                     )
-                elif Unit._default_equipment_lifetime is cls._default_equipment_lifetime: 
+                elif not hasattr(cls, '_default_equipment_lifetime'): 
                     cls._default_equipment_lifetime = {}
             if not hasattr(cls, '_units'): cls._units = {}
             if not cls._run:
@@ -244,17 +244,6 @@ class Unit:
             cls._stacklevel += 1
         
     ### Abstract Attributes ###
-    
-    # dict[str, float] Default bare module factors for each purchase cost item.
-    # Items in this dictionary are copied to the `F_BM` attribute during 
-    # initialization.
-    _F_BM_default = {}
-    
-    # [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
-    # production venture. Use an integer to specify the lifetime for all
-    # items in the unit purchase costs. Use a dictionary to specify the 
-    # lifetime of each purchase cost item.
-    _default_equipment_lifetime = {}
     
     # tuple[str] Name of attributes that are auxiliary units. These units
     # will be accounted for in the purchase and installed equipment costs
@@ -320,9 +309,12 @@ class Unit:
         self.power_utility = PowerUtility()
     
     def _init_results(self):
-        #: [dict] All bare-module factors for each purchase cost.
-        #: Defaults to values in the class attribute `_F_BM_default`.
-        self.F_BM = self._F_BM_default.copy()
+        try:
+            #: [dict] All bare-module factors for each purchase cost.
+            #: Defaults to values in the class attribute `_F_BM_default`.
+            self.F_BM = self._F_BM_default.copy()
+        except AttributeError:
+            self.F_BM = {}
         
         #: [dict] All design factors for each purchase cost.
         self.F_D = {}
@@ -347,11 +339,14 @@ class Unit:
         # pressure, and material factors.
         self.installed_costs = {}
         
-        #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
-        #: the class attribute `_default_equipment_lifetime`. Use an integer 
-        #: to specify the lifetime for all items in the unit purchase costs.
-        #: Use a dictionary to specify the lifetime of each purchase cost item.
-        self.equipment_lifetime = copy(self._default_equipment_lifetime)
+        try:
+            #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
+            #: the class attribute `_default_equipment_lifetime`. Use an integer 
+            #: to specify the lifetime for all items in the unit purchase costs.
+            #: Use a dictionary to specify the lifetime of each purchase cost item.
+            self.equipment_lifetime = copy(self._default_equipment_lifetime)
+        except AttributeError:
+            self.equipment_lifetime = {}
         
         #: [dict] Greenhouse gas emissions for use in BioSTEAM-LCA 
         #: (https://github.com/scyjth/biosteam_lca)

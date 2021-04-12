@@ -1247,7 +1247,6 @@ class MultiStageMixerSettlers(bst.Unit):
             design_results['Settler - ' + i] = j
         
     def _cost(self):
-        purchase_costs = self.purchase_costs
         N_stages = self.N_stages
         mixer = self.mixer
         settler = self.settler
@@ -1255,8 +1254,15 @@ class MultiStageMixerSettlers(bst.Unit):
         settler._cost()
         self.power_utility.copy_like(mixer.power_utility)
         self.power_utility.scale(N_stages)
+        purchase_costs = self.purchase_costs
         purchase_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
         purchase_costs['Settlers'] = N_stages * settler.purchase_cost
+        baseline_purchase_costs = self.baseline_purchase_costs
+        baseline_purchase_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
+        baseline_purchase_costs['Settlers'] = N_stages * settler.purchase_cost
+        installed_costs = self.installed_costs
+        installed_costs['Mixers and agitators'] = N_stages * mixer.purchase_cost
+        installed_costs['Settlers'] = N_stages * settler.purchase_cost
         
     @property
     def installed_cost(self):
