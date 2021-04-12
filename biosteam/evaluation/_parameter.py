@@ -57,6 +57,22 @@ class Parameter(Variable):
         self.bounds = bounds
         self.kind = kind
     
+    @classmethod
+    def sort_parameters(cls, parameters):
+        if not parameters: return
+        try:
+            system, = set([i.system for i in parameters])
+        except:
+            raise ValueError('all parameters must have the same system to sort')
+        unit_path = system.units
+        length = len(unit_path)
+        def key(parameter):
+            if parameter.kind == 'coupled':
+                unit = parameter.unit
+                if unit: return unit_path.index(unit) 
+            return length
+        parameters.sort(key=key) 
+    
     @property
     def unit(self):
         """Unit operation directly associated to parameter."""

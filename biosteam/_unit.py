@@ -63,15 +63,6 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
     info = info.replace('\n ', '\n    ')
     return info[:-1]
 
-# %% Agile unit operation utilities
-
-class AccountedEquipmentCost(float):
-    """
-    Create an AccountedEquipmentCost object that represents a cost reference to
-    another scenario.
-    
-    """
-
 # %% Unit Operation
 
 @thermo_user

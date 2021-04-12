@@ -336,18 +336,11 @@ class State:
     
     def _load_parameters(self):
         """Load parameters."""
-        N_parameters = len(self._parameters)
+        parameters = self._parameters
+        N_parameters = len(parameters)
         if N_parameters != self._N_parameters_cache:
             self._N_parameters_cache = N_parameters
-            system = self._system
-            unit_path = system.units
-            length = len(unit_path)
-            def key(parameter):
-                if parameter.kind == 'coupled':
-                    unit = parameter.unit
-                    if unit: return unit_path.index(unit) 
-                return length
-            self._parameters.sort(key=key)
+            Parameter.sort_parameters(parameters)
     
     def _update_state(self, sample, thorough=True):
         try:
