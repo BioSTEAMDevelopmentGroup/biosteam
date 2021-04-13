@@ -251,7 +251,7 @@ class AgileModel:
             parameters = system_parameters[system]
             metrics = system_metrics[system]
             N = Nf
-            Nf = len(parameters)
+            Nf += len(parameters)
             for f, s in zip(parameters, sample[N:Nf]): f.setter(s)
             system.simulate()
             scenario = agile_scenario.create_scenario(system)
