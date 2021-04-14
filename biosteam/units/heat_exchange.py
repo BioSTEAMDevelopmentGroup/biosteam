@@ -362,6 +362,7 @@ class HXutility(HX):
         self.Q = duty
         super()._design()
         self._cost()
+        self._load_capital_costs()
         
     def _run(self):
         feed = self.ins[0]
