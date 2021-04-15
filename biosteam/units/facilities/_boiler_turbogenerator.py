@@ -179,8 +179,6 @@ class Boiler(Facility):
             lime.price = 0.19937504680689402
         if not chems.price:
             chems.price = 4.995862254032183
-        if not remainder_feed_gas.price:
-            remainder_feed_gas.price = self.natural_gas_price
         H_steam =  sum([i.duty for i in self.steam_utilities])
         side_steam = self.side_steam
         if side_steam: 
