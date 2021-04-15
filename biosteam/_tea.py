@@ -414,7 +414,7 @@ class TEA:
     @property
     def operating_days(self):
         """[float] Number of operating days per year."""
-        return self.system.operating_hours * 24
+        return self.system.operating_hours / 24
     @operating_days.setter
     def operating_days(self, days):
         """[float] Number of operating days per year."""
