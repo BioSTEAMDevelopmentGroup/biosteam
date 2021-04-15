@@ -1210,6 +1210,56 @@ class System:
         """Return the total installed equipment cost in million USD."""
         return utils.get_installed_cost(self.units)
     
+    def get_scenario_costs(self):
+        """
+        Return a ScenarioCosts object with data on variable operating costs
+        (i.e. utility and material costs) and sales.
+        
+        Examples
+        --------
+        Create a simple heat exchanger system and get scenario costs:
+            
+        >>> import biosteam as bst
+        >>> bst.default() # Reset to biosteam defaults
+        >>> bst.settings.set_thermo(['Water'])
+        >>> feed = bst.Stream('feed', Water=100)
+        >>> product = bst.Stream('product')
+        >>> HX1 = bst.HXutility('HX1', feed, product, T=350)
+        >>> operating_days = 300
+        >>> operating_hours = 24 * operating_days
+        >>> SYS1 = bst.System.from_units('SYS1', [HX1], operating_hours=operating_hours)
+        >>> SYS1.simulate()
+        >>> scenario_costs = SYS1.get_scenario_costs()
+        
+        A ScenarioCosts object has useful properties that may change according to
+        stream prices, but not with flow rates or unit simulations:
+            
+        >>> assert scenario_costs.utility_cost == HX1.utility_cost * operating_hours
+        >>> assert scenario_costs.material_cost == feed.cost == 0.
+        >>> assert scenario_costs.sales == product.cost == 0.
+        >>> # Note how the feed price affects material costs
+        >>> feed.price = 0.05
+        >>> assert scenario_costs.material_cost == feed.cost * operating_hours
+        >>> # Yet simulations and changes to material flow rates do not affect costs
+        >>> feed.set_total_flow(200, 'kmol/hr')
+        >>> HX1.T = 370
+        >>> HX1.simulate()
+        >>> assert scenario_costs.material_cost != feed.cost * operating_hours
+        >>> assert scenario_costs.utility_cost != HX1.utility_cost * operating_hours
+        
+        """
+        feeds = self.feeds
+        products = self.products
+        units = self.units
+        operating_hours = self.operating_hours
+        return ScenarioCosts(
+            {i: i.get_capital_costs() for i in units if i._design or i._cost},
+            {i: i.F_mass * operating_hours for i in feeds + products},
+            operating_hours * sum([i.utility_cost for i in units]),
+            feeds, products,
+            self.operating_hours,
+        )
+    
     # Other
     def to_network(self):
         """Return network that defines the system path."""
@@ -1379,86 +1429,24 @@ del ignore_docking_warnings
 
 class ScenarioCosts:
     
-    __slots__ = ('unit_capital_costs', 'steady_state_utility_cost', 
-                 '_feeds', '_products', 'flow_rates', 'operating_hours')
+    __slots__ = ('unit_capital_costs', 'utility_cost', 'flow_rates', 
+                 'feeds', 'products', 'operating_hours')
     
-    def __init__(self, unit_capital_costs, steady_state_utility_cost, 
-                 feeds, products, flow_rates, operating_hours):
+    def __init__(self, unit_capital_costs, flow_rates, utility_cost, 
+                 feeds, products, operating_hours):
         self.unit_capital_costs = unit_capital_costs
-        self.steady_state_utility_cost = steady_state_utility_cost
-        self._feeds = feeds
-        self._products = products
         self.flow_rates = flow_rates
+        self.utility_cost = utility_cost
+        self.feeds = feeds
+        self.products = products
         self.operating_hours = operating_hours
-    
-    @classmethod
-    def from_system(cls, system):
-        """
-        Return a ScenarioCosts object with data on variable operating costs
-        (i.e. utility and material costs) and sales.
-
-        Parameters
-        ----------
-        operating_hours : float
-            Number of hours the system operates within a year.
-        
-        Examples
-        --------
-        Create a simple heat exchanger system and get scenario costs:
-            
-        >>> import biosteam as bst
-        >>> bst.default() # Reset to biosteam defaults
-        >>> bst.settings.set_thermo(['Water'])
-        >>> feed = bst.Stream('feed', Water=100)
-        >>> product = bst.Stream('product')
-        >>> HX1 = bst.HXutility('HX1', feed, product, T=350)
-        >>> operating_days = 300
-        >>> operating_hours = 24 * operating_days
-        >>> SYS1 = bst.System.from_units('SYS1', [HX1], operating_hours=operating_hours)
-        >>> SYS1.simulate()
-        >>> scenario_costs = ScenarioCosts.from_system(SYS1)
-        
-        A ScenarioCosts object has useful properties that may according to
-        stream prices and the number of operating hours, but not with 
-        flow rates or unit simulations:
-            
-        >>> assert scenario_costs.utility_cost == HX1.utility_cost * operating_hours
-        >>> assert scenario_costs.material_cost == feed.cost == 0.
-        >>> assert scenario_costs.sales == product.cost == 0.
-        >>> # Note how the feed price affects material costs
-        >>> feed.price = 0.05
-        >>> assert scenario_costs.material_cost == feed.cost * operating_hours
-        >>> # Yet simulations and changes to material flow rates do not affect costs
-        >>> feed.set_total_flow(200, 'kmol/hr')
-        >>> HX1.T = 370
-        >>> HX1.simulate()
-        >>> assert scenario_costs.material_cost != feed.cost * operating_hours
-        >>> assert scenario_costs.utility_cost != HX1.utility_cost * operating_hours
-        
-        """
-        feeds = system.feeds
-        products = system.products
-        units = [i for i in system.units if i._design or i._cost]
-        return cls(
-            {i: i.get_capital_costs() for i in units},
-            sum([i.utility_cost for i in units]),
-            feeds, products,
-            {i: i.F_mass for i in feeds + products},
-            system.operating_hours,
-        )
-    
-    @property
-    def utility_cost(self):
-        return self.operating_hours * self.steady_state_utility_cost
     
     @property
     def material_cost(self):
         flow_rates = self.flow_rates
-        operating_hours = self.operating_hours
-        return sum([flow_rates[i] * i.price * operating_hours for i in self._feeds])
+        return sum([flow_rates[i] * i.price  for i in self.feeds])
     
     @property
     def sales(self):
         flow_rates = self.flow_rates
-        operating_hours = self.operating_hours
-        return sum([flow_rates[i] * i.price * operating_hours for i in self._products])
+        return sum([flow_rates[i] * i.price for i in self.products])

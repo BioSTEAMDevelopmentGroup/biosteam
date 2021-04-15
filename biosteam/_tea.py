@@ -267,8 +267,7 @@ class TEA:
                  'feeds', 'products', '_construction_schedule', '_startup_time',
                  'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
                  'units', '_startup_schedule', '_operating_days',
-                 '_operating_hours', '_duration', 
-                 '_depreciation_array', '_depreciation', '_years',
+                 '_duration', '_depreciation_array', '_depreciation', '_years',
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
     
@@ -415,12 +414,23 @@ class TEA:
     @property
     def operating_days(self):
         """[float] Number of operating days per year."""
-        return self._operating_days
+        return self.system.operating_hours
     @operating_days.setter
     def operating_days(self, days):
         """[float] Number of operating days per year."""
-        self._operating_days = days
-        self._operating_hours = self.system.operating_hours = 24 * days
+        self.system.operating_hours = 24 * days
+    
+    @property
+    def operating_hours(self):
+        """[float] Number of operating hours per year."""
+        return self.system.operating_hours
+    @operating_hours.setter
+    def operating_hours(self, hours):
+        self.system.operating_hours = hours
+    
+    @property
+    def operating_hours(self):
+        return self.system.operating_hours
     
     @property
     def duration(self):
@@ -464,7 +474,7 @@ class TEA:
     @property
     def utility_cost(self):
         """Total utility cost (USD/yr)."""
-        return sum([u.utility_cost for u in self.units]) * self._operating_hours
+        return sum([u.utility_cost for u in self.units]) * self.operating_hours
     @property
     def purchase_cost(self):
         """Total purchase cost (USD)."""
@@ -511,7 +521,7 @@ class TEA:
     @property
     def material_cost(self):
         """Annual material cost."""
-        return sum([s.cost for s in self.feeds if s.price]) * self._operating_hours
+        return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
     @property
     def annual_depreciation(self):
         """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
@@ -519,7 +529,7 @@ class TEA:
     @property
     def sales(self):
         """Annual sales revenue."""
-        return sum([s.cost for s in self.products if s.price]) * self._operating_hours
+        return sum([s.cost for s in self.products if s.price]) * self.operating_hours
     @property
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
@@ -763,7 +773,7 @@ class TEA:
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
         F_mass = stream.F_mass
         if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
-        return F_mass * self._operating_hours
+        return F_mass * self.operating_hours
     
     def solve_price(self, stream):
         """

@@ -13,6 +13,7 @@ from ..decorators import cost
 import flexsolve as flx
 import biosteam as bst
 import thermosteam as tmo
+from warnings import warn
 
 __all__ = ('BoilerTurbogenerator', 'Boiler')
 
@@ -55,6 +56,10 @@ class Boiler(Facility):
         
         [2] Ash disposal.
         
+        [3] Remainder feed solids.
+        
+        [4] Remainder feed gas.
+        
     boiler_efficiency : float
         Fraction of heat transfered to steam.
     agent : UtilityAgent, optional
@@ -82,7 +87,7 @@ class Boiler(Facility):
     boiler_blowdown = 0.03
     RO_rejection = 0
     _N_ins = 6
-    _N_outs = 3
+    _N_outs = 5
     _N_heat_utilities = 0
     _units = {'Flow rate': 'kg/hr',
               'Work': 'kW',
@@ -91,7 +96,9 @@ class Boiler(Facility):
     def __init__(self, ID='', ins=None, 
                  outs=('emissions',
                        'rejected_water_and_blowdown',
-                       'ash_disposal'),
+                       'ash_disposal',
+                       'remainder_feed_solids',
+                       'remainder_feed_gas'),
                  thermo=None, *,
                  boiler_efficiency=0.80,
                  side_steam=None,
@@ -165,13 +172,15 @@ class Boiler(Facility):
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
         feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
-        emissions, blowdown_water, ash_disposal = self.outs
+        emissions, blowdown_water, ash_disposal, remainder_feed_solids, remainder_feed_gas = self.outs
         if not ash_disposal.price: 
             ash_disposal.price = -0.031812704433277834
         if not lime.price:
             lime.price = 0.19937504680689402
         if not chems.price:
             chems.price = 4.995862254032183
+        if not remainder_feed_gas.price:
+            remainder_feed_gas.price = self.natural_gas_price
         H_steam =  sum([i.duty for i in self.steam_utilities])
         side_steam = self.side_steam
         if side_steam: 
@@ -211,6 +220,9 @@ class Boiler(Facility):
             H_excess = H_content - H_steam
             return H_excess
         
+        remainder_feed_gas.empty()
+        remainder_feed_solids.empty()
+        gas_fraction_burned = solids_fraction_burned = 1.
         excess_heat = calculate_excess_heat_at_natual_gas_flow(0)
         if excess_heat < -1:
             f = calculate_excess_heat_at_natual_gas_flow
@@ -221,9 +233,46 @@ class Boiler(Facility):
                 ub *= 2
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
         elif excess_heat > 1:
-            raise RuntimeError('excess combustibles fed to boiler; '
-                               'consider using a turbogenerator')
-        
+            def calculate_excess_heat_with_diverted_gas(fraction_burned):
+                H_combustion = fraction_burned*(feed_gas.H - feed_gas.HHV) + (feed_solids.H - feed_solids.HHV)
+                emissions_mol[:] = fraction_burned*feed_gas.mol + feed_solids.mol
+                combustion_rxns.force_reaction(emissions_mol)
+                emissions.imol['O2'] = 0
+                H_content = B_eff * H_combustion - emissions.H
+                
+                #: [float] Total steam produced by the boiler (kmol/hr)
+                self.total_steam = H_content / duty_over_mol 
+                Design['Flow rate'] = self.total_steam * 18.01528
+                
+                # Excess heat available
+                H_excess = H_content - H_steam
+                return H_excess
+            if f(0.) > 1.: 
+                gas_fraction_burned = 0.
+            else:
+                f = calculate_excess_heat_with_diverted_gas
+                gas_fraction_burned = flx.IQ_interpolation(f, 0., 1., xtol=1, ytol=1)
+            
+            if gas_fraction_burned == 0.:
+                def calculate_excess_heat_with_diverted_solids(fraction_burned):
+                    H_combustion = fraction_burned * (feed_solids.H - feed_solids.HHV)
+                    emissions_mol[:] = fraction_burned * feed_solids.mol
+                    combustion_rxns.force_reaction(emissions_mol)
+                    emissions.imol['O2'] = 0
+                    H_content = B_eff * H_combustion - emissions.H
+                    
+                    #: [float] Total steam produced by the boiler (kmol/hr)
+                    self.total_steam = H_content / duty_over_mol 
+                    Design['Flow rate'] = self.total_steam * 18.01528
+                    
+                    # Excess heat available
+                    H_excess = H_content - H_steam
+                    return H_excess
+                f = calculate_excess_heat_with_diverted_solids
+                solids_fraction_burned = flx.IQ_interpolation(f, 0., 1., xtol=1, ytol=1)
+            
+        remainder_feed_solids.mol = (1. - solids_fraction_burned) * feed_solids.mol
+        remainder_feed_gas.mol = (1. - gas_fraction_burned) * feed_gas.mol
         hus_heating = bst.HeatUtility.sum_by_agent(tuple(self.steam_utilities))
         for hu in hus_heating: hu.reverse()
         self.heat_utilities = tuple(hus_heating)
