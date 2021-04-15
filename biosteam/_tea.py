@@ -414,7 +414,7 @@ class TEA:
     @property
     def operating_days(self):
         """[float] Number of operating days per year."""
-        return self.system.operating_hours
+        return self.system.operating_hours * 24
     @operating_days.setter
     def operating_days(self, days):
         """[float] Number of operating days per year."""
@@ -713,7 +713,7 @@ class TEA:
     
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
-        return stream.cost
+        return stream.cost * self.operating_hours
     
     def production_costs(self, products, with_annual_depreciation=True):
         """
