@@ -21,6 +21,8 @@ __all__ = ('streams_from_units',
            'feeds_from_units',
            'products_from_units')
 
+feed_priorities = {}
+
 def inlets(units):
     return set(sum([i._ins for i in units], []))
 
@@ -55,7 +57,15 @@ def filter_out_missing_streams(streams):
     streams.intersection_update([i for i in streams if i])
 
 def sort_feeds_big_to_small(feeds):
-    feeds.sort(key=lambda feed: -feed.F_mass if feed else 1.)
+    def feed_priority(feed):
+        if feed in feed_priorities:
+            return feed_priorities[feed]
+        elif feed:
+            return 1. - feed.F_mass / F_mass_max if F_mass_max else 1.
+        else:
+            return 2.
+    F_mass_max = max([i.F_mass for i in feeds])
+    feeds.sort(key=feed_priority)
 
 def feeds_from_units(units):
     unit_set = set(units)
@@ -66,3 +76,18 @@ def products_from_units(units):
     unit_set = set(units)
     return sum([[i for i in u._outs if i._sink not in unit_set]
                  for u in units], [])
+
+def get_feed_priority(stream):
+    if stream.isfeed():
+        return feed_priorities.get(stream)
+    else:
+        raise RuntimeError(f"stream '{stream}' is not a feed")
+
+def set_feed_priority(stream, value):
+    if stream.isfeed():
+        feed_priorities[stream] = value
+    else:
+        raise RuntimeError(f"stream '{stream}' is not a feed")
+    
+bst.Stream.get_feed_priority = get_feed_priority
+bst.Stream.set_feed_priority = set_feed_priority

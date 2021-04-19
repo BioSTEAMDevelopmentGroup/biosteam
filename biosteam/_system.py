@@ -475,6 +475,7 @@ class System:
         del self._irrelevant_units
         unit_registry = self.flowsheet.unit
         dump = unit_registry._close_dump(self)
+        if exception: raise exception
         if self.path or self.recycle or self.facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
@@ -482,7 +483,6 @@ class System:
             system = self.from_units(None, units)
             self.ID = ID
             self.copy_like(system)
-        if exception: raise exception
     
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in self.streams]

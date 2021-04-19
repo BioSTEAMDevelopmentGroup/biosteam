@@ -27,9 +27,11 @@ class ProcessWaterCenter(Facility):
     Parameters
     ----------
     ins : stream sequence
-        [0] Recycle water.
+        [0] Clean water.
         
         [1] Make-up water.
+        
+        [2] Recycled process water
     outs : stream
         [0] Process water.
         
@@ -49,7 +51,7 @@ class ProcessWaterCenter(Facility):
     
     """
     network_priority = 2
-    _N_ins = 2
+    _N_ins = 3
     _N_outs = 2
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
@@ -71,17 +73,17 @@ class ProcessWaterCenter(Facility):
 
     def update_makeup_water(self):
         makeup_water_streams = self.makeup_water_streams
-        s_recycle, s_makeup = self.ins
+        s_recycle, s_makeup, _ = self.ins
         water = sum([stream.imol['7732-18-5'] for stream in makeup_water_streams]) - s_recycle.imol['7732-18-5']
         s_makeup.imol['7732-18-5'] = max(water, 0)
 
     def _run(self): 
         self.update_process_water()
         self.update_makeup_water()
-        s_recycle, s_makeup = self._ins
+        s_recycle, s_makeup, s_recycle_process = self._ins
         s_process, s_waste = self.outs
         makeup_water = s_makeup.F_mol
-        recycle_water = s_recycle.F_mol
+        recycle_water = s_recycle.F_mol + s_recycle_process.F_mol
         process_water = s_process.F_mol
         waste_water = recycle_water + makeup_water - process_water
         if waste_water < 0.:
