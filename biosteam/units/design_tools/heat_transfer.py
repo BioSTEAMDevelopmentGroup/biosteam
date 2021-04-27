@@ -51,7 +51,11 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
         s_out.T = T
         if dT < -tol:
             s_out.phase = 'l'
-            if H_lim_given: s_out.H = H_lim
+            if H_lim_given:
+                if heating:
+                    if s_out.H > H_lim: s_out.H = H_lim
+                else:
+                    if s_out.H < H_lim: s_out.vle(H=H_lim , P=s_out.P)
         elif dT > tol:
             s_out.phase = 'g'
             if H_lim_given:
