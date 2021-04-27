@@ -123,7 +123,7 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
     T_pinch_coldside = s_cold_in.T + dT
     if T_lim_coldside:
         if T_lim_coldside > s_hot_in.T:
-            T_lim_coldside = T_pinch_coldside
+            return 0. # No heat exchange
         else:
             T_lim_coldside = max(T_pinch_coldside, T_lim_coldside) 
     else:
@@ -132,7 +132,7 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
     T_pinch_hotside = s_hot_in.T - dT
     if T_lim_hotside:
         if T_lim_hotside < s_cold_in.T:
-            T_lim_hotside = T_pinch_hotside
+            return 0. # No heat exchange
         else:
             T_lim_hotside = min(T_pinch_hotside, T_lim_hotside) 
     else:
