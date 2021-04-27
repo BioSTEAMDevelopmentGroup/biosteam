@@ -367,7 +367,7 @@ class MultiEffectEvaporator(Unit):
         first_evaporator = evaporators[0]
         heat_exchanger = first_evaporator.heat_exchanger
         hu = heat_exchanger.heat_utilities[0]
-        duty = heat_exchanger.Q = first_evaporator.H_out - first_evaporator.H_in
+        duty = first_evaporator.H_out - first_evaporator.H_in
         Q = abs(duty)
         Tci = first_evaporator.ins[0].T
         Tco = first_evaporator.outs[0].T

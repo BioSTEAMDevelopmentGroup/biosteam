@@ -63,6 +63,7 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
     info = info.replace('\n ', '\n    ')
     return info[:-1]
 
+
 # %% Unit Operation
 
 @thermo_user
@@ -279,6 +280,7 @@ class Unit:
         self._init_outs(outs)
         self._init_utils()
         self._init_results()
+        self._init_specification()
         self._assert_compatible_property_package()
     
     def _init_ins(self, ins):
@@ -342,6 +344,14 @@ class Unit:
         #: [dict] Greenhouse gas emissions for use in BioSTEAM-LCA 
         #: (https://github.com/scyjth/biosteam_lca)
         self._GHGs = {}
+    
+    def _init_specification(self):
+        #: list[Callable] All specification functions
+        self._specification = []
+        
+        #: [bool] Whether to run mass and energy balance after calling
+        #: specification functions
+        self.run_after_specification = False 
     
     def get_capital_costs(self):
         return UnitCapitalCosts(
@@ -602,6 +612,22 @@ class Unit:
             s_out = self._outs[0]
             s_out.link_with(s_in, options.flow, options.phase, options.TP)
     
+    def add_specification(self, specification=None, run=None):
+        if not specification: return lambda specification: self.add_specification(specification, run)
+        if not callable(specification): raise ValueError('specification must be callable')
+        self.specification.append(specification)
+        if run is not None: self.run_after_specification = run
+        return specification
+    
+    def run(self):
+        """Run mass and energy balance."""
+        specification = self._specification
+        if specification:
+            for i in specification: i()
+            if self.run_after_specification: self._run()
+        else:
+            self._run()
+            
     def _reevaluate(self):
         """Reevaluate design and costs."""
         self._setup()
@@ -616,14 +642,21 @@ class Unit:
     
     @property
     def specification(self):
-        """Design or process specification."""
+        """Process specification."""
         return self._specification
     @specification.setter
     def specification(self, specification):
         if specification:
-            if not callable(specification):
-                raise AttributeError("specification must be callable")
-        self._specification = specification
+            if callable(specification):
+                self._specification = specification = [specification]
+            elif (isinstance(specification, list)
+                  and all([callable(i) for i in specification])):
+                self._specification = specification
+            else:
+                raise AttributeError(
+                    "specification must be callable or a list of callables; "
+                   f"not a '{type(specification).__name__}'"
+                )
     
     @property
     def baseline_purchase_cost(self):
@@ -674,7 +707,7 @@ class Unit:
         """
         self._load_stream_links()
         self._setup()
-        (self._specification or self._run)()
+        self.run()
         self._summary()
 
     def results(self, with_units=True, include_utilities=True,

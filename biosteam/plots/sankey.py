@@ -130,16 +130,19 @@ class Handle: # pragma: no coverage
     __slots__ = (
         'size', 'nodes_index',
         'main_feeds', 'max_feeds',
-        'main_products', 'max_products'
+        'main_products', 'max_products',
+        'ignore',
     )
     
-    def __init__(self, main_feeds=None, main_products=None, max_feeds=3, max_products=3):
+    def __init__(self, main_feeds=None, main_products=None, 
+                 max_feeds=3, max_products=3, ignore=None):
         self.nodes_index = {} #: Dict[Object, ProcessNode] Object - node pairs.
         self.size = 0 #: [int] Number of process nodes created.
         self.main_feeds = main_feeds
         self.main_products = main_products
         self.max_feeds = max_feeds
         self.max_products = max_products
+        self.ignore = ignore or ()
     
     def filter_streams(self, streams):
         has_width = self.stream_width
@@ -181,13 +184,13 @@ class Handle: # pragma: no coverage
             streams.update(streams_from_units(group.units))
         streams = self.filter_streams(streams)
         nodes_index = self.nodes_index
-        feeds = [i for i in streams if i._source not in nodes_index and i._sink]
+        feeds = [i for i in streams if i._source not in nodes_index and i._sink and i not in self.ignore and not i.isempty()]
         main_feeds = self.main_feeds or sorted(feeds, key=stream_cost, reverse=True)[:self.max_feeds]
         feeds = main_feeds + reduced_feeds([i for i in feeds if i not in main_feeds], unit_groups)            
         for feed in feeds:
             node = self.feed_node(feed)
             nodes.append(node)
-        products = [i for i in streams if i._sink not in nodes_index and i._source]
+        products = [i for i in streams if i._sink not in nodes_index and i._source and i not in self.ignore and not i.isempty()]
         main_products = self.main_products or sorted(products, key=stream_cost, reverse=True)[:self.max_products]
         products = main_products + reduced_products([i for i in products if i not in main_products], unit_groups)
         for product in products:
@@ -210,8 +213,10 @@ class CapitalNodeHandle(Handle): # pragma: no coverage
     
     """
     __slots__ = ('max_installed_cost', 'process_color_source')
-    def __init__(self, max_installed_cost=None, process_color_source=None):
-        super().__init__()
+    def __init__(self, max_installed_cost=None, process_color_source=None,
+                 main_feeds=None, main_products=None, max_feeds=3, max_products=3,
+                 ignore=None):
+        super().__init__(main_feeds, main_products, max_feeds, max_products, ignore)
         self.max_installed_cost = max_installed_cost
         self.process_color_source = process_color_source or bst.utils.colors.CABBI_orange
 

@@ -51,11 +51,7 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
         s_out.T = T
         if dT < -tol:
             s_out.phase = 'l'
-            if H_lim_given:
-                if heating:
-                    if s_out.H > H_lim: s_out.H = H_lim
-                else:
-                    if s_out.H < H_lim: s_out.vle(H=H_lim , P=s_out.P)
+            if H_lim_given: s_out.H = H_lim
         elif dT > tol:
             s_out.phase = 'g'
             if H_lim_given:
@@ -72,6 +68,13 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
                 if s_out.H > H_lim: s_out.vle(H=H_lim , P=s_out.P)
             else:
                 if s_out.H < H_lim: s_out.vle(H=H_lim , P=s_out.P)
+    
+    # Sanity check
+    if heating:
+        assert s_out.T >= s_in.T, "failed to solve temperature"
+    else:
+        assert s_out.T <= s_in.T, "failed to solve temperature"
+    
     return s_out.H - H_in
     
 
@@ -115,13 +118,19 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
     
     T_pinch_coldside = s_cold_in.T + dT
     if T_lim_coldside:
-        T_lim_coldside = max(T_pinch_coldside, T_lim_coldside) 
+        if T_lim_coldside > s_hot_in.T:
+            T_lim_coldside = T_pinch_coldside
+        else:
+            T_lim_coldside = max(T_pinch_coldside, T_lim_coldside) 
     else:
         T_lim_coldside = T_pinch_coldside
     
     T_pinch_hotside = s_hot_in.T - dT
     if T_lim_hotside:
-        T_lim_hotside = min(T_pinch_hotside, T_lim_hotside) 
+        if T_lim_hotside < s_cold_in.T:
+            T_lim_hotside = T_pinch_hotside
+        else:
+            T_lim_hotside = min(T_pinch_hotside, T_lim_hotside) 
     else:
         T_lim_hotside = T_pinch_hotside
        

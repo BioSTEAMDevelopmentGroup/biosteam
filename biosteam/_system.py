@@ -70,14 +70,6 @@ def check_recycle_feasibility(material: np.ndarray):
 
 
 # %% Functions for taking care of numerical specifications within a system path
-    
-def run_unit_in_path(unit):
-    specification = unit._specification
-    if specification:
-        method = specification
-    else:
-        method = unit._run
-    try_method_with_object_stamp(unit, method)
 
 def converge_system_in_path(system):
     specification = system._specification
@@ -842,11 +834,11 @@ class System:
         
         Parameters
         ----------
-        kind : 'cluster', 'thorough', 'surface', or 'minimal'
-            * **'cluster':** Display all units clustered by system.
-            * **'thorough':** Display every unit within the path.
-            * **'surface':** Display only elements listed in the path.
-            * **'minimal':** Display path as a box.
+        kind : int or string, optional
+            * 0 or 'cluster': Display all units clustered by system.
+            * 1 or 'thorough': Display every unit within the path.
+            * 2 or 'surface': Display only elements listed in the path.
+            * 3 or 'minimal': Display a single box representing all units.
         file=None : str, display in console by default
             File name to save diagram.
         format='png' : str
@@ -864,7 +856,7 @@ class System:
             
         """
         self._load_configuration()
-        if not kind: kind = 'surface'
+        if not kind: kind = 0
         graph_attrs['format'] = format or 'png'
         original = (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
                     bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
@@ -873,16 +865,18 @@ class System:
         if label is not None: bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS = label
         if profile is not None: bst.PROFILE_UNITS_IN_DIAGRAMS = profile
         try:
-            if kind == 'cluster':
+            if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
-            elif kind == 'thorough':
+            elif kind == 1 or kind == 'thorough':
                 f = self._thorough_digraph(graph_attrs)
-            elif kind == 'surface':
+            elif kind == 2 or kind == 'surface':
                 f = self._surface_digraph(graph_attrs)
-            elif kind == 'minimal':
+            elif kind == 3 or kind == 'minimal':
                 f = self._minimal_digraph(graph_attrs)
             else:
-                raise ValueError("kind must be either 'cluster', 'thorough', 'surface', or 'minimal'")
+                raise ValueError("kind must be one of the following: "
+                                 "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
+                                 "3 or 'minimal'")
             if display or file: 
                 finalize_digraph(f, file, format)
             else:
@@ -996,9 +990,9 @@ class System:
         """Rigorously run each element in the path."""
         isa = isinstance
         converge = converge_system_in_path
-        run = run_unit_in_path
+        run = try_method_with_object_stamp
         for i in self._path:
-            if isa(i, Unit): run(i)
+            if isa(i, Unit): run(i, i.run)
             elif isa(i, System): converge(i)
             else: i() # Assume it's a function
     
@@ -1287,7 +1281,7 @@ class System:
             if u.specification:
                 u.specification = _wrap_method(u, u.specification)
             else:
-                u._run = _wrap_method(u, u._run)
+                u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)
             u._cost = _wrap_method(u, u._cost)
 
@@ -1297,7 +1291,7 @@ class System:
             if u.specification:
                 u.specification = u.specification._original
             else:
-                u._run = u._run._original
+                u.run = u.run._original
             u._design = u._design._original
             u._cost = u._cost._original
     

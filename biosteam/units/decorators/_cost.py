@@ -78,6 +78,21 @@ class CostItem:
     __getitem__ = object.__getattribute__
     __setitem__ = object.__setattr__
     
+    def copy(self):
+        new = CostItem.__new__(CostItem)
+        new._basis = self._basis
+        new._units = self._units
+        new.S = self.S
+        new.lb = self.lb
+        new.ub = self.ub
+        new.CE = self.CE
+        new.cost = self.cost
+        new.n = self.n
+        new.kW = self.kW
+        new.N = self.N
+        new.f = self.f
+        return new
+    
     @property
     def basis(self):
         return self._basis
@@ -94,8 +109,8 @@ class CostItem:
             +(f" lb    {self.lb:.3g}\n" if self.lb is not None else "")
             +(f" ub    {self.ub:.3g}\n" if self.ub is not None else "")
              +f" CE    {self.CE:.3g}\n"
-             +f" cost  {self.cost:.3g}\n"
-             +f" n     {self.n:.3g}\n"
+            +(f" cost  {self.cost:.3g}\n" if self.cost is not None else "")
+            +(f" n     {self.n:.3g}\n"  if self.n is not None else "")
              +f" kW    {self.kW:.3g}\n"
             +(f" N     '{self.N}'" if self.N is not None else ""))
     show = _ipython_display_

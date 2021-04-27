@@ -146,11 +146,11 @@ class Flowsheet:
         
         Parameters
         ----------
-        kind='surface' : 'cluster', 'thorough', 'surface', or 'minimal'
-            * **'cluster':** Display all units clustered by system.
-            * **'thorough':** Display every unit within the path.
-            * **'surface':** Display only elements listed in the path.
-            * **'minimal':** Display path as a box.
+        kind : int or string, optional
+            * 0 or 'cluster': Display all units clustered by system.
+            * 1 or 'thorough': Display every unit within the path.
+            * 2 or 'surface': Display only elements listed in the path.
+            * 3 or 'minimal': Display a single box representing all units.
         file : str, display in console by default
             File name to save diagram.
         format : str

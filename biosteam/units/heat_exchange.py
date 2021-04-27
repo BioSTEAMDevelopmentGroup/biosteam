@@ -220,11 +220,15 @@ class HXutility(HX):
         Enforced overall heat transfer coefficent [kW/m^2/K].
     heat_exchanger_type : str, optional
         Heat exchanger type. Defaults to "Floating head".
-    N_shells=2 : int
-        Number of shells.
-    ft=None : float
+    N_shells : int, optional
+        Number of shells. Defaults to 2.
+    ft : float, optional
         User imposed correction factor.
-    
+    heat_only : bool, optional
+        If True, heat exchanger can only heat.
+    cool_only : bool, optional
+        If True, heat exchanger can only cool.
+        
     Notes
     -----
     Must specify either `T` or `V` when creating a HXutility object.
@@ -313,7 +317,9 @@ class HXutility(HX):
                  heat_exchanger_type="Floating head",
                  material="Carbon steel/carbon steel",
                  N_shells=2,
-                 ft=None):
+                 ft=None,
+                 heat_only=None,
+                 cool_only=None):
         super().__init__(ID, ins, outs, thermo)
         self.T = T #: [float] Temperature of outlet stream (K).
         self.V = V #: [float] Vapor fraction of outlet stream.
@@ -325,14 +331,17 @@ class HXutility(HX):
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
-        #: [float] Total heat transfered.
-        self.Q = None
-        
-        #: Number of shells for LMTD correction factor method.
+        #: [int] Number of shells for LMTD correction factor method.
         self.N_shells = N_shells
         
-        #: User imposed correction factor.
+        #: [float] User imposed correction factor.
         self.ft = ft
+
+        #: [bool] If True, heat exchanger can only heat. 
+        self.heat_only = heat_only
+        
+        #: [bool] If True, heat exchanger can only cool. 
+        self.cool_only = cool_only
         
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
@@ -344,6 +353,11 @@ class HXutility(HX):
         
         # [PowerUtility] Electric utility associated to unit
         self.power_utility = bst.PowerUtility()
+    
+    @property
+    def Q(self):
+        """[float] Total heat transfered."""
+        return abs(self.heat_utilities[0].duty)
     
     @property
     def heat_utilities(self):
@@ -359,7 +373,6 @@ class HXutility(HX):
         hu = self.heat_utilities[0]
         hu.heat_exchanger = None
         hu(duty, stream.T)
-        self.Q = duty
         super()._design()
         self._cost()
         self._load_capital_costs()
@@ -440,6 +453,10 @@ class HXutility(HX):
                 if len(phase) == 1: outlet.phase = phase
             if H_given:
                 outlet.H = H
+        if self.heat_only:
+            if outlet.H - feed.H < 0.: outlet.copy_like(feed)
+        if self.cool_only:
+            if outlet.H - feed.H > 0.: outlet.copy_like(feed)
 
     def get_streams(self):
         """
@@ -479,7 +496,6 @@ class HXutility(HX):
             else:
                 if T_out < T_in: T_out = T_in
         self.heat_utilities[0](duty, T_in, T_out)
-        self.Q = duty
         super()._design()
 
 

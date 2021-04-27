@@ -41,3 +41,4 @@ class AirDistributionPackage(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     """
     network_priority = 0
+    ticket_name = 'ADP'

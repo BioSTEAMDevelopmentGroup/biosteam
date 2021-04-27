@@ -97,12 +97,13 @@ class MissingStream:
         """
         source = self._source
         sink = self._sink
-        if not (source and sink):
-            raise RuntimeError("both a source and a sink is required to "
+        if not (source or sink):
+            raise RuntimeError("either a source or a sink is required to "
                                "materialize connection")
-        material_stream = Stream(ID, thermo=source.thermo)
-        source._outs.replace(self, material_stream)
-        sink._ins.replace(self, material_stream)
+        material_stream = Stream(ID, thermo=(source or sink).thermo)
+        if source: source._outs.replace(self, material_stream)
+        if sink: sink._ins.replace(self, material_stream)
+        return material_stream
     
     def reset_cache(self):
         """Does nothing, MissingStream objects do not contain cache."""

@@ -116,17 +116,23 @@ class HeatExchangerNetwork(Facility):
     _units= {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
-    def __init__(self, ID='', T_min_app=5., units=None):
+    def __init__(self, ID='', T_min_app=5., units=None, ignored=None):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
+        self.ignored = ignored
         
     def _run(self): pass
     def _design(self): pass
     
     def _cost(self):
         sys = self.system
-        hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(self.units or sys.units)
+        units = self.units or sys.units
+        if self.ignored:
+            units = list(units)
+            for i in self.ignored:
+                if i in units: units.remove(i)
+        hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(units)
         hx_utils = [i for i in hx_utils if i.duty]
         hx_utils.sort(key = lambda x: x.duty)
         original_flowsheet = sys.flowsheet

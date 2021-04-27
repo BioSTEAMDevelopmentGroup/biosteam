@@ -255,7 +255,7 @@ def synthesize_network(hus, T_min_app=5.):
         T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
         hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged, \
         H_out_arr, streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
-    duties = np.array([abs(hx.Q) for hx in hxs])
+    duties = np.array([abs(hx.Q)  for hx in hxs])
     C_flow_vector = duties/np.abs(T_in_arr - T_out_arr)
     Q_hot_side = {}
     Q_cold_side = {}
@@ -434,7 +434,8 @@ def synthesize_network(hus, T_min_app=5.):
                              outs = outsIDs, H_lim0 = H_out_arr[hot],
                              T_lim1 = pinch_T_arr[cold], dT = T_min_app,
                              thermo = hot_stream.thermo)
-                    new_HX._run()
+                    try: new_HX._run()
+                    except: continue
                     HXs_cold_side.append(new_HX)
                     stream_HXs_dict[hot].append(new_HX)
                     stream_HXs_dict[cold].append(new_HX)                    
@@ -472,7 +473,8 @@ def synthesize_network(hus, T_min_app=5.):
                              outs = outsIDs, H_lim0 = H_lim, 
                              T_lim1 = pinch_T_arr[hot], dT = T_min_app,
                              thermo = hot_stream.thermo)
-                    new_HX._run()
+                    try: new_HX._run()
+                    except: continue
                     HXs_hot_side.append(new_HX)                        
                     stream_HXs_dict[hot].append(new_HX)
                     stream_HXs_dict[cold].append(new_HX)                        

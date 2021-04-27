@@ -243,7 +243,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, Z_label=None,
                     Z_value_format=lambda Z: str(Z),
-                    fillblack=True): # pragma: no coverage
+                    fillblack=True, styleaxiskw=None): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     nrows = len(metric_bars)
     ncols = len(Z_1d)
@@ -255,6 +255,8 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
     widths[-1] /= 4
     gs_kw = dict(width_ratios=widths)
     fig, axes = plt.subplots(ncols=ncols + 1, nrows=nrows, gridspec_kw=gs_kw)
+    axes = axes.reshape([nrows, ncols + 1])
+    if styleaxiskw is None: styleaxiskw = {}
     for row in range(nrows):
         metric_bar = metric_bars[row]
         for col in range(ncols):
@@ -267,7 +269,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
             cp = plt.contourf(X_grid, Y_grid, data[:, :, row, col],
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
-            style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+            style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
         cbar_ax = axes[row, -1]
         metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8)
         # plt.clim()

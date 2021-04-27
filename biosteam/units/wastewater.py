@@ -304,7 +304,13 @@ class AerobicDigestion(Unit):
         vent.phase = 'g'
         water.copy_like(waste)
         water.mol[:] += air.mol + caustic.mol
-        self.reactions(water.mol)
+        self.reactions.force_reaction(water.mol)
+        O2 = float(water.imass['O2'])
+        if O2 < 0:
+            N2 = 0.78 / 0.22 * O2
+            air.imass['O2', 'N2'] += [O2, N2]
+            water.imol['O2'] = 0.
+            water.imass['N2'] += N2
         vent.copy_flow(water, ('CO2', 'O2', 'N2'))
         water_index = self.chemicals.index('7732-18-5')
         vent.mol[water_index] = water.mol[water_index] * self.evaporation

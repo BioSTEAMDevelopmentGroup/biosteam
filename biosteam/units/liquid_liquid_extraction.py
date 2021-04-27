@@ -234,7 +234,7 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
     __init__ = Splitter.__init__
     _run = Splitter._run
     split = Splitter.split
-    
+    isplit = Splitter.isplit
     
 class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     r"""
