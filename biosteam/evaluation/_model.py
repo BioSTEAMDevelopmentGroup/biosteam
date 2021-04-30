@@ -330,7 +330,7 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def evaluate(self, thorough=True, jit=False, notify=False):
+    def evaluate(self, thorough=True, notify=False):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -340,13 +340,10 @@ class Model(State):
             If True, simulate the whole system with each sample.
             If False, simulate only the affected parts of the system and
             skip simulation for repeated states.
-        jit : bool
-            Whether to JIT compile functions with Numba to speed up simulation.
         notify=False : bool, optional
             If True, notify elapsed time after each sample evaluation. 
         
         """
-        if jit: bst.speed_up()
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample

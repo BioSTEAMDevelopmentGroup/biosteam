@@ -15,7 +15,7 @@ from numpy import log as ln
 from . import mechanical as mch
 from biosteam.utils import checkbounds
 from biosteam.exceptions import DesignError
-from flexsolve import njitable
+from numba import njit
 import biosteam as bst
 
 __all__ = ('compute_vacuum_system_power_and_cost',)
@@ -151,7 +151,7 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
                 return (vacuum_sys, grade)
     raise DesignError('no vacuum system available at current flow and suction pressure')
 
-@njitable(cache=True)
+@njit(cache=True)
 def calculate_heuristic_air_inleakage(V, P):
     """
     Return air in-leakage in kg/hr through a heuristic calculation.
@@ -171,7 +171,7 @@ def calculate_heuristic_air_inleakage(V, P):
     else: raise ValueError('cannot calculate air inleakage at pressures lower than 133.32 Pascal')
     return k*V**0.667
 
-@njitable(cache=True)
+@njit(cache=True)
 def calculate_air_inleakage(V, P):
     """
     Return air in-leakage in kg/hr.

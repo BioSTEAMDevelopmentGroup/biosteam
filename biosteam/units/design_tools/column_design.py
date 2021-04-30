@@ -22,7 +22,7 @@ References
 """
 import numpy as np
 from . import utils
-from flexsolve import njitable
+from numba import njit
 import biosteam as bst
 from warnings import warn
 
@@ -41,11 +41,11 @@ __all__ = ('compute_purchase_cost_of_trays',
            'compute_tower_diameter',
            'compute_tower_height')
 
-@njitable(cache=True)
+@njit(cache=True)
 def minimum_thickness_from_diameter(D):
     return 0.03125 * D + 0.125
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_purchase_cost_of_trays(N_T, Di):
     """
     Return total cost of all trays at BioSTEAM's CEPCI.
@@ -69,7 +69,7 @@ def compute_purchase_cost_of_trays(N_T, Di):
     F_NT = compute_n_trays_factor(N_T)
     return N_T * F_CE * F_NT * C_BT
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_empty_tower_cost(W):
     """
     Return the cost [C_V; in USD] of an empty tower vessel at BioSTEAM's CEPCI.
@@ -87,7 +87,7 @@ def compute_empty_tower_cost(W):
     """
     return bst.CE/500 * np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_plaform_ladder_cost(Di, L):
     """
     Return the cost [C_PL; in USD] of platforms and ladders at BioSTEAM's CEPCI.
@@ -106,7 +106,7 @@ def compute_plaform_ladder_cost(Di, L):
     """
     return bst.CE/500 * 300.9*Di**0.63316*L**0.80161
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_tower_weight(Di, L, tv, rho_M):
     """
     Return the weight [W; in lb] of the tower assuming 2:1 elliptical head.
@@ -131,7 +131,7 @@ def compute_tower_weight(Di, L, tv, rho_M):
     L = L*12
     return np.pi*(Di+tv)*(L+0.8*Di)*tv*rho_M
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     """
     Return the wall thinkness [tv; in inches] designed to withstand the
@@ -212,7 +212,7 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
         tv = utils.approx2step(tv, 2, 1/4)
     return tv
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_tray_base_purchase_cost(Di):
     """Return the base cost of a tray [C_BT; USD] at a CE of 500.
     
@@ -228,7 +228,7 @@ def compute_tray_base_purchase_cost(Di):
     """
     return 412.6985 * np.exp(0.1482*Di)
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_n_trays_factor(N_T):
     """
     Return the cost factor for number of trays, F_NT.
@@ -248,7 +248,7 @@ def compute_n_trays_factor(N_T):
         F_NT = 1
     return F_NT
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_murphree_stage_efficiency(mu, alpha, L, V):
     """
     Return the sectional murphree efficiency, E_mv.
@@ -274,7 +274,7 @@ def compute_murphree_stage_efficiency(mu, alpha, L, V):
     if e < 1: return e
     else: return 1
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_flow_parameter(L, V, rho_V, rho_L):
     """
     Return the flow parameter, F_LV.
@@ -297,7 +297,7 @@ def compute_flow_parameter(L, V, rho_V, rho_L):
     """
     return L/V*(rho_V/rho_L)**0.5
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_max_capacity_parameter(TS, F_LV):
     """Return the maximum capacity parameter before flooding [C_sbf; in m/s].
     
@@ -315,7 +315,7 @@ def compute_max_capacity_parameter(TS, F_LV):
     """
     return 0.0105 + 8.127e-4*TS**0.755*np.exp(-1.463*F_LV**0.842)
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     """
     Return the maximum allowable vapor velocity
@@ -353,7 +353,7 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     
     return C_sbf * F_HA * F_ST * ((rho_L-rho_V)/rho_V)**0.5
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_downcomer_area_fraction(F_LV):
     """
     Return the ratio of downcomer area to net (total) area, `A_dn`.
@@ -376,7 +376,7 @@ def compute_downcomer_area_fraction(F_LV):
         A_dn = 0.2
     return A_dn
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_tower_diameter(V_vol, U_f, f, A_dn):
     """Return tower diameter [D_T; in meter].
     
@@ -402,7 +402,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
         Di = 0.914
     return Di
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     """
     Return the height of a tower [H; in meter].

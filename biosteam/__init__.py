@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.28.1'
+__version__ = '2.28.2'
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
 CE = 567.5 
@@ -35,8 +35,7 @@ RAISE_GRAPHVIZ_EXCEPTION = False
 
 # %% Initialize BioSTEAM 
 
-from flexsolve import speed_up
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings
+from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, speed_up
 from ._heat_utility import HeatUtility, UtilityAgent
 from ._power_utility import PowerUtility
 from ._unit import Unit
@@ -61,7 +60,7 @@ from .agile import *
 __all__ = (
     'Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
     'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
-    'MultiStream', 'settings', 'exceptions', 'speed_up', 'report',
+    'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'agile', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *evaluation.__all__, 
     *process_tools.__all__, *agile.__all__,

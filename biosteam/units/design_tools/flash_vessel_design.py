@@ -19,7 +19,7 @@ References
 
 """
 from numpy import log as ln, pi, exp, round
-from flexsolve import njitable
+from numba import njit
 import biosteam as bst
 __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_vertical_vessel_purchase_cost',
@@ -29,7 +29,7 @@ __all__ = ('compute_horizontal_vessel_purchase_cost',
            'compute_vessel_weight_and_wall_thickness',
            'compute_Stokes_law_York_Demister_K_value')
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_horizontal_vessel_purchase_cost(W):
     """
     Return the purchase cost [Cp; in USD] of a horizontal vessel,
@@ -50,7 +50,7 @@ def compute_horizontal_vessel_purchase_cost(W):
     C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
     return bst.CE/567 * C_v
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     """
     Return the purchase cost [Cp; in USD] of the platform and ladders for a 
@@ -71,7 +71,7 @@ def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     C_pl = 2275*D**0.20294
     return bst.CE/567 * C_pl
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_vertical_vessel_purchase_cost(W):
     """
     Return the purchase cost [Cp; in USD] of a vertical vessel,
@@ -92,7 +92,7 @@ def compute_vertical_vessel_purchase_cost(W):
     C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
     return bst.CE/567 * C_v
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
     """
     Return the purchase cost [Cp; in USD] of the platform and ladders for a 
@@ -221,7 +221,7 @@ def GTable(DRho, Hlr):
 
     return round(G, 2)
 
-@njitable(cache=True)
+@njit(cache=True)
 def HNATable(Type, X):
     """
     Table for cylindrical height and area conversions.
@@ -266,7 +266,7 @@ def HNATable(Type, X):
 
     return Y
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     """
     Return vessel weight and wall thickness.
@@ -347,7 +347,7 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     VW = round(VW, 2)
     return VW, ts
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_low_liq_level_height(Type, P, D):
     """
     Return the height of the lowest liquid level [Hlll; in ft]
@@ -388,7 +388,7 @@ def compute_low_liq_level_height(Type, P, D):
 
     return Hlll  # in ft
 
-@njitable(cache=True)
+@njit(cache=True)
 def compute_Stokes_law_York_Demister_K_value(P):
     """
     Return K-constant in Stoke's Law using the York-Demister equation.
@@ -409,11 +409,13 @@ def compute_Stokes_law_York_Demister_K_value(P):
         K = 0.35
     elif P > 40.0 and P <= 5500.0:
         K = 0.43 - 0.023*ln(P)
+    elif P < 0:
+        raise ValueError('invalid Pressure of over 5500 psia')
     else:
-        raise ValueError(f'invalid Pressure {P} psia')
+        raise ValueError('invalid Pressure of over 5500 psia')
     return K
 
-@njitable(cache=True)
+@njit(cache=True)
 def ceil_half_step(value):
     """Return value to the next highest 0.5 units"""
     intval = round(value)

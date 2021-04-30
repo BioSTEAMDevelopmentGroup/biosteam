@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import flexsolve as flx
 from copy import copy as copy_
-from flexsolve import njitable
+from numba import njit
 from math import floor
 from warnings import warn
 
@@ -38,12 +38,12 @@ cashflow_columns = ('Depreciable capital [MM$]',
 
 # %% Utilities for TEA calculations
 
-@njitable(cache=True)
+@njit(cache=True)
 def NPV_at_IRR(IRR, cashflow_array, duration_array):
     """Return NPV at given IRR and cashflow data."""
     return (cashflow_array/(1.+IRR)**duration_array).sum()
 
-@njitable(cache=True)
+@njit(cache=True)
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
@@ -52,7 +52,7 @@ def initial_loan_principal(loan, interest):
         principal *= k
     return principal
 
-@njitable(cache=True)
+@njit(cache=True)
 def final_loan_principal(payment, principal, interest, years):
     for iter in range(years):
         principal += principal * interest - payment
@@ -66,7 +66,7 @@ def solve_payment(payment, loan, interest, years):
                                 maxiter=200, checkiter=False)
     return payment
 
-@njitable(cache=True)
+@njit(cache=True)
 def add_replacement_cost_to_cashflow_array(equipment_installed_cost, 
                                            equipment_lifetime, 
                                            cashflow_array, 
@@ -101,7 +101,7 @@ def add_all_replacement_costs_to_cashflow_array(unit_capital_cost, cashflow_arra
                                                            venture_years,
                                                            start)
 
-@njitable(cache=True)
+@njit(cache=True)
 def fill_taxable_and_nontaxable_cashflows_without_loans(
         D, C, S, C_FC, C_WC, FCI, WC, TDC, VOC, FOC, sales,
         startup_time,
