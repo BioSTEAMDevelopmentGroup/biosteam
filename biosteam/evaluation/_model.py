@@ -18,7 +18,7 @@ from ._metric import Metric
 from ._parameter import Parameter
 from ._utils import var_indices, var_columns, indices_to_multiindex
 from ..utils import format_title
-from biosteam import speed_up
+import biosteam as bst
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
 from collections.abc import Sized
@@ -159,8 +159,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]      12
-                 Utility cost [10^6 USD/yr]    -20.3
+    Biorefinery  Internal rate of return [%]   11.9
+                 Utility cost [10^6 USD/yr]     -20
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -330,7 +330,7 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def evaluate(self, thorough=True, jit=True, notify=False):
+    def evaluate(self, thorough=True, jit=False, notify=False):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -346,7 +346,7 @@ class Model(State):
             If True, notify elapsed time after each sample evaluation. 
         
         """
-        if jit: speed_up()
+        if jit: bst.speed_up()
         samples = self._samples
         if samples is None: raise RuntimeError('must load samples before evaluating')
         evaluate_sample = self._evaluate_sample

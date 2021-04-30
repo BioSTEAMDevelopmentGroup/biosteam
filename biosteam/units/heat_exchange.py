@@ -357,7 +357,7 @@ class HXutility(HX):
     @property
     def Q(self):
         """[float] Total heat transfered."""
-        return abs(self.heat_utilities[0].duty)
+        return abs(self.heat_utilities[0].unit_duty)
     
     @property
     def heat_utilities(self):

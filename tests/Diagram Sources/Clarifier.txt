@@ -4,16 +4,16 @@ digraph unit {
 	"C201
 Clarifier" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
-	s21
+	s27
 	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	s21 -> "C201
+	s27 -> "C201
 Clarifier"
 	s4
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"C201
 Clarifier" -> s4
-	s22
+	s28
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"C201
-Clarifier" -> s22
+Clarifier" -> s28
 }

@@ -918,7 +918,10 @@ class System:
             self._rmol_error = rmol_error = 0.
         else:
             self._mol_error = mol_error = mol_errors.max()
-            self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([mol[positive_index], mol_new[positive_index]])).max()
+            if mol_error > 1e-12:
+                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([mol[positive_index], mol_new[positive_index]])).max()
+            else:
+                self._rmol_error = rmol_error = 0.
         T_errors = np.abs(T - T_new)
         self._T_error = T_error = T_errors.max()
         self._rT_error = rT_error = (T_errors / T).max()
@@ -1134,9 +1137,9 @@ class System:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
         >>> cornstover_sys.get_inlet_flow('tonne/s') # Sum of all chemicals
-        51411.02
+        51422.13
         >>> cornstover_sys.get_inlet_flow('tonne/s', 'Water') # Just water
-        46030.11
+        46050.96
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -1161,9 +1164,9 @@ class System:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
         >>> cornstover_sys.get_outlet_flow('tonne/s') # Sum of all chemicals
-        51548.22
+        51558.88
         >>> cornstover_sys.get_outlet_flow('tonne/s', 'Water') # Just water
-        46082.80
+        46103.38
         >>> default() # Bring biosteam settings back to default
         
         """

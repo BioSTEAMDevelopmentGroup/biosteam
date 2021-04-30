@@ -184,7 +184,9 @@ class HeatUtility:
         Minimum approach temperature difference. Used to assign
         pinch temperature of the utility stream.
     duty : float
-        Energy transfered from utility to the process [kJ/hr].
+        Total heat transfered from utility to both the process and the environment [kJ/hr].
+    unit_duty : float
+        Effective heat transfered from utility to the unit operation [kJ/hr].
     flow : float
         Flow rate of utility [kmol/hr].
     cost : float
@@ -237,7 +239,7 @@ class HeatUtility:
     """
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
                  'flow', 'cost', 'heat_transfer_efficiency', 'T_pinch',
-                 'heat_exchanger', 'iscooling', 'agent')
+                 'heat_exchanger', 'iscooling', 'agent', 'unit_duty')
     dT = 5  #: [float] Pinch temperature difference
     
     #: [DisplayUnits] Units of measure for IPython display
@@ -341,6 +343,7 @@ class HeatUtility:
             self.outlet_utility_stream = other.outlet_utility_stream.copy()
         self.flow = other.flow
         self.duty = other.duty
+        self.unit_duty = other.unit_duty
         self.cost = other.cost
         self.heat_transfer_efficiency = other.heat_transfer_efficiency
         self.T_pinch = other.T_pinch
@@ -357,15 +360,15 @@ class HeatUtility:
 
     def empty(self):
         """Remove utility requirements."""
-        self.cost = self.flow = self.duty = 0
+        self.cost = self.flow = self.duty = self.unit_duty = 0
         self.iscooling = self.agent = self.T_pinch = None
         
-    def __call__(self, duty, T_in, T_out=None, agent=None):
+    def __call__(self, unit_duty, T_in, T_out=None, agent=None):
         """Calculate utility requirements given the essential parameters.
         
         Parameters
         ----------
-        duty : float
+        unit_duty : float
                Unit duty requirement (kJ/hr)
         T_in : float
                Inlet process stream temperature (K)
@@ -376,11 +379,11 @@ class HeatUtility:
                 predefined heating/cooling utility agents.
         
         """
-        if duty == 0:
+        if unit_duty == 0:
             self.empty()
             return
         T_out = T_out or T_in
-        iscooling = duty < 0
+        iscooling = unit_duty < 0
         
         # Note: These are pinch temperatures at the utility inlet and outlet. 
         # Not to be confused with the inlet and outlet of the process stream.
@@ -403,7 +406,7 @@ class HeatUtility:
             
         ## Calculate utility requirement ##
         heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
-        duty = duty/heat_transfer_efficiency
+        duty = unit_duty/heat_transfer_efficiency
         if agent.T_limit:
             # Temperature change
             self.outlet_utility_stream.T = self.get_outlet_temperature(
@@ -417,7 +420,8 @@ class HeatUtility:
         # Update utility flow
         self.outlet_utility_stream.mol[:] *= duty / dH
         
-        # Update and return results
+        # Update results
+        self.unit_duty = unit_duty
         self.flow = F_mol = self.inlet_utility_stream.F_mol
         self.duty = duty
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol

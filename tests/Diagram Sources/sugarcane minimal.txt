@@ -5,36 +5,42 @@ recirculated_chilled_water
 sugarcane
 makeup_water
 imbibition_water
-stripping_water
+dryer_air
 cooling_tower_makeup_water
+stripping_water
 boiler_makeup_water
 enzyme
 denaturant
 lime
 H3PO4
 rvf_wash_water
-s56
-s54
-s55
-s57
+s62
+s60
+s61
+s63
 polymer
 natural_gas
+oxidizer_air
 cooling_tower_chemicals
+dryer_natural_gas
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"sugarcane_sys
 System" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=2 shape=box style=filled width=0.6]
 	"s.7
 s.9
+vinasse
+s64
 wastewater
 emissions
-s58
+oxidizer_emissions
 evaporation_and_blowdown
 ethanol
 vent
 ash_disposal
 filter_cake
 rejected_water_and_blowdown
-s59
+s65
+dryer_emissions
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
@@ -43,16 +49,19 @@ s59
 	"sugarcane_sys
 System" -> "s.7
 s.9
+vinasse
+s64
 wastewater
 emissions
-s58
+oxidizer_emissions
 evaporation_and_blowdown
 ethanol
 vent
 ash_disposal
 filter_cake
 rejected_water_and_blowdown
-s59
+s65
+dryer_emissions
 " [style=dashed]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"s.6
@@ -60,21 +69,24 @@ recirculated_chilled_water
 sugarcane
 makeup_water
 imbibition_water
-stripping_water
+dryer_air
 cooling_tower_makeup_water
+stripping_water
 boiler_makeup_water
 enzyme
 denaturant
 lime
 H3PO4
 rvf_wash_water
-s56
-s54
-s55
-s57
+s62
+s60
+s61
+s63
 polymer
 natural_gas
+oxidizer_air
 cooling_tower_chemicals
+dryer_natural_gas
 " -> "sugarcane_sys
 System" [style=dashed]
 }

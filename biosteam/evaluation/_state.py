@@ -100,6 +100,7 @@ class State:
         else:
             self._parameters = []
         self._system = system
+        self._specification = specification
         self._N_parameters_cache = None
     
     specification = Unit.specification

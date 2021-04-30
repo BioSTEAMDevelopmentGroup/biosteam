@@ -245,10 +245,10 @@ class ReactorSpecification:
         f = self._titer_objective_function
         feed = self.feed
         feed.imol[self.products] = 0.
-        substates = feed.imass[self.substrates].sum()
+        substrates = feed.imass[self.substrates].sum()
         self.titer = titer
         try:
-            flx.aitken_secant(f, substates, ytol=1e-5)
+            flx.aitken_secant(f, substrates, ytol=1e-5)
         except:
             flx.IQ_interpolation(f, 1e-12, 0.50 * feed.F_mass, ytol=1e-5, maxiter=100)
             
@@ -297,7 +297,7 @@ class ReactorSpecification:
         """Return titer in g products / effluent L."""
         reactor = self.reactor
         tmo.reaction.CHECK_FEASIBILITY = False
-        (reactor.specification or reactor._run)()
+        reactor.run()
         tmo.reaction.CHECK_FEASIBILITY = True
         effluent = self.effluent
         F_mass_products = effluent.imass[self.products].sum()

@@ -205,7 +205,7 @@ class Unit:
                 elif hasattr(cls, '_F_BM_defaults'):
                     raise NotImplementedError(
                         '`_F_BM_defaults` is incorrect; implement '
-                        '`_F_BM_default` insterad'
+                        '`_F_BM_default` instead'
                     )
                 elif not hasattr(cls, '_F_BM_default'):
                     cls._F_BM_default = {}
@@ -218,7 +218,7 @@ class Unit:
                 elif hasattr(cls, '_default_equipment_lifetimes'):
                     raise NotImplementedError(
                         '`_default_equipment_lifetimes` is incorrect; implement '
-                        '`_default_equipment_lifetime` insterad'
+                        '`_default_equipment_lifetime` instead'
                     )
                 elif not hasattr(cls, '_default_equipment_lifetime'): 
                     cls._default_equipment_lifetime = {}

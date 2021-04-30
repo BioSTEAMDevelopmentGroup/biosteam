@@ -57,15 +57,16 @@ def filter_out_missing_streams(streams):
     streams.intersection_update([i for i in streams if i])
 
 def sort_feeds_big_to_small(feeds):
-    def feed_priority(feed):
-        if feed in feed_priorities:
-            return feed_priorities[feed]
-        elif feed:
-            return 1. - feed.F_mass / F_mass_max if F_mass_max else 1.
-        else:
-            return 2.
-    F_mass_max = max([i.F_mass for i in feeds])
-    feeds.sort(key=feed_priority)
+    if feeds:
+        def feed_priority(feed):
+            if feed in feed_priorities:
+                return feed_priorities[feed]
+            elif feed:
+                return 1. - feed.F_mass / F_mass_max if F_mass_max else 1.
+            else:
+                return 2.
+        F_mass_max = max([i.F_mass for i in feeds])
+        feeds.sort(key=feed_priority)
 
 def feeds_from_units(units):
     unit_set = set(units)

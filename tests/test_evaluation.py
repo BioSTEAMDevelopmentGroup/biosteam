@@ -10,7 +10,7 @@
 import pytest
 from numpy.testing import assert_allclose
 import numpy as np
-    
+
 def create_evaluation_model():
     import biosteam as bst
     from chaospy.distributions import Uniform
@@ -178,7 +178,7 @@ def test_model_exception_hook():
     
     # This will provide a more understandable IRR result for infeasible regions
     def exception_hook(exception, sample): 
-        if isinstance(exception, InfeasibleRegion):
+        if isinstance(exception, (InfeasibleRegion, ValueError, RuntimeError)):
             return [0]
         else: raise exception
     lipidcane_model.exception_hook = exception_hook
