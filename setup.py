@@ -11,13 +11,25 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.28.3',
+    version='2.28.2',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
-    install_requires=['IPython>=7.9.0', 'biorefineries>=2.21.1',
-                      'thermosteam>=0.25.4', 'graphviz>=0.8.3',
+    install_requires=['IPython>=7.9.0',
+                      'thermosteam>=0.25.3', 
+                      'graphviz>=0.8.3',
                       'chaospy>=3.3.9'],
+    extras_require={ 
+        'dev': [
+            'biorefineries>=2.21.1',
+            'sympy',
+            'sphinx', 
+            'sphinx_rtd_theme', 
+            'pyyaml',
+            'pytest-cov',
+            'coveralls',
+        ]
+    }, 
     package_data=
         {'biosteam': ['report/*',
                       'digraph/*',
