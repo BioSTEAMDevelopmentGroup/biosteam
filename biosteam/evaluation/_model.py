@@ -159,8 +159,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   11.9
-                 Utility cost [10^6 USD/yr]     -20
+    Biorefinery  Internal rate of return [%]   12.1
+                 Utility cost [10^6 USD/yr]   -20.2
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -171,7 +171,7 @@ class Model(State):
     >>> rule = 'L' # For Latin-Hypercube sampling
     >>> samples = model.sample(N_samples, rule)
     >>> model.load_samples(samples)
-    >>> model.evaluate(jit=False)
+    >>> model.evaluate()
     >>> table = model.table # All evaluations are stored as a pandas DataFrame
     
     Note that coupled parameters are on the left most columns, and are ordered 
