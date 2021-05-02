@@ -555,6 +555,7 @@ class HeatUtility:
             self.load_agent(agent)
             self.flow = self.inlet_utility_stream.F_mol = sum([i.flow for i in heat_utilities])
             self.duty = sum([i.duty for i in heat_utilities])
+            self.unit_duty = sum([i.unit_duty for i in heat_utilities])
             self.cost = sum([i.cost for i in heat_utilities])
             self.heat_transfer_efficiency = None
             self.T_pinch = None
@@ -565,6 +566,7 @@ class HeatUtility:
         the utility is produced instead, and vice-versa."""
         self.flow *= -1
         self.duty *= -1
+        self.unit_duty *= -1
         self.cost *= -1
         self.inlet_utility_stream, self.outlet_utility_stream = self.outlet_utility_stream, self.inlet_utility_stream
 
