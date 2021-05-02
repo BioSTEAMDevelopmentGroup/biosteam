@@ -1039,7 +1039,7 @@ class System:
             if isa(i, Unit):
                 if i in simulated_units: continue
                 simulated_units.add(i)
-                try_method_with_object_stamp(i, i._summary)
+            try_method_with_object_stamp(i, i._summary)
         simulate_unit = simulate_unit_in_path
         for i in self._facilities:
             if isa(i, Unit): simulate_unit(i)
