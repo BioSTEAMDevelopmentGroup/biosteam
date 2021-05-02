@@ -70,6 +70,7 @@ def sort_feeds_big_to_small(feeds):
 
 def feeds_from_units(units):
     unit_set = set(units)
+    print(unit_set)
     return sum([[i for i in u._ins if i._source not in unit_set]
                  for u in units], [])
 

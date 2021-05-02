@@ -429,7 +429,7 @@ class Unit:
                 if j in baseline_purchase_costs: 
                     raise RuntimeError(
                         f"'{j}' already in `baseline_purchase_cost` "
-                         "dictionary of {repr(self)}; try using a different key"
+                        f"dictionary of {repr(self)}; try using a different key"
                     )
                 else:
                     F_D[j] = fd = F_D_auxiliary.get(i, 1.)

@@ -83,9 +83,9 @@ class ProcessWaterCenter(Facility):
         self.update_makeup_water()
         s_recycle, s_makeup, s_recycle_process = self._ins
         s_process, s_waste = self.outs
-        makeup_water = s_makeup.F_mol
-        recycle_water = s_recycle.F_mol + s_recycle_process.F_mol
-        process_water = s_process.F_mol
+        makeup_water = s_makeup.imol['7732-18-5']
+        recycle_water = s_recycle.imol['7732-18-5'] + s_recycle_process.imol['7732-18-5']
+        process_water = s_process.imol['7732-18-5']
         waste_water = recycle_water + makeup_water - process_water
         if waste_water < 0.:
             s_makeup.imol['7732-18-5'] -= waste_water

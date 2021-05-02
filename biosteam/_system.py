@@ -1032,10 +1032,14 @@ class System:
             self._run()
         
     def _summary(self):
-        iscallable = callable
-        for i in self._path:
-            if not iscallable(i): try_method_with_object_stamp(i, i._summary)
+        simulated_units = set()
         isa = isinstance
+        Unit = bst.Unit
+        for i in self._path:
+            if isa(i, Unit):
+                if i in simulated_units: continue
+                simulated_units.add(i)
+                try_method_with_object_stamp(i, i._summary)
         simulate_unit = simulate_unit_in_path
         for i in self._facilities:
             if isa(i, Unit): simulate_unit(i)
@@ -1413,8 +1417,11 @@ class System:
        
 class FacilityLoop(System):
     __slots__ = ()
+    
     def _run(self):
         obj = super()
+        for i in self.units:
+            if i._design or i._cost: Unit._setup(i)
         obj._run()
         self._summary()
         
