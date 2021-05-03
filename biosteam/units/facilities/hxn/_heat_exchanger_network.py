@@ -152,11 +152,11 @@ class HeatExchangerNetwork(Facility):
         self.new_HXs = new_HXs
         self.new_HX_utils = new_HX_utils
         self.streams = streams
-        stream_life_cycles = self.get_stream_life_cycles()
+        stream_life_cycles = self._get_stream_life_cycles()
         all_units = new_HXs + new_HX_utils
         IDs = set([i.ID for i in all_units])
         assert len(all_units) == len(IDs)
-        for life_cycle in self.get_stream_life_cycles():
+        for life_cycle in stream_life_cycles:
             s_out = None
             for i in life_cycle.life_cycle:
                 unit = i.unit
@@ -234,7 +234,7 @@ class HeatExchangerNetwork(Facility):
             np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
             np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
     
-    def get_stream_life_cycles(self):
+    def _get_stream_life_cycles(self):
         # if hasattr(self, 'stream_life_cycles'): 
         #     return self.stream_life_cycles
         cold_indices = self.cold_indices
@@ -283,7 +283,7 @@ class HeatExchangerNetwork(Facility):
     
     def save_stream_life_cycles_as_csv(self): # pragma: no cover
         if not hasattr(self, 'stream_life_cycles'):
-            self.stream_life_cycles = self.get_stream_life_cycles()
+            self.stream_life_cycles = self._get_stream_life_cycles()
         stream_life_cycles = self.stream_life_cycles
         if not hasattr(self, 'original_hxs'):
             self.original_hxs = self.get_original_hxs_associated_with_streams()
