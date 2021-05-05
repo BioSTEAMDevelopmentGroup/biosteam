@@ -128,6 +128,7 @@ class SteamMixer(Unit):
     """
     _N_outs = 1
     _N_ins = 2
+    _ins_size_is_fixed = False
     _N_heat_utilities = 1
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
@@ -145,11 +146,10 @@ class SteamMixer(Unit):
         self.steam.copy_like(utility)
     
     def pressure_objective_function(self, steam_mol):
-        feed, steam = self.ins
+        steam = self.ins[1]
         mixed = self.outs[0]
         steam.imol['7732-18-5'] = steam_mol
-        mixed.mol[:] = steam.mol + feed.mol
-        mixed.H = feed.H + steam.H
+        mixed.mix_from(self.ins)
         P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
         return self.P - P_new
     

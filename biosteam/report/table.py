@@ -182,6 +182,7 @@ def unit_result_tables(units,
             key_hook = lambda key: ('Purchase cost', 'Heat Exchanger') if key[0]=='Purchase cost' else key
             all_heat_utilities = sum([i.heat_utilities for i in all_units], ())
             for i in set([i.agent for i in all_heat_utilities]):
+                if not i: continue
                 heat_utility = HeatUtility()
                 heat_utility.load_agent(i)
                 empty_heat_utilities.append(heat_utility)

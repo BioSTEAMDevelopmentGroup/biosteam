@@ -28,7 +28,14 @@ class MetricBar(NamedTuple): # pragma: no coverage
     cmap: Colormap = None
     ticks: Iterable[float] = None
     N_levels: int = 20
-    format_yticks: Callable = lambda x: f'{round(x):,}'
+    N_decimals: int = 0
+    
+    def fmt(self, x):
+        value = f'{round(x, self.N_decimals):,}'
+        value = value.rstrip('0')
+        if value[-1] == '.':
+            value = value[:-1]
+        return value
     
     @property
     def levels(self):
@@ -50,11 +57,9 @@ class MetricBar(NamedTuple): # pragma: no coverage
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)
         cbar_ax.set_title(self.title)
-        format_yticks = self.format_yticks
-        if format_yticks:
-            ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
-            ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
-            cbar_ax.set_yticklabels([format_yticks(float(y)) for y in ylabels])
+        ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
+        ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
+        cbar_ax.set_yticklabels([self.fmt(float(y)) for y in ylabels])
         return cbar
         
 # %% Helpful functions

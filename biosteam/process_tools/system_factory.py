@@ -157,8 +157,8 @@ class SystemFactory:
         if rename: 
             units = system.units
             if udct: unit_dct = {i.ID: i for i in units}
-            utils.rename_units(units, area)
             unit_registry.track(irrelevant_units)
+            utils.rename_units(units, area)
             if udct: return system, unit_dct
         elif udct:
             raise ValueError('cannot request unit dictionary if no area given; udct cannot be True')
