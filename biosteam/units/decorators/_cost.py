@@ -123,6 +123,7 @@ def _decorated_cost(self):
         S = D[x._basis]
         if x.lb is not None and S < x.lb:
             S = x.lb
+            D[x.N or '#' + i] = 1
         elif x.ub is not None:
             D[x.N or '#' + i] = N = ceil(S/x.ub)
             q = S/x.S
