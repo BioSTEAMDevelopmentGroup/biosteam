@@ -246,7 +246,8 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, Z_label=None,
                     Z_value_format=lambda Z: str(Z),
-                    fillblack=True, styleaxiskw=None): # pragma: no coverage
+                    fillblack=True, styleaxiskw=None,
+                    label=False): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     nrows = len(metric_bars)
     ncols = len(Z_1d)
@@ -276,12 +277,13 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
             cp = plt.contourf(X_grid, Y_grid, metric_data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
-            cs = plt.contour(cp, zorder=1e16,
-                             linestyles='dashed', linewidths=1.,
-                             levels=cp.levels, colors=[linecolor])
-            clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                      fontsize=12, colors=['k'], zorder=1e16)
-            for i in clabels: i.set_rotation(0)
+            if label:
+                cs = plt.contour(cp, zorder=1e16,
+                                 linestyles='dashed', linewidths=1.,
+                                 levels=cp.levels, colors=[linecolor])
+                clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                          fontsize=12, colors=['k'], zorder=1e16)
+                for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
         cbar_ax = axes[row, -1]
@@ -320,8 +322,6 @@ def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data,
     axes = axes.reshape([nrows, ncols])
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
-    linecolor = colors.neutral_shade.RGBn
-    txtbox = [*colors.CABBI_grey.tint(75).RGBn, 0.5]
     for row in range(nrows):
         metric_bar = metric_bars[row]
         for col in range(ncols):
@@ -332,8 +332,6 @@ def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data,
             xticklabels = row == nrows - 1
             if fillblack: fill_plot()
             metric_data = data[:, :, row, col]
-            lb = metric_data.min()
-            ub = metric_data.max()
             cp = plt.contour(X_grid, Y_grid, metric_data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
