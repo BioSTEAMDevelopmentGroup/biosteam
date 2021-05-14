@@ -289,8 +289,6 @@ class Model(State):
         
         """
         if not getter: return lambda getter: self.metric(getter, name, units, element)
-        if not name and hasattr(getter, '__name__'):
-            name = format_title(getter.__name__)
         metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self._metrics)
         self._metrics.append(metric)

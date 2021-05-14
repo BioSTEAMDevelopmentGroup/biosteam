@@ -226,8 +226,9 @@ class State:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
                                                  bounds)
-        p = Parameter(name, setter, element, self.system, distribution,
-                      units, baseline, bounds, kind)
+        p = Parameter(name, setter, element or 'biorefinery',
+                      self.system, distribution, units, 
+                      baseline, bounds, kind)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()

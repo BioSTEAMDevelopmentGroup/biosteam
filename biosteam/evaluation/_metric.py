@@ -8,7 +8,9 @@
 """
 """
 from ._variable import Variable
-__all__ = ('Metric',)
+from ..utils import format_title
+
+__all__ = ('Metric', 'metric')
 
 class Metric(Variable):
     """
@@ -29,6 +31,7 @@ class Metric(Variable):
     __slots__ = ('name', 'units', 'getter', 'element')
     distribution = None
     def __init__(self, name, getter, units=None, element='Biorefinery'):
+        if name is None and hasattr(getter, '__name__'): name = format_title(getter.__name__)
         self.name = name
         self.units = units
         self.getter = getter
@@ -37,3 +40,6 @@ class Metric(Variable):
     def __call__(self):
         return self.getter()
     
+def metric(getter=None, name=None, units=None, element='Biorefinery'):
+    if not getter: return lambda getter: metric(getter, name, units, element)
+    return Metric(name, getter, units, element)

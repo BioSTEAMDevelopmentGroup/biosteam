@@ -9,7 +9,6 @@
 import pandas as pd
 import biosteam as bst
 from matplotlib import pyplot as plt
-from ..utils import format_title
 from . import utils
 from ..utils import misc
 from ..evaluation import Metric
@@ -183,8 +182,6 @@ class UnitGroup:
         
         """
         if not getter: return lambda getter: self.metric(getter, name, units, element)
-        if not name and hasattr(getter, '__name__'):
-            name = format_title(getter.__name__)
         metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self.metrics)
         self.metrics.append(metric)

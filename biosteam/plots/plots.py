@@ -10,16 +10,35 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from biosteam.utils import colors
+from biosteam.utils import colors as c, CABBI_wheel
 from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 
-__all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
-           'plot_scatter_points', 'plot_spearman', 'plot_horizontal_line',
-           'plot_bars', 'plot_vertical_line', 'plot_scatter_points',
-           'plot_contour_1d', 'plot_contour_2d', 'plot_contour_across_coordinate',
-           'plot_contour_2d_curves')
+__all__ = (
+    'plot_montecarlo', 
+    'plot_montecarlo_across_coordinate',
+    'plot_scatter_points', 
+    'plot_spearman', 
+    'plot_spearman_1d',
+    'plot_spearman_2d',
+    'plot_horizontal_line',
+    'plot_bars', 
+    'plot_vertical_line', 
+    'plot_scatter_points',
+    'plot_contour_1d', 
+    'plot_contour_2d', 
+    'plot_contour_across_coordinate',
+    'plot_contour_2d_curves'
+)
 
-def plot_spearman(rhos, top=None, name=None): # pragma: no coverage
+def plot_spearman(rhos, top=None, name=None, color_wheel=None, index=None):
+    if rhos.shape[1] > 1: 
+        return plot_spearman_2d(rhos, top, name, color_wheel=color_wheel, index=index)
+    else:
+        return plot_spearman_1d(rhos, top, name, color_wheel=color_wheel, index=index)
+
+def plot_spearman_1d(rhos, top=None, name=None, color=None,
+                     w=1., s=1., offset=0., style=True, 
+                     fig=None, ax=None, sort=True, index=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -37,25 +56,95 @@ def plot_spearman(rhos, top=None, name=None): # pragma: no coverage
     """
     # Sort parameters for plot
     abs_ = abs
-    if not name: name = rhos.name
-    rhos, index = zip(*sorted(zip(rhos, rhos.index),
-                              key=lambda x: abs_(x[0])))
+    if index is None: index = rhos.index
+    if sort:
+        rhos, index = zip(*sorted(zip(rhos, index),
+                                  key=lambda x: abs_(x[0])))
     if top:
         rhos = rhos[-top:]
         index = index[-top:]
     
     xranges = [(0, i) for i in rhos]
-    yranges = [(i, 1.) for i in range(len(rhos))]
+    yranges = [(offset + s*i, w) for i in range(len(rhos))]
     
     # Plot bars one by one
-    fig, ax = plt.subplots()
+    if ax is None:
+        fig, ax = plt.subplots()
+    if color is None: color = c.blue_tint.RGBn
     for x, y in zip(xranges, yranges):
-        ax.broken_barh([x], y, facecolors=colors.blue_tint.RGBn,
-                       edgecolors=colors.blue_dark.RGBn)
+        ax.broken_barh([x], y, facecolors=color,
+                       edgecolors=c.blue_dark.RGBn)
     
+    if style:
+        if name is None: name = rhos.name
+        # Plot central line
+        plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
+        
+        xticks = [-1, -0.5, 0, 0.5, 1]
+        yticks = [i[0]+i[1]/2 for i in yranges]
+        ax.set_xlim(-1, 1)
+        ax.set_xlabel(f"Spearman's correlation with {name}")
+        ax.set_xticks(xticks)
+        ax.set_yticks(yticks)
+        ax.tick_params(axis='y', right=False, direction="inout", length=4)
+        ax.tick_params(axis='x', direction="inout", length=4)
+        ax.set_yticklabels(index)
+        ax.grid(False)
+        ylim = plt.ylim()
+        
+        ax2 = ax.twinx()
+        plt.sca(ax2)
+        plt.yticks(yticks, [])
+        plt.ylim(*ylim)
+        ax2.zorder = 1000
+        ax2.tick_params(direction="in")
+        
+        ax3 = ax.twiny()
+        plt.sca(ax3)
+        plt.xticks(xticks)
+        ax3.zorder = 1000
+        ax3.tick_params(direction="in", labeltop=False)
+    return fig, ax
+
+def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
+                     sort=True): # pragma: no coverage
+    """
+    Display Spearman's rank correlation plot.
+    
+    Parameters
+    ----------
+    rhos : list[pandas.Series]
+         Spearman's rank correlation coefficients to be plotted.
+    top=None : float, optional
+        Number of parameters to plot (from highest values).
+    
+    Returns
+    -------
+    fig : matplotlib Figure
+    ax : matplotlib AxesSubplot
+    """
+    rhos = list(reversed(rhos))
+    if name is None: name = rhos[0].name
+    if index is None: index = rhos[0].index
+    if sort:
+        values = np.array([i.values for i in rhos])
+        rhos_mean = np.abs(values.mean(axis=0))
+        indices = [i[0] for i in sorted(enumerate(rhos_mean), key=lambda x: x[1])]
+        rhos = [[rho[i] for i in indices] for rho in values]
+        index = [index[i] for i in indices]
+    N = len(rhos)
+    s = N + 1
+    if not color_wheel: color_wheel = tuple(CABBI_wheel)
+    if s > len(color_wheel):
+        raise ValueError("length of `color_wheel` must be equal "
+                         "to or greater than the number of columns in `rhos`")
+    fig, ax = plt.subplots()
+    for i, rho in enumerate(rhos):
+        plot_spearman_1d(rho, color=color_wheel[N - i - 1].RGBn, s=s, offset=i,
+                         fig=fig, ax=ax, style=False, sort=False, top=False)
     # Plot central line
-    plot_vertical_line(0, color=colors.neutral_shade.RGBn, lw=1)
-    
+    yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
+    plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
     xticks = [-1, -0.5, 0, 0.5, 1]
     yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
@@ -80,14 +169,12 @@ def plot_spearman(rhos, top=None, name=None): # pragma: no coverage
     plt.xticks(xticks)
     ax3.zorder = 1000
     ax3.tick_params(direction="in", labeltop=False)
-    
     return fig, ax
-
 
 # %% Plot metrics vs coordinate
 
-light_color = colors.brown_tint.RGBn
-dark_color = colors.brown_shade.RGBn
+light_color = c.brown_tint.RGBn
+dark_color = c.brown_shade.RGBn
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
@@ -263,7 +350,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
     cbs = np.zeros([nrows], dtype=object)
-    linecolor = colors.neutral_shade.RGBn
+    linecolor = c.neutral_shade.RGBn
     for row in range(nrows):
         metric_bar = metric_bars[row]
         for col in range(ncols):
