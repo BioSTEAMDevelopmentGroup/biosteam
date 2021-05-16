@@ -80,7 +80,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
         # Plot central line
         plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
         
-        xticks = [-1, -0.5, 0, 0.5, 1]
+        xticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]
         yticks = [i[0]+i[1]/2 for i in yranges]
         ax.set_xlim(-1, 1)
         ax.set_xlabel(f"Spearman's correlation with {name}")
@@ -145,7 +145,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
     plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
-    xticks = [-1, -0.5, 0, 0.5, 1]
+    xticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]
     yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
     ax.set_xlabel(f"Spearman's correlation with {name}")
