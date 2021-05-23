@@ -83,7 +83,7 @@ class Boiler(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
-    ticket_name = 'BT'
+    ticket_name = 'B'
     network_priority = 0
     boiler_blowdown = 0.03
     RO_rejection = 0
@@ -371,6 +371,7 @@ class BoilerTurbogenerator(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
+    ticket_name = 'BT'
     network_priority = 0
     boiler_blowdown = 0.03
     RO_rejection = 0

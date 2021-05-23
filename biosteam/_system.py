@@ -548,7 +548,23 @@ class System:
         #: [str] Converge method
         self.converge_method = self.default_converge_method
     
-    specification = Unit.specification
+    @property
+    def specification(self):
+        """Process specification."""
+        return self._specification
+    @specification.setter
+    def specification(self, specification):
+        if specification:
+            if callable(specification):
+                self._specification = specification
+            else:
+                raise AttributeError(
+                    "specification must be callable or None; "
+                   f"not a '{type(specification).__name__}'"
+                )
+        else:
+            self._specification = None
+    
     save_report = save_report
     
     def _extend_flattend_path_and_recycles(self, path, recycles, stacklevel):
@@ -1141,9 +1157,9 @@ class System:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
         >>> cornstover_sys.get_inlet_flow('tonne/s') # Sum of all chemicals
-        51422.13
+        48610.29
         >>> cornstover_sys.get_inlet_flow('tonne/s', 'Water') # Just water
-        46050.96
+        43424.70
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -1168,9 +1184,9 @@ class System:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
         >>> cornstover_sys.get_outlet_flow('tonne/s') # Sum of all chemicals
-        51558.88
+        48748.05
         >>> cornstover_sys.get_outlet_flow('tonne/s', 'Water') # Just water
-        46103.38
+        43477.86
         >>> default() # Bring biosteam settings back to default
         
         """

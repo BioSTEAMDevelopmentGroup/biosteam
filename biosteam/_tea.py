@@ -14,6 +14,7 @@ from copy import copy as copy_
 from numba import njit
 from math import floor
 from warnings import warn
+import biosteam as bst
 
 __all__ = ('TEA', 'CombinedTEA')
 
@@ -418,7 +419,7 @@ class TEA:
     @operating_days.setter
     def operating_days(self, days):
         """[float] Number of operating days per year."""
-        self.system.operating_hours = 24 * days
+        self.operating_hours = 24 * days
     
     @property
     def operating_hours(self):
@@ -426,11 +427,10 @@ class TEA:
         return self.system.operating_hours
     @operating_hours.setter
     def operating_hours(self, hours):
-        self.system.operating_hours = hours
-    
-    @property
-    def operating_hours(self):
-        return self.system.operating_hours
+        try:
+            self.system.operating_hours = hours
+        except AttributeError:
+            pass
     
     @property
     def duration(self):
@@ -773,33 +773,35 @@ class TEA:
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
         F_mass = stream.F_mass
         if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
-        return F_mass * self.operating_hours
-    
-    def solve_price(self, stream):
+        price2cost = F_mass * self.operating_hours
+        if stream.sink and not stream.source:
+            return - price2cost 
+        elif stream.source:
+            return price2cost
+        else:
+            raise ValueError("stream must be either a feed or a product")
+        
+    def solve_price(self, streams):
         """
-        Return the price (USD/kg) of stream at the break even point (NPV = 0)
+        Return the price (USD/kg) of a stream(s) at the break even point (NPV = 0)
         through cash flow analysis. 
         
         Parameters
         ----------
-        stream : :class:`~thermosteam.Stream`
-            Stream with variable selling price.
+        streams : tuple[:class:`~thermosteam.Stream`] or :class:`~thermosteam.Stream`
+            Streams with variable selling price.
             
         """
+        if isinstance(streams, bst.Stream): streams = [streams]
+        price2costs = [self._price2cost(i) for i in streams]
         sales = self.solve_sales()
-        price2cost = self._price2cost(stream)
-        if price2cost == 0.:
-            return np.inf
-        elif stream.sink:
-            return stream.price - sales / price2cost
-        elif stream.source:
-            return stream.price + sales / price2cost
-        else:
-            raise ValueError("stream must be either a feed or a product")
-    
+        price2cost = sum(price2costs)
+        current_price = sum([self.market_value(i) for i in streams]) / abs(price2cost)
+        return np.inf if price2cost == 0. else current_price + sales / price2cost 
+        
     def solve_sales(self):
         """
-        Return the required additional salse (USD) to reach the break even 
+        Return the required additional sales (USD) to reach the breakeven 
         point (NPV = 0) through cash flow analysis. 
         
         """

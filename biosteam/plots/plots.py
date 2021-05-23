@@ -26,6 +26,7 @@ __all__ = (
     'plot_scatter_points',
     'plot_contour_1d', 
     'plot_contour_2d', 
+    'plot_contour_single_metric',
     'plot_contour_across_coordinate',
     'plot_contour_2d_curves'
 )
@@ -135,7 +136,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     N = len(rhos)
     s = N + 1
     if not color_wheel: color_wheel = tuple(CABBI_wheel)
-    if s > len(color_wheel):
+    if N > len(color_wheel):
         raise ValueError("length of `color_wheel` must be equal "
                          "to or greater than the number of columns in `rhos`")
     fig, ax = plt.subplots()
@@ -390,6 +391,57 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs
        
+def plot_contour_single_metric(X_grid, Y_grid, data, 
+                    xlabel, ylabel, xticks, yticks, metric_bar,
+                    titles=None, fillblack=True, styleaxiskw=None,
+                    label=False): # pragma: no coverage
+    """Create contour plots and return the figure and the axes."""
+    *_, nrows, ncols = data.shape
+    assert data.shape == (*X_grid.shape, nrows, ncols), (
+        "data shape must be (X, Y, M, N), where (X, Y) is the shape of both X_grid and Y_grid"
+    )
+    widths = np.ones(ncols + 1)
+    widths[-1] /= 4
+    gs_kw = dict(width_ratios=widths)
+    fig, axes = plt.subplots(ncols=ncols + 1, nrows=nrows, gridspec_kw=gs_kw)
+    axes = axes.reshape([nrows, ncols + 1])
+    gs = axes[0, 0].get_gridspec()
+    for ax in axes[:, -1]: ax.remove()
+    ax_colorbar = fig.add_subplot(gs[:, -1])
+    if styleaxiskw is None: styleaxiskw = {}
+    cps = np.zeros([nrows, ncols], dtype=object)
+    linecolor = c.neutral_shade.RGBn
+    for row in range(nrows):
+        for col in range(ncols):
+            ax = axes[row, col]
+            plt.sca(ax)
+            style_plot_limits(xticks, yticks)
+            yticklabels = col == 0
+            xticklabels = row == nrows - 1
+            if fillblack: fill_plot()
+            metric_data = data[:, :, row, col]
+            cp = plt.contourf(X_grid, Y_grid, metric_data,
+                              levels=metric_bar.levels,
+                              cmap=metric_bar.cmap)
+            if label:
+                cs = plt.contour(cp, zorder=1e16,
+                                 linestyles='dashed', linewidths=1.,
+                                 levels=cp.levels, colors=[linecolor])
+                clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                          fontsize=12, colors=['k'], zorder=1e16)
+                for i in clabels: i.set_rotation(0)
+            cps[row, col] = cp
+            style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+    cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=nrows * 0.13)
+    plt.sca(ax_colorbar)
+    plt.axis('off')
+    if titles:
+        for col, title in enumerate(titles):
+            ax = axes[0, col]
+            ax.set_title(title)
+    set_axes_labels(axes[:, :-1], xlabel, ylabel)
+    plt.subplots_adjust(hspace=0.1, wspace=0.1)
+    return fig, axes, cps, cb
 
 def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data, 
                     xlabel, ylabel, xticks, yticks, 
@@ -440,8 +492,6 @@ def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data,
     set_axes_labels(axes[:, :-1], xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps
-
-
 
 def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data, 
                                    xlabel, ylabel, xticks, yticks, 

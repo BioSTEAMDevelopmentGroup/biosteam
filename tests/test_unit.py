@@ -14,19 +14,18 @@ from numpy.testing import assert_allclose
 def test_unit_connections():
     from biorefineries.sugarcane import flowsheet as f
     globals().update(f.unit.data)
-    assert R301.neighborhood(1) == {T305, D301, T301, H301}
-    assert R301.neighborhood(2) == {R301, M301, T301, H301, C301, D301, M302, T305}
+    assert R301.neighborhood(1) == {T301, D301, S302, H301}
+    assert R301.neighborhood(2) == {S302, C301, H301, M302, D301, R301, T301, M301}
     assert R301.neighborhood(100) == R301.neighborhood(1000) == {
-        U404, T304, P302, D302, H302, H201, U406, D303, S301, M303, F301, 
-        S201, M301, M305, H301, S202, T202, R301, T204, T301, T203, P201, 
-        T205, C301, P303, D301, M302, H303, T201, U301, U101, U103, P202, 
-        H304, P304, U401, M202, T302, U201, M201, T305, H202, P306, U402, 
-        T206, U102, T303, C201, P305, U403, P203, C202, P301, X401, M304, 
-        U405
+        T304, S201, S301, F301, P302, T202, M301, T204, H302, H301, S202, 
+        D303, M303, T203, P201, R301, T301, H201, U101, T205, P202, T201, 
+        M202, H202, U201, P303, T206, U202, U401, H303, M201, M302, U301, 
+        D301, C201, C301, H304, S302, P304, M305, P203, C202, T302, P306,
+        U402, U102, U403, P301, T303, U404, D302, P305, U405, U103, M304
     }
     assert R301.get_downstream_units() == {
-        M304, M305, T304, C301, P303, D301, M302, H303, U301, R301, D302,
-        P302, T301, H304, P304, H302, T302, D303, P301, T305, M303
+        T304, P303, P301, D302, H303, M302, U301, D301, P302, C301, H304,
+        S302, P304, M305, H302, T302, D303, M303, M304, R301, T301
     }
     ins = tuple(R301.ins)
     outs = tuple(R301.outs)

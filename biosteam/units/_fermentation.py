@@ -84,40 +84,40 @@ class Fermentation(BatchBioreactor):
         flow (kmol/hr): Water    6.66e+03
                         Glucose  10.5
                         Sucrose  62.5
-                        Yeast    1.03e+04
+                        Yeast    415
     [1] missing stream
     outs...
     [0] CO2
         phase: 'g', T: 305.15 K, P: 101325 Pa
-        flow (kmol/hr): Water    4.02
-                        Ethanol  1.5
+        flow (kmol/hr): Water    10.3
+                        Ethanol  3.85
                         CO2      244
     [1] product
         phase: 'l', T: 305.15 K, P: 101325 Pa
         flow (kmol/hr): Water    6.59e+03
-                        Ethanol  242
+                        Ethanol  240
                         Glucose  4.07
-                        Yeast    1.2e+04
+                        Yeast    484
     >>> F1.results()
     Fermentation                                       Units        F1
     Power               Rate                              kW      11.7
-                        Cost                          USD/hr     0.914
-    Chilled water       Duty                           kJ/hr -1.04e+07
-                        Flow                         kmol/hr  6.97e+03
-                        Cost                          USD/hr        52
+                        Cost                          USD/hr     0.913
+    Chilled water       Duty                           kJ/hr -6.94e+06
+                        Flow                         kmol/hr  4.65e+03
+                        Cost                          USD/hr      34.7
     Design              Reactor volume                    m3       247
                         Batch time                        hr      12.6
                         Loading time                      hr      1.57
                         Number of reactors                           8
-                        Reactor duty                   kJ/hr  1.04e+07
+                        Reactor duty                   kJ/hr  6.94e+06
                         Cleaning and unloading time       hr         3
                         Working volume fraction                    0.9
-    Purchase cost       Heat exchangers                  USD  1.27e+05
-                        Reactors                         USD  1.88e+06
+    Purchase cost       Heat exchangers                  USD   9.6e+04
+                        Reactors                         USD  1.87e+06
                         Agitators                        USD  1.17e+05
-                        Cleaning in place                USD  8.91e+04
-    Total purchase cost                                  USD  2.21e+06
-    Utility cost                                      USD/hr      52.9
+                        Cleaning in place                USD   8.9e+04
+    Total purchase cost                                  USD  2.18e+06
+    Utility cost                                      USD/hr      35.6
     
     References
     ----------

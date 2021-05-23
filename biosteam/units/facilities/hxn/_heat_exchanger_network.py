@@ -116,11 +116,12 @@ class HeatExchangerNetwork(Facility):
     _units= {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
-    def __init__(self, ID='', T_min_app=5., units=None, ignored=None):
+    def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
         self.ignored = ignored
+        self.Qmin = Qmin
         
     def _run(self): pass
     def _design(self): pass
@@ -129,11 +130,11 @@ class HeatExchangerNetwork(Facility):
         sys = self.system
         units = self.units or sys.units
         if self.ignored:
-            units = list(units)
-            for i in self.ignored:
-                if i in units: units.remove(i)
+            ignored_hx_utils = sum([i.heat_utilities for i in self.ignored], ())
+        else:
+            ignored_hx_utils = ()
         hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(units)
-        hx_utils = [i for i in hx_utils if i.duty]
+        hx_utils = [i for i in hx_utils if i.duty and i not in ignored_hx_utils]
         hx_utils.sort(key = lambda x: x.duty)
         original_flowsheet = sys.flowsheet
         HXN_ID = sys.ID + '_HXN'
@@ -144,7 +145,7 @@ class HeatExchangerNetwork(Facility):
         HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
         T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
         hot_indices, cold_indices = \
-        synthesize_network(hx_utils, T_min_app=self.T_min_app)
+        synthesize_network(hx_utils, self.T_min_app, self.Qmin)
         original_purchase_costs= [hx.purchase_cost for hx in hxs]
         original_installed_costs = [hx.installed_cost for hx in hxs]
         new_HXs = HXs_hot_side + HXs_cold_side
@@ -166,9 +167,9 @@ class HeatExchangerNetwork(Facility):
         self.HXN_sys = sys = bst.System.from_units(None, all_units)
         try: sys._converge()
         except: pass
-        for u in sys.units: 
-            u._design()
-            u._cost()
+        for hx in sys.units:
+            hx._design()
+            hx._cost()
         new_purchase_costs_HXp = []
         new_purchase_costs_HXu = []
         new_installed_costs_HXp = []
