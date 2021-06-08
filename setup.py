@@ -11,7 +11,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.29.0',
+    version='2.29.1',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
@@ -22,7 +22,7 @@ setup(
                       'SALib'],
     extras_require={ 
         'dev': [
-            'biorefineries>=2.21.6',
+            'biorefineries>=2.21.7',
             'sympy',
             'sphinx', 
             'sphinx_rtd_theme', 

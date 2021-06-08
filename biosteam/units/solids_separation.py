@@ -314,8 +314,8 @@ class PressureFilter(SolidsSeparator):
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  moisture_content=0.35, split=None):
         self._load_thermo(thermo)
+        chemicals = self.chemicals
         if split is None:
-            chemicals = self.chemicals
             split = dict(
                 Furfural=0.03571,
                 Glycerol=0.03714,
@@ -362,14 +362,16 @@ class PressureFilter(SolidsSeparator):
                 WWTsludge=0.9799,
                 Cellulase=0.03727
             )
-        remove_undefined_chemicals(split, chemicals)
+            remove_undefined_chemicals(split, chemicals)
+            default_chemical_dict(split, chemicals, 0.03714, 0.03714, 0.9811)
         bst.SolidsSeparator.__init__(self, ID, ins, outs, thermo, 
                                      moisture_content=moisture_content,
                                      split=split)
-        default_chemical_dict(split, chemicals, 0.03714, 0.03714, 0.9811)
     
     def _design(self):
         self.design_results['Retentate flow rate'] = self.outs[0].F_mass
+
+PressureFilter._stacklevel += 1
 
 #: TODO: Check BM assumption. Use 1.39 for crushing unit operations for now.
 @cost('Flow rate', units='lb/hr', CE=567, lb=150, ub=12000, kW=0.001, BM=1.39, 

@@ -187,8 +187,8 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
 def heuristic_overall_heat_transfer_coefficient(ci, hi, co, ho):
     """
     Return a heuristic estimate of the overall heat transfer coefficient
-    [U; in kW/m^2/K]. Assume `U` is 0.5 kW/m^2/K if heat exchange is sensible 
-    and 1.0 kW/m^2/K otherwise.
+    [U; in kW/m^2/K]. Assume `U` is 1.0 kW/m^2/K if heat exchange is between
+    a condensing fluid and a vaporizing fluid and 1.0 kW/m^2/K otherwise.
     
     Parameters
     ----------

@@ -108,7 +108,7 @@ class HeatExchangerNetwork(Facility):
      	]>]
         
     """
-
+    acceptable_energy_balance_error = 0.02
     network_priority = -1
     _N_ins = 0
     _N_outs = 0
@@ -128,7 +128,11 @@ class HeatExchangerNetwork(Facility):
     
     def _cost(self):
         sys = self.system
-        units = self.units or sys.units
+        if self.units:
+            units = self.units
+            if callable(units): units = units()
+        else:
+            units = sys.units
         if self.ignored:
             ignored_hx_utils = sum([i.heat_utilities for i in self.ignored], ())
         else:
@@ -163,13 +167,15 @@ class HeatExchangerNetwork(Facility):
                 unit = i.unit
                 if s_out: unit.ins[i.index] = s_out
                 s_out = unit.outs[i.index]
-        self.stream_life_cycles_final = stream_life_cycles
         self.HXN_sys = sys = bst.System.from_units(None, all_units)
-        try: sys._converge()
-        except: pass
+        try: 
+            sys._converge()
+        except:
+            warning = RuntimeWarning('heat exchanger network was not able to converge')
+            warn(warning)
         for hx in sys.units:
-            hx._design()
-            hx._cost()
+            hx._summary()
+        self.stream_life_cycles_final = stream_life_cycles
         new_purchase_costs_HXp = []
         new_purchase_costs_HXu = []
         new_installed_costs_HXp = []
@@ -193,9 +199,11 @@ class HeatExchangerNetwork(Facility):
              + sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums2]))
             / sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums1])
         )
-        Q_percent_error = 100*(Q_bal - 1)
-        if abs(Q_percent_error)>2:
-            msg = f"\n\n\n WARNING: Q balance of HXN off by {format(Q_percent_error,'0.2f')} % (an absolute error greater than 2.00 %).\n\n\n"
+        energy_balance_error = Q_bal - 1
+        if abs(energy_balance_error) > self.acceptable_energy_balance_error:
+            msg = ("heat exchanger network energy balance is off by "
+                  f"{energy_balance_error:.2%} (an absolute error greater "
+                  f"than {self.acceptable_energy_balance_error:.2%})")
             warn(msg, RuntimeWarning, stacklevel=2)
         self.installed_costs['Heat exchangers'] = (
                 sum(new_installed_costs_HXp)
@@ -208,7 +216,7 @@ class HeatExchangerNetwork(Facility):
             - sum(original_purchase_costs)
         )
         self.heat_utilities = hus_final
-        self.energy_balance_percent_error = Q_percent_error
+        self.energy_balance_percent_error = 100 * energy_balance_error
         self.original_heat_utils = hx_utils_rearranged
         self.original_purchase_costs = original_purchase_costs
         self.original_utility_costs = hu_sums1
@@ -236,8 +244,6 @@ class HeatExchangerNetwork(Facility):
             np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
     
     def _get_stream_life_cycles(self):
-        # if hasattr(self, 'stream_life_cycles'): 
-        #     return self.stream_life_cycles
         cold_indices = self.cold_indices
         new_HXs = self.new_HXs
         new_HX_utils = self.new_HX_utils

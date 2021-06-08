@@ -17,6 +17,8 @@ __all__ = (
     'group_by_area',
     'heat_exchanger_utilities_from_units',
     'units_with_costs',
+    'units_with_heat_exchangers',
+    'filter_out_heat_utility_savings',
     'get_utility_flow',
     'get_utility_duty',
     'get_power_utilities',
@@ -199,6 +201,10 @@ def units_with_costs(units):
     """Filter units that have a cost or design method."""
     return [i for i in units if i._cost or i._design]
 
+def units_with_heat_exchangers(units):
+    """Return a list of units with heat exchangers."""
+    return [u for u in units if any([i.heat_exchanger for i in u.heat_utilities])]
+
 def heat_exchanger_utilities_from_units(units):
     """Return a list of heat utilities from all heat exchangers,
     including the condensers and boilers of distillation columns and
@@ -258,17 +264,18 @@ def filter_by_lines(units, lines):
     """Filter units by line(s)."""
     return [i for i in units if i.line in lines]
 
+def filter_out_heat_utility_savings(heat_utilities):
+    return [i for i in heat_utilities if i.flow > 0.]
+
 def get_utility_flow(heat_utilities, agent):
     """Return the total utility duty of heat utilities for given agent in GJ/hr"""
-    if isinstance(agent, str):
-        agent = HeatUtility.get_agent(agent)
-    return sum([i.flow * i.agent.MW for i in heat_utilities if i.duty > 0. and i.agent is agent]) / 1e3
+    if isinstance(agent, str): agent = HeatUtility.get_agent(agent)
+    return sum([i.flow * i.agent.MW for i in heat_utilities if i.agent is agent]) / 1e3
 
 def get_utility_duty(heat_utilities, agent):
     """Return the total utility duty of heat utilities for given agent in GJ/hr"""
-    if isinstance(agent, str):
-        agent = HeatUtility.get_agent(agent)
-    return sum([i.duty for i in heat_utilities if i.duty > 0. and i.agent is agent]) / 1e6 
+    if isinstance(agent, str): agent = HeatUtility.get_agent(agent)
+    return sum([i.duty for i in heat_utilities if i.agent is agent]) / 1e6 
 
 def get_power_utilities(units):
     """Return a list of all PowerUtility objects."""
@@ -286,14 +293,13 @@ def get_installed_cost(units):
     """Return the total installed equipment cost of all units in million USD."""
     return sum([i.installed_cost for i in units]) / 1e6 # millions USD
 
-def get_cooling_duty(heat_utilities):
+def get_cooling_duty(heat_utilities, filter_savings=True):
     """Return the total cooling duty of all heat utilities in GJ/hr."""
-    cooling_duty = sum([i.duty for i in heat_utilities if i.duty < 0 and i.flow > 0]) / 1e6 # GJ/hr
-    return abs(cooling_duty)
+    return - sum([i.duty for i in heat_utilities if i.flow * i.duty < 0]) / 1e6 # GJ/hr
                
-def get_heating_duty(heat_utilities):
+def get_heating_duty(heat_utilities, filter_savings=True):
     """Return the total heating duty of all heat utilities in GJ/hr."""
-    return sum([i.duty for i in heat_utilities if i.duty > 0 and i.flow > 0]) / 1e6 # GJ/hr
+    return sum([i.duty for i in heat_utilities if i.flow * i.duty > 0]) / 1e6 # GJ/hr
           
 def get_electricity_consumption(power_utilities):
     """Return the total electricity consumption of all PowerUtility objects in MW."""

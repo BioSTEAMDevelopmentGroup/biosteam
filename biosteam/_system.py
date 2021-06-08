@@ -1143,12 +1143,12 @@ class System:
     
     def get_inlet_flow(self, units, key=None):
         """
-        Return total flow across all inlets.
+        Return total flow across all inlets per year.
         
         Parameters
         ----------
         units : str
-            Units of measure.
+            Material units of measure (e.g., 'kg', 'gal', 'kmol').
         key : tuple[str] or str, optional
             Chemical identifiers. If none given, the sum of all chemicals returned
             
@@ -1156,13 +1156,14 @@ class System:
         --------
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
-        >>> cornstover_sys.get_inlet_flow('tonne/s') # Sum of all chemicals
-        48610.29
-        >>> cornstover_sys.get_inlet_flow('tonne/s', 'Water') # Just water
-        43424.70
+        >>> cornstover_sys.get_inlet_flow('Mton') # Sum of all chemicals
+        192.89
+        >>> cornstover_sys.get_inlet_flow('Mton', 'Water') # Just water
+        172.31
         >>> default() # Bring biosteam settings back to default
         
         """
+        units += '/hr'
         if key:
             return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
         else:
@@ -1170,12 +1171,12 @@ class System:
     
     def get_outlet_flow(self, units, key=None):
         """
-        Return total flow across all outlets.
+        Return total flow across all outlets per year.
         
         Parameters
         ----------
         units : str
-            Units of measure.
+            Material units of measure (e.g., 'kg', 'gal', 'kmol').
         key : tuple[str] or str, optional
             Chemical identifiers. If none given, the sum of all chemicals returned
             
@@ -1183,13 +1184,14 @@ class System:
         --------
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
-        >>> cornstover_sys.get_outlet_flow('tonne/s') # Sum of all chemicals
-        48748.05
-        >>> cornstover_sys.get_outlet_flow('tonne/s', 'Water') # Just water
-        43477.86
+        >>> cornstover_sys.get_outlet_flow('Mton') # Sum of all chemicals
+        193.44
+        >>> cornstover_sys.get_outlet_flow('Mton', 'Water') # Just water
+        172.53
         >>> default() # Bring biosteam settings back to default
         
         """
+        units += '/hr'
         if key:
             return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
         else:

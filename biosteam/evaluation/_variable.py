@@ -18,17 +18,20 @@ class Variable:
     Attributes
     ----------
     name : str
-        Name of variable
-    element : object
-        Element corresponding to variable
+        Name of variable.
     units : str
-        Units of measure
-    distribution : chaospy.Dist, optional
-        Distribution of variable
+        Units of measure.
+    element : object
+        Element corresponding to variable.
         
     """
-    __slots__ = ()
+    __slots__ = ('name', 'units', 'element')
     include_units_in_index = True
+    
+    def __init__(self, name, units, element):
+        self.name = name
+        self.units = units
+        self.element = element
     
     @classmethod
     def check_index_unique(cls, variable, variables):
@@ -74,6 +77,18 @@ class Variable:
             units = self.units
             if units: name += f" [{units}]"
         return (self.element_name, name)
+    
+    @property
+    def short_description(self):
+        element, name = self.index
+        name, *_ = name.split(' [')
+        name = ' '.join([element, name])
+        if len(name) > 31:
+            words = name.split(' ')
+            words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
+            name = ' '.join(words)
+        name = name.strip(' ')
+        return name
     
     def describe(self, number_format='.3g') -> str:
         """Return description of variable."""

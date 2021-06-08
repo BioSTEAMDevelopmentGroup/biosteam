@@ -328,7 +328,7 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def evaluate(self, thorough=True, notify=False):
+    def evaluate(self, thorough=True, notify=0):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -338,8 +338,8 @@ class Model(State):
             If True, simulate the whole system with each sample.
             If False, simulate only the affected parts of the system and
             skip simulation for repeated states.
-        notify=False : bool, optional
-            If True, notify elapsed time after each sample evaluation. 
+        notify=0 : int, optional
+            If 1 or greater, notify elapsed time after the given number of sample evaluations. 
         
         """
         samples = self._samples
@@ -353,7 +353,8 @@ class Model(State):
             def evaluate(sample, thorough, count=[0]):
                 count[0] += 1
                 values = evaluate_sample(sample, thorough)
-                print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
+                if not count[0] % notify:
+                    print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
         else:
             evaluate = evaluate_sample
@@ -400,7 +401,7 @@ class Model(State):
         return self(baseline)
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
-                                   *, xlfile=None, notify=True,
+                                   *, xlfile=None, notify=0, notify_coordinate=True,
                                    multi_coordinate=False):
         """
         Evaluate across coordinate and save sample metrics.
@@ -432,13 +433,13 @@ class Model(State):
         metric_data = {i: np.zeros(shape) for i in metric_indices}
         
         # Initialize timer
-        if notify:
+        if notify_coordinate:
             from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
             def evaluate():
-                self.evaluate()
-                print(f"[{n}] Elapsed time: {timer.elapsed_time:.0f} sec")
+                self.evaluate(notify=notify)
+                print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
             evaluate = self.evaluate
         
@@ -460,16 +461,9 @@ class Model(State):
                                 columns=columns)
             
             with pd.ExcelWriter(xlfile) as writer:
-                for i, metric in zip(metric_indices, metric_data):
-                    data[:] = metric_data[metric]
-                    element, name = i
-                    name, *_ = name.split(' [')
-                    name = ' '.join([element, name])
-                    if len(name) > 31:
-                        words = name.split(' ')
-                        words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
-                        name = ' '.join(words)
-                    data.to_excel(writer, sheet_name=name)
+                for metric in self.metrics:
+                    data[:] = metric_data[metric.index]
+                    data.to_excel(writer, sheet_name=metric.short_description)
         return metric_data
     
     def spearman(self, parameters=None, metrics=None):

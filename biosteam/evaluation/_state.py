@@ -160,7 +160,7 @@ class State:
         """
         return cp.distributions.J(*[i.distribution for i in self.get_parameters()])
     
-    def get_distribution_summary(self):
+    def get_distribution_summary(self, xlfile=None):
         """Return dictionary of shape name-DataFrame pairs."""
         parameters = self.get_parameters()
         if not parameters: return None
@@ -187,6 +187,10 @@ class State:
                 values = distribution._repr.values()
                 data.append((element, name, units, shape, *values))
             tables_by_shape[shape] =  pd.DataFrame(data, columns=columns)
+        if xlfile:
+            with pd.ExcelWriter(xlfile) as writer:
+                for shape, df in tables_by_shape.items():
+                    df.to_excel(writer, sheet_name=shape)
         return tables_by_shape    
     
     def parameter(self, setter=None, element=None, kind='isolated', name=None, 

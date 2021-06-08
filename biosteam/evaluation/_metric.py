@@ -28,14 +28,12 @@ class Metric(Variable):
         Element corresponding to metric
     
     """
-    __slots__ = ('name', 'units', 'getter', 'element')
+    __slots__ = ('getter',)
     distribution = None
     def __init__(self, name, getter, units=None, element='Biorefinery'):
         if name is None and hasattr(getter, '__name__'): name = format_title(getter.__name__)
-        self.name = name
-        self.units = units
+        super().__init__(name, units, element)
         self.getter = getter
-        self.element = element
         
     def __call__(self):
         return self.getter()

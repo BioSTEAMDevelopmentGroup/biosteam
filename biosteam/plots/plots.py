@@ -10,10 +10,20 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from biosteam.utils import colors as c, CABBI_wheel
+import biosteam as bst
+from biosteam.utils import colors as c, CABBI_colors
 from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
+from thermosteam.units_of_measure import format_units, reformat_units
+import matplotlib.patches as mpatches
+from thermosteam.utils import CABBI_colors
+from math import floor, ceil
+from matplotlib.ticker import MultipleLocator
 
 __all__ = (
+    'rounted_tickmarks_from_range',
+    'rounded_tickmarks_from_data',
+    'plot_unit_groups',
+    'plot_unit_groups_across_coordinate',
     'plot_montecarlo', 
     'plot_montecarlo_across_coordinate',
     'plot_scatter_points', 
@@ -31,11 +41,292 @@ __all__ = (
     'plot_contour_2d_curves'
 )
 
+# %% Utilities
+
+default_light_color = c.brown_tint.RGBn
+default_dark_color = c.brown_shade.RGBn
+
+def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
+    """Plot horizontal line."""
+    plt.axhline(y=y, color=color, **kwargs) 
+
+def plot_vertical_line(x, color='grey', **kwargs): # pragma: no coverage
+    """Plot vertical line."""
+    plt.axvline(x=x, color=color, **kwargs) 
+
+def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs): # pragma: no coverage
+    """Plot scatter points and return patch artist."""
+    if xs is None: xs = tuple(range(len(ys)))
+    if color is None: color = default_dark_color
+    return plt.scatter(xs, ys, marker=marker, s=s, color=color,
+                       zorder=zorder, edgecolor=edgecolor, **kwargs) 
+
+def rounded_tickmarks_from_data(data, N_ticks, step_min, 
+                                lb_max=None, ub_min=None, expand=None, f=None):
+    get_max = lambda x: max([i.max() for i in x]) if isinstance(x, list) else x.max()
+    get_min = lambda x: min([i.min() for i in x]) if isinstance(x, list) else x.min()
+    lb = min([get_min(i) for i in data])
+    ub = max([get_max(i) for i in data])
+    return rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max, ub_min, expand, f)
+
+def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max=None, ub_min=None,
+                                 expand=None, f=None):
+    if lb_max is not None: lb = min(lb, lb_max)
+    if expand is None: expand = 0.1
+    diff = expand * (ub - lb)
+    ub += diff
+    if ub_min is not None: ub = max(ub, ub_min)
+    return rounded_linspace(lb, ub, N_ticks, step_min, f)
+
+def rounded_linspace(lb, ub, N, step_min, f=None):
+    lb = floor(lb / step_min) * step_min
+    ub = ceil(ub / step_min) * step_min
+    step = (ub - lb) / (N - 1)
+    if f is None:
+        if int(step) == step: step = int(step)
+        if int(lb) == lb: lb = int(lb)
+    else:
+        step = f(step)
+        lb = f(lb)
+    return [0, 1] if step == 0 else [lb + step * i for i in range(N)]
+        
+def default_colors_and_hatches(length, colors, hatches):
+    if colors is None:
+        colors = [i.HEX for i in CABBI_colors]
+    if hatches is None:
+        hatches = ['', 'x', '-', '/', '\\', '+', '/|', r'\\',
+                   '//', '\\|', '.', 'o', '*']
+    N_hatches = len(hatches)
+    N_colors = len(colors)
+    colors *= int(np.ceil(length / N_colors))
+    hatches *= int(np.ceil(length / N_hatches))
+    return colors, hatches
+
+def subplots(N_axes):
+    if N_axes % 3 == 0:
+        N_rows = int(N_axes / 3)
+        N_cols = 3
+    elif N_axes % 2 == 0:
+        N_rows = int(N_axes / 2)
+        N_cols = 2
+    else:
+        N_rows = N_axes
+        N_cols = 1
+    return plt.subplots(nrows=N_rows, ncols=N_cols)
+
+def contour_subplots(N_rows, N_cols, single_colorbar=False):
+    widths = np.ones(N_cols + 1)
+    widths[-1] /= 4
+    gs_kw = dict(width_ratios=widths)
+    fig, axes = plt.subplots(nrows=N_rows, ncols=N_cols + 1, gridspec_kw=gs_kw)
+    axes = axes.reshape([N_rows, N_cols + 1])
+    if single_colorbar:
+        gs = axes[0, 0].get_gridspec()
+        for ax in axes[:, -1]: ax.remove()
+        ax_colorbar = fig.add_subplot(gs[:, -1])
+        return fig, axes, ax_colorbar
+    else:
+        return fig, axes
+    
+def modify_stacked_bars(axes, N_marks, names, colors, hatches):
+    for ax in axes.flatten(): 
+        plt.sca(ax)
+        ax.get_legend().remove()
+        bars = ax.patches
+        color_sets = sum([[i]*N_marks for i in colors], [])
+        hatch_sets = sum([[i]*N_marks for i in hatches], [])
+        for bar, hatch, color in zip(bars, hatch_sets, color_sets):
+            bar.set_facecolor(color)
+            bar.set_hatch(hatch)
+    if axes.ndim == 1: 
+        ax = axes[-1]
+    elif axes.ndim == 2:
+        ax = axes[0, -1]
+    else:
+        raise ValueError('axes dimensions must 1 or 2')
+    plt.sca(ax)
+    patches = [mpatches.Patch(facecolor=i, hatch=j, label=k, edgecolor='k') for i,j,k in 
+           zip(colors, hatches, names)]
+    patches.reverse()
+    leg = plt.legend(
+        handles=patches, loc='upper left', bbox_to_anchor=(1.05, 1),
+        labelspacing=1.5, handlelength=4
+    )
+    leg.get_frame().set_linewidth(0.0)
+    for patch in leg.get_patches():
+        patch.set_height(22)
+        patch.set_y(-6)
+
+
+# %% General
+
+def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # pragma: no coverage
+    barwidth = 0.50
+    N_scenarios = len(scenarios)
+    N_labels = len(labels)
+    if positions is None: positions = N_labels * np.arange(N_scenarios, dtype=float)
+    data = (ys, colors, edgecolors, labels)
+    for y, color, edgecolor, label in zip(*data):
+        plt.bar(positions, y, barwidth,
+                align='center', label=label,
+                color=color, edgecolor=edgecolor)
+        positions += barwidth
+    plt.xticks(positions-barwidth*(N_labels+1)/2, scenarios)
+    plt.tight_layout()
+    plt.legend()
+
+
+# %% Plot unit groups
+
+def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
+        colors=None, hatches=None, fraction=False, 
+        **kwargs):
+    df = bst.UnitGroup.df_from_groups_across_coordinate(unit_groups, f, x)
+    metrics = unit_groups[0].metrics
+    N_metrics = len(metrics)
+    fig, axes = subplots(N_metrics)
+    N_rows, N_cols = axes.shape
+    axes_flat = axes.flatten()
+    for i in range(N_metrics):
+        metric = metrics[i]
+        col = metric.name_with_units
+        df_metric = df[col]
+        ax = axes_flat[i]
+        plt.sca(ax)
+        df_metric.T.plot(kind='bar', stacked=True, edgecolor='k',
+                         ax=ax, **kwargs)
+        plt.ylabel(reformat_units(col))
+    for i in range(N_cols): fig.align_ylabels(axes[:, i])
+    xticks = list(range(len(x)))
+    for ax in axes[:-1].flatten():
+        plt.sca(ax)
+        plt.xticks(xticks, (), rotation=0)
+    for ax in axes[-1]: 
+        plt.sca(ax)
+        plt.xticks(xticks, x, rotation=0)
+        plt.xlabel(name)
+    
+    data = [df[i.name_with_units].values for i in metrics]
+    data_ub = [np.where(i > 0, i, 0.) for i in data]
+    data_lb = [np.where(i < 0, i, 0.) for i in data]
+    ubs = np.array([i.sum(axis=0).max() for i in data_ub])
+    lbs = np.array([i.sum(axis=0).min() for i in data_lb])
+    tickmarks = [rounted_tickmarks_from_range(lb, ub, 5, 5, 0., f=int) for lb, ub in
+                 zip(lbs, ubs)]
+    for i in range(N_metrics):
+        ax = axes_flat[i]
+        plt.sca(ax)
+        yticks = tickmarks[i]
+        plt.ylim([yticks[0], yticks[-1]])
+        if yticks[0] < 0:
+            plot_horizontal_line(0, zorder=0,
+                color=CABBI_colors.black.RGBn, linestyle='--'
+            )
+        style_axis(ax,  
+            yticks=yticks,
+            ytickf=False,
+        )
+    
+    modify_stacked_bars(axes, len(x), [i.name for i in unit_groups],
+                        colors, hatches)
+    plt.subplots_adjust(hspace=0.1, wspace=0.4)
+
+def plot_unit_groups(unit_groups, colors=None,
+                     hatches=None, fraction=False, joint_group=None, **kwargs):
+    """Plot unit groups as a stacked bar chart."""
+    colors, hatches = default_colors_and_hatches(len(unit_groups), colors, hatches)
+    df = bst.UnitGroup.df_from_groups(
+        unit_groups, fraction,
+    )
+    names = [i.name for i in unit_groups]
+    if fraction:
+        if joint_group is None:
+            units = sum([i.units for i in unit_groups], [])
+            joint_group = bst.UnitGroup(None, units)
+            joint_group.autofill_metrics()
+        N_metrics = len(joint_group.metrics)
+        bar_labels = [f"{i():.3g}" r"\ " f"{format_units(i.units, '', False)}" 
+                      for i in joint_group.metrics]
+        bar_labels = [r"$\mathbf{" + i + "}$" for i in bar_labels]
+        df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
+        locs, labels = plt.xticks()
+        plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
+        plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+        plt.xticks(rotation=0)
+        axes = plt.gcf().get_axes()
+        ax = axes[0] 
+        ax.set_ylabel('Cost and Utility Breakdown [%]')
+        values = df.values
+        negative_values = np.where(values < 0., values, 0.).sum(axis=0)
+        lb = min(0., 20 * floor(negative_values.min() / 20))
+        plt.ylim(lb, 100)
+        plot_horizontal_line(0, color=CABBI_colors.black.RGBn, linestyle='--')
+        style_axis(top=False, yticks=np.arange(lb, 101, 20))
+        xticks, _ = plt.xticks()
+        xlim = plt.xlim()
+        y_twin = ax.twiny()
+        plt.sca(y_twin)
+        y_twin.tick_params(axis='x', top=True, direction="in", length=0)
+        y_twin.zorder = 2
+        plt.xlim(xlim)
+        plt.xticks(xticks, bar_labels, va='baseline')
+        N_marks = N_metrics
+    else:
+        metrics = unit_groups[0].metrics
+        N_metrics = len(metrics)
+        fig, axes = subplots(N_metrics)
+        N_rows, N_cols = axes.shape
+        axes_flat = axes.flatten()
+        for i, col in enumerate(df):
+            ax = axes_flat[i]
+            plt.sca(ax)
+            data = df[[col]]
+            data.T.plot(kind='bar', stacked=True, edgecolor='k', ax=ax, **kwargs)
+            plt.ylabel(reformat_units(col))
+            plt.xticks((), (), rotation=0)
+        plt.subplots_adjust(hspace=0.1, wspace=0.4)
+        for i in range(N_cols): fig.align_ylabels(axes[:, i])
+        N_marks = 1
+    modify_stacked_bars(np.array(axes), N_marks, names, colors, hatches)
+    
+# %% Sensitivity analysis
+
 def plot_spearman(rhos, top=None, name=None, color_wheel=None, index=None):
-    if rhos.shape[1] > 1: 
+    if isinstance(rhos, list): 
         return plot_spearman_2d(rhos, top, name, color_wheel=color_wheel, index=index)
     else:
         return plot_spearman_1d(rhos, top, name, color_wheel=color_wheel, index=index)
+
+def format_spearman_plot(ax, index, name, yranges):
+    plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
+    ax.xaxis.set_major_locator(MultipleLocator(0.5))
+    ax.xaxis.set_major_formatter('{x:.2f}')
+    ax.xaxis.set_minor_locator(MultipleLocator(0.25))
+    yticks = [i[0]+i[1]/2 for i in yranges]
+    ax.set_xlim(-1, 1)
+    ax.set_xlabel(f"Spearman's correlation with {name}")
+    ax.set_yticks(yticks)
+    ax.tick_params(axis='y', right=False, direction="inout", length=4)
+    ax.tick_params(which='both', axis='x', direction="inout", length=4)
+    ax.set_yticklabels(index)
+    ax.grid(False)
+    ylim = plt.ylim()
+    
+    ax2 = ax.twinx()
+    plt.sca(ax2)
+    plt.yticks(yticks, [])
+    plt.ylim(*ylim)
+    ax2.zorder = 1000
+    ax2.tick_params(direction="in")
+    
+    ax3 = ax.twiny()
+    plt.sca(ax3)
+    ax3.tick_params(which='both', direction="in", labeltop=False, bottom=False, length=2)
+    # ax3.xaxis.set_major_locator(MultipleLocator(0.5))
+    # ax3.xaxis.set_major_formatter('{x:.2f}')
+    # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
+    ax3.zorder = 1000
+    
 
 def plot_spearman_1d(rhos, top=None, name=None, color=None,
                      w=1., s=1., offset=0., style=True, 
@@ -78,33 +369,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     
     if style:
         if name is None: name = rhos.name
-        # Plot central line
-        plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
-        
-        xticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]
-        yticks = [i[0]+i[1]/2 for i in yranges]
-        ax.set_xlim(-1, 1)
-        ax.set_xlabel(f"Spearman's correlation with {name}")
-        ax.set_xticks(xticks)
-        ax.set_yticks(yticks)
-        ax.tick_params(axis='y', right=False, direction="inout", length=4)
-        ax.tick_params(axis='x', direction="inout", length=4)
-        ax.set_yticklabels(index)
-        ax.grid(False)
-        ylim = plt.ylim()
-        
-        ax2 = ax.twinx()
-        plt.sca(ax2)
-        plt.yticks(yticks, [])
-        plt.ylim(*ylim)
-        ax2.zorder = 1000
-        ax2.tick_params(direction="in")
-        
-        ax3 = ax.twiny()
-        plt.sca(ax3)
-        plt.xticks(xticks)
-        ax3.zorder = 1000
-        ax3.tick_params(direction="in", labeltop=False)
+        format_spearman_plot(ax, index, name, yranges)
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
@@ -129,87 +394,30 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     if index is None: index = rhos[0].index
     if sort:
         values = np.array([i.values for i in rhos])
-        rhos_mean = np.abs(values.mean(axis=0))
+        rhos_mean = np.abs(values).mean(axis=0)
         indices = [i[0] for i in sorted(enumerate(rhos_mean), key=lambda x: x[1])]
+        if top is not None: indices = indices[-top:]
         rhos = [[rho[i] for i in indices] for rho in values]
         index = [index[i] for i in indices]
     N = len(rhos)
     s = N + 1
-    if not color_wheel: color_wheel = tuple(CABBI_wheel)
-    if N > len(color_wheel):
-        raise ValueError("length of `color_wheel` must be equal "
-                         "to or greater than the number of columns in `rhos`")
+    if not color_wheel: color_wheel = CABBI_colors.wheel()
     fig, ax = plt.subplots()
     for i, rho in enumerate(rhos):
         plot_spearman_1d(rho, color=color_wheel[N - i - 1].RGBn, s=s, offset=i,
-                         fig=fig, ax=ax, style=False, sort=False, top=False)
+                         fig=fig, ax=ax, style=False, sort=False, top=None)
     # Plot central line
     yranges = [(s/2 + s*i - 1., 1.) for i in range(len(rhos[0]))]
-    plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
-    xticks = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]
-    yticks = [i[0]+i[1]/2 for i in yranges]
-    ax.set_xlim(-1, 1)
-    ax.set_xlabel(f"Spearman's correlation with {name}")
-    ax.set_xticks(xticks)
-    ax.set_yticks(yticks)
-    ax.tick_params(axis='y', right=False, direction="inout", length=4)
-    ax.tick_params(axis='x', direction="inout", length=4)
-    ax.set_yticklabels(index)
-    ax.grid(False)
-    ylim = plt.ylim()
-    
-    ax2 = ax.twinx()
-    plt.sca(ax2)
-    plt.yticks(yticks, [])
-    plt.ylim(*ylim)
-    ax2.zorder = 1000
-    ax2.tick_params(direction="in")
-    
-    ax3 = ax.twiny()
-    plt.sca(ax3)
-    plt.xticks(xticks)
-    ax3.zorder = 1000
-    ax3.tick_params(direction="in", labeltop=False)
+    format_spearman_plot(ax, index, name, yranges)
     return fig, ax
 
-# %% Plot metrics vs coordinate
-
-light_color = c.brown_tint.RGBn
-dark_color = c.brown_shade.RGBn
-
-def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
-    """Plot horizontal line."""
-    plt.axhline(y=y, color=color, **kwargs) 
-
-def plot_vertical_line(x, color='grey', **kwargs): # pragma: no coverage
-    """Plot vertical line."""
-    plt.axvline(x=x, color=color, **kwargs) 
-
-def plot_scatter_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', marker='o', **kwargs): # pragma: no coverage
-    """Plot scatter points and return patch artist."""
-    if xs is None: xs = tuple(range(len(ys)))
-    return plt.scatter(xs, ys, marker=marker, s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
-
-def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # pragma: no coverage
-    barwidth = 0.50
-    N_scenarios = len(scenarios)
-    N_labels = len(labels)
-    if positions is None: positions = N_labels * np.arange(N_scenarios, dtype=float)
-    data = (ys, colors, edgecolors, labels)
-    for y, color, edgecolor, label in zip(*data):
-        plt.bar(positions, y, barwidth,
-                align='center', label=label,
-                color=color, edgecolor=edgecolor)
-        positions += barwidth
-    
-    plt.xticks(positions-barwidth*(N_labels+1)/2, scenarios)
-    plt.tight_layout()
-    plt.legend()
+# %% Monte Carlo
 
 def plot_montecarlo(data, 
-                    light_color=light_color,
-                    dark_color=dark_color,
+                    light_color=None,
+                    dark_color=None,
                     positions=None,
+                    xmarks=None,
                     transpose=None): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
@@ -244,6 +452,8 @@ def plot_montecarlo(data,
             positions = (0,)
         else:
             positions = list(range(data.shape[1]))
+    if light_color is None: light_color = default_light_color
+    if dark_color is None: dark_color = default_dark_color
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
                      widths=0.8, whis=[5, 95],
                      boxprops={'facecolor':light_color,
@@ -254,11 +464,12 @@ def plot_montecarlo(data,
                                    'markerfacecolor': light_color,
                                    'markeredgecolor': dark_color,
                                    'markersize':6})
+    if xmarks: plt.xticks(positions, xmarks)
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 
-                                      light_color=light_color,
-                                      dark_color=dark_color): # pragma: no coverage
+                                      light_color=None,
+                                      dark_color=None): # pragma: no coverage
     """
     Plot Monte Carlo evaluation across a coordinate.
     
@@ -280,6 +491,8 @@ def plot_montecarlo_across_coordinate(xs, ys,
         5, 25, 50, 75 and 95th percentiles by row (5 rows total).
     
     """
+    if light_color is None: light_color = default_light_color
+    if dark_color is None: dark_color = default_dark_color
     q05, q25, q50, q75, q95 = percentiles = np.percentile(ys, [5,25,50,75,95], axis=0)
 
     plt.plot(xs, q50, '-',
@@ -296,7 +509,9 @@ def plot_montecarlo_across_coordinate(xs, ys,
              linewidth=1.0) # Upper whisker
     
     return percentiles
-    
+  
+# %% Contours
+  
 def plot_contour_1d(X_grid, Y_grid, data, 
                     xlabel, ylabel, xticks, yticks, 
                     metric_bars, fillblack=True): # pragma: no coverage
@@ -343,11 +558,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
         "data shape must be (X, Y, M, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
         "M is the number of metrics, and Z is the number of elements in Z_1d"
     )
-    widths = np.ones(ncols + 1)
-    widths[-1] /= 4
-    gs_kw = dict(width_ratios=widths)
-    fig, axes = plt.subplots(ncols=ncols + 1, nrows=nrows, gridspec_kw=gs_kw)
-    axes = axes.reshape([nrows, ncols + 1])
+    fig, axes = contour_subplots(nrows, ncols)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
     cbs = np.zeros([nrows], dtype=object)
@@ -400,14 +611,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
     assert data.shape == (*X_grid.shape, nrows, ncols), (
         "data shape must be (X, Y, M, N), where (X, Y) is the shape of both X_grid and Y_grid"
     )
-    widths = np.ones(ncols + 1)
-    widths[-1] /= 4
-    gs_kw = dict(width_ratios=widths)
-    fig, axes = plt.subplots(ncols=ncols + 1, nrows=nrows, gridspec_kw=gs_kw)
-    axes = axes.reshape([nrows, ncols + 1])
-    gs = axes[0, 0].get_gridspec()
-    for ax in axes[:, -1]: ax.remove()
-    ax_colorbar = fig.add_subplot(gs[:, -1])
+    fig, axes, ax_colorbar = contour_subplots(nrows, ncols, single_colorbar=True)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = c.neutral_shade.RGBn
