@@ -103,11 +103,9 @@ class Mixer(Unit):
             flow: 0
         
         """
-        outlet_port = OutletPort.from_outlet(stream)
-        inlet_port = InletPort.from_inlet(stream)
+        sink = stream.sink
+        sink.ins.replace(stream, self.outs[0])
         self.ins.append(stream)
-        outlet_port.set_stream(self.ins[-1], 3)
-        inlet_port.set_stream(self.outs[0], 3)
         
 
 class SteamMixer(Unit):

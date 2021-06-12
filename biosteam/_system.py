@@ -289,6 +289,7 @@ class System:
         '_irrelevant_units',
         '_converge_method',
         '_TEA',
+        '_LCA',
     )
     
     ### Class attributes ###

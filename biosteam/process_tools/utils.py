@@ -402,7 +402,10 @@ def get_OSBL(units):
     facilities.
     
     """
-    return [i for i in units if isinstance(i, (bst.Facility, bst.StorageTank)) or 'storage' in i.line]
+    return [i for i in units
+            if isinstance(i, (bst.Facility, bst.StorageTank))
+            or 'storage' in i.line.lower() 
+            or 'wastewater' in i.line.lower()]
 
 def heat_exchanger_operation(units):
     """

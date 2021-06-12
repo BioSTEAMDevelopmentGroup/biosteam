@@ -145,103 +145,109 @@ class HeatExchangerNetwork(Facility):
         bst.main_flowsheet.set_flowsheet(HXN_ID)
         self.HXN_flowsheet = HXN_F = bst.main_flowsheet
         for i in HXN_F.registries: i.clear()
-        matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables,\
-        HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
-        T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
-        hot_indices, cold_indices = \
-        synthesize_network(hx_utils, self.T_min_app, self.Qmin)
-        original_purchase_costs= [hx.purchase_cost for hx in hxs]
-        original_installed_costs = [hx.installed_cost for hx in hxs]
-        new_HXs = HXs_hot_side + HXs_cold_side
-        self.cold_indices = cold_indices
-        self.new_HXs = new_HXs
-        self.new_HX_utils = new_HX_utils
-        self.streams = streams
-        stream_life_cycles = self._get_stream_life_cycles()
-        all_units = new_HXs + new_HX_utils
-        IDs = set([i.ID for i in all_units])
-        assert len(all_units) == len(IDs)
-        for life_cycle in stream_life_cycles:
-            s_out = None
-            for i in life_cycle.life_cycle:
-                unit = i.unit
-                if s_out: unit.ins[i.index] = s_out
-                s_out = unit.outs[i.index]
-        self.HXN_sys = sys = bst.System.from_units(None, all_units)
-        try: 
-            sys._converge()
-        except:
-            warning = RuntimeWarning('heat exchanger network was not able to converge')
-            warn(warning)
-        for hx in sys.units:
-            hx._summary()
-        self.stream_life_cycles_final = stream_life_cycles
-        new_purchase_costs_HXp = []
-        new_purchase_costs_HXu = []
-        new_installed_costs_HXp = []
-        new_installed_costs_HXu = []
-        new_utility_costs = []
-        for hx in new_HX_utils:
-            new_installed_costs_HXu.append(hx.installed_cost)
-            new_purchase_costs_HXu.append(hx.purchase_cost)
-            new_utility_costs.append(hx.utility_cost)
-        for new_HX in new_HXs:
-            new_purchase_costs_HXp.append(new_HX.purchase_cost)
-            new_installed_costs_HXp.append(new_HX.installed_cost)
-        hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
-        new_heat_utils = sum([hx.heat_utilities for hx in new_HX_utils], ())
-        hu_sums2 = bst.HeatUtility.sum_by_agent(new_heat_utils)
-        # to change sign on duty without switching heat/cool (i.e. negative costs):
-        for hu in hu_sums1: hu.reverse()
-        hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
-        Q_bal = (
-            (2.*sum([abs(i.Q) for i in new_HXs])
-             + sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums2]))
-            / sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums1])
-        )
-        energy_balance_error = Q_bal - 1
-        if abs(energy_balance_error) > self.acceptable_energy_balance_error:
-            msg = ("heat exchanger network energy balance is off by "
-                  f"{energy_balance_error:.2%} (an absolute error greater "
-                  f"than {self.acceptable_energy_balance_error:.2%})")
-            warn(msg, RuntimeWarning, stacklevel=2)
-        self.installed_costs['Heat exchangers'] = (
-                sum(new_installed_costs_HXp)
-                + sum(new_installed_costs_HXu)
-                - sum(original_installed_costs)
-        )
-        self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
-            sum(new_purchase_costs_HXp) 
-            + sum(new_purchase_costs_HXu)
-            - sum(original_purchase_costs)
-        )
-        self.heat_utilities = hus_final
-        self.energy_balance_percent_error = 100 * energy_balance_error
-        self.original_heat_utils = hx_utils_rearranged
-        self.original_purchase_costs = original_purchase_costs
-        self.original_utility_costs = hu_sums1
-        self.new_purchase_costs_HXp = new_purchase_costs_HXp
-        self.new_purchase_costs_HXu = new_purchase_costs_HXu
-        self.new_utility_costs = hu_sums2
-        self.stream_HXs_dict = stream_HXs_dict
-        self.pinch_Ts = pinch_T_arr
-        self.inlet_Ts = T_in_arr
-        self.outlet_Ts = T_out_arr
-        new_hus = bst.process_tools.heat_exchanger_utilities_from_units(new_HX_utils)
-        hus_heating = [hu for hu in hx_utils if hu.duty > 0]
-        hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
-        self.original_heat_util_load = sum([hu.duty for hu in hus_heating])
-        self.original_cool_util_load = sum([abs(hu.duty) for hu in hus_cooling])
-        self.actual_heat_util_load = sum([hu.duty for hu in new_hus if hu.duty>0])
-        self.actual_cool_util_load = sum([abs(hu.duty) for hu in new_hus if hu.duty<0])
-        bst.main_flowsheet.set_flowsheet(original_flowsheet)
-        for i in range(len(stream_life_cycles)):
-            s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
-            lc = stream_life_cycles[i].life_cycle[-1]
-            s_lc = lc.unit.outs[lc.index]
-            np.testing.assert_allclose(s_util.mol, s_lc.mol)
-            np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+        try:
+            matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables,\
+            HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
+            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
+            hot_indices, cold_indices = \
+            synthesize_network(hx_utils, self.T_min_app, self.Qmin)
+            original_purchase_costs= [hx.purchase_cost for hx in hxs]
+            original_installed_costs = [hx.installed_cost for hx in hxs]
+            new_HXs = HXs_hot_side + HXs_cold_side
+            self.cold_indices = cold_indices
+            self.new_HXs = new_HXs
+            self.new_HX_utils = new_HX_utils
+            self.streams = streams
+            stream_life_cycles = self._get_stream_life_cycles()
+            all_units = new_HXs + new_HX_utils
+            IDs = set([i.ID for i in all_units])
+            assert len(all_units) == len(IDs)
+            for life_cycle in stream_life_cycles:
+                s_out = None
+                for i in life_cycle.life_cycle:
+                    unit = i.unit
+                    if s_out: unit.ins[i.index] = s_out
+                    s_out = unit.outs[i.index]
+            self.HXN_sys = sys = bst.System.from_units(None, all_units)
+            try: 
+                sys._converge()
+            except:
+                warning = RuntimeWarning('heat exchanger network was not able to converge')
+                warn(warning)
+            for hx in sys.units:
+                try:
+                    hx._summary()
+                except:
+                    hx.show('cwt100')
+                    breakpoint()
+            self.stream_life_cycles_final = stream_life_cycles
+            new_purchase_costs_HXp = []
+            new_purchase_costs_HXu = []
+            new_installed_costs_HXp = []
+            new_installed_costs_HXu = []
+            new_utility_costs = []
+            for hx in new_HX_utils:
+                new_installed_costs_HXu.append(hx.installed_cost)
+                new_purchase_costs_HXu.append(hx.purchase_cost)
+                new_utility_costs.append(hx.utility_cost)
+            for new_HX in new_HXs:
+                new_purchase_costs_HXp.append(new_HX.purchase_cost)
+                new_installed_costs_HXp.append(new_HX.installed_cost)
+            hu_sums1 = bst.HeatUtility.sum_by_agent(hx_utils_rearranged)
+            new_heat_utils = sum([hx.heat_utilities for hx in new_HX_utils], ())
+            hu_sums2 = bst.HeatUtility.sum_by_agent(new_heat_utils)
+            # to change sign on duty without switching heat/cool (i.e. negative costs):
+            for hu in hu_sums1: hu.reverse()
+            hus_final = tuple(bst.HeatUtility.sum_by_agent(hu_sums1 + hu_sums2))
+            Q_bal = (
+                (2.*sum([abs(i.Q) for i in new_HXs])
+                 + sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums2]))
+                / sum([abs(i.duty * i.agent.heat_transfer_efficiency) for i in hu_sums1])
+            )
+            energy_balance_error = Q_bal - 1
+            if abs(energy_balance_error) > self.acceptable_energy_balance_error:
+                msg = ("heat exchanger network energy balance is off by "
+                      f"{energy_balance_error:.2%} (an absolute error greater "
+                      f"than {self.acceptable_energy_balance_error:.2%})")
+                warn(msg, RuntimeWarning, stacklevel=2)
+            self.installed_costs['Heat exchangers'] = (
+                    sum(new_installed_costs_HXp)
+                    + sum(new_installed_costs_HXu)
+                    - sum(original_installed_costs)
+            )
+            self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
+                sum(new_purchase_costs_HXp) 
+                + sum(new_purchase_costs_HXu)
+                - sum(original_purchase_costs)
+            )
+            self.heat_utilities = hus_final
+            self.energy_balance_percent_error = 100 * energy_balance_error
+            self.original_heat_utils = hx_utils_rearranged
+            self.original_purchase_costs = original_purchase_costs
+            self.original_utility_costs = hu_sums1
+            self.new_purchase_costs_HXp = new_purchase_costs_HXp
+            self.new_purchase_costs_HXu = new_purchase_costs_HXu
+            self.new_utility_costs = hu_sums2
+            self.stream_HXs_dict = stream_HXs_dict
+            self.pinch_Ts = pinch_T_arr
+            self.inlet_Ts = T_in_arr
+            self.outlet_Ts = T_out_arr
+            new_hus = bst.process_tools.heat_exchanger_utilities_from_units(new_HX_utils)
+            hus_heating = [hu for hu in hx_utils if hu.duty > 0]
+            hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
+            self.original_heat_util_load = sum([hu.duty for hu in hus_heating])
+            self.original_cool_util_load = sum([abs(hu.duty) for hu in hus_cooling])
+            self.actual_heat_util_load = sum([hu.duty for hu in new_hus if hu.duty>0])
+            self.actual_cool_util_load = sum([abs(hu.duty) for hu in new_hus if hu.duty<0])
+            for i in range(len(stream_life_cycles)):
+                s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
+                lc = stream_life_cycles[i].life_cycle[-1]
+                s_lc = lc.unit.outs[lc.index]
+                np.testing.assert_allclose(s_util.mol, s_lc.mol)
+                np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+        finally:
+            bst.main_flowsheet.set_flowsheet(original_flowsheet)
     
     def _get_stream_life_cycles(self):
         cold_indices = self.cold_indices
