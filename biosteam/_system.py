@@ -1215,11 +1215,11 @@ class System:
         return self.operating_hours * utils.get_utility_flow(self.heat_utilities, agent)
     
     def get_cooling_duty(self):
-        """Return the total cooling duty in GJ/hr."""
+        """Return the total cooling duty in GJ/yr."""
         return self.operating_hours * utils.get_cooling_duty(self.heat_utilities)
     
     def get_heating_duty(self):
-        """Return the total heating duty in GJ/hr."""
+        """Return the total heating duty in GJ/yr."""
         return self.operating_hours * utils.get_heating_duty(self.heat_utilities)
     
     def get_purchase_cost(self):

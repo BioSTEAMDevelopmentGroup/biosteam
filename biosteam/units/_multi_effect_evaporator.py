@@ -262,6 +262,7 @@ class MultiEffectEvaporator(Unit):
             evaporators.append(evap)
         
         condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
+        condenser.parent = self
         self.heat_utilities = (first_evaporator.heat_utilities[0],
                                condenser.heat_utilities[0])
         mixer = Mixer(None, outs=[None], thermo=thermo)
