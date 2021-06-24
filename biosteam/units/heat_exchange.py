@@ -410,6 +410,7 @@ class HXutility(HX):
                     raise RuntimeError("vapor fraction, 'V', must be a "
                                        "positive fraction")
             elif T_given:
+                if self.ID == 'D403_H': breakpoint()
                 if outlet.isempty():
                     outlet.T = T
                 else:
@@ -426,6 +427,7 @@ class HXutility(HX):
                                 outlet.phase = 'g'
                             else:
                                 raise RuntimeError('outlet in vapor-liquid equilibrium, but stream is linked')
+                        outlet.T = T
             else:
                 outlet.vle(H=H, P=outlet.P)
         else:
