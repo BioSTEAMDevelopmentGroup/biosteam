@@ -410,7 +410,6 @@ class HXutility(HX):
                     raise RuntimeError("vapor fraction, 'V', must be a "
                                        "positive fraction")
             elif T_given:
-                if self.ID == 'D403_H': breakpoint()
                 if outlet.isempty():
                     outlet.T = T
                 else:
