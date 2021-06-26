@@ -294,10 +294,21 @@ class Model(State):
         self._metrics.append(metric)
         return metric 
     
+    def _sample_hook(self, samples, parameters):
+        if any([p.hook for p in parameters]):
+            return np.array(
+                [[(i if p.hook is None else p.hook(i))
+                  for p, i in zip(parameters, row)]
+                 for row in samples]
+            )
+        else:
+            return samples
+    
     def _load_sample_order(self, samples, parameters):
         key = lambda x: samples[x, i]
         index = list(range(samples.shape[0]))
         for i in range(self._N_parameters_cache-1,  -1, -1):
+            if not parameters[i].system: continue
             index.sort(key=key)
         self._index = index
         
@@ -322,6 +333,7 @@ class Model(State):
         if samples.shape[1] != N_parameters:
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(N_parameters)})')
         metrics = self._metrics
+        samples = self._sample_hook(samples, parameters)
         self._load_sample_order(samples, parameters)
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),

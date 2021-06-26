@@ -37,13 +37,19 @@ class Parameter(Variable):
         Baseline value of parameter.
     bounds : tuple[float, float]
         Lower and upper bounds of parameter.
-    
+    kind : str
+        * 'design': Parameter only affects unit operation design.
+        * 'coupled': Parameter affects mass and energy balances.
+        * 'isolated': Parameter does not affect the system in any way.
+    hook : Callable
+        Should return the new parameter value given the sample.
+        
     """
     __slots__ = ('setter', 'system', 'distribution', 
-                 'baseline', 'bounds', 'kind')
+                 'baseline', 'bounds', 'kind', 'hook')
     
     def __init__(self, name, setter, element, system, distribution,
-                 units, baseline, bounds, kind):
+                 units, baseline, bounds, kind, hook):
         if not name: name, *_ = signature(setter).parameters.keys()
         super().__init__(format_title(name), units, element)
         self.setter = setter
@@ -52,6 +58,7 @@ class Parameter(Variable):
         self.baseline = baseline
         self.bounds = bounds
         self.kind = kind
+        self.hook = hook
     
     @classmethod
     def sort_parameters(cls, parameters):
@@ -103,6 +110,7 @@ class Parameter(Variable):
             raise RuntimeError(f"invalid parameter kind '{kind}'")
     
     def __call__(self, value):
+        if self.hook: value = self.hook(value)
         self.setter(value)
         self.simulate()
     

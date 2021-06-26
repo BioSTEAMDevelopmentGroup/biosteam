@@ -194,7 +194,8 @@ class State:
         return tables_by_shape    
     
     def parameter(self, setter=None, element=None, kind='isolated', name=None, 
-                  distribution=None, units=None, baseline=None, bounds=None):
+                  distribution=None, units=None, baseline=None, bounds=None, 
+                  hook=None):
         """
         Define and register parameter.
         
@@ -218,6 +219,8 @@ class State:
             Baseline value of parameter.
         bounds : tuple[float, float]
             Lower and upper bounds of parameter.
+        hook : Callable
+            Should return the new parameter value given the sample.
         
         Notes
         -----
@@ -229,10 +232,10 @@ class State:
         if not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
-                                                 bounds)
+                                                 bounds, hook)
         p = Parameter(name, setter, element or 'biorefinery',
                       self.system, distribution, units, 
-                      baseline, bounds, kind)
+                      baseline, bounds, kind, hook)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()

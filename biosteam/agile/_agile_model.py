@@ -175,7 +175,7 @@ class AgileModel:
         key = lambda x: samples[x, i]
         index = list(range(samples.shape[0]))
         for i in range(self._N_parameters_cache - 1, -1, -1):
-            if not parameters[i].system: break
+            if not parameters[i].system: continue
             index.sort(key=key)
         self._index = index
         

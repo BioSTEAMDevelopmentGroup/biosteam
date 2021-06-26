@@ -11,6 +11,31 @@ import pytest
 from numpy.testing import assert_allclose
 import numpy as np
 
+def test_parameter_hook():
+    import biosteam as bst
+    from chaospy.distributions import Uniform
+    sys = bst.System(None, ())
+    model = bst.Model(sys)
+    
+    @model.parameter(distribution=Uniform(0., 1.), hook=round)
+    def set_param(x):
+        pass
+    
+    np.random.seed(0)
+    samples = model.sample(10, 'L')
+    model.load_samples(samples)
+    actual_values = [[1.],
+                     [0.],
+                     [0.],
+                     [0.],
+                     [0.],
+                     [0.],
+                     [1.],
+                     [1.],
+                     [1.],
+                     [1.]]
+    assert_allclose(model.table.values, actual_values) 
+
 def create_evaluation_model():
     import biosteam as bst
     from chaospy.distributions import Uniform

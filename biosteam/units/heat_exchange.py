@@ -703,6 +703,10 @@ class HXprocess(HX):
             s1_out.copy_like(s1_in)
             s2_out.copy_like(s2_in)
             self._run_counter_current_heat_exchange()
+            for s_out in (s1_out, s2_out):
+                if isinstance(s_out, bst.MultiStream):
+                    phase = s_out.phase
+                    if len(phase) == 1: s_out.phase = phase
     
     def _run_counter_current_heat_exchange(self):
         self.Q = ht.counter_current_heat_exchange(*self._ins, *self._outs,

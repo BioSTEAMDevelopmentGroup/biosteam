@@ -488,6 +488,12 @@ class System:
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream    
     
+    def copy(self, ID=None):
+        """Copy system.""" 
+        new = System(ID)
+        new.copy_like(self)
+        return new
+    
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system.""" 
         self._path = other._path
@@ -667,6 +673,7 @@ class System:
         units = self.units.copy()
         for i in self._facilities:
             if isa(i, Facility):
+                if i._system: continue
                 i._system = self
                 i._other_units = other_units = units.copy()
                 other_units.remove(i)
