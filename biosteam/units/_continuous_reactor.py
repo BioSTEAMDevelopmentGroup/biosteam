@@ -35,8 +35,6 @@ class ContinuousReactor(Unit, PressureVessel, isabstract=True):
     kW_per_m3=0.985: float
         Power usage of agitator
         (0.985 converted from 5 hp/1000 gal as in [1], for liquid–liquid reaction or extraction).
-    wall_thickness_factor=1: float
-        A safety factor to scale up the calculated minimum wall thickness.
     vessel_material : str, optional
         Vessel material. Default to 'Stainless steel 316'.
     vessel_type : str, optional
