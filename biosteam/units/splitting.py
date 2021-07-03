@@ -23,7 +23,7 @@ from .. import Unit
 from .._graphics import splitter_graphics
 from thermosteam import separations
 
-__all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter',
+__all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
            'ReversedSplitter')
 
 class Splitter(Unit):
@@ -226,9 +226,9 @@ class PhaseSplitter(Unit):
         separations.phase_split(*self.ins, self.outs)
 
 
-class FakeSplitter(Unit):
+class MockSplitter(Unit):
     """
-    Create a FakeSplitter object that does nothing when simulated.
+    Create a MockSplitter object that does nothing when simulated.
     """
     _graphics = Splitter._graphics
     _N_ins = 1
@@ -236,8 +236,10 @@ class FakeSplitter(Unit):
     _outs_size_is_fixed = False
     
     def _run(self): pass
-    
-FakeSplitter.line = 'Splitter'
+
+MockSplitter.line = 'Splitter'
+FakeSplitter = MockSplitter    
+
 
 class ReversedSplitter(Unit):
     """

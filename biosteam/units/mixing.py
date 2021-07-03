@@ -22,7 +22,7 @@ from .._graphics import mixer_graphics
 import flexsolve as flx
 import biosteam as bst
 
-__all__ = ('Mixer', 'SteamMixer')
+__all__ = ('Mixer', 'SteamMixer', 'FakeMixer', 'MockMixer')
 
 class Mixer(Unit):
     """
@@ -168,3 +168,17 @@ class SteamMixer(Unit):
         steam = self.ins[1]
         mixed = self.outs[0]
         self.heat_utilities[0](steam.H, mixed.T)
+        
+class MockMixer(Unit):
+    """
+    Create a MockMixer object that does nothing when simulated.
+    """
+    _graphics = Mixer._graphics
+    _N_ins = 2
+    _N_outs = 1
+    _ins_size_is_fixed = False
+    
+    def _run(self): pass
+
+MockMixer.line = 'Mixer'
+FakeMixer = MockMixer    

@@ -11,7 +11,7 @@ from thermosteam.utils import plots
 from thermosteam.utils.plots import *
 from biosteam.utils import colors
 from typing import NamedTuple, Iterable, Callable
-from matplotlib.colors import Colormap
+from matplotlib.colors import Colormap, TwoSlopeNorm
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LinearSegmentedColormap
@@ -29,6 +29,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     ticks: Iterable[float] = None
     N_levels: int = 20
     N_decimals: int = 0
+    center: float = None
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -51,6 +52,13 @@ class MetricBar(NamedTuple): # pragma: no coverage
             return f'{self.name} [{self.units}]'
         else:
             return self.name
+    
+    @property
+    def norm(self):
+        if self.center is not None:
+            return TwoSlopeNorm(vmin=self.ticks[0], 
+                                vcenter=self.center, 
+                                vmax=self.ticks[-1])
     
     def colorbar(self, fig, ax, colorplot, **cbarkwargs):
         cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)

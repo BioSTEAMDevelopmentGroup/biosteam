@@ -155,11 +155,8 @@ class Pump(Unit):
     def _run(self):
         s_in, = self.ins
         s_out, = self.outs
-        s_out.T = s_in.T
-        if self.P: 
-            s_out.P = self.P 
-        else:
-            s_out.P = s_in.P 
+        s_out.copy_like(s_in)
+        if self.P: s_out.P = self.P 
     
     def _design(self):
         Design = self.design_results

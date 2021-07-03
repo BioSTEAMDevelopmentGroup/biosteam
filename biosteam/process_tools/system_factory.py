@@ -31,9 +31,17 @@ class SystemFactory:
     ID : str, optional
         Default system name.
     ins: list[dict], optional
-        List of kwargs for initializing inlet streams.
+        List of key word arguments for initializing inlet streams.
     outs: list[dict], optional
-        List of kwargs for initializing outlet streams.
+        List of key word arguments for initializing outlet streams.
+    fixed_ins_size : bool, optional
+        Whether the number of inlets must match the number expected.
+    fixed_outs_size : bool, optional
+        Whether the number of outlets must match the number expected.
+    optional_ins_index : list[int]
+        Indexes of inlets that need not be connected to any unit within the system.
+    optional_outs_index : list[int]
+        Indexes of inlets that need not be connected to any unit within the system.
     
     Examples
     --------
@@ -117,10 +125,13 @@ class SystemFactory:
     """
     __slots__ = ('f', 'ID', 'ins', 'outs',
                  'fixed_ins_size',
-                 'fixed_outs_size')
+                 'fixed_outs_size',
+                 'optional_ins_index',
+                 'optional_outs_index')
     
     def __new__(cls, f=None, ID=None, ins=None, outs=None,
-                fixed_ins_size=True, fixed_outs_size=True):
+                fixed_ins_size=True, fixed_outs_size=True,
+                optional_ins_index=(), optional_outs_index=()):
         if f:
             params = list(signature(f).parameters)
             if params[:2] != ['ins', 'outs']:
@@ -137,9 +148,13 @@ class SystemFactory:
             self.outs = outs or []
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
+            self.optional_ins_index = optional_ins_index
+            self.optional_outs_index = optional_outs_index
             return self
         else:
-            return lambda f: cls(f, ID, ins, outs, fixed_ins_size, fixed_outs_size)
+            return lambda f: cls(f, ID, ins, outs, 
+                                 fixed_ins_size, fixed_outs_size,
+                                 optional_ins_index, optional_outs_index)
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
                  operating_hours=None, **kwargs):
@@ -152,8 +167,8 @@ class SystemFactory:
                 irrelevant_units = system._irrelevant_units
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
-        system.load_inlet_ports(ins)
-        system.load_outlet_ports(outs)
+        system.load_inlet_ports(ins, optional=[ins[i] for i in self.optional_ins_index])
+        system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
         if rename: 
             units = system.units
             if udct: unit_dct = {i.ID: i for i in units}

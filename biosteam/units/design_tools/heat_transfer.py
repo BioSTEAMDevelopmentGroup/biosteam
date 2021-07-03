@@ -91,7 +91,7 @@ def counter_current_heat_exchange(s0_in, s1_in, s0_out, s1_out,
     limits or the pinch temperature and return the total heat transfer 
     [Q; in kJ/hr].
     """
-    # Counter_current_heat_exchange_setup:
+    # Counter current heat exchange setup:
     # First find the hot inlet, cold inlet, hot outlet and cold outlet streams
     # along with the maximum temperature approaches for the hotside and the 
     # cold side.

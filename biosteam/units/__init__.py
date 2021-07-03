@@ -34,6 +34,7 @@ from ._conveying_belt import *
 from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._carbon_capture import *
+from ._continuous_reactor import *
 from .drying import *
 from .size_reduction import *
 from .size_enlargement import *
@@ -58,6 +59,7 @@ from . import (
     _clarifier, 
     _balance,  
     _screw_feeder,
+    _continuous_reactor,
     size_reduction, 
     size_enlargement,
     drying,
@@ -90,6 +92,7 @@ __all__ = ('Unit',
            *_multi_effect_evaporator.__all__,
            *distillation.__all__,
            *tank.__all__,
+           *_continuous_reactor.__all__,
            *_molecular_sieve.__all__,
            *_conveying_belt.__all__,
            *_vent_scrubber.__all__,

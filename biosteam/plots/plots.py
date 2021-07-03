@@ -62,23 +62,24 @@ def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black',
                        zorder=zorder, edgecolor=edgecolor, **kwargs) 
 
 def rounded_tickmarks_from_data(data, N_ticks, step_min, 
-                                lb_max=None, ub_min=None, expand=None, f=None):
+                                lb_max=None, ub_min=None, expand=None, f=None,
+                                center=None):
     get_max = lambda x: max([i.max() for i in x]) if isinstance(x, list) else x.max()
     get_min = lambda x: min([i.min() for i in x]) if isinstance(x, list) else x.min()
     lb = min([get_min(i) for i in data])
     ub = max([get_max(i) for i in data])
-    return rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max, ub_min, expand, f)
+    return rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max, ub_min, expand, f, center)
 
 def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max=None, ub_min=None,
-                                 expand=None, f=None):
+                                 expand=None, f=None, center=None):
     if lb_max is not None: lb = min(lb, lb_max)
     if expand is None: expand = 0.1
     diff = expand * (ub - lb)
     ub += diff
     if ub_min is not None: ub = max(ub, ub_min)
-    return rounded_linspace(lb, ub, N_ticks, step_min, f)
+    return rounded_linspace(lb, ub, N_ticks, step_min, f, center)
 
-def rounded_linspace(lb, ub, N, step_min, f=None):
+def rounded_linspace(lb, ub, N, step_min, f=None, center=None):
     lb = floor(lb / step_min) * step_min
     ub = ceil(ub / step_min) * step_min
     step = (ub - lb) / (N - 1)
@@ -88,7 +89,12 @@ def rounded_linspace(lb, ub, N, step_min, f=None):
     else:
         step = f(step)
         lb = f(lb)
-    return [0, 1] if step == 0 else [lb + step * i for i in range(N)]
+    values = [0, 1] if step == 0 else [lb + step * i for i in range(N)]
+    if center is not None:
+        offset = min(values, key=lambda x: abs(center - x))
+        values = [i - offset for i in values[0:-1]]
+        values = [values[0] - step, *values, values[-1] + step]
+    return values
         
 def default_colors_and_hatches(length, colors, hatches):
     if colors is None:
@@ -626,11 +632,13 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
             metric_data = data[:, :, row, col]
             cp = plt.contourf(X_grid, Y_grid, metric_data,
                               levels=metric_bar.levels,
-                              cmap=metric_bar.cmap)
+                              cmap=metric_bar.cmap,
+                              norm=metric_bar.norm)
             if label:
                 cs = plt.contour(cp, zorder=1e16,
                                  linestyles='dashed', linewidths=1.,
-                                 levels=cp.levels, colors=[linecolor])
+                                 norm=metric_bar.norm,
+                                 levels=metric_bar.levels, colors=[linecolor])
                 clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
                           fontsize=12, colors=['k'], zorder=1e16)
                 for i in clabels: i.set_rotation(0)

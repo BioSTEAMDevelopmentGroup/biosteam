@@ -248,7 +248,7 @@ class Flash(design.PressureVessel, Unit):
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
                         self.Q, self.x, self.y, self._multi_stream)
-
+            
     def _design(self):
         vessel_type = self.vessel_type
         if vessel_type == 'Vertical': 

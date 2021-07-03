@@ -52,6 +52,9 @@ class AgileSystem(AgileScenario):
         if not hasattr(cls, 'set_parameters'):
             raise NotImplementedError("missing method 'set_parameters'")
 
+    def _downstream_system(self, unit):
+        return self
+
     @property
     def units(self):
         return self.system.units
