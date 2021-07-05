@@ -10,7 +10,6 @@
 from ._unit import Unit
 from ._facility import Facility
 from .utils import streams_from_units
-from .digraph import digraph_from_units_and_streams, finalize_digraph
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
