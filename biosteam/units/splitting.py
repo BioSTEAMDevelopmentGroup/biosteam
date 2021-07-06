@@ -129,19 +129,19 @@ class Splitter(Unit):
        
        >>> S1.split = 0.5
        >>> S1.isplit.show()
-       ChemicalIndexer:
+       ChemicalSplitIndexer:
         Water    0.5
         Ethanol  0.5
         
        >>> S1.isplit['Water'] = 1.0
        >>> S1.isplit.show()
-       ChemicalIndexer:
+       ChemicalSplitIndexer:
         Water    1
         Ethanol  0.5
         
        >>> S1.split = [0.9, 0.8]
        >>> S1.isplit.show()
-       ChemicalIndexer:
+       ChemicalSplitIndexer:
         Water    0.9
         Ethanol  0.8
 

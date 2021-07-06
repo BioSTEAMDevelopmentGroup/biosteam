@@ -90,6 +90,9 @@ class ProcessSpecification(Unit):
     def specification(self, specification):
         assert callable(specification), "specification must be a function"
         self.__specification = specification
+    
+    def run(self):
+        self.__specification()
         
     def _run(self):
         self.__specification()

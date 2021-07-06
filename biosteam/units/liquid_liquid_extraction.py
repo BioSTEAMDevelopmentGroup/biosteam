@@ -86,9 +86,9 @@ class LLEUnit(bst.Unit, isabstract=True):
     --------
     >>> from biorefineries.lipidcane import chemicals
     >>> from biosteam import units, settings, Stream
-    >>> settings.set_thermo(chemicals['Methanol', 'Glycerol', 'Biodiesel', 'Lipid'])
+    >>> settings.set_thermo(chemicals['Methanol', 'Glycerol', 'Biodiesel', 'TAG'])
     >>> feed = Stream('feed', T=333.15,
-    ...               Lipid=0.996, Biodiesel=26.9,
+    ...               TAG=0.996, Biodiesel=26.9,
     ...               Methanol=32.9, Glycerol=8.97)
     >>> C1 = units.LLEUnit('C1', ins=feed, outs=('light', 'heavy'))
     >>> C1.simulate()
@@ -100,14 +100,14 @@ class LLEUnit(bst.Unit, isabstract=True):
         flow (kmol/hr): Methanol   32.9
                         Glycerol   8.97
                         Biodiesel  26.9
-                        Lipid      0.996
+                        TriOlein   0.996
     outs...
     [0] light
         phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   10.2
                         Glycerol   0.0239
                         Biodiesel  26.9
-                        Lipid      0.996
+                        TriOlein   0.996
     [1] heavy
         phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   22.7
@@ -273,9 +273,9 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     --------
     >>> from biorefineries.lipidcane import chemicals
     >>> from biosteam import units, settings, Stream
-    >>> settings.set_thermo(chemicals['Methanol', 'Glycerol', 'Biodiesel', 'Lipid'])
+    >>> settings.set_thermo(chemicals['Methanol', 'Glycerol', 'Biodiesel', 'TAG'])
     >>> feed = Stream('feed', T=333.15,
-    ...               Lipid=0.996, Biodiesel=26.9,
+    ...               TAG=0.996, Biodiesel=26.9,
     ...               Methanol=32.9, Glycerol=8.97)
     >>> C1 = units.LLECentrifuge('C1', ins=feed, outs=('light', 'heavy'))
     >>> C1.simulate()
@@ -287,14 +287,14 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
         flow (kmol/hr): Methanol   32.9
                         Glycerol   8.97
                         Biodiesel  26.9
-                        Lipid      0.996
+                        TriOlein   0.996
     outs...
     [0] light
         phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   10.2
                         Glycerol   0.0239
                         Biodiesel  26.9
-                        Lipid      0.996
+                        TriOlein   0.996
     [1] heavy
         phase: 'l', T: 333.15 K, P: 101325 Pa
         flow (kmol/hr): Methanol   22.7

@@ -176,7 +176,7 @@ class Pump(Unit):
         q = Qi*4.403 # gpm
         # Assume 100% efficiency to estimate the number of pumps
         # Note: i subscript refers to an individual pump
-        N_min = ceil(q / 5000)
+        N_min = 1
         N_guess = -1
         N = max(ceil(power_ideal / max_hp), N_min)
         while N != N_guess: 

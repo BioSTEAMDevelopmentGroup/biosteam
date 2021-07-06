@@ -159,8 +159,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   13.3
-                 Utility cost [10^6 USD/yr]   -28.7
+    Biorefinery  Internal rate of return [%]   13.7
+                 Utility cost [10^6 USD/yr]     -29
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:

@@ -10,7 +10,7 @@
 import numpy as np
 from ._batch_bioreactor import BatchBioreactor
 from scipy.integrate import odeint
-from thermosteam.reaction import Reaction
+from thermosteam.reaction import Reaction, ParallelReaction
 
 __all__ = ('Fermentation',)
 
@@ -171,6 +171,13 @@ class Fermentation(BatchBioreactor):
         cell_growth.basis = 'mol'
         self.iskinetic = iskinetic
         self.efficiency = efficiency
+        if all([i in self.chemicals for i in ('FFA', 'DAG', 'TAG', 'Glycerol')]):
+            self.lipid_reaction = ParallelReaction([
+                Reaction('TAG + 3Water -> 3FFA + Glycerol', 'TAG', 0.23),
+                Reaction('TAG + Water -> FFA + DAG', 'TAG', 0.02)
+            ])
+        else:
+            self.lipid_reaction = None
         
     def _calc_efficiency(self, feed, tau): # pragma: no cover
         # Get initial concentrations
@@ -258,4 +265,5 @@ class Fermentation(BatchBioreactor):
             self.fermentation_reaction.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation_reaction(effluent_mol)
         self.cell_growth_reaction(effluent_mol)
+        if self.lipid_reaction: self.lipid_reaction(effluent_mol)
         vent.receive_vent(effluent)

@@ -17,7 +17,7 @@ __all__ = ('Transesterification',)
       CE=525.4, cost=15000, n=0.55, kW=1.5, BM=4.3,)
 class Transesterification(Unit):
     """
-    Create a transesterification reactor that converts 'Lipid' and 'Methanol'
+    Create a transesterification reactor that converts 'TAG', 'DAG', 'MAG' and 'Methanol'
     to 'Biodiesel' and 'Glycerol'. Finds the amount of catalyst 'NaOCH3'
     required and consumes it to produce 'NaOH' and 'Methanol'.
     
@@ -30,10 +30,10 @@ class Transesterification(Unit):
         Reactor effluent.
     efficiency : float
         Efficiency of conversion (on a 'Lipid' basis).
-    methanol2lipid : float
-        Methanol feed to lipid molar ratio.
-    catalyst_molfrac : float
-        Catalyst to methanol molar ratio.
+    excess_methanol : float
+        Excess methanol fed in addition to the required stoichiometric amount.
+    x_catalyst : float
+        Catalyst molar fraction in methanol feed.
     T : float
         Operating temperature [K].
     
@@ -45,28 +45,24 @@ class Transesterification(Unit):
     _N_outs = 1
     _N_heat_utilities = 1
 
-    def _more_design_specs(self):
+    def _get_design_info(self):
         return (('Residence time', self.tau, 'hr'),
                 ('Conversion efficiency', self.efficiency, ''),
                 ('Working volume fraction', 0.8, ''))
 
     def __init__(self, ID='', ins=None, outs=(), *,
-                 efficiency, methanol2lipid, T, catalyst_molfrac):
+                 efficiency, excess_methanol, T, x_catalyst):
         Unit.__init__(self, ID, ins, outs)
-        #: [:class:`~thermosteam.ParallelReaction`] Transesterification and catalyst consumption reaction
-        self.reaction = ParallelReaction([
-          Reaction('Lipid + 3Methanol -> 3Biodiesel + Glycerol',
-                   reactant='Lipid',  X=efficiency),
-          Reaction('NaOCH3 -> NaOH + Methanol',
-                   reactant='NaOCH3', X=1)])
-        chemicals = self.chemicals
-        self._methanol_composition = chemicals.kwarray(
-                dict(Methanol=1-catalyst_molfrac,
-                     NaOCH3=catalyst_molfrac))
-        self._lipid_index, self._methanol_index, self._catalyst_index = \
-                chemicals.get_index(('Lipid', 'Methanol', 'NaOCH3'))
-        self._methanol2lipid = methanol2lipid
-        self.T = T #: Operating temperature (K).
+        #: [:class:`~thermosteam.ParallelReaction`] Transesterification and catalyst consumption reactions.
+        self.transesterification = ParallelReaction([
+          Reaction('MAG + Methanol -> Biodiesel + Glycerol', reactant='MAG',  X=efficiency),
+          Reaction('DAG + 2Methanol -> 2Biodiesel + Glycerol', reactant='DAG',  X=efficiency),
+          Reaction('TAG + 3Methanol -> 3Biodiesel + Glycerol', reactant='TAG',  X=efficiency),
+          Reaction('NaOCH3 -> NaOH + Methanol', reactant='NaOCH3', X=1)
+        ])
+        self.x_catalyst = x_catalyst #: [float] Catalyst molar fraction in methanol feed.
+        self.excess_methanol = excess_methanol #: [float] Excess methanol fed in addition to the required stoichiometric amount.
+        self.T = T #: [float] Operating temperature (K).
     
     @property
     def tau(self):
@@ -79,37 +75,23 @@ class Transesterification(Unit):
     @property
     def efficiency(self):
         """Transesterification efficiency."""
-        return self.reaction.X[0]
+        return self.transesterification.X[:-1].mean()
     @efficiency.setter
     def efficiency(self, efficiency):
-        self.reaction.X[0] = efficiency
-    
-    @property
-    def methanol2lipid(self):
-        """Methanol feed to lipid molar ratio."""
-        return self._methanol2lipid
-    @methanol2lipid.setter
-    def methanol2lipid(self, ratio):
-        self._methanol2lipid = ratio
-
-    @property
-    def catalyst_molfrac(self):
-        """Catalyst molar fraction in methanol feed."""
-        return self._methanol_composition[self._catalyst_index]
-    @catalyst_molfrac.setter
-    def catalyst_molfrac(self, molfrac):
-        meoh = self._methanol_composition
-        meoh[self._catalyst_index] = molfrac
-        meoh[self._methanol_index] = 1-molfrac
-
+        self.transesterification.X[:-1] = efficiency
+        
     def _run(self):
         feed, methanol = self.ins
         product, = self.outs
-        methanol.mol[:] = (self._methanol_composition
-                         * feed.mol[self._lipid_index]
-                         * self._methanol2lipid)
-        product.mol[:] = feed.mol + methanol.mol
-        self.reaction(product.mol)
+        x_catalyst = self.x_catalyst
+        x_methanol = 1. - x_catalyst
+        required_methanol = 1. + self.excess_methanol
+        methanol.imol['Methanol'] = x_methanol * required_methanol * (
+              feed.imol['MAG'] + 2 * feed.imol['DAG'] + 3 * feed.imol['TAG'] 
+        )
+        methanol.imol['NaOCH3'] =  x_catalyst / x_methanol * methanol.imol['Methanol'] 
+        product.mix_from([feed, methanol], energy_balance=False)
+        self.transesterification(product)
         product.T = self.T
         
     def _design(self):
