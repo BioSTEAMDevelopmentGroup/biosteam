@@ -7,9 +7,8 @@
 # for license details.
 """
 """
-__all__ = ('Variable',)
+__all__ = ('Variable', 'MockVariable')
 from ._name import element_name
-
 
 class Variable:
     """
@@ -32,6 +31,9 @@ class Variable:
         self.name = name
         self.units = units
         self.element = element
+    
+    def mockup(self):
+        return MockVariable(self.name, self.units, self.element)
     
     @classmethod
     def check_index_unique(cls, variable, variables):
@@ -101,7 +103,7 @@ class Variable:
             units = (' [' + str(self.units) + ']')
         else:
             units = ''
-        if self.distribution:
+        if getattr(self, 'distribution', None):
             distribution_values = self.distribution._repr.values()
             distribution = ', '.join([format(j, number_format)
                                       for j in distribution_values])
@@ -115,6 +117,7 @@ class Variable:
                 description = first_letter.upper() + description[1:]
         return description
     
+    
     def __repr__(self):
         units = f" ({self.units})" if self.units else ""
         element = f" [{self.element_name}]" if self.element else ""
@@ -122,3 +125,18 @@ class Variable:
     
     def show(self):
         print(self._info())
+     
+
+class MockVariable(Variable):
+    __slots__ = ()
+    def __init__(self, name, units, element):
+        self.name = name
+        self.units = units
+        self.element = element_name(element)
+    
+    @property
+    def element_name(self):
+        return self.element
+    
+    def __repr__(self):
+        return f"MockVariable('{self.name}', '{self.units}', '{self.element}')"

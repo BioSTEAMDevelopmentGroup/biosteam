@@ -256,7 +256,9 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
         hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged, \
         H_out_arr, streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
     duties = np.array([abs(hx.Q)  for hx in hxs])
-    C_flow_vector = duties/np.abs(T_in_arr - T_out_arr)
+    dTs = np.abs(T_in_arr - T_out_arr)
+    dTs[dTs == 0.] = 1e-6
+    C_flow_vector = duties/dTs
     Q_hot_side = {}
     Q_cold_side = {}
     indices = hot_indices + cold_indices

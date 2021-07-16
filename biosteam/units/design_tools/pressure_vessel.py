@@ -82,6 +82,9 @@ class PressureVessel:
         return method(pressure, diameter, length)
     
     def _horizontal_vessel_design(self, pressure, diameter, length) -> dict:
+        pressure = float(pressure)
+        diameter = float(diameter)
+        length = float(length)
         # Calculate vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
         if pressure < 14.68:
@@ -103,6 +106,9 @@ class PressureVessel:
         return Design
     
     def _vertical_vessel_design(self, pressure, diameter, length) -> dict:
+        pressure = float(pressure)
+        diameter = float(diameter)
+        length = float(length)
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
         if pressure < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '
@@ -125,6 +131,9 @@ class PressureVessel:
         return Design
 
     def _vessel_purchase_cost(self, weight, diameter, length) -> dict:
+        weight = float(weight)
+        diameter = float(diameter)
+        length = float(length)
         vessel_type = self.vessel_type
         if vessel_type == 'Horizontal':
             method = self._horizontal_vessel_purchase_cost

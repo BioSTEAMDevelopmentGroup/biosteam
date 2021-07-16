@@ -582,6 +582,24 @@ class System:
     
     save_report = save_report
     
+    def _extend_recycles(self, recycles):
+        isa = isinstance
+        recycle = self._recycle
+        if recycle:
+            if isa(recycle, Stream):
+                recycles.append(recycle)
+            elif isa(recycle, Iterable):
+                recycles.extend(recycle)
+            else:
+                raise_recycle_type_error(recycle)
+        for i in self._path:
+            if isa(i, System): i._extend_recycles(recycles)
+    
+    def get_all_recycles(self):
+        recycles = []
+        self._extend_recycles(recycles)
+        return recycles
+    
     def _extend_flattend_path_and_recycles(self, path, recycles, stacklevel):
         isa = isinstance
         recycle = self._recycle
