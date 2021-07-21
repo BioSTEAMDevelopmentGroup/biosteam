@@ -59,13 +59,13 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
         Electricity consumption per volume [kW/m3]. The default is 0..
     V_wf : float, optional
         Fraction of working volume. The default is 0.9.
-    V_min : , optional
+    V_min : float, optional
         Minimum tank volume. The default is 0..
-    V_max : TYPE, optional
+    V_max : float, optional
         Maximum tank volume. The default is 1e6.
     V_units : str, optional
         Volume units of measure. The default is 'm3'.
-    material : TYPE, optional
+    material : str, optional
         Vessel material. The default is 'Carbon steel'.
     vessel_type : str, optional
         Name of vessel type. The default is 'Tank'.
