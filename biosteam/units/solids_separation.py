@@ -30,7 +30,7 @@ from biosteam.utils import remove_undefined_chemicals, default_chemical_dict
 import numpy as np
 import biosteam as bst
 from thermosteam import separations
-from math import exp, log
+from math import exp, log, ceil
 
 __all__ = ('SolidsSeparator', 'RotaryVacuumFilter', 'CrushingMill', 
            'PressureFilter', 'SolidsCentrifuge', 'RVF',
@@ -72,12 +72,10 @@ class SolidsSeparator(Splitter):
         )
 
 
-@cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03,
-      N='Number of centrifuges')
 class SolidsCentrifuge(SolidsSeparator):
     """
     Create a solids centrifuge that separates out solids according to
-    user defined split. Assume a continuous scroll solid bowl. 
+    user defined split.
     
     Parameters
     ----------
@@ -94,6 +92,9 @@ class SolidsCentrifuge(SolidsSeparator):
              IDs of solids.
     moisture_content : float
         Fraction of water in stream [0].
+    centrifuge_type : str
+        Type of the centrifuge, either 'reciprocating_pusher' (1-20 ton/hr solids)
+        or 'scroll_solid_bowl' (2-40 ton/hr solids).
     
     
     References
@@ -105,14 +106,19 @@ class SolidsCentrifuge(SolidsSeparator):
     """
     _units = {'Solids loading': 'ton/hr',
               'Flow rate': 'm3/hr'}
-    minimum_solids_loading = 2
+    solids_loading_range = {
+    'reciprocating_pusher': (1, 20),
+    'scroll_solid_bowl': (2, 40)
+    }
     kWhr_per_m3 = 1.40
 
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 split, order=None, solids=(), moisture_content=0.40):
+                 split, order=None, solids=(), moisture_content=0.40,
+                 centrifuge_type='scroll_solid_bowl'):
         SolidsSeparator.__init__(self, ID, ins, outs, thermo, moisture_content=moisture_content, split=split, order=order)
         self.solids = solids
+        self.centrifuge_type = centrifuge_type
     
     @property
     def solids(self):
@@ -121,14 +127,29 @@ class SolidsCentrifuge(SolidsSeparator):
     def solids(self, solids):
         self._solids = tuple(solids)
     
+    @property
+    def centrifuge_type(self):
+        return self._centrifuge_type
+    @centrifuge_type.setter
+    def centrifuge_type(self, i):
+        if not i in ('reciprocating_pusher', 'scroll_solid_bowl'):
+            raise ValueError('`centrifuge_type` can only be "reciprocating_pusher" or '
+                            f'"scroll_solid_bowl", not {i}.')
+        self._centrifuge_type = i
+
     def _design(self):
-        solids = self._solids
+        solids, centrifuge_type = self._solids, self.centrifuge_type
         ts = sum([s.imass[solids].sum() for s in self.ins if not s.isempty()]) # Total solids
         ts *= 0.0011023 # To short tons (2000 lbs/hr)
         self.design_results['Solids loading'] = ts
-        lb = self.minimum_solids_loading
+        lb, ub = self.solids_loading_range[centrifuge_type]
         if ts < lb:
             lb_warning(self, 'Solids loading', ts, 'ton/hr', lb)
+        self.design_results['Number of centrifuges'] = ceil(ts/ub)
+        cost = 68040*(ts**0.5) if centrifuge_type else 170100*(ts**0.3)
+        cost *= bst.CE / 567
+        self.baseline_purchase_costs['Centrifuges'] = cost
+        self.F_BM['Centrifuges'] = 2.03
         self.design_results['Flow rate'] = F_vol_in = self.F_vol_in
         self.power_utility(F_vol_in * self.kWhr_per_m3)
 
