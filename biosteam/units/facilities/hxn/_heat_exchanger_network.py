@@ -181,6 +181,8 @@ class HeatExchangerNetwork(Facility):
             except:
                 warning = RuntimeWarning('heat exchanger network was not able to converge')
                 warn(warning)
+            for i in sys.units:
+                i._summary()
             self.stream_life_cycles_final = stream_life_cycles
             new_purchase_costs_HXp = []
             new_purchase_costs_HXu = []
