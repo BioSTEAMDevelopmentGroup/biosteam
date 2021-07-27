@@ -47,7 +47,8 @@ __all__ = (
 def is_storage_unit(unit):
     return (
         ('storage' in unit.line.lower() 
-         or isinstance(unit, bst.StorageTank)) 
+         or isinstance(unit, bst.StorageTank)
+         or 'storage' in unit.__class__.__name__.lower()) 
         and (unit.ins[0].isfeed() or unit.outs[0].isproduct())
     )
 
@@ -218,11 +219,12 @@ def ID_number(ID):
     the area is an integer. Returns None if no area is found
     
     """
-    ID, *_ = ID.split('_')
     for i, letter in enumerate(ID):
         if letter.isdigit(): break
     for j, letter in enumerate(ID[i:], start=i+1):
-        if not letter.isdigit(): break
+        if not letter.isdigit(): 
+            j -= 1
+            break
     return ID[i:j]
     
 def ID_area(ID):

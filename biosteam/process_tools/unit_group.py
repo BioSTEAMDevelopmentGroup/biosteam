@@ -29,10 +29,12 @@ COOLING_DUTY = 'Cooling duty'
 HEATING_DUTY = 'Heating duty'
 ELECTRICITY_CONSUMPTION = 'Electricity consumption'
 ELECTRICITY_PRODUCTION = 'Electricity production'
+MATERIAL_COST = 'Materiral cost'
+MAT_COST = 'Mat. cost'
 CAPITAL_UNITS = 'MM$'
 ELEC_UNITS = 'MW'
 DUTY_UNITS = 'GJ/hr'
-
+MAT_UNITS = 'USD/hr'
 
 # %% Unit group for generating results
 
@@ -126,9 +128,10 @@ class UnitGroup:
      'Sucrose flow rate [kg/hr]': 1026.88}
     
     """
-    __slots__ = ('name', 'units', 'metrics', 'filter_savings')
+    __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')
     
-    def __init__(self, name=None, units=(), metrics=None, filter_savings=True):
+    def __init__(self, name=None, units=(), metrics=None, 
+                 filter_savings=True, extend_feed_ends=True):
         #: [str] Name of group for bookkeeping
         self.name = 'Unnamed' if name is None else str(name)
         
@@ -143,15 +146,20 @@ class UnitGroup:
         #: list[Metric] Metrics to generate results
         self.metrics = metrics
         
-        # [bool] Whether to only allow postive flows in utility results
+        #: [bool] Whether to only allow postive flows in utility results
         self.filter_savings = filter_savings
+        
+        #: [bool] Whether to consider feeds past external storage, pumps, and heat 
+        #: exchangers for calculating material costs.
+        self.extend_feed_ends = extend_feed_ends
     
     def autofill_metrics(self, shorthand=False, 
                          installed_cost=True,
                          cooling_duty=True,
                          heating_duty=True,
                          electricity_consumption=True,
-                         electricity_production=False):
+                         electricity_production=False,
+                         material_cost=True):
         if installed_cost:
             self.metric(self.get_installed_cost,
                         INST_EQ_COST if shorthand else INSTALLED_EQUIPMENT_COST,
@@ -172,6 +180,10 @@ class UnitGroup:
             self.metric(self.get_electricity_production,
                         ELEC_PROD if shorthand else ELECTRICITY_PRODUCTION,
                         ELEC_UNITS)
+        if material_cost:
+            self.metric(self.get_material_cost,
+                        MAT_COST if shorthand else MATERIAL_COST,
+                        MAT_UNITS)
     
     def __iter__(self):
         return iter(self.units)
@@ -371,6 +383,17 @@ class UnitGroup:
             return sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
         else:
             return sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
+    
+    def get_material_cost(self):
+        """Return the total material cost in USD/hr"""
+        inlets = bst.utils.feeds_from_units(self.units)
+        inlets = set(inlets)
+        bst.utils.filter_out_missing_streams(inlets)
+        if self.extend_feed_ends:
+            get_inlet_origin = bst.utils.get_inlet_origin
+            inlets = [get_inlet_origin(i) for i in inlets]
+        feeds = bst.utils.feeds(inlets)
+        return sum([i.cost for i in feeds])
     
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in GJ/hr"""

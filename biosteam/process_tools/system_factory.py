@@ -176,7 +176,8 @@ class SystemFactory:
             utils.rename_units(units, area)
             if udct: return system, unit_dct
         elif udct:
-            raise ValueError('cannot request unit dictionary if no area given; udct cannot be True')
+            unit_dct = {i.ID: i for i in system.units}
+            return system, unit_dct
         return system
     
     def show(self):

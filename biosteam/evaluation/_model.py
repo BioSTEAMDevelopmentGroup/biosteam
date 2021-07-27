@@ -414,7 +414,7 @@ class Model(State):
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
-                                   multi_coordinate=False):
+                                   f_evaluate=None, multi_coordinate=False):
         """
         Evaluate across coordinate and save sample metrics.
         
@@ -443,6 +443,7 @@ class Model(State):
         metric_indices = var_indices(self.metrics)
         shape = (N_samples, N_points)
         metric_data = {i: np.zeros(shape) for i in metric_indices}
+        if f_evaluate is None: f_evaluate = self.evaluate
         
         # Initialize timer
         if notify_coordinate:
@@ -450,10 +451,10 @@ class Model(State):
             timer = TicToc()
             timer.tic()
             def evaluate():
-                self.evaluate(notify=notify)
+                f_evaluate(notify=notify)
                 print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
-            evaluate = self.evaluate
+            evaluate = f_evaluate
         
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)

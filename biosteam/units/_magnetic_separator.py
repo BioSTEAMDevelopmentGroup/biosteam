@@ -13,5 +13,7 @@ from .decorators import cost
 __all__ = ('MagneticSeparator',)
 
 @cost('Flow rate', units='kg/hr', CE=576, cost=533471, S=333333, BM=4.16, n=0.6)
-class MagneticSeparator(Unit): pass
-    
+class MagneticSeparator(Unit): 
+    _N_outs = 2
+    def _run(self):
+        self.outs[0].copy_like(self.ins[0])

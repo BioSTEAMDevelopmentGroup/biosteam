@@ -108,6 +108,7 @@ class HeatExchangerNetwork(Facility):
      	]>]
         
     """
+    ticket_name = 'HXN'
     acceptable_energy_balance_error = 0.02
     network_priority = -1
     _N_ins = 0
@@ -169,17 +170,17 @@ class HeatExchangerNetwork(Facility):
                     if s_out: unit.ins[i.index] = s_out
                     s_out = unit.outs[i.index]
             self.HXN_sys = sys = bst.System.from_units(None, all_units)
+            
+            # # Handle special case for heat exchanger crossing the pinch
+            # for hx in new_HXs:
+            #     if all([isinstance(i.sink, bst.HXutility) for i in hx.outs]):
+            #         hx.Tlim1 = None
+            #         hx.Hlim1 = hx.outs[1].sink.H
             try: 
                 sys._converge()
             except:
                 warning = RuntimeWarning('heat exchanger network was not able to converge')
                 warn(warning)
-            for hx in sys.units:
-                try:
-                    hx._summary()
-                except:
-                    hx.show('cwt100')
-                    breakpoint()
             self.stream_life_cycles_final = stream_life_cycles
             new_purchase_costs_HXp = []
             new_purchase_costs_HXu = []

@@ -8,6 +8,7 @@
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
+import biosteam as bst
 from thermosteam.utils import Registry
 from thermosteam import Stream
 from biosteam.utils import feeds_from_units, sort_feeds_big_to_small
@@ -218,20 +219,27 @@ class Flowsheet:
     
     def __call__(self, ID):
         """
-		Return requested biosteam item.
+		Return requested biosteam item or all items with given Unit subclass.
     
         Parameters
         ----------
-        ID : str
-              ID of the requested item.
+        ID : str or type
+            ID of the requested item or Unit subclass.
     
         """
-        ID = ID.replace(' ', '_')
-        obj = (self.stream.search(ID)
-               or self.unit.search(ID)
-               or self.system.search(ID))
-        if not obj: raise LookupError(f"no registered item '{ID}'")
-        return obj
+        isa = isinstance
+        if isa(ID, str):
+            ID = ID.replace(' ', '_')
+            obj = (self.stream.search(ID)
+                   or self.unit.search(ID)
+                   or self.system.search(ID))
+            if not obj: raise LookupError(f"no registered item '{ID}'")
+            return obj
+        elif issubclass(ID, bst.Unit):
+            cls = ID
+            return [i for i in self.unit if isa(i, cls)]
+        else:
+            raise ValueError('ID must be either a string or a Unit subclass')
     
     def __str__(self):
         return self.ID

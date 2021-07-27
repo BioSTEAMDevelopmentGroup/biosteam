@@ -19,7 +19,8 @@ __all__ = ('streams_from_units',
            'filter_out_missing_streams',
            'sort_feeds_big_to_small',
            'feeds_from_units',
-           'products_from_units')
+           'products_from_units',
+           'get_inlet_origin')
 
 feed_priorities = {}
 
@@ -43,6 +44,20 @@ def streams_from_path(path):
         elif isa(i, Unit):
             streams.update(i._ins + i._outs)
     return streams
+
+def get_inlet_origin(inlet):
+    source = inlet.source
+    while source:
+        if len(source.ins) == len(source.outs) == 1 and 'processing' not in source.line.lower():
+            inlet = source.ins[0]
+        elif isinstance(source, bst.HXprocess):
+            index = source.outs.index(inlet)
+            inlet = source.ins[index]
+        else:
+            break
+        source = inlet.source
+    return inlet
+        
 
 def process_streams(streams):
     return {i for i in streams if i._source and i._sink}

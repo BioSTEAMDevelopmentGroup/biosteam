@@ -83,7 +83,7 @@ class Boiler(Facility):
         (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
-    ticket_name = 'B'
+    ticket_name = 'BT'
     network_priority = 0
     boiler_blowdown = 0.03
     RO_rejection = 0
@@ -522,8 +522,8 @@ class BoilerTurbogenerator(Facility):
         excess_electricity = calculate_excess_electricity_at_natual_gas_flow(0)
         if excess_electricity < 0:
             f = calculate_excess_electricity_at_natual_gas_flow
-            lb = excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
-            ub = 10 * lb
+            lb = 0.
+            ub = excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
             while f(ub) < 0.: 
                 lb = ub
                 ub *= 2
