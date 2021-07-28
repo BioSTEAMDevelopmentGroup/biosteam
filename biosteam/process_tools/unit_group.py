@@ -11,7 +11,6 @@ import biosteam as bst
 import numpy as np
 from . import utils
 from ..utils import misc
-from ..evaluation import Metric
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
 from ..plots import style_axis
@@ -244,8 +243,8 @@ class UnitGroup:
         
         """
         if not getter: return lambda getter: self.metric(getter, name, units, element)
-        metric = Metric(name, getter, units, element)
-        Metric.check_index_unique(metric, self.metrics)
+        metric = bst.Metric(name, getter, units, element)
+        bst.Metric.check_index_unique(metric, self.metrics)
         self.metrics.append(metric)
         return metric 
     

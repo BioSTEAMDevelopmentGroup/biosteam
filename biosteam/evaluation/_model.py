@@ -386,7 +386,7 @@ class Model(State):
     def _run_exception_hook(self, sample):
         self._reset_system()
         try:
-            self._system.simulate()
+            self._specification() if self._specification else self._system.simulate()
             return [i() for i in self.metrics]
         except Exception as exception:
             if self._exception_hook: 

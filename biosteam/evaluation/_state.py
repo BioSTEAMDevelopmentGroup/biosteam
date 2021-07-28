@@ -8,7 +8,7 @@
 """
 """
 from ._parameter import Parameter
-from .. import Unit
+from .. import System
 import numpy as np
 import pandas as pd
 from .evaluation_tools import load_default_parameters
@@ -103,7 +103,7 @@ class State:
         self._specification = specification
         self._N_parameters_cache = None
     
-    specification = Unit.specification
+    specification = System.specification
     
     @property
     def system(self):
