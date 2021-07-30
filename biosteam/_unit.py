@@ -628,7 +628,10 @@ class Unit:
         if options:
             s_in = self._ins[0]
             s_out = self._outs[0]
-            s_out.link_with(s_in, options.flow, options.phase, options.TP)
+            try:
+                s_out.link_with(s_in, options.flow, options.phase, options.TP)
+            except:
+                pass
     
     def add_specification(self, specification=None, run=None):
         if not specification: return lambda specification: self.add_specification(specification, run)

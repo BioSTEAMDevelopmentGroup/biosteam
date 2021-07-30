@@ -75,16 +75,18 @@ class UnitGroup:
      <Metric: Cooling duty (GJ/hr)>,
      <Metric: Heating duty (GJ/hr)>,
      <Metric: Electricity consumption (MW)>,
-     <Metric: Electricity production (MW)>]
+     <Metric: Electricity production (MW)>,
+     <Metric: Materiral cost (USD/hr)>]
     
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.056,
-     'Cooling duty [GJ/hr]': 0.37,
+    {'Installed equipment cost [MM$]': 0.05627916170478936,
+     'Cooling duty [GJ/hr]': 0.37452298301788894,
      'Heating duty [GJ/hr]': 0.0,
-     'Electricity consumption [MW]': 0.00082,
-     'Electricity production [MW]': 0.0}
+     'Electricity consumption [MW]': 0.0008217540961719651,
+     'Electricity production [MW]': 0.0,
+     'Materiral cost [USD/hr]': 0.0}
     
     Each result can be retrieved separately:
     
@@ -114,6 +116,7 @@ class UnitGroup:
               Heating duty [GJ/hr]
               Electricity consumption [MW]
               Electricity production [MW]
+              Materiral cost [USD/hr]
               Moisture content
               Sucrose flow rate [kg/hr]
     
@@ -123,8 +126,9 @@ class UnitGroup:
      'Heating duty [GJ/hr]': 0.0,
      'Electricity consumption [MW]': 0.00082,
      'Electricity production [MW]': 0.0,
+     'Materiral cost [USD/hr]': 0.0,
      'Moisture content': 0.63,
-     'Sucrose flow rate [kg/hr]': 1026.88}
+     'Sucrose flow rate [kg/hr]': 1026.8}
     
     """
     __slots__ = ('name', 'units', 'metrics', 'filter_savings', 'extend_feed_ends')

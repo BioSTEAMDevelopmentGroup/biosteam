@@ -113,20 +113,20 @@ class Flash(design.PressureVessel, Unit):
                         Glycerol  298
     >>> F1.results()
     Flash                                                   Units            F1
-    Medium pressure steam Duty                              kJ/hr      4.78e+07
-                          Flow                            kmol/hr      1.32e+03
-                          Cost                             USD/hr           364
+    Medium pressure steam Duty                              kJ/hr      4.82e+07
+                          Flow                            kmol/hr      1.33e+03
+                          Cost                             USD/hr           367
     Design                Vessel type                                  Vertical
                           Length                               ft          15.5
                           Diameter                             ft           8.5
                           Weight                               lb      9.57e+03
                           Wall thickness                       in         0.438
                           Vessel material                          Carbon steel
-    Purchase cost         Heat_exchanger - Floating head      USD      4.23e+04
+    Purchase cost         Heat_exchanger - Floating head      USD      4.24e+04
                           Vertical pressure vessel            USD      4.63e+04
                           Platform and ladders                USD      1.39e+04
-    Total purchase cost                                       USD      1.02e+05
-    Utility cost                                           USD/hr           364
+    Total purchase cost                                       USD      1.03e+05
+    Utility cost                                           USD/hr           367
 
 
     References

@@ -1191,9 +1191,9 @@ class System:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
         >>> cornstover_sys.get_inlet_flow('Mton') # Sum of all chemicals
-        192.89
+        192.8
         >>> cornstover_sys.get_inlet_flow('Mton', 'Water') # Just water
-        172.31
+        172.2
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -1219,9 +1219,9 @@ class System:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
         >>> cornstover_sys.get_outlet_flow('Mton') # Sum of all chemicals
-        193.44
+        193.3
         >>> cornstover_sys.get_outlet_flow('Mton', 'Water') # Just water
-        172.53
+        172.5
         >>> default() # Bring biosteam settings back to default
         
         """

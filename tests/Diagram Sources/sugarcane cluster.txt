@@ -77,7 +77,7 @@ Mixer" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=
 	"D303
 Divided Distillation Column" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=1.2 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=1]
 	"H303
-Cooling" [color=none fillcolor="#cfecf0" gradientangle=0 height=0.6 margin=0 orientation=0.0 peripheries=1 shape=circle style=filled width=0.6]
+Heat exchanger" [color=none fillcolor="#cfecf0:#fad6d8" gradientangle=90 height=0.6 margin=0 orientation=0.0 peripheries=1 shape=circle style=filled width=0.6]
 	"U301
 Molecular sieve" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"H304
@@ -129,77 +129,121 @@ Process water center" [color=black fillcolor="white:#CDCDCD" gradientangle=0 hei
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"T205
-Mix tank" -> "P202
-Pump" [label=s21]
+	"T202
+Storage tank" -> "H201
+Heating" [label=s6]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U101
-Conveying belt" -> "U102
-Magnetic separator" [label=s2]
-	edge [arrowhead=normal arrowtail=none color=black headport=w tailport=c]
-	"S202
-Vibrating screen" -> "S301
-Splitter" [label=screened_juice]
-	ethanol
-	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
-	"T304
-Storage tank" -> ethanol
-	"s.9"
-	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
-	"CWP
-Chilled water package" -> "s.9"
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"P201
-Pump" -> "T205
-Mix tank" [label=s19]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U404
-Bagasse pellet mill" -> "U405
-Conveying belt" [label=s14]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"H201
-Heating" -> "T203
-Mix tank" [label=s17]
-	wastewater
-	edge [arrowhead=none arrowtail=none color=black headport=w tailport=e]
-	"M305
-Mixer" -> wastewater
-	sugarcane
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	sugarcane -> "U101
-Conveying belt"
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"T303
-Storage tank" -> "P305
-Pump" [label=s57]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
-	"M304
-Mixer" -> "T304
-Storage tank" [label=s59]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U401
-Hammer mill" -> "U402
-Drum dryer" [label=s11]
+	"U403
+Screw feeder" -> "U404
+Bagasse pellet mill" [label=s14]
 	"s.7"
 	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
 	"CT
 Cooling tower" -> "s.7"
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
-	"M301
-Mixer" -> "H301
-Cooling" [label=s33]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"P305
-Pump" -> "M304
-Mixer" [label=s58]
-	lime
+	"U404
+Bagasse pellet mill" -> "U405
+Conveying belt" [label=s15]
+	"s.6"
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	lime -> "T204
-Mix tank"
+	"s.6" -> "CT
+Cooling tower"
+	s64
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	s64 -> "PWC
+Process water center"
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"T203
+Mix tank" -> "P201
+Pump" [label=s19]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U202
+Conveying belt" -> "U401
+Hammer mill" [label=s11]
+	stripping_water
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	stripping_water -> "D301
+Vent scrubber"
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
+	"M304
+Mixer" -> "T304
+Storage tank" [label=s60]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"F301
+Multi-Effect Evaporator" -> "P306
+Pump" [label=s33]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U401
+Hammer mill" -> "U402
+Drum dryer" [label=s12]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
+	"M302
+Mixer" -> "P301
+Pump" [label=s30]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"T302
 Storage tank" -> "P304
-Pump" [label=s55]
+Pump" [label=s56]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"P201
+Pump" -> "T205
+Mix tank" [label=s20]
+	s42
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
+	"T305
+Mix tank" -> s42
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"H201
+Heating" -> "T203
+Mix tank" [label=s18]
+	denaturant
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	denaturant -> "T303
+Storage tank"
+	wastewater
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=e]
+	"M305
+Mixer" -> wastewater
+	s65
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
+	"PWC
+Process water center" -> s65
+	sugarcane
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	sugarcane -> "U101
+Conveying belt"
+	emissions
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
+	"BT
+Boiler turbogenerator" -> emissions
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U102
+Magnetic separator" -> "U103
+Shredder" [label=s3]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"T303
+Storage tank" -> "P305
+Pump" [label=s58]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"S301
+Splitter" -> "M301
+Mixer" [label=s31]
+	ethanol
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
+	"T304
+Storage tank" -> ethanol
+	edge [arrowhead=normal arrowtail=none color=black headport=w tailport=c]
+	"S202
+Vibrating screen" -> "S301
+Splitter" [label=screened_juice]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
+	"M301
+Mixer" -> "H301
+Cooling" [label=s34]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U405
+Conveying belt" -> "BT
+Boiler turbogenerator" [label=bagasse]
 	vent
 	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
 	"D301
@@ -207,99 +251,51 @@ Vent scrubber" -> vent
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"U402
 Drum dryer" -> "U403
-Screw feeder" [label=s12]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
-	"M302
-Mixer" -> "P301
-Pump" [label=s29]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"H304
-Cooling" -> "T302
-Storage tank" [label=s54]
-	emissions
-	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
-	"BT
-Boiler turbogenerator" -> emissions
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U103
-Shredder" -> "T201
-Enzyme treatment" [label=s1]
-	s63
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	s63 -> "PWC
-Process water center"
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"S301
-Splitter" -> "M301
-Mixer" [label=s30]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U403
-Screw feeder" -> "U404
-Bagasse pellet mill" [label=s13]
+Screw feeder" [label=s13]
 	recirculated_chilled_water
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	recirculated_chilled_water -> "CWP
 Chilled water package"
-	s64
+	lime
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	lime -> "T204
+Mix tank"
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"H304
+Cooling" -> "T302
+Storage tank" [label=s55]
+	"s.9"
 	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
-	"PWC
-Process water center" -> s64
+	"CWP
+Chilled water package" -> "s.9"
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"T202
-Storage tank" -> "H201
-Heating" [label=s5]
+	"P305
+Pump" -> "M304
+Mixer" [label=s59]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U102
-Magnetic separator" -> "U103
-Shredder" [label=s3]
+	"U101
+Conveying belt" -> "U102
+Magnetic separator" [label=s2]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U202
-Conveying belt" -> "U401
-Hammer mill" [label=s10]
-	stripping_water
+	"T205
+Mix tank" -> "P202
+Pump" [label=s22]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U103
+Shredder" -> "T201
+Enzyme treatment" [label=s1]
+	s61
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	stripping_water -> "D301
-Vent scrubber"
-	s41
-	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
-	"T305
-Mix tank" -> s41
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"F301
-Multi-Effect Evaporator" -> "P306
-Pump" [label=s32]
-	"s.6"
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	"s.6" -> "CT
-Cooling tower"
-	denaturant
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	denaturant -> "T303
-Storage tank"
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U405
-Conveying belt" -> "BT
-Boiler turbogenerator" [label=bagasse]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"T203
-Mix tank" -> "P201
-Pump" [label=s18]
-	s60
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	s60 -> "BT
+	s61 -> "BT
 Boiler turbogenerator"
 	dryer_air
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	dryer_air -> "U402
 Drum dryer"
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"P306
-Pump" -> "M301
-Mixer" [label=s42]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"P303
-Pump" -> "M305
-Mixer" [label=stripper_bottoms_product]
+	cooling_tower_makeup_water
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	cooling_tower_makeup_water -> "CT
+Cooling tower"
 	makeup_water
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	makeup_water -> "PWC
@@ -308,49 +304,53 @@ Process water center"
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	boiler_makeup_water -> "BT
 Boiler turbogenerator"
-	cooling_tower_makeup_water
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	cooling_tower_makeup_water -> "CT
-Cooling tower"
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"P304
-Pump" -> "M304
-Mixer" [label=s56]
-	H3PO4
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	H3PO4 -> "T203
-Mix tank"
+	"P303
+Pump" -> "M305
+Mixer" [label=stripper_bottoms_product]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"P306
+Pump" -> "M301
+Mixer" [label=s43]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"T204
+Mix tank" -> "T205
+Mix tank" [label=s21]
 	natural_gas
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	natural_gas -> "BT
 Boiler turbogenerator"
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"T204
-Mix tank" -> "T205
-Mix tank" [label=s20]
+	"P304
+Pump" -> "M304
+Mixer" [label=s57]
 	enzyme
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	enzyme -> "T201
 Enzyme treatment"
-	cooling_tower_chemicals
+	H3PO4
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	cooling_tower_chemicals -> "CT
-Cooling tower"
+	H3PO4 -> "T203
+Mix tank"
 	dryer_natural_gas
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	dryer_natural_gas -> "U402
 Drum dryer"
-	s61
-	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
-	s61 -> "BT
-Boiler turbogenerator"
 	dilution_water
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	dilution_water -> "M301
 Mixer"
+	cooling_tower_chemicals
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	cooling_tower_chemicals -> "CT
+Cooling tower"
 	s62
 	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 	s62 -> "BT
+Boiler turbogenerator"
+	s63
+	edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
+	s63 -> "BT
 Boiler turbogenerator"
 	dryer_outlet_air
 	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
@@ -363,23 +363,27 @@ Boiler turbogenerator" -> rejected_water_and_blowdown
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"S301
 Splitter" -> "F301
-Multi-Effect Evaporator" [label=s31]
+Multi-Effect Evaporator" [label=s32]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"S202
+Vibrating screen" -> "M305
+Mixer" [label=fiber_fines]
+	s4
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
+	"U102
+Magnetic separator" -> s4
+	s66
+	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
+	"PWC
+Process water center" -> s66
 	evaporation_and_blowdown
 	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
 	"CT
 Cooling tower" -> evaporation_and_blowdown
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"S202
-Vibrating screen" -> "M305
-Mixer" [label=fiber_fines]
-	s65
-	edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
-	"PWC
-Process water center" -> s65
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"D301
 Vent scrubber" -> "M302
-Mixer" [label=s37]
+Mixer" [label=s38]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"F301
 Multi-Effect Evaporator" -> "M305
@@ -400,7 +404,7 @@ Drum dryer" -> dryer_emissions
 		edge [arrowhead=normal arrowtail=none color="#d71622" headport=c tailport=e]
 		"M201
 Mixer" -> "U201
-Crushing mill" [label=s7]
+Crushing mill" [label=s8]
 		node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 		graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 		edge [dir=foward]
@@ -409,13 +413,13 @@ Crushing mill" [label=s7]
 		imbibition_water -> "M201
 Mixer"
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-		"U201
-Crushing mill" -> "S201
-Vibrating screen" [label=s9]
-		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"S201
 Vibrating screen" -> "M201
-Mixer" [label=s15]
+Mixer" [label=s16]
+		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+		"U201
+Crushing mill" -> "S201
+Vibrating screen" [label=s10]
 	}
 	subgraph cluster_SYS2 {
 		bgcolor="#79bf823f" fontname="times-bold" label="SYS2 [DEPTH 1]" style=dashed
@@ -425,14 +429,14 @@ Mixer" [label=s15]
 		edge [arrowhead=normal arrowtail=none color="#d71622" headport=c tailport=c]
 		"P203
 Pump" -> "M202
-Mixer" [label=s23]
+Mixer" [label=s24]
 		node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 		graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 		edge [dir=foward]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
 		"M202
 Mixer" -> "H202
-Heating" [label=s24]
+Heating" [label=s25]
 		filter_cake
 		edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
 		"C202
@@ -440,11 +444,11 @@ Rotary vacuum filter" -> filter_cake
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"T206
 Mix tank" -> "C201
-Clarifier" [label=s26]
+Clarifier" [label=s27]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"H202
 Heating" -> "T206
-Mix tank" [label=s25]
+Mix tank" [label=s26]
 		polymer
 		edge [arrowhead=none arrowtail=none color=black headport=c tailport=e]
 		polymer -> "T206
@@ -454,13 +458,13 @@ Mix tank"
 		rvf_wash_water -> "C202
 Rotary vacuum filter"
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-		"C201
-Clarifier" -> "C202
-Rotary vacuum filter" [label=s27]
-		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"C202
 Rotary vacuum filter" -> "P203
-Pump" [label=s28]
+Pump" [label=s29]
+		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+		"C201
+Clarifier" -> "C202
+Rotary vacuum filter" [label=s28]
 	}
 	subgraph cluster_SYS3 {
 		bgcolor="#79bf823f" fontname="times-bold" label="SYS3 [DEPTH 1]" style=dashed
@@ -470,18 +474,18 @@ Pump" [label=s28]
 		edge [arrowhead=normal arrowtail=none color="#d71622" headport=c tailport=c]
 		"S302
 Splitter" -> "R301
-Fermentation" [label=s40]
+Fermentation" [label=s41]
 		node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 		graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 		edge [dir=foward]
-		edge [arrowhead=normal arrowtail=none color=black headport=w tailport=c]
-		"C301
-Solids centrifuge" -> "S302
-Splitter" [label=s38]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"T301
 Beer tank" -> "C301
-Solids centrifuge" [label=s36]
+Solids centrifuge" [label=s37]
+		edge [arrowhead=normal arrowtail=none color=black headport=w tailport=c]
+		"C301
+Solids centrifuge" -> "S302
+Splitter" [label=s39]
 		Yeast
 		edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
 		"S302
@@ -489,7 +493,7 @@ Splitter" -> Yeast
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"R301
 Fermentation" -> "T301
-Beer tank" [label=s35]
+Beer tank" [label=s36]
 	}
 	subgraph cluster_SYS4 {
 		bgcolor="#79bf823f" fontname="times-bold" label="SYS4 [DEPTH 1]" style=dashed
@@ -499,14 +503,14 @@ Beer tank" [label=s35]
 		edge [arrowhead=normal arrowtail=none color="#d71622" headport=c tailport=c]
 		"P302
 Pump" -> "H302
- Heat exchanger" [label=s46]
+ Heat exchanger" [label=s47]
 		node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 		graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 		edge [dir=foward]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"H302
  Heat exchanger" -> "D302
-Distillation Column" [label=s47]
+Distillation Column" [label=s48]
 		vinasse
 		edge [arrowhead=none arrowtail=none color=black headport=w tailport=c]
 		"H302
@@ -514,7 +518,7 @@ Distillation Column" [label=s47]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=s]
 		"D302
 Distillation Column" -> "P302
-Pump" [label=s45]
+Pump" [label=s46]
 	}
 	subgraph cluster_SYS5 {
 		bgcolor="#79bf823f" fontname="times-bold" label="SYS5 [DEPTH 1]" style=dashed
@@ -524,58 +528,58 @@ Pump" [label=s45]
 		edge [arrowhead=normal arrowtail=none color="#d71622" headport=c tailport=c]
 		"U301
 Molecular sieve" -> "M303
-Mixer" [label=s52]
+Mixer" [label=s53]
 		node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 		graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 		edge [dir=foward]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 		"H303
-Cooling" -> "U301
-Molecular sieve" [label=s51]
+Heat exchanger" -> "U301
+Molecular sieve" [label=s52]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=n]
 		"D303
 Divided Distillation Column" -> "H303
-Cooling" [label=s49]
+Heat exchanger" [label=s50]
 		edge [arrowhead=normal arrowtail=none color=black headport=c tailport=e]
 		"M303
 Mixer" -> "D303
-Divided Distillation Column" [label=s48]
+Divided Distillation Column" [label=s49]
 	}
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"T201
-Enzyme treatment" -> "U201
-Crushing mill" [label=s6]
+	"H301
+Cooling" -> "R301
+Fermentation" [label=s35]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"C201
 Clarifier" -> "S202
-Vibrating screen" [label=s4]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U201
-Crushing mill" -> "U202
-Conveying belt" [label=s8]
+Vibrating screen" [label=s5]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"P202
 Pump" -> "M202
-Mixer" [label=s22]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=n]
-	"D302
-Distillation Column" -> "M303
-Mixer" [label=s43]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"H301
-Cooling" -> "R301
-Fermentation" [label=s34]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"S201
-Vibrating screen" -> "T202
-Storage tank" [label=s16]
+Mixer" [label=s23]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"P301
 Pump" -> "H302
- Heat exchanger" [label=s44]
+ Heat exchanger" [label=s45]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"S201
+Vibrating screen" -> "T202
+Storage tank" [label=s17]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U201
+Crushing mill" -> "U202
+Conveying belt" [label=s9]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=n]
+	"D302
+Distillation Column" -> "M303
+Mixer" [label=s44]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"T201
+Enzyme treatment" -> "U201
+Crushing mill" [label=s7]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"R301
 Fermentation" -> "D301
@@ -583,13 +587,13 @@ Vent scrubber" [label=CO2]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
 	"C301
 Solids centrifuge" -> "M302
-Mixer" [label=s39]
-	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
-	"U301
-Molecular sieve" -> "H304
-Cooling" [label=s53]
+Mixer" [label=s40]
 	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=s]
 	"D303
 Divided Distillation Column" -> "P303
-Pump" [label=s50]
+Pump" [label=s51]
+	edge [arrowhead=normal arrowtail=none color=black headport=c tailport=c]
+	"U301
+Molecular sieve" -> "H304
+Cooling" [label=s54]
 }

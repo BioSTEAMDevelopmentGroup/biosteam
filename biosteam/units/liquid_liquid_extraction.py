@@ -382,12 +382,12 @@ class SLLECentrifuge(Unit):
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
     Power               Rate                             kW   0.0101
-                        Cost                         USD/hr 0.000792
-    Design              Flow rate                     L/min      250
+                        Cost                         USD/hr  0.00079
+    Design              Flow rate                     L/min      249
                         Number of centrifuges                      1
-    Purchase cost       3-Phase decanter centrifuge     USD 2.88e+05
-    Total purchase cost                                 USD 2.88e+05
-    Utility cost                                     USD/hr 0.000792
+    Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
+    Total purchase cost                                 USD 2.87e+05
+    Utility cost                                     USD/hr  0.00079
     
     References
     ----------
@@ -505,12 +505,12 @@ class SolidLiquidsSplitCentrifuge(Unit):
     >>> C1.results()
     3-Phase decanter centrifuge                       Units       C1
     Power               Rate                             kW   0.0101
-                        Cost                         USD/hr 0.000792
-    Design              Flow rate                     L/min      250
+                        Cost                         USD/hr  0.00079
+    Design              Flow rate                     L/min      249
                         Number of centrifuges                      1
-    Purchase cost       3-Phase decanter centrifuge     USD 2.88e+05
-    Total purchase cost                                 USD 2.88e+05
-    Utility cost                                     USD/hr 0.000792
+    Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
+    Total purchase cost                                 USD 2.87e+05
+    Utility cost                                     USD/hr  0.00079
     
     References
     ----------
@@ -889,23 +889,23 @@ class MixerSettler(bst.Unit):
     Power               Rate                                     kW        1.98
                         Cost                                 USD/hr       0.155
     Design              Mixer - Volume                          m^3        1.98
-                        Mixer - Power                            hp        2.66
+                        Mixer - Power                            hp        2.65
                         Mixer - Vessel type                            Vertical
                         Mixer - Length                           ft        1.36
                         Mixer - Diameter                         ft        1.36
-                        Mixer - Weight                           lb        91.4
+                        Mixer - Weight                           lb        91.2
                         Mixer - Wall thickness                   in        0.25
                         Settler - Vessel type                        Horizontal
                         Settler - Length                         ft        12.6
                         Settler - Diameter                       ft        3.15
                         Settler - Weight                         lb    1.44e+03
                         Settler - Wall thickness                 in        0.25
-    Purchase cost       Mixer - Turbine agitator                USD    6.33e+03
+    Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
                         Mixer - Vertical pressure vessel        USD    4.59e+03
-                        Mixer - Platform and ladders            USD         642
+                        Mixer - Platform and ladders            USD         641
                         Settler - Horizontal pressure ve...     USD        14.4
                         Settler - Platform and ladders          USD    3.08e+03
-    Total purchase cost                                         USD    1.47e+04
+    Total purchase cost                                         USD    1.46e+04
     Utility cost                                             USD/hr       0.155
     
     Simulate with user defined partition coefficients:
@@ -950,23 +950,23 @@ class MixerSettler(bst.Unit):
     Power               Rate                                     kW        1.98
                         Cost                                 USD/hr       0.155
     Design              Mixer - Volume                          m^3        1.98
-                        Mixer - Power                            hp        2.66
+                        Mixer - Power                            hp        2.65
                         Mixer - Vessel type                            Vertical
                         Mixer - Length                           ft        1.36
                         Mixer - Diameter                         ft        1.36
-                        Mixer - Weight                           lb        91.4
+                        Mixer - Weight                           lb        91.2
                         Mixer - Wall thickness                   in        0.25
                         Settler - Vessel type                        Horizontal
                         Settler - Length                         ft        12.6
                         Settler - Diameter                       ft        3.15
                         Settler - Weight                         lb    1.44e+03
                         Settler - Wall thickness                 in        0.25
-    Purchase cost       Mixer - Turbine agitator                USD    6.33e+03
+    Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
                         Mixer - Vertical pressure vessel        USD    4.59e+03
-                        Mixer - Platform and ladders            USD         642
+                        Mixer - Platform and ladders            USD         641
                         Settler - Horizontal pressure ve...     USD        14.4
                         Settler - Platform and ladders          USD    3.08e+03
-    Total purchase cost                                         USD    1.47e+04
+    Total purchase cost                                         USD    1.46e+04
     Utility cost                                             USD/hr       0.155
     
     """
@@ -1111,14 +1111,14 @@ class MultiStageMixerSettlers(bst.Unit):
                      Octanol   0.103
     >>> MSMS1.results()
     Multi stage mixer settlers                     Units       MSMS1
-    Power               Rate                          kW        3.97
-                        Cost                      USD/hr        0.31
+    Power               Rate                          kW        3.96
+                        Cost                      USD/hr       0.309
     Design              Mixer - Volume               m^3        1.98
-                        Mixer - Power                 hp        2.66
+                        Mixer - Power                 hp        2.65
                         Mixer - Vessel type                 Vertical
                         Mixer - Length                ft        1.36
                         Mixer - Diameter              ft        1.36
-                        Mixer - Weight                lb        91.4
+                        Mixer - Weight                lb        91.2
                         Mixer - Wall thickness        in        0.25
                         Settler - Vessel type             Horizontal
                         Settler - Length              ft        12.6
@@ -1127,8 +1127,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Wall thickness      in        0.25
     Purchase cost       Mixers and agitators         USD    1.05e+04
                         Settlers                     USD    6.18e+03
-    Total purchase cost                              USD    1.67e+04
-    Utility cost                                  USD/hr        0.31
+    Total purchase cost                              USD    1.66e+04
+    Utility cost                                  USD/hr       0.309
     
     Simulate with user defined partition coefficients:
     
@@ -1157,20 +1157,20 @@ class MultiStageMixerSettlers(bst.Unit):
     Power               Rate                          kW         198
                         Cost                      USD/hr        15.5
     Design              Mixer - Volume               m^3        19.8
-                        Mixer - Power                 hp        26.6
+                        Mixer - Power                 hp        26.5
                         Mixer - Vessel type                 Vertical
                         Mixer - Length                ft        2.93
                         Mixer - Diameter              ft        2.93
-                        Mixer - Weight                lb         424
+                        Mixer - Weight                lb         423
                         Mixer - Wall thickness        in        0.25
                         Settler - Vessel type             Horizontal
-                        Settler - Length              ft        39.9
-                        Settler - Diameter            ft        9.96
-                        Settler - Weight              lb    2.53e+04
+                        Settler - Length              ft        39.8
+                        Settler - Diameter            ft        9.95
+                        Settler - Weight              lb    2.52e+04
                         Settler - Wall thickness      in       0.438
     Purchase cost       Mixers and agitators         USD    1.08e+05
                         Settlers                     USD    3.89e+04
-    Total purchase cost                              USD    1.47e+05
+    Total purchase cost                              USD    1.46e+05
     Utility cost                                  USD/hr        15.5
     
     """

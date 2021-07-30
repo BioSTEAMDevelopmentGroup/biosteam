@@ -127,7 +127,7 @@ class MultiEffectEvaporator(Unit):
                         Flow              kmol/hr       239
                         Cost               USD/hr     0.116
     Design              Area                  m^2        11
-                        Volume                m^3      1.64
+                        Volume                m^3      1.61
     Purchase cost       Condenser             USD  5.35e+03
                         Evaporators           USD  9.59e+03
                         Liquid-ring pump      USD  1.24e+04
@@ -181,7 +181,7 @@ class MultiEffectEvaporator(Unit):
                         Flow              kmol/hr      78.5
                         Cost               USD/hr    0.0383
     Design              Area                  m^2      1.64
-                        Volume                m^3     0.986
+                        Volume                m^3     0.965
     Purchase cost       Condenser             USD  3.89e+03
                         Evaporators           USD  2.77e+03
                         Liquid-ring pump      USD  1.24e+04

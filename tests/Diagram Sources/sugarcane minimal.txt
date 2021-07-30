@@ -14,10 +14,10 @@ denaturant
 lime
 H3PO4
 rvf_wash_water
-s62
-s60
-s61
 s63
+s62
+s64
+s61
 polymer
 natural_gas
 dilution_water
@@ -29,7 +29,7 @@ System" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin
 	"s.7
 s.9
 vinasse
-s64
+s65
 wastewater
 emissions
 dryer_outlet_air
@@ -40,8 +40,9 @@ ash_disposal
 filter_cake
 rejected_water_and_blowdown
 Yeast
-s65
-s41
+s4
+s66
+s42
 dryer_emissions
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
@@ -62,10 +63,10 @@ denaturant
 lime
 H3PO4
 rvf_wash_water
-s62
-s60
-s61
 s63
+s62
+s64
+s61
 polymer
 natural_gas
 dilution_water
@@ -78,7 +79,7 @@ System" [style=dashed]
 System" -> "s.7
 s.9
 vinasse
-s64
+s65
 wastewater
 emissions
 dryer_outlet_air
@@ -89,8 +90,9 @@ ash_disposal
 filter_cake
 rejected_water_and_blowdown
 Yeast
-s65
-s41
+s4
+s66
+s42
 dryer_emissions
 " [style=dashed]
 }

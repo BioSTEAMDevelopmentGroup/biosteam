@@ -1067,33 +1067,33 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Chilled water       Duty                              kJ/hr -3.36e+06
                         Flow                            kmol/hr  1.04e+04
                         Cost                             USD/hr      16.8
-    Low pressure steam  Duty                              kJ/hr  7.41e+06
+    Low pressure steam  Duty                              kJ/hr   7.4e+06
                         Flow                            kmol/hr       191
                         Cost                             USD/hr      45.4
-    Design              Theoretical feed stage                          5
-                        Theoretical stages                              9
+    Design              Theoretical feed stage                          6
+                        Theoretical stages                             10
                         Minimum reflux                    Ratio     0.448
                         Reflux                            Ratio     0.896
-                        Rectifier stages                                9
+                        Rectifier stages                               12
                         Stripper stages                                22
-                        Rectifier height                     ft      25.8
+                        Rectifier height                     ft      30.2
                         Stripper height                      ft        45
                         Rectifier diameter                   ft      5.71
-                        Stripper diameter                    ft      4.38
+                        Stripper diameter                    ft      4.37
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
-                        Rectifier weight                     lb     7e+03
+                        Rectifier weight                     lb  8.01e+03
                         Stripper weight                      lb  8.57e+03
     Purchase cost       Condenser - Floating head           USD  3.32e+04
                         Boiler - Floating head              USD  2.67e+04
-                        Rectifier trays                     USD  1.52e+04
+                        Rectifier trays                     USD  1.85e+04
                         Stripper trays                      USD  2.01e+04
-                        Rectifier tower                     USD  5.35e+04
-                        Stripper platform and ladders       USD  1.49e+04
+                        Rectifier tower                     USD  5.79e+04
+                        Stripper platform and ladders       USD  1.69e+04
                         Stripper tower                      USD  6.03e+04
                         Rectifier platform and ladders      USD  1.97e+04
                         Vacuum system                       USD  1.33e+04
-    Total purchase cost                                     USD  2.57e+05
+    Total purchase cost                                     USD  2.67e+05
     Utility cost                                         USD/hr      63.1
     
     """
@@ -1488,25 +1488,25 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Theoretical stages                             16
                         Minimum reflux                    Ratio      1.06
                         Reflux                            Ratio      2.12
-                        Rectifier stages                               13
+                        Rectifier stages                               14
                         Stripper stages                                26
-                        Rectifier height                     ft      31.7
+                        Rectifier height                     ft      33.2
                         Stripper height                      ft      50.9
                         Rectifier diameter                   ft      4.52
                         Stripper diameter                    ft      3.65
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
-                        Rectifier weight                     lb  6.45e+03
+                        Rectifier weight                     lb  6.71e+03
                         Stripper weight                      lb  7.93e+03
     Purchase cost       Condenser - Floating head           USD  4.06e+04
                         Boiler - Floating head              USD  2.93e+04
-                        Rectifier trays                     USD  1.63e+04
+                        Rectifier trays                     USD  1.69e+04
                         Stripper trays                      USD  2.15e+04
-                        Rectifier tower                     USD   5.1e+04
-                        Stripper platform and ladders       USD  1.52e+04
+                        Rectifier tower                     USD  5.22e+04
+                        Stripper platform and ladders       USD  1.57e+04
                         Stripper tower                      USD  5.76e+04
                         Rectifier platform and ladders      USD  1.94e+04
-    Total purchase cost                                     USD  2.51e+05
+    Total purchase cost                                     USD  2.53e+05
     Utility cost                                         USD/hr      84.9
     
     """
