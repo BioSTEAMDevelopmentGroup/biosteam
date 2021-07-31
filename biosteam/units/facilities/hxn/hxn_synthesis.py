@@ -275,10 +275,12 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
     streams_transient_hot_side = [i.copy() for i in streams]
     for i in hot_indices:
         s = streams_transient_cold_side[i]
-        s.vle(T=pinch_T_arr[i], P=s.P)
+        if s.T != pinch_T_arr[i]:
+            s.vle(T=pinch_T_arr[i], P=s.P)
     for i in cold_indices:
         s = streams_transient_hot_side[i]
-        s.vle(T=pinch_T_arr[i], P=s.P)
+        if s.T != pinch_T_arr[i]:
+            s.vle(T=pinch_T_arr[i], P=s.P)
     
     def get_stream_at_H_max(cold):
         s_cs = streams_transient_cold_side[cold]
