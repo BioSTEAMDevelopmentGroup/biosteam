@@ -1,6 +1,13 @@
 Contributing to BioSTEAM
 ========================
 
+Monthly coordination calls
+--------------------------
+
+We welcome anyone with an interest in discussing contributions to BioSTEAM to join our
+monthly meeting at 8-9:30am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 
+for a link to join.
+
 General Process
 ---------------
 

@@ -71,11 +71,13 @@ Scientific Papers
 Several studies have leveraged the BioSTEAM platform to compare conversion 
 technologies and chart development pathways for various bioproducts:
 
-* Li, Y.; Bhagwat, S. S.; Cortés-Peña, Y. R.; Ki, D.; Rao, C. V.; Jin, Y.-S.; Guest, J. S. Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021, 9 (3), 1341–1351. https://doi.org/10.1021/acssuschemeng.0c08055.
+* `McClelland et al. Renewable linear alpha-olefins by base-catalyzed dehydration of biologically-derived fatty alcohols. Green Chemistry 2021 <https://doi.org/10.1039/D1GC00243K>`_
 
-* Sanchis-Sebastiá, M.; Gomis-Fons, J.; Galbe, M.; Wallberg, O. Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020, 8 (8), 904. https://doi.org/10.3390/pr8080904.
+* `Li et al. Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
 
-* Shi, R.; Guest, J. S. BioSTEAM-LCA: An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020, 8 (51), 18903–18914. https://doi.org/10.1021/acssuschemeng.0c05998.
+* `Sanchis-Sebastiá et al. Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
+
+* `Shi et al. An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.0c05998>`_
 
 
 .. toctree::
@@ -145,11 +147,11 @@ technologies and chart development pathways for various bioproducts:
 
 References
 ----------
-.. [1] Cortes-Peña, Y.; Kumar, D.; Singh, V.; Guest, J. S. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020, 8 (8), 3302–3310. https://doi.org/10.1021/acssuschemeng.9b07040.
+.. [1] `Cortes-Peña, et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
 
-.. [2] Huang, H.; Long, S.; Singh, V. Techno-Economic Analysis of Biodiesel and Ethanol Co-Production from Lipid-Producing Sugarcane. Biofuels, Bioproducts and Biorefining 2016, 10 (3), 299–315. https://doi.org/10.1002/bbb.1640.
+.. [2] `Huang et al. Techno-Economic Analysis of Biodiesel and Ethanol Co-Production from Lipid-Producing Sugarcane. Biofuels, Bioproducts and Biorefining 2016 <https://doi.org/10.1002/bbb.1640>`_
 
-.. [3] Humbird, D.; Davis, R.; Tao, L.; Kinchin, C.; Hsu, D.; Aden, A.; Schoen, P.; Lukas, J.; Olthof, B.; Worley, M.; Sexton, D.; Dudgeon, D. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover; Technical Report NREL/TP-5100-47764; DOE: NREL, 2011.
+.. [3] Humbird et al. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover; Technical Report NREL/TP-5100-47764; DOE: NREL, 2011.
 
 
 Indices and tables
