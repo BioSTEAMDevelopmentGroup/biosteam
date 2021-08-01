@@ -568,10 +568,7 @@ class HeatUtility:
         self.duty *= -1
         self.unit_duty *= -1
         self.cost *= -1
-        try:
-            self.inlet_utility_stream, self.outlet_utility_stream = self.outlet_utility_stream, self.inlet_utility_stream
-        except:
-            breakpoint()
+        self.inlet_utility_stream, self.outlet_utility_stream = self.outlet_utility_stream, self.inlet_utility_stream
 
     # Subcalculations
 
