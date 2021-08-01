@@ -75,6 +75,15 @@ To report bugs, please use the BioSTEAM's Bug Tracker at:
 
     https://github.com/BioSTEAMDevelopmentGroup/biosteam
 
+Contributing
+------------
+For guidelines on how to contribute visit:
+
+    https://biosteam.readthedocs.io/en/latest/CONTRIBUTING.html
+
+We also welcome anyone with an interest in discussing contributions to BioSTEAM to join our
+monthly meeting at 8-9:30am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 
+for a link to join.
 
 License information
 -------------------
@@ -94,6 +103,6 @@ BioSTEAM was created and developed by `Yoel Cortes-Pena <http://engineeringforsu
 
 References
 ----------
-.. [1] Cortes-Peña, Y.; Kumar, D.; Singh, V.; Guest, J. S. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. https://doi.org/10.1021/acssuschemeng.9b07040.
+.. [1] `Cortes-Peña et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. <https://doi.org/10.1021/acssuschemeng.9b07040>`__.
 
 
