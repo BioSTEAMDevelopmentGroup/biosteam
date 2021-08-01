@@ -81,10 +81,10 @@ class UnitGroup:
     Get all metric results:
         
     >>> ugroup.to_dict()
-    {'Installed equipment cost [MM$]': 0.05627916170478936,
-     'Cooling duty [GJ/hr]': 0.37452298301788894,
+    {'Installed equipment cost [MM$]': 0.056,
+     'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
-     'Electricity consumption [MW]': 0.0008217540961719651,
+     'Electricity consumption [MW]': 0.00082,
      'Electricity production [MW]': 0.0,
      'Materiral cost [USD/hr]': 0.0}
     
