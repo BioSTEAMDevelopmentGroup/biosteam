@@ -16,7 +16,7 @@ setup(
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=1.0.0', 
+                      'thermosteam>=0.27.0', 
                       'graphviz>=0.17',
                       'chaospy>=3.3.9',
                       'SALib'],
