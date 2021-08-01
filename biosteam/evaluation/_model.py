@@ -54,6 +54,7 @@ class Model(State):
     >>> from chaospy import distributions as shape
     >>> from biorefineries import lipidcane as lc
     >>> import biosteam as bst
+    >>> import numpy as np
     >>> solve_IRR = lambda: 100. * lc.lipidcane_tea.solve_IRR()
     >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
     >>> metrics = (bst.Metric('Internal rate of return', solve_IRR, '%'),
@@ -158,9 +159,9 @@ class Model(State):
     
     Evaluate sample:
         
-    >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   13.8
-                 Utility cost [10^6 USD/yr]   -29.1
+    >>> np.round(model([0.05, 0.85, 8, 0.6, 0.040])) # Returns metrics (IRR and utility cost)
+    Biorefinery  Internal rate of return [%]    14
+                 Utility cost [10^6 USD/yr]    -29
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
