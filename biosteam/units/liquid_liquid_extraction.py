@@ -903,9 +903,9 @@ class MixerSettler(bst.Unit):
     Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
                         Mixer - Vertical pressure vessel        USD    4.59e+03
                         Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD        14.4
-                        Settler - Platform and ladders          USD    3.08e+03
-    Total purchase cost                                         USD    1.46e+04
+                        Settler - Horizontal pressure ve...     USD        13.4
+                        Settler - Platform and ladders          USD    2.87e+03
+    Total purchase cost                                         USD    1.44e+04
     Utility cost                                             USD/hr       0.155
     
     Simulate with user defined partition coefficients:
@@ -964,9 +964,9 @@ class MixerSettler(bst.Unit):
     Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
                         Mixer - Vertical pressure vessel        USD    4.59e+03
                         Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD        14.4
-                        Settler - Platform and ladders          USD    3.08e+03
-    Total purchase cost                                         USD    1.46e+04
+                        Settler - Horizontal pressure ve...     USD        13.4
+                        Settler - Platform and ladders          USD    2.87e+03
+    Total purchase cost                                         USD    1.44e+04
     Utility cost                                             USD/hr       0.155
     
     """
@@ -1126,8 +1126,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Weight              lb    1.44e+03
                         Settler - Wall thickness      in        0.25
     Purchase cost       Mixers and agitators         USD    1.05e+04
-                        Settlers                     USD    6.18e+03
-    Total purchase cost                              USD    1.66e+04
+                        Settlers                     USD    5.77e+03
+    Total purchase cost                              USD    1.62e+04
     Utility cost                                  USD/hr       0.309
     
     Simulate with user defined partition coefficients:
@@ -1169,8 +1169,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Weight              lb    2.52e+04
                         Settler - Wall thickness      in       0.438
     Purchase cost       Mixers and agitators         USD    1.08e+05
-                        Settlers                     USD    3.89e+04
-    Total purchase cost                              USD    1.46e+05
+                        Settlers                     USD    3.63e+04
+    Total purchase cost                              USD    1.44e+05
     Utility cost                                  USD/hr        15.5
     
     """
@@ -1230,9 +1230,26 @@ class MultiStageMixerSettlers(bst.Unit):
     def _run(self):
         stages = self.stages
         stages.simulate_multi_stage_lle_without_side_draws()
-        self.extract.copy_like(stages[0].extract)
-        self.raffinate.copy_like(stages[-1].raffinate)
-        self.extract.phase = self.raffinate.phase = 'l'
+        extract = self.extract
+        extract.copy_like(stages[0].extract)
+        raffinate = self.raffinate
+        raffinate.copy_like(stages[-1].raffinate)
+        extract.phase = self.raffinate.phase = 'l'
+        mixed_mol = raffinate.mol + extract.mol
+        mixed_mol[mixed_mol==0.] = 1.
+        self._split = raffinate.mol / mixed_mol
+        
+    _unsteady_run = _run
+        
+    def _steady_run(self):
+        if hasattr(self, '_split'):
+            extract = self.extract
+            raffinate = self.raffinate
+            raffinate.mix_from(self.ins)
+            raffinate.split_to(raffinate, extract, self._split)
+            extract.copy_thermal_condition(raffinate)
+        else:
+            self._unsteady_run()
         
     def _design(self):
         mixer = self.mixer
