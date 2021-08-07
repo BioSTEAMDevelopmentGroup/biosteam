@@ -794,10 +794,19 @@ class TEA:
         """
         if isinstance(streams, bst.Stream): streams = [streams]
         price2costs = [self._price2cost(i) for i in streams]
-        sales = self.solve_sales()
         price2cost = sum(price2costs)
-        current_price = sum([self.market_value(i) for i in streams]) / abs(price2cost)
-        return np.inf if price2cost == 0. else current_price + sales / price2cost 
+        if price2cost == 0.: raise ValueError('cannot solve price of empty streams')
+        try:
+            sales = self.solve_sales()
+        except:
+            original_prices = [i.price for i in streams]
+            for i in streams: i.price = 0.
+            sales = self.solve_sales()
+            current_price = 0.
+            for i, j in zip(streams, original_prices): i.price = j 
+        else:
+            current_price = sum([self.market_value(i) for i in streams]) / abs(price2cost)
+        return current_price + sales / price2cost 
         
     def solve_sales(self):
         """
@@ -812,7 +821,7 @@ class TEA:
         w0 = self._startup_time
         sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         sales = self._sales
-        if not sales or np.isnan(sales): sales = 0.
+        if not np.isfinite(sales): sales = 0.
         taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
         args = (taxable_cashflow, 
                 nontaxable_cashflow, 
@@ -821,7 +830,7 @@ class TEA:
                 self._fill_tax_and_incentives)
         sales = flx.aitken_secant(NPV_with_sales,
                                   sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
-                                  maxiter=300, args=args, checkiter=False)
+                                  maxiter=1000, args=args, checkiter=True)
         self._sales = sales
         return sales
     
