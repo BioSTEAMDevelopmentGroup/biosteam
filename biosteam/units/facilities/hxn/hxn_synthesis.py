@@ -138,7 +138,7 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
     streams = streams_heating + streams_cooling
     for i in range(len(streams)):
         stream = streams[i]
-        stream.vle(H = stream.H, P = stream.P)
+        # stream.vle(H = stream.H, P = stream.P)
         ID = 'Util_%s'%i
         stream.ID = 's_%s__%s'%(i,ID)
     len_hxs_heating = len(hxs_heating)
@@ -176,7 +176,8 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
                 if is_cold_stream_index(stream_index):
                     multiplier = -1
                 stream = streams[stream_index].copy()
-                stream.vle(T = T_start, P = stream.P)
+                if stream.T != T_start:
+                    stream.vle(T = T_start, P = stream.P)
                 H1 = stream.H
                 stream.vle(T = T_end, P = stream.P)
                 H2 = stream.H
@@ -551,11 +552,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
         new_HX_util._run()
         s_out = new_HX_util-0
         np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-2, atol=1.)
-        try:
-            np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=5e-2, atol=0.001)
-        except:
-            s_out.show()
-            breakpoint()
+        np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=5e-2, atol=0.001)
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[cold].append(new_HX_util)
     
