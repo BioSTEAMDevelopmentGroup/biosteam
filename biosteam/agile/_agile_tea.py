@@ -85,7 +85,7 @@ class AgileTEA(AgileScenario):
                  '_depreciation_array', '_depreciation', '_years',
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache', 'units', 'operating_hours',
-                 'utility_cost', 'material_cost', 'sales', 'flow_rates',
+                 'utility_cost', 'flow_rates',
                  'feeds', 'products')
     
     def create_scenario(self, system):
@@ -100,8 +100,6 @@ class AgileTEA(AgileScenario):
         self.units = [i.get_agile_capital_costs(j) for i, j in unit_scenarios.items()]
         self.operating_hours = sum([i.operating_hours for i in scenarios])
         self.utility_cost = sum([i.utility_cost for i in scenarios])
-        self.material_cost = sum([i.material_cost for i in scenarios])
-        self.sales = sum([i.sales for i in scenarios])
         self.flow_rates = flow_rates = {}
         self.feeds = set(sum([i.feeds for i in scenarios], []))
         self.products = set(sum([i.products for i in scenarios], []))
@@ -109,6 +107,16 @@ class AgileTEA(AgileScenario):
             for stream, F_mass in scenario.flow_rates.items():
                 if stream in flow_rates: flow_rates[stream] += F_mass
                 else: flow_rates[stream] = F_mass
+    
+    @property
+    def material_cost(self):
+        flow_rates = self.flow_rates
+        return sum([flow_rates[i] * i.price for i in self.feeds])
+    
+    @property
+    def sales(self):
+        flow_rates = self.flow_rates
+        return sum([flow_rates[i] * i.price for i in self.products])
     
     # TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
     #: dict[str, 1d-array] Available depreciation schedules.

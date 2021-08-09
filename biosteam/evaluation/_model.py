@@ -196,17 +196,19 @@ class Model(State):
 
     """
     __slots__ = (
-        'table',          # [DataFrame] All arguments and results.
-        '_metrics',        # tuple[Metric] Metrics to be evaluated by model.
-        '_index',          # list[int] Order of sample evaluation for performance.
-        '_samples',        # [array] Argument sample space.
-        '_exception_hook', # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
+        'table',            # [DataFrame] All arguments and results.
+        'retry_evaluation', # [bool] Whether to retry evaluation if it fails
+        '_metrics',         # tuple[Metric] Metrics to be evaluated by model.
+        '_index',           # list[int] Order of sample evaluation for performance.
+        '_samples',         # [array] Argument sample space.
+        '_exception_hook',  # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
     )
     def __init__(self, system, metrics=None, specification=None, 
-                 parameters=None, exception_hook='warn'):
+                 parameters=None, retry_evaluation=True, exception_hook='warn'):
         super().__init__(system, specification, parameters)
         self.metrics = metrics or ()
         self.exception_hook = exception_hook
+        self.retry_evaluation = retry_evaluation
         self.table = None
         self._erase()
         
@@ -381,15 +383,14 @@ class Model(State):
         try:
             self._update_state(sample, thorough)
             return [i() for i in self.metrics]
-        except:
-            return self._run_exception_hook(sample)
-    
-    def _run_exception_hook(self, sample):
-        self._reset_system()
-        try:
-            self._specification() if self._specification else self._system.simulate()
-            return [i() for i in self.metrics]
         except Exception as exception:
+            self._reset_system()
+            if self.retry_evaluation:
+                try:
+                    self._specification() if self._specification else self._system.simulate()
+                    return [i() for i in self.metrics]
+                except Exception as exception: 
+                    pass
             if self._exception_hook: 
                 values = self._exception_hook(exception, sample)
                 self._reset_system()

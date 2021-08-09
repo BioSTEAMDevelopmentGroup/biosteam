@@ -206,7 +206,6 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
             pinch_T_arr.append(T_out_arr[i])
         else:
             pinch_T_arr.append(pinch_hot_stream_T)
-            
     pinch_T_arr = np.array(pinch_T_arr)
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            T_hot_side_arr, T_cold_side_arr, hus_heating,\

@@ -28,7 +28,7 @@ class Metric(Variable):
         Element corresponding to metric
     
     """
-    __slots__ = ('getter',)
+    __slots__ = ('getter', 'cache')
     distribution = None
     def __init__(self, name, getter, units=None, element='Biorefinery'):
         if name is None and hasattr(getter, '__name__'): name = format_title(getter.__name__)
@@ -36,7 +36,9 @@ class Metric(Variable):
         self.getter = getter
         
     def __call__(self):
-        return self.getter()
+        self.cache = self.getter()
+        return self.cache
+        
     
 def metric(getter=None, name=None, units=None, element='Biorefinery'):
     if not getter: return lambda getter: metric(getter, name, units, element)
