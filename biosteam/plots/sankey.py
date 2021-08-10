@@ -8,7 +8,6 @@
 """
 """
 import biosteam as bst
-from colorpalette import Color
 
 __all__ = ('Handle', 
            'MassStreamHandle', 'MolarStreamHandle', 'VolumetricStreamHandle', 
@@ -136,8 +135,7 @@ class Handle: # pragma: no coverage
     )
     
     def __init__(self, main_feeds=None, main_products=None, 
-                 max_feeds=3, max_products=3, ignore=None, 
-                 **kwargs):
+                 max_feeds=3, max_products=3, ignore=None):
         self.nodes_index = {} #: Dict[Object, ProcessNode] Object - node pairs.
         self.size = 0 #: [int] Number of process nodes created.
         self.main_feeds = main_feeds
@@ -145,9 +143,6 @@ class Handle: # pragma: no coverage
         self.max_feeds = max_feeds
         self.max_products = max_products
         self.ignore = ignore or ()
-        self._init(**kwargs)
-    
-    def _init(self): pass
     
     def filter_streams(self, streams):
         has_width = self.stream_width
@@ -217,15 +212,16 @@ class CapitalNodeHandle(Handle): # pragma: no coverage
     equipment cost of the process.
     
     """
-    __slots__ = ('max_installed_cost', 'process_color_source', 'shade')
-    
-    def _init(self, max_installed_cost=None, process_color_source=None, shade=0.75):
+    __slots__ = ('max_installed_cost', 'process_color_source')
+    def __init__(self, max_installed_cost=None, process_color_source=None,
+                 main_feeds=None, main_products=None, max_feeds=3, max_products=3,
+                 ignore=None):
+        super().__init__(main_feeds, main_products, max_feeds, max_products, ignore)
         self.max_installed_cost = max_installed_cost
         self.process_color_source = process_color_source or bst.utils.colors.CABBI_orange
-        self.shade = shade
 
     def installed_cost_color(self, installed_cost):
-        scale = 100 * self.shade * installed_cost / self.max_installed_cost
+        scale = 75 * installed_cost / self.max_installed_cost
         return self.process_color_source.shade(scale)
 
     def process_color(self, units, index):
@@ -293,8 +289,8 @@ class CarbonColorHandle(Handle): # pragma: no coverage
         return stream.get_atomic_flow('C') * 12.01 / stream.F_mass
        
     def carbon_content_color(self, carbon_content):
-        scale = 95. * (1 - carbon_content)
-        return bst.utils.colors.grey.shade(10).tint(scale)
+        scale = 85. * (1 - carbon_content)
+        return bst.utils.colors.grey.tint(scale)
     
     def stream_color(self, stream):
         carbon_content = self.stream_carbon_content(stream)

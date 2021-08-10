@@ -39,16 +39,20 @@ class Parameter(Variable):
         Lower and upper bounds of parameter.
     
     """
-    __slots__ = ('setter', 'system', 'distribution', 
-                 'baseline', 'bounds', 'kind')
+    __slots__ = ('name', 'setter', 'element',
+                 'system', 'distribution', 
+                 'units', 'baseline',
+                 'bounds', 'kind')
     
     def __init__(self, name, setter, element, system, distribution,
                  units, baseline, bounds, kind):
         if not name: name, *_ = signature(setter).parameters.keys()
-        super().__init__(format_title(name), units, element)
+        self.name = format_title(name)
         self.setter = setter
+        self.element = element
         self.system = system
         self.distribution = distribution
+        self.units = units
         self.baseline = baseline
         self.bounds = bounds
         self.kind = kind

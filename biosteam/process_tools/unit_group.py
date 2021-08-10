@@ -8,31 +8,29 @@
 
 import pandas as pd
 import biosteam as bst
-import numpy as np
+from matplotlib import pyplot as plt
+from ..utils import format_title
 from . import utils
 from ..utils import misc
 from ..evaluation import Metric
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
 from ..plots import style_axis
-from math import ceil, floor
+from math import ceil
 
 __all__ = ('UnitGroup',)
 
-INST_EQ_COST = 'Inst. eq. cost'
-ELEC_CONS = 'Elec. cons.'
-ELEC_PROD = 'Elec. prod.'
+INST_COST = 'Inst. cost'
+ELEC_CONSUMPTION = 'Elec. consumption'
+ELEC_PRODUCTION = 'Elec. production'
 INSTALLED_EQUIPMENT_COST = 'Installed equipment cost'
-COOLING = 'Cooling'
-HEATING = 'Heating'
 COOLING_DUTY = 'Cooling duty'
 HEATING_DUTY = 'Heating duty'
 ELECTRICITY_CONSUMPTION = 'Electricity consumption'
 ELECTRICITY_PRODUCTION = 'Electricity production'
-CAPITAL_UNITS = 'MM$'
-ELEC_UNITS = 'MW'
-DUTY_UNITS = 'GJ/hr'
-
+CAPITAL_UNITS = '[MM$]'
+ELEC_UNITS = '[MW]'
+DUTY_UNITS = '[GJ/hr]'
 
 # %% Unit group for generating results
 
@@ -67,18 +65,9 @@ class UnitGroup:
     >>> example_sys.simulate()
     >>> ugroup = UnitGroup('Example group', example_sys.units)
     
-    We can autofill metrics to evaluate:
-    >>> ugroup.autofill_metrics(electricity_production=True)
-    >>> ugroup.metrics
-    [<Metric: Installed equipment cost (MM$)>,
-     <Metric: Cooling duty (GJ/hr)>,
-     <Metric: Heating duty (GJ/hr)>,
-     <Metric: Electricity consumption (MW)>,
-     <Metric: Electricity production (MW)>]
-    
-    Get all metric results:
+    You can get main process results using UnitGroup methods:
         
-    >>> ugroup.to_dict()
+    >>> ugroup.to_dict(with_electricity_production=True)
     {'Installed equipment cost [MM$]': 0.056,
      'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
@@ -108,12 +97,7 @@ class UnitGroup:
     >>> ugroup.show()
     UnitGroup: Example group
      units: P1, T1, H1
-     metrics: Installed equipment cost [MM$]
-              Cooling duty [GJ/hr]
-              Heating duty [GJ/hr]
-              Electricity consumption [MW]
-              Electricity production [MW]
-              Moisture content
+     metrics: Moisture content
               Sucrose flow rate [kg/hr]
     
     >>> ugroup.to_dict()
@@ -121,57 +105,24 @@ class UnitGroup:
      'Cooling duty [GJ/hr]': 0.37,
      'Heating duty [GJ/hr]': 0.0,
      'Electricity consumption [MW]': 0.00082,
-     'Electricity production [MW]': 0.0,
      'Moisture content': 0.63,
      'Sucrose flow rate [kg/hr]': 1026.88}
     
     """
-    __slots__ = ('name', 'units', 'metrics', 'filter_savings')
+    __slots__ = ('name', 'units', 'metrics')
     
-    def __init__(self, name=None, units=(), metrics=None, filter_savings=True):
+    def __init__(self, name=None, units=(), metrics=None):
         #: [str] Name of group for bookkeeping
         self.name = 'Unnamed' if name is None else str(name)
         
         #: list[Unit] Unit operations
         self.units = units if isinstance(units, list) else list(units) 
         
-        if metrics is None: 
-            metrics = []
-        elif not isinstance(metrics, list):
-            metrics = list(metrics)
+        if metrics is None: metrics = []
+        elif not isinstance(metrics, list): metrics = list(metrics)
         
         #: list[Metric] Metrics to generate results
         self.metrics = metrics
-        
-        # [bool] Whether to only allow postive flows in utility results
-        self.filter_savings = filter_savings
-    
-    def autofill_metrics(self, shorthand=False, 
-                         installed_cost=True,
-                         cooling_duty=True,
-                         heating_duty=True,
-                         electricity_consumption=True,
-                         electricity_production=False):
-        if installed_cost:
-            self.metric(self.get_installed_cost,
-                        INST_EQ_COST if shorthand else INSTALLED_EQUIPMENT_COST,
-                        CAPITAL_UNITS)
-        if cooling_duty:
-            self.metric(self.get_cooling_duty,
-                        COOLING if shorthand else COOLING_DUTY,
-                        DUTY_UNITS)
-        if heating_duty:
-            self.metric(self.get_heating_duty,
-                        HEATING if shorthand else HEATING_DUTY,
-                        DUTY_UNITS)
-        if electricity_consumption:
-            self.metric(self.get_electricity_consumption,
-                        ELEC_CONS if shorthand else ELECTRICITY_CONSUMPTION,
-                        ELEC_UNITS)
-        if electricity_production:
-            self.metric(self.get_electricity_production,
-                        ELEC_PROD if shorthand else ELECTRICITY_PRODUCTION,
-                        ELEC_UNITS)
     
     def __iter__(self):
         return iter(self.units)
@@ -232,6 +183,8 @@ class UnitGroup:
         
         """
         if not getter: return lambda getter: self.metric(getter, name, units, element)
+        if not name and hasattr(getter, '__name__'):
+            name = format_title(getter.__name__)
         metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self.metrics)
         self.metrics.append(metric)
@@ -251,11 +204,7 @@ class UnitGroup:
     @property
     def heat_utilities(self):
         """[tuple] All HeatUtility objects."""
-        heat_utilities = utils.get_heat_utilities(self.units)
-        if self.filter_savings:
-            return utils.filter_out_heat_utility_savings(heat_utilities) 
-        else: 
-            return heat_utilities 
+        return utils.get_heat_utilities(self.units)
     
     @property
     def power_utilities(self):
@@ -332,10 +281,10 @@ class UnitGroup:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
-        >>> ugroup.get_inlet_flow('ton/s') # Sum of all chemicals
-        6.37
-        >>> ugroup.get_inlet_flow('ton/s', 'Water') # Just water
-        5.69
+        >>> ugroup.get_inlet_flow('kg/s') # Sum of all chemicals
+        6114.69
+        >>> ugroup.get_inlet_flow('kg/s', 'Water') # Just water
+        5475.99
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -360,10 +309,10 @@ class UnitGroup:
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
-        >>> ugroup.get_outlet_flow('ton/s') # Sum of all chemicals
-        6.38
-        >>> ugroup.get_outlet_flow('ton/s', 'Water') # Just water
-        5.69
+        >>> ugroup.get_outlet_flow('kg/s') # Sum of all chemicals
+        6130.95
+        >>> ugroup.get_outlet_flow('kg/s', 'Water') # Just water
+        5482.23
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -404,54 +353,72 @@ class UnitGroup:
         """Return the total electricity production in MW."""
         return utils.get_electricity_production(self.power_utilities)
     
-    def get_net_electricity_production(self):
-        """Return the net electricity production in MW."""
-        power_utilities = self.power_utilities
-        return (utils.get_electricity_production(power_utilities)
-                - utils.get_electricity_consumption(power_utilities))
-    
-    def to_dict(self, with_units=True):
+    def to_dict(self, with_electricity_production=False, shorthand=False, with_units=True):
         """Return dictionary of results."""
-        metrics = self.metrics
-        if not metrics: self.autofill_metrics()
-        if with_units:
-            return {i.name_with_units: i() for i in self.metrics}
+        if shorthand:
+            inst_cost = INST_COST
+            elec_consumption = ELEC_CONSUMPTION
+            elec_production = ELEC_PRODUCTION
         else:
-            return {i.name: i() for i in self.metrics}
+            inst_cost = INSTALLED_EQUIPMENT_COST
+            elec_consumption = ELECTRICITY_CONSUMPTION
+            elec_production = ELECTRICITY_PRODUCTION
+        cooling_duty = COOLING_DUTY
+        heating_duty = HEATING_DUTY
+        if with_units:
+            inst_cost += ' ' + CAPITAL_UNITS
+            elec_consumption += ' ' + ELEC_UNITS
+            elec_production += ' ' + ELEC_UNITS
+            cooling_duty += ' ' + DUTY_UNITS
+            heating_duty += ' ' + DUTY_UNITS
+        dct = {inst_cost: self.get_installed_cost(),
+               cooling_duty: self.get_cooling_duty(),
+               heating_duty: self.get_heating_duty(),
+               elec_consumption: self.get_electricity_consumption()}
+        if with_electricity_production:
+            dct[elec_production] = self.get_electricity_production()
+        for i in self.metrics:
+            dct[i.name_with_units] = i()
+        return dct
             
     def diagram(self, *args, **kwargs):
         return bst.System(None, self.units).diagram(*args, **kwargs)
     
-    def to_series(self, with_units=True):
+    def to_series(self, with_electricity_production=False, shorthand=False, with_units=True):
         """Return a pandas.Series object of results."""
-        return pd.Series(self.to_dict(with_units), name=self.name)
+        return pd.Series(self.to_dict(with_electricity_production, shorthand, with_units), name=self.name)
 
     @classmethod
-    def df_from_groups(cls, unit_groups, fraction=False):
+    def df_from_groups(cls, unit_groups,
+                       with_electricity_production=False, 
+                       shorthand=False, fraction=False):
         """Return a pandas.DataFrame object from unit groups."""
         with_units = not fraction
-        data = [i.to_series(with_units) for i in unit_groups]
+        data = [i.to_series(with_electricity_production, shorthand, with_units) for i in unit_groups]
         df = pd.DataFrame(data)
         if fraction:
             values = df.values
-            postive_values = np.where(values > 0., values, 0.)
-            values *= 100 / postive_values.sum(axis=0, keepdims=True)
+            values *= 100 / values.sum(axis=0, keepdims=True)
         return df
 
     @classmethod
-    def df_from_groups_across_coordinate(cls, unit_groups, f, xs, name=None):
-        def get_df(x):
-            f(x)
-            return cls.df_from_groups(unit_groups)
-        dfs = [get_df(x) for x in xs]
-        df0 = dfs[0]
-        columns = list(df0)
-        data = sum([[df[i] for df in dfs] for i in columns], [])
-        df = pd.DataFrame(np.array(data).transpose(),
-            index=df0.index,
-            columns=pd.MultiIndex.from_product([columns, xs], names=['Metric', name]),
-        )
-        return df
+    def plot_bars_from_groups(cls, unit_groups, with_electricity_production=False,
+                              shorthand=True, fraction=True, horizontal_ticks=False, 
+                              edgecolor='k', **kwargs):
+        """Plot unit groups as a stacked bar chart."""
+        df = cls.df_from_groups(unit_groups,
+                                with_electricity_production,
+                                shorthand,
+                                fraction)
+        df.T.plot(kind='bar', stacked=True, edgecolor=edgecolor, **kwargs)
+        locs, labels = plt.xticks()
+        plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
+        plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+        if horizontal_ticks: plt.xticks(rotation=0)
+        if fraction:
+            plt.ylabel('[%]')
+            plt.ylim(0, 100)
+        style_axis(top=False)
 
     def show(self):
         units = self.units

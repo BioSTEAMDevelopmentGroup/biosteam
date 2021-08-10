@@ -549,23 +549,7 @@ class System:
         #: [str] Converge method
         self.converge_method = self.default_converge_method
     
-    @property
-    def specification(self):
-        """Process specification."""
-        return self._specification
-    @specification.setter
-    def specification(self, specification):
-        if specification:
-            if callable(specification):
-                self._specification = specification
-            else:
-                raise AttributeError(
-                    "specification must be callable or None; "
-                   f"not a '{type(specification).__name__}'"
-                )
-        else:
-            self._specification = None
-    
+    specification = Unit.specification
     save_report = save_report
     
     def _extend_flattend_path_and_recycles(self, path, recycles, stacklevel):
@@ -1144,12 +1128,12 @@ class System:
     
     def get_inlet_flow(self, units, key=None):
         """
-        Return total flow across all inlets per year.
+        Return total flow across all inlets.
         
         Parameters
         ----------
         units : str
-            Material units of measure (e.g., 'kg', 'gal', 'kmol').
+            Units of measure.
         key : tuple[str] or str, optional
             Chemical identifiers. If none given, the sum of all chemicals returned
             
@@ -1157,14 +1141,13 @@ class System:
         --------
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
-        >>> cornstover_sys.get_inlet_flow('Mton') # Sum of all chemicals
-        192.89
-        >>> cornstover_sys.get_inlet_flow('Mton', 'Water') # Just water
-        172.31
+        >>> cornstover_sys.get_inlet_flow('tonne/s') # Sum of all chemicals
+        51422.13
+        >>> cornstover_sys.get_inlet_flow('tonne/s', 'Water') # Just water
+        46050.96
         >>> default() # Bring biosteam settings back to default
         
         """
-        units += '/hr'
         if key:
             return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
         else:
@@ -1172,12 +1155,12 @@ class System:
     
     def get_outlet_flow(self, units, key=None):
         """
-        Return total flow across all outlets per year.
+        Return total flow across all outlets.
         
         Parameters
         ----------
         units : str
-            Material units of measure (e.g., 'kg', 'gal', 'kmol').
+            Units of measure.
         key : tuple[str] or str, optional
             Chemical identifiers. If none given, the sum of all chemicals returned
             
@@ -1185,14 +1168,13 @@ class System:
         --------
         >>> from biorefineries.cornstover import cornstover_sys
         >>> from biosteam import default
-        >>> cornstover_sys.get_outlet_flow('Mton') # Sum of all chemicals
-        193.44
-        >>> cornstover_sys.get_outlet_flow('Mton', 'Water') # Just water
-        172.53
+        >>> cornstover_sys.get_outlet_flow('tonne/s') # Sum of all chemicals
+        51558.88
+        >>> cornstover_sys.get_outlet_flow('tonne/s', 'Water') # Just water
+        46103.38
         >>> default() # Bring biosteam settings back to default
         
         """
-        units += '/hr'
         if key:
             return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
         else:
@@ -1215,11 +1197,11 @@ class System:
         return self.operating_hours * utils.get_utility_flow(self.heat_utilities, agent)
     
     def get_cooling_duty(self):
-        """Return the total cooling duty in GJ/yr."""
+        """Return the total cooling duty in GJ/hr."""
         return self.operating_hours * utils.get_cooling_duty(self.heat_utilities)
     
     def get_heating_duty(self):
-        """Return the total heating duty in GJ/yr."""
+        """Return the total heating duty in GJ/hr."""
         return self.operating_hours * utils.get_heating_duty(self.heat_utilities)
     
     def get_purchase_cost(self):

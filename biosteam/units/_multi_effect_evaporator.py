@@ -241,11 +241,12 @@ class MultiEffectEvaporator(Unit):
         self.V = V #: [float] Molar fraction evaporated.
         self.V_definition = V_definition
         self._V_first_effect = None
-        self._reload_components = True
-        self.components = {}
         
     def reset_cache(self):
-        self._reload_components = True
+        components = self.components
+        evaporators = components['evaporators']
+        for i in evaporators: i.reset_cache()
+        components['condenser'].reset_cache()
         
     def load_components(self):
         P = self.P
@@ -262,15 +263,13 @@ class MultiEffectEvaporator(Unit):
             evaporators.append(evap)
         
         condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
-        condenser.parent = self
         self.heat_utilities = (first_evaporator.heat_utilities[0],
                                condenser.heat_utilities[0])
         mixer = Mixer(None, outs=[None], thermo=thermo)
         
-        components = self.components
-        components['evaporators'] = evaporators
-        components['condenser'] = condenser
-        components['mixer'] = mixer
+        self.components = {'evaporators': evaporators,
+                           'condenser': condenser,
+                           'mixer': mixer}
         
         # Set-up components
         other_evaporators = evaporators[1:]
@@ -297,18 +296,14 @@ class MultiEffectEvaporator(Unit):
     def _run(self):
         out_wt_solids, liq = self.outs
         ins = self.ins
+        self.load_components()
 
         if self.V == 0:
             out_wt_solids.copy_like(ins[0])
             for i in self.heat_utilities: 
                 i.empty(); i.heat_exchanger = None
             liq.empty()
-            self._reload_components = True
             return
-        
-        if self._reload_components:
-            self.load_components()
-            self._reload_components = False
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
@@ -317,7 +312,6 @@ class MultiEffectEvaporator(Unit):
                 if self._V_overall(0.) > self.V:
                     self.P.pop()
                     self.load_components()
-                    self._reload_components = True
                 else:
                     break
             self.P = P

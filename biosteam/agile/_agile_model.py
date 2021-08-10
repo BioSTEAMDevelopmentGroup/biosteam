@@ -43,14 +43,12 @@ class AgileModel:
         '_system_parameters', # dict[System, Parameter] All parameters.
         '_system_metrics',    # dict[System, Metric] Metrics to be evaluated by model.
         '_samples',           # [array] Argument sample space.
-        '_index',             # list[int] Sample evaluation order.
     )
     
     def __init__(self, agile_scenario):
         self._agile_scenario = agile_scenario
         self._system_parameters = {None: []}
         self._system_metrics = {None: []}
-        self._N_parameters_cache = None
     
     @property
     def agile_scenario(self):
@@ -86,11 +84,10 @@ class AgileModel:
         systems.sort(key=lambda x: len(x.units) if x else 0)
         self._system_parameters = sp = {i: sp[i] for i in systems}
         parameters_lists = tuple(sp.values())
-        N_parameters = sum([len(i) for i in parameters_lists])
+        N_parameters = [len(i) for i in parameters_lists]
         if N_parameters != self._N_parameters_cache:
             self._N_parameters_cache = N_parameters
-            for sys, parameters in zip(systems, parameters_lists):
-                if sys: Parameter.sort_parameters(parameters)
+            for i in parameters_lists: Parameter.sort_parameters(i)
     
     def parameter(self, setter=None, system=None, element=None, kind='isolated',
                   name=None, distribution=None, units=None, baseline=None, bounds=None):
@@ -174,7 +171,7 @@ class AgileModel:
     def _load_sample_order(self, samples, parameters):
         key = lambda x: samples[x, i]
         index = list(range(samples.shape[0]))
-        for i in range(self._N_parameters_cache - 1, -1, -1):
+        for i in range(self._N_parameters_cache-1,  -1, -1):
             if not parameters[i].system: break
             index.sort(key=key)
         self._index = index
@@ -263,7 +260,6 @@ class AgileModel:
         all_metrics.extend([i() for i in general_metrics])
         agile_scenario.compile_scenarios(scenarios)
     
-    get_joint_distribution = Model.get_joint_distribution
     problem = Model.problem
     spearman_r = Model.spearman_r
     pearson_r = Model.pearson_r

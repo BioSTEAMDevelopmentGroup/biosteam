@@ -85,8 +85,7 @@ class AgileTEA(AgileScenario):
                  '_depreciation_array', '_depreciation', '_years',
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache', 'units', 'operating_hours',
-                 'utility_cost', 'material_cost', 'sales', 'flow_rates',
-                 'feeds', 'products')
+                 'utility_cost', 'material_cost', 'sales', 'flow_rates')
     
     def create_scenario(self, system):
         return system.get_scenario_costs()
@@ -103,8 +102,6 @@ class AgileTEA(AgileScenario):
         self.material_cost = sum([i.material_cost for i in scenarios])
         self.sales = sum([i.sales for i in scenarios])
         self.flow_rates = flow_rates = {}
-        self.feeds = set(sum([i.feeds for i in scenarios], []))
-        self.products = set(sum([i.products for i in scenarios], []))
         for scenario in scenarios:
             for stream, F_mass in scenario.flow_rates.items():
                 if stream in flow_rates: flow_rates[stream] += F_mass
@@ -214,7 +211,7 @@ class AgileTEA(AgileScenario):
     
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
-        return self.flow_rates[stream] * stream.price
+        return self.flow_rates[stream]  * stream.price
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
@@ -223,12 +220,7 @@ class AgileTEA(AgileScenario):
         else:
             F_mass = 0.
         if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
-        if stream in self.products:
-            return F_mass
-        elif stream in self.feeds:
-            return - F_mass
-        else:
-            raise ValueError("stream must be either a feed or a product")
+        return F_mass
     
     def _info(self):
         return (f'{type(self).__name__}: \n'

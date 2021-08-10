@@ -37,36 +37,18 @@ class AgileSystem(AgileScenario):
     
     """
     
-    __slots__ = ('system', 'samples', 'time_steps',
+    __slots__ = ('system', 'samples', 'operating_hours', 
                  'unit_capital_costs', 'utility_cost',
-                 'flow_rates', 'feeds', 'products',
-                 'tea')
+                 'flow_rates', 'feeds', 'products')
     
-    def __init__(self, system, samples, time_steps, tea=None):
+    def __init__(self, system, samples, operating_hours):
         self.system = system
         self.samples = samples
-        self.time_steps = time_steps
-        self.tea = tea
+        self.operating_hours = operating_hours
     
     def __init_subclass__(cls):
         if not hasattr(cls, 'set_parameters'):
             raise NotImplementedError("missing method 'set_parameters'")
-
-    @property
-    def units(self):
-        return self.system.units
-
-    @property
-    def empty_recycles(self):
-        return self.system.empty_recycles
-    
-    @property    
-    def reset_cache(self):
-        return self.system.reset_cache
-
-    @property
-    def operating_hours(self):
-        return sum(self.time_steps)
 
     def create_scenario(self, system):
         return system.get_scenario_costs()
@@ -80,8 +62,8 @@ class AgileSystem(AgileScenario):
         self.unit_capital_costs = {i: i.get_agile_capital_costs(j) for i, j in unit_scenarios.items()}
         self.utility_cost = sum([i.utility_cost for i in scenarios])
         self.flow_rates = flow_rates = {}
-        self.feeds = list(set(sum([i.feeds for i in scenarios], [])))
-        self.products = list(set(sum([i.products for i in scenarios], [])))
+        self.feeds = set(sum([i.feeds for i in scenarios], []))
+        self.products = set(sum([i.products for i in scenarios], []))
         for scenario in scenarios:
             for stream, F_mass in scenario.flow_rates.items():
                 if stream in flow_rates: flow_rates[stream] += F_mass
@@ -91,7 +73,7 @@ class AgileSystem(AgileScenario):
         scenarios = []
         system = self.system
         original_operating_hours = system.operating_hours
-        for operating_hours, sample in zip(self.time_steps, self.samples):
+        for sample, operating_hours in zip(self.samples, self.operating_hours):
             self.set_parameters(sample)
             system.operating_hours = operating_hours
             system.simulate()
@@ -99,9 +81,6 @@ class AgileSystem(AgileScenario):
             scenarios.append(scenario)
         system.operating_hours = original_operating_hours
         self.compile_scenarios(scenarios)
-        if self.tea:
-            scenario = self.tea.create_scenario(self)
-            self.tea.compile_scenarios([scenario])
         
     def get_scenario_costs(self):
         return ScenarioCosts(
@@ -109,7 +88,7 @@ class AgileSystem(AgileScenario):
             self.flow_rates,
             self.utility_cost,
             self.feeds, self.products,
-            sum(self.time_steps),
+            sum(self.operating_hours),
         )
     
             

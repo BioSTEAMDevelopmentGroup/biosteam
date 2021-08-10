@@ -250,7 +250,7 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
     return T_transient
 
 
-def synthesize_network(hus, T_min_app=5., Qmin=1e-3):  
+def synthesize_network(hus, T_min_app=5.):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
         hxs_cooling, hxs, hot_indices, cold_indices, streams, hx_utils_rearranged, \
@@ -337,7 +337,6 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
                      T_lim1 = pinch_T_arr[cold], dT = T_min_app,
                      thermo = hot_stream.thermo)
             new_HX._run()
-            if abs(new_HX.Q )< Qmin: continue
             HXs_cold_side.append(new_HX)
             stream_HXs_dict[hot].append(new_HX)
             stream_HXs_dict[cold].append(new_HX)
@@ -396,7 +395,6 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
                      T_lim1 = pinch_T_arr[hot], dT = T_min_app,
                      thermo = hot_stream.thermo)
             new_HX._run()
-            if abs(new_HX.Q )< Qmin: continue
             HXs_hot_side.append(new_HX)
             stream_HXs_dict[hot].append(new_HX)
             stream_HXs_dict[cold].append(new_HX)
@@ -438,7 +436,6 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
                              thermo = hot_stream.thermo)
                     try: new_HX._run()
                     except: continue
-                    if abs(new_HX.Q )< Qmin: continue
                     HXs_cold_side.append(new_HX)
                     stream_HXs_dict[hot].append(new_HX)
                     stream_HXs_dict[cold].append(new_HX)                    
@@ -478,7 +475,6 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
                              thermo = hot_stream.thermo)
                     try: new_HX._run()
                     except: continue
-                    if abs(new_HX.Q )< Qmin: continue
                     HXs_hot_side.append(new_HX)                        
                     stream_HXs_dict[hot].append(new_HX)
                     stream_HXs_dict[cold].append(new_HX)                        
@@ -544,7 +540,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
         new_HX_util._run()
         s_out = new_HX_util-0
         np.testing.assert_allclose(s_out.H, H_out_arr[cold], rtol=1e-2, atol=1.)
-        np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=5e-2, atol=0.001)
+        np.testing.assert_allclose(s_out.T, T_out_arr[cold], rtol=1e-2, atol=0.001)
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[cold].append(new_HX_util)
             

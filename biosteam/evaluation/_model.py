@@ -87,10 +87,10 @@ class Model(State):
     >>> set_N_reactors_parameter = parameters[0]
     >>> set_N_reactors_parameter(5)
     >>> R301.purchase_cost / 1e6
-    1.55
+    1.6
     >>> set_N_reactors_parameter(8)
     >>> R301.purchase_cost / 1e6
-    1.85
+    1.9
     
     Add the fermentation unit base cost as a "cost" parameter with a triangular distribution (which doesn't affect mass and energy balances nor design requirements'):
     
@@ -159,8 +159,8 @@ class Model(State):
     Evaluate sample:
         
     >>> model([0.05, 0.85, 8, 0.6, 0.040]) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]   13.3
-                 Utility cost [10^6 USD/yr]   -28.7
+    Biorefinery  Internal rate of return [%]   12.1
+                 Utility cost [10^6 USD/yr]   -20.2
     dtype: float64
     
     Sample from a joint distribution, and simulate samples:
@@ -289,6 +289,8 @@ class Model(State):
         
         """
         if not getter: return lambda getter: self.metric(getter, name, units, element)
+        if not name and hasattr(getter, '__name__'):
+            name = format_title(getter.__name__)
         metric = Metric(name, getter, units, element)
         Metric.check_index_unique(metric, self._metrics)
         self._metrics.append(metric)
@@ -328,7 +330,7 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def evaluate(self, thorough=True, notify=0):
+    def evaluate(self, thorough=True, notify=False):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -338,8 +340,8 @@ class Model(State):
             If True, simulate the whole system with each sample.
             If False, simulate only the affected parts of the system and
             skip simulation for repeated states.
-        notify=0 : int, optional
-            If 1 or greater, notify elapsed time after the given number of sample evaluations. 
+        notify=False : bool, optional
+            If True, notify elapsed time after each sample evaluation. 
         
         """
         samples = self._samples
@@ -353,8 +355,7 @@ class Model(State):
             def evaluate(sample, thorough, count=[0]):
                 count[0] += 1
                 values = evaluate_sample(sample, thorough)
-                if not count[0] % notify:
-                    print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
+                print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
         else:
             evaluate = evaluate_sample
@@ -368,13 +369,25 @@ class Model(State):
         try:
             self._update_state(sample, thorough)
             return [i() for i in self.metrics]
-        except:
+        except Exception as exception:
+            if self._specification:
+                if self._exception_hook: 
+                    values = self._exception_hook(exception, sample)
+                    self._reset_system()
+                    if isinstance(values, Sized) and len(values) == len(self.metrics):
+                        return values
+                    elif values is not None:
+                        raise RuntimeError('exception hook must return either None or '
+                                           'an array of metric values for the given sample')
+                return self._failed_evaluation()
+            
             return self._run_exception_hook(sample)
     
     def _run_exception_hook(self, sample):
         self._reset_system()
         try:
-            self._system.simulate()
+            self._specification[0]() if self._specification else self._system.simulate()
+            # self._system.simulate()
             return [i() for i in self.metrics]
         except Exception as exception:
             if self._exception_hook: 
@@ -401,7 +414,7 @@ class Model(State):
         return self(baseline)
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
-                                   *, xlfile=None, notify=0, notify_coordinate=True,
+                                   *, xlfile=None, notify=True,
                                    multi_coordinate=False):
         """
         Evaluate across coordinate and save sample metrics.
@@ -433,13 +446,13 @@ class Model(State):
         metric_data = {i: np.zeros(shape) for i in metric_indices}
         
         # Initialize timer
-        if notify_coordinate:
+        if notify:
             from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
             def evaluate():
-                self.evaluate(notify=notify)
-                print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
+                self.evaluate()
+                print(f"[{n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
             evaluate = self.evaluate
         
@@ -461,9 +474,16 @@ class Model(State):
                                 columns=columns)
             
             with pd.ExcelWriter(xlfile) as writer:
-                for metric in self.metrics:
-                    data[:] = metric_data[metric.index]
-                    data.to_excel(writer, sheet_name=metric.short_description)
+                for i, metric in zip(metric_indices, metric_data):
+                    data[:] = metric_data[metric]
+                    element, name = i
+                    name, *_ = name.split(' [')
+                    name = ' '.join([element, name])
+                    if len(name) > 31:
+                        words = name.split(' ')
+                        words = [(i[:4]+'.' if len(i) > 5 else i) for i in words]
+                        name = ' '.join(words)
+                    data.to_excel(writer, sheet_name=name)
         return metric_data
     
     def spearman(self, parameters=None, metrics=None):

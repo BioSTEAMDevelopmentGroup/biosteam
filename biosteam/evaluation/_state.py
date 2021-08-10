@@ -160,7 +160,7 @@ class State:
         """
         return cp.distributions.J(*[i.distribution for i in self.get_parameters()])
     
-    def get_distribution_summary(self, xlfile=None):
+    def get_distribution_summary(self):
         """Return dictionary of shape name-DataFrame pairs."""
         parameters = self.get_parameters()
         if not parameters: return None
@@ -187,10 +187,6 @@ class State:
                 values = distribution._repr.values()
                 data.append((element, name, units, shape, *values))
             tables_by_shape[shape] =  pd.DataFrame(data, columns=columns)
-        if xlfile:
-            with pd.ExcelWriter(xlfile) as writer:
-                for shape, df in tables_by_shape.items():
-                    df.to_excel(writer, sheet_name=shape)
         return tables_by_shape    
     
     def parameter(self, setter=None, element=None, kind='isolated', name=None, 
@@ -230,9 +226,8 @@ class State:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
                                                  bounds)
-        p = Parameter(name, setter, element or 'biorefinery',
-                      self.system, distribution, units, 
-                      baseline, bounds, kind)
+        p = Parameter(name, setter, element, self.system, distribution,
+                      units, baseline, bounds, kind)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()
@@ -352,13 +347,13 @@ class State:
         try:
             if thorough: 
                 for f, s in zip(self._parameters, sample): f.setter(s)
-                self._specification() if self._specification else self._system.simulate()
+                self._specification[0]() if self._specification else self._system.simulate()
             else:
                 same_arr = self._sample_cache==sample
                 for p, x, same in zip(self._parameters, sample, same_arr):
                     if same: continue
                     p.setter(x)
-                if self._specification: self._specification()
+                if self._specification: self._specification[0]()
                 for p, x, same in zip(self._parameters, sample, same_arr):
                     if same: continue
                     p.simulate()

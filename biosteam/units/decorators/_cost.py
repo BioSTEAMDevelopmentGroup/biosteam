@@ -138,7 +138,7 @@ def _decorated_cost(self):
             kW += N*x.kW*F
         else:
             F = S/x.S
-            C[i] = bst.CE/x.CE*(x.f(F) if x.f else x.cost*F**x.n)
+            C[i] = bst.CE/x.CE*(x.f(F) if x.f else x.cost*abs(F)**x.n)
             kW += x.kW*F
     if kW: self.power_utility(kW)
 
