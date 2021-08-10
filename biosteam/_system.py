@@ -645,6 +645,21 @@ class System:
             else:
                 path.append(i)
     
+    def prioritize_unit(self, unit):
+        isa = isinstance
+        if unit not in self.units: return False
+        for index, other in enumerate(self.path):
+            if unit is other:
+                if self.recycle: 
+                    path = self._path
+                    self._path = path[index:] + path[:index]
+                    return True
+                else:
+                    return False
+            elif isa(other, System) and unit in other.units:
+                return other.prioritize_unit(unit)
+        raise RuntimeError('problem in system algorithm')
+    
     def split(self, stream, ID_upstream=None, ID_downstream=None):
         """
         Split system in two; upstream and downstream.
