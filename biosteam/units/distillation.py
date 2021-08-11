@@ -236,8 +236,8 @@ class Distillation(Unit, isabstract=True):
                                 ins=tmo.Stream(None, thermo=boiler_thermo),
                                 outs=tmo.MultiStream(None, thermo=boiler_thermo),
                                 thermo=boiler_thermo)
-        self.boiler.parent = self
-        self.condenser.parent = self
+        self.boiler.owner = self
+        self.condenser.owner = self
         self.boilup = self.boiler.outs[0]['g']  
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
         self.reset_cache() # Abstract method

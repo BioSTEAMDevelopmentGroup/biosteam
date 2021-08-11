@@ -125,10 +125,7 @@ class HeatExchangerNetwork(Facility):
         self.ignored = ignored
         self.Qmin = Qmin
         
-    def _run(self): pass
-    def _design(self): pass
-    
-    def _cost(self):
+    def _get_original_heat_utilties(self):
         sys = self.system
         if self.units:
             units = self.units
@@ -140,7 +137,14 @@ class HeatExchangerNetwork(Facility):
         else:
             ignored_hx_utils = ()
         hx_utils = bst.process_tools.heat_exchanger_utilities_from_units(units)
-        hx_utils = [i for i in hx_utils if i.duty and i not in ignored_hx_utils]
+        return [i for i in hx_utils if i.duty and i not in ignored_hx_utils]
+        
+    def _run(self): pass
+    def _design(self): pass
+    
+    def _cost(self):
+        sys = self.system
+        hx_utils = self._get_original_heat_utilties()
         hx_utils.sort(key = lambda x: x.duty)
         original_flowsheet = sys.flowsheet
         HXN_ID = sys.ID + '_HXN'
@@ -259,6 +263,19 @@ class HeatExchangerNetwork(Facility):
         finally:
             bst.main_flowsheet.set_flowsheet(original_flowsheet)
     
+    def _energy_balance_error_contributions(self):
+        original_ignored = self.ignored
+        energy_balance_errors = {}
+        for hu in self._get_original_heat_utilties():
+            self.ignored = original_ignored + [hu.heat_exchanger]
+            self.simulate()
+            if hasattr(hu.heat_exchanger, 'owner'):
+                ID = hu.heat_exchanger.owner.ID, hu.heat_exchanger.ID
+            else:
+                ID = hu.heat_exchanger.ID
+            energy_balance_errors[ID] = (hu, self.energy_balance_percent_error)
+        return energy_balance_errors
+            
     def _get_stream_life_cycles(self):
         cold_indices = self.cold_indices
         new_HXs = self.new_HXs

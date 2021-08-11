@@ -646,19 +646,63 @@ class System:
                 path.append(i)
     
     def prioritize_unit(self, unit):
+        """
+        Prioritize unit operation to run first within it's recycle system,
+        if there is one.
+
+        Parameters
+        ----------
+        unit : Unit
+            Unit operation to prioritize.
+
+        Raises
+        ------
+        ValueError
+            When unit is not in the system.
+        RuntimeError
+            When prioritization algorithm fails. This should never happen.
+
+        Examples
+        --------
+        Create a simple recycle loop and prioritize a different unit operation:
+        
+        >>> from biosteam import main_flowsheet as f, Stream, settings, Mixer, Splitter
+        >>> f.set_flowsheet('simple_recycle_loop')
+        >>> settings.set_thermo(['Water'], cache=True)
+        >>> feedstock = Stream('feedstock', Water=1000)
+        >>> water = Stream('water', Water=10)
+        >>> recycle = Stream('recycle')
+        >>> product = Stream('product')
+        >>> M1 = Mixer('M1', [feedstock, water, recycle])
+        >>> S1 = Splitter('S1', M1-0, [product, recycle], split=0.5)
+        >>> recycle_loop_sys = f.create_system('recycle_loop_sys')
+        >>> recycle_loop_sys.print()
+        System('recycle_loop_sys',
+            [M1,
+             S1],
+            recycle=S1-1)
+        >>> recycle_loop_sys.prioritize_unit(S1)
+        >>> recycle_loop_sys.print()
+        System('recycle_loop_sys',
+            [S1,
+             M1],
+            recycle=S1-1)
+
+        """
         isa = isinstance
-        if unit not in self.units: return False
-        for index, other in enumerate(self.path):
-            if unit is other:
-                if self.recycle: 
-                    path = self._path
+        if unit not in self.units: 
+            raise ValueError(f'unit {repr(unit)} not in system')
+        path = self._path
+        if (self.recycle or self.N_runs):
+            for index, other in enumerate(path):
+                if unit is other:
                     self._path = path[index:] + path[:index]
-                    return True
-                else:
-                    return False
-            elif isa(other, System) and unit in other.units:
-                return other.prioritize_unit(unit)
-        raise RuntimeError('problem in system algorithm')
+                    return
+                elif isa(other, System) and unit in other.units:
+                    other.prioritize_unit(unit)
+                    return 
+            raise RuntimeError('problem in system algorithm')
+                            
     
     def split(self, stream, ID_upstream=None, ID_downstream=None):
         """

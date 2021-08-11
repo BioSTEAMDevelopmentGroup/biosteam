@@ -254,6 +254,7 @@ class MultiEffectEvaporator(Unit):
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
         first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
+        first_evaporator.owner = self.owner
         
         # Put liquid first, then vapor side stream
         evaporators = [first_evaporator]
@@ -262,7 +263,7 @@ class MultiEffectEvaporator(Unit):
             evaporators.append(evap)
         
         condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
-        condenser.parent = self
+        condenser.owner = self
         self.heat_utilities = (first_evaporator.heat_utilities[0],
                                condenser.heat_utilities[0])
         mixer = Mixer(None, outs=[None], thermo=thermo)

@@ -530,6 +530,18 @@ class Unit:
         self.purchase_costs.clear()
         self.installed_costs.clear()
     
+    @property
+    def owner(self):
+        owner = getattr(self, '_owner', None)
+        if owner is None:
+            return self
+        else:
+            return owner.owner
+    @owner.setter
+    def owner(self, owner):
+        if owner is self: return
+        self._owner = owner
+    
     def disconnect(self):
         self._ins[:] = ()
         self._outs[:] = ()

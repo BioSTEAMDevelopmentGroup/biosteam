@@ -63,7 +63,7 @@ class Flowsheet:
     
     line = "Flowsheet"
     
-    #: [Register] All flowsheets.
+    #: [Flowsheets] All flowsheets.
     flowsheet = Flowsheets()
     
     def __new__(cls, ID):        
@@ -118,7 +118,7 @@ class Flowsheet:
         for registry in self.registries:
             if ID in registry: 
                 registry.discard(ID)
-                break
+                return
     
     def update(self, flowsheet):
         for registry, other_registry in zip(self.registries, flowsheet.registries):

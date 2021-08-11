@@ -95,6 +95,7 @@ class AgileSystem(AgileScenario):
         system = self.system
         original_operating_hours = system.operating_hours
         for operating_hours, sample in zip(self.time_steps, self.samples):
+            if not operating_hours: continue
             self.set_parameters(sample)
             system.operating_hours = operating_hours
             system.simulate()
