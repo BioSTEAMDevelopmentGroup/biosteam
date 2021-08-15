@@ -863,27 +863,12 @@ class MixerSettler(bst.Unit):
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MS1 = bst.MixerSettler('MS1', ins=(feed, solvent), outs=('raffinate', 'extract'))
     >>> MS1.simulate()
-    >>> MS1.show()
-    MixerSettler: MS1
-    ins...
-    [0] feed
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     500
-                        Methanol  50
-    [1] solvent
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Octanol  500
-    outs...
-    [0] raffinate
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     414
-                        Methanol  16.7
-                        Octanol   0.117
-    [1] extract
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     86.3
-                        Methanol  33.3
-                        Octanol   500
+    >>> MS1.extract.imol['Methanol'] / MS1.feed.imol['Methanol']
+    0.66
+    >>> MS1.raffinate.imol['Water'] / MS1.feed.imol['Water']
+    0.82
+    >>> MS1.extract.imol['Octanol'] / MS1.solvent.imol['Octanol']
+    0.99
     >>> MS1.results()
     Mixer settler                                             Units         MS1
     Power               Rate                                     kW        1.98
@@ -924,27 +909,12 @@ class MixerSettler(bst.Unit):
     ...    },
     ... )
     >>> MS1.simulate()
-    >>> MS1.show()
-    MixerSettler: MS1
-    ins...
-    [0] feed
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     500
-                        Methanol  50
-    [1] solvent
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Octanol  500
-    outs...
-    [0] raffinate
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     414
-                        Methanol  16.7
-                        Octanol   0.117
-    [1] extract
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Water     86.3
-                        Methanol  33.3
-                        Octanol   500
+    >>> MS1.extract.imol['Methanol'] / MS1.feed.imol['Methanol']
+    0.66
+    >>> MS1.raffinate.imol['Water'] / MS1.feed.imol['Water']
+    0.82
+    >>> MS1.extract.imol['Octanol'] / MS1.solvent.imol['Octanol']
+    0.99
     >>> MS1.results()
     Mixer settler                                             Units         MS1
     Power               Rate                                     kW        1.98
@@ -1103,12 +1073,12 @@ class MultiStageMixerSettlers(bst.Unit):
     >>> solvent = bst.Stream('solvent', Octanol=500)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=2)
     >>> MSMS1.simulate()
-    >>> MSMS1.raffinate.show()
-    Stream: raffinate from <MultiStageMixerSettlers: MSMS1>
-     phase: 'l', T: 298.15 K, P: 101325 Pa
-     flow (kmol/hr): Water     413
-                     Methanol  8.4
-                     Octanol   0.103
+    >>> MSMS1.extract.imol['Methanol'] / MSMS1.feed.imol['Methanol']
+    0.83
+    >>> MSMS1.raffinate.imol['Water'] / MSMS1.feed.imol['Water']
+    0.82
+    >>> MSMS1.extract.imol['Octanol'] / MSMS1.solvent.imol['Octanol']
+    0.99
     >>> MSMS1.results()
     Multi stage mixer settlers                     Units       MSMS1
     Power               Rate                          kW        3.96
@@ -1145,13 +1115,12 @@ class MultiStageMixerSettlers(bst.Unit):
     ...     }
     ... )
     >>> MSMS1.simulate()
-    >>> MSMS1.raffinate.show()
-    Stream: raffinate from <MultiStageMixerSettlers: MSMS1>
-     phase: 'l', T: 298.15 K, P: 101325 Pa
-     flow (kmol/hr): Water     4.1e+03
-                     Methanol  1.3
-                     Octanol   1.1
-    
+    >>> MSMS1.extract.imol['Methanol'] / MSMS1.feed.imol['Methanol']
+    0.99
+    >>> MSMS1.raffinate.imol['Water'] / MSMS1.feed.imol['Water']
+    0.82
+    >>> MSMS1.extract.imol['Octanol'] / MSMS1.solvent.imol['Octanol']
+    0.99
     >>> MSMS1.results()
     Multi stage mixer settlers                     Units       MSMS1
     Power               Rate                          kW         198
