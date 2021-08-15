@@ -389,8 +389,15 @@ class Model(State):
                 try:
                     self._specification() if self._specification else self._system.simulate()
                     return [i() for i in self.metrics]
-                except Exception as exception: 
-                    pass
+                except Exception as new_exception: 
+                    if self._exception_hook: 
+                        values = self._exception_hook(exception, sample)
+                        self._reset_system()
+                        if isinstance(values, Sized) and len(values) == len(self.metrics):
+                            return values
+                        elif values is not None:
+                            raise RuntimeError('exception hook must return either None or '
+                                               'an array of metric values for the given sample')
             if self._exception_hook: 
                 values = self._exception_hook(exception, sample)
                 self._reset_system()

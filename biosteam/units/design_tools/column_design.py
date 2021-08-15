@@ -64,7 +64,7 @@ def compute_purchase_cost_of_trays(N_T, Di):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    F_CE = bst.CE/500
+    F_CE = bst.CE/500.
     C_BT = compute_tray_base_purchase_cost(Di)
     F_NT = compute_n_trays_factor(N_T)
     return N_T * F_CE * F_NT * C_BT
@@ -163,8 +163,8 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     
     """
     # TODO: Incorporate temperature for choosing S and M
-    Di = Di*12 # ft to in
-    L = L*12
+    Di = Di*12. # ft to in
+    L = L*12.
     
     E_check = E is None
     if E_check:
@@ -173,34 +173,35 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     
     # Get design pressure, which should be higher than operating pressure.
     Po_gauge = Po - 14.69
-    if Po_gauge < 5:
+    if Po_gauge < 5.:
         Pd = 10
-    elif Po_gauge < 1000:
-        Pd = np.exp(0.60608 + 0.91615*np.log(Po)) + 0.0015655*np.log(Po)**2
+    elif Po_gauge < 1000.:
+        logPo = np.log(Po)
+        Pd = np.exp(0.60608 + 0.91615*logPo) + 0.0015655*logPo*logPo
     else:
         Pd = 1.1*Po_gauge
     
     # Calculate thinkess according to ASME pressure-vessel code.
-    ts = Pd*Di/(2*S*E-1.2*Pd)
+    ts = Pd*Di/(2.*S*E-1.2*Pd)
     
     if E_check:
         # Weld efficiency of 0.85 for low thickness carbon steel
         if ts < 1.25:
             E = 0.85
-            ts = Pd*Di/(2*S*E-1.2*Pd)
+            ts = Pd*Di/(2.*S*E-1.2*Pd)
     
     # Add corrosion allowence
-    ts += 1/8
+    ts += 1/8.
     
     # Minimum thickness for vessel rigidity may be larger
-    Di_ft = Di/12
-    ts_min = minimum_thickness_from_diameter(Di_ft) if Di_ft > 4 else 0.25
+    Di_ft = Di/12.
+    ts_min = minimum_thickness_from_diameter(Di_ft) if Di_ft > 4. else 0.25
     if ts < ts_min:
         ts = ts_min
     
     # Calculate thickness to withstand wind/earthquake load
     Do = Di + ts
-    tw = 0.22*(Do + 18)*L**2/(S*Do**2)
+    tw = 0.22*(Do + 18.)*L*L/(S*Do*Do)
     tv = tw if tw > ts else ts
     
     # Vessels are fabricated from metal plates with small increments
@@ -209,7 +210,7 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     elif tv < 2:
         tv = utils.approx2step(tv, 0.5, 1/8)
     elif tv < 3:
-        tv = utils.approx2step(tv, 2, 1/4)
+        tv = utils.approx2step(tv, 2., 1/4)
     return tv
 
 @njit(cache=True)
@@ -242,10 +243,10 @@ def compute_n_trays_factor(N_T):
     The cost factor is given by [1]_. See source code for details.
     
     """
-    if N_T < 20:
+    if N_T < 20.:
         F_NT = 2.25/1.0414**N_T
     else:
-        F_NT = 1
+        F_NT = 1.
     return F_NT
 
 @njit(cache=True)
@@ -270,9 +271,9 @@ def compute_murphree_stage_efficiency(mu, alpha, L, V):
     
     """
     S = alpha*V/L # Stripping factor
-    e = 0.503*mu**(-0.226)*(S if S > 1 else 1/S)**(-0.08 )
-    if e < 1: return e
-    else: return 1
+    e = 0.503*mu**(-0.226)*(S if S > 1. else 1./S)**(-0.08 )
+    if e < 1.: return e
+    else: return 1.
 
 @njit(cache=True)
 def compute_flow_parameter(L, V, rho_V, rho_L):
@@ -344,10 +345,10 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     F_ST = (sigma/20)**0.2 # Surface tension factor
     
     # Working area factor
-    if A_ha >= 0.1 and A_ha <= 1:
-        F_HA = 1
+    if A_ha >= 0.1 and A_ha <= 1.:
+        F_HA = 1.
     elif A_ha >= 0.06:
-        F_HA = 5*A_ha + 0.5
+        F_HA = 5.*A_ha + 0.5
     else:
         raise ValueError("ratio of open to active area, 'A', must be between 0.06 and 1") 
     
@@ -370,8 +371,8 @@ def compute_downcomer_area_fraction(F_LV):
     """
     if F_LV < 0.1:
         A_dn = 0.1
-    elif F_LV < 1:
-        A_dn = 0.1 + (F_LV-0.1)/9
+    elif F_LV < 1.:
+        A_dn = 0.1 + (F_LV-0.1)/9.
     else:
         A_dn = 0.2
     return A_dn
@@ -396,7 +397,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
     The tower diameter is given by [3]_. See source code for details.
     
     """
-    Di = (4*V_vol/(f*U_f*np.pi*(1-A_dn)))**0.5
+    Di = (4.*V_vol/(f*U_f*np.pi*(1.-A_dn)))**0.5
     if Di < 0.914:
         # Make sure diameter is not too small
         Di = 0.914
@@ -420,9 +421,9 @@ def compute_tower_height(TS, N_stages: int, top=True, bot=True):
     
     """
     # 3 m bottoms surge capacity, 1.25 m above top tray to remove entrained liquid
-    H = TS*N_stages/1000
+    H = TS*N_stages/1000.
     if top:
         H += 1.2672
     if bot:
-        H += 3
+        H += 3.
     return H 
