@@ -379,7 +379,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
-                     sort=True): # pragma: no coverage
+                     ignored=None, sort=True): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -398,13 +398,16 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     rhos = list(reversed(rhos))
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
+    values = np.array([i.values for i in rhos])
     if sort:
-        values = np.array([i.values for i in rhos])
         rhos_mean = np.abs(values).mean(axis=0)
         indices = [i[0] for i in sorted(enumerate(rhos_mean), key=lambda x: x[1])]
-        if top is not None: indices = indices[-top:]
-        rhos = [[rho[i] for i in indices] for rho in values]
-        index = [index[i] for i in indices]
+    else:
+        indices = range(len(values))
+    if ignored: indices = [i for i in indices if i not in ignored]
+    if top is not None: indices = indices[-top:]
+    rhos = [[rho[i] for i in indices] for rho in values]
+    index = [index[i] for i in indices]
     N = len(rhos)
     s = N + 1
     if not color_wheel: color_wheel = CABBI_colors.wheel()

@@ -55,13 +55,17 @@ jobs:
         python -m pip install wheel
         pip install .
         pip install -r requirements_test.txt
-    - name: Test with pytest
+    - name: Test with numba
       run: |
-        pytest . -v --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"
+        pytest . -v --disable-numba=0
+    - name: Test without numba
+      run: |
+        pytest . -v --disable-numba=1 --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_REPO_TOKEN: ${{ secrets.coveralls }}
         COVERALLS_PARALLEL: true
+  finish:
   finish:
     needs: build
     runs-on: ubuntu-latest

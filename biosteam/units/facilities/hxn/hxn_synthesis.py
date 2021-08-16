@@ -392,7 +392,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
                      outs = (cold_out, hot_out), H_lim0 = H_lim,
                      T_lim1 = pinch_T_arr[hot], dT = T_min_app,
                      thermo = hot_stream.thermo)
-            new_HX._run()
+            try: new_HX._run()
+            except: continue
             if abs(new_HX.Q)< Qmin: continue
             HXs_hot_side.append(new_HX)
             stream_HXs_dict[hot].append(new_HX)
