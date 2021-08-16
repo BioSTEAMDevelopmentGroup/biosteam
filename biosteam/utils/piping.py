@@ -207,7 +207,7 @@ class StreamSequence:
             stream_types = (Stream, MissingStream)
             if fixed_size:
                 self._initialize_missing_streams()
-                if streams:
+                if streams is not None:
                     if isa(streams, str):
                         self._streams[0] = dock(Stream(streams, thermo=thermo))
                     elif isa(streams, stream_types):
@@ -217,7 +217,7 @@ class StreamSequence:
                         n_missing(size, N) # Make sure size is not too big
                         self._streams[:N] = [redock(i, stacklevel+1) if isa(i, stream_types)
                                              else dock(Stream(i, thermo=thermo)) for i in streams]
-            elif streams:
+            elif streams is not None:
                 if isa(streams, str):
                     self._streams = [dock(Stream(streams, thermo=thermo))]
                 elif isa(streams, stream_types):
