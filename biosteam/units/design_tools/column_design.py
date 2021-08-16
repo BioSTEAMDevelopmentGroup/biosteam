@@ -85,7 +85,8 @@ def compute_empty_tower_cost(W):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    return bst.CE/500 * np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
+    logW = np.log(W)
+    return bst.CE/500. * np.exp(7.2756 + 0.18255*logW + 0.02297*logW*logW)
 
 @njit(cache=True)
 def compute_plaform_ladder_cost(Di, L):
@@ -104,7 +105,7 @@ def compute_plaform_ladder_cost(Di, L):
     The purchase cost is given by [1]_. See source code for details.
     
     """
-    return bst.CE/500 * 300.9*Di**0.63316*L**0.80161
+    return bst.CE/500. * 300.9*Di**0.63316*L**0.80161
 
 @njit(cache=True)
 def compute_tower_weight(Di, L, tv, rho_M):
@@ -127,12 +128,12 @@ def compute_tower_weight(Di, L, tv, rho_M):
     The tower weight is given by [1]_. See source code for details.
     
     """
-    Di = Di*12
-    L = L*12
+    Di = Di*12.
+    L = L*12.
     return np.pi*(Di+tv)*(L+0.8*Di)*tv*rho_M
 
 @njit(cache=True)
-def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
+def compute_tower_wall_thickness(Po, Di, L, S=15000., E=None, M=29.5):
     """
     Return the wall thinkness [tv; in inches] designed to withstand the
     internal pressure and the wind/earthquake load at the bottom.
@@ -174,7 +175,7 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     # Get design pressure, which should be higher than operating pressure.
     Po_gauge = Po - 14.69
     if Po_gauge < 5.:
-        Pd = 10
+        Pd = 10.
     elif Po_gauge < 1000.:
         logPo = np.log(Po)
         Pd = np.exp(0.60608 + 0.91615*logPo) + 0.0015655*logPo*logPo
@@ -207,9 +208,9 @@ def compute_tower_wall_thickness(Po, Di, L, S=15000, E=None, M=29.5):
     # Vessels are fabricated from metal plates with small increments
     if tv < 0.5:
         tv = utils.approx2step(tv, 3/16, 1/16)
-    elif tv < 2:
+    elif tv < 2.:
         tv = utils.approx2step(tv, 0.5, 1/8)
-    elif tv < 3:
+    elif tv < 3.:
         tv = utils.approx2step(tv, 2., 1/4)
     return tv
 
@@ -342,7 +343,7 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     The max vapor velocity is given by [3]_. See source code for details.
     
     """
-    F_ST = (sigma/20)**0.2 # Surface tension factor
+    F_ST = (sigma/20.)**0.2 # Surface tension factor
     
     # Working area factor
     if A_ha >= 0.1 and A_ha <= 1.:
@@ -352,7 +353,7 @@ def compute_max_vapor_velocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha):
     else:
         raise ValueError("ratio of open to active area, 'A', must be between 0.06 and 1") 
     
-    return C_sbf * F_HA * F_ST * ((rho_L-rho_V)/rho_V)**0.5
+    return C_sbf * F_HA * F_ST * np.sqrt((rho_L-rho_V)/rho_V)
 
 @njit(cache=True)
 def compute_downcomer_area_fraction(F_LV):
@@ -397,7 +398,7 @@ def compute_tower_diameter(V_vol, U_f, f, A_dn):
     The tower diameter is given by [3]_. See source code for details.
     
     """
-    Di = (4.*V_vol/(f*U_f*np.pi*(1.-A_dn)))**0.5
+    Di = np.sqrt(4.*V_vol/(f*U_f*np.pi*(1.-A_dn)))
     if Di < 0.914:
         # Make sure diameter is not too small
         Di = 0.914
