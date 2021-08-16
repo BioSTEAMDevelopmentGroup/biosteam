@@ -1115,7 +1115,8 @@ class System:
         """Setup each element of the system."""
         self._load_facilities()
         self._load_configuration()
-        for i in self.units: i._setup()
+        for i in self.units: 
+            i._setup()
         
     def _run(self):
         """Rigorously run each element in the path."""

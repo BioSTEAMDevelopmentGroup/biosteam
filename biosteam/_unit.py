@@ -526,11 +526,13 @@ class Unit:
                 purchase_costs[name] = Cpb * F
     
     def _setup(self):
-        for i in self._ins + self._outs: 
-            if not i: i.materialize_connection()
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
+    
+    def materialize_connections(self):
+        for s in self._ins + self._outs: 
+            if not s: s.materialize_connection()
     
     @property
     def owner(self):
