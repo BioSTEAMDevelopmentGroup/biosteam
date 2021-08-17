@@ -6,7 +6,12 @@ Monthly coordination calls
 
 We welcome anyone with an interest in discussing contributions to BioSTEAM to join our
 monthly meeting at 8-9:30am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 
-for a link to join.
+for a link to join. Here is the agenda for this month's coordination call:
+
+.. toctree::
+   :maxdepth: 2
+   
+   coordination/August-20-2021
 
 General Process
 ---------------

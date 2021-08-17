@@ -783,11 +783,11 @@ class Distillation(Unit, isabstract=True):
         F_M = self.F_M
         if self.is_divided:
             # Number of trays assuming a partial condenser
-            N_RT = Design['Rectifier stages'] - 1
+            N_RT = Design['Rectifier stages'] - 1.
             Di_R = Design['Rectifier diameter']
             Cost['Rectifier trays'] = design.compute_purchase_cost_of_trays(N_RT, Di_R)
             F_M['Rectifier trays'] = self._F_TM_function(Di_R)
-            N_ST = Design['Stripper stages'] - 1
+            N_ST = Design['Stripper stages'] - 1.
             Di_S = Design['Stripper diameter']
             Cost['Stripper trays'] = design.compute_purchase_cost_of_trays(N_ST, Di_S)
             F_M['Stripper trays'] = self._F_TM_function(Di_S)
@@ -805,7 +805,7 @@ class Distillation(Unit, isabstract=True):
             dimensions = [(H_R, Di_R), (H_S, Di_S)]
         else:
             # Cost trays assuming a partial condenser
-            N_T = Design['Actual stages'] - 1
+            N_T = Design['Actual stages'] - 1.
             Di = Design['Diameter']
             F_M['Trays'] = self._F_TM_function(Di)
             Cost['Trays'] = design.compute_purchase_cost_of_trays(N_T, Di)
