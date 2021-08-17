@@ -770,7 +770,7 @@ class Model(State):
     def __call__(self, sample):
         """Return pandas Series of metric values at given sample."""
         super().__call__(sample)
-        return pd.Series({i.index: i.getter() for i in self._metrics})
+        return pd.Series({i.index: i() for i in self._metrics})
     
     def _repr(self):
         clsname = type(self).__name__
