@@ -22,6 +22,7 @@ import biosteam as bst
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
 from collections.abc import Sized
+import pickle
 
 __all__ = ('Model',)
 
@@ -343,7 +344,8 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def evaluate(self, thorough=True, notify=0):
+    def evaluate(self, thorough=True, notify=0, 
+                 file=None, autosave=0, autoload=False):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -355,6 +357,17 @@ class Model(State):
             skip simulation for repeated states.
         notify=0 : int, optional
             If 1 or greater, notify elapsed time after the given number of sample evaluations. 
+        file : str, optional
+            Name of file to save/load pickled evaluation results.
+        autosave : int, optional
+            If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
+        autoload : bool, optional
+            Whether to load pickled evaluation results from file.
+        
+        Warning
+        -------
+        Any changes made to either the model or the samples will not be accounted
+        for when autoloading and may lead to misleading results.
         
         """
         samples = self._samples
@@ -365,7 +378,8 @@ class Model(State):
             from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
-            def evaluate(sample, thorough, count=[0]):
+            count = [0]
+            def evaluate(sample, thorough, count=count):
                 count[0] += 1
                 values = evaluate_sample(sample, thorough)
                 if not count[0] % notify:
@@ -373,11 +387,35 @@ class Model(State):
                 return values
         else:
             evaluate = evaluate_sample
-        index = self._index
-        values = [None] * len(index)
-        for i in index:
-            values[i] = evaluate(samples[i], thorough)
-        table[var_indices(self.metrics)] = values
+        if autoload: 
+            try:
+                with open(file, "rb") as f:
+                    number, values, table_index, table_columns = pickle.load(f)
+                if (table_index != table.index).any() or (table_columns != table.columns).any():
+                    raise ValueError('table layout does not match autoload file')
+                del table_index, table_columns
+                index = self._index[number:]
+            except:
+                number = 0
+                index = self._index
+                values = [None] * len(index)   
+            else:
+                if notify: count[0] = number
+        else:
+            number = 0
+            index = self._index
+            values = [None] * len(index)
+        
+        if autosave:
+            layout = table.index, table.columns
+            for number, i in enumerate(index, number): 
+                values[i] = evaluate(samples[i], thorough)
+                if not number % autosave: 
+                    obj = (number, values, *layout)
+                    with open(file, 'wb') as f: pickle.dump(obj, f)
+        else:
+            for i in index: values[i] = evaluate(samples[i], thorough)
+        table[var_indices(self._metrics)] = values
     
     def _evaluate_sample(self, sample, thorough):
         try:
