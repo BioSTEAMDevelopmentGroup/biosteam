@@ -118,7 +118,6 @@ technologies and chart development pathways for various bioproducts:
    HeatUtility
    System
    TEA
-   CombinedTEA
    Flowsheet
    exceptions
    units/units

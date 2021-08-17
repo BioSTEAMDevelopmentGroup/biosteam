@@ -12,7 +12,6 @@ import pandas as pd
 from warnings import warn
 import openpyxl
 from .._heat_utility import HeatUtility
-from .._tea import CombinedTEA
 import os
 
 DataFrame = pd.DataFrame
@@ -97,15 +96,8 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # p
     
     if system.TEA:
         tea = system.TEA
-        if isinstance(tea, CombinedTEA):
-            costs = [cost_table(i) for i in tea.TEAs]
-            tables_to_excel(costs, writer, 'Itemized costs')
-        else:
-            # Cost table
-            cost = cost_table(tea)
-            cost.to_excel(writer, 'Itemized costs')
-        
-        # Cash flow
+        cost = cost_table(tea)
+        cost.to_excel(writer, 'Itemized costs')
         tea.get_cashflow_table().to_excel(writer, 'Cash flow')
     else:
         warn(RuntimeWarning(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.'), stacklevel=2)
