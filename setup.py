@@ -18,8 +18,7 @@ setup(
     install_requires=['IPython>=7.9.0',
                       'thermosteam>=0.27.2', 
                       'graphviz>=0.17',
-                      'chaospy>=3.3.9',
-                      'SALib'],
+                      'chaospy>=3.3.9'],
     extras_require={ 
         'dev': [
             'biorefineries>=2.23.0',
@@ -29,6 +28,7 @@ setup(
             'pyyaml',
             'pytest-cov',
             'coveralls',
+            'SALib',
         ]
     }, 
     package_data=
