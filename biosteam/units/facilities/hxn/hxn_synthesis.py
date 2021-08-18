@@ -124,35 +124,23 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
     hx_utils = hus
     hus_heating = [hu for hu in hx_utils if hu.duty > 0]
     hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
-    hxs_heating = [hu.heat_exchanger for hu in hus_heating]
-    hxs_cooling = [hu.heat_exchanger for hu in hus_cooling]
-    streams_heating = [hx.ins[0].copy() for hx in hxs_heating]
-    streams_cooling = [hx.ins[0].copy() for hx in hxs_cooling]
     hx_utils_rearranged = hus_heating + hus_cooling
-    hxs = hxs_heating + hxs_cooling
-    streams_cooled = [i.outs[0].copy() for i in hxs_cooling]
-    streams_heated = [i.outs[0].copy() for i in hxs_heating]
-    streams_quenched = streams_heated + streams_cooled
+    hxs = [hu.heat_exchanger for hu in hx_utils_rearranged]
+    streams_inlet = [hx.ins[0].copy() for hx in hxs]
+    streams_quenched = [i.outs[0].copy() for i in hxs]
     for i in streams_quenched: i.vle(H=i.H, P=i.P)
-    H_out_arr = [i.H for i in streams_quenched]
-    streams = streams_heating + streams_cooling
-    for i in range(len(streams)):
-        stream = streams[i]
-        # stream.vle(H = stream.H, P = stream.P)
+    for i in range(len(streams_inlet)):
+        stream = streams_inlet[i]
         ID = 'Util_%s'%i
         stream.ID = 's_%s__%s'%(i,ID)
-    len_hxs_heating = len(hxs_heating)
-    is_cold_stream_index = lambda x: x < len_hxs_heating
-    T_in_arr = np.array([stream.T for stream in streams])
+    N_heating = len(hus_heating)
+    is_cold_stream_index = lambda x: x < N_heating
+    T_in_arr = np.array([stream.T for stream in streams_inlet])
     T_out_arr = np.array([i.T for i in streams_quenched])
-    T_hot_side_arr = np.array([stream.T for stream in streams_heating]\
-                               + [i.T for i in streams_cooled])
-    T_cold_side_arr = np.array([i.T for i in streams_heated]\
-                                + [stream.T for stream in streams_cooling])
     adj_T_in_arr = T_in_arr.copy()
-    adj_T_in_arr[:len_hxs_heating] -= T_min_app
+    adj_T_in_arr[:N_heating] -= T_min_app
     adj_T_out_arr = T_out_arr.copy()
-    adj_T_out_arr[:len_hxs_heating] -= T_min_app
+    adj_T_out_arr[:N_heating] -= T_min_app
     T_changes_tuples = list(zip(adj_T_in_arr, adj_T_out_arr))
     all_Ts_descending = [*adj_T_in_arr, *adj_T_out_arr]
     all_Ts_descending.sort(reverse=True)
@@ -160,8 +148,8 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
         {(all_Ts_descending[i], all_Ts_descending[i+1]):[]\
             for i in range(len(all_Ts_descending)-1)}
     H_for_T_intervals = dict.fromkeys(stream_indices_for_T_intervals, 0)
-    cold_indices = list(range(len_hxs_heating))
-    hot_indices = list(range(len_hxs_heating, len(hxs)))
+    cold_indices = list(range(N_heating))
+    hot_indices = list(range(N_heating, len(hxs)))
     indices = cold_indices + hot_indices
     for i in range(len(all_Ts_descending)-1):
         T_start = all_Ts_descending[i]
@@ -170,7 +158,7 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
             T1, T2 = T_changes_tuples[stream_index]
             if (T1 >= T_start and T2 <= T_end) or (T2 >= T_start and T1 <= T_end):
                 multiplier = -1 if is_cold_stream_index(stream_index) else 1
-                stream = streams[stream_index].copy()
+                stream = streams_inlet[stream_index].copy()
                 if stream.T != T_start: stream.vle(T = T_start, P = stream.P)
                 H1 = stream.H
                 stream.vle(T = T_end, P = stream.P)
@@ -208,9 +196,8 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10):
             pinch_T_arr.append(pinch_hot_stream_T)
     pinch_T_arr = np.array(pinch_T_arr)
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
-           T_hot_side_arr, T_cold_side_arr, hus_heating,\
-           hus_cooling, hxs_heating, hxs_cooling, hxs, hot_indices,\
-           cold_indices, indices, streams, hx_utils_rearranged, H_out_arr, streams_quenched
+           hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
+           streams_quenched
             
         
 def load_duties(streams, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side):
@@ -244,9 +231,9 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
 
 def synthesize_network(hus, T_min_app=5., Qmin=1e-3):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
-        T_hot_side_arr, T_cold_side_arr, hus_heating, hus_cooling, hxs_heating,\
-        hxs_cooling, hxs, hot_indices, cold_indices, indices, streams, hx_utils_rearranged, \
-        H_out_arr, streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
+        hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
+        streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
+    H_out_arr = [i.H for i in streams_quenched]
     duties = np.array([abs(hx.Q)  for hx in hxs])
     dTs = np.abs(T_in_arr - T_out_arr)
     dTs[dTs == 0.] = 1e-12
@@ -255,16 +242,16 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
     Q_cold_side = {}
     stream_HXs_dict = {i:[] for i in indices}
     is_cold = lambda x: x in cold_indices
-    load_duties(streams, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
+    load_duties(streams_inlet, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
     matches_hs = {i: [] for i in cold_indices}
     matches_cs = {i: [] for i in hot_indices}
-    candidate_hot_streams = list(hot_indices)
-    candidate_cold_streams = list(cold_indices)
+    candidate_hot_streams = hot_indices.copy()
+    candidate_cold_streams = cold_indices.copy()
     HXs_hot_side = []
     HXs_cold_side = []
     
-    streams_transient_cold_side = [i.copy() for i in streams]
-    streams_transient_hot_side = [i.copy() for i in streams]
+    streams_transient_cold_side = [i.copy() for i in streams_inlet]
+    streams_transient_hot_side = [i.copy() for i in streams_inlet]
     for i in hot_indices:
         s = streams_transient_cold_side[i]
         if s.T != pinch_T_arr[i]:
@@ -548,8 +535,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3):
         new_HX_utils.append(new_HX_util)
         stream_HXs_dict[cold].append(new_HX_util)
     
-    return matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables, \
-           HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
-           T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, \
-           stream_HXs_dict, hot_indices, cold_indices
+    return HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
+           T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
+           hot_indices, cold_indices
 

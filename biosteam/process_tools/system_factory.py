@@ -23,8 +23,8 @@ class SystemFactory:
     Decorate a function that returns a system when called, allowing it to
     default the ID, ins, and outs parameters.
     
-    Paramters
-    ---------
+    Parameters
+    ----------
     f : Callable, optional
         Should return a System object given the ID, inlets, outlets, and 
         other parameters. `f` should have a signature of function(ID, ins, outs, *args, **kwargs).

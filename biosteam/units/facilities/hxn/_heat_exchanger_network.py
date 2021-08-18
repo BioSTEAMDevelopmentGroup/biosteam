@@ -152,9 +152,8 @@ class HeatExchangerNetwork(Facility):
         self.HXN_flowsheet = HXN_F = bst.main_flowsheet
         for i in HXN_F.registries: i.clear()
         try:
-            matches_hs, matches_cs, Q_hot_side, Q_cold_side, unavailables,\
             HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
-            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams, stream_HXs_dict,\
+            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
             hot_indices, cold_indices = \
             synthesize_network(hx_utils, self.T_min_app, self.Qmin)
             original_purchase_costs= [hx.purchase_cost for hx in hxs]
@@ -163,7 +162,7 @@ class HeatExchangerNetwork(Facility):
             self.cold_indices = cold_indices
             self.new_HXs = new_HXs
             self.new_HX_utils = new_HX_utils
-            self.streams = streams
+            self.streams_inlet = streams_inlet
             stream_life_cycles = self._get_stream_life_cycles()
             all_units = new_HXs + new_HX_utils
             IDs = set([i.ID for i in all_units])
@@ -280,7 +279,7 @@ class HeatExchangerNetwork(Facility):
         cold_indices = self.cold_indices
         new_HXs = self.new_HXs
         new_HX_utils = self.new_HX_utils
-        streams = self.streams
+        streams = self.streams_inlet
         indices = [i for i in range(len(streams))]
         SLCs = [StreamLifeCycle(index, index in cold_indices) for index in indices]
         for SLC in SLCs:
