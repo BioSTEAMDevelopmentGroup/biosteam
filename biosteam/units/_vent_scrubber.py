@@ -27,7 +27,7 @@ class VentScrubber(Unit):
         vent_exit.copy_like(vent_entry)
         bottoms.copy_flow(vent_exit, self.gas,
                           remove=True, exclude=True)
-        bottoms.mol[:] += water.mol
+        bottoms.mix_from([bottoms, water], energy_balance=False)
         
     def _design(self):
         self.design_results['Flow rate'] = self._outs[0].F_mass

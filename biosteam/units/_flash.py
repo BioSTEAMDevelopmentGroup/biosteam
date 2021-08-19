@@ -169,11 +169,7 @@ class Flash(design.PressureVessel, Unit):
                  surge_time=7.5,
                  has_mist_eliminator=False):
         Unit.__init__(self, ID, ins, outs, thermo)
-        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
-        hx.owner = self.owner
-        self.heat_utilities = hx.heat_utilities
-        hx._ins = self._ins
+        self._load_components()
         
         #: Enforced molar vapor fraction
         self.V = V
@@ -187,7 +183,7 @@ class Flash(design.PressureVessel, Unit):
         #: [array_like] Molar composition of liquid (for binary mixture)
         self.x = x
         
-        #: Duty (kJ/hr)
+        #: Enforced duty (kJ/hr)
         self.Q = Q
         
         #: Operating pressure (Pa)
@@ -217,6 +213,13 @@ class Flash(design.PressureVessel, Unit):
         #: [bool] True if using a mist eliminator pad
         self.has_mist_eliminator = has_mist_eliminator
         
+    def _load_components(self):
+        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
+        hx.owner = self.owner
+        self.heat_utilities = hx.heat_utilities
+        hx._ins = self._ins
+        
     def reset_cache(self):
         self._multi_stream.reset_cache()
         self.heat_exchanger.reset_cache()
@@ -230,14 +233,6 @@ class Flash(design.PressureVessel, Unit):
         if P and P < 101325 and not self.power_utility:
             self.power_utility = PowerUtility()
         self._P = P
-    
-    @property
-    def Q(self):
-        """Enforced duty (kJ/hr)."""
-        return self._Q
-    @Q.setter
-    def Q(self, Q):
-        self._Q = Q
 
     def _default_vessel_type(self):
         vap, liq = self.outs

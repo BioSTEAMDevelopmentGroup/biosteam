@@ -247,7 +247,7 @@ class MultiEffectEvaporator(Unit):
     def reset_cache(self):
         self._reload_components = True
         
-    def load_components(self):
+    def _load_components(self):
         P = self.P
         thermo = self.thermo
         
@@ -308,7 +308,7 @@ class MultiEffectEvaporator(Unit):
             return
         
         if self._reload_components:
-            self.load_components()
+            self._load_components()
             self._reload_components = False
         
         if self.V_definition == 'Overall':
@@ -317,7 +317,7 @@ class MultiEffectEvaporator(Unit):
             for i in range(self._N_evap-1):
                 if self._V_overall(0.) > self.V:
                     self.P.pop()
-                    self.load_components()
+                    self._load_components()
                     self._reload_components = True
                 else:
                     break

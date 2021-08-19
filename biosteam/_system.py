@@ -500,6 +500,31 @@ class System:
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream    
     
+    def reduce_chemicals(self):
+        isa = isinstance
+        mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
+        past_upstream_units = set()
+        for mixer in mixers:
+            if mixer in past_upstream_units: continue
+            upstream_units = mixer.get_upstream_units()
+            upstream_units.difference_update(past_upstream_units)
+            available_chemicals = set()
+            for unit in upstream_units: 
+                available_chemicals.update(unit.get_available_chemicals())
+            thermo = mixer.thermo.subset([i for i in mixer.chemicals if i in available_chemicals])
+            for unit in upstream_units: 
+                unit._reset_thermo(thermo)
+            past_upstream_units.update(upstream_units)
+        for mixer in mixers: 
+            outlet = mixer.outs[0]
+            sink = outlet.sink
+            thermo = sink.thermo if sink else outlet.thermo.subset(outlet.available_chemicals)
+            outlet._reset_thermo(thermo)
+        for unit in self.units:
+            for stream in unit.outs:
+                if stream.chemicals is not unit.chemicals and stream.sink:
+                    pass # TODO: left off here!
+    
     def copy(self, ID=None):
         """Copy system.""" 
         new = System(ID)

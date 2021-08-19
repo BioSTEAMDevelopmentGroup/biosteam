@@ -22,6 +22,7 @@ Unit operations
 from .. import Unit
 from .._graphics import splitter_graphics
 from thermosteam import separations
+from thermosteam.indexer import SplitIndexer
 
 __all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
            'ReversedSplitter')
@@ -167,8 +168,14 @@ class Splitter(Unit):
         Unit.__init__(self, ID, ins, outs, thermo)
         self._isplit = self.thermo.chemicals.isplit(split, order)
 
+    def _load_components(self):
+        isplit = self._isplit
+        self._isplit = new_isplit = SplitIndexer.blank(chemicals=self.chemicals)
+        for ID, split in zip(isplit.chemicals.IDs, isplit.data):
+            if ID in new_isplit.chemicals: new_isplit[ID] = split
+        
     def _run(self):
-        separations.split(self.ins[0], *self.outs, self.split)
+        self.ins[0].split_to(*self.outs, self.split)
 
 
 class PhaseSplitter(Unit):

@@ -11,6 +11,7 @@ import pandas as pd
 from .._heat_utility import HeatUtility
 
 __all__ = (
+    'group_units_by_available_chemicals',
     'is_storage_unit',
     'rename_unit',
     'rename_units',
@@ -43,6 +44,18 @@ __all__ = (
     'default_utilities',
     'default',
 )
+
+
+def group_units_by_available_chemicals(units):
+    groups = {}
+    for u in units:
+        available_chemicals = tuple(u.get_available_chemicals())
+        if available_chemicals in groups:
+            groups[available_chemicals].append(u)
+        else:
+            groups[available_chemicals] = [u]
+    return groups
+        
 
 def is_storage_unit(unit):
     return (

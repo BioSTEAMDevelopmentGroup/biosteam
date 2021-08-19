@@ -185,7 +185,6 @@ class Distillation(Unit, isabstract=True):
         self.k = k
         self.P = P
         self.Rmin = Rmin
-        self.LHK = LHK
         self._partial_condenser = partial_condenser
         self._set_distillation_product_specifications(product_specification_format,
                                                       x_bot, y_top, Lr, Hr)
@@ -202,7 +201,17 @@ class Distillation(Unit, isabstract=True):
         self.downcomer_area_fraction = downcomer_area_fraction
         self.is_divided = is_divided
         self.vacuum_system_preference = vacuum_system_preference
+        self._load_components(partial_condenser, condenser_thermo, boiler_thermo, LHK)
         
+    def _reset_thermo(self, thermo):
+        self._load_thermo(thermo)
+        for i in (self._ins + self._outs): i._reset_thermo(thermo)
+        self._load_components(not hasattr(self, 'splitter'), 
+                              self.condenser.thermo.subset(thermo.chemicals),
+                              self.boiler.thermo.subset(thermo.chemicals),
+                              self._LHK)
+        
+    def _load_components(self, partial_condenser, condenser_thermo, boiler_thermo, LHK):
         # Setup components
         thermo = self.thermo
         
@@ -226,7 +235,8 @@ class Distillation(Unit, isabstract=True):
             self.splitter = FakeSplitter(None,
                                          ins = self.condenser-0,
                                          outs=[tmo.Stream(None, thermo=condenser_thermo),
-                                               tmo.Stream(None, thermo=condenser_thermo)])
+                                               tmo.Stream(None, thermo=condenser_thermo)],
+                                         thermo=self.thermo)
             self.distillate = self.splitter-0
             self.condensate = self.splitter-1
         
@@ -240,6 +250,7 @@ class Distillation(Unit, isabstract=True):
         self.condenser.owner = self
         self.boilup = self.boiler.outs[0]['g']  
         self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
+        self.LHK = LHK
         self.reset_cache() # Abstract method
     
     @property
@@ -290,13 +301,13 @@ class Distillation(Unit, isabstract=True):
         self._HNK = HNK = tuple(HNK)
         self._gases = gases = tuple(gases)
         self._solids = solids = tuple(solids)
+        self._intermediate_volatile_chemicals = tuple(intermediate_volatile_chemicals)
         get_index = self.chemicals.get_index
         self._LHK_index = get_index(LHK)
         self._LNK_index = get_index(LNK)
         self._HNK_index = get_index(HNK)
         self._gases_index = get_index(gases)
         self._solids_index = get_index(solids)
-        self._intermediate_volatile_chemicals = tuple(intermediate_volatile_chemicals)
     
     @property
     def Rmin(self):
@@ -491,9 +502,8 @@ class Distillation(Unit, isabstract=True):
     def _check_mass_balance(self):
         distillate, bottoms_product = self.outs
         LHK = self._LHK
-        LHK_index = self._LHK_index
-        LK_distillate, HK_distillate = distillate.mol[LHK_index]
-        LK_bottoms, HK_bottoms = bottoms_product.mol[LHK_index]
+        LK_distillate, HK_distillate = distillate.imol[LHK]
+        LK_bottoms, HK_bottoms = bottoms_product.imol[LHK]
         if self.product_specification_format == 'Composition':
             if LK_distillate < 0. or LK_bottoms < 0.:
                 raise InfeasibleRegion("light key composition")
@@ -501,8 +511,7 @@ class Distillation(Unit, isabstract=True):
                 raise InfeasibleRegion("heavy key composition")
         if tmo.settings.debug:
             intermediate_chemicals = self._intermediate_volatile_chemicals
-            intemediates_index = self.chemicals.get_index(intermediate_chemicals)
-            intermediate_flows = self.mol_in[intemediates_index]
+            intermediate_flows = self.feed.imol[intermediate_chemicals]
             minflow = min(LK_distillate, HK_bottoms)
             for flow, chemical in zip(intermediate_flows, intermediate_chemicals):
                 assert flow > minflow, ("significant intermediate volatile chemical,"
@@ -621,7 +630,7 @@ class Distillation(Unit, isabstract=True):
         if not self._partial_condenser: self.splitter.ins[0].mix_from(self.splitter.outs)
         
         # Set boiler conditions
-        boiler.outs[0].imol['l'] = bottoms_product.mol
+        boiler.outs[0]['l'].copy_flow(bottoms_product)
         F_vap_feed = feed.imol['g'].sum()
         self.F_Mol_boilup = F_mol_boilup = (R+1)*F_mol_distillate - F_vap_feed
         bp = self._boilup_bubble_point
@@ -632,7 +641,7 @@ class Distillation(Unit, isabstract=True):
         boilup.imol[bp.IDs] = boilup_flow
         liq = boiler.ins[0]
         liq.phase = 'l'
-        liq.mol = bottoms_product.mol + boilup.mol
+        liq.mix_from([bottoms_product, boilup], energy_balance=False)
         liq_T = liq.bubble_point_at_P().T
         if liq_T > bp.T: liq_T = bp.T - 0.1
         liq.T = liq_T

@@ -165,16 +165,20 @@ class Fermentation(BatchBioreactor):
                  efficiency=0.9, iskinetic=False):
         BatchBioreactor.__init__(self, ID, ins, outs, thermo,
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
-        self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
-        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
-        self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, basis='wt')
-        cell_growth.basis = 'mol'
+        self._load_components()
         self.iskinetic = iskinetic
         self.efficiency = efficiency
+        
+    def _load_components(self):
+        chemicals = self.chemicals
+        self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00, chemicals)
+        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', 1.00, chemicals)
+        self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
+        cell_growth.basis = 'mol'
         if all([i in self.chemicals for i in ('FFA', 'DAG', 'TAG', 'Glycerol')]):
             self.lipid_reaction = ParallelReaction([
-                Reaction('TAG + 3Water -> 3FFA + Glycerol', 'TAG', 0.23),
-                Reaction('TAG + Water -> FFA + DAG', 'TAG', 0.02)
+                Reaction('TAG + 3Water -> 3FFA + Glycerol', 'TAG', 0.23, chemicals),
+                Reaction('TAG + Water -> FFA + DAG', 'TAG', 0.02, chemicals)
             ])
         else:
             self.lipid_reaction = None

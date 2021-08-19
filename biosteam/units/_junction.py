@@ -18,9 +18,6 @@ __all__ = ('Junction',)
 
 # %% Connect between different property packages
 
-chemicals_in_common = lambda upstream, downstream: \
-    tuple(set(upstream.chemicals.IDs).intersection(downstream.chemicals.IDs))
-
 class Junction(Unit):
     """
     Create a Junction object that copies specifications from `upstream`
@@ -68,28 +65,12 @@ class Junction(Unit):
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         thermo = self._load_thermo(thermo)
         self._specification = None
-        self._chemicals_in_common = self._past_streams = ()
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
         self._register(ID)
     
-    def _get_chemicals_in_common(self, upstream, downstream):
-        if (upstream, downstream) == self._past_streams:
-            IDs = self._chemicals_in_common
-        else:
-            self._chemicals_in_common = IDs = chemicals_in_common(upstream, downstream)
-        return IDs
-    
     def _run(self):
         upstream, = self._ins
         downstream, = self._outs
-        IDs = self._get_chemicals_in_common(upstream, downstream)
-        if isinstance(upstream, MultiStream):
-            downstream.phases = upstream.phases
-            downstream.imol[..., IDs] = upstream.imol[..., IDs]
-        else:
-            downstream.phase = upstream.phase
-            downstream.imol[IDs] = upstream.imol[IDs]
-        downstream.T = upstream.T
-        downstream.P = upstream.P
+        downstream.copy_like(upstream)
     simulate = _run

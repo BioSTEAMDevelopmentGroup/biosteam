@@ -114,7 +114,7 @@ class DrumDryer(Unit):
     def _run(self):
         wet_solids, air, natural_gas = self.ins
         dry_solids, hot_air, emissions = self.outs
-        sep.split(wet_solids, hot_air, dry_solids, self.split)
+        wet_solids.split_to(hot_air, dry_solids, self.split)
         sep.adjust_moisture_content(dry_solids, hot_air, self.moisture_content)
         design_results = self.design_results
         design_results['Evaporation'] = evaporation = hot_air.F_mass

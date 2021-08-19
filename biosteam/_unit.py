@@ -353,6 +353,12 @@ class Unit:
         #: specification functions
         self.run_after_specification = False 
     
+    def _reset_thermo(self, thermo):
+        self._load_thermo(thermo)
+        for i in (self._ins + self._outs):
+            if i: i._reset_thermo(thermo)
+        self._load_components()
+    
     def get_capital_costs(self):
         return UnitCapitalCosts(
             self, self.F_BM.copy(), self.F_D.copy(), self.F_P.copy(), self.F_M.copy(), 
@@ -632,6 +638,7 @@ class Unit:
     
     # Abstract methods
     reset_cache = NotImplementedMethod
+    _load_components = NotImplementedMethod
     _run = NotImplementedMethod
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
@@ -887,6 +894,12 @@ class Unit:
     def outs(self):
         """All output streams."""
         return self._outs
+
+    def get_available_chemicals(self):
+        streams = [i for i in (self._ins + self._outs) if i]
+        all_chemicals = set(sum([i.chemicals.tuple for i in streams], ()))
+        available_chemicals = set(sum([i.available_chemicals for i in streams], []))
+        return [i for i in all_chemicals if i in available_chemicals]
 
     def _add_upstream_neighbors_to_set(self, set, ends, facilities):
         """Add upsteam neighboring units to set."""

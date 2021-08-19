@@ -169,11 +169,11 @@ class Boiler(Facility):
         B_eff = self.boiler_efficiency
         steam_demand = self.steam_demand
         Design = self.design_results
-        chemicals = self.chemicals
         self._load_utility_agents()
         mol_steam = sum([i.flow for i in self.steam_utilities])
         feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
         emissions, blowdown_water, ash_disposal, remainder_feed_solids, remainder_feed_gas = self.outs
+        chemicals = emissions.chemicals
         if not ash_disposal.price: 
             ash_disposal.price = -0.031812704433277834
         if not lime.price:
@@ -403,6 +403,9 @@ class BoilerTurbogenerator(Facility):
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = other_agents
+        self._load_components()
+        
+    def _load_components(self):
         chemicals = self.chemicals
         if 'SO2' in chemicals:
             CAS_lime = '1305-62-0'
@@ -410,7 +413,7 @@ class BoilerTurbogenerator(Facility):
                 if 'Ca(OH)2' not in chemicals:
                     chemicals.set_synonym(CAS_lime, 'Ca(OH)2')
                 self.desulfurization_reaction =  tmo.Reaction(
-                    'SO2 + Ca(OH)2 + 0.5 O2 -> CaSO4 + H2O', 'SO2', 0.92
+                    'SO2 + Ca(OH)2 + 0.5 O2 -> CaSO4 + H2O', 'SO2', 0.92, chemicals
                 )
                 self._ID_lime = 'Ca(OH)2'
                 return
@@ -419,7 +422,7 @@ class BoilerTurbogenerator(Facility):
                 if 'CaO' not in chemicals:
                     chemicals.set_synonym(CAS_lime, 'CaO')
                 self.desulfurization_reaction =  tmo.Reaction(
-                    'SO2 + CaO + 0.5 O2 -> CaSO4', 'SO2', 0.92
+                    'SO2 + CaO + 0.5 O2 -> CaSO4', 'SO2', 0.92, chemicals
                 )
                 self._ID_lime = 'CaO'
                 return
