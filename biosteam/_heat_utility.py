@@ -180,9 +180,6 @@ class HeatUtility:
         All cooling utilities available.
     heating_agents : list[UtilityAgent]
         All heating utilities available.
-    dT : float
-        Minimum approach temperature difference. Used to assign
-        pinch temperature of the utility stream.
     duty : float
         Total heat transfered from utility to both the process and the environment [kJ/hr].
     unit_duty : float
@@ -240,12 +237,14 @@ class HeatUtility:
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
                  'flow', 'cost', 'heat_transfer_efficiency', 'T_pinch',
                  'heat_exchanger', 'iscooling', 'agent', 'unit_duty')
-    dT = 5  #: [float] Pinch temperature difference
+    #: [float] Minimum approach temperature difference. Used to assign
+    #: the pinch temperature of the utility stream.
+    dT = 5  
     
-    #: [DisplayUnits] Units of measure for IPython display
+    #: [DisplayUnits] Units of measure for IPython display.
     display_units = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
 
-    #: [Thermo] Used broadly throughout BioSTEAM utilities
+    #: [Thermo] Used broadly throughout BioSTEAM utilities.
     thermo_water = Thermo(['Water'])
 
     def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
