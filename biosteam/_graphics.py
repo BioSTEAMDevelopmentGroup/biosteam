@@ -223,7 +223,7 @@ stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 node = box_node.copy()
 def tailor_junction_node(node, unit): # pragma: no coverage
-    if not any(unit._get_streams()):
+    if not any(unit._ins + unit._outs):
         node['fontsize'] = '18'
         node['shape'] = 'plaintext'
         node['fillcolor'] = 'none'

@@ -22,6 +22,7 @@ from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
+import thermosteam as tmo
 
 __all__ = ('Unit',)
 
@@ -63,6 +64,33 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
     info = info.replace('\n ', '\n    ')
     return info[:-1]
 
+# %% Path utilities
+
+def find_path_segment(start_unit, end_unit):
+    path_segment = fill_path_segment(start_unit, [], end_unit)
+    if path_segment is None:
+        raise ValueError(f"start unit {repr(start_unit)} not downstream from end unit {repr(end_unit)}")
+    return path_segment
+
+def fill_path_segment(start_unit, path, end_unit):
+    if start_unit is end_unit:
+        return path
+    if start_unit in path: 
+        return None
+    else:
+        path.append(start_unit)
+        first_outlet, *other_outlets = start_unit._outs
+        for outlet in other_outlets:
+            start_unit = outlet._sink
+            if not start_unit: continue
+            new_path = path.copy()
+            path_segment = fill_path_segment(start_unit, new_path, end_unit)
+            if path_segment: return path_segment
+        start_unit = first_outlet._sink
+        if not start_unit: return None
+        path_segment = fill_path_segment(start_unit, path, end_unit)
+        if path_segment: return path_segment
+        
 
 # %% Unit Operation
 
@@ -354,10 +382,18 @@ class Unit:
         self.run_after_specification = False 
     
     def _reset_thermo(self, thermo):
+        if thermo is self.thermo: return
         self._load_thermo(thermo)
         for i in (self._ins + self._outs):
-            if i: i._reset_thermo(thermo)
+            try:
+                if i: i._reset_thermo(thermo)
+            except:
+                raise RuntimeError(f'failed to reset {repr(self)}.thermo')
         self._load_components()
+        chemicals = thermo.chemicals
+        for j in self.__dict__.values():
+            if hasattr(j, 'reset_chemicals') and j.chemicals is not chemicals:
+                j.reset_chemicals(chemicals)
     
     def get_capital_costs(self):
         return UnitCapitalCosts(
@@ -672,6 +708,11 @@ class Unit:
         else:
             self._run()
             
+    def path_until(self, unit):
+        """Return a list of units starting from this one until the end unit (not inclusive) by
+        moving along unit connections."""
+        return find_path_segment(self, unit)
+            
     def _reevaluate(self):
         """Reevaluate design and costs."""
         self._setup()
@@ -897,9 +938,9 @@ class Unit:
 
     def get_available_chemicals(self):
         streams = [i for i in (self._ins + self._outs) if i]
-        all_chemicals = set(sum([i.chemicals.tuple for i in streams], ()))
-        available_chemicals = set(sum([i.available_chemicals for i in streams], []))
-        return [i for i in all_chemicals if i in available_chemicals]
+        reaction_chemicals = sum([i.reaction_chemicals for i in self.__dict__.values() if hasattr(i, 'reaction_chemicals')], [])
+        required_chemicals = set(sum([i.available_chemicals for i in streams], reaction_chemicals))
+        return [i for i in self.chemicals if i in required_chemicals]
 
     def _add_upstream_neighbors_to_set(self, set, ends, facilities):
         """Add upsteam neighboring units to set."""

@@ -29,9 +29,7 @@ class EnzymeTreatment(MixTank):
     def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
-        out.mol[:] = self.mol_in
-        out.phase = feed.phase
-        out.P = feed.P
+        out.copy_like(feed)
         out.T = self.T
         
     def _design(self):

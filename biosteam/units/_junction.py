@@ -63,14 +63,29 @@ class Junction(Unit):
     heat_utilities = ()
     power_utility = PowerUtility()
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
+        self._register(ID)
         thermo = self._load_thermo(thermo)
         self._specification = None
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
-        self._register(ID)
     
-    def _run(self):
-        upstream, = self._ins
-        downstream, = self._outs
-        downstream.copy_like(upstream)
+    @property
+    def upstream(self):
+        return self._ins[0]
+    @upstream.setter
+    def upstream(self, upstream):
+        self._ins[0] = upstream
+        
+    @property
+    def downstream(self):
+        return self._outs[0]
+    @downstream.setter
+    def downstream(self, downstream):
+        self._outs[0] = downstream
+        
+    def _setup(self): 
+        pass
+    
+    def _run(self): 
+        self._outs[0].copy_like(self._ins[0])
     simulate = _run

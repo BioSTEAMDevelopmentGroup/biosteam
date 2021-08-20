@@ -467,7 +467,7 @@ class System:
         if operating_hours is not None: self.operating_hours = operating_hours
     
     def __enter__(self):
-        if self.path or self.recycle or self.facilities:
+        if self._path or self._recycle or self._facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
@@ -481,7 +481,7 @@ class System:
         unit_registry = self.flowsheet.unit
         dump = unit_registry._close_dump(self)
         if exception: raise exception
-        if self.path or self.recycle or self.facilities:
+        if self._path or self._recycle or self._facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             units = [i for i in dump if i not in irrelevant_units]
@@ -500,7 +500,47 @@ class System:
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream    
     
-    def reduce_chemicals(self):
+    @ignore_docking_warnings
+    def _interface_property_packages(self):
+        path = self._path
+        Stream = bst.Stream
+        Interface = (bst.Junction, bst.Mixer, bst.MixTank)
+        isa = isinstance
+        new_path = []
+        for obj in path:
+            new_path.append(obj)
+            if isa(obj, System): 
+                obj._interface_property_packages()
+                continue
+            outs = obj._outs
+            for s in outs:
+                source = s._source
+                sink = s._sink
+                if not sink or isa(sink, Interface): continue
+                if sink.chemicals is not source.chemicals:
+                    chemicals = s.chemicals
+                    source_index = source._outs.index(s)
+                    sink_index = sink._ins.index(s)
+                    if chemicals is sink.chemicals:
+                        s_sink = s
+                        s_source = Stream(thermo=source.thermo)
+                        s_source.copy_like(s)
+                    else:
+                        s_sink = Stream(thermo=sink.thermo)
+                        s_sink.copy_like(s)
+                        if chemicals is source.chemicals:
+                            s_source = s
+                        else:
+                            s_source = Stream(thermo=source.thermo)
+                            s_source.copy_like(s)
+                    junction = bst.Junction(upstream=s_source, downstream=s_sink)
+                    new_path.append(junction)
+                    source._outs[source_index] = s_source 
+                    sink._ins[sink_index] = s_sink 
+        self._path = tuple(new_path)
+        self._save_configuration()
+                
+    def _reduce_chemicals(self):
         isa = isinstance
         mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
         past_upstream_units = set()
@@ -510,20 +550,23 @@ class System:
             upstream_units.difference_update(past_upstream_units)
             available_chemicals = set()
             for unit in upstream_units: 
+                if isa(unit, bst.Junction): continue
                 available_chemicals.update(unit.get_available_chemicals())
-            thermo = mixer.thermo.subset([i for i in mixer.chemicals if i in available_chemicals])
             for unit in upstream_units: 
+                if isa(unit, bst.Junction): continue
+                thermo = unit.thermo.subset([i for i in unit.chemicals if i in available_chemicals])
                 unit._reset_thermo(thermo)
             past_upstream_units.update(upstream_units)
         for mixer in mixers: 
             outlet = mixer.outs[0]
             sink = outlet.sink
-            thermo = sink.thermo if sink else outlet.thermo.subset(outlet.available_chemicals)
+            available_chemicals = outlet.available_chemicals
+            thermo = sink.thermo if sink else outlet.thermo.subset(available_chemicals)
+            mixer._load_thermo(thermo)
             outlet._reset_thermo(thermo)
-        for unit in self.units:
-            for stream in unit.outs:
-                if stream.chemicals is not unit.chemicals and stream.sink:
-                    pass # TODO: left off here!
+            for i in mixer._ins:
+                if i._source: i._reset_thermo(i._source.thermo)
+        self._interface_property_packages()
     
     def copy(self, ID=None):
         """Copy system.""" 
@@ -718,7 +761,7 @@ class System:
         if unit not in self.units: 
             raise ValueError(f'unit {repr(unit)} not in system')
         path = self._path
-        if (self.recycle or self.N_runs):
+        if (self._recycle or self.N_runs):
             for index, other in enumerate(path):
                 if unit is other:
                     self._path = path[index:] + path[:index]
@@ -757,8 +800,8 @@ class System:
         >>> default() # Reset to biosteam defaults
         
         """
-        if self.recycle: raise RuntimeError('cannot split system with recycle')
-        path = self.path
+        if self._recycle: raise RuntimeError('cannot split system with recycle')
+        path = self._path
         streams = self.streams
         surface_units = {i for i in path if isinstance(i, Unit)}
         if stream.source in surface_units:
@@ -770,7 +813,7 @@ class System:
         else:
             raise ValueError('stream cannot reside within a subsystem')
         return (System(ID_upstream, path[:index], None),
-                System(ID_downstream, path[index:], None, self.facilities))
+                System(ID_downstream, path[index:], None, self._facilities))
     
     def flatten(self):
         """Flatten system by removing subsystems."""
@@ -829,7 +872,7 @@ class System:
     @property
     def subsystems(self):
         """list[System] All subsystems in the system."""
-        return [i for i in self.path if isinstance(i, System)]
+        return [i for i in self._path if isinstance(i, System)]
     @property
     def units(self):
         """[list] All unit operations as ordered in the path."""
@@ -951,7 +994,7 @@ class System:
     def _downstream_system(self, unit):
         """Return a system with a path composed of the `unit` and
         everything downstream (facilities included)."""
-        if self.recycle or unit is self._path[0]: return self
+        if self._recycle or unit is self._path[0]: return self
         path = self._downstream_path(unit)
         if path:
             facilities = self._facilities            
@@ -1522,9 +1565,9 @@ class System:
             return '[' + (dlim + " ").join(path_info) + ']'
         path_info = get_path_info(self._path)
         info = update_info(path_info)
-        facilities = self.facilities
+        facilities = self._facilities
         if facilities:
-            facilities_info = get_path_info(self.facilities)
+            facilities_info = get_path_info(facilities)
             facilities_info = f'facilities={facilities_info}'
             info = update_info(facilities_info)
         recycle = self._recycle

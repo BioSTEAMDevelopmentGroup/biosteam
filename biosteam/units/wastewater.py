@@ -241,6 +241,9 @@ class AnaerobicDigestion(Unit):
             remove_undefined_chemicals(sludge_split, chemicals)
             default_chemical_dict(sludge_split, chemicals, 0.07087, 0.07087, 0.744)
         self.sludge_split = chemicals.isplit(sludge_split)
+        self._load_components()
+    
+    def _load_components(self):
         self.multi_stream = tmo.MultiStream(thermo=self.thermo)
     
     def _run(self):
@@ -253,7 +256,7 @@ class AnaerobicDigestion(Unit):
         H_at_35C = feed.thermo.mixture.H('l', feed.mol, T, 101325)
         cool_water.mol[:] *= (feed.H - H_at_35C)/(hot_water.H - cool_water.H)
         sludge.copy_flow(feed)
-        self.reactions(sludge.mol)
+        self.reactions(sludge)
         self.multi_stream.copy_flow(sludge)
         self.multi_stream.vle(P=101325, H=self.multi_stream.H)
         biogas.mol[:] = self.multi_stream.imol['g']
@@ -304,7 +307,7 @@ class AerobicDigestion(Unit):
         vent.phase = 'g'
         water.copy_like(waste)
         water.mol[:] += air.mol + caustic.mol
-        self.reactions.force_reaction(water.mol)
+        self.reactions.force_reaction(water)
         O2 = float(water.imass['O2'])
         if O2 < 0:
             N2 = 0.78 / 0.22 * O2
@@ -529,15 +532,15 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
     anaerobic_digestion = AnaerobicDigestion('R601', (WWTC-0, well_water), (methane, '', '', ''))
     recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None))
     
-    caustic_over_waste = 2. * caustic.mol / 2544301
-    air_over_waste = air.mol / 2544301
+    caustic_over_waste = 2. * caustic.imol['Water', 'NaOH'] / 2544301
+    air_over_waste = air.imol['O2', 'N2'] / 2544301
     air.mol[:] = 0.
     waste = recycled_sludge_mixer-0
     def update_aerobic_input_streams():
         waste, air, caustic = aerobic_digestion.ins
         F_mass_waste = waste.F_mass
-        caustic.mol[:] = F_mass_waste * caustic_over_waste
-        air.mol[:] = F_mass_waste * air_over_waste
+        caustic.imol['Water', 'NaOH'] = F_mass_waste * caustic_over_waste
+        air.imol['O2', 'N2'] = F_mass_waste * air_over_waste
         aerobic_digestion._run()
     
     aerobic_digestion = AerobicDigestion('R602', (waste, air, caustic),
