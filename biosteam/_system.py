@@ -539,9 +539,11 @@ class System:
                     sink._ins[sink_index] = s_sink 
         self._path = tuple(new_path)
         self._save_configuration()
+        self._load_stream_links()
                 
-    def _reduce_chemicals(self):
+    def reduce_chemicals(self, required_chemicals=()):
         isa = isinstance
+        for i in self.streams: i.unlink()
         mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
         past_upstream_units = set()
         thermo_cache = {}
@@ -549,7 +551,7 @@ class System:
             if mixer in past_upstream_units: continue
             upstream_units = mixer.get_upstream_units()
             upstream_units.difference_update(past_upstream_units)
-            available_chemicals = set()
+            available_chemicals = set(required_chemicals)
             for unit in upstream_units: 
                 if isa(unit, bst.Junction): continue
                 available_chemicals.update(unit.get_available_chemicals())
