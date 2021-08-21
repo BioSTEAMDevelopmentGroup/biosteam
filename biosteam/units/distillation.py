@@ -204,12 +204,8 @@ class Distillation(Unit, isabstract=True):
         self._load_components(partial_condenser, condenser_thermo, boiler_thermo, LHK)
         
     def _reset_thermo(self, thermo):
-        self._load_thermo(thermo)
-        for i in (self._ins + self._outs): i._reset_thermo(thermo)
-        self._load_components(not hasattr(self, 'splitter'), 
-                              self.condenser.thermo.subset(thermo.chemicals),
-                              self.boiler.thermo.subset(thermo.chemicals),
-                              self._LHK)
+        super()._reset_thermo(thermo)
+        self.LHK = self._LHK
         
     def _load_components(self, partial_condenser, condenser_thermo, boiler_thermo, LHK):
         # Setup components

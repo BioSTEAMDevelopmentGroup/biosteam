@@ -389,24 +389,27 @@ class Unit:
                 if i: i._reset_thermo(thermo)
             except:
                 raise RuntimeError(f'failed to reset {repr(self)}.thermo')
-        self._load_components()
         chemicals = thermo.chemicals
         reactions = []
-        for i, j in self.__dict__.items():
-            if isinstance(j, tmo.ReactionSystem):
-                for rxn in j._reactions:
-                    if hasattr(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
-                        if isinstance(j, (tmo.Reaction, tmo.ReactionSet)):
-                            reactions.append([rxn, rxn.X])
-                        try: rxn.reset_chemicals(chemicals)
-                        except TypeError: pass
-            elif hasattr(j, 'reset_chemicals') and j.chemicals is not chemicals:
-                if isinstance(j, (tmo.Reaction, tmo.ReactionSet)):
-                    reactions.append([j, j.X])
-                try: j.reset_chemicals(chemicals)
-                except TypeError: pass
-            elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
-                j._reset_thermo(thermo)
+        dcts = [self.__dict__]
+        if hasattr(self, 'components') and isinstance(self.components, dict):
+            dcts.append(self.components)
+        for dct in dcts:
+            for i, j in self.__dict__.items():
+                if isinstance(j, tmo.ReactionSystem):
+                    for rxn in j._reactions:
+                        if hasattr(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
+                            if isinstance(j, (tmo.Reaction, tmo.ReactionSet)):
+                                reactions.append([rxn, rxn.X])
+                            try: rxn.reset_chemicals(chemicals)
+                            except TypeError: pass
+                elif hasattr(j, 'reset_chemicals') and j.chemicals is not chemicals:
+                    if isinstance(j, (tmo.Reaction, tmo.ReactionSet)):
+                        reactions.append([j, j.X])
+                    try: j.reset_chemicals(chemicals)
+                    except TypeError: pass
+                elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
+                    j._reset_thermo(thermo)
         for rxn, X in reactions: 
             rxn.X = X
     
