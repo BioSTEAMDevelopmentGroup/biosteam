@@ -224,10 +224,11 @@ class Pump(Unit):
                 pump_type = 'MeteringPlunger'
             else:
                 NPSH = calculate_NPSH(Pi, si.P_vapor, si.rho)
-                warn(f'no pump type available at current power '
+                warn(f'{repr(self)} no pump type available at current power '
                      f'({power:.3g} hp), flow rate ({q_i:.3g} gpm), and head '
                      f'({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), '
-                     f'and NPSH ({NPSH:.3g} ft); assuming centrigugal pump')
+                     f'and NPSH ({NPSH:.3g} ft); assuming centrigugal pump',
+                     RuntimeWarning)
                 pump_type = 'Centrifugal'
                 
         Design['Type'] = pump_type

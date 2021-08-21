@@ -544,6 +544,7 @@ class System:
         isa = isinstance
         mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
         past_upstream_units = set()
+        thermo_cache = {}
         for mixer in mixers:
             if mixer in past_upstream_units: continue
             upstream_units = mixer.get_upstream_units()
@@ -554,18 +555,32 @@ class System:
                 available_chemicals.update(unit.get_available_chemicals())
             for unit in upstream_units: 
                 if isa(unit, bst.Junction): continue
-                thermo = unit.thermo.subset([i for i in unit.chemicals if i in available_chemicals])
+                chemicals = [i for i in unit.chemicals if i in available_chemicals]
+                if len(chemicals) == len(unit.chemicals): continue
+                IDs = tuple([i.ID for i in chemicals])
+                if IDs in thermo_cache:
+                    thermo = thermo_cache[IDs]
+                else:
+                    thermo_cache[IDs] = thermo = unit.thermo.subset(chemicals)
                 unit._reset_thermo(thermo)
             past_upstream_units.update(upstream_units)
         for mixer in mixers: 
-            outlet = mixer.outs[0]
-            sink = outlet.sink
-            available_chemicals = outlet.available_chemicals
-            thermo = sink.thermo if sink else outlet.thermo.subset(available_chemicals)
-            mixer._load_thermo(thermo)
-            outlet._reset_thermo(thermo)
             for i in mixer._ins:
                 if i._source: i._reset_thermo(i._source.thermo)
+            outlet = mixer.outs[0]
+            sink = outlet.sink
+            if sink:
+                thermo = sink.thermo
+            else:
+                chemicals = outlet.available_chemicals
+                if len(chemicals) == len(outlet.chemicals): continue
+                IDs = tuple([i.ID for i in chemicals])
+                if IDs in thermo_cache:
+                    thermo = thermo_cache[IDs]
+                else:
+                    thermo_cache[IDs] = thermo = unit.thermo.subset(chemicals)
+            mixer._load_thermo(thermo)
+            outlet._reset_thermo(thermo)
         self._interface_property_packages()
     
     def copy(self, ID=None):

@@ -25,6 +25,7 @@ class VentScrubber(Unit):
         water, vent_entry = self.ins
         vent_exit, bottoms = self.outs
         vent_exit.copy_like(vent_entry)
+        bottoms.empty()
         bottoms.copy_flow(vent_exit, self.gas,
                           remove=True, exclude=True)
         bottoms.mix_from([bottoms, water], energy_balance=False)

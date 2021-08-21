@@ -167,13 +167,9 @@ class Fermentation(BatchBioreactor):
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
         self.iskinetic = iskinetic
-        self.efficiency = efficiency
-        
-    def _load_components(self):
         chemicals = self.chemicals
-        X = self.fermentation_reaction.X if hasattr(self, 'fermentation_reaction') else 1.0
         self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00, chemicals)
-        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', X, chemicals)
+        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency, chemicals)
         self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
         cell_growth.basis = 'mol'
         if all([i in self.chemicals for i in ('FFA', 'DAG', 'TAG', 'Glycerol')]):
@@ -183,6 +179,7 @@ class Fermentation(BatchBioreactor):
             ])
         else:
             self.lipid_reaction = None
+        self.efficiency = efficiency
         
     def _calc_efficiency(self, feed, tau): # pragma: no cover
         # Get initial concentrations
@@ -264,11 +261,10 @@ class Fermentation(BatchBioreactor):
     def _run(self):
         vent, effluent = self.outs
         effluent.mix_from(self.ins)
-        effluent_mol = effluent.mol
-        self.hydrolysis_reaction(effluent_mol)
+        self.hydrolysis_reaction(effluent)
         if self.iskinetic:
             self.fermentation_reaction.X = self._calc_efficiency(effluent, self._tau)
-        self.fermentation_reaction(effluent_mol)
-        self.cell_growth_reaction(effluent_mol)
-        if self.lipid_reaction: self.lipid_reaction(effluent_mol)
+        self.fermentation_reaction(effluent)
+        self.cell_growth_reaction(effluent)
+        if self.lipid_reaction: self.lipid_reaction(effluent)
         vent.receive_vent(effluent)

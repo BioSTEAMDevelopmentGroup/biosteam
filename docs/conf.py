@@ -22,13 +22,13 @@ for p in new_path:
 # -- Project information -----------------------------------------------------
 
 project = 'BioSTEAM'
-copyright = '2018-2020, Yoel Cortes-Pena and Jeremy Guest'
+copyright = '2018-2021, BioSTEAM Development Group'
 author = 'Yoel Cortes-Pena'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = ''
 
 
 # -- General configuration ---------------------------------------------------
