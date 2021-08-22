@@ -118,12 +118,14 @@ class HeatExchangerNetwork(Facility):
     _units= {'Flow rate': 'kg/hr',
               'Work': 'kW'}
     
-    def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3):
+    def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3,
+                 force_ideal_thermo=False):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
         self.ignored = ignored
         self.Qmin = Qmin
+        self.force_ideal_thermo = force_ideal_thermo
         
     def _get_original_heat_utilties(self):
         sys = self.system
@@ -157,7 +159,7 @@ class HeatExchangerNetwork(Facility):
             HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
             T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
             hot_indices, cold_indices = \
-            synthesize_network(hx_utils, self.T_min_app, self.Qmin)
+            synthesize_network(hx_utils, self.T_min_app, self.Qmin, self.force_ideal_thermo)
             original_purchase_costs= [hx.purchase_cost for hx in hxs]
             original_installed_costs = [hx.installed_cost for hx in hxs]
             new_HXs = HXs_hot_side + HXs_cold_side

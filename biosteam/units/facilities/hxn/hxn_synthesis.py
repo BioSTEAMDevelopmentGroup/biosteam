@@ -120,14 +120,20 @@ class Working_Life_Cycle:
         return self.life_cycle
     
 
-def temperature_interval_pinch_analysis(hus, T_min_app = 10):
+def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=False):
     hx_utils = hus
     hus_heating = [hu for hu in hx_utils if hu.duty > 0]
     hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
     hx_utils_rearranged = hus_heating + hus_cooling
     hxs = [hu.heat_exchanger for hu in hx_utils_rearranged]
-    streams_inlet = [hx.ins[0].copy() for hx in hxs]
-    streams_quenched = [i.outs[0].copy() for i in hxs]
+    if force_ideal_thermo:
+        streams_inlet = [hx.ins[0] for hx in hxs]
+        streams_quenched = [i.outs[0] for i in hxs]
+        streams_inlet = [i.copy(thermo=i.thermo.ideal()) for i in streams_inlet]
+        streams_quenched = [i.copy(thermo=i.thermo.ideal()) for i in streams_quenched]
+    else:
+        streams_inlet = [hx.ins[0].copy() for hx in hxs]
+        streams_quenched = [i.outs[0].copy() for i in hxs]
     for i in streams_quenched: i.vle(H=i.H, P=i.P)
     for i in range(len(streams_inlet)):
         stream = streams_inlet[i]
@@ -229,10 +235,10 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
     return T_transient
 
 
-def synthesize_network(hus, T_min_app=5., Qmin=1e-3):  
+def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
-        streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app = T_min_app)        
+        streams_quenched = temperature_interval_pinch_analysis(hus, T_min_app, force_ideal_thermo)        
     H_out_arr = [i.H for i in streams_quenched]
     duties = np.array([abs(hx.Q)  for hx in hxs])
     dTs = np.abs(T_in_arr - T_out_arr)
