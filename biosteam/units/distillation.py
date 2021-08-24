@@ -772,17 +772,14 @@ class Distillation(Unit, isabstract=True):
         if not P or P > 1e5: return 
         # if not hasattr(self, 'splitter'): 
         #     warn('running vacuum distillation with a partial condenser is not advised')
-        total_power = 0.
-        total_cost = 0.
+        volume = 0.
         for length, diameter in dimensions:
             R = diameter * 0.5
-            volume = 0.02832 * np.pi * length * R * R # ft3
-            power, cost = compute_vacuum_system_power_and_cost(
-                              0., 0., P, volume, self.vacuum_system_preference)
-            total_power += power
-            total_cost += cost
-        self.baseline_purchase_costs['Vacuum system'] = total_cost
-        self.power_utility(total_power)
+            volume += 0.02832 * np.pi * length * R * R # ft3
+        power, cost = compute_vacuum_system_power_and_cost(
+                          0., 0., P, volume, self.vacuum_system_preference)
+        self.baseline_purchase_costs['Vacuum system'] = cost
+        self.power_utility(power)
     
     def _cost(self):
         Design = self.design_results
@@ -1076,8 +1073,8 @@ class BinaryDistillation(Distillation, new_graphics=False):
     
     >>> D1.results()
     Divided Distillation Column                           Units        D1
-    Power               Rate                                 kW      11.4
-                        Cost                             USD/hr     0.894
+    Power               Rate                                 kW      5.72
+                        Cost                             USD/hr     0.447
     Chilled water       Duty                              kJ/hr -7.06e+06
                         Flow                            kmol/hr  2.63e+04
                         Cost                             USD/hr      35.3
@@ -1106,9 +1103,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper platform and ladders       USD  1.59e+04
                         Stripper tower                      USD  5.65e+04
                         Rectifier platform and ladders      USD  1.85e+04
-                        Vacuum system                       USD  2.69e+04
-    Total purchase cost                                     USD  3.11e+05
-    Utility cost                                         USD/hr      81.6
+                        Vacuum system                       USD  1.53e+04
+    Total purchase cost                                     USD     3e+05
+    Utility cost                                         USD/hr      81.1
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
