@@ -269,7 +269,8 @@ class Flash(design.PressureVessel, Unit):
         if not P or P > 101320: return 
         
         Design = self.design_results
-        volume = 0.02832 * np.pi * Design['Length'] * (Design['Diameter']/2)**2
+        R = Design['Diameter'] * 0.5
+        volume = 0.02832 * np.pi * Design['Length'] * R * R
         
         # If vapor is condensed, assume vacuum system is after condenser
         vapor = self.outs[0]

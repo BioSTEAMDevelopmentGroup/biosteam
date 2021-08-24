@@ -770,15 +770,18 @@ class Distillation(Unit, isabstract=True):
     def _cost_vacuum(self, dimensions):
         P = self.P
         if not P or P > 1e5: return 
+        # if not hasattr(self, 'splitter'): 
+        #     warn('running vacuum distillation with a partial condenser is not advised')
         total_power = 0.
         total_cost = 0.
         for length, diameter in dimensions:
-            volume = 0.02832 * np.pi * length * (diameter/2)**2 # ft3
+            R = diameter * 0.5
+            volume = 0.02832 * np.pi * length * R * R # ft3
             power, cost = compute_vacuum_system_power_and_cost(
                               0., 0., P, volume, self.vacuum_system_preference)
             total_power += power
             total_cost += cost
-        self.baseline_purchase_costs['Vacuum system'] = cost
+        self.baseline_purchase_costs['Vacuum system'] = total_cost
         self.power_utility(total_power)
     
     def _cost(self):
@@ -1041,6 +1044,12 @@ class BinaryDistillation(Distillation, new_graphics=False):
     
     Vacuum distillation is also supported:
         
+    >>> D1 = BinaryDistillation('D1', ins=feed,
+    ...                         outs=('distillate', 'bottoms_product'),
+    ...                         LHK=('Methanol', 'Water'),
+    ...                         partial_condenser=False,
+    ...                         y_top=0.99, x_bot=0.01, k=2,
+    ...                         is_divided=True)
     >>> D1.P = 1e4
     >>> D1.simulate()
     >>> D1.show(T='degC', P='atm', composition=True)
@@ -1054,7 +1063,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
                      --------  205 kmol/hr
     outs...
     [0] distillate
-        phase: 'g', T: 15.767 degC, P: 0.0986923 atm
+        phase: 'l', T: 15.358 degC, P: 0.0986923 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
@@ -1069,9 +1078,9 @@ class BinaryDistillation(Distillation, new_graphics=False):
     Divided Distillation Column                           Units        D1
     Power               Rate                                 kW      11.4
                         Cost                             USD/hr     0.894
-    Chilled water       Duty                              kJ/hr -3.36e+06
-                        Flow                            kmol/hr  1.04e+04
-                        Cost                             USD/hr      16.8
+    Chilled water       Duty                              kJ/hr -7.06e+06
+                        Flow                            kmol/hr  2.63e+04
+                        Cost                             USD/hr      35.3
     Low pressure steam  Duty                              kJ/hr   7.4e+06
                         Flow                            kmol/hr       191
                         Cost                             USD/hr      45.4
@@ -1083,23 +1092,23 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper stages                                22
                         Rectifier height                     ft      30.2
                         Stripper height                      ft        45
-                        Rectifier diameter                   ft      5.71
-                        Stripper diameter                    ft      4.37
+                        Rectifier diameter                   ft      5.75
+                        Stripper diameter                    ft       4.4
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
-                        Rectifier weight                     lb  8.01e+03
-                        Stripper weight                      lb  8.57e+03
-    Purchase cost       Condenser - Floating head           USD  3.32e+04
-                        Boiler - Floating head              USD  2.67e+04
-                        Rectifier trays                     USD  1.73e+04
-                        Stripper trays                      USD  1.88e+04
-                        Rectifier tower                     USD  5.41e+04
-                        Stripper platform and ladders       USD  1.58e+04
-                        Stripper tower                      USD  5.63e+04
-                        Rectifier platform and ladders      USD  1.84e+04
-                        Vacuum system                       USD  1.33e+04
-    Total purchase cost                                     USD  2.54e+05
-    Utility cost                                         USD/hr      63.1
+                        Rectifier weight                     lb  8.08e+03
+                        Stripper weight                      lb  8.62e+03
+    Purchase cost       Condenser - Floating head           USD  8.21e+04
+                        Boiler - Floating head              USD  2.08e+04
+                        Rectifier trays                     USD  1.74e+04
+                        Stripper trays                      USD  1.89e+04
+                        Rectifier tower                     USD  5.44e+04
+                        Stripper platform and ladders       USD  1.59e+04
+                        Stripper tower                      USD  5.65e+04
+                        Rectifier platform and ladders      USD  1.85e+04
+                        Vacuum system                       USD  2.69e+04
+    Total purchase cost                                     USD  3.11e+05
+    Utility cost                                         USD/hr      81.6
     
     """
     _cache_tolerance = np.array([50., 1e-5, 1e-6, 1e-6, 1e-2, 1e-6], float)
