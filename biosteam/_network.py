@@ -312,7 +312,20 @@ class Network:
         recycle_ends.update(network.get_all_recycles())
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
+        network.add_process_heat_exchangers()
         return network
+    
+    def add_process_heat_exchangers(self):
+        isa = isinstance
+        path = self.path
+        for i, u in enumerate(path):
+            if isa(u, Unit):
+                for s in u.outs:
+                    sink = s.sink
+                    if isa(sink, bst.HXprocess) and sink in path[:i] and sink not in path[i+1:]:
+                        if sink not in path[i+1:]: path.insert(i+1, sink)
+            else:
+                u.add_process_heat_exchangers()
     
     @property
     def streams(self):

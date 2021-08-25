@@ -362,6 +362,21 @@ class HeatUtility:
         self.cost = self.flow = self.duty = self.unit_duty = 0
         self.iscooling = self.agent = self.T_pinch = None
         
+    def set_utility_by_flow_rate(self, agent, F_mol):
+        if F_mol == 0.: 
+            self.empty()
+            return
+        self.load_agent(agent)
+        heat_transfer_efficiency = self.heat_transfer_efficiency or agent.heat_transfer_efficiency
+        if agent.T_limit: raise ValueError('agent must work by latent heat to set by flow rate')
+        self.outlet_utility_stream.phase = 'g' if self.inlet_utility_stream.phase == 'l' else 'l'
+        dH = self.outlet_utility_stream.Hvap
+        self.duty = duty = dH * F_mol
+        self.unit_duty = duty * heat_transfer_efficiency
+        self.outlet_utility_stream.mol[:] = F_mol
+        self.flow = F_mol
+        self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
+        
     def __call__(self, unit_duty, T_in, T_out=None, agent=None):
         """Calculate utility requirements given the essential parameters.
         
@@ -382,7 +397,7 @@ class HeatUtility:
             self.empty()
             return
         T_out = T_out or T_in
-        iscooling = unit_duty < 0
+        iscooling = unit_duty < 0.
         
         # Note: These are pinch temperatures at the utility inlet and outlet. 
         # Not to be confused with the inlet and outlet of the process stream.

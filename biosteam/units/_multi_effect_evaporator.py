@@ -20,6 +20,7 @@ from .design_tools import (
 from thermosteam import MultiStream, settings
 import flexsolve as flx
 from warnings import warn
+import numpy as np
 from .design_tools import heat_transfer as ht
 
 __all__ = ('MultiEffectEvaporator',)
@@ -193,13 +194,10 @@ class MultiEffectEvaporator(Unit):
     _units = {'Area': 'm^2',
               'Volume': 'm^3'}
     _F_BM_default = {'Evaporators': 2.45,
-                     'Liquid-ring pump': 1.0,
+                     'Vacuum system': 1.0,
                      'Condenser': 3.17}
     _N_outs = 2
     _N_heat_utilities = 2
-
-    #: Residence time (hr)
-    tau = 0.30
 
     # Evaporator type
     _Type = 'Forced circulation'
@@ -253,6 +251,7 @@ class MultiEffectEvaporator(Unit):
         
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
+        
         first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
         first_evaporator.owner = self.owner
         
@@ -265,7 +264,9 @@ class MultiEffectEvaporator(Unit):
         condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
         condenser.owner = self
         self.heat_utilities = (first_evaporator.heat_utilities[0],
-                               condenser.heat_utilities[0])
+                               condenser.heat_utilities[0],
+                               bst.HeatUtility(),
+                               bst.HeatUtility())
         mixer = Mixer(None, outs=[None], thermo=thermo)
         
         components = self.components
@@ -411,15 +412,30 @@ class MultiEffectEvaporator(Unit):
                 evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)
-        Design['Volume'] = total_volume = self._N_evap * self.tau * self.ins[0].F_vol
+        first_evaporator._design()
+        vapor_sep_design = first_evaporator.design_results
+        L = vapor_sep_design['Length']
+        D = vapor_sep_design['Diameter']
+        R = D / 2.
+        volume = 0.0283168466 * np.pi * L * R * R # m3
+        Design['Volume'] = total_volume = self._N_evap * volume
         Cost['Evaporators'] = sum(evap_costs)
         
         # Calculate power
-        power, cost = compute_vacuum_system_power_and_cost(
+        vacuum_results = compute_vacuum_system_power_and_cost(
             F_mass=0, F_vol=0, P_suction=evap.outs[0].P,
             vessel_volume=total_volume,
-            vacuum_system_preference='Liquid-ring pump')
-        Cost['Liquid-ring pump'] = cost
-        self.power_utility(power)
+            vacuum_system_preference='Steam-jet ejector'
+        )
+        Cost['Vacuum system'] = vacuum_results['Cost']
+        Design['Vacuum system'] = vacuum_results['Name']
+        flash_hu, condenser_hu, vacuum_steam, vacuum_cooling_water = self.heat_utilities
+        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
+        if vacuum_results['Condenser']: 
+            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
+        else:
+            vacuum_cooling_water.empty()
+        self.power_utility(vacuum_results['Work'])
+            
         
         

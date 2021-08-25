@@ -204,17 +204,26 @@ def get_unit_names(f: Digraph, units):
     label = bst.LABEL_PATH_NUMBER_IN_DIAGRAMS
     profile = bst.PROFILE_UNITS_IN_DIAGRAMS
     TicToc = bst.utils.TicToc
+    info_by_unit = {}
     for i, u in enumerate(units):
+        if u in info_by_unit:
+            old_data = info_by_unit[u]
+            old_data[0].append(str(i))
+        else:
+            if profile: # pragma: no cover
+                t = TicToc()
+                for n in range(10):
+                    t.tic(); u.simulate(); t.toc()
+                    if n > 1 and sum(t.record) > 0.2: break 
+                time = f"{1000 * t.mean:.2g} ms"
+            else:
+                time = None
+            info_by_unit[u] = [[str(i)], time] 
+    for u, (index, time) in info_by_unit.items():
         node = u.get_node()
         name = node['name']
-        info = str(i) if label else ''
-        if profile: # pragma: no cover
-            if info: info += '; '
-            t = TicToc()
-            for n in range(10):
-                t.tic(); u.simulate(); t.toc()
-                if n > 1 and sum(t.record) > 0.2: break 
-            info += f"{1000 * t.mean:.2g} ms"
+        info = ', '.join(index) if label else ''
+        if profile: info = f"{info}; {time}"
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
         f.node(**node)

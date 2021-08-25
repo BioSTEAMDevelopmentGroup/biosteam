@@ -37,6 +37,7 @@ from .splitting import FakeSplitter
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
+import biosteam as bst
 from .heat_exchange import HXutility
 
 __all__ = ('Distillation', 'BinaryDistillation', 'ShortcutColumn')
@@ -245,7 +246,8 @@ class Distillation(Unit, isabstract=True):
         self.boiler.owner = self
         self.condenser.owner = self
         self.boilup = self.boiler.outs[0]['g']  
-        self.heat_utilities = self.condenser.heat_utilities + self.boiler.heat_utilities
+        self.heat_utilities = (*self.condenser.heat_utilities, *self.boiler.heat_utilities,
+                               bst.HeatUtility(), bst.HeatUtility())
         self.LHK = LHK
         self.reset_cache() # Abstract method
     
@@ -748,7 +750,7 @@ class Distillation(Unit, isabstract=True):
         if Po < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '
                  'wall thickness may be inaccurate and stiffening rings may be '
-                 'required')
+                 'required', category=RuntimeWarning)
         if is_divided:
             Design['Rectifier stages'] = Rstages
             Design['Stripper stages'] =  Sstages
@@ -775,11 +777,19 @@ class Distillation(Unit, isabstract=True):
         volume = 0.
         for length, diameter in dimensions:
             R = diameter * 0.5
-            volume += 0.02832 * np.pi * length * R * R # ft3
-        power, cost = compute_vacuum_system_power_and_cost(
-                          0., 0., P, volume, self.vacuum_system_preference)
-        self.baseline_purchase_costs['Vacuum system'] = cost
-        self.power_utility(power)
+            volume += 0.02832 * np.pi * length * R * R # m3
+        vacuum_results = compute_vacuum_system_power_and_cost(
+            0., 0., P, volume, self.vacuum_system_preference
+        )
+        self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
+        self.design_results['Vacuum system'] = vacuum_results['Name']
+        _, _, vacuum_steam, vacuum_cooling_water = self.heat_utilities
+        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
+        if vacuum_results['Condenser']: 
+            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
+        else:
+            vacuum_cooling_water.empty()
+        self.power_utility(vacuum_results['Work'])
     
     def _cost(self):
         Design = self.design_results

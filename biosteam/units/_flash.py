@@ -15,6 +15,7 @@ from . import design_tools as design
 from .splitting import Splitter
 from .heat_exchange import HX, HXutility
 from .._graphics import vertical_vessel_graphics
+import biosteam as bst
 
 exp = np.exp
 ln = np.log
@@ -217,7 +218,7 @@ class Flash(design.PressureVessel, Unit):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
         self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
         hx.owner = self.owner
-        self.heat_utilities = hx.heat_utilities
+        self.heat_utilities = (*hx.heat_utilities, bst.HeatUtility(), bst.HeatUtility())
         hx._ins = self._ins
         
     def reset_cache(self):
@@ -293,10 +294,18 @@ class Flash(design.PressureVessel, Unit):
             F_mass = vapor.F_mass
             F_vol = vapor.F_vol
         
-        power, cost = design.compute_vacuum_system_power_and_cost(
-                          F_mass, F_vol, P, volume, self.vacuum_system_preference)
-        self.baseline_purchase_costs['Liquid-ring pump'] = cost
-        self.power_utility(power)
+        vacuum_results = design.compute_vacuum_system_power_and_cost(
+            F_mass, F_vol, P, volume, self.vacuum_system_preference
+        )
+        self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
+        self.design_results['Vacuum system'] = vacuum_results['Name']
+        hx_hu, vacuum_steam, vacuum_cooling_water = self.heat_utilities
+        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
+        if vacuum_results['Condenser']: 
+            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
+        else:
+            vacuum_cooling_water.empty()
+        self.power_utility(vacuum_results['Work'])
 
     def _design_parameters(self):
         # Retrieve run_args and properties
@@ -493,11 +502,8 @@ class SplitFlash(Flash):
                  surge_time=7.5,
                  has_mist_eliminator=False):
         Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
-        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
+        self._load_components()
         
-        #: [HXutility] Heat exchanger if needed.
-        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo)
-        hx._ins = self._ins
         self.T = T #: Operating temperature (K)
         self.P = P #: Operating pressure (Pa)
         self.Q = Q #: Duty (kJ/hr)
@@ -553,9 +559,7 @@ class RatioFlash(Flash):
                  K_chemicals, Ks, top_solvents=(), top_split=(),
                  bot_solvents=(), bot_split=()):
         Unit.__init__(self, ID, ins, outs)
-        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        #: [HXutility] Heat exchanger if needed.
-        self.heat_exchanger = HXutility(None, None, ms, thermo=self.thermo)
+        self._load_components()
         self.K_chemicals = K_chemicals
         self.Ks = Ks
         self.top_solvents = top_solvents

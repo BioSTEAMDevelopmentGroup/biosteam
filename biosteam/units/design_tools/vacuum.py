@@ -34,8 +34,8 @@ _liquid_ring = {
     'Two stage water seal':    (( 3,   18000),  25),
     'Oil seal':                (( 3,   18000),  10)}
 _dry_vacuum = {
-    'Three-stage rotary lobe': ((60,     240), 1.5),
-    'Three-stage claw':        ((60,     270), 0.3),
+    'Three stage rotary lobe': ((60,     240), 1.5),
+    'Three stage claw':        ((60,     270), 0.3),
     'Screw compressor':        ((50,    1400), 0.1)}
 
 _default_vacuum_systems = {'Liquid-ring pump': _liquid_ring,
@@ -50,7 +50,7 @@ def compute_vacuum_system_power_and_cost(
         F_mass, F_vol, P_suction, vessel_volume,
         vacuum_system_preference=None):
     """
-    Return power (kW) and cost (USD) of vacuum system.
+    Return a dictionary of vacuum system requirements.
     
     Parameters
     ----------
@@ -81,33 +81,45 @@ def compute_vacuum_system_power_and_cost(
         factor = 1
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
     F_mass_lbph = 2.205 * F_mass_kgph
-    power = calculate_vacuum_power(F_mass_kgph, P_suction)
     vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
-    vacuum_sys, grade = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)
-    base_cost = calculate_vacuum_cost(vacuum_sys, grade, F_mass_lbph, F_vol_cfm, P_suction)
-    cost = bst.CE / 567  * base_cost
-    return power, cost
+    name, grade = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)
+    base_cost = calculate_vacuum_cost(name, grade, F_mass_lbph, F_vol_cfm, P_suction)
+    cost = bst.CE / 567.  * base_cost
+    if name == 'Steam-jet ejector':
+        for agent in bst.HeatUtility.heating_agents:
+            if agent.P > 689475.: break # 100 psig
+        steam = 0.41631 * F_mass_kgph # [kmol/hr] 7.5 weight steam/ weight gas
+        work = 0.
+        has_condenser = grade != 'One stage'
+    else:
+        has_condenser = False
+        agent = None
+        steam = 0.
+        work = calculate_vacuum_power(F_mass_kgph, P_suction)
+    return {'Work': work, 
+            'Cost': cost, 
+            'Name': f"{name}, {grade.lower()}",
+            'Condenser': has_condenser,
+            'Steam flow rate': steam, 
+            'Heating agent': agent}
 
 
 # %% Supporting functions
 
 def get_prefered_vacuum_systems(preference):
+    defaults = _default_vacuum_systems
     if preference is None:
-        vacuum_systems = _default_vacuum_systems.values()
+        return defaults
     else:
-        defaults = _default_vacuum_systems.keys()
         if isinstance(preference, str):
             if preference not in defaults:
-                raise ValueError(f"preference have at least one of the following: {defaults}")
+                raise ValueError(f"preference must be in the following list: {list(defaults)}")
             preference = (preference,)
         else:
             for name in preference:
                 if name not in defaults:
-                    raise ValueError(f"preference have at least one of the following: {defaults}")
-        
-        vacuum_systems = [_default_vacuum_systems[name] for name in preference]
-    return vacuum_systems
-
+                    raise ValueError(f"preference must be in the following list: {list(defaults)}")
+        return {name: defaults[name] for name in preference}
 
 def get_available_vacuum_systems(F_vol_cfm, P_suction):
     """
@@ -139,16 +151,16 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
     P_suction : float
         Suction pressure in Torr
     """
-    for vacuum_sys in vacuum_systems:
+    for name, vacuum_sys in vacuum_systems.items():
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
             if checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
-                return (vacuum_sys, grade)
-    for vacuum_sys in vacuum_systems:
+                return (name, grade)
+    for name, vacuum_sys in vacuum_systems.items():
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
             if F_vol_cfm < flowrange[-1] and P_suction > minsuction:
-                return (vacuum_sys, grade)
+                return (name, grade)
     raise DesignError('no vacuum system available at current flow and suction pressure')
 
 @njit(cache=True)
@@ -179,11 +191,12 @@ def calculate_air_inleakage(V, P):
     Parameters
     ----------
     V : float
-        Vacuum volume in m3
+        Vacuum volume in ft3
     P : float
         Suction pressure in Torr
     """
-    return 5 + (0.0298 + 0.03088*ln(P) - 5.733e-4*ln(P)**2)*V**0.66
+    lnP = ln(P) 
+    return 5. + (0.0298 + 0.03088*lnP - 5.733e-4*lnP*lnP)*V**0.66
 
 def calculate_vacuum_power(F_mass,  P_suction):
     """
@@ -199,26 +212,26 @@ def calculate_vacuum_power(F_mass,  P_suction):
     """
     SF = F_mass/P_suction # Size factor
     if SF < 0.2: SF = 0.2
-    elif SF > 16: SF = 16
+    elif SF > 16.: SF = 16.
     Pb = 21.4*SF**0.924 # Break power assuming Liquid-ring (NASH)
     mu_m = mch.motor_efficiency(Pb)
     return Pb/mu_m
 
 def calculate_vacuum_cost(vacuum_sys, grade, F_mass_lbph, F_vol_cfm, P_suction):
     # Costing for different vacuums ASSUMING THAT ALL ARE CARBON STEEL!!!!
-    if vacuum_sys is _steamjet_ejectors:
+    if vacuum_sys ==  'Steam-jet ejector':
         S = F_mass_lbph/P_suction
-        Cp = 1915*(S**(0.41))
+        Cp = 1915*S**0.41
         if grade == 'One stage':
             Cs = 1
         elif grade == 'Two stage':
-            Cs = 1.8
+            Cs = 1.8 * 1.6 # 2 stage + 1 condenser
         elif grade == 'Three stage':
-            Cs = 2.1
+            Cs = 2.1 * 2.3 # 3 stage + 2 condenser
         Cost = Cp*Cs
-    elif vacuum_sys is _liquid_ring:
+    elif vacuum_sys == 'Liquid-ring pump':
         S = F_vol_cfm
-        Cp = 8250*(S**(0.37))
+        Cp = 8250*S**0.37
         if grade == 'One stage water seal':
             Cs = 1
         elif grade == 'Two stage water seal':
@@ -226,14 +239,14 @@ def calculate_vacuum_cost(vacuum_sys, grade, F_mass_lbph, F_vol_cfm, P_suction):
         elif grade == 'Oil seal':
             Cs = 2.1
         Cost = Cp*Cs
-    elif vacuum_sys is _dry_vacuum:
+    elif vacuum_sys == 'Dry-vacuum pump':
         S = F_vol_cfm
-        if grade == 'Three-stage rotary lobe':
-            Cp = 8075*(S**(0.41))
-        elif grade == 'Three-stage claw':
-            Cp = 9785*(S**(0.36))
+        if grade == 'Three stage rotary lobe':
+            Cp = 8075*S**0.41
+        elif grade == 'Three stage claw':
+            Cp = 9785*S**0.36
         elif grade == 'Screw compressor':
-            Cp = 10875*(S**(0.38))
+            Cp = 10875*S**0.38
         Cost = Cp
     return Cost
     

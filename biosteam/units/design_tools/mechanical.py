@@ -27,14 +27,16 @@ def brake_efficiency(q):
     """Return brake efficiency given flow rate in gpm."""
     if q < 50: q = 50
     elif q > 5000: q = 5000
-    return -0.316 + 0.24015*np.log(q) - 0.01199*np.log(q)**2
+    logq = np.log(q)
+    return -0.316 + 0.24015*logq - 0.01199*logq*logq
 
 @njit(cache=True)
 def motor_efficiency(Pb):
     """Return motor efficiency given brake power in hp."""
     if Pb < 1: Pb = 1
     elif Pb > 1500: Pb = 1500
-    return 0.8 + 0.0319*np.log(Pb) - 0.00182*np.log(Pb)**2
+    logPb = np.log(Pb)
+    return 0.8 + 0.0319*logPb - 0.00182*logPb*logPb
 
 @njit(cache=True)
 def pump_efficiency(q, p):

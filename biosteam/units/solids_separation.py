@@ -172,8 +172,9 @@ class RotaryVacuumFilter(SolidsSeparator):
                        Fraction of water in retentate.
     
     """
+    _N_heat_utilities = 2
     _F_BM_default = {'Vessels': 2.32,
-                     'Liquid-ring pump': 1.0}
+                     'Vacuum system': 1.0}
     
     #: Revolutions per second
     rps = 20/3600
@@ -191,9 +192,6 @@ class RotaryVacuumFilter(SolidsSeparator):
     _units = {'Area': 'ft^2',
               'Individual area': 'ft^2'}
     
-    #: Efficiency of the vacuum pump
-    power_efficiency = 0.9
-    
     def _design(self):
         flow = sum([stream.F_mass for stream in self.outs])
         self.design_results['Area'] = self._calc_Area(flow, self.filter_rate)
@@ -203,10 +201,10 @@ class RotaryVacuumFilter(SolidsSeparator):
         Area = Design['Area']
         ub = self._bounds['Individual area'][1]
         N_vessels = np.ceil(Area/ub)
-        self._power(Area, N_vessels)
         iArea = Area/N_vessels # individual vessel
         Design['# RVF'] = N_vessels
         Design['Individual area'] = iArea
+        self._power(Area, N_vessels)
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
         self.baseline_purchase_costs['Vessels'] = N_vessels*Cost*bst.CE/567
@@ -232,17 +230,26 @@ class RotaryVacuumFilter(SolidsSeparator):
         # cent_a = (2*np.pi*rps)**2*radius
         # cent_F = (mass_cake + mass_plates)*cent_a
         # work_rot = rps*2*np.pi*radius*cent_F
-        Area = self.design_results['Area']
-        vessel_volume = radius*Area*0.0929/2 # m3
+        Area = self.design_results['Individual area']
+        N = self.design_results['# RVF']
+        vessel_volume = N * radius*Area*0.0929/2. # m3
         
         # Assume same volume of air comes in as volume of liquid
         F_vol = s_vacuumed.F_vol
         F_mass = F_vol * 1.2041 # multiply by density of air kg/m3 
-        work_vacuum, self.baseline_purchase_costs['Liquid-ring pump'] = compute_vacuum_system_power_and_cost(
+        vacuum_results = compute_vacuum_system_power_and_cost(
                 F_mass, F_vol, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
-        self.power_utility(work_vacuum)
-    
+        self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
+        self.design_results['Vacuum system'] = vacuum_results['Name']
+        vacuum_steam, vacuum_cooling_water = self.heat_utilities
+        vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
+        if vacuum_results['Condenser']: 
+            vacuum_cooling_water(-vacuum_steam.unit_duty, 373.15)
+        else:
+            vacuum_cooling_water.empty()
+        self.power_utility(vacuum_results['Work'])
+        
     @staticmethod
     def _calc_Area(flow, filter_rate):
         """Return area in ft^2 given flow in kg/hr and filter rate in lb/day-ft^2."""
