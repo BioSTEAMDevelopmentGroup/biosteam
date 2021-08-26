@@ -78,13 +78,13 @@ class CoolingTower(Facility):
         self._load_utility_agents()
         cwu = self.cooling_water_utilities
         used, makeup_water, cooling_tower_chemicals = self._ins
-        cooling_tower_chemicals.imass['Water'] = 2 * used.F_mol / 4.4e+05
         hu = self.heat_utilities[0]
         self._load_utility_agents()
         hu.mix_from(cwu)            
         used.imol['7732-18-5'] = \
         self.design_results['Flow rate'] = \
         self.cooling_water = hu.flow 
+        cooling_tower_chemicals.imass['Water'] = 2 * used.F_mol / 4.4e+05
         cooling_water, loss = self.outs
         cooling_water.T = hu.inlet_utility_stream.T
         self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)

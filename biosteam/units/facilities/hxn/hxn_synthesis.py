@@ -489,9 +489,10 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
     def get_hottest_stream_from_life_cycle(cold):
         s_hottest = get_stream_at_H_max(cold)
         H_max = s_hottest.H
+        chemicals = s_hottest.chemicals
         for u in HXs_cold_side + HXs_hot_side:
             for s in u.outs:
-                if '_%s_'%(cold) in s.ID and '__s_%s'%(cold) in s.ID and np.allclose(s.mol, s_hottest.mol):
+                if '_%s_'%(cold) in s.ID and '__s_%s'%(cold) in s.ID and s.chemicals is chemicals and np.allclose(s.mol, s_hottest.mol):
                     if s.H > H_max:
                         H_max = s.H
                         s_hottest = s
@@ -500,9 +501,10 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
     def get_coldest_stream_from_life_cycle(hot):
         s_coldest = get_stream_at_H_min(hot)
         H_min = s_coldest.H
+        chemicals = s_coldest.chemicals
         for u in HXs_cold_side + HXs_hot_side:
             for s in u.outs:
-                if '_%s_'%(hot) in s.ID and '__s_%s'%(hot) in s.ID and np.allclose(s.mol, s_coldest.mol):
+                if '_%s_'%(hot) in s.ID and '__s_%s'%(hot) in s.ID and s.chemicals is chemicals and np.allclose(s.mol, s_coldest.mol):
                     if s.H < H_min:
                         H_min = s.H
                         s_coldest = s
