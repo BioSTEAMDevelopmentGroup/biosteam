@@ -326,6 +326,7 @@ class Network:
                         if sink not in path[i+1:]: path.insert(i+1, sink)
             else:
                 u.add_process_heat_exchangers()
+        if len(path) > 1 and path[-1] is path[0]: path.pop()
     
     @property
     def streams(self):
