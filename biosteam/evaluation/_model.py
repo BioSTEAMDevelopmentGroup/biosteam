@@ -89,10 +89,10 @@ class Model(State):
     >>> set_N_reactors_parameter = parameters[0]
     >>> set_N_reactors_parameter(5)
     >>> R301.purchase_cost / 1e6
-    1.55
+    1.5
     >>> set_N_reactors_parameter(8)
     >>> R301.purchase_cost / 1e6
-    1.85
+    1.8
     
     Add the fermentation unit base cost as a "cost" parameter with a triangular distribution (which doesn't affect mass and energy balances nor design requirements'):
     

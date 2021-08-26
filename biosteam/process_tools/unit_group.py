@@ -348,9 +348,9 @@ class UnitGroup:
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
         >>> ugroup.get_inlet_flow('ton/s') # Sum of all chemicals
-        6.37
+        6.64
         >>> ugroup.get_inlet_flow('ton/s', 'Water') # Just water
-        5.69
+        5.96
         >>> default() # Bring biosteam settings back to default
         
         """
@@ -376,9 +376,9 @@ class UnitGroup:
         >>> from biosteam import *
         >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
         >>> ugroup.get_outlet_flow('ton/s') # Sum of all chemicals
-        6.38
+        6.66
         >>> ugroup.get_outlet_flow('ton/s', 'Water') # Just water
-        5.69
+        5.97
         >>> default() # Bring biosteam settings back to default
         
         """
