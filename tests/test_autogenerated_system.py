@@ -576,7 +576,8 @@ def test_nested_recycle_loops():
              P2,
              Network(
                 [H1,
-                 M3],
+                 M3,
+                 H1],
                 recycle=M3-0),
              P4,
              Network(
@@ -585,7 +586,8 @@ def test_nested_recycle_loops():
                  Network(
                     [H2,
                      M6,
-                     S1],
+                     S1,
+                     H2],
                     recycle=S1-0),
                  S2,
                  Network(
@@ -656,7 +658,8 @@ def test_sugarcane_ethanol_biorefinery_network():
          Network(
             [H302,
              D302,
-             P302],
+             P302,
+             H302],
             recycle=P302-0),
          Network(
             [M303,

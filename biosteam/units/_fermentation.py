@@ -267,4 +267,5 @@ class Fermentation(BatchBioreactor):
         self.fermentation_reaction(effluent)
         self.cell_growth_reaction(effluent)
         if self.lipid_reaction: self.lipid_reaction(effluent)
+        vent.empty()
         vent.receive_vent(effluent)
