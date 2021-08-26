@@ -509,10 +509,7 @@ class System:
         new_path = []
         for obj in path:
             new_path.append(obj)
-            if isa(obj, System): 
-                obj._interface_property_packages()
-                continue
-            outs = obj._outs
+            outs = obj.outs
             for s in outs:
                 source = s._source
                 sink = s._sink
@@ -537,6 +534,8 @@ class System:
                     new_path.append(junction)
                     source._outs[source_index] = s_source 
                     sink._ins[sink_index] = s_sink 
+        for obj in path:
+            if isa(obj, System): obj._interface_property_packages()
         self._path = tuple(new_path)
         self._save_configuration()
         self._load_stream_links()

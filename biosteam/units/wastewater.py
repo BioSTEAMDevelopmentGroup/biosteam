@@ -263,7 +263,7 @@ class AnaerobicDigestion(Unit):
         liquid_mol = self.multi_stream.imol['l']
         sludge.mol[:] = liquid_mol * self.sludge_split.data
         waste.mol[:] = liquid_mol - sludge.mol
-        biogas.receive_vent(waste, accumulate=True)
+        biogas.receive_vent(waste)
         
 
 class AerobicDigestion(Unit):

@@ -62,6 +62,14 @@ class Junction(Unit):
     _graphics = junction_graphics
     heat_utilities = ()
     power_utility = PowerUtility()
+    baseline_purchase_cost = 0.
+    baseline_purchase_costs = {}
+    purchase_cost = 0.
+    purchase_costs = {}
+    installed_cost = 0.
+    installed_costs = {}
+    utility_cost = 0.
+    
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         self._register(ID)
         thermo = self._load_thermo(thermo)
