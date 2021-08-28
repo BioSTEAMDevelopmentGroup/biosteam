@@ -183,7 +183,9 @@ class HeatExchangerNetwork(Facility):
                             setattr(lc.unit, f'H_lim{lc.index}', s_util_out.H)
                         for s_in, s_out in zip(lc.unit.ins, lc.unit.outs):
                             if isinstance(s_out, bst.MultiStream):
-                                s_out.F_mol = s_in.F_mol
+                                H_hat = s_out.H / s_out.F_mass
+                                s_out.copy_flow(s_in)
+                                s_out.vle(H=H_hat * s_out.F_mass, P=s_out.P)
                             else:
                                 s_out.mol[:] = s_in.mol
                 sys = self.HXN_sys
