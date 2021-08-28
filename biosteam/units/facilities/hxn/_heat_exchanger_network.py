@@ -119,13 +119,14 @@ class HeatExchangerNetwork(Facility):
               'Work': 'kW'}
     
     def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3,
-                 force_ideal_thermo=False):
+                 force_ideal_thermo=False, cache_network=False):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
         self.ignored = ignored
         self.Qmin = Qmin
         self.force_ideal_thermo = force_ideal_thermo
+        self.cache_network = cache_network
         
     def _get_original_heat_utilties(self):
         sys = self.system
@@ -149,40 +150,80 @@ class HeatExchangerNetwork(Facility):
     def _cost(self):
         sys = self.system
         hx_utils = self._get_original_heat_utilties()
-        hx_utils.sort(key = lambda x: x.duty)
         original_flowsheet = sys.flowsheet
         HXN_ID = sys.ID + '_HXN'
         bst.main_flowsheet.set_flowsheet(HXN_ID)
-        self.HXN_flowsheet = HXN_F = bst.main_flowsheet
-        for i in HXN_F.registries: i.clear()
+        use_cached_network = False
+        if self.cache_network and hasattr(self, 'original_heat_utils'):
+            hxs_cache = self.original_heat_exchangers
+            hxs = [hu.heat_exchanger for hu in hx_utils]
+            hxs_dct = {(i.owner, i._ID): i for i in hxs}
+            try:
+                hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
+            except: pass
+            else: use_cached_network = len(hxs) == len(hx_utils)
         try:
-            HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
-            T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
-            hot_indices, cold_indices = \
-            synthesize_network(hx_utils, self.T_min_app, self.Qmin, self.force_ideal_thermo)
-            original_purchase_costs= [hx.purchase_cost for hx in hxs]
+            if use_cached_network:
+                hx_utils_rearranged = [i.heat_utilities[0] for i in hxs]
+                stream_life_cycles = self.stream_life_cycles
+                new_HXs = self.new_HXs
+                new_HX_utils = self.new_HX_utils
+                for i, life_cycle in enumerate(stream_life_cycles):
+                    hx = hxs[i]
+                    s_util_in = hx.ins[0]
+                    stage = life_cycle.life_cycle[0]
+                    s_lc = stage.unit.ins[stage.index]
+                    s_lc.copy_like(s_util_in)
+                    s_util_out = hx.outs[0]
+                    H = s_util_out.H
+                    for lc in life_cycle.life_cycle:
+                        if isinstance(lc.unit, bst.HXutility):
+                            lc.unit.H = H
+                        else:
+                            setattr(lc.unit, f'H_lim{lc.index}', s_util_out.H)
+                        for s_in, s_out in zip(lc.unit.ins, lc.unit.outs):
+                            if isinstance(s_out, bst.MultiStream):
+                                s_out.F_mol = s_in.F_mol
+                            else:
+                                s_out.mol[:] = s_in.mol
+                sys = self.HXN_sys
+            else:
+                hx_utils.sort(key = lambda x: x.duty)
+                self.HXN_flowsheet = HXN_F = bst.main_flowsheet
+                for i in HXN_F.registries: i.clear()
+                HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
+                T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
+                hot_indices, cold_indices = \
+                synthesize_network(hx_utils, self.T_min_app, self.Qmin, self.force_ideal_thermo)
+                new_HXs = HXs_hot_side + HXs_cold_side
+                self.cold_indices = cold_indices
+                self.original_heat_exchangers = hxs
+                self.new_HXs = new_HXs
+                self.new_HX_utils = new_HX_utils
+                self.streams_inlet = streams_inlet
+                stream_life_cycles = self._get_stream_life_cycles()
+                self.stream_HXs_dict = stream_HXs_dict
+                self.pinch_Ts = pinch_T_arr
+                self.inlet_Ts = T_in_arr
+                self.outlet_Ts = T_out_arr
+                all_units = new_HXs + new_HX_utils
+                IDs = set([i.ID for i in all_units])
+                assert len(all_units) == len(IDs)
+                for i, life_cycle in enumerate(stream_life_cycles):
+                    stage = life_cycle.life_cycle[0]
+                    s_util = hx_utils_rearranged[i].heat_exchanger.ins[0]
+                    s_lc = stage.unit.ins[stage.index]
+                    s_lc.copy_like(s_util)
+                for life_cycle in stream_life_cycles:
+                    s_out = None
+                    for i in life_cycle.life_cycle:
+                        unit = i.unit
+                        if s_out: unit.ins[i.index] = s_out
+                        s_out = unit.outs[i.index]
+                self.HXN_sys = sys = bst.System.from_units(None, all_units)
+            
+            original_purchase_costs = [hx.purchase_cost for hx in hxs]
             original_installed_costs = [hx.installed_cost for hx in hxs]
-            new_HXs = HXs_hot_side + HXs_cold_side
-            self.cold_indices = cold_indices
-            self.new_HXs = new_HXs
-            self.new_HX_utils = new_HX_utils
-            self.streams_inlet = streams_inlet
-            stream_life_cycles = self._get_stream_life_cycles()
-            all_units = new_HXs + new_HX_utils
-            IDs = set([i.ID for i in all_units])
-            assert len(all_units) == len(IDs)
-            for i, life_cycle in enumerate(stream_life_cycles):
-                stage = life_cycle.life_cycle[0]
-                s_util = hx_utils_rearranged[i].heat_exchanger.ins[0]
-                s_lc = stage.unit.ins[stage.index]
-                s_lc.copy_like(s_util)
-            for life_cycle in stream_life_cycles:
-                s_out = None
-                for i in life_cycle.life_cycle:
-                    unit = i.unit
-                    if s_out: unit.ins[i.index] = s_out
-                    s_out = unit.outs[i.index]
-            self.HXN_sys = sys = bst.System.from_units(None, all_units)
             # # Handle special case for heat exchanger crossing the pinch
             # for hx in new_HXs:
             #     if all([isinstance(i.sink, bst.HXutility) for i in hx.outs]):
@@ -237,10 +278,6 @@ class HeatExchangerNetwork(Facility):
             self.new_purchase_costs_HXp = new_purchase_costs_HXp
             self.new_purchase_costs_HXu = new_purchase_costs_HXu
             self.new_utility_costs = hu_sums2
-            self.stream_HXs_dict = stream_HXs_dict
-            self.pinch_Ts = pinch_T_arr
-            self.inlet_Ts = T_in_arr
-            self.outlet_Ts = T_out_arr
             new_hus = bst.process_tools.heat_exchanger_utilities_from_units(new_HX_utils)
             hus_heating = [hu for hu in hx_utils if hu.duty > 0]
             hus_cooling = [hu for hu in hx_utils if hu.duty < 0]
@@ -252,7 +289,8 @@ class HeatExchangerNetwork(Facility):
                 s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
                 lc = stream_life_cycles[i].life_cycle[-1]
                 s_lc = lc.unit.outs[lc.index]
-                np.testing.assert_allclose(s_util.mol, s_lc.mol)
+                IDs = tuple([i.ID for i in s_util.available_chemicals])
+                np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
                 np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
                 np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             if abs(energy_balance_error) > self.acceptable_energy_balance_error:

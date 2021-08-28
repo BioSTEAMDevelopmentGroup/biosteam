@@ -218,6 +218,7 @@ class Flash(design.PressureVessel, Unit):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
         self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
         hx.owner = self.owner
+        hx._ID = 'Heat exchanger'
         self.heat_utilities = (*hx.heat_utilities, bst.HeatUtility(), bst.HeatUtility())
         hx._ins = self._ins
         

@@ -20,40 +20,108 @@ Unit operations
 
 from . import AgileScenario
 from .._system import ScenarioCosts
+from inspect import signature
+from thermosteam.utils import repr_kwargs
 
 __all__ = ('AgileSystem',)
 
+class OperationMode:
+    __slots__ = ('operating_hours', 'data')
+    def __init__(self, operating_hours, **data):
+        self.operating_hours = operating_hours
+        self.data = data
+    
+    def __getattr__(self, name):
+        if name in self.data:
+            return self.data[name]
+        elif name in self.agile_system.operation_parameters:
+            raise AttributeError(f"operation parameter '{name}' is defined, but has no value")
+        else:
+            raise AttributeError(f"'{name}' is not a defined operation parameter")
+    
+    def __setattr__(self, name, value):
+        if name in self.agile_system.operation_parameters:
+            self.data[name] = value
+        elif name == 'operating_hours':
+            object.__setattr__(self, 'operating_hours', value)
+        elif name == 'data':
+            object.__setattr__(self, 'data', value)
+        else:
+            raise AttributeError(f"'{name}' is not a defined operation parameter")
+
+    def __repr__(self):
+        return f"{type(self).__name__}(operating_hours={self.operating_hours}{repr_kwargs(self.data)})"
+    
+        
 class AgileSystem(AgileScenario):
     """
-    Abstract class for creating objects which may serve to retrive
+    Class for creating objects which may serve to retrive
     general results from multiple system scenarios in such a way that it 
     represents an agile production process. When simulated, an AgileSystem 
-    creates scenarios from simulated system samples and compile them to 
+    creates scenarios from simulated system operation modes and compile them to 
     retrieve results later.
     
-    Abstract Methods
-    ----------------
-    set_parameters(samples)
+    Parameters
+    ----------
+    system : System
+        System object that is simulated in each operation mode.
+    operation_modes : list[OperationMode], optional
+        Defines each mode of operation with time steps and parameter values
+    operation_parameters : dict[str: function], optional
+        Defines all parameters available for all operation modes.
+    tea : AgileTea, optional
+        If given, the AgileTEA object will compile results after each simulation.
+    
     
     """
     
-    __slots__ = ('system', 'samples', 'time_steps',
+    __slots__ = ('system', 'operation_modes', 'operation_parameters',
                  'unit_capital_costs', 'utility_cost',
                  'flow_rates', 'feeds', 'products',
-                 'tea')
+                 'tea', '_OperationMode')
     
-    def __init__(self, system, samples, time_steps, tea=None):
+    def __init__(self, system, operation_modes=None, operation_parameters=None, tea=None):
         self.system = system
-        self.samples = samples
-        self.time_steps = time_steps
+        self.operation_modes = [] if operation_modes is None else operation_modes 
+        self.operation_parameters = {} if operation_parameters  is None else operation_parameters 
         self.tea = tea
-    
-    def __init_subclass__(cls):
-        if not hasattr(cls, 'set_parameters'):
-            raise NotImplementedError("missing method 'set_parameters'")
-
+        self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
+        
     def _downstream_system(self, unit):
         return self
+
+    def operation_mode(self, operating_hours, **data):
+        """
+        Define and register an operation mode.
+        
+        Parameters
+        ----------    
+        operating_hours : function
+            Length of operation in hours.
+        **data : str
+            Name and value-pairs of operation parameters.
+        
+        """
+        om = self._OperationMode(operating_hours, **data)
+        self.operation_modes.append(om)
+        return om
+
+    def operation_parameter(self, setter, name=None):
+        """
+        Define and register operation parameter.
+        
+        Parameters
+        ----------    
+        setter : function
+                 Should set parameter in the element.
+        name : str
+               Name of parameter. If None, default to argument name of setter.
+        
+        """
+        if not setter: return lambda setter: self.operation_parameter(setter, name)
+        if not name: name, *_ = signature(setter).parameters.keys()
+        self.operation_parameters[name] = setter
+        return setter
 
     @property
     def units(self):
@@ -69,7 +137,7 @@ class AgileSystem(AgileScenario):
 
     @property
     def operating_hours(self):
-        return sum(self.time_steps)
+        return sum([i.operating_hours for i in self.operation_modes])
 
     def create_scenario(self, system):
         return system.get_scenario_costs()
@@ -94,9 +162,12 @@ class AgileSystem(AgileScenario):
         scenarios = []
         system = self.system
         original_operating_hours = system.operating_hours
-        for operating_hours, sample in zip(self.time_steps, self.samples):
-            if not operating_hours: continue
-            self.set_parameters(sample)
+        for operation_mode in self.operation_modes:
+            operating_hours = operation_mode.operating_hours
+            if operating_hours == 0.: continue
+            operation_parameters = self.operation_parameters
+            for name, value in operation_mode.data.items():    
+                operation_parameters[name](value)
             system.operating_hours = operating_hours
             system.simulate()
             scenario = self.create_scenario(system)
@@ -113,7 +184,7 @@ class AgileSystem(AgileScenario):
             self.flow_rates,
             self.utility_cost,
             self.feeds, self.products,
-            sum(self.time_steps),
+            self.operating_hours,
         )
     
             

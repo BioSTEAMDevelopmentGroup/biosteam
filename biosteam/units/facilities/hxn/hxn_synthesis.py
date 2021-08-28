@@ -61,12 +61,11 @@ class StreamLifeCycle:
         cold = self.cold
         new_HXs_relevant, new_HX_utils_relevant =\
             self.get_relevant_units(index, new_HXs, new_HX_utils)
-        life_cycle = [LifeStage(unit, 0)\
-                      for unit in new_HXs_relevant if name + '_' in unit.ins[0].ID]\
-                      + [LifeStage(unit, 1)\
-                      for unit in new_HXs_relevant if name + '_' in unit.ins[1].ID]\
-                      + [LifeStage(unit, 0)\
-                      for unit in new_HX_utils_relevant if name + '_' in unit.ins[0].ID]
+        life_cycle = (
+            [LifeStage(unit, 0) for unit in new_HXs_relevant if name + '_' in unit.ins[0].ID]
+            + [LifeStage(unit, 1) for unit in new_HXs_relevant if name + '_' in unit.ins[1].ID]
+            + [LifeStage(unit, 0) for unit in new_HX_utils_relevant if name + '_' in unit.ins[0].ID]
+        )
         life_cycle.sort(key = lambda pt: pt.H_in, reverse = not cold)
         self.life_cycle = life_cycle
         return life_cycle

@@ -244,7 +244,9 @@ class Distillation(Unit, isabstract=True):
                                 outs=tmo.MultiStream(None, thermo=boiler_thermo),
                                 thermo=boiler_thermo)
         self.boiler.owner = self
+        self.boiler._ID = 'Boiler'
         self.condenser.owner = self
+        self.condenser._ID = 'Condenser'
         self.boilup = self.boiler.outs[0]['g']  
         self.heat_utilities = (*self.condenser.heat_utilities, *self.boiler.heat_utilities,
                                bst.HeatUtility(), bst.HeatUtility())

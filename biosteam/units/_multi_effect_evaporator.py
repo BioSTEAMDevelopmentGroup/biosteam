@@ -258,6 +258,7 @@ class MultiEffectEvaporator(Unit):
         
         first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
         first_evaporator.owner = self.owner
+        first_evaporator._ID = 'First evaporator'
         
         # Put liquid first, then vapor side stream
         evaporators = [first_evaporator]
@@ -267,6 +268,7 @@ class MultiEffectEvaporator(Unit):
         
         condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
         condenser.owner = self
+        condenser._ID = 'Condenser'
         self.heat_utilities = (first_evaporator.heat_utilities[0],
                                condenser.heat_utilities[0],
                                bst.HeatUtility(),
