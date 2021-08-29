@@ -27,10 +27,13 @@ from .utils import StreamPorts, OutletPort, colors
 from .process_tools import utils
 from collections.abc import Iterable
 from warnings import warn
+from inspect import signature
+from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
 
-__all__ = ('System', 'MockSystem', 'ScenarioCosts', 
+__all__ = ('System', 'AgileSystem', 'MockSystem', 
+           'AgileSystem', 'OperationModeResults',
            'mark_disjunction', 'unmark_disjunction')    
 
 # %% Customization to system creation
@@ -269,6 +272,10 @@ class System:
         Number of operating hours in a year. This parameter is used to
         compute convinience properties such as utility cost and material cost
         on a per year basis. 
+    lang_factor : float, optional
+        Lang factor for getting fixed capital investment from 
+        total purchase cost. If no lang factor, installed equipment costs are 
+        estimated using bare module factors.
 
     """
     __slots__ = (
@@ -293,12 +300,11 @@ class System:
         'relative_temperature_tolerance',
         'operating_hours',
         'flowsheet',
+        'lang_factor',
         '_stabilized',
         '_connections',
         '_irrelevant_units',
         '_converge_method',
-        '_TEA',
-        '_LCA',
     )
     
     ### Class attributes ###
@@ -329,7 +335,8 @@ class System:
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
-                       ends=None, facility_recycle=None, operating_hours=None):
+                       ends=None, facility_recycle=None, operating_hours=None,
+                       lang_factor=None):
         """
         Create a System object from a feedstock.
         
@@ -353,15 +360,21 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute convinience properties such as utility cost and material cost
             on a per year basis. 
+        lang_factor : float, optional
+            Lang factor for getting fixed capital investment from 
+            total purchase cost. If no lang factor, installed equipment costs are 
+            estimated using bare module factors.
         
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
         return cls.from_network(ID, network, facilities, 
-                                facility_recycle, operating_hours)
+                                facility_recycle, operating_hours,
+                                lang_factor)
 
     @classmethod
     def from_units(cls, ID="", units=None, feeds=None, ends=None,
-                   facility_recycle=None, operating_hours=None):
+                   facility_recycle=None, operating_hours=None,
+                   lang_factor=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -385,6 +398,10 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute convinience properties such as utility cost and material cost
             on a per year basis. 
+        lang_factor : float, optional
+            Lang factor for getting fixed capital investment from 
+            total purchase cost. If no lang factor, installed equipment costs are 
+            estimated using bare module factors.
         
         """
         if units is None: 
@@ -402,7 +419,7 @@ class System:
             system = cls.from_feedstock(
                 ID, feedstock, feeds, facilities, ends,
                 facility_recycle or find_blowdown_recycle(facilities),
-                operating_hours=operating_hours,
+                operating_hours=operating_hours, lang_factor=lang_factor,
             )
         else:
             system = cls(ID, (), operating_hours=operating_hours)
@@ -410,7 +427,7 @@ class System:
 
     @classmethod
     def from_network(cls, ID, network, facilities=(), facility_recycle=None,
-                     operating_hours=None):
+                     operating_hours=None, lang_factor=None):
         """
         Create a System object from a network.
         
@@ -429,6 +446,10 @@ class System:
             Number of operating hours in a year. This parameter is used to
             compute convinience properties such as utility cost and material cost
             on a per year basis. 
+        lang_factor : float, optional
+            Lang factor for getting fixed capital investment from 
+            total purchase cost. If no lang factor, installed equipment costs are 
+            estimated using bare module factors.
         
         """
         facilities = Facility.ordered_facilities(facilities)
@@ -447,11 +468,13 @@ class System:
         self._load_stream_links()
         self._load_defaults()
         self._save_configuration()
-        if operating_hours is not None: self.operating_hours = operating_hours
+        self.operating_hours = operating_hours
+        self.lang_factor = lang_factor
         return self
         
     def __init__(self, ID, path=(), recycle=None, facilities=(), 
-                 facility_recycle=None, N_runs=None, operating_hours=None):
+                 facility_recycle=None, N_runs=None, operating_hours=None,
+                 lang_factor=None):
         self.recycle = recycle
         self.N_runs = N_runs
         self._set_path(path)
@@ -464,7 +487,8 @@ class System:
         self._register(ID)
         self._load_defaults()
         self._save_configuration()
-        if operating_hours is not None: self.operating_hours = operating_hours
+        self.operating_hours = operating_hours
+        self.lang_factor = lang_factor
     
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -893,13 +917,19 @@ class System:
     def units(self):
         """[list] All unit operations as ordered in the path."""
         units = []
+        past_units = set()
         isa = isinstance
         for i in self._path + self._facilities:
             if isa(i, Unit):
+                if i in past_units: continue
                 units.append(i)
+                past_units.add(i)
             elif isa(i, System):
-                units.extend(i.units)
+                sys_units = i.units
+                units.extend([i for i in sys_units if i not in past_units])
+                past_units.update(sys_units)
         return units 
+    
     @property
     def streams(self):
         """set[:class:`~thermosteam.Stream`] All streams within the system."""
@@ -918,12 +948,6 @@ class System:
         outlets = bst.utils.outlets(self.units)
         bst.utils.filter_out_missing_streams(outlets)
         return bst.utils.products(outlets)
-    
-    @property
-    def TEA(self):
-        """[TEA] Object for Techno-Economic Analysis."""
-        try: return self._TEA
-        except AttributeError: return None
     
     @property
     def facilities(self):
@@ -1406,6 +1430,47 @@ class System:
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
     
+    def market_value(self, stream):
+        """Return the market value of a stream [USD/yr]."""
+        return stream.cost * self.operating_hours
+    
+    def _price2cost(self, stream):
+        """Get factor to convert stream price to cost."""
+        F_mass = stream.F_mass
+        if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
+        price2cost = F_mass * self.operating_hours
+        if stream.sink and not stream.source:
+            return - price2cost 
+        elif stream.source:
+            return price2cost
+        else:
+            raise ValueError("stream must be either a feed or a product")
+    
+    @property
+    def sales(self):
+        """Annual sales revenue."""
+        return sum([s.cost for s in self.products if s.price]) * self.operating_hours
+    @property
+    def material_cost(self):
+        """Annual material cost."""
+        return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
+    @property
+    def utility_cost(self):
+        """Total utility cost (USD/yr)."""
+        return sum([u.utility_cost for u in self.units]) * self.operating_hours
+    @property
+    def purchase_cost(self):
+        """Total purchase cost (USD)."""
+        return sum([u.purchase_cost for u in self.units])
+    @property
+    def installed_equipment_cost(self):
+        """Total installed cost (USD)."""
+        lang_factor = self.lang_factor
+        if lang_factor:
+            return sum([u.purchase_cost * lang_factor for u in self.units])
+        else:
+            return sum([u.installed_cost for u in self.units])
+    
     def get_electricity_consumption(self):
         """Return the total electricity consumption in MW."""
         return self.operating_hours * utils.get_electricity_consumption(self.power_utilities)
@@ -1437,56 +1502,6 @@ class System:
     def get_installed_equipment_cost(self):
         """Return the total installed equipment cost in million USD."""
         return utils.get_installed_cost(self.units)
-    
-    def get_scenario_costs(self):
-        """
-        Return a ScenarioCosts object with data on variable operating costs
-        (i.e. utility and material costs) and sales.
-        
-        Examples
-        --------
-        Create a simple heat exchanger system and get scenario costs:
-            
-        >>> import biosteam as bst
-        >>> bst.default() # Reset to biosteam defaults
-        >>> bst.settings.set_thermo(['Water'])
-        >>> feed = bst.Stream('feed', Water=100)
-        >>> product = bst.Stream('product')
-        >>> HX1 = bst.HXutility('HX1', feed, product, T=350)
-        >>> operating_days = 300
-        >>> operating_hours = 24 * operating_days
-        >>> SYS1 = bst.System.from_units('SYS1', [HX1], operating_hours=operating_hours)
-        >>> SYS1.simulate()
-        >>> scenario_costs = SYS1.get_scenario_costs()
-        
-        A ScenarioCosts object has useful properties that may change according to
-        stream prices, but not with flow rates or unit simulations:
-            
-        >>> assert scenario_costs.utility_cost == HX1.utility_cost * operating_hours
-        >>> assert scenario_costs.material_cost == feed.cost == 0.
-        >>> assert scenario_costs.sales == product.cost == 0.
-        >>> # Note how the feed price affects material costs
-        >>> feed.price = 0.05
-        >>> assert scenario_costs.material_cost == feed.cost * operating_hours
-        >>> # Yet simulations and changes to material flow rates do not affect costs
-        >>> feed.set_total_flow(200, 'kmol/hr')
-        >>> HX1.T = 370
-        >>> HX1.simulate()
-        >>> assert scenario_costs.material_cost != feed.cost * operating_hours
-        >>> assert scenario_costs.utility_cost != HX1.utility_cost * operating_hours
-        
-        """
-        feeds = self.feeds
-        products = self.products
-        units = self.units
-        operating_hours = self.operating_hours
-        return ScenarioCosts(
-            {i: i.get_capital_costs() for i in units if i._design or i._cost},
-            {i: i.F_mass * operating_hours for i in feeds + products},
-            operating_hours * sum([i.utility_cost for i in units]),
-            feeds, products,
-            self.operating_hours,
-        )
     
     # Other
     def to_network(self):
@@ -1656,9 +1671,9 @@ from biosteam import _flowsheet as flowsheet_module
 del ignore_docking_warnings
 
 
-# %% Working with different scenarios
+# %% Working with different operation modes
 
-class ScenarioCosts:
+class OperationModeResults:
     
     __slots__ = ('unit_capital_costs', 'utility_cost', 'flow_rates', 
                  'feeds', 'products', 'operating_hours')
@@ -1681,3 +1696,206 @@ class ScenarioCosts:
     def sales(self):
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price for i in self.products])
+
+
+class OperationMode:
+    __slots__ = ('system', 'operating_hours', 'data')
+    def __init__(self, system, operating_hours, **data):
+        self.system = system
+        self.operating_hours = operating_hours
+        self.data = data
+    
+    def simulate(self):
+        """
+        Simulate operation mode and return an OperationModeResults object with 
+        data on variable operating costs (i.e. utility and material costs) and sales.
+        
+        """
+        operation_parameters = self.agile_system.operation_parameters
+        for name, value in self.data.items():    
+            operation_parameters[name](value)
+        system = self.system
+        system.simulate()
+        feeds = system.feeds
+        products = system.products
+        units = system.units
+        operating_hours = self.operating_hours
+        return OperationModeResults(
+            {i: i.get_capital_costs() for i in units if i._design or i._cost},
+            {i: i.F_mass * operating_hours for i in feeds + products},
+            operating_hours * sum([i.utility_cost for i in units]),
+            feeds, products,
+            operating_hours,
+        )
+    
+    def __getattr__(self, name):
+        if name in self.data:
+            return self.data[name]
+        elif name in self.agile_system.operation_parameters:
+            raise AttributeError(f"operation parameter '{name}' is defined, but has no value")
+        else:
+            raise AttributeError(f"'{name}' is not a defined operation parameter")
+    
+    def __setattr__(self, name, value):
+        if name in self.agile_system.operation_parameters:
+            self.data[name] = value
+        elif name == 'operating_hours':
+            object.__setattr__(self, 'operating_hours', value)
+        elif name == 'data':
+            object.__setattr__(self, 'data', value)
+        elif name == 'system':
+            object.__setattr__(self, 'system', value)
+        else:
+            raise AttributeError(f"'{name}' is not a defined operation parameter")
+
+    def __repr__(self):
+        return f"{type(self).__name__}(system={self.system}, operating_hours={self.operating_hours}{repr_kwargs(self.data)})"
+    
+        
+class AgileSystem:
+    """
+    Class for creating objects which may serve to retrive
+    general results from multiple operation modes in such a way that it 
+    represents an agile production process. When simulated, an AgileSystem 
+    generates results from system operation modes and compile them to 
+    retrieve results later.
+    
+    Parameters
+    ----------
+    system : System
+        System object that is simulated in each operation mode.
+    operation_modes : list[OperationMode], optional
+        Defines each mode of operation with time steps and parameter values
+    operation_parameters : dict[str: function], optional
+        Defines all parameters available for all operation modes.
+    tea : AgileTea, optional
+        If given, the AgileTEA object will compile results after each simulation.
+    lang_factor : float, optional
+        Lang factor for getting fixed capital investment from 
+        total purchase cost. If no lang factor, installed equipment costs are 
+        estimated using bare module factors.
+    
+    """
+    
+    __slots__ = ('operation_modes', 'operation_parameters',
+                 'unit_capital_costs', 'utility_cost', 
+                 'flow_rates', 'feeds', 'products', 
+                 'purchase_cost', 'installed_equipment_cost',
+                 'lang_factor', '_OperationMode')
+    
+    def __init__(self, operation_modes=None, operation_parameters=None, lang_factor=None):
+        self.operation_modes = [] if operation_modes is None else operation_modes 
+        self.operation_parameters = {} if operation_parameters  is None else operation_parameters
+        self.lang_factor = lang_factor
+        self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
+        
+    def _downstream_system(self, unit):
+        return self
+
+    def operation_mode(self, system, operating_hours, **data):
+        """
+        Define and register an operation mode.
+        
+        Parameters
+        ----------    
+        operating_hours : function
+            Length of operation in hours.
+        **data : str
+            Name and value-pairs of operation parameters.
+        
+        """
+        om = self._OperationMode(system, operating_hours, **data)
+        self.operation_modes.append(om)
+        return om
+
+    def operation_parameter(self, setter, name=None):
+        """
+        Define and register operation parameter.
+        
+        Parameters
+        ----------    
+        setter : function
+                 Should set parameter in the element.
+        name : str
+               Name of parameter. If None, default to argument name of setter.
+        
+        """
+        if not setter: return lambda setter: self.operation_parameter(setter, name)
+        if not name: name, *_ = signature(setter).parameters.keys()
+        self.operation_parameters[name] = setter
+        return setter
+
+    def market_value(self, stream):
+        """Return the market value of a stream [USD/yr]."""
+        return self.flow_rates[stream] * stream.price
+    
+    def _price2cost(self, stream):
+        """Get factor to convert stream price to cost for cash flow in solve_price method."""
+        if stream in self.flow_rates:
+            F_mass = self.flow_rates[stream] 
+        else:
+            F_mass = 0.
+        if not F_mass: warn(f"stream '{stream}' is empty", category=RuntimeWarning)
+        if stream in self.products:
+            return F_mass
+        elif stream in self.feeds:
+            return - F_mass
+        else:
+            raise ValueError("stream must be either a feed or a product")
+
+    @property
+    def material_cost(self):
+        flow_rates = self.flow_rates
+        return sum([flow_rates[i] * i.price  for i in self.feeds])
+    
+    @property
+    def sales(self):
+        flow_rates = self.flow_rates
+        return sum([flow_rates[i] * i.price for i in self.products])
+    
+    @property
+    def units(self):
+        systems = set([i.system for i in self.operation_modes])
+        if len(systems) == 1:
+            return systems.pop().units
+        else:
+            return set(sum([i.units for i in systems], []))
+
+    @property
+    def empty_recycles(self):
+        return self.system.empty_recycles
+    
+    @property    
+    def reset_cache(self):
+        return self.system.reset_cache
+
+    @property
+    def operating_hours(self):
+        return sum([i.operating_hours for i in self.operation_modes])
+    @operating_hours.setter
+    def operating_hours(self, operating_hours):
+        factor = operating_hours / self.operating_hours
+        for i in self.operation_modes: i.operating_hours *= factor
+            
+    def simulate(self):
+        operation_mode_results = [i.simulate() for i in self.operation_modes]
+        units = set(sum([list(i.unit_capital_costs) for i in operation_mode_results], []))
+        unit_modes = {i: [] for i in units}
+        for results in operation_mode_results:
+            for i, j in results.unit_capital_costs.items(): unit_modes[i].append(j)
+        self.unit_capital_costs = {i: i.get_agile_capital_costs(j) for i, j in unit_modes.items()}
+        self.utility_cost = sum([i.utility_cost for i in operation_mode_results])
+        self.flow_rates = flow_rates = {}
+        self.feeds = list(set(sum([i.feeds for i in operation_mode_results], [])))
+        self.products = list(set(sum([i.products for i in operation_mode_results], [])))
+        self.purchase_cost = sum([u.purchase_cost for u in self.unit_capital_costs])
+        lang_factor = self.lang_factor
+        if lang_factor:
+            self.installed_equipment_cost = sum([u.purchase_cost * lang_factor for u in self.unit_capital_costs])
+        else:
+            self.installed_equipment_cost = sum([u.installed_cost for u in self.unit_capital_costs])
+        for results in operation_mode_results:
+            for stream, F_mass in results.flow_rates.items():
+                if stream in flow_rates: flow_rates[stream] += F_mass
+                else: flow_rates[stream] = F_mass
+            

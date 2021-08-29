@@ -263,11 +263,11 @@ class TEA:
     :doc:`tutorial/Techno-economic_analysis` 
 
     """
-    __slots__ = ('system', 'income_tax', 'lang_factor', 'WC_over_FCI',
+    __slots__ = ('system', 'income_tax', 'WC_over_FCI',
                  'finance_interest', 'finance_years', 'finance_fraction',
-                 'feeds', 'products', '_construction_schedule', '_startup_time',
+                 '_construction_schedule', '_startup_time',
                  'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
-                 'units', '_startup_schedule', '_operating_days',
+                 '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_array', '_depreciation', '_years',
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
@@ -335,7 +335,6 @@ class TEA:
     def like(system, other):
         """Create a TEA object from `system` with the same settings as `other`."""
         self = copy_(other)
-        self.units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
         self.system = system
         self.feeds = system.feeds
         self.products = system.products
@@ -343,10 +342,10 @@ class TEA:
         return self
 
     def __init__(self, system, IRR, duration, depreciation, income_tax,
-                 operating_days, lang_factor, construction_schedule,
-                 startup_months, startup_FOCfrac, startup_VOCfrac,
-                 startup_salesfrac, WC_over_FCI, finance_interest,
-                 finance_years, finance_fraction):
+                operating_days, lang_factor, construction_schedule,
+                startup_months, startup_FOCfrac, startup_VOCfrac,
+                startup_salesfrac, WC_over_FCI,  finance_interest,
+                finance_years, finance_fraction):
         #: [System] System being evaluated.
         self.system = system
         
@@ -362,7 +361,6 @@ class TEA:
         #: [float] Combined federal and state income tax rate (fraction).
         self.income_tax = income_tax
         
-        #: [float] Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.
         self.lang_factor = lang_factor
         
         #: [float] Fraction of fixed operating costs incurred during startup.
@@ -391,17 +389,6 @@ class TEA:
         
         #: Guess cost for solve_price method
         self._sales = 0
-        
-        #: list[Unit] All unit operations considered
-        self.units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
-        
-        #: list[Stream] All product streams.
-        self.products = system.products
-        
-        #: list[Stream] All feed streams.
-        self.feeds = system.feeds
-            
-        system._TEA = self
 
     def _get_duration(self):
         return (self._start, self._years)
@@ -411,6 +398,16 @@ class TEA:
 
     def _TDC(self, DPI):
         return DPI # Default for backwards compatibility
+
+    @property
+    def feeds(self):
+        """list[stream] all feed streams."""
+        self.feeds = self.system.feeds  
+      
+    @property
+    def products(self):
+        """list[stream] all product streams."""
+        return self.system.products
 
     @property
     def operating_days(self):
@@ -427,10 +424,20 @@ class TEA:
         return self.system.operating_hours
     @operating_hours.setter
     def operating_hours(self, hours):
-        try:
-            self.system.operating_hours = hours
-        except AttributeError:
-            pass
+        self.system.operating_hours = hours
+    
+    @property
+    def lang_factor(self):
+        """
+        [float] Lang factor for getting fixed capital investment from 
+        total purchase cost. If no lang factor, estimate capital investment 
+        using bare module factors.
+        
+        """
+        return self.system.lang_factor
+    @lang_factor.setter
+    def lang_factor(self, lang_factor):
+        self.system.lang_factor = lang_factor
     
     @property
     def duration(self):
@@ -472,21 +479,25 @@ class TEA:
         self._startup_time = months/12.
     
     @property
+    def sales(self):
+        """Total sales (USD/yr)."""
+        return self.system.sales
+    @property
+    def material_cost(self):
+        """Total material cost (USD/yr)."""
+        return self.system.material_cost
+    @property
     def utility_cost(self):
         """Total utility cost (USD/yr)."""
-        return sum([u.utility_cost for u in self.units]) * self.operating_hours
+        return self.system.utility_cost
     @property
     def purchase_cost(self):
         """Total purchase cost (USD)."""
-        return sum([u.purchase_cost for u in self.units])
+        return self.system.purchase_cost
     @property
     def installed_equipment_cost(self):
         """Total installed cost (USD)."""
-        lang_factor = self.lang_factor
-        if lang_factor:
-            return sum([u.purchase_cost * lang_factor for u in self.units])
-        else:
-            return sum([u.installed_cost for u in self.units])
+        return self.system.installed_equipment_cost
     @property
     def DPI(self):
         """Direct permanent investment."""
@@ -518,18 +529,12 @@ class TEA:
     @property
     def working_capital(self):
         return self.WC_over_FCI * self.TDC
-    @property
-    def material_cost(self):
-        """Annual material cost."""
-        return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
+    
     @property
     def annual_depreciation(self):
         """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
         return self.TDC/(self.duration[1]-self.duration[0])
-    @property
-    def sales(self):
-        """Annual sales revenue."""
-        return sum([s.cost for s in self.products if s.price]) * self.operating_hours
+
     @property
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
@@ -608,8 +613,10 @@ class TEA:
         C_FC[:start] = FCI*self._construction_schedule
         C_WC[start-1] = WC
         C_WC[-1] = -WC
-        lang_factor = self.lang_factor
-        for i in self.units: add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
+        system = self.system
+        lang_factor = system.lang_factor
+        unit_capital_costs = system.unit_capital_costs.values() if isinstance(system, bst.AgileSystem) else system.units
+        for i in unit_capital_costs: add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
@@ -673,7 +680,8 @@ class TEA:
         D, C_FC, C_WC, Loan, LP, C, S = np.zeros((7, start + years))
         self._fill_depreciation_array(D, start, years, TDC)
         WC = self.WC_over_FCI * FCI
-        return taxable_and_nontaxable_cashflows(self.units,
+        system = self.system
+        return taxable_and_nontaxable_cashflows(system.unit_capital_costs if isinstance(system, bst.AgileSystem) else system.units,
                                                 D, C, S, C_FC, C_WC, Loan, LP,
                                                 FCI, WC, TDC, VOC, FOC, self.sales,
                                                 self._startup_time,
@@ -710,11 +718,6 @@ class TEA:
         """[1d array] Net earnings by year."""
         return self._net_earnings_and_nontaxable_cashflow_arrays()[0]
     
-    
-    def market_value(self, stream):
-        """Return the market value of a stream [USD/yr]."""
-        return stream.cost * self.operating_hours
-    
     def production_costs(self, products, with_annual_depreciation=True):
         """
         Return production cost of products [USD/yr].
@@ -732,7 +735,8 @@ class TEA:
         their marketing values. The marketing value of each product is
         determined by the annual production multiplied by its selling price.
         """
-        market_values = np.array([self.market_value(i) for i in products])
+        system = self.system
+        market_values = np.array([system.market_value(i) for i in products])
         total_market_value = market_values.sum()
         weights = market_values/total_market_value
         return weights * self.total_production_cost(products, with_annual_depreciation)
@@ -748,7 +752,8 @@ class TEA:
         with_annual_depreciation=True : bool, optional
         
         """
-        coproduct_sales = self.sales - sum([self.market_value(i) for i in products])
+        system = self.system
+        coproduct_sales = self.sales - sum([system.market_value(i) for i in products])
         if with_annual_depreciation:
             TDC = self.TDC
             annual_depreciation = TDC/(self.duration[1]-self.duration[0])
@@ -768,18 +773,6 @@ class TEA:
                                 maxiter=200, args=args, checkiter=False)
         self._IRR = IRR
         return IRR
-    
-    def _price2cost(self, stream):
-        """Get factor to convert stream price to cost for cash flow in solve_price method."""
-        F_mass = stream.F_mass
-        if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
-        price2cost = F_mass * self.operating_hours
-        if stream.sink and not stream.source:
-            return - price2cost 
-        elif stream.source:
-            return price2cost
-        else:
-            raise ValueError("stream must be either a feed or a product")
         
     def solve_price(self, streams):
         """
@@ -793,7 +786,8 @@ class TEA:
             
         """
         if isinstance(streams, bst.Stream): streams = [streams]
-        price2costs = [self._price2cost(i) for i in streams]
+        system = self.system
+        price2costs = [system._price2cost(i) for i in streams]
         price2cost = sum(price2costs)
         if price2cost == 0.: raise ValueError('cannot solve price of empty streams')
         try:
@@ -805,7 +799,7 @@ class TEA:
             current_price = 0.
             for i, j in zip(streams, original_prices): i.price = j 
         else:
-            current_price = sum([self.market_value(i) for i in streams]) / abs(price2cost)
+            current_price = sum([system.market_value(i) for i in streams]) / abs(price2cost)
         return current_price + sales / price2cost 
         
     def solve_sales(self):
@@ -838,7 +832,7 @@ class TEA:
         return f'{type(self).__name__}({self.system.ID}, ...)'
     
     def _info(self):
-        return (f'{type(self).__name__}: {self.system.ID}\n'
+        return (f'{type(self).__name__}: {self.system}\n'
                 f' NPV: {self.NPV:,.0f} USD at {self.IRR:.1%} IRR')
     
     def show(self):

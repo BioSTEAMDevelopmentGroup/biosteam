@@ -213,7 +213,7 @@ def cost_table(tea): # pragma: no coverage
     columns = ('Unit operation',
                'Purchase cost (10^6 USD)',
                'Utility cost (10^6 USD/yr)')
-    units = tea.units
+    units = sorted([i for i in tea.system.units if i._design or i._cost], key=lambda x: x.line)
     operating_days = tea.operating_days
     N_units = len(units)
     array = np.empty((N_units, 3), dtype=object)

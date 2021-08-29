@@ -54,14 +54,12 @@ from . import evaluation
 from .evaluation import *
 from . import exceptions
 from . import report
-from . import agile
-from .agile import *
 
 __all__ = (
     'Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
     'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report',
-    'process_tools', 'agile', *_system.__all__, *_flowsheet.__all__, 
+    'process_tools', *_system.__all__, *_flowsheet.__all__, 
     *_tea.__all__, *units.__all__, *evaluation.__all__, 
-    *process_tools.__all__, *agile.__all__,
+    *process_tools.__all__, 
 )
