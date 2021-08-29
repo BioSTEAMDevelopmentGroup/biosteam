@@ -798,7 +798,7 @@ class System:
 
         """
         isa = isinstance
-        if unit not in self.units: 
+        if unit not in self.unit_path: 
             raise ValueError(f'unit {repr(unit)} not in system')
         path = self._path
         if (self._recycle or self.N_runs):
@@ -806,7 +806,7 @@ class System:
                 if unit is other:
                     self._path = path[index:] + path[:index]
                     return
-                elif isa(other, System) and unit in other.units:
+                elif isa(other, System) and unit in other.unit_path:
                     other.prioritize_unit(unit)
                     return 
             raise RuntimeError('problem in system algorithm')
@@ -913,9 +913,10 @@ class System:
     def subsystems(self):
         """list[System] All subsystems in the system."""
         return [i for i in self._path if isinstance(i, System)]
+    
     @property
     def units(self):
-        """[list] All unit operations as ordered in the path."""
+        """[list] All unit operations as ordered in the path without repetitions."""
         units = []
         past_units = set()
         isa = isinstance
@@ -929,6 +930,30 @@ class System:
                 units.extend([i for i in sys_units if i not in past_units])
                 past_units.update(sys_units)
         return units 
+    
+    @property
+    def unit_path(self):
+        """[list] Unit operations as ordered in the path (some units may be repeated)."""
+        units = []
+        isa = isinstance
+        for i in self._path + self._facilities:
+            if isa(i, Unit):
+                units.append(i)
+            elif isa(i, System):
+                units.extend(i.unit_path)
+        return units 
+    
+    @property
+    def cost_units(self):
+        """[set] All unit operations with costs."""
+        units = set()
+        isa = isinstance
+        for i in self._path + self._facilities:
+            if isa(i, Unit) and (i._design or i._cost):
+                units.add(i)
+            elif isa(i, System):
+                units.update(i.cost_units)
+        return units
     
     @property
     def streams(self):
@@ -1012,13 +1037,13 @@ class System:
 
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
-        if unit not in self.units: return []
+        if unit not in self.unit_path: return []
         elif self._recycle: return self._path
         isa = isinstance
         for index, i in enumerate(self._path):
             if unit is i:
                 return self._path[index:]
-            elif (isa(i, System) and unit in i.units): 
+            elif (isa(i, System) and unit in i.unit_path): 
                 return i._downstream_path(unit) + self._path[index+1:]
         return []
     
@@ -1027,7 +1052,7 @@ class System:
         everything downstream."""
         isa = isinstance
         for index, i in enumerate(self._facilities):
-            if unit is i or (isa(i, System) and unit in i.units):
+            if unit is i or (isa(i, System) and unit in i.unit_path):
                 return self._facilities[index:]
         return []
     
@@ -1049,13 +1074,13 @@ class System:
     
     def _minimal_digraph(self, graph_attrs):
         """Return digraph of the path as a box."""
-        return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
+        return minimal_digraph(self.ID, self.unit_path, self.streams, **graph_attrs)
 
     def _surface_digraph(self, graph_attrs):
         return surface_digraph(self._path, **graph_attrs)
 
     def _thorough_digraph(self, graph_attrs):
-        return digraph_from_units_and_streams(self.units, 
+        return digraph_from_units_and_streams(self.unit_path, 
                                               self.streams,
                                               **graph_attrs)
         
@@ -1223,8 +1248,7 @@ class System:
         """Setup each element of the system."""
         self._load_facilities()
         self._load_configuration()
-        for i in self.units: 
-            i._setup()
+        for i in self.units: i._setup()
         
     def _run(self):
         """Rigorously run each element in the path."""
@@ -1367,12 +1391,12 @@ class System:
     @property
     def heat_utilities(self):
         """[tuple] All HeatUtility objects."""
-        return utils.get_heat_utilities(self.units)
+        return utils.get_heat_utilities(self.cost_units)
     
     @property
     def power_utilities(self):
         """[tuple] All PowerUtility objects."""
-        return tuple(utils.get_power_utilities(self.units))
+        return tuple(utils.get_power_utilities(self.cost_units))
     
     def get_inlet_flow(self, units, key=None):
         """
@@ -1457,19 +1481,19 @@ class System:
     @property
     def utility_cost(self):
         """Total utility cost (USD/yr)."""
-        return sum([u.utility_cost for u in self.units]) * self.operating_hours
+        return sum([u.utility_cost for u in self.cost_units]) * self.operating_hours
     @property
     def purchase_cost(self):
         """Total purchase cost (USD)."""
-        return sum([u.purchase_cost for u in self.units])
+        return sum([u.purchase_cost for u in self.cost_units])
     @property
     def installed_equipment_cost(self):
         """Total installed cost (USD)."""
         lang_factor = self.lang_factor
         if lang_factor:
-            return sum([u.purchase_cost * lang_factor for u in self.units])
+            return sum([u.purchase_cost * lang_factor for u in self.cost_units])
         else:
-            return sum([u.installed_cost for u in self.units])
+            return sum([u.installed_cost for u in self.cost_units])
     
     def get_electricity_consumption(self):
         """Return the total electricity consumption in MW."""
@@ -1497,11 +1521,11 @@ class System:
     
     def get_purchase_cost(self):
         """Return the total equipment purchase cost in million USD."""
-        return utils.get_purchase_cost(self.units)
+        return utils.get_purchase_cost(self.cost_units)
     
     def get_installed_equipment_cost(self):
         """Return the total installed equipment cost in million USD."""
-        return utils.get_installed_cost(self.units)
+        return utils.get_installed_cost(self.cost_units)
     
     # Other
     def to_network(self):
@@ -1511,7 +1535,7 @@ class System:
         network = Network.__new__(Network)    
         network.path = path
         network.recycle = self._recycle
-        network.units = set(self.units)
+        network.units = set(self.unit_path)
         return network
         
     # Debugging
@@ -1718,12 +1742,12 @@ class OperationMode:
         system.simulate()
         feeds = system.feeds
         products = system.products
-        units = system.units
+        cost_units = system.cost_units
         operating_hours = self.operating_hours
         return OperationModeResults(
-            {i: i.get_capital_costs() for i in units if i._design or i._cost},
+            {i: i.get_design_and_capital() for i in cost_units},
             {i: i.F_mass * operating_hours for i in feeds + products},
-            operating_hours * sum([i.utility_cost for i in units]),
+            operating_hours * sum([i.utility_cost for i in cost_units]),
             feeds, products,
             operating_hours,
         )
@@ -1762,14 +1786,10 @@ class AgileSystem:
     
     Parameters
     ----------
-    system : System
-        System object that is simulated in each operation mode.
     operation_modes : list[OperationMode], optional
         Defines each mode of operation with time steps and parameter values
     operation_parameters : dict[str: function], optional
         Defines all parameters available for all operation modes.
-    tea : AgileTea, optional
-        If given, the AgileTEA object will compile results after each simulation.
     lang_factor : float, optional
         Lang factor for getting fixed capital investment from 
         total purchase cost. If no lang factor, installed equipment costs are 
@@ -1855,11 +1875,23 @@ class AgileSystem:
     
     @property
     def units(self):
+        units = []
+        past_units = set() 
+        for i in self.operation_modes:
+            for i in i.system.unit_path:
+                if i in past_units: continue
+                units.append(i)
+        return units
+    
+    @property
+    def cost_units(self):
         systems = set([i.system for i in self.operation_modes])
         if len(systems) == 1:
-            return systems.pop().units
+            return systems.pop().cost_units
         else:
-            return set(sum([i.units for i in systems], []))
+            units = set()
+            for i in systems: units.update(i.cost_units)
+            return units
 
     @property
     def empty_recycles(self):
@@ -1883,7 +1915,7 @@ class AgileSystem:
         unit_modes = {i: [] for i in units}
         for results in operation_mode_results:
             for i, j in results.unit_capital_costs.items(): unit_modes[i].append(j)
-        self.unit_capital_costs = {i: i.get_agile_capital_costs(j) for i, j in unit_modes.items()}
+        self.unit_capital_costs = {i: i.get_agile_design_and_capital(j) for i, j in unit_modes.items()}
         self.utility_cost = sum([i.utility_cost for i in operation_mode_results])
         self.flow_rates = flow_rates = {}
         self.feeds = list(set(sum([i.feeds for i in operation_mode_results], [])))

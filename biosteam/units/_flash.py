@@ -147,12 +147,16 @@ class Flash(design.PressureVessel, Unit):
     
     """
     auxiliary_unit_names = ('heat_exchanger',)
-    _units = {'Vertical vessel weight': 'lb',
-              'Horizontal vessel weight': 'lb',
-              'Length': 'ft',
+    _units = {'Length': 'ft',
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
+    _max_agile_design = (
+        'Length',
+        'Diameter',
+        'Weight',
+        'Wall thickness',
+    )
     _F_BM_default = {'Liquid-ring pump': 1.0,
                      **design.PressureVessel._F_BM_default}
     _graphics = vertical_vessel_graphics 

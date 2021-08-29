@@ -413,26 +413,59 @@ class Unit:
         for rxn, X in reactions: 
             rxn.X = X
     
-    def get_capital_costs(self):
-        return UnitCapitalCosts(
+    def get_design_and_capital(self):
+        return UnitDesignAndCapital(
             self, self.F_BM.copy(), self.F_D.copy(), self.F_P.copy(), self.F_M.copy(), 
-            self.baseline_purchase_costs.copy(), self.purchase_costs.copy(),
-            self.installed_costs.copy(),
+            self.design_results.copy(), self.baseline_purchase_costs.copy(),
+            self.purchase_costs.copy(), self.installed_costs.copy(),
         )
     
-    def get_agile_capital_costs(self, capital_costs: list):
+    def get_agile_design_and_capital(self, design_and_capital: list):
         names = (
-            'F_BM', 'F_D', 'F_P', 'F_M',
+            'F_BM', 'F_D', 'F_P', 'F_M', 'design_results',
             'baseline_purchase_costs', 'purchase_costs', 'installed_costs',
         )
+        max_agile_design = getattr(self, '_max_agile_design', None)
         agile_scenario = {i: {} for i in names}
-        self._fill_agile_capital_costs(agile_scenario, capital_costs)
+        if max_agile_design:
+            designs = [i.design_results for i in design_and_capital]
+            agile_design = agile_scenario['design_results']
+            for design_results in designs:
+                for i in max_agile_design:
+                    if i in design_results:
+                        j = design_results[i]
+                    else:
+                        continue
+                    if i in agile_design:
+                        if abs(j) > abs(agile_design[i]):
+                            agile_design[i] = j
+                    else:
+                        agile_design[i] = j
+            names = ('design_results', 'baseline_purchase_costs', 
+                     'purchase_costs', 'installed_costs')
+            dcts = [getattr(self, i) for i in names]
+            self.design_results = agile_design
+            for i in names[1:]: setattr(self, i, {}) 
+            Unit._setup(self)
+            try:
+                self._cost()
+                self._load_capital_costs()
+            except:
+                warn(f"failed to create agile design for {repr(self)}; "
+                      "assuming design with highest capital cost will do",
+                      category=RuntimeWarning, stacklevel=2)
+            else:
+                design_and_capital.append(self.get_design_and_capital())
+            finally:
+                for i, j in zip(names, dcts): setattr(self, i, j) 
+        self._fill_agile_design_and_capital(agile_scenario, design_and_capital)
         agile_scenario['unit'] = self
-        return UnitCapitalCosts(**agile_scenario)
+        return UnitDesignAndCapital(**agile_scenario)
                 
-    def _fill_agile_capital_costs(self, agile_scenario, capital_costs):
-        for results in capital_costs:
+    def _fill_agile_design_and_capital(self, agile_scenario, design_and_capital):
+        for results in design_and_capital:
             for name, maxdct in agile_scenario.items():
+                if name == 'design_results': continue
                 dct = getattr(results, name)
                 for i, j in dct.items():
                     if i in maxdct:
@@ -1260,7 +1293,7 @@ class Unit:
             return f'<{type(self).__name__}>'
 
 
-class UnitCapitalCosts:
+class UnitDesignAndCapital:
     
     __slots__ = (
         'unit',
@@ -1268,6 +1301,7 @@ class UnitCapitalCosts:
         'F_D',
         'F_P',
         'F_M',
+        'design_results',
         'baseline_purchase_costs',
         'purchase_costs',
         'installed_costs',
@@ -1279,6 +1313,7 @@ class UnitCapitalCosts:
     
     def __init__(self, 
             unit, F_BM, F_D, F_P, F_M,
+            design_results: dict,
             baseline_purchase_costs: dict,
             purchase_costs: dict,
             installed_costs: dict,
@@ -1288,6 +1323,7 @@ class UnitCapitalCosts:
         self.F_D = F_D
         self.F_P = F_P
         self.F_M = F_M
+        self.design_results = design_results
         self.baseline_purchase_costs = baseline_purchase_costs
         self.purchase_costs = purchase_costs
         self.installed_costs = installed_costs

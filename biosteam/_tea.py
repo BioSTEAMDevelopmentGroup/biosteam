@@ -615,7 +615,7 @@ class TEA:
         C_WC[-1] = -WC
         system = self.system
         lang_factor = system.lang_factor
-        unit_capital_costs = system.unit_capital_costs.values() if isinstance(system, bst.AgileSystem) else system.units
+        unit_capital_costs = system.unit_capital_costs.values() if isinstance(system, bst.AgileSystem) else system.cost_units
         for i in unit_capital_costs: add_all_replacement_costs_to_cashflow_array(i, C_FC, years, start, lang_factor)
         if self.finance_interest:
             interest = self.finance_interest
@@ -681,7 +681,7 @@ class TEA:
         self._fill_depreciation_array(D, start, years, TDC)
         WC = self.WC_over_FCI * FCI
         system = self.system
-        return taxable_and_nontaxable_cashflows(system.unit_capital_costs if isinstance(system, bst.AgileSystem) else system.units,
+        return taxable_and_nontaxable_cashflows(system.unit_capital_costs if isinstance(system, bst.AgileSystem) else system.cost_units,
                                                 D, C, S, C_FC, C_WC, Loan, LP,
                                                 FCI, WC, TDC, VOC, FOC, self.sales,
                                                 self._startup_time,

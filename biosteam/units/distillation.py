@@ -141,6 +141,23 @@ class Distillation(Unit, isabstract=True):
               'Diameter': 'ft',
               'Wall thickness': 'in',
               'Weight': 'lb'}
+    _max_agile_design = (
+        'Actual stages',
+        'Rectifier stages',
+        'Stripper stages',
+        'Rectifier height',
+        'Rectifier diameter',
+        'Rectifier wall thickness',
+        'Rectifier weight',
+        'Stripper height',
+        'Stripper diameter',
+        'Stripper wall thickness',
+        'Stripper weight',
+        'Height',
+        'Diameter',
+        'Wall thickness',
+        'Weight',
+    )
     _F_BM_default = {'Rectifier tower': 4.3,
                       'Stripper tower': 4.3,
                       'Rectifier trays': 4.3,
@@ -792,6 +809,7 @@ class Distillation(Unit, isabstract=True):
         else:
             vacuum_cooling_water.empty()
         self.power_utility(vacuum_results['Work'])
+        self._simulate_components()
     
     def _cost(self):
         Design = self.design_results
@@ -836,7 +854,6 @@ class Distillation(Unit, isabstract=True):
             
             dimensions = [(H, Di)]
         self._cost_vacuum(dimensions)
-        self._simulate_components()
 
 
 # %% McCabe-Thiele distillation model utilities
