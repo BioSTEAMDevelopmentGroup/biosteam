@@ -465,7 +465,6 @@ class System:
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
-        self._load_stream_links()
         self._load_defaults()
         self._save_configuration()
         self.operating_hours = operating_hours
@@ -483,7 +482,6 @@ class System:
         self._reset_errors()
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
-        self._load_stream_links()
         self._register(ID)
         self._load_defaults()
         self._save_configuration()
@@ -522,7 +520,8 @@ class System:
             if i.source:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
-                i.sink.ins[i.sink_index] = i.stream    
+                i.sink.ins[i.sink_index] = i.stream
+        self._load_stream_links()
     
     @ignore_docking_warnings
     def _interface_property_packages(self):
@@ -562,7 +561,6 @@ class System:
             if isa(obj, System): obj._interface_property_packages()
         self._path = tuple(new_path)
         self._save_configuration()
-        self._load_stream_links()
                 
     def reduce_chemicals(self, required_chemicals=()):
         isa = isinstance

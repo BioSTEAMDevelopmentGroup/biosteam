@@ -234,11 +234,8 @@ class RotaryVacuumFilter(SolidsSeparator):
         N = self.design_results['# RVF']
         vessel_volume = N * radius*Area*0.0929/2. # m3
         
-        # Assume same volume of air comes in as volume of liquid
-        F_vol = s_vacuumed.F_vol
-        F_mass = F_vol * 1.2041 # multiply by density of air kg/m3 
         vacuum_results = compute_vacuum_system_power_and_cost(
-                F_mass, F_vol, self.P_suction, vessel_volume)
+                0, 0, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
         self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
         self.design_results['Vacuum system'] = vacuum_results['Name']
