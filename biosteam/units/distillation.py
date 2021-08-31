@@ -787,6 +787,7 @@ class Distillation(Unit, isabstract=True):
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
             Design['Wall thickness'] = tv = design.compute_tower_wall_thickness(Po, Di, H)
             Design['Weight'] = design.compute_tower_weight(Di, H, tv, rho_M)
+        self._simulate_components()
     
     def _cost_vacuum(self, dimensions):
         P = self.P
@@ -809,7 +810,6 @@ class Distillation(Unit, isabstract=True):
         else:
             vacuum_cooling_water.empty()
         self.power_utility(vacuum_results['Work'])
-        self._simulate_components()
     
     def _cost(self):
         Design = self.design_results
