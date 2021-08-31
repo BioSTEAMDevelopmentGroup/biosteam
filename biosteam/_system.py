@@ -1411,6 +1411,7 @@ class System:
         --------
         >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
         >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> main_flowsheet.clear()
         >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
         >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
         >>> sys = main_flowsheet.create_system(operating_hours=330*24)
@@ -1441,6 +1442,7 @@ class System:
         --------
         >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
         >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> main_flowsheet.clear()
         >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
         >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
         >>> sys = main_flowsheet.create_system(operating_hours=330*24)
@@ -1775,6 +1777,11 @@ class OperationMode:
         else:
             raise AttributeError(f"'{name}' is not a defined operation parameter")
 
+    def _info(self):
+        return (f"{type(self).__name__}:\n"
+                 "system: {self.system}"
+                 "operating_hours: {self.operating_hours}"
+
     def __repr__(self):
         return f"{type(self).__name__}(system={self.system}, operating_hours={self.operating_hours}{repr_kwargs(self.data)})"
     
@@ -1934,3 +1941,5 @@ class AgileSystem:
                 if stream in flow_rates: flow_rates[stream] += F_mass
                 else: flow_rates[stream] = F_mass
             
+    def __repr__(self):
+        return f"{type(self).__name__}(operation_modes={self.operation_modes}, operation_parameters={self.operation_parameters}, lang_factor={self.lang_factor})"

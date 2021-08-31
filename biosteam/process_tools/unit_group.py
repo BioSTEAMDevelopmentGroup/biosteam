@@ -346,6 +346,7 @@ class UnitGroup:
         --------
         >>> from biosteam import Stream, Mixer, Splitter, UnitGroup, settings, main_flowsheet
         >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> main_flowsheet.clear()
         >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
         >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
         >>> sys = main_flowsheet.create_system(operating_hours=330*24)
@@ -376,6 +377,7 @@ class UnitGroup:
         --------
         >>> from biosteam import Stream, Mixer, Splitter, UnitGroup, settings, main_flowsheet
         >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> main_flowsheet.clear()
         >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
         >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
         >>> sys = main_flowsheet.create_system(operating_hours=330*24)
