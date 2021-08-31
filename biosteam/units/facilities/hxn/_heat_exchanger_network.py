@@ -21,7 +21,9 @@ __all__ = ('HeatExchangerNetwork',)
 class HeatExchangerNetwork(Facility):
     """
     Create a HeatExchangerNetwork object that will perform a pinch analysis
-    on the entire system's heating and cooling utility objects.
+    on the entire system's heating and cooling utility objects. The heat
+    exchanger network reduces the heating and cooling utility requirements 
+    of the system and may add additional capital cost.
     
     Parameters
     ----------
@@ -35,9 +37,10 @@ class HeatExchangerNetwork(Facility):
     
     Notes
     -----
-    Original system Stream and HX objects are preserved. All Stream copies and new HX objects 
-    can be found in a newly created flowsheet '<sys>_HXN' where <sys> is the system in which
-    an instance of HeatExchangerNetwork is created.
+    Original system stream and heat exchanger objects are preserved. All stream 
+    copies and new HX objects can be found in a newly created flowsheet 
+    '<sys>_HXN' where <sys> is the name of the system associated to the 
+    HeatExchangerNetwork object.
     
     References
     ----------
