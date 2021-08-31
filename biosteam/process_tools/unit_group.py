@@ -344,20 +344,22 @@ class UnitGroup:
             
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys
-        >>> from biosteam import *
-        >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
-        >>> ugroup.get_inlet_flow('ton/s') # Sum of all chemicals
-        6.64
-        >>> ugroup.get_inlet_flow('ton/s', 'Water') # Just water
-        5.96
-        >>> default() # Bring biosteam settings back to default
+        >>> from biosteam import Stream, Mixer, Splitter, UnitGroup, settings, main_flowsheet
+        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
+        >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
+        >>> sys = main_flowsheet.create_system(operating_hours=330*24)
+        >>> ugroup = UnitGroup('Example group', sys.units)
+        >>> ugroup.get_inlet_flow('ton/hr') # Sum of all chemicals
+        20.0
+        >>> ugroup.get_inlet_flow('ton/hr', 'Water') # Just water
+        10.0
         
         """
         if key:
-            return sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
+            return sum([i.get_flow(units, key) for i in bst.utils.feeds_from_units(self.units)])
         else:
-            return sum([i.get_total_flow(units) for i in bst.utils.inlets(self.units)])
+            return sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
     
     def get_outlet_flow(self, units, key=None):
         """
@@ -372,20 +374,22 @@ class UnitGroup:
             
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys
-        >>> from biosteam import *
-        >>> ugroup = UnitGroup('Example group', cornstover_sys.units)
-        >>> ugroup.get_outlet_flow('ton/s') # Sum of all chemicals
-        6.66
-        >>> ugroup.get_outlet_flow('ton/s', 'Water') # Just water
-        5.97
-        >>> default() # Bring biosteam settings back to default
-        
+        >>> from biosteam import Stream, Mixer, Splitter, UnitGroup, settings, main_flowsheet
+        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
+        >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
+        >>> sys = main_flowsheet.create_system(operating_hours=330*24)
+        >>> sys.simulate()
+        >>> ugroup = UnitGroup('Example group', sys.units)
+        >>> ugroup.get_inlet_flow('ton/hr') # Sum of all chemicals
+        20.0
+        >>> ugroup.get_inlet_flow('ton/hr', 'Water') # Just water
+        10.0
         """
         if key:
-            return sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
+            return sum([i.get_flow(units, key) for i in bst.utils.products_from_units(self.units)])
         else:
-            return sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
+            return sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
     
     def get_material_cost(self):
         """Return the total material cost in USD/hr"""

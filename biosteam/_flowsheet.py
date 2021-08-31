@@ -172,7 +172,8 @@ class Flowsheet:
                                                 display, number, profile, label,
                                                 **graph_attrs)
     
-    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None):
+    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None,
+                      operating_hours=None, lang_factor=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
@@ -190,9 +191,18 @@ class Flowsheet:
         facility_recycle : :class:`~thermosteam.Stream`, optional
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
+        operating_hours : float, optional
+            Number of operating hours in a year. This parameter is used to
+            compute convinience properties such as utility cost and material cost
+            on a per year basis. 
+        lang_factor : float, optional
+            Lang factor for getting fixed capital investment from 
+            total purchase cost. If no lang factor, installed equipment costs are 
+            estimated using bare module factors.
         
         """
-        return System.from_units(ID, self.unit, feeds, ends, facility_recycle)
+        return System.from_units(ID, self.unit, feeds, ends, facility_recycle,
+                                 operating_hours, lang_factor)
     
     def create_network(self, feeds=None, ends=()):
         """

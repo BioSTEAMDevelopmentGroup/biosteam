@@ -74,7 +74,7 @@ class HeatExchangerNetwork(Facility):
     >>> HXN.simulate()
     >>> # See all results
     >>> round(HXN.actual_heat_util_load/HXN.original_heat_util_load, 2)
-    0.82
+    0.85
     >>> abs(HXN.energy_balance_percent_error) < 0.01
     True
     >>> HXN.stream_life_cycles

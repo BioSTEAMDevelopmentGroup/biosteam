@@ -185,7 +185,7 @@ class MockSystem:
     
     def load_inlet_ports(self, inlets, optional=()):
         """Load inlet ports to system."""
-        all_inlets = bst.utils.inlets(self.units)
+        all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets: 
             if i not in all_inlets:
@@ -197,7 +197,7 @@ class MockSystem:
     
     def load_outlet_ports(self, outlets, optional=()):
         """Load outlet ports to system."""
-        all_outlets = bst.utils.outlets(self.units)
+        all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets: 
             if i not in all_outlets:
@@ -1409,20 +1409,22 @@ class System:
             
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys
-        >>> from biosteam import default
-        >>> cornstover_sys.get_inlet_flow('Mton') # Sum of all chemicals
-        201.0
-        >>> cornstover_sys.get_inlet_flow('Mton', 'Water') # Just water
-        180.5
-        >>> default() # Bring biosteam settings back to default
+        >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
+        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
+        >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
+        >>> sys = main_flowsheet.create_system(operating_hours=330*24)
+        >>> sys.get_inlet_flow('Mton') # Sum of all chemicals
+        0.1584
+        >>> sys.get_inlet_flow('Mton', 'Water') # Just water
+        0.0792
         
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.feeds_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.inlets(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
     
     def get_outlet_flow(self, units, key=None):
         """
@@ -1437,20 +1439,23 @@ class System:
             
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys
-        >>> from biosteam import default
-        >>> cornstover_sys.get_outlet_flow('Mton') # Sum of all chemicals
-        201.6
-        >>> cornstover_sys.get_outlet_flow('Mton', 'Water') # Just water
-        180.7
-        >>> default() # Bring biosteam settings back to default
+        >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
+        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
+        >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
+        >>> sys = main_flowsheet.create_system(operating_hours=330*24)
+        >>> sys.simulate()
+        >>> sys.get_outlet_flow('Mton') # Sum of all chemicals
+        0.1584
+        >>> sys.get_outlet_flow('Mton', 'Water') # Just water
+        0.0792
         
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.products_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
     
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
