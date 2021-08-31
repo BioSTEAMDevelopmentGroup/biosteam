@@ -1777,11 +1777,6 @@ class OperationMode:
         else:
             raise AttributeError(f"'{name}' is not a defined operation parameter")
 
-    def _info(self):
-        return (f"{type(self).__name__}:\n"
-                 "system: {self.system}"
-                 "operating_hours: {self.operating_hours}"
-
     def __repr__(self):
         return f"{type(self).__name__}(system={self.system}, operating_hours={self.operating_hours}{repr_kwargs(self.data)})"
     

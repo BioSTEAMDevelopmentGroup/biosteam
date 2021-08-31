@@ -104,6 +104,7 @@ technologies and chart development pathways for various bioproducts:
    
    tutorial/Creating_a_System
    tutorial/Building_a_biorefinery
+   tutorial/Agile_systems
    tutorial/Monte_Carlo
    tutorial/TRY-Analysis
 
