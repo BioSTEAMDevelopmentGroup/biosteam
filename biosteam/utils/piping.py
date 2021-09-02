@@ -84,11 +84,8 @@ class MissingStream:
         self._sink = sink
     
     def get_connection(self):
-        source = self._source
-        source_index = source._outs.index(self) if source else None
-        sink = self._sink
-        sink_index = sink._ins.index(self) if sink else None
-        return Connection(source, source_index, self, sink_index, sink)
+        self = self.materialize_connection()
+        return self.get_connection()
     
     def materialize_connection(self, ID=""):
         """
@@ -707,7 +704,14 @@ def __rsub__(self, index):
                        f"'{type(index).__name__}' and '{type(self).__name__}'")
     return index.__sub__(self)
 
-Stream.get_connection = MissingStream.get_connection
+def get_connection(self):
+    source = self._source
+    source_index = source._outs.index(self) if source else None
+    sink = self._sink
+    sink_index = sink._ins.index(self) if sink else None
+    return Connection(source, source_index, self, sink_index, sink)
+
+Stream.get_connection = get_connection
 Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
 Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"

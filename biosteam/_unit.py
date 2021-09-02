@@ -382,13 +382,13 @@ class Unit:
         self.run_after_specification = False 
     
     def _reset_thermo(self, thermo):
-        if thermo is self.thermo: return
-        self._load_thermo(thermo)
         for i in (self._ins + self._outs):
             try:
                 if i: i._reset_thermo(thermo)
             except:
                 raise RuntimeError(f'failed to reset {repr(self)}.thermo')
+        if thermo is self.thermo: return
+        self._load_thermo(thermo)
         chemicals = thermo.chemicals
         reactions = []
         dcts = [self.__dict__]
@@ -841,8 +841,8 @@ class Unit:
         Run rigourous simulation and determine all design requirements.
         No design specifications are solved.
         """
-        self._load_stream_links()
         self._setup()
+        self._load_stream_links()
         self.run()
         self._summary()
 

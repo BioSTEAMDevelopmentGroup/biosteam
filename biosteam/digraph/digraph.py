@@ -78,7 +78,10 @@ def surface_digraph(path, **graph_attrs):
     old_unit_connections = set()
     isa = isinstance
     Unit = bst.Unit
+    done = set()
     for i in path:
+        if i in done: continue
+        done.add(i)
         if isa(i, Unit):
             surface_units.append(i)
         elif has_path(i):
@@ -149,7 +152,7 @@ def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, system.units)
+    unit_names = get_unit_names(f, system.unit_path)
     update_digraph_from_path(f, tuple(system.path) + system.facilities, 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)
