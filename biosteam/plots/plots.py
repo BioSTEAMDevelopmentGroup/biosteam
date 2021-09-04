@@ -523,7 +523,7 @@ def plot_montecarlo_across_coordinate(xs, ys,
   
 def plot_contour_1d(X_grid, Y_grid, data, 
                     xlabel, ylabel, xticks, yticks, 
-                    metric_bars, fillblack=True): # pragma: no coverage
+                    metric_bars, fillblack=True, label=False, **styleaxiskw): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     n = len(metric_bars)
     assert data.shape == (*X_grid.shape, n), (
@@ -532,7 +532,9 @@ def plot_contour_1d(X_grid, Y_grid, data,
     )
     gs_kw = dict(height_ratios=[1, 0.25])
     fig, axes = plt.subplots(ncols=n, nrows=2, gridspec_kw=gs_kw)
+    if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([n], dtype=object)
+    linecolor = c.neutral_shade.RGBn
     for i in range(n):
         metric_bar = metric_bars[i]
         ax = axes[0, i]
@@ -544,6 +546,14 @@ def plot_contour_1d(X_grid, Y_grid, data,
         cp = plt.contourf(X_grid, Y_grid, data[:, :, i],
                           levels=metric_bar.levels,
                           cmap=metric_bar.cmap)
+        if label:
+            cs = plt.contour(cp, zorder=1e16,
+                             linestyles='dashed', linewidths=1.,
+                             norm=metric_bar.norm,
+                             levels=metric_bar.levels, colors=[linecolor])
+            clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                      fontsize=12, colors=['k'], zorder=1e16)
+            for clabel in clabels: clabel.set_rotation(0)
         cps[i] = cp
         style_axis(ax, xticks, yticks, xticklabels, yticklabels)
         cbar_ax = axes[1, i]
