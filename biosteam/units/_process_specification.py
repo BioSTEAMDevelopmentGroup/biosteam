@@ -92,9 +92,11 @@ class ProcessSpecification(Unit):
         self.__specification = specification
     
     def run(self):
+        self.outs[0].copy_flow(self.ins[0])
         self.__specification()
         
     def _run(self):
+        self.outs[0].copy_flow(self.ins[0])
         self.__specification()
         
 

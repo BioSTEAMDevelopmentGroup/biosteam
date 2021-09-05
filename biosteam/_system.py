@@ -636,7 +636,7 @@ class System:
         self._recycle = other._recycle
         self._connections = other._connections
     
-    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False):
+    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False, maxiter=None):
         """
         Set the convergence tolerance of the system.
 
@@ -652,14 +652,17 @@ class System:
             Relative temperature tolerance.
         subsystems : bool, optional
             Whether to also set tolerance of subsystems as well. 
+        maxiter : int, optional
+            Maximum number if iterations.
 
         """
         if mol: self.molar_tolerance = float(mol)
         if rmol: self.relative_molar_tolerance = float(rmol)
         if T: self.temperature_tolerance = float(T)
         if rT: self.temperature_tolerance = float(rT)
+        if maxiter: self.maxiter = int(maxiter)
         if subsystems: 
-            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems)
+            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
     
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -1190,7 +1193,7 @@ class System:
         else:
             self._mol_error = mol_error = mol_errors.max()
             if mol_error > 1e-12:
-                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([mol[positive_index], mol_new[positive_index]])).max()
+                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([np.abs(mol[positive_index]), np.abs(mol_new[positive_index])])).max()
             else:
                 self._rmol_error = rmol_error = 0.
         T_errors = np.abs(T - T_new)
@@ -1568,8 +1571,8 @@ class System:
         else:
             raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
         for u in self.units:
-            if u.specification:
-                u.specification = _wrap_method(u, u.specification)
+            if u._specification:
+                u._specification = [_wrap_method(u, i) for i in u.specification]
             else:
                 u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)

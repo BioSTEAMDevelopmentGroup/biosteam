@@ -158,7 +158,7 @@ class SteamMixer(Unit):
     
     def _run(self):
         steam = self.ins[1]
-        steam_mol = steam.F_mol
+        steam_mol = steam.F_mol or 1.
         f = self.pressure_objective_function
         steam_mol = flx.IQ_interpolation(f, *flx.find_bracket(f, 0., steam_mol, None, None), 
                                          xtol=1e-2, ytol=1e-4, 
