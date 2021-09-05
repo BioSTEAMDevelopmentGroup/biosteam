@@ -16,6 +16,8 @@ from math import ceil
 
 __all__ = ('BatchBioreactor',)
 
+@cost('Recirculation flow rate', 'Recirculation pumps', kW=30, S=77.22216,
+      cost=47200, n=0.8, BM=2.3, CE=522, N='N_reactors')
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,
       cost=421e3, S=3785, n=0.6, BM=1.8)
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
@@ -87,7 +89,8 @@ class BatchBioreactor(Unit, isabstract=True):
               'Batch time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr',
-              'Reactor duty': 'kJ/hr'}
+              'Reactor duty': 'kJ/hr',
+              'Recirculation flow rate': 'm3/hr'}
     _N_ins = _N_outs = 2
     _N_heat_utilities = 1
     
@@ -201,6 +204,7 @@ class BatchBioreactor(Unit, isabstract=True):
             N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, V_wf))
         Design['Number of reactors'] = N
+        Design['Recirculation flow rate'] = v_0 / N
         duty = self.Hnet
         Design['Reactor duty'] = abs(duty)
         self.heat_utilities[0](duty, self.T)

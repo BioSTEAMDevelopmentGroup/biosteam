@@ -69,15 +69,13 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
 def find_path_segment(start_unit, end_unit):
     path_segment = fill_path_segment(start_unit, [], end_unit)
     if path_segment is None:
-        raise ValueError(f"start unit {repr(start_unit)} not downstream from end unit {repr(end_unit)}")
+        raise ValueError(f"end unit {repr(end_unit)} not downstream from start unit {repr(start_unit)}")
     return path_segment
 
 def fill_path_segment(start_unit, path, end_unit):
     if start_unit is end_unit:
         return path
-    if start_unit in path: 
-        return None
-    else:
+    if start_unit not in path: 
         path.append(start_unit)
         first_outlet, *other_outlets = start_unit._outs
         for outlet in other_outlets:
