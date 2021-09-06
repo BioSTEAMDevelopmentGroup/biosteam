@@ -379,8 +379,8 @@ class Model(State):
         for i, idx in enumerate(index):
             if relative_error[i] > etol:
                 raise RuntimeError(
-                    f"{metrics[idx]} has a value of "
-                    f"{baseline_1[idx]} before evaluation and "
+                    f"inconsistent model; {metrics[idx]} has a value of "
+                    f"{baseline_1[idx]} before evaluating sensitivty and "
                     f"{baseline_2[idx]} after"
                 )
         metric_index = var_columns(metrics)
