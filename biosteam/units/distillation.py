@@ -585,7 +585,6 @@ class Distillation(Unit, isabstract=True):
         distillate, bottoms_product = self.outs
         condenser_distillate = self.distillate
         reboiler_bottoms_product = self.boiler.outs[0]['l']
-        distillate.phase = 'g'
         condenser_distillate.copy_like(distillate)
         reboiler_bottoms_product.copy_like(bottoms_product)
         self._boilup_bubble_point = bp = reboiler_bottoms_product.bubble_point_at_P()

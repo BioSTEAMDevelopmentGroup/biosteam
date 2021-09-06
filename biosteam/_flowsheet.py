@@ -120,6 +120,9 @@ class Flowsheet:
                 registry.discard(ID)
                 return
     
+    def remove_unit_and_connected_streams(self, ID):
+        pass # TODO!
+    
     def update(self, flowsheet):
         for registry, other_registry in zip(self.registries, flowsheet.registries):
             registry.data.update(other_registry.data)
