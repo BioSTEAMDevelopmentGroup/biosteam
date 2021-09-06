@@ -344,6 +344,54 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
+    def single_point_sensitivity(self, default_baseline=True, etol=0.01):
+        parameters = self.parameters
+        bounds = [i.bounds if i.bounds
+                  else (i.distribution.lower[0], i.distribution.upper[0])
+                  for i in parameters]
+        sample = self.get_baseline_sample(default_baseline)
+        N_parameters = len(parameters)
+        index = range(N_parameters)
+        metrics = self.metrics
+        N_metrics = len(metrics)
+        values_lb = np.zeros([N_parameters, N_metrics])
+        values_ub = values_lb.copy()
+        evaluate = self._evaluate_sample
+        baseline_1 = np.array(evaluate(sample, True))
+        for i in index:
+            sample_lb = sample.copy()
+            sample_ub = sample.copy()
+            lb, ub = bounds[i]
+            hook = parameters[i].hook
+            if hook:
+                sample_lb[i] = hook(lb)
+                sample_ub[i] = hook(ub)
+            else:
+                sample_lb[i] = lb
+                sample_ub[i] = ub
+            values_lb[i, :] = evaluate(sample_lb, True)
+            values_ub[i, :] = evaluate(sample_ub, True)
+        baseline_2 = np.array(evaluate(sample, True))
+        error = np.abs(baseline_2 - baseline_1)
+        index, = np.where(error > 1e-6)
+        error = error[index]
+        relative_error = error / np.maximum.reduce([np.abs(baseline_1[index]), np.abs(baseline_2[index])])
+        for i, idx in enumerate(index):
+            if relative_error[i] > etol:
+                raise RuntimeError(
+                    f"{metrics[idx]} has a value of "
+                    f"{baseline_1[idx]} before evaluation and "
+                    f"{baseline_2[idx]} after"
+                )
+        metric_index = var_columns(metrics)
+        baseline = pd.Series(0.5 * (baseline_1 + baseline_2), index=metric_index)
+        df_lb = pd.DataFrame(values_lb, 
+                            index=var_columns(parameters),
+                            columns=metric_index)
+        df_ub = df_lb.copy()
+        df_ub[:] = values_ub
+        return baseline, df_lb, df_ub
+    
     def evaluate(self, thorough=True, notify=0, 
                  file=None, autosave=0, autoload=False):
         """

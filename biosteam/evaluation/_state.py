@@ -122,8 +122,22 @@ class State:
         copy._skip = self._skip
         return copy
     
-    def get_baseline_sample(self):
-        return np.array([i.baseline for i in self.get_parameters()])
+    def get_baseline_sample(self, default_mid_point=False):
+        """Return an array of parameter baseline values."""
+        parameters = self.get_parameters()
+        N_parameters = len(parameters)
+        sample = np.zeros(N_parameters)
+        for i, p in enumerate(parameters):
+            baseline = p.baseline
+            if baseline is None:
+                if default_mid_point:
+                    d = p.distribution
+                    baseline = 0.5 * (d.lower[0] + d.upper[0])
+                else:
+                    raise RuntimeError(f'{p} has no baseline value')
+            if p.hook: baseline = p.hook(baseline)    
+            sample[i] = baseline
+        return sample
     
     def _erase(self):
         """Erase cached data."""

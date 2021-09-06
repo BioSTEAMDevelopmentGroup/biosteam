@@ -389,6 +389,9 @@ class TEA:
         
         #: Guess cost for solve_price method
         self._sales = 0
+        
+        #: For convenience, set a TEA attribute for the system
+        system._TEA = TEA
 
     def _get_duration(self):
         return (self._start, self._years)

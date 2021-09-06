@@ -62,7 +62,7 @@ def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2): # p
 
 # %% Units
 
-def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # pragma: no coverage
+def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_properties): # pragma: no coverage
     """
     Save a system report as an xlsx file.
     
@@ -70,7 +70,11 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # p
     ----------
     file : str
         File name to save report
-    
+    dpi : str, optional
+        Resolution of the flowsheet. Defaults to '300'
+    tea : TEA, optional
+        Object for techno-economic analysis and cashflows. Defaults to the
+        TEA object linked to the system.
     **stream_properties : str
         Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
         
@@ -94,7 +98,8 @@ def save_report(system, file='report.xlsx', dpi='300', **stream_properties): # p
             worksheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     
-    if system.TEA:
+    if tea is None: tea = system.TEA
+    if tea:
         tea = system.TEA
         cost = cost_table(tea)
         cost.to_excel(writer, 'Itemized costs')

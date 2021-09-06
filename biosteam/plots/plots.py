@@ -27,6 +27,7 @@ __all__ = (
     'plot_montecarlo', 
     'plot_montecarlo_across_coordinate',
     'plot_scatter_points', 
+    'plot_single_point_sensitivity',
     'plot_spearman', 
     'plot_spearman_1d',
     'plot_spearman_2d',
@@ -332,7 +333,85 @@ def format_spearman_plot(ax, index, name, yranges):
     # ax3.xaxis.set_major_formatter('{x:.2f}')
     # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax3.zorder = 1000
+
+def format_single_piont_sensitivity_plot(center, ax, index, name, yranges):
+    plot_vertical_line(center, color=c.neutral_shade.RGBn, lw=1)
+    yticks = [i[0]+i[1]/2 for i in yranges]
+    yranges = np.array(yranges)
+    diff = np.abs(yranges - center).max()
+    ax.set_xlim(center - diff, center + diff)
+    ax.set_xlabel(name)
+    ax.set_yticks(yticks)
+    ax.tick_params(axis='y', right=False, direction="inout", length=4)
+    ax.tick_params(which='both', axis='x', direction="inout", length=4)
+    ax.set_yticklabels(index)
+    ax.grid(False)
+    ylim = plt.ylim()
     
+    ax2 = ax.twinx()
+    plt.sca(ax2)
+    plt.yticks(yticks, [])
+    plt.ylim(*ylim)
+    ax2.zorder = 1000
+    ax2.tick_params(direction="in")
+    
+    ax3 = ax.twiny()
+    plt.sca(ax3)
+    ax3.tick_params(which='both', direction="in", labeltop=False, bottom=False, length=2)
+    # ax3.xaxis.set_major_locator(MultipleLocator(0.5))
+    # ax3.xaxis.set_major_formatter('{x:.2f}')
+    # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
+    ax3.zorder = 1000
+
+def plot_single_point_sensitivity(baseline, lb, ub, 
+        top=None, name=None, color=None, w=1., s=1., offset=0., style=True, 
+        fig=None, ax=None, sort=True, index=None
+    ): # pragma: no coverage
+    """
+    Display Spearman's rank correlation plot.
+    
+    Parameters
+    ----------
+    rhos : pandas.Series
+         Spearman's rank correlation coefficients to be plotted.
+    top=None : float, optional
+        Number of parameters to plot (from highest values).
+    
+    Returns
+    -------
+    fig : matplotlib Figure
+    ax : matplotlib AxesSubplot
+    """
+    # Sort parameters for plot
+    if index is None: index = lb.index
+    if name is None: name = lb.name
+    diff = np.abs(ub - lb)
+    if sort:
+        index = list(sorted(index, key=lambda x: diff[x]))
+        lb = [lb[i] for i in index]
+        ub = [ub[i] for i in index]
+    if top:
+        lb = lb[-top:]
+        ub = ub[-top:]
+        index = index[-top:]
+    
+    yranges = [(offset + s*i, w) for i in range(len(index))]
+    
+    # Plot bars one by one
+    if ax is None:
+        fig, ax = plt.subplots()
+    if color is None: color = c.blue_tint.RGBn
+    for i, y in enumerate(yranges):
+        xlb = [baseline, lb[i] - baseline]
+        xub = [baseline, ub[i] - baseline]
+        ax.broken_barh([xlb], y, facecolors=color,
+                       edgecolors=c.blue_dark.RGBn)
+        ax.broken_barh([xub], y, facecolors=color,
+                       edgecolors=c.blue_dark.RGBn)
+    plot_vertical_line(baseline)
+    if style:
+        format_single_piont_sensitivity_plot(baseline, ax, index, name, yranges)
+    return fig, ax    
 
 def plot_spearman_1d(rhos, top=None, name=None, color=None,
                      w=1., s=1., offset=0., style=True, 

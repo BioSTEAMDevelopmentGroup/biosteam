@@ -305,6 +305,7 @@ class System:
         '_connections',
         '_irrelevant_units',
         '_converge_method',
+        '_TEA',
     )
     
     ### Class attributes ###
@@ -693,6 +694,11 @@ class System:
         self.converge_method = self.default_converge_method
         
         self.use_stabilized_convergence_algorithm = self.default_stabilized_convergence
+    
+    @property
+    def TEA(self):
+        """TEA object linked to the system."""
+        return getattr(self, '_TEA', None)
     
     @property
     def specification(self):
@@ -1801,7 +1807,9 @@ class AgileSystem:
                  'mode_operation_parameters', 'unit_capital_costs', 
                  'utility_cost', 'flow_rates', 'feeds', 'products', 
                  'purchase_cost', 'installed_equipment_cost',
-                 'lang_factor', '_OperationMode')
+                 'lang_factor', '_OperationMode', '_TEA')
+    
+    TEA = System.TEA
     
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, lang_factor=None):
