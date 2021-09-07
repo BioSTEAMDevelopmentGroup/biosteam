@@ -306,6 +306,7 @@ class System:
         '_irrelevant_units',
         '_converge_method',
         '_TEA',
+        '_LCA',
     )
     
     ### Class attributes ###
@@ -699,6 +700,11 @@ class System:
     def TEA(self):
         """TEA object linked to the system."""
         return getattr(self, '_TEA', None)
+    
+    @property
+    def LCA(self):
+        """TEA object linked to the system."""
+        return getattr(self, '_LCA', None)
     
     @property
     def specification(self):
@@ -1807,9 +1813,10 @@ class AgileSystem:
                  'mode_operation_parameters', 'unit_capital_costs', 
                  'utility_cost', 'flow_rates', 'feeds', 'products', 
                  'purchase_cost', 'installed_equipment_cost',
-                 'lang_factor', '_OperationMode', '_TEA')
+                 'lang_factor', '_OperationMode', '_TEA', '_LCA')
     
     TEA = System.TEA
+    LCA = System.LCA
     
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, lang_factor=None):

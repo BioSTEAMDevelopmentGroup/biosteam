@@ -119,7 +119,6 @@ class State:
         copy._system = self._system
         copy._N_parameters_cache = self._N_parameters_cache
         copy._specification = self._specification
-        copy._skip = self._skip
         return copy
     
     def get_baseline_sample(self, default_mid_point=False):
