@@ -391,7 +391,7 @@ class TEA:
         self._sales = 0
         
         #: For convenience, set a TEA attribute for the system
-        system._TEA = TEA
+        system._TEA = self
 
     def _get_duration(self):
         return (self._start, self._years)

@@ -18,8 +18,8 @@ DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
-           'save_report', 'unit_result_tables', 'heat_utilities_table',
-           'power_utilities_table', 'tables_to_excel')
+           'save_report', 'unit_result_tables', 'heat_utility_tables',
+           'power_utility_table', 'tables_to_excel')
 
 def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
@@ -28,7 +28,7 @@ def _stream_key(s): # pragma: no coverage
 
 # %% Helpful functions
 
-def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2): # pragma: no coverage
+def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2): 
     """
     Save a list of tables as an excel file and return the row number at which
     another consecutive table would start.
@@ -62,7 +62,7 @@ def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2): # p
 
 # %% Units
 
-def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_properties): # pragma: no coverage
+def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_properties): 
     """
     Save a system report as an xlsx file.
     
@@ -124,11 +124,11 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
     tables_to_excel(stream_tables, writer, 'Stream table')
     
     # Heat utility tables
-    heat_utilities = heat_utilities_table(units)
+    heat_utilities = heat_utility_tables(units)
     n_row = tables_to_excel(heat_utilities, writer, 'Utilities')
     
     # Power utility table
-    power_utility = power_utilities_table(units)
+    power_utility = power_utility_table(units)
     power_utility.to_excel(writer, 'Utilities', 
                            index_label='Electricity',
                            startrow=n_row)
@@ -144,7 +144,7 @@ save_system_results = save_report
 def unit_result_tables(units,
                        include_utilities=False, 
                        include_total_cost=False,
-                       include_installed_cost=False): # pragma: no coverage
+                       include_installed_cost=False): 
     """
     Return a list of results tables for each unit type.
 
@@ -203,8 +203,9 @@ def unit_result_tables(units,
         tables.append(table)
     return tables
     
-def cost_table(tea): # pragma: no coverage
-    """Return a cost table as a pandas DataFrame object.
+def cost_table(tea): 
+    """
+    Return a cost table as a pandas DataFrame object.
 
     Parameters
     ----------
@@ -241,7 +242,7 @@ def cost_table(tea): # pragma: no coverage
     
     return df
 
-def heat_utilities_table(units): # pragma: no coverage
+def heat_utility_tables(units): 
     """Return a list of utility tables for each heat utility source.
     
     Parameters
@@ -287,7 +288,15 @@ def heat_utilities_table(units): # pragma: no coverage
     return tables
     
 
-def power_utilities_table(units): # pragma: no coverage
+def power_utility_table(units): 
+    """
+    Return a pandas DataFrame object of power utilities.
+    
+    Parameters
+    ----------
+    units : iterable[Unit]
+        
+    """
     # Sort power utilities by unit type
     units = sorted(units, key=(lambda u: type(u).__name__))
     units = [u for u in units if u.power_utility]
@@ -302,11 +311,12 @@ def power_utilities_table(units): # pragma: no coverage
 
 # %% Streams
 
-def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -> 'DataFrame': # pragma: no coverage
-    """Return a stream table as a pandas DataFrame object.
+def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props):
+    """
+    Return a stream table as a pandas DataFrame object.
 
     Parameters
-
+    ----------
     streams : array_like[Stream]
     flow : str
         Units for flow rate.
@@ -316,7 +326,7 @@ def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props) -
     """
     
     # Prepare rows and columns
-    ss = sorted([i for i in streams if i.ID], key=_stream_key)
+    ss = sorted(sorted([i for i in streams if i.ID], key=lambda i: i.ID), key=_stream_key)
     if not chemicals: 
         all_chemicals = tuple(set([i.chemicals for i in ss]))
         sizes = [(i, chemical.size) for i, chemical in enumerate(all_chemicals)]

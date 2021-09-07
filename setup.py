@@ -16,12 +16,12 @@ setup(
     long_description=open('README.rst', encoding='utf-8').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=0.27.7', 
+                      'thermosteam>=0.27.10', 
                       'graphviz>=0.17',
                       'chaospy>=3.3.9'],
     extras_require={ 
         'dev': [
-            'biorefineries>=2.23.0',
+            'biorefineries>=2.23.6',
             'sympy',
             'sphinx', 
             'sphinx_rtd_theme', 

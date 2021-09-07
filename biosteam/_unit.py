@@ -837,7 +837,7 @@ class Unit:
     def simulate(self):
         """
         Run rigourous simulation and determine all design requirements.
-        No design specifications are solved.
+        
         """
         self._setup()
         self._load_stream_links()

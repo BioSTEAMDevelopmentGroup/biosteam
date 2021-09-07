@@ -311,7 +311,7 @@ def format_spearman_plot(ax, index, name, yranges):
     ax.xaxis.set_minor_locator(MultipleLocator(0.25))
     yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
-    ax.set_xlabel(f"Spearman's correlation with {name}")
+    if name: ax.set_xlabel(f"Spearman's correlation with {name}")
     ax.set_yticks(yticks)
     ax.tick_params(axis='y', right=False, direction="inout", length=4)
     ax.tick_params(which='both', axis='x', direction="inout", length=4)
@@ -334,11 +334,10 @@ def format_spearman_plot(ax, index, name, yranges):
     # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax3.zorder = 1000
 
-def format_single_piont_sensitivity_plot(center, ax, index, name, yranges):
+def format_single_point_sensitivity_plot(center, diff, ax, index, name, yranges):
     plot_vertical_line(center, color=c.neutral_shade.RGBn, lw=1)
     yticks = [i[0]+i[1]/2 for i in yranges]
     yranges = np.array(yranges)
-    diff = np.abs(yranges - center).max()
     ax.set_xlim(center - diff, center + diff)
     ax.set_xlabel(name)
     ax.set_yticks(yticks)
@@ -372,8 +371,12 @@ def plot_single_point_sensitivity(baseline, lb, ub,
     
     Parameters
     ----------
-    rhos : pandas.Series
-         Spearman's rank correlation coefficients to be plotted.
+    baseline : float
+        Baseline metric value.
+    lb : pandas.Series
+        Metric values at parameter lower bounds.
+    bb : pandas.Series
+        Metric values at parameter upper bounds.
     top=None : float, optional
         Number of parameters to plot (from highest values).
     
@@ -382,14 +385,22 @@ def plot_single_point_sensitivity(baseline, lb, ub,
     fig : matplotlib Figure
     ax : matplotlib AxesSubplot
     """
+    if isinstance(lb, pd.Series):
+        if index is None: index = lb.index
+        if name is None: name = lb.name
+        lb = lb.values
+    if isinstance(ub, pd.Series):
+        if index is None: index = ub.index
+        if name is None: name = ub.name
+        ub = ub.values
+    if index is None:
+        raise ValueError('must pass index if lb or ub is not a pandas Series object')
     # Sort parameters for plot
-    if index is None: index = lb.index
-    if name is None: name = lb.name
     diff = np.abs(ub - lb)
     if sort:
-        index = list(sorted(index, key=lambda x: diff[x]))
-        lb = [lb[i] for i in index]
-        ub = [ub[i] for i in index]
+        number = list(sorted(range(len(index)), key=lambda x: diff[x]))
+        lb = [lb[i] for i in number]
+        ub = [ub[i] for i in number]
     if top:
         lb = lb[-top:]
         ub = ub[-top:]
@@ -410,7 +421,8 @@ def plot_single_point_sensitivity(baseline, lb, ub,
                        edgecolors=c.blue_dark.RGBn)
     plot_vertical_line(baseline)
     if style:
-        format_single_piont_sensitivity_plot(baseline, ax, index, name, yranges)
+        diff = 1.05 * max(np.abs(ub - baseline).max(), np.abs(lb - baseline).max())
+        format_single_point_sensitivity_plot(baseline, diff, ax, index, name, yranges)
     return fig, ax    
 
 def plot_spearman_1d(rhos, top=None, name=None, color=None,
@@ -433,7 +445,12 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     """
     # Sort parameters for plot
     abs_ = abs
-    if index is None: index = rhos.index
+    if isinstance(rhos, pd.Series):
+        if index is None: index = rhos.index
+        if name is None: name = rhos.name
+        rhos = rhos.values
+    if index is None:
+        raise ValueError('must pass index if rhos is not a pandas Series object')
     if sort:
         rhos, index = zip(*sorted(zip(rhos, index),
                                   key=lambda x: abs_(x[0])))
@@ -452,9 +469,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
         ax.broken_barh([x], y, facecolors=color,
                        edgecolors=c.blue_dark.RGBn)
     
-    if style:
-        if name is None: name = rhos.name
-        format_spearman_plot(ax, index, name, yranges)
+    if style: format_spearman_plot(ax, index, name, yranges)
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,

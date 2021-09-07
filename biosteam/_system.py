@@ -1891,8 +1891,14 @@ class AgileSystem:
     
     @property
     def streams(self):
-        streams = sum([i._ins + i._outs for i in self.units], [])
-        return set([i for i in streams if i])
+        streams = []
+        stream_set = set()
+        for u in self.units:
+            for s in u._ins + u._outs:
+                if not s or s in stream_set: continue
+                streams.append(s)
+                stream_set.add(s)
+        return streams
     
     @property
     def units(self):

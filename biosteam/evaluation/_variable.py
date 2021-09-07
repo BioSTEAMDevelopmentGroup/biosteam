@@ -104,10 +104,11 @@ class Variable:
         else:
             units = ''
         if getattr(self, 'distribution', None):
+            dist_name = type(self.distribution).__name__
             distribution_values = self.distribution._repr.values()
             distribution = ', '.join([format(j, number_format)
                                       for j in distribution_values])
-            distribution = ' (' + distribution + ')'
+            distribution = f' ({dist_name}; {distribution})'
         else:
             distribution = ''
         description = name + units + distribution

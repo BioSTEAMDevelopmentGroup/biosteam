@@ -15,13 +15,13 @@ lime
 H3PO4
 rvf_wash_water
 s63
-s61
-s62
 s64
 s67
 s68
 s69
 s70
+s61
+s62
 polymer
 natural_gas
 dilution_water
@@ -45,44 +45,14 @@ filter_cake
 rejected_water_and_blowdown
 Yeast
 s4
-s42
 s66
+s42
 dryer_emissions
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"s.6
-recirculated_chilled_water
-sugarcane
-makeup_water
-imbibition_water
-dryer_air
-cooling_tower_makeup_water
-stripping_water
-boiler_makeup_water
-enzyme
-denaturant
-lime
-H3PO4
-rvf_wash_water
-s63
-s61
-s62
-s64
-s67
-s68
-s69
-s70
-polymer
-natural_gas
-dilution_water
-cooling_tower_chemicals
-dryer_natural_gas
-" -> "sugarcane_sys
-System" [style=dashed]
-	s73
+	s72
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"s.7
 s.9
@@ -99,13 +69,12 @@ filter_cake
 rejected_water_and_blowdown
 Yeast
 s4
-s42
 s66
+s42
 dryer_emissions
-" -> s73
-	s72
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	s72 -> "s.6
+" -> s72
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"s.6
 recirculated_chilled_water
 sugarcane
 makeup_water
@@ -120,19 +89,20 @@ lime
 H3PO4
 rvf_wash_water
 s63
-s61
-s62
 s64
 s67
 s68
 s69
 s70
+s61
+s62
 polymer
 natural_gas
 dilution_water
 cooling_tower_chemicals
 dryer_natural_gas
-"
+" -> "sugarcane_sys
+System" [style=dashed]
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"sugarcane_sys
 System" -> "s.7
@@ -150,8 +120,38 @@ filter_cake
 rejected_water_and_blowdown
 Yeast
 s4
-s42
 s66
+s42
 dryer_emissions
 " [style=dashed]
+	s73
+	edge [arrowhead=none arrowtail=none headport=c tailport=e]
+	s73 -> "s.6
+recirculated_chilled_water
+sugarcane
+makeup_water
+imbibition_water
+dryer_air
+cooling_tower_makeup_water
+stripping_water
+boiler_makeup_water
+enzyme
+denaturant
+lime
+H3PO4
+rvf_wash_water
+s63
+s64
+s67
+s68
+s69
+s70
+s61
+s62
+polymer
+natural_gas
+dilution_water
+cooling_tower_chemicals
+dryer_natural_gas
+"
 }

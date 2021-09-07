@@ -64,9 +64,9 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
     feed._ID = ''
     ins = sort_streams(ins)
     outs = sort_streams(outs)
-    feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]),
+    feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]) or '-',
                                                None, feed)
-    product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]),
+    product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]) or '-',
                                                   product, None)
     system_box = bst.units.DiagramOnlySystemUnit(ID, feed, product)
     return digraph_from_units([feed_box, system_box, product_box],
@@ -120,7 +120,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
         feed = Stream(None)
         feed._ID = ''
         feeds = sort_streams(feeds)
-        feed_box = StreamUnit('\n'.join([i.ID for i in feeds]), None, feed)
+        feed_box = StreamUnit('\n'.join([i.ID for i in feeds]) or '-', None, feed)
         ins.append(feed)
     else: 
         feed_box = None
@@ -130,7 +130,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
         product = Stream(None)
         product._ID = ''
         products = sort_streams(products)
-        product_box = StreamUnit('\n'.join([i.ID for i in products]), product, None)
+        product_box = StreamUnit('\n'.join([i.ID for i in products]) or '-', product, None)
         outs.append(product)
     else: 
         product_box = None
