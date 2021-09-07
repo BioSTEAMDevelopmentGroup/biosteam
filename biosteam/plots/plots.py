@@ -363,7 +363,7 @@ def format_single_point_sensitivity_plot(center, diff, ax, index, name, yranges)
     ax3.zorder = 1000
 
 def plot_single_point_sensitivity(baseline, lb, ub, 
-        top=None, name=None, color=None, w=1., s=1., offset=0., style=True, 
+        top=None, name=None, colors=None, w=1., s=1., offset=0., style=True, 
         fig=None, ax=None, sort=True, index=None
     ): # pragma: no coverage
     """
@@ -412,13 +412,15 @@ def plot_single_point_sensitivity(baseline, lb, ub,
     # Plot bars one by one
     if ax is None:
         fig, ax = plt.subplots()
-    if color is None: color = c.blue_tint.RGBn
+    if colors is None: 
+        colors = c.blue_tint.RGBn, c.red_tint.RGBn
+    color_left, color_right = colors
     for i, y in enumerate(yranges):
         xlb = [baseline, lb[i] - baseline]
         xub = [baseline, ub[i] - baseline]
-        ax.broken_barh([xlb], y, facecolors=color,
+        ax.broken_barh([xlb], y, facecolors=color_left,
                        edgecolors=c.blue_dark.RGBn)
-        ax.broken_barh([xub], y, facecolors=color,
+        ax.broken_barh([xub], y, facecolors=color_right,
                        edgecolors=c.blue_dark.RGBn)
     plot_vertical_line(baseline)
     if style:
