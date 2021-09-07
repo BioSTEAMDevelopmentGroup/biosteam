@@ -399,6 +399,7 @@ def plot_single_point_sensitivity(baseline, lb, ub,
     diff = np.abs(ub - lb)
     if sort:
         number = list(sorted(range(len(index)), key=lambda x: diff[x]))
+        index = [index[i] for i in number]
         lb = [lb[i] for i in number]
         ub = [ub[i] for i in number]
     if top:
@@ -449,8 +450,6 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
         if index is None: index = rhos.index
         if name is None: name = rhos.name
         rhos = rhos.values
-    if index is None:
-        raise ValueError('must pass index if rhos is not a pandas Series object')
     if sort:
         rhos, index = zip(*sorted(zip(rhos, index),
                                   key=lambda x: abs_(x[0])))
@@ -469,7 +468,10 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
         ax.broken_barh([x], y, facecolors=color,
                        edgecolors=c.blue_dark.RGBn)
     
-    if style: format_spearman_plot(ax, index, name, yranges)
+    if style:
+        if index is None:
+            raise ValueError('must pass index if rhos is not a pandas Series object')
+        format_spearman_plot(ax, index, name, yranges)
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
@@ -489,15 +491,14 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     fig : matplotlib Figure
     ax : matplotlib AxesSubplot
     """
-    rhos = list(reversed(rhos))
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
+    rhos = list(reversed(rhos))
     values = np.array([i.values for i in rhos])
+    indices = list(range(values.shape[1]))
     if sort:
-        rhos_mean = np.abs(values).mean(axis=0)
-        indices = [i[0] for i in sorted(enumerate(rhos_mean), key=lambda x: x[1])]
-    else:
-        indices = range(len(values))
+        rhos_mean = np.abs(values.mean(axis=0))
+        indices.sort(key=lambda x: rhos_mean[x])
     if ignored: indices = [i for i in indices if i not in ignored]
     if top is not None: indices = indices[-top:]
     rhos = [[rho[i] for i in indices] for rho in values]
