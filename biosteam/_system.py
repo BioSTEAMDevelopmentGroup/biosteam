@@ -31,6 +31,7 @@ from inspect import signature
 from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
+from scipy.integrate import solve_ivp
 
 __all__ = ('System', 'AgileSystem', 'MockSystem', 
            'AgileSystem', 'OperationModeResults',
@@ -470,6 +471,7 @@ class System:
         self._save_configuration()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
+        self._state = None
         return self
         
     def __init__(self, ID, path=(), recycle=None, facilities=(), 
@@ -489,6 +491,7 @@ class System:
         self._save_configuration()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
+        self._state = None
     
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1035,6 +1038,11 @@ class System:
             raise ValueError("only 'wegstein', 'aitken', and 'fixedpoint' "
                             f"methods are valid, not '{method}'")
 
+    @property
+    def isdynamic(self):
+        '''Whether the system contains any dynamic Unit.'''
+        return any([unit._isdynamic for unit in self.units])            
+    
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
         if unit not in self.unit_path: return []
@@ -1379,10 +1387,98 @@ class System:
         """Reset cache of all unit operations."""
         for unit in self.units: unit.reset_cache()
 
-    def simulate(self):
+    def _state_dct2arr(self, dct):
+        arr = np.array([])
+        idxer = {}
+        for unit in self.units:
+            start = len(arr)
+            arr = np.append(dct[unit.ID])
+            stop = len(arr)
+            idxer[unit.ID] = (start, stop)
+        return arr, idxer
+    
+    def _dstate_dct2arr(self, dct, idx):
+        arr = np.zeros(max([i[-1] for i in idx.values()]))
+        for k,v in idx.items():
+            arr[v[0]:v[1]] = dct[k]
+        return arr
+    
+    def _state_arr2dct(self, arr, idx):
+        dct_y = {}
+        for unit in self.units:
+            start, stop = idx[unit.ID]
+            dct_y.update(unit._state_locator(arr[start, stop]))
+        for ws in self.feeds:
+            dct_y[ws.ID] = np.append(ws.Conc, ws.get_total_flow('m3/d'))
+        return dct_y
+        
+    def _dstate_arr2dct(self, arr, idx):
+        dct_dy = {}
+        for unit in self.units:
+            start, stop = idx[unit.ID]
+            dct_dy.update(unit._dstate_locator(arr[start, stop]))
+        return dct_dy
+        
+    def _load_state(self):
+        '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
+        if self._state is None:
+            dct_all_but_feed = {}
+            for unit in self.units:
+                dct_all_but_feed.update(unit._load_state())
+            y, idx = self._state_dct2arr(dct_all_but_feed)
+            self._state = {'time': 0,
+                           'state': y,
+                           'indexer': idx}
+        else:
+            y = self._state['state']
+            idx = self._state['indexer']
+        return y, idx
+    
+    def _ODE(self, idx, yshape):
+        '''System-wide ODEs.'''
+        dct_dy = self._dstate_arr2dct(np.zeros(yshape), idx)
+        def dydt(t, y):
+            dct_y = self._state_arr2dct(y, idx)
+            for unit in self.units:
+                QC_ins = np.concatenate([dct_y[ws.ID] for ws in unit.ins])
+                dQC_ins = np.concatenate([dct_dy[ws.ID] for ws in unit.ins])
+                QC = dct_y[unit.ID]
+                dy_dt = unit._ODE
+                QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
+                dct_dy.update(unit._dstate_locator(QC_dot))
+            return self._dstate_dct2arr(dct_dy, idx)        
+        return dydt
+    
+    def _write_state(self, t, y):
+        '''record the states at a certain time point of the dynamic simulation and define wastestreams '''
+        self._state['time'] = t
+        self._state['state'] = y
+        idx = self._state['indexer']
+        dct_y = self._state_arr2dct(y, idx)
+        cmps = self.components.IDs
+        for ws in self.streams - self.feeds:
+            yi = dct_y[ws.ID]
+            Q = yi[-1]
+            Cs = dict(zip(cmps, yi[:-1]))
+            Cs.pop('H2O', None)
+            ws.set_flow_by_concentration(Q, Cs, units=('m3/d', 'mg/L'))
+        for unit in self.units:
+            unit.state = dct_y[unit.ID]
+    
+    def clear_state(self):
+        self._state = None
+    
+    def simulate(self, start_from_cached_state=True, **kwarg):
         """Converge the path and simulate all units."""
         self._setup()
         self._converge()
+        if self.isdynamic:
+            if not start_from_cached_state: self.clear_state()
+            y0, idx = self._load_state()
+            dydt = self._ODE(idx, y0.shape)
+            # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
+            sol = solve_ivp(dydt, y0, **kwarg)
+            self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
     
