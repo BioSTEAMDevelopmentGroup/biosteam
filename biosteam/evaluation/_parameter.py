@@ -55,6 +55,11 @@ class Parameter(Variable):
         self.setter = setter
         self.system = system
         self.distribution = distribution
+        if not bounds:
+            if distribution:
+                bounds = (distribution.lower[0], distribution.upper[0])
+        if bounds and not baseline:
+            baseline = 0.5 * (bounds[0] + bounds[1])
         self.baseline = baseline
         self.bounds = bounds
         self.kind = kind

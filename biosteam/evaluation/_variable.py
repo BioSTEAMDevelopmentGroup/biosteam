@@ -92,7 +92,7 @@ class Variable:
         name = name.strip(' ')
         return name
     
-    def describe(self, number_format='.3g') -> str:
+    def describe(self, number_format='.3g', distribution=True) -> str:
         """Return description of variable."""
         name = self.name
         if not name.isupper():
@@ -103,15 +103,26 @@ class Variable:
             units = (' [' + str(self.units) + ']')
         else:
             units = ''
-        if getattr(self, 'distribution', None):
-            dist_name = type(self.distribution).__name__
-            distribution_values = self.distribution._repr.values()
-            distribution = ', '.join([format(j, number_format)
-                                      for j in distribution_values])
-            distribution = f' ({dist_name}; {distribution})'
+        if distribution:
+            if getattr(self, 'distribution', None):
+                dist_name = type(self.distribution).__name__
+                distribution_values = self.distribution._repr.values()
+                distribution = ', '.join([format(j, number_format)
+                                          for j in distribution_values])
+                distribution = f' ({dist_name}; {distribution})'
+            else:
+                distribution = ''
+            description = name + units + distribution
         else:
-            distribution = ''
-        description = name + units + distribution
+            baseline = getattr(self, 'baseline', None)
+            bounds = getattr(self, 'bounds', None)
+            if bounds and baseline:
+                lb, ub = bounds
+                values = ', '.join([format(i, number_format)
+                                    for i in (lb, baseline, ub)])
+                description = name + units + f' ({values})'
+            else:
+                description = name + units
         if description:
             first_letter = description[0]
             if first_letter.islower(): 

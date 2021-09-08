@@ -197,12 +197,10 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def single_point_sensitivity(self, default_baseline=True, etol=0.01):
+    def single_point_sensitivity(self, etol=0.01):
         parameters = self.parameters
-        bounds = [i.bounds if i.bounds
-                  else (i.distribution.lower[0], i.distribution.upper[0])
-                  for i in parameters]
-        sample = self.get_baseline_sample(default_baseline)
+        bounds = [i.bounds for i in parameters]
+        sample = self.get_baseline_sample()
         N_parameters = len(parameters)
         index = range(N_parameters)
         metrics = self.metrics
