@@ -582,7 +582,8 @@ class HeatUtility:
         self.duty *= -1
         self.unit_duty *= -1
         self.cost *= -1
-        self.inlet_utility_stream, self.outlet_utility_stream = self.outlet_utility_stream, self.inlet_utility_stream
+        if self.duty:
+            self.inlet_utility_stream, self.outlet_utility_stream = self.outlet_utility_stream, self.inlet_utility_stream
 
     # Subcalculations
 

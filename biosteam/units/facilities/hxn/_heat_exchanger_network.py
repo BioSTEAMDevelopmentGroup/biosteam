@@ -21,7 +21,9 @@ __all__ = ('HeatExchangerNetwork',)
 class HeatExchangerNetwork(Facility):
     """
     Create a HeatExchangerNetwork object that will perform a pinch analysis
-    on the entire system's heating and cooling utility objects.
+    on the entire system's heating and cooling utility objects. The heat
+    exchanger network reduces the heating and cooling utility requirements 
+    of the system and may add additional capital cost.
     
     Parameters
     ----------
@@ -35,9 +37,10 @@ class HeatExchangerNetwork(Facility):
     
     Notes
     -----
-    Original system Stream and HX objects are preserved. All Stream copies and new HX objects 
-    can be found in a newly created flowsheet '<sys>_HXN' where <sys> is the system in which
-    an instance of HeatExchangerNetwork is created.
+    Original system stream and heat exchanger objects are preserved. All stream 
+    copies and new HX objects can be found in a newly created flowsheet 
+    '<sys>_HXN' where <sys> is the name of the system associated to the 
+    HeatExchangerNetwork object.
     
     References
     ----------
@@ -191,6 +194,18 @@ class HeatExchangerNetwork(Facility):
                                 s_out.vle(T=s_out.T, P=s_out.P)
                         else:
                             s_out.mol[:] = s_in.mol
+                # for life_cycle in stream_life_cycles:
+                #     heating = life_cycle.cold
+                #     for lc in life_cycle.life_cycle:
+                #         if isinstance(lc.unit, bst.HXutility):
+                #             H = lc.unit.H
+                #         else:
+                #             H = getattr(lc.unit, f'H_lim{lc.index}')
+                #         outlet = lc.unit.outs[lc.index]
+                #         if heating:
+                #             if outlet.H > H: outlet.H = H
+                #         elif outlet.H < H:
+                #             outlet.H = H
             else:
                 hx_utils.sort(key = lambda x: x.duty)
                 self.HXN_flowsheet = HXN_F = bst.main_flowsheet
@@ -296,7 +311,7 @@ class HeatExchangerNetwork(Facility):
                 IDs = tuple([i.ID for i in s_util.available_chemicals])
                 np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
                 np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-                # np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             if abs(energy_balance_error) > self.acceptable_energy_balance_error:
                 msg = ("heat exchanger network energy balance is off by "
                       f"{energy_balance_error:.2%} (an absolute error greater "

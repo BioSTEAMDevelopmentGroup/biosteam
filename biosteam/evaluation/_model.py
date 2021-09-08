@@ -47,153 +47,6 @@ class Model(State):
     exception_hook : callable(exception, sample)
         Function called after a failed evaluation. The exception hook should 
         return either None or metric values given the exception and sample.
-    
-    Examples
-    --------
-    For a complete example, visit :doc:`../tutorial/Monte_Carlo`. An abridged example is presented here:
-    
-    >>> from chaospy import distributions as shape
-    >>> from biorefineries import lipidcane as lc
-    >>> import biosteam as bst
-    >>> import numpy as np
-    >>> solve_IRR = lambda: 100. * lc.lipidcane_tea.solve_IRR()
-    >>> total_utility_cost = lambda: lc.lipidcane_tea.utility_cost / 10**6 # In 10^6 USD/yr
-    >>> metrics = (bst.Metric('Internal rate of return', solve_IRR, '%'),
-    ...            bst.Metric('Utility cost', total_utility_cost, '10^6 USD/yr'))
-    >>> model = bst.Model(lc.lipidcane_sys, metrics)
-    
-    The Model object begins with no parameters:
-    
-    >>> model.show()
-    Model: Biorefinery internal rate of return [%]
-           Biorefinery utility cost [10^6 USD/yr]
-     (No parameters)
-     
-    Add number of fermentation reactors as a "design" parameter (which doesn't affect mass or energy balances'):
-        
-    >>> R301 = lc.flowsheet.unit.R301 # The Fermentation Unit
-    >>> @model.parameter(name='Number of reactors',
-    ...                  element=R301, kind='design',
-    ...                  distribution=shape.Uniform(4, 10))
-    ... def set_N_reactors(N):
-    ...     R301.N = round(N)
-    
-    The decorator uses the function to create a Parameter object and add it to the model:
-
-    >>> parameters = model.get_parameters()
-    >>> parameters
-    (<Parameter: [Fermentation-R301] Number of reactors>,)
-
-    Calling a Parameter object will update the parameter and results:
-
-    >>> set_N_reactors_parameter = parameters[0]
-    >>> set_N_reactors_parameter(5)
-    >>> R301.purchase_cost / 1e6
-    1.5
-    >>> set_N_reactors_parameter(8)
-    >>> R301.purchase_cost / 1e6
-    1.8
-    
-    Add the fermentation unit base cost as a "cost" parameter with a triangular distribution (which doesn't affect mass and energy balances nor design requirements'):
-    
-    >>> reactors_cost_coefficients = R301.cost_items['Reactors']
-    >>> n_baseline = reactors_cost_coefficients.n # Most probable at baseline value
-    >>> lb = n_baseline - 0.1 # Minimum
-    >>> ub = n_baseline + 0.1 # Maximum
-    >>> @model.parameter(element=R301, kind='cost',
-    ...                  distribution=shape.Triangle(lb, n_baseline, ub))
-    ... def set_exponential_cost_coefficient(exponential_cost_coefficient):
-    ...     reactors_cost_coefficients.n = exponential_cost_coefficient
-    
-    Note that if the name was not defined, it defaults to the setter's signature:
-    
-    >>> model.get_parameters()
-    (<Parameter: [Fermentation-R301] Number of reactors>,
-     <Parameter: [Fermentation-R301] Exponential cost coefficient>)
-
-    Add feedstock price as a "isolated" parameter (which doesn't affect unit operations in any way):
-                                                   
-    >>> lipidcane = lc.lipidcane # The feedstock stream
-    >>> lb = lipidcane.price * 0.9 # Minimum price
-    >>> ub = lipidcane.price * 1.1 # Maximum price
-    >>> @model.parameter(element=lipidcane, kind='isolated', units='USD/kg',
-    ...                  distribution=shape.Uniform(lb, ub))
-    ... def set_feed_price(feedstock_price):
-    ...     lipidcane.price = feedstock_price                                   
-    
-    Add lipid fraction as a "coupled" parameter (which affects mass and energy balances):   
-    
-    >>> from biorefineries.lipidcane.utils import set_lipid_fraction
-    >>> # Note that if the setter function is already made,
-    >>> # you can pass it as the first argument
-    >>> set_lipid_fraction = model.parameter(set_lipid_fraction,
-    ...                                      element=lipidcane, kind='coupled',
-    ...                                      distribution=shape.Uniform(0.05, 0.10))
-    
-    Add fermentation efficiency as a "coupled" parameter:
-
-    >>> @model.parameter(element=R301, kind='coupled',
-    ...                  distribution=shape.Triangle(0.85, 0.90, 0.95))
-    ... def set_fermentation_efficiency(efficiency):
-    ...     R301.efficiency = efficiency
-
-    Note that all parameters are stored in the model with highly coupled parameters first:
-
-    >>> model.show()
-    Model: Biorefinery internal rate of return [%]
-           Biorefinery utility cost [10^6 USD/yr]
-     Element:           Parameter:
-     Stream-lipidcane   Lipid fraction
-     Fermentation-R301  Efficiency
-                        Number of reactors
-                        Exponential cost coefficient
-     Stream-lipidcane   Feedstock price       
-
-    Get dictionary that contain DataFrame objects of parameter distributions:
-
-    >>> df_dct = model.get_distribution_summary()
-    >>> df_dct['Uniform']    
-                 Element                Name   Units    Shape  lower  upper
-    0   Stream-lipidcane      Lipid fraction          Uniform   0.05    0.1
-    1  Fermentation-R301  Number of reactors          Uniform      4     10
-    2   Stream-lipidcane     Feedstock price  USD/kg  Uniform 0.0311  0.038
-    
-    Evaluate sample:
-        
-    >>> np.round(model([0.05, 0.85, 8, 0.6, 0.040])) # Returns metrics (IRR and utility cost)
-    Biorefinery  Internal rate of return [%]    13
-                 Utility cost [10^6 USD/yr]    -28
-    dtype: float64
-    
-    Sample from a joint distribution, and simulate samples:
-
-    >>> import numpy as np
-    >>> np.random.seed(1234) # For consistent results
-    >>> N_samples = 10
-    >>> rule = 'L' # For Latin-Hypercube sampling
-    >>> samples = model.sample(N_samples, rule)
-    >>> model.load_samples(samples)
-    >>> model.evaluate()
-    >>> table = model.table # All evaluations are stored as a pandas DataFrame
-    
-    Note that coupled parameters are on the left most columns, and are ordered 
-    from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>):
-
-    Model objects also presents methods for sensitivity analysis such as Spearman's correlation:        
-
-    >>> df_rho, df_p = model.spearman_r()
-    >>> df_rho['Biorefinery', 'Internal rate of return [%]']
-    Element            Parameter                   
-    Stream-lipidcane   Lipid fraction                   0.79
-    Fermentation-R301  Efficiency                       0.33
-                       Number of reactors              0.054
-                       Exponential cost coefficient   -0.066
-    Stream-lipidcane   Feedstock price [USD/kg]        -0.49
-    Name: (Biorefinery, Internal rate of return [%]), dtype: float64
-
-    >>> # Reset settings to default for future tests
-    >>> bst.process_tools.default()
-    >>> reactors_cost_coefficients.n = n_baseline
 
     """
     __slots__ = (
@@ -344,6 +197,52 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
+    def single_point_sensitivity(self, etol=0.01):
+        parameters = self.parameters
+        bounds = [i.bounds for i in parameters]
+        sample = self.get_baseline_sample()
+        N_parameters = len(parameters)
+        index = range(N_parameters)
+        metrics = self.metrics
+        N_metrics = len(metrics)
+        values_lb = np.zeros([N_parameters, N_metrics])
+        values_ub = values_lb.copy()
+        evaluate = self._evaluate_sample
+        baseline_1 = np.array(evaluate(sample, True))
+        for i in index:
+            sample_lb = sample.copy()
+            sample_ub = sample.copy()
+            lb, ub = bounds[i]
+            hook = parameters[i].hook
+            if hook:
+                sample_lb[i] = hook(lb)
+                sample_ub[i] = hook(ub)
+            else:
+                sample_lb[i] = lb
+                sample_ub[i] = ub
+            values_lb[i, :] = evaluate(sample_lb, True)
+            values_ub[i, :] = evaluate(sample_ub, True)
+        baseline_2 = np.array(evaluate(sample, True))
+        error = np.abs(baseline_2 - baseline_1)
+        index, = np.where(error > 1e-6)
+        error = error[index]
+        relative_error = error / np.maximum.reduce([np.abs(baseline_1[index]), np.abs(baseline_2[index])])
+        for i, idx in enumerate(index):
+            if relative_error[i] > etol:
+                raise RuntimeError(
+                    f"inconsistent model; {metrics[idx]} has a value of "
+                    f"{baseline_1[idx]} before evaluating sensitivty and "
+                    f"{baseline_2[idx]} after"
+                )
+        metric_index = var_columns(metrics)
+        baseline = pd.Series(0.5 * (baseline_1 + baseline_2), index=metric_index)
+        df_lb = pd.DataFrame(values_lb, 
+                            index=var_columns(parameters),
+                            columns=metric_index)
+        df_ub = df_lb.copy()
+        df_ub[:] = values_ub
+        return baseline, df_lb, df_ub
+    
     def evaluate(self, thorough=True, notify=0, 
                  file=None, autosave=0, autoload=False):
         """

@@ -71,7 +71,7 @@ class HX(Unit, isabstract=True):
         heat.
 
     """
-    line = 'Heat Exchanger'
+    line = 'Heat exchanger'
     _units = {'Area': 'ft^2',
               'Overall heat transfer coefficient': 'kW/m^2/K',
               'Log-mean temperature difference': 'K',
@@ -264,7 +264,7 @@ class HXutility(HX):
         flow (kmol/hr): Water    200
                         Ethanol  200
     >>> hx.results()
-    Heat Exchanger                                            Units       hx
+    Heat exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
                         Flow                                kmol/hr     26.1
                         Cost                                 USD/hr     6.21
@@ -299,7 +299,7 @@ class HXutility(HX):
         flow (kmol/hr): Water    200
                         Ethanol  200
     >>> hx.results()
-    Heat Exchanger                                            Units       hx
+    Heat exchanger                                            Units       hx
     Low pressure steam  Duty                                  kJ/hr 1.94e+07
                         Flow                                kmol/hr      499
                         Cost                                 USD/hr      119
@@ -316,7 +316,7 @@ class HXutility(HX):
     Utility cost                                             USD/hr      119
 
     """
-    line = 'Heat Exchanger'
+    line = 'Heat exchanger'
     _graphics = utility_heat_exchanger_graphics
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
@@ -573,7 +573,7 @@ class HXprocess(HX):
         flow (kmol/hr): Water  200
     
     >>> hx.results()
-    Heat Exchanger                                            Units       hx
+    Heat exchanger                                            Units       hx
     Design              Area                                   ft^2      213
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K     20.4
@@ -614,7 +614,7 @@ class HXprocess(HX):
         phase: 'l', T: 327.92 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  200
     >>> hx.results()
-    Heat Exchanger                                            Units       hx
+    Heat exchanger                                            Units       hx
     Design              Area                                   ft^2      367
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K     11.5
@@ -628,7 +628,7 @@ class HXprocess(HX):
     Utility cost                                             USD/hr        0
     
     """
-    line = 'Heat Exchanger'
+    line = 'Heat exchanger'
     _graphics = process_heat_exchanger_graphics
     _N_heat_utilities = 0
     _N_ins = 2

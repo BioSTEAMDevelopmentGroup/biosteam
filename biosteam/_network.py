@@ -315,17 +315,20 @@ class Network:
         network.add_process_heat_exchangers()
         return network
     
-    def add_process_heat_exchangers(self):
+    def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance
         path = self.path
+        if excluded is None: excluded = set()
         for i, u in enumerate(path):
             if isa(u, Unit):
                 for s in u.outs:
                     sink = s.sink
-                    if isa(sink, bst.HXprocess) and sink in path[:i] and sink not in path[i+1:]:
-                        if sink not in path[i+1:]: path.insert(i+1, sink)
+                    if u in excluded: continue
+                    if isa(sink, bst.HXprocess) and sink in path[:i] and not any([(sink is i if isa(i, Unit) else sink in i.units) for i in path[i+1:]]):
+                        excluded.add(sink)
+                        path.insert(i+1, sink)
             else:
-                u.add_process_heat_exchangers()
+                u.add_process_heat_exchangers(excluded)
         if len(path) > 1 and path[-1] is path[0]: path.pop()
     
     @property

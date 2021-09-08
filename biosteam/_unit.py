@@ -69,15 +69,13 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
 def find_path_segment(start_unit, end_unit):
     path_segment = fill_path_segment(start_unit, [], end_unit)
     if path_segment is None:
-        raise ValueError(f"start unit {repr(start_unit)} not downstream from end unit {repr(end_unit)}")
+        raise ValueError(f"end unit {repr(end_unit)} not downstream from start unit {repr(start_unit)}")
     return path_segment
 
 def fill_path_segment(start_unit, path, end_unit):
     if start_unit is end_unit:
         return path
-    if start_unit in path: 
-        return None
-    else:
+    if start_unit not in path: 
         path.append(start_unit)
         first_outlet, *other_outlets = start_unit._outs
         for outlet in other_outlets:
@@ -382,13 +380,13 @@ class Unit:
         self.run_after_specification = False 
     
     def _reset_thermo(self, thermo):
-        if thermo is self.thermo: return
-        self._load_thermo(thermo)
         for i in (self._ins + self._outs):
             try:
                 if i: i._reset_thermo(thermo)
             except:
                 raise RuntimeError(f'failed to reset {repr(self)}.thermo')
+        if thermo is self.thermo: return
+        self._load_thermo(thermo)
         chemicals = thermo.chemicals
         reactions = []
         dcts = [self.__dict__]
@@ -839,10 +837,10 @@ class Unit:
     def simulate(self):
         """
         Run rigourous simulation and determine all design requirements.
-        No design specifications are solved.
+        
         """
-        self._load_stream_links()
         self._setup()
+        self._load_stream_links()
         self.run()
         self._summary()
 

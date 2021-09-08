@@ -75,9 +75,11 @@ def heat_exchange_to_condition(s_in, s_out, T=None, phase=None,
     
     # Sanity check
     if heating:
-        assert s_out.T >= s_in.T, "failed to solve temperature"
+        assert s_out.T > s_in.T - 0.01, "failed to solve temperature"
+        if s_out.T < s_in.T: s_out.T = s_in.T
     else:
-        assert s_out.T <= s_in.T, "failed to solve temperature"
+        assert s_out.T <= s_in.T + 0.01, "failed to solve temperature"
+        if s_out.T > s_in.T: s_out.T = s_in.T
     
     return s_out.H - H_in
     

@@ -132,6 +132,7 @@ class ReactorSpecification:
         data = np.zeros([M, P])
         for i in range(P):
             self.load_productivity(productivities[i])
+            self.reactor._setup()
             self.reactor._summary()
             data[:, i] = [j() for j in metrics]
         return data

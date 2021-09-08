@@ -532,7 +532,7 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
     anaerobic_digestion = AnaerobicDigestion('R601', (WWTC-0, well_water), (methane, '', '', ''))
     recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None))
     
-    caustic_over_waste = 2. * caustic.imol['Water', 'NaOH'] / 2544301
+    caustic_over_waste = 2 * caustic.imol['Water', 'NaOH'] / 2544301
     air_over_waste = air.imol['O2', 'N2'] / 2544301
     air.mol[:] = 0.
     waste = recycled_sludge_mixer-0

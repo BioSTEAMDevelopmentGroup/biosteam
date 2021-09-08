@@ -186,7 +186,7 @@ class MockSystem:
     
     def load_inlet_ports(self, inlets, optional=()):
         """Load inlet ports to system."""
-        all_inlets = bst.utils.inlets(self.units)
+        all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets: 
             if i not in all_inlets:
@@ -198,7 +198,7 @@ class MockSystem:
     
     def load_outlet_ports(self, outlets, optional=()):
         """Load outlet ports to system."""
-        all_outlets = bst.utils.outlets(self.units)
+        all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets: 
             if i not in all_outlets:
@@ -306,6 +306,8 @@ class System:
         '_connections',
         '_irrelevant_units',
         '_converge_method',
+        '_TEA',
+        '_LCA',
     )
     
     ### Class attributes ###
@@ -466,9 +468,9 @@ class System:
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
-        self._load_stream_links()
         self._load_defaults()
         self._save_configuration()
+        self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
@@ -485,10 +487,10 @@ class System:
         self._reset_errors()
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
-        self._load_stream_links()
         self._register(ID)
         self._load_defaults()
         self._save_configuration()
+        self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
@@ -517,7 +519,7 @@ class System:
             self.copy_like(system)
     
     def _save_configuration(self):
-        self._connections = [i.get_connection() for i in self.streams]
+        self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]
     
     @ignore_docking_warnings
     def _load_configuration(self):
@@ -525,7 +527,7 @@ class System:
             if i.source:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
-                i.sink.ins[i.sink_index] = i.stream    
+                i.sink.ins[i.sink_index] = i.stream
     
     @ignore_docking_warnings
     def _interface_property_packages(self):
@@ -565,14 +567,11 @@ class System:
             if isa(obj, System): obj._interface_property_packages()
         self._path = tuple(new_path)
         self._save_configuration()
-        self._load_stream_links()
-                
-    def reduce_chemicals(self, required_chemicals=()):
+             
+    def _reduced_thermo_data(self, required_chemicals, unit_thermo, mixer_thermo, thermo_cache):
         isa = isinstance
-        for i in self.streams: i.unlink()
         mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
         past_upstream_units = set()
-        thermo_cache = {}
         for mixer in mixers:
             if mixer in past_upstream_units: continue
             upstream_units = mixer.get_upstream_units()
@@ -584,31 +583,48 @@ class System:
             for unit in upstream_units: 
                 if isa(unit, bst.Junction): continue
                 chemicals = [i for i in unit.chemicals if i in available_chemicals]
-                if len(chemicals) == len(unit.chemicals): continue
+                if unit in unit_thermo:
+                    other_thermo = unit_thermo[unit]
+                    for i in other_thermo.chemicals:
+                        if i not in chemicals: chemicals.append(i)
                 IDs = tuple([i.ID for i in chemicals])
                 if IDs in thermo_cache:
-                    thermo = thermo_cache[IDs]
+                    unit_thermo[unit] = thermo_cache[IDs]
                 else:
-                    thermo_cache[IDs] = thermo = unit.thermo.subset(chemicals)
-                unit._reset_thermo(thermo)
+                    unit_thermo[unit] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
             past_upstream_units.update(upstream_units)
         for mixer in mixers: 
-            for i in mixer._ins:
-                if i._source: i._reset_thermo(i._source.thermo)
             outlet = mixer.outs[0]
             sink = outlet.sink
             if sink:
-                thermo = sink.thermo
+                chemicals = sink.thermo.chemicals 
             else:
                 chemicals = outlet.available_chemicals
-                if len(chemicals) == len(outlet.chemicals): continue
-                IDs = tuple([i.ID for i in chemicals])
-                if IDs in thermo_cache:
-                    thermo = thermo_cache[IDs]
-                else:
-                    thermo_cache[IDs] = thermo = unit.thermo.subset(chemicals)
+            if mixer in mixer_thermo:
+                other_thermo = mixer_thermo[mixer]
+                new_chemicals = []
+                for i in other_thermo.chemicals:
+                    if i not in chemicals: new_chemicals.append(i)
+                if new_chemicals:
+                    chemicals = list(chemicals) + new_chemicals
+            IDs = tuple([i.ID for i in chemicals])
+            if IDs in thermo_cache:
+                mixer_thermo[mixer] = thermo_cache[IDs]
+            else:
+                mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
+        
+    def reduce_chemicals(self, required_chemicals=()):
+        unit_thermo = {}
+        mixer_thermo = {}
+        thermo_cache = {}
+        self._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
+        for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
+        for mixer, thermo in mixer_thermo.items(): 
+            for i in mixer._ins:
+                if i._source: i._reset_thermo(unit_thermo[i._source])
+            thermo = mixer_thermo[mixer]
             mixer._load_thermo(thermo)
-            outlet._reset_thermo(thermo)
+            mixer._outs[0]._reset_thermo(thermo)
         self._interface_property_packages()
     
     def copy(self, ID=None):
@@ -625,7 +641,7 @@ class System:
         self._recycle = other._recycle
         self._connections = other._connections
     
-    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False):
+    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False, maxiter=None):
         """
         Set the convergence tolerance of the system.
 
@@ -641,14 +657,17 @@ class System:
             Relative temperature tolerance.
         subsystems : bool, optional
             Whether to also set tolerance of subsystems as well. 
+        maxiter : int, optional
+            Maximum number if iterations.
 
         """
         if mol: self.molar_tolerance = float(mol)
         if rmol: self.relative_molar_tolerance = float(rmol)
         if T: self.temperature_tolerance = float(T)
         if rT: self.temperature_tolerance = float(rT)
+        if maxiter: self.maxiter = int(maxiter)
         if subsystems: 
-            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems)
+            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
     
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -679,6 +698,16 @@ class System:
         self.converge_method = self.default_converge_method
         
         self.use_stabilized_convergence_algorithm = self.default_stabilized_convergence
+    
+    @property
+    def TEA(self):
+        """TEA object linked to the system."""
+        return getattr(self, '_TEA', None)
+    
+    @property
+    def LCA(self):
+        """TEA object linked to the system."""
+        return getattr(self, '_LCA', None)
     
     @property
     def specification(self):
@@ -961,21 +990,17 @@ class System:
     @property
     def streams(self):
         """set[:class:`~thermosteam.Stream`] All streams within the system."""
-        streams = bst.utils.streams_from_units(self.units)
+        streams = bst.utils.streams_from_units(self.unit_path)
         bst.utils.filter_out_missing_streams(streams)
         return streams
     @property
     def feeds(self):
         """set[:class:`~thermosteam.Stream`] All feeds to the system."""
-        inlets = bst.utils.inlets(self.units)
-        bst.utils.filter_out_missing_streams(inlets)
-        return bst.utils.feeds(inlets)
+        return bst.utils.feeds(self.streams)
     @property
     def products(self):
         """set[:class:`~thermosteam.Stream`] All products of the system."""
-        outlets = bst.utils.outlets(self.units)
-        bst.utils.filter_out_missing_streams(outlets)
-        return bst.utils.products(outlets)
+        return bst.utils.products(self.streams)
     
     @property
     def facilities(self):
@@ -1082,7 +1107,7 @@ class System:
     
     def _minimal_digraph(self, graph_attrs):
         """Return digraph of the path as a box."""
-        return minimal_digraph(self.ID, self.unit_path, self.streams, **graph_attrs)
+        return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
 
     def _surface_digraph(self, graph_attrs):
         return surface_digraph(self._path, **graph_attrs)
@@ -1188,7 +1213,7 @@ class System:
         else:
             self._mol_error = mol_error = mol_errors.max()
             if mol_error > 1e-12:
-                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([mol[positive_index], mol_new[positive_index]])).max()
+                self._rmol_error = rmol_error = (mol_errors / np.maximum.reduce([np.abs(mol[positive_index]), np.abs(mol_new[positive_index])])).max()
             else:
                 self._rmol_error = rmol_error = 0.
         T_errors = np.abs(T - T_new)
@@ -1507,20 +1532,23 @@ class System:
             
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys
-        >>> from biosteam import default
-        >>> cornstover_sys.get_inlet_flow('Mton') # Sum of all chemicals
-        201.0
-        >>> cornstover_sys.get_inlet_flow('Mton', 'Water') # Just water
-        180.5
-        >>> default() # Bring biosteam settings back to default
+        >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
+        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> main_flowsheet.clear()
+        >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
+        >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
+        >>> sys = main_flowsheet.create_system(operating_hours=330*24)
+        >>> sys.get_inlet_flow('Mton') # Sum of all chemicals
+        0.1584
+        >>> sys.get_inlet_flow('Mton', 'Water') # Just water
+        0.0792
         
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.inlets(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.feeds_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.inlets(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
     
     def get_outlet_flow(self, units, key=None):
         """
@@ -1535,20 +1563,24 @@ class System:
             
         Examples
         --------
-        >>> from biorefineries.cornstover import cornstover_sys
-        >>> from biosteam import default
-        >>> cornstover_sys.get_outlet_flow('Mton') # Sum of all chemicals
-        201.6
-        >>> cornstover_sys.get_outlet_flow('Mton', 'Water') # Just water
-        180.7
-        >>> default() # Bring biosteam settings back to default
+        >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
+        >>> settings.set_thermo(['Water', 'Ethanol'])
+        >>> main_flowsheet.clear()
+        >>> S1 = Splitter('S1', Stream(Ethanol=10, units='ton/hr'), split=0.1)
+        >>> M1 = Mixer('M1', ins=[Stream(Water=10, units='ton/hr'), S1-0])
+        >>> sys = main_flowsheet.create_system(operating_hours=330*24)
+        >>> sys.simulate()
+        >>> sys.get_outlet_flow('Mton') # Sum of all chemicals
+        0.1584
+        >>> sys.get_outlet_flow('Mton', 'Water') # Just water
+        0.0792
         
         """
         units += '/hr'
         if key:
-            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.outlets(self.units)])
+            return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.products_from_units(self.units)])
         else:
-            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.outlets(self.units)])
+            return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
     
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
@@ -1647,8 +1679,8 @@ class System:
         else:
             raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
         for u in self.units:
-            if u.specification:
-                u.specification = _wrap_method(u, u.specification)
+            if u._specification:
+                u._specification = [_wrap_method(u, i) for i in u.specification]
             else:
                 u.run = _wrap_method(u, u.run)
             u._design = _wrap_method(u, u._design)
@@ -1819,11 +1851,9 @@ class OperationModeResults:
 
 
 class OperationMode:
-    __slots__ = ('system', 'operating_hours', 'data')
-    def __init__(self, system, operating_hours, **data):
-        self.system = system
-        self.operating_hours = operating_hours
-        self.data = data
+    __slots__ = ('__dict__',)
+    def __init__(self, **data):
+        self.__dict__ = data
     
     def simulate(self):
         """
@@ -1832,8 +1862,10 @@ class OperationMode:
         
         """
         operation_parameters = self.agile_system.operation_parameters
-        for name, value in self.data.items():    
-            operation_parameters[name](value)
+        mode_operation_parameters = self.agile_system.mode_operation_parameters
+        for name, value in self.__dict__.items():    
+            if name in operation_parameters: operation_parameters[name](value)
+            elif name in mode_operation_parameters: mode_operation_parameters[name](value, self)
         system = self.system
         system.simulate()
         feeds = system.feeds
@@ -1847,29 +1879,9 @@ class OperationMode:
             feeds, products,
             operating_hours,
         )
-    
-    def __getattr__(self, name):
-        if name in self.data:
-            return self.data[name]
-        elif name in self.agile_system.operation_parameters:
-            raise AttributeError(f"operation parameter '{name}' is defined, but has no value")
-        else:
-            raise AttributeError(f"'{name}' is not a defined operation parameter")
-    
-    def __setattr__(self, name, value):
-        if name in self.agile_system.operation_parameters:
-            self.data[name] = value
-        elif name == 'operating_hours':
-            object.__setattr__(self, 'operating_hours', value)
-        elif name == 'data':
-            object.__setattr__(self, 'data', value)
-        elif name == 'system':
-            object.__setattr__(self, 'system', value)
-        else:
-            raise AttributeError(f"'{name}' is not a defined operation parameter")
 
     def __repr__(self):
-        return f"{type(self).__name__}(system={self.system}, operating_hours={self.operating_hours}{repr_kwargs(self.data)})"
+        return f"{type(self).__name__}({repr_kwargs(self.__dict__, start='')})"
     
         
 class AgileSystem:
@@ -1894,14 +1906,19 @@ class AgileSystem:
     """
     
     __slots__ = ('operation_modes', 'operation_parameters',
-                 'unit_capital_costs', 'utility_cost', 
-                 'flow_rates', 'feeds', 'products', 
+                 'mode_operation_parameters', 'unit_capital_costs', 
+                 'utility_cost', 'flow_rates', 'feeds', 'products', 
                  'purchase_cost', 'installed_equipment_cost',
-                 'lang_factor', '_OperationMode')
+                 'lang_factor', '_OperationMode', '_TEA', '_LCA')
     
-    def __init__(self, operation_modes=None, operation_parameters=None, lang_factor=None):
+    TEA = System.TEA
+    LCA = System.LCA
+    
+    def __init__(self, operation_modes=None, operation_parameters=None, 
+                 mode_operation_parameters=None, lang_factor=None):
         self.operation_modes = [] if operation_modes is None else operation_modes 
         self.operation_parameters = {} if operation_parameters  is None else operation_parameters
+        self.mode_operation_parameters = {} if mode_operation_parameters is None else mode_operation_parameters
         self.lang_factor = lang_factor
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
         
@@ -1920,25 +1937,31 @@ class AgileSystem:
             Name and value-pairs of operation parameters.
         
         """
-        om = self._OperationMode(system, operating_hours, **data)
+        for s in system.streams: s.unlink()
+        om = self._OperationMode(system=system, operating_hours=operating_hours, **data)
         self.operation_modes.append(om)
         return om
 
-    def operation_parameter(self, setter, name=None):
+    def operation_parameter(self, setter=None, name=None, mode_dependent=False):
         """
         Define and register operation parameter.
         
         Parameters
         ----------    
         setter : function
-                 Should set parameter in the element.
+            Should set parameter in the element.
         name : str
-               Name of parameter. If None, default to argument name of setter.
+            Name of parameter. If None, default to argument name of setter.
+        mode_dependent :
+            Whether the setter accepts the OperationMode object as a second argument.
         
         """
-        if not setter: return lambda setter: self.operation_parameter(setter, name)
+        if not setter: return lambda setter: self.operation_parameter(setter, name, mode_dependent)
         if not name: name, *_ = signature(setter).parameters.keys()
-        self.operation_parameters[name] = setter
+        if mode_dependent:
+            self.mode_operation_parameters[name] = setter
+        else:
+            self.operation_parameters[name] = setter
         return setter
 
     def market_value(self, stream):
@@ -1968,6 +1991,17 @@ class AgileSystem:
     def sales(self):
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price for i in self.products])
+    
+    @property
+    def streams(self):
+        streams = []
+        stream_set = set()
+        for u in self.units:
+            for s in u._ins + u._outs:
+                if not s or s in stream_set: continue
+                streams.append(s)
+                stream_set.add(s)
+        return streams
     
     @property
     def units(self):
@@ -2005,6 +2039,25 @@ class AgileSystem:
         factor = operating_hours / self.operating_hours
         for i in self.operation_modes: i.operating_hours *= factor
             
+    def reduce_chemicals(self, required_chemicals=()):
+        for i in self.streams: i.unlink()
+        unit_thermo = {}
+        mixer_thermo = {}
+        thermo_cache = {}
+        for mode in self.operation_modes: 
+            mode.system._load_configuration()
+            mode.system._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
+        for mode in self.operation_modes:  
+            mode.system._load_configuration()
+            for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
+            for mixer, thermo in mixer_thermo.items(): 
+                for i in mixer._ins:
+                    if i._source: i._reset_thermo(unit_thermo[i._source])
+                thermo = mixer_thermo[mixer]
+                mixer._load_thermo(thermo)
+                mixer._outs[0]._reset_thermo(thermo)
+            mode.system._interface_property_packages()
+        
     def simulate(self):
         operation_mode_results = [i.simulate() for i in self.operation_modes]
         units = set(sum([list(i.unit_capital_costs) for i in operation_mode_results], []))
@@ -2019,11 +2072,13 @@ class AgileSystem:
         self.purchase_cost = sum([u.purchase_cost for u in self.unit_capital_costs])
         lang_factor = self.lang_factor
         if lang_factor:
-            self.installed_equipment_cost = sum([u.purchase_cost * lang_factor for u in self.unit_capital_costs])
+            self.installed_equipment_cost = sum([u.purchase_cost * lang_factor for u in self.unit_capital_costs.values()])
         else:
-            self.installed_equipment_cost = sum([u.installed_cost for u in self.unit_capital_costs])
+            self.installed_equipment_cost = sum([u.installed_cost for u in self.unit_capital_costs.values()])
         for results in operation_mode_results:
             for stream, F_mass in results.flow_rates.items():
                 if stream in flow_rates: flow_rates[stream] += F_mass
                 else: flow_rates[stream] = F_mass
             
+    def __repr__(self):
+        return f"{type(self).__name__}(operation_modes={self.operation_modes}, operation_parameters={self.operation_parameters}, lang_factor={self.lang_factor})"

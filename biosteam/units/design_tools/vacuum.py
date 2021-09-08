@@ -161,7 +161,7 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
             flowrange, minsuction = flowrange_minsuction
             if F_vol_cfm < flowrange[-1] and P_suction > minsuction:
                 return (name, grade)
-    raise DesignError('no vacuum system available at current flow and suction pressure')
+    raise DesignError(f'no vacuum system available at current flow ({F_vol_cfm:.2f} cfm) and suction pressure ({P_suction:.2f} Torr)')
 
 @njit(cache=True)
 def calculate_heuristic_air_inleakage(V, P):

@@ -27,6 +27,7 @@ __all__ = (
     'plot_montecarlo', 
     'plot_montecarlo_across_coordinate',
     'plot_scatter_points', 
+    'plot_single_point_sensitivity',
     'plot_spearman', 
     'plot_spearman_1d',
     'plot_spearman_2d',
@@ -310,7 +311,7 @@ def format_spearman_plot(ax, index, name, yranges):
     ax.xaxis.set_minor_locator(MultipleLocator(0.25))
     yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
-    ax.set_xlabel(f"Spearman's correlation with {name}")
+    if name: ax.set_xlabel(f"Spearman's correlation with {name}")
     ax.set_yticks(yticks)
     ax.tick_params(axis='y', right=False, direction="inout", length=4)
     ax.tick_params(which='both', axis='x', direction="inout", length=4)
@@ -332,7 +333,100 @@ def format_spearman_plot(ax, index, name, yranges):
     # ax3.xaxis.set_major_formatter('{x:.2f}')
     # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
     ax3.zorder = 1000
+
+def format_single_point_sensitivity_plot(center, diff, ax, index, name, yranges):
+    plot_vertical_line(center, color=c.neutral_shade.RGBn, lw=1)
+    yticks = [i[0]+i[1]/2 for i in yranges]
+    yranges = np.array(yranges)
+    ax.set_xlim(center - diff, center + diff)
+    ax.set_xlabel(name)
+    ax.set_yticks(yticks)
+    ax.tick_params(axis='y', right=False, direction="inout", length=4)
+    ax.tick_params(which='both', axis='x', direction="inout", length=4)
+    ax.set_yticklabels(index)
+    ax.grid(False)
+    ylim = plt.ylim()
     
+    ax2 = ax.twinx()
+    plt.sca(ax2)
+    plt.yticks(yticks, [])
+    plt.ylim(*ylim)
+    ax2.zorder = 1000
+    ax2.tick_params(direction="in")
+    
+    ax3 = ax.twiny()
+    plt.sca(ax3)
+    ax3.tick_params(which='both', direction="in", labeltop=False, bottom=False, length=2)
+    # ax3.xaxis.set_major_locator(MultipleLocator(0.5))
+    # ax3.xaxis.set_major_formatter('{x:.2f}')
+    # ax3.xaxis.set_minor_locator(MultipleLocator(0.25))
+    ax3.zorder = 1000
+
+def plot_single_point_sensitivity(baseline, lb, ub, 
+        top=None, name=None, colors=None, w=1., s=1., offset=0., style=True, 
+        fig=None, ax=None, sort=True, index=None
+    ): # pragma: no coverage
+    """
+    Display Spearman's rank correlation plot.
+    
+    Parameters
+    ----------
+    baseline : float
+        Baseline metric value.
+    lb : pandas.Series
+        Metric values at parameter lower bounds.
+    bb : pandas.Series
+        Metric values at parameter upper bounds.
+    top=None : float, optional
+        Number of parameters to plot (from highest values).
+    
+    Returns
+    -------
+    fig : matplotlib Figure
+    ax : matplotlib AxesSubplot
+    """
+    if isinstance(lb, pd.Series):
+        if index is None: index = lb.index
+        if name is None: name = lb.name
+        lb = lb.values
+    if isinstance(ub, pd.Series):
+        if index is None: index = ub.index
+        if name is None: name = ub.name
+        ub = ub.values
+    if index is None:
+        raise ValueError('must pass index if lb or ub is not a pandas Series object')
+    # Sort parameters for plot
+    diff = np.abs(ub - lb)
+    if sort:
+        number = list(sorted(range(len(index)), key=lambda x: diff[x]))
+        index = [index[i] for i in number]
+        lb = [lb[i] for i in number]
+        ub = [ub[i] for i in number]
+    if top:
+        lb = lb[-top:]
+        ub = ub[-top:]
+        index = index[-top:]
+    
+    yranges = [(offset + s*i, w) for i in range(len(index))]
+    
+    # Plot bars one by one
+    if ax is None:
+        fig, ax = plt.subplots()
+    if colors is None: 
+        colors = c.blue_tint.RGBn, c.red_tint.RGBn
+    color_left, color_right = colors
+    for i, y in enumerate(yranges):
+        xlb = [baseline, lb[i] - baseline]
+        xub = [baseline, ub[i] - baseline]
+        ax.broken_barh([xlb], y, facecolors=color_left,
+                       edgecolors=c.blue_dark.RGBn)
+        ax.broken_barh([xub], y, facecolors=color_right,
+                       edgecolors=c.blue_dark.RGBn)
+    plot_vertical_line(baseline)
+    if style:
+        diff = 1.05 * max(np.abs(ub - baseline).max(), np.abs(lb - baseline).max())
+        format_single_point_sensitivity_plot(baseline, diff, ax, index, name, yranges)
+    return fig, ax    
 
 def plot_spearman_1d(rhos, top=None, name=None, color=None,
                      w=1., s=1., offset=0., style=True, 
@@ -354,7 +448,10 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     """
     # Sort parameters for plot
     abs_ = abs
-    if index is None: index = rhos.index
+    if isinstance(rhos, pd.Series):
+        if index is None: index = rhos.index
+        if name is None: name = rhos.name
+        rhos = rhos.values
     if sort:
         rhos, index = zip(*sorted(zip(rhos, index),
                                   key=lambda x: abs_(x[0])))
@@ -374,7 +471,8 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
                        edgecolors=c.blue_dark.RGBn)
     
     if style:
-        if name is None: name = rhos.name
+        if index is None:
+            raise ValueError('must pass index if rhos is not a pandas Series object')
         format_spearman_plot(ax, index, name, yranges)
     return fig, ax
 
@@ -395,15 +493,14 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     fig : matplotlib Figure
     ax : matplotlib AxesSubplot
     """
-    rhos = list(reversed(rhos))
     if name is None: name = rhos[0].name
     if index is None: index = rhos[0].index
+    rhos = list(reversed(rhos))
     values = np.array([i.values for i in rhos])
+    indices = list(range(values.shape[1]))
     if sort:
-        rhos_mean = np.abs(values).mean(axis=0)
-        indices = [i[0] for i in sorted(enumerate(rhos_mean), key=lambda x: x[1])]
-    else:
-        indices = range(len(values))
+        rhos_mean = np.abs(values.mean(axis=0))
+        indices.sort(key=lambda x: rhos_mean[x])
     if ignored: indices = [i for i in indices if i not in ignored]
     if top is not None: indices = indices[-top:]
     rhos = [[rho[i] for i in indices] for rho in values]
@@ -523,7 +620,7 @@ def plot_montecarlo_across_coordinate(xs, ys,
   
 def plot_contour_1d(X_grid, Y_grid, data, 
                     xlabel, ylabel, xticks, yticks, 
-                    metric_bars, fillblack=True): # pragma: no coverage
+                    metric_bars, fillblack=True, label=False, **styleaxiskw): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
     n = len(metric_bars)
     assert data.shape == (*X_grid.shape, n), (
@@ -532,7 +629,9 @@ def plot_contour_1d(X_grid, Y_grid, data,
     )
     gs_kw = dict(height_ratios=[1, 0.25])
     fig, axes = plt.subplots(ncols=n, nrows=2, gridspec_kw=gs_kw)
+    if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([n], dtype=object)
+    linecolor = c.neutral_shade.RGBn
     for i in range(n):
         metric_bar = metric_bars[i]
         ax = axes[0, i]
@@ -544,6 +643,14 @@ def plot_contour_1d(X_grid, Y_grid, data,
         cp = plt.contourf(X_grid, Y_grid, data[:, :, i],
                           levels=metric_bar.levels,
                           cmap=metric_bar.cmap)
+        if label:
+            cs = plt.contour(cp, zorder=1e16,
+                             linestyles='dashed', linewidths=1.,
+                             norm=metric_bar.norm,
+                             levels=metric_bar.levels, colors=[linecolor])
+            clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                      fontsize=12, colors=['k'], zorder=1e16)
+            for clabel in clabels: clabel.set_rotation(0)
         cps[i] = cp
         style_axis(ax, xticks, yticks, xticklabels, yticklabels)
         cbar_ax = axes[1, i]

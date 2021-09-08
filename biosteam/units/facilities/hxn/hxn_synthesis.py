@@ -254,7 +254,6 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
     candidate_cold_streams = cold_indices.copy()
     HXs_hot_side = []
     HXs_cold_side = []
-    
     streams_transient_cold_side = [i.copy() for i in streams_inlet]
     streams_transient_hot_side = [i.copy() for i in streams_inlet]
     for i in hot_indices:
@@ -339,7 +338,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             matches_cs[hot].append(cold)
             if stream_quenched:
                 break
-                
+    
     # ------------- Hot side design ------------- #                            
     unavailables = set([i for i in hot_indices if T_in_arr[i] <= pinch_T_arr[i]])
     unavailables.update([i for i in cold_indices if T_out_arr[i] <= pinch_T_arr[i]])
@@ -400,7 +399,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             matches_hs[cold].append(hot)
             if stream_quenched:
                 break
-                
+    
     # Offset heating requirement on cold side
     for cold in cold_indices:
         if Q_cold_side[cold][0]=='heat' and Q_cold_side[cold][1]>0:
@@ -438,7 +437,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                     streams_transient_cold_side[hot] = new_HX.outs[0]
                     streams_transient_cold_side[cold] = new_HX.outs[1]
                     matches_cs[hot].append(cold)
-                    
+                 
     # Offset cooling requirement on hot side  
     for hot in hot_indices:
         stream_quenched = False

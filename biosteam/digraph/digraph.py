@@ -64,9 +64,9 @@ def minimal_digraph(ID, units, streams, **graph_attrs):
     feed._ID = ''
     ins = sort_streams(ins)
     outs = sort_streams(outs)
-    feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]),
+    feed_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in ins]) or '-',
                                                None, feed)
-    product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]),
+    product_box = bst.units.DiagramOnlyStreamUnit('\n'.join([i.ID for i in outs]) or '-',
                                                   product, None)
     system_box = bst.units.DiagramOnlySystemUnit(ID, feed, product)
     return digraph_from_units([feed_box, system_box, product_box],
@@ -78,7 +78,10 @@ def surface_digraph(path, **graph_attrs):
     old_unit_connections = set()
     isa = isinstance
     Unit = bst.Unit
+    done = set()
     for i in path:
+        if i in done: continue
+        done.add(i)
         if isa(i, Unit):
             surface_units.append(i)
         elif has_path(i):
@@ -117,7 +120,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
         feed = Stream(None)
         feed._ID = ''
         feeds = sort_streams(feeds)
-        feed_box = StreamUnit('\n'.join([i.ID for i in feeds]), None, feed)
+        feed_box = StreamUnit('\n'.join([i.ID for i in feeds]) or '-', None, feed)
         ins.append(feed)
     else: 
         feed_box = None
@@ -127,7 +130,7 @@ def extend_surface_units(ID, streams, units, surface_units, old_unit_connections
         product = Stream(None)
         product._ID = ''
         products = sort_streams(products)
-        product_box = StreamUnit('\n'.join([i.ID for i in products]), product, None)
+        product_box = StreamUnit('\n'.join([i.ID for i in products]) or '-', product, None)
         outs.append(product)
     else: 
         product_box = None
@@ -149,7 +152,7 @@ def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, system.units)
+    unit_names = get_unit_names(f, system.unit_path)
     update_digraph_from_path(f, tuple(system.path) + system.facilities, 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)

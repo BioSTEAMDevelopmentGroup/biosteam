@@ -119,11 +119,19 @@ class State:
         copy._system = self._system
         copy._N_parameters_cache = self._N_parameters_cache
         copy._specification = self._specification
-        copy._skip = self._skip
         return copy
     
     def get_baseline_sample(self):
-        return np.array([i.baseline for i in self.get_parameters()])
+        """Return an array of parameter baseline values."""
+        parameters = self.get_parameters()
+        N_parameters = len(parameters)
+        sample = np.zeros(N_parameters)
+        for i, p in enumerate(parameters):
+            baseline = p.baseline
+            if baseline is None: raise RuntimeError(f'{p} has no baseline value')
+            if p.hook: baseline = p.hook(baseline)    
+            sample[i] = baseline
+        return sample
     
     def _erase(self):
         """Erase cached data."""
@@ -255,9 +263,7 @@ class State:
         return {
             'num_vars': len(params),
             'names': [i.name for i in params],
-            'bounds': [i.bounds if i.bounds
-                       else (i.distribution.lower[0], i.distribution.upper[0])
-                       for i in params]
+            'bounds': [i.bounds for i in params]
         }
 
     def sample(self, N, rule, **kwargs): 

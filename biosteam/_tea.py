@@ -389,6 +389,9 @@ class TEA:
         
         #: Guess cost for solve_price method
         self._sales = 0
+        
+        #: For convenience, set a TEA attribute for the system
+        system._TEA = self
 
     def _get_duration(self):
         return (self._start, self._years)
@@ -400,13 +403,18 @@ class TEA:
         return DPI # Default for backwards compatibility
 
     @property
+    def units(self):
+        """set[Unit] All unit operations with costs."""
+        return self.system.cost_units  
+
+    @property
     def feeds(self):
-        """list[stream] all feed streams."""
-        self.feeds = self.system.feeds  
+        """list[Unit] All feed streams."""
+        return self.system.feeds  
       
     @property
     def products(self):
-        """list[stream] all product streams."""
+        """list[Unit] All product streams."""
         return self.system.products
 
     @property

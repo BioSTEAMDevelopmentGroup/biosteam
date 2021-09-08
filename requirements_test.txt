@@ -1,4 +1,6 @@
 pyyaml
+qsdsan
+exposan
 pytest-cov
 coveralls
 nbval

@@ -40,7 +40,7 @@ def streams_from_path(path):
     Unit = bst.Unit
     for i in path:
         if isa(i, System):
-            streams.add(i.streams)
+            streams.update(i.streams)
         elif isa(i, Unit):
             streams.update(i._ins + i._outs)
     return streams
