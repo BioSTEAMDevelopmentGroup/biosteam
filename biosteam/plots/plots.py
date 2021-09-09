@@ -239,7 +239,8 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
     plt.subplots_adjust(hspace=0.1, wspace=0.4)
 
 def plot_unit_groups(unit_groups, colors=None,
-                     hatches=None, fraction=False, joint_group=None, **kwargs):
+                     hatches=None, fraction=False, joint_group=None, 
+                     format_total=None, **kwargs):
     """Plot unit groups as a stacked bar chart."""
     colors, hatches = default_colors_and_hatches(len(unit_groups), colors, hatches)
     df = bst.UnitGroup.df_from_groups(
@@ -252,9 +253,11 @@ def plot_unit_groups(unit_groups, colors=None,
             joint_group = bst.UnitGroup(None, units)
             joint_group.autofill_metrics()
         N_metrics = len(joint_group.metrics)
-        bar_labels = [f"{i():.3g}" r"\ " f"{format_units(i.units, '', False)}" 
+        if format_total is None: format_total = lambda x: format(x, '.3g')
+        bar_labels = [r"$\mathbf{" f"{format_total(i())}" "}$" "\n"
+                       "$\mathbf{[" f"{format_units(i.units, '', False)}" "]}$"
                       for i in joint_group.metrics]
-        bar_labels = [r"$\mathbf{" + i + "}$" for i in bar_labels]
+        # bar_labels = [r"$\mathbf{" + i + "}$" for i in bar_labels]
         df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
         locs, labels = plt.xticks()
         plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
