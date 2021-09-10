@@ -1472,7 +1472,6 @@ class System:
                 dy_dt = unit._ODE
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
-            print(t)
             return self._dstate_dct2arr(dct_dy, idx)        
         return dydt
     
@@ -1496,12 +1495,9 @@ class System:
         if self.isdynamic:
             if not start_from_cached_state: self.clear_state()
             y0, idx = self._load_state()
-            print('finished loading state')
             dydt = self._ODE(idx, y0.shape)
-            print('finished defining odes; start solving')
             # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
             sol = solve_ivp(fun=dydt, y0=y0, **kwarg)
-            print('finished solving')
             self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
