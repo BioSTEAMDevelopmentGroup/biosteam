@@ -308,6 +308,7 @@ class System:
         '_converge_method',
         '_TEA',
         '_LCA',
+        '_state',
     )
     
     ### Class attributes ###
@@ -1417,7 +1418,7 @@ class System:
         idxer = {}
         for unit in self.units:
             start = len(arr)
-            arr = np.append(dct[unit.ID])
+            arr = np.append(arr, dct[unit.ID])
             stop = len(arr)
             idxer[unit.ID] = (start, stop)
         return arr, idxer
@@ -1432,7 +1433,7 @@ class System:
         dct_y = {}
         for unit in self.units:
             start, stop = idx[unit.ID]
-            dct_y.update(unit._state_locator(arr[start, stop]))
+            dct_y.update(unit._state_locator(arr[start: stop]))
         for ws in self.feeds:
             dct_y[ws.ID] = np.append(ws.Conc, ws.get_total_flow('m3/d'))
         return dct_y
@@ -1441,7 +1442,7 @@ class System:
         dct_dy = {}
         for unit in self.units:
             start, stop = idx[unit.ID]
-            dct_dy.update(unit._dstate_locator(arr[start, stop]))
+            dct_dy.update(unit._dstate_locator(arr[start: stop]))
         return dct_dy
         
     def _load_state(self):
@@ -1466,11 +1467,12 @@ class System:
             dct_y = self._state_arr2dct(y, idx)
             for unit in self.units:
                 QC_ins = np.concatenate([dct_y[ws.ID] for ws in unit.ins])
-                dQC_ins = np.concatenate([dct_dy[ws.ID] for ws in unit.ins])
+                dQC_ins = np.concatenate([np.zeros(dct_y[ws.ID].shape) if ws in self.feeds else dct_dy[ws.ID] for ws in unit.ins])
                 QC = dct_y[unit.ID]
                 dy_dt = unit._ODE
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
+            print(t)
             return self._dstate_dct2arr(dct_dy, idx)        
         return dydt
     
@@ -1480,15 +1482,9 @@ class System:
         self._state['state'] = y
         idx = self._state['indexer']
         dct_y = self._state_arr2dct(y, idx)
-        cmps = self.components.IDs
-        for ws in self.streams - self.feeds:
-            yi = dct_y[ws.ID]
-            Q = yi[-1]
-            Cs = dict(zip(cmps, yi[:-1]))
-            Cs.pop('H2O', None)
-            ws.set_flow_by_concentration(Q, Cs, units=('m3/d', 'mg/L'))
         for unit in self.units:
             unit.state = dct_y[unit.ID]
+            unit._define_outs()
     
     def clear_state(self):
         self._state = None
@@ -1500,9 +1496,12 @@ class System:
         if self.isdynamic:
             if not start_from_cached_state: self.clear_state()
             y0, idx = self._load_state()
+            print('finished loading state')
             dydt = self._ODE(idx, y0.shape)
+            print('finished defining odes; start solving')
             # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
-            sol = solve_ivp(dydt, y0, **kwarg)
+            sol = solve_ivp(fun=dydt, y0=y0, **kwarg)
+            print('finished solving')
             self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
