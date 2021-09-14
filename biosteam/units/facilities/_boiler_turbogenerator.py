@@ -191,7 +191,7 @@ class Boiler(Facility):
         emissions.T = self.agent.T
         emissions.P = 101325
         emissions.phase = 'g'
-        combustion_rxns = chemicals.get_combustion_reactions()
+        self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         
         def calculate_excess_heat_at_natual_gas_flow(natural_gas_flow):
@@ -484,7 +484,7 @@ class BoilerTurbogenerator(Facility):
         emissions.T = self.agent.T
         emissions.P = 101325
         emissions.phase = 'g'
-        combustion_rxns = chemicals.get_combustion_reactions()
+        self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):

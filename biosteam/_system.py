@@ -309,6 +309,9 @@ class System:
         '_LCA',
     )
     
+    take_place_of = Unit.take_place_of
+    replace_with = Unit.replace_with
+    
     ### Class attributes ###
     
     #: [int] Default maximum number of iterations

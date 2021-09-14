@@ -81,7 +81,8 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
         
     """
     writer = ExcelWriter(file)
-    units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
+    units = sorted(system.units, key=lambda x: x.line)
+    cost_units = [i for i in units if i._design or i._cost]
     try:
         system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
     except:
@@ -125,17 +126,17 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
     tables_to_excel(stream_tables, writer, 'Stream table')
     
     # Heat utility tables
-    heat_utilities = heat_utility_tables(units)
+    heat_utilities = heat_utility_tables(cost_units)
     n_row = tables_to_excel(heat_utilities, writer, 'Utilities')
     
     # Power utility table
-    power_utility = power_utility_table(units)
+    power_utility = power_utility_table(cost_units)
     power_utility.to_excel(writer, 'Utilities', 
                            index_label='Electricity',
                            startrow=n_row)
     
     # General desing requirements
-    results = unit_result_tables(units)
+    results = unit_result_tables(cost_units)
     tables_to_excel(results, writer, 'Design requirements')
     
     # Reaction tables

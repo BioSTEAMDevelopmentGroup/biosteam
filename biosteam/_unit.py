@@ -645,29 +645,20 @@ class Unit:
         return convert(self.design_results[key], self._units[key], units)
     
     @piping.ignore_docking_warnings
-    def take_place_of(self, other):
-        """Replace inlets and outlets from this unit with that of another unit."""
+    def take_place_of(self, other, discard=False):
+        """Replace inlets and outlets from this unit or system with that of 
+        another unit or system."""
         self.ins[:] = other.ins
         self.outs[:] = other.outs
+        if discard: bst.main_flowsheet.unit.discard(other)
     
     @piping.ignore_docking_warnings
     def replace_with(self, other=None, discard=False):
         """Replace inlets and outlets from another unit with this unit."""
-        if isinstance(other, Unit):
-            other.take_place_of(self)
-        else:
-            for inlet, outlet in zip(self.ins, self.outs):
-                sink = outlet.sink
-                if sink: 
-                    sink.ins.replace(outlet, inlet)
-                    continue
-                source = inlet.source
-                if source: source.outs.replace(inlet, outlet)
-        if discard:
-            registry = bst.main_flowsheet.unit
-            registry.discard(self)
+        other.ins[:] = self.ins
+        other.outs[:] = self.outs
+        if discard: bst.main_flowsheet.unit.discard(self)
                     
-    
     # Forward pipping
     def __sub__(self, other):
         """Source streams."""
