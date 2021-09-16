@@ -31,4 +31,4 @@ class VentScrubber(Unit):
         bottoms.mix_from([bottoms, water], energy_balance=False)
         
     def _design(self):
-        self.design_results['Flow rate'] = self._ins[0].F_mass
+        self.design_results['Flow rate'] = self._ins[1].F_mass
