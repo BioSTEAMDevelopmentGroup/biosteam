@@ -30,6 +30,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     N_levels: int = 20
     N_decimals: int = 0
     center: float = None
+    units_dlim: str = '\n'
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -49,7 +50,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     @property
     def title(self):
         if self.units:
-            return f'{self.name} [{self.units}]'
+            return f'{self.name}{self.units_dlim}[{self.units}]'
         else:
             return self.name
     

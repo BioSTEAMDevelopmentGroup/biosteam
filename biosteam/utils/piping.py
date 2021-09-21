@@ -294,6 +294,10 @@ class StreamSequence:
         self._redock(stream, stacklevel+1)
         self._streams[int] = stream
     
+    def empty(self):
+        for i in self._streams: self._undock(i)
+        self._initialize_missing_streams()
+    
     def append(self, stream):
         if self._fixed_size: 
             raise RuntimeError(f"size of '{type(self).__name__}' object is fixed")

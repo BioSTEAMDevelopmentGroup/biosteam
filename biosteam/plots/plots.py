@@ -240,7 +240,7 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
 
 def plot_unit_groups(unit_groups, colors=None,
                      hatches=None, fraction=False, joint_group=None, 
-                     format_total=None, **kwargs):
+                     format_total=None, bold_label=False,**kwargs):
     """Plot unit groups as a stacked bar chart."""
     colors, hatches = default_colors_and_hatches(len(unit_groups), colors, hatches)
     df = bst.UnitGroup.df_from_groups(
@@ -254,9 +254,13 @@ def plot_unit_groups(unit_groups, colors=None,
             joint_group.autofill_metrics()
         N_metrics = len(joint_group.metrics)
         if format_total is None: format_total = lambda x: format(x, '.3g')
-        bar_labels = [r"$\mathbf{" f"{format_total(i())}" "}$" "\n"
-                       "$\mathbf{[" f"{format_units(i.units, '', False)}" "]}$"
-                      for i in joint_group.metrics]
+        if bold_label:
+            bar_labels = [r"$\mathbf{" f"{format_total(i())}" "}$" "\n"
+                           "$\mathbf{[" f"{format_units(i.units, '', False)}" "]}$"
+                          for i in joint_group.metrics]
+        else:
+            bar_labels = [f"{format_total(i())}\n[{format_units(i.units)}]"
+                          for i in joint_group.metrics]
         # bar_labels = [r"$\mathbf{" + i + "}$" for i in bar_labels]
         df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
         locs, labels = plt.xticks()
@@ -699,7 +703,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                 cs = plt.contour(cp, zorder=1e16,
                                  linestyles='dashed', linewidths=1.,
                                  levels=cp.levels, colors=[linecolor])
-                clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
                           fontsize=12, colors=['k'], zorder=1e16)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp

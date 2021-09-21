@@ -655,8 +655,21 @@ class Unit:
     @piping.ignore_docking_warnings
     def replace_with(self, other=None, discard=False):
         """Replace inlets and outlets from another unit with this unit."""
-        other.ins[:] = self.ins
-        other.outs[:] = self.outs
+        if other is None:
+            ins = self.ins
+            outs = self.outs
+            for inlet, outlet in zip(tuple(ins), tuple(outs)):
+                source = inlet.source
+                if source:
+                    source.outs.replace(inlet, outlet)
+                else:
+                    sink = outlet.sink
+                    if sink: sink.ins.replace(outlet, inlet)
+            ins.empty()
+            outs.empty()
+        else:
+            other.ins[:] = self.ins
+            other.outs[:] = self.outs
         if discard: bst.main_flowsheet.unit.discard(self)
                     
     # Forward pipping
