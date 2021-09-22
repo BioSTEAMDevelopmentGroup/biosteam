@@ -93,21 +93,27 @@ def reduced_product(products, unit_group):
     product._source = unit_group.units[0]
     return product
 
-def reduced_feeds(feeds, unit_groups):
-    groups = [([], i) for i in unit_groups]
-    for feed_group, unit_group in groups:
-        for u in unit_group.units:
-            for feed in feeds:
-                if feed in u.ins: feed_group.append(feed)
-    return [(reduced_feed(i, j) if len(i) > 1 else i[0]) for i, j in groups if i]
-
-def reduced_products(products, unit_groups):
-    groups = [([], i) for i in unit_groups]
-    for product_group, unit_group in groups:
-        for u in unit_group.units:
-            for product in products:
-                if product in u.outs: product_group.append(product)
-    return [(reduced_product(i, j) if len(i) > 1 else i[0]) for i, j in groups if i]
+def get_unit_group(stream, unit_groups):
+    for group in unit_groups:        
+        if stream in bst.utils.streams_from_units(group.units): return group
+        
+def reduced_streams(streams, unit_groups):
+    same_IDs = {}
+    for s in streams:
+        ID = s.ID
+        if ID in same_IDs:
+            originals = same_IDs[ID]
+            append = True
+            unit_group = get_unit_group(s, unit_groups)
+            for original in originals:
+                if get_unit_group(original, unit_groups) is unit_group:
+                    original.mix_from([original, s])
+                    append = False
+                    break
+            if append: originals.append(s)
+        else:
+            same_IDs[ID] = [s]
+    return sum(same_IDs.values(), [])
 
 
 # %% Main class used to handle the creating of Sankey plots
@@ -191,13 +197,13 @@ class Handle: # pragma: no coverage
         nodes_index = self.nodes_index
         feeds = [i for i in streams if i._source not in nodes_index and i._sink and i not in self.ignore and not i.isempty()]
         main_feeds = self.main_feeds or sorted(feeds, key=stream_cost, reverse=True)[:self.max_feeds]
-        feeds = main_feeds + reduced_feeds([i for i in feeds if i not in main_feeds], unit_groups)            
+        feeds = reduced_streams(main_feeds, unit_groups)
         for feed in feeds:
             node = self.feed_node(feed)
             nodes.append(node)
         products = [i for i in streams if i._sink not in nodes_index and i._source and i not in self.ignore and not i.isempty()]
         main_products = self.main_products or sorted(products, key=stream_cost, reverse=True)[:self.max_products]
-        products = main_products + reduced_products([i for i in products if i not in main_products], unit_groups)
+        products = reduced_streams(main_products, unit_groups)
         for product in products:
             node = self.product_node(product)
             nodes.append(node)
