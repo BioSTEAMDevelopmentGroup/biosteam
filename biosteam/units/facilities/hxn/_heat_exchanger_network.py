@@ -309,9 +309,21 @@ class HeatExchangerNetwork(Facility):
                 lc = stream_life_cycles[i].life_cycle[-1]
                 s_lc = lc.unit.outs[lc.index]
                 IDs = tuple([i.ID for i in s_util.available_chemicals])
-                np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
-                np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-                np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                if use_cached_network:
+                    try:
+                        np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
+                        np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                        np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                    except:
+                        msg = ("heat exchanger network cache algorithm failed, cached network ignored")
+                        warn(msg, RuntimeWarning, stacklevel=2)
+                        del self.original_heat_utils
+                        self._cost()
+                        return
+                else:
+                    np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
+                    np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                    np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             if abs(energy_balance_error) > self.acceptable_energy_balance_error:
                 msg = ("heat exchanger network energy balance is off by "
                       f"{energy_balance_error:.2%} (an absolute error greater "

@@ -191,8 +191,7 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
     df = bst.UnitGroup.df_from_groups_across_coordinate(unit_groups, f, x)
     metrics = unit_groups[0].metrics
     N_metrics = len(metrics)
-    fig, axes = subplots(N_metrics)
-    N_rows, N_cols = axes.shape
+    fig, axes = plt.subplots(nrows=N_metrics, ncols=1)
     axes_flat = axes.flatten()
     for i in range(N_metrics):
         metric = metrics[i]
@@ -202,16 +201,15 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
         plt.sca(ax)
         df_metric.T.plot(kind='bar', stacked=True, edgecolor='k',
                          ax=ax, **kwargs)
-        plt.ylabel(reformat_units(col))
-    for i in range(N_cols): fig.align_ylabels(axes[:, i])
+        plt.ylabel(reformat_units(col).replace(' [', '\n['))
+    fig.align_ylabels(axes)
     xticks = list(range(len(x)))
-    for ax in axes[:-1].flatten():
+    for ax in axes:
         plt.sca(ax)
         plt.xticks(xticks, (), rotation=0)
-    for ax in axes[-1]: 
-        plt.sca(ax)
-        plt.xticks(xticks, x, rotation=0)
-        plt.xlabel(name)
+    plt.sca(ax)
+    plt.xticks(xticks, x, rotation=0)
+    plt.xlabel(name)
     
     data = [df[i.name_with_units].values for i in metrics]
     data_ub = [np.where(i > 0, i, 0.) for i in data]
