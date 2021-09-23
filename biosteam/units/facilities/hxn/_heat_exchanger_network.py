@@ -324,16 +324,18 @@ class HeatExchangerNetwork(Facility):
             bst.main_flowsheet.set_flowsheet(original_flowsheet)
     
     def _energy_balance_error_contributions(self):
-        original_ignored = self.ignored
+        original_ignored = ignored = self.ignored
+        if ignored and callable(ignored): ignored = ignored()
         energy_balance_errors = {}
         for hu in self._get_original_heat_utilties():
-            self.ignored = original_ignored + [hu.heat_exchanger]
+            self.ignored = ignored + [hu.heat_exchanger]
             self.simulate()
             if hasattr(hu.heat_exchanger, 'owner'):
                 ID = hu.heat_exchanger.owner.ID, hu.heat_exchanger.ID
             else:
                 ID = hu.heat_exchanger.ID
             energy_balance_errors[ID] = (hu, self.energy_balance_percent_error)
+        self.ignored = original_ignored
         return energy_balance_errors
             
     def _get_stream_life_cycles(self):
