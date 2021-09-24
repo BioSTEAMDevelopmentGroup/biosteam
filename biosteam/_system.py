@@ -1469,9 +1469,10 @@ class System:
                 QC_ins = np.concatenate([dct_y[ws.ID] for ws in unit.ins])
                 dQC_ins = np.concatenate([np.zeros(dct_y[ws.ID].shape) if ws in self.feeds else dct_dy[ws.ID] for ws in unit.ins])
                 QC = dct_y[unit.ID]
-                dy_dt = unit._ODE
+                dy_dt = unit.ODE
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
+            print("%10.3e"%t)
             return self._dstate_dct2arr(dct_dy, idx)        
         return dydt
     
@@ -1498,6 +1499,7 @@ class System:
             dydt = self._ODE(idx, y0.shape)
             # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
             sol = solve_ivp(fun=dydt, y0=y0, **kwarg)
+            np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
             self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
