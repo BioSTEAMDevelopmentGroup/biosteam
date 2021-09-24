@@ -255,6 +255,30 @@ class HeatExchangerNetwork(Facility):
                 warn(warning)
             for i in sys.units:
                 i._summary()
+            for i in range(len(stream_life_cycles)):
+                s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
+                lc = stream_life_cycles[i].life_cycle[-1]
+                s_lc = lc.unit.outs[lc.index]
+                IDs = tuple([i.ID for i in s_util.available_chemicals])
+                if use_cached_network:
+                    try:
+                        np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
+                        np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                        try:
+                            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                        except:
+                            lc.unit.simulate()
+                            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                    except:
+                        msg = ("heat exchanger network cache algorithm failed, cached network ignored")
+                        warn(msg, RuntimeWarning, stacklevel=2)
+                        del self.original_heat_utils
+                        self._cost()
+                        return
+                else:
+                    np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
+                    np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                    np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             new_purchase_costs_HXp = []
             new_purchase_costs_HXu = []
             new_installed_costs_HXp = []
@@ -304,26 +328,6 @@ class HeatExchangerNetwork(Facility):
             self.original_cool_util_load = sum([abs(hu.duty) for hu in hus_cooling])
             self.actual_heat_util_load = sum([hu.duty for hu in new_hus if hu.duty>0])
             self.actual_cool_util_load = sum([abs(hu.duty) for hu in new_hus if hu.duty<0])
-            for i in range(len(stream_life_cycles)):
-                s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
-                lc = stream_life_cycles[i].life_cycle[-1]
-                s_lc = lc.unit.outs[lc.index]
-                IDs = tuple([i.ID for i in s_util.available_chemicals])
-                if use_cached_network:
-                    try:
-                        np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
-                        np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-                        np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
-                    except:
-                        msg = ("heat exchanger network cache algorithm failed, cached network ignored")
-                        warn(msg, RuntimeWarning, stacklevel=2)
-                        del self.original_heat_utils
-                        self._cost()
-                        return
-                else:
-                    np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
-                    np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-                    np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
             if abs(energy_balance_error) > self.acceptable_energy_balance_error:
                 msg = ("heat exchanger network energy balance is off by "
                       f"{energy_balance_error:.2%} (an absolute error greater "
@@ -341,12 +345,16 @@ class HeatExchangerNetwork(Facility):
         energy_balance_errors = {}
         for hu in self._get_original_heat_utilties():
             self.ignored = ignored + [hu.heat_exchanger]
-            self.simulate()
             if hasattr(hu.heat_exchanger, 'owner'):
                 ID = hu.heat_exchanger.owner.ID, hu.heat_exchanger.ID
             else:
                 ID = hu.heat_exchanger.ID
-            energy_balance_errors[ID] = (hu, self.energy_balance_percent_error)
+            try:
+                self.simulate()
+            except: 
+                energy_balance_errors[ID] = (hu, None)
+            else:
+                energy_balance_errors[ID] = (hu, self.energy_balance_percent_error)
         self.ignored = original_ignored
         return energy_balance_errors
             
