@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
-# 
-# This module is under the UIUC open-source license. See 
+#
+# This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
@@ -33,9 +33,9 @@ import biosteam as bst
 import numpy as np
 from scipy.integrate import solve_ivp
 
-__all__ = ('System', 'AgileSystem', 'MockSystem', 
+__all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
-           'mark_disjunction', 'unmark_disjunction')    
+           'mark_disjunction', 'unmark_disjunction')
 
 # %% Customization to system creation
 
@@ -43,9 +43,9 @@ disjunctions = []
 
 def mark_disjunction(stream):
     port = OutletPort.from_outlet(stream)
-    if port not in disjunctions: 
+    if port not in disjunctions:
         disjunctions.append(port)
-    
+
 def unmark_disjunction(stream):
     port = OutletPort.from_outlet(stream)
     if port in disjunctions:
@@ -57,7 +57,7 @@ def unmark_disjunction(stream):
 def facilities_from_units(units):
     isa = isinstance
     return [i for i in units if isa(i, Facility)]
-    
+
 def find_blowdown_recycle(facilities):
     isa = isinstance
     for i in facilities:
@@ -70,7 +70,7 @@ def check_recycle_feasibility(material: np.ndarray):
     if fn.infeasible(material):
         raise InfeasibleRegion('recycle material flow rate')
     else:
-        material[material < 0.] = 0. 
+        material[material < 0.] = 0.
 
 
 # %% Functions for taking care of numerical specifications within a system path
@@ -112,7 +112,7 @@ def _method_debug(self, f):
         except Exception as e:
             print_exception_in_debugger(self, f, e)
             update_locals_with_flowsheet(locals())
-            # All systems, units, streams, and flowsheets are available as 
+            # All systems, units, streams, and flowsheets are available as
             # local variables. Although this debugging method is meant
             # for internal development, please feel free to give it a shot.
             breakpoint()
@@ -137,34 +137,34 @@ def _method_profile(self, f):
 
 class MockSystem:
     """
-    Create a MockSystem object with inlets and outlets just like System 
+    Create a MockSystem object with inlets and outlets just like System
     objects, but without implementing any of the convergence methods nor
     path related attributes.
-    
+
     Parameters
     ----------
     units : Iterable[:class:`~biosteam.Unit`], optional
         Unit operations in mock system.
-    
+
     Notes
     -----
-    This object is used to prevent the creation of unneeded systems for less 
+    This object is used to prevent the creation of unneeded systems for less
     computational effort.
-    
+
     """
-    __slots__ = ('units', 
+    __slots__ = ('units',
                  'flowsheet',
-                 '_ins', 
-                 '_outs', 
+                 '_ins',
+                 '_outs',
                  '_irrelevant_units')
-    
+
     def __init__(self, units=()):
         self.units = units or list(units)
         self._load_flowsheet()
-    
+
     def _load_flowsheet(self):
         self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
-        
+
     @property
     def ins(self):
         """StreamPorts[:class:`~InletPort`] All inlets to the system."""
@@ -183,31 +183,31 @@ class MockSystem:
             outlets = bst.utils.products_from_units(self.units)
             self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
         return outs
-    
+
     def load_inlet_ports(self, inlets, optional=()):
         """Load inlet ports to system."""
         all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
-        for i in inlets: 
+        for i in inlets:
             if i not in all_inlets:
                 if i in optional:
                     inlets.remove(i)
                 else:
                     raise ValueError(f'{i} is not an inlet')
         self._ins = StreamPorts.from_inlets(inlets)
-    
+
     def load_outlet_ports(self, outlets, optional=()):
         """Load outlet ports to system."""
         all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
-        for i in outlets: 
+        for i in outlets:
             if i not in all_outlets:
                 if i in optional:
                     outlets.remove(i)
                 else:
                     raise ValueError(f'{i} is not an outlet')
         self._outs = StreamPorts.from_outlets(outlets)
-    
+
     def __enter__(self):
         if self.units:
             raise RuntimeError("only empty mock systems can enter `with` statement")
@@ -215,7 +215,7 @@ class MockSystem:
         self._irrelevant_units = set(unit_registry)
         unit_registry._open_dump(self)
         return self
-    
+
     def __exit__(self, type, exception, traceback):
         irrelevant_units = self._irrelevant_units
         del self._irrelevant_units
@@ -225,21 +225,21 @@ class MockSystem:
         dump = unit_registry._close_dump(self)
         self.units = [i for i in dump if i not in irrelevant_units]
         if exception: raise exception
-    
+
     __sub__ = Unit.__sub__
     __rsub__ = Unit.__rsub__
     __pow__ = __sub__
     __rpow__ = __rsub__
-    
+
     def show(self):
         ins = repr_items('    ins=', self.ins._ports, brackets='[]')
         outs = repr_items('    outs=', self.outs._ports, brackets='[]')
         units = repr_items('    units=', self.units, brackets='[]')
         args = ',\n'.join([ins, outs, units])
         print(f"{type(self).__name__}(\n{args}\n)")
-        
+
     _ipython_display_ = show
-        
+
     def __repr__(self):
         return f"{type(self).__name__}(ins={self.ins}, outs={self.outs})"
 
@@ -267,15 +267,15 @@ class System:
     facility_recycle : :class:`~thermosteam.Stream`, optional
         Recycle stream between facilities and system path.
     N_runs : int, optional
-        Number of iterations to run system. This parameter is applicable 
+        Number of iterations to run system. This parameter is applicable
         only to systems with no recycle loop.
     operating_hours : float, optional
         Number of operating hours in a year. This parameter is used to
         compute convinience properties such as utility cost and material cost
-        on a per year basis. 
+        on a per year basis.
     lang_factor : float, optional
-        Lang factor for getting fixed capital investment from 
-        total purchase cost. If no lang factor, installed equipment costs are 
+        Lang factor for getting fixed capital investment from
+        total purchase cost. If no lang factor, installed equipment costs are
         estimated using bare module factors.
 
     """
@@ -310,24 +310,24 @@ class System:
         '_LCA',
         '_state',
     )
-    
+
     ### Class attributes ###
-    
+
     #: [int] Default maximum number of iterations
     default_maxiter = 200
-    
+
     #: [float] Default molar tolerance for each component (kmol/hr)
     default_molar_tolerance = 1.
 
-    #: [float] Default relative molar tolerance for each component 
+    #: [float] Default relative molar tolerance for each component
     default_relative_molar_tolerance = 0.01
-    
+
     #: [float] Default temperature tolerance (K)
     default_temperature_tolerance = 0.10
 
     #: [float] Default relative temperature tolerance
     default_relative_temperature_tolerance = 0.001
-    
+
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
 
@@ -338,12 +338,12 @@ class System:
     strict_convergence = True
 
     @classmethod
-    def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(), 
+    def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(),
                        ends=None, facility_recycle=None, operating_hours=None,
                        lang_factor=None):
         """
         Create a System object from a feedstock.
-        
+
         Parameters
         ----------
         ID : str
@@ -353,7 +353,7 @@ class System:
         feeds : Iterable[:class:`~thermosteam.Stream`]
             Additional feeds to the process.
         facilities : Iterable[Facility]
-            Offsite facilities that are simulated only after 
+            Offsite facilities that are simulated only after
             completing the path simulation.
         ends : Iterable[:class:`~thermosteam.Stream`]
             Streams that not products, but are ultimately specified through
@@ -363,15 +363,15 @@ class System:
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
             compute convinience properties such as utility cost and material cost
-            on a per year basis. 
+            on a per year basis.
         lang_factor : float, optional
-            Lang factor for getting fixed capital investment from 
-            total purchase cost. If no lang factor, installed equipment costs are 
+            Lang factor for getting fixed capital investment from
+            total purchase cost. If no lang factor, installed equipment costs are
             estimated using bare module factors.
-        
+
         """
         network = Network.from_feedstock(feedstock, feeds, ends)
-        return cls.from_network(ID, network, facilities, 
+        return cls.from_network(ID, network, facilities,
                                 facility_recycle, operating_hours,
                                 lang_factor)
 
@@ -381,19 +381,19 @@ class System:
                    lang_factor=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
-        
+
         Parameters
         ----------
         ID : str, optional
             Name of system.
         units : Iterable[:class:`biosteam.Unit`], optional
-            Unit operations to be included. 
+            Unit operations to be included.
         feeds : Iterable[:class:`~thermosteam.Stream`], optional
-            All feeds to the system. Specify this argument if only a section 
+            All feeds to the system. Specify this argument if only a section
             of the complete system is wanted as it may disregard some units.
         ends : Iterable[:class:`~thermosteam.Stream`], optional
             End streams of the system which are not products. Specify this
-            argument if only a section of the complete system is wanted, or if 
+            argument if only a section of the complete system is wanted, or if
             recycle streams should be ignored.
         facility_recycle : :class:`~thermosteam.Stream`, optional
             Recycle stream between facilities and system path. This argument
@@ -401,14 +401,14 @@ class System:
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
             compute convinience properties such as utility cost and material cost
-            on a per year basis. 
+            on a per year basis.
         lang_factor : float, optional
-            Lang factor for getting fixed capital investment from 
-            total purchase cost. If no lang factor, installed equipment costs are 
+            Lang factor for getting fixed capital investment from
+            total purchase cost. If no lang factor, installed equipment costs are
             estimated using bare module factors.
-        
+
         """
-        if units is None: 
+        if units is None:
             units = ()
         elif feeds is None:
             isa = isinstance
@@ -434,7 +434,7 @@ class System:
                      operating_hours=None, lang_factor=None):
         """
         Create a System object from a network.
-        
+
         Parameters
         ----------
         ID : str
@@ -442,22 +442,22 @@ class System:
         network : Network
             Network that defines the simulation path.
         facilities : Iterable[Facility]
-            Offsite facilities that are simulated only after 
+            Offsite facilities that are simulated only after
             completing the path simulation.
         facility_recycle : [:class:`~thermosteam.Stream`], optional
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
             compute convinience properties such as utility cost and material cost
-            on a per year basis. 
+            on a per year basis.
         lang_factor : float, optional
-            Lang factor for getting fixed capital investment from 
-            total purchase cost. If no lang factor, installed equipment costs are 
+            Lang factor for getting fixed capital investment from
+            total purchase cost. If no lang factor, installed equipment costs are
             estimated using bare module factors.
-        
+
         """
         facilities = Facility.ordered_facilities(facilities)
-        isa = isinstance 
+        isa = isinstance
         path = [(cls.from_network('', i) if isa(i, Network) else i)
                 for i in network.path]
         self = cls.__new__(cls)
@@ -476,8 +476,8 @@ class System:
         self.lang_factor = lang_factor
         self._state = None
         return self
-        
-    def __init__(self, ID, path=(), recycle=None, facilities=(), 
+
+    def __init__(self, ID, path=(), recycle=None, facilities=(),
                  facility_recycle=None, N_runs=None, operating_hours=None,
                  lang_factor=None):
         self.recycle = recycle
@@ -495,7 +495,7 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
-    
+
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
@@ -503,7 +503,7 @@ class System:
         self._irrelevant_units = set(unit_registry)
         unit_registry._open_dump(self)
         return self
-    
+
     def __exit__(self, type, exception, traceback):
         irrelevant_units = self._irrelevant_units
         ID = self._ID
@@ -518,10 +518,10 @@ class System:
             system = self.from_units(None, units)
             self.ID = ID
             self.copy_like(system)
-    
+
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]
-    
+
     @ignore_docking_warnings
     def _load_configuration(self):
         for i in self._connections:
@@ -529,7 +529,7 @@ class System:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream
-    
+
     @ignore_docking_warnings
     def _interface_property_packages(self):
         path = self._path
@@ -562,13 +562,13 @@ class System:
                             s_source.copy_like(s)
                     junction = bst.Junction(upstream=s_source, downstream=s_sink)
                     new_path.append(junction)
-                    source._outs[source_index] = s_source 
-                    sink._ins[sink_index] = s_sink 
+                    source._outs[source_index] = s_source
+                    sink._ins[sink_index] = s_sink
         for obj in path:
             if isa(obj, System): obj._interface_property_packages()
         self._path = tuple(new_path)
         self._save_configuration()
-             
+
     def _reduced_thermo_data(self, required_chemicals, unit_thermo, mixer_thermo, thermo_cache):
         isa = isinstance
         mixers = [i for i in self.units if isa(i, (bst.Mixer, bst.MixTank))]
@@ -578,10 +578,10 @@ class System:
             upstream_units = mixer.get_upstream_units()
             upstream_units.difference_update(past_upstream_units)
             available_chemicals = set(required_chemicals)
-            for unit in upstream_units: 
+            for unit in upstream_units:
                 if isa(unit, bst.Junction): continue
                 available_chemicals.update(unit.get_available_chemicals())
-            for unit in upstream_units: 
+            for unit in upstream_units:
                 if isa(unit, bst.Junction): continue
                 chemicals = [i for i in unit.chemicals if i in available_chemicals]
                 if unit in unit_thermo:
@@ -594,11 +594,11 @@ class System:
                 else:
                     unit_thermo[unit] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
             past_upstream_units.update(upstream_units)
-        for mixer in mixers: 
+        for mixer in mixers:
             outlet = mixer.outs[0]
             sink = outlet.sink
             if sink:
-                chemicals = sink.thermo.chemicals 
+                chemicals = sink.thermo.chemicals
             else:
                 chemicals = outlet.available_chemicals
             if mixer in mixer_thermo:
@@ -613,35 +613,35 @@ class System:
                 mixer_thermo[mixer] = thermo_cache[IDs]
             else:
                 mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
-        
+
     def reduce_chemicals(self, required_chemicals=()):
         unit_thermo = {}
         mixer_thermo = {}
         thermo_cache = {}
         self._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
         for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
-        for mixer, thermo in mixer_thermo.items(): 
+        for mixer, thermo in mixer_thermo.items():
             for i in mixer._ins:
                 if i._source: i._reset_thermo(unit_thermo[i._source])
             thermo = mixer_thermo[mixer]
             mixer._load_thermo(thermo)
             mixer._outs[0]._reset_thermo(thermo)
         self._interface_property_packages()
-    
+
     def copy(self, ID=None):
-        """Copy system.""" 
+        """Copy system."""
         new = System(ID)
         new.copy_like(self)
         return new
-    
+
     def copy_like(self, other):
-        """Copy path, facilities and recycle from other system.""" 
+        """Copy path, facilities and recycle from other system."""
         self._path = other._path
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._recycle = other._recycle
         self._connections = other._connections
-    
+
     def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False, maxiter=None):
         """
         Set the convergence tolerance of the system.
@@ -657,7 +657,7 @@ class System:
         rT : float, optional
             Relative temperature tolerance.
         subsystems : bool, optional
-            Whether to also set tolerance of subsystems as well. 
+            Whether to also set tolerance of subsystems as well.
         maxiter : int, optional
             Maximum number if iterations.
 
@@ -667,49 +667,49 @@ class System:
         if T: self.temperature_tolerance = float(T)
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
-        if subsystems: 
+        if subsystems:
             for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
-    
+
     ins = MockSystem.ins
     outs = MockSystem.outs
     load_inlet_ports = MockSystem.load_inlet_ports
     load_outlet_ports = MockSystem.load_outlet_ports
     _load_flowsheet  = MockSystem._load_flowsheet
-    
+
     def _load_stream_links(self):
         for u in self.units: u._load_stream_links()
-    
+
     def _load_defaults(self):
         #: [int] Maximum number of iterations.
         self.maxiter = self.default_maxiter
-        
+
         #: [float] Molar tolerance (kmol/hr)
         self.molar_tolerance = self.default_molar_tolerance
-        
+
         #: [float] Relative molar tolerance
         self.relative_molar_tolerance = self.default_relative_molar_tolerance
-        
+
         #: [float] Temperature tolerance (K)
         self.temperature_tolerance = self.default_temperature_tolerance
-        
+
         #: [float] Relative temperature tolerance
         self.relative_temperature_tolerance = self.default_relative_temperature_tolerance
-        
+
         #: [str] Converge method
         self.converge_method = self.default_converge_method
-        
+
         self.use_stabilized_convergence_algorithm = self.default_stabilized_convergence
-    
+
     @property
     def TEA(self):
         """TEA object linked to the system."""
         return getattr(self, '_TEA', None)
-    
+
     @property
     def LCA(self):
         """TEA object linked to the system."""
         return getattr(self, '_LCA', None)
-    
+
     @property
     def specification(self):
         """Process specification."""
@@ -726,10 +726,10 @@ class System:
                 )
         else:
             self._specification = None
-    
+
     @property
     def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether stablized convergence by adding an inner loop that uses 
+        """[bool] Whether stablized convergence by adding an inner loop that uses
         mass and energy balance approximations when applicable."""
         return self._stabilized
     @use_stabilized_convergence_algorithm.setter
@@ -739,9 +739,9 @@ class System:
         else:
             for i in self.subsystems: i.use_stabilized_convergence_algorithm = False
         self._stabilized = stabilized
-    
+
     save_report = save_report
-    
+
     def _extend_recycles(self, recycles):
         isa = isinstance
         recycle = self._recycle
@@ -754,12 +754,12 @@ class System:
                 raise_recycle_type_error(recycle)
         for i in self._path:
             if isa(i, System): i._extend_recycles(recycles)
-    
+
     def get_all_recycles(self):
         recycles = []
         self._extend_recycles(recycles)
         return recycles
-    
+
     def _extend_flattend_path_and_recycles(self, path, recycles, stacklevel):
         isa = isinstance
         recycle = self._recycle
@@ -785,7 +785,7 @@ class System:
                     i._extend_flattend_path_and_recycles(path, recycles, stacklevel)
             else:
                 path.append(i)
-    
+
     def prioritize_unit(self, unit):
         """
         Prioritize unit operation to run first within it's recycle system,
@@ -806,7 +806,7 @@ class System:
         Examples
         --------
         Create a simple recycle loop and prioritize a different unit operation:
-        
+
         >>> from biosteam import main_flowsheet as f, Stream, settings, Mixer, Splitter
         >>> f.set_flowsheet('simple_recycle_loop')
         >>> settings.set_thermo(['Water'], cache=True)
@@ -831,7 +831,7 @@ class System:
 
         """
         isa = isinstance
-        if unit not in self.unit_path: 
+        if unit not in self.unit_path:
             raise ValueError(f'unit {repr(unit)} not in system')
         path = self._path
         if (self._recycle or self.N_runs):
@@ -841,23 +841,23 @@ class System:
                     return
                 elif isa(other, System) and unit in other.unit_path:
                     other.prioritize_unit(unit)
-                    return 
+                    return
             raise RuntimeError('problem in system algorithm')
-                            
-    
+
+
     def split(self, stream, ID_upstream=None, ID_downstream=None):
         """
         Split system in two; upstream and downstream.
-        
+
         Parameters
-        ----------    
+        ----------
         stream : Iterable[:class:~thermosteam.Stream], optional
             Stream where unit group will be split.
         ID_upstream : str, optional
             ID of upstream system.
         ID_downstream : str, optional
             ID of downstream system.
-        
+
         Examples
         --------
         >>> from biorefineries.cornstover import cornstover_sys, M201
@@ -871,7 +871,7 @@ class System:
         >>> for i in upstream_group: assert i not in downstream_group.units
         >>> assert set(upstream_group.units + downstream_group.units) == set(cornstover_sys.units)
         >>> default() # Reset to biosteam defaults
-        
+
         """
         if self._recycle: raise RuntimeError('cannot split system with recycle')
         path = self._path
@@ -887,7 +887,7 @@ class System:
             raise ValueError('stream cannot reside within a subsystem')
         return (System(ID_upstream, path[:index], None),
                 System(ID_downstream, path[index:], None, self._facilities))
-    
+
     def flatten(self):
         """Flatten system by removing subsystems."""
         recycles = []
@@ -898,21 +898,21 @@ class System:
         N_recycles = len(recycles)
         self.molar_tolerance *= N_recycles
         self.temperature_tolerance *= N_recycles
-    
+
     def to_unit_group(self, name=None):
         """Return a UnitGroup object of all units within the system."""
         return bst.UnitGroup(name, self.units)
-    
+
     def _set_path(self, path):
         #: tuple[Unit, function and/or System] A path that is run element
         #: by element until the recycle converges.
         self._path = path = tuple(path)
-        
+
     def _set_facilities(self, facilities):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the path simulation.
         self._facilities = tuple(facilities)
         self._load_facilities()
-        
+
     def _load_facilities(self):
         isa = isinstance
         units = self.units.copy()
@@ -922,8 +922,8 @@ class System:
                 i._system = self
                 i._other_units = other_units = units.copy()
                 other_units.remove(i)
-            
-            
+
+
     def _set_facility_recycle(self, recycle):
         if recycle:
             sys = self._downstream_system(recycle.sink)
@@ -933,7 +933,7 @@ class System:
             self._facility_loop = sys
         else:
             self._facility_loop = None
-        
+
     # Forward pipping
     __sub__ = Unit.__sub__
     __rsub__ = Unit.__rsub__
@@ -941,12 +941,12 @@ class System:
     # Backwards pipping
     __pow__ = __sub__
     __rpow__ = __rsub__
-    
+
     @property
     def subsystems(self):
         """list[System] All subsystems in the system."""
         return [i for i in self._path if isinstance(i, System)]
-    
+
     @property
     def units(self):
         """[list] All unit operations as ordered in the path without repetitions."""
@@ -962,8 +962,8 @@ class System:
                 sys_units = i.units
                 units.extend([i for i in sys_units if i not in past_units])
                 past_units.update(sys_units)
-        return units 
-    
+        return units
+
     @property
     def unit_path(self):
         """[list] Unit operations as ordered in the path (some units may be repeated)."""
@@ -974,8 +974,8 @@ class System:
                 units.append(i)
             elif isa(i, System):
                 units.extend(i.unit_path)
-        return units 
-    
+        return units
+
     @property
     def cost_units(self):
         """[set] All unit operations with costs."""
@@ -987,7 +987,7 @@ class System:
             elif isa(i, System):
                 units.update(i.cost_units)
         return units
-    
+
     @property
     def streams(self):
         """set[:class:`~thermosteam.Stream`] All streams within the system."""
@@ -1002,12 +1002,12 @@ class System:
     def products(self):
         """set[:class:`~thermosteam.Stream`] All products of the system."""
         return bst.utils.products(self.streams)
-    
+
     @property
     def facilities(self):
         """tuple[Facility] All system facilities."""
         return self._facilities
-    
+
     @property
     def recycle(self):
         """
@@ -1028,7 +1028,7 @@ class System:
             for i in recycle:
                 if not isa(i, Stream):
                     raise ValueError("recycle streams must be Stream objects; "
-                                     f"not {type(i).__name__}")                
+                                     f"not {type(i).__name__}")
             self._recycle = recycle
         else:
             raise_recycle_type_error(recycle)
@@ -1045,9 +1045,9 @@ class System:
     @property
     def path(self):
         """
-        tuple[Unit, function and/or System] A path that is run element by 
+        tuple[Unit, function and/or System] A path that is run element by
         element until the recycle(s) converges (if any).
-        
+
         """
         return self._path
 
@@ -1067,8 +1067,8 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        return any([unit._isdynamic for unit in self.units])            
-    
+        return any([unit._isdynamic for unit in self.units])
+
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
         if unit not in self.unit_path: return []
@@ -1077,26 +1077,26 @@ class System:
         for index, i in enumerate(self._path):
             if unit is i:
                 return self._path[index:]
-            elif (isa(i, System) and unit in i.unit_path): 
+            elif (isa(i, System) and unit in i.unit_path):
                 return i._downstream_path(unit) + self._path[index+1:]
         return []
-    
+
     def _downstream_facilities(self, unit):
-        """Return a list of facilities composed of the `unit` and 
+        """Return a list of facilities composed of the `unit` and
         everything downstream."""
         isa = isinstance
         for index, i in enumerate(self._facilities):
             if unit is i or (isa(i, System) and unit in i.unit_path):
                 return self._facilities[index:]
         return []
-    
+
     def _downstream_system(self, unit):
         """Return a system with a path composed of the `unit` and
         everything downstream (facilities included)."""
         if self._recycle or unit is self._path[0]: return self
         path = self._downstream_path(unit)
         if path:
-            facilities = self._facilities            
+            facilities = self._facilities
         else:
             facilities = self._downstream_facilities(unit)
             if not facilities:
@@ -1105,7 +1105,7 @@ class System:
                         facilities=facilities)
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
         return system
-    
+
     def _minimal_digraph(self, graph_attrs):
         """Return digraph of the path as a box."""
         return minimal_digraph(self.ID, self.units, self.streams, **graph_attrs)
@@ -1114,19 +1114,19 @@ class System:
         return surface_digraph(self._path, **graph_attrs)
 
     def _thorough_digraph(self, graph_attrs):
-        return digraph_from_units_and_streams(self.unit_path, 
+        return digraph_from_units_and_streams(self.unit_path,
                                               self.streams,
                                               **graph_attrs)
-        
+
     def _cluster_digraph(self, graph_attrs):
         return digraph_from_system(self, **graph_attrs)
-        
-    def diagram(self, kind=None, file=None, format=None, display=True, 
+
+    def diagram(self, kind=None, file=None, format=None, display=True,
                 number=None, profile=None, label=None, **graph_attrs):
         """
-        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of 
+        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
         the system.
-        
+
         Parameters
         ----------
         kind : int or string, optional
@@ -1139,16 +1139,16 @@ class System:
         format='png' : str
             File format (e.g. "png", "svg").
         display : bool, optional
-            Whether to display diagram in console or to return the graphviz 
+            Whether to display diagram in console or to return the graphviz
             object.
         number : bool, optional
-            Whether to number unit operations according to their 
+            Whether to number unit operations according to their
             order in the system path.
         profile : bool, optional
             Whether to clock the simulation time of unit operations.
         label : bool, optional
             Whether to label the ID of streams with sources and sinks.
-            
+
         """
         self._load_configuration()
         if not kind: kind = 0
@@ -1172,32 +1172,32 @@ class System:
                 raise ValueError("kind must be one of the following: "
                                  "0 or 'cluster', 1 or 'thorough', 2 or 'surface', "
                                  "3 or 'minimal'")
-            if display or file: 
+            if display or file:
                 finalize_digraph(f, file, format)
             else:
                 return f
         finally:
-            (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS, 
+            (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
              bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
              bst.PROFILE_UNITS_IN_DIAGRAMS) = original
-            
+
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
         """
         Run the system at specified recycle molar flow rate.
-        
+
         Parameters
         ----------
         mol : numpy.ndarray
               Recycle molar flow rates.
-            
+
         Returns
         -------
         mol_new : numpy.ndarray
             New recycle molar flow rates.
         not_converged : bool
             True if recycle has not converged.
-            
+
         """
         check_recycle_feasibility(mol)
         self._set_recycle_data(mol)
@@ -1232,7 +1232,7 @@ class System:
             if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             else: not_converged = False
         return mol_new, not_converged
-            
+
     def _get_recycle_data(self):
         recycle = self._recycle
         if isinstance(recycle, Stream):
@@ -1241,7 +1241,7 @@ class System:
             return np.vstack([i.imol.data for i in recycle])
         else:
             raise RuntimeError('no recycle available')
-    
+
     def _set_recycle_data(self, data):
         recycle = self._recycle
         isa = isinstance
@@ -1254,7 +1254,7 @@ class System:
             length = len
             N_rows = data.shape[0]
             M_rows = sum([length(i) if isa(i, MultiStream) else 1 for i in recycle])
-            if M_rows != N_rows: 
+            if M_rows != N_rows:
                 raise IndexError(f'expected {M_rows} rows; got {N_rows} rows instead')
             index = 0
             for i in recycle:
@@ -1267,7 +1267,7 @@ class System:
                     index += 1
         else:
             raise RuntimeError('no recycle available')
-            
+
     def _get_recycle_temperatures(self):
         recycle = self._recycle
         if isinstance(recycle, Stream):
@@ -1277,13 +1277,13 @@ class System:
         else:
             raise RuntimeError('no recycle available')
         return np.array(T, float)
-    
+
     def _setup(self):
         """Setup each element of the system."""
         self._load_facilities()
         self._load_configuration()
         for i in self.units: i._setup()
-        
+
     def _run(self):
         """Rigorously run each element in the path."""
         isa = isinstance
@@ -1293,20 +1293,20 @@ class System:
             if isa(i, Unit): run(i, i.run)
             elif isa(i, System): converge(i)
             else: i() # Assume it's a function
-    
-    # Methods for convering the recycle stream    
+
+    # Methods for convering the recycle stream
     def _fixedpoint(self):
         """Converge system recycle iteratively using fixed-point iteration."""
         self._solve(flx.conditional_fixed_point)
-        
+
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
         self._solve(flx.conditional_wegstein)
-    
+
     def _aitken(self):
         """Converge the system recycle iteratively using Aitken's method."""
         self._solve(flx.conditional_aitken)
-        
+
     def _solve(self, solver):
         """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
@@ -1329,7 +1329,7 @@ class System:
                 solver(f, self._get_recycle_data())
             except:
                 raise error
-    
+
     def _converge(self):
         if self._N_runs:
             for i in range(self.N_runs): self._run()
@@ -1337,7 +1337,7 @@ class System:
             self._converge_method()
         else:
             self._run()
-        
+
     def _summary(self):
         simulated_units = set()
         isa = isinstance
@@ -1350,7 +1350,7 @@ class System:
         simulate_unit = simulate_unit_in_path
         for i in self._facilities:
             if isa(i, Unit): simulate_unit(i)
-            elif isa(i, System): 
+            elif isa(i, System):
                 converge_system_in_path(i)
                 i._summary()
             else: i() # Assume it is a function
@@ -1360,23 +1360,23 @@ class System:
     def _reset_iter(self):
         self._iter = 0
         for system in self.subsystems: system._reset_iter()
-    
+
     def _reset_errors(self):
         #: Molar flow rate error (kmol/hr)
         self._mol_error = 0
-        
+
         #: Relative molar flow rate error
         self._rmol_error = 0
-        
+
         #: Temperature error (K)
         self._T_error = 0
-        
+
         #: Relative temperature error
         self._rT_error = 0
-        
+
         #: Number of iterations
         self._iter = 0
-    
+
     def empty_outlet_streams(self):
         """Reset all outlet streams to zero flow."""
         self._reset_errors()
@@ -1397,7 +1397,7 @@ class System:
 
     def empty_recycles(self):
         """Reset all recycle streams to zero flow."""
-        self._reset_errors()        
+        self._reset_errors()
         recycle = self._recycle
         if recycle:
             if isinstance(recycle, Stream):
@@ -1412,6 +1412,7 @@ class System:
     def reset_cache(self):
         """Reset cache of all unit operations."""
         for unit in self.units: unit.reset_cache()
+        self._state = None
 
     def _state_dct2arr(self, dct):
         arr = np.array([])
@@ -1422,13 +1423,13 @@ class System:
             stop = len(arr)
             idxer[unit.ID] = (start, stop)
         return arr, idxer
-    
+
     def _dstate_dct2arr(self, dct, idx):
         arr = np.zeros(max([i[-1] for i in idx.values()]))
         for k,v in idx.items():
             arr[v[0]:v[1]] = dct[k]
         return arr
-    
+
     def _state_arr2dct(self, arr, idx):
         dct_y = {}
         for unit in self.units:
@@ -1437,14 +1438,14 @@ class System:
         for ws in self.feeds:
             dct_y[ws.ID] = np.append(ws.Conc, ws.get_total_flow('m3/d'))
         return dct_y
-        
+
     def _dstate_arr2dct(self, arr, idx):
         dct_dy = {}
         for unit in self.units:
             start, stop = idx[unit.ID]
             dct_dy.update(unit._dstate_locator(arr[start: stop]))
         return dct_dy
-        
+
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
         if self._state is None:
@@ -1459,7 +1460,7 @@ class System:
             y = self._state['state']
             idx = self._state['indexer']
         return y, idx
-    
+
     def _ODE(self, idx, yshape):
         '''System-wide ODEs.'''
         dct_dy = self._dstate_arr2dct(np.zeros(yshape), idx)
@@ -1472,10 +1473,11 @@ class System:
                 dy_dt = unit.ODE
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
-            print("%10.3e"%t)
-            return self._dstate_dct2arr(dct_dy, idx)        
+            # print("%10.3e"%t)
+            return self._dstate_dct2arr(dct_dy, idx)
         return dydt
-    
+
+
     def _write_state(self, t, y):
         '''record the states at a certain time point of the dynamic simulation and define wastestreams '''
         self._state['time'] = t
@@ -1485,10 +1487,13 @@ class System:
         for unit in self.units:
             unit.state = dct_y[unit.ID]
             unit._define_outs()
-    
+
     def clear_state(self):
         self._state = None
-    
+        for u in self.units:
+            u._state = None
+
+
     def simulate(self, start_from_cached_state=True, **kwarg):
         """Converge the path and simulate all units."""
         self._setup()
@@ -1503,30 +1508,30 @@ class System:
             self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
-    
+
     # Convinience methods
-    
+
     @property
     def heat_utilities(self):
         """[tuple] All HeatUtility objects."""
         return utils.get_heat_utilities(self.cost_units)
-    
+
     @property
     def power_utilities(self):
         """[tuple] All PowerUtility objects."""
         return tuple(utils.get_power_utilities(self.cost_units))
-    
+
     def get_inlet_flow(self, units, key=None):
         """
         Return total flow across all inlets per year.
-        
+
         Parameters
         ----------
         units : str
             Material units of measure (e.g., 'kg', 'gal', 'kmol').
         key : tuple[str] or str, optional
             Chemical identifiers. If none given, the sum of all chemicals returned
-            
+
         Examples
         --------
         >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
@@ -1539,25 +1544,25 @@ class System:
         0.1584
         >>> sys.get_inlet_flow('Mton', 'Water') # Just water
         0.0792
-        
+
         """
         units += '/hr'
         if key:
             return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.feeds_from_units(self.units)])
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
-    
+
     def get_outlet_flow(self, units, key=None):
         """
         Return total flow across all outlets per year.
-        
+
         Parameters
         ----------
         units : str
             Material units of measure (e.g., 'kg', 'gal', 'kmol').
         key : tuple[str] or str, optional
             Chemical identifiers. If none given, the sum of all chemicals returned
-            
+
         Examples
         --------
         >>> from biosteam import Stream, Mixer, Splitter, settings, main_flowsheet
@@ -1571,30 +1576,30 @@ class System:
         0.1584
         >>> sys.get_outlet_flow('Mton', 'Water') # Just water
         0.0792
-        
+
         """
         units += '/hr'
         if key:
             return self.operating_hours * sum([i.get_flow(units, key) for i in bst.utils.products_from_units(self.units)])
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
-    
+
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
-    
+
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost."""
         F_mass = stream.F_mass
         if not F_mass: warn(RuntimeWarning(f"stream '{stream}' is empty"))
         price2cost = F_mass * self.operating_hours
         if stream.sink and not stream.source:
-            return - price2cost 
+            return - price2cost
         elif stream.source:
             return price2cost
         else:
             raise ValueError("stream must be either a feed or a product")
-    
+
     @property
     def sales(self):
         """Annual sales revenue."""
@@ -1619,7 +1624,7 @@ class System:
             return sum([u.purchase_cost * lang_factor for u in self.cost_units])
         else:
             return sum([u.installed_cost for u in self.cost_units])
-    
+
     def get_electricity_consumption(self):
         """Return the total electricity consumption in MW."""
         return self.operating_hours * utils.get_electricity_consumption(self.power_utilities)
@@ -1627,42 +1632,42 @@ class System:
     def get_electricity_production(self):
         """Return the total electricity production in MW."""
         return self.operating_hours * utils.get_electricity_production(self.power_utilities)
-    
+
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in GJ/hr"""
         return self.operating_hours * utils.get_utility_duty(self.heat_utilities, agent)
-    
+
     def get_utility_flow(self, agent):
         """Return the total utility flow for given agent in MT/hr"""
         return self.operating_hours * utils.get_utility_flow(self.heat_utilities, agent)
-    
+
     def get_cooling_duty(self):
         """Return the total cooling duty in GJ/yr."""
         return self.operating_hours * utils.get_cooling_duty(self.heat_utilities)
-    
+
     def get_heating_duty(self):
         """Return the total heating duty in GJ/yr."""
         return self.operating_hours * utils.get_heating_duty(self.heat_utilities)
-    
+
     def get_purchase_cost(self):
         """Return the total equipment purchase cost in million USD."""
         return utils.get_purchase_cost(self.cost_units)
-    
+
     def get_installed_equipment_cost(self):
         """Return the total installed equipment cost in million USD."""
         return utils.get_installed_cost(self.cost_units)
-    
+
     # Other
     def to_network(self):
         """Return network that defines the system path."""
         isa = isinstance
         path = [(i.to_network() if isa(i, System) else i) for i in self._path]
-        network = Network.__new__(Network)    
+        network = Network.__new__(Network)
         network.path = path
         network.recycle = self._recycle
         network.units = set(self.unit_path)
         return network
-        
+
     # Debugging
     def _turn_on(self, mode):
         """Turn on special simulation modes like `profile` or `debug`."""
@@ -1671,7 +1676,7 @@ class System:
         mode = mode.lower()
         if mode == 'debug':
             _wrap_method = _method_debug
-        elif mode == 'profile': 
+        elif mode == 'profile':
             _wrap_method = _method_profile
         else:
             raise ValueError(f"mode must be either 'debug' or 'profile'; not '{mode}'")
@@ -1692,19 +1697,19 @@ class System:
                 u.run = u.run._original
             u._design = u._design._original
             u._cost = u._cost._original
-    
+
     def debug(self):
-        """Simulate in debug mode. If an exception is raised, it will 
+        """Simulate in debug mode. If an exception is raised, it will
         automatically enter in a breakpoint"""
         self._turn_on('debug')
         try: self.simulate()
         finally: self._turn_off()
-            
+
     def profile(self):
         """
-        Simulate system in profile mode and return a DataFrame object of unit 
+        Simulate system in profile mode and return a DataFrame object of unit
         operation simulation times.
-        
+
         """
         import pandas as pd
         self._turn_on('profile')
@@ -1716,14 +1721,14 @@ class System:
         for u in units: del u._total_excecution_time_
         return pd.DataFrame(data, index=[u.ID for u in units],
                             columns=('Unit Operation', 'Time (ms)'))
-            
+
     # Representation
     def print(self, spaces=''): # pragma: no cover
         """
         Print in a format that you can use recreate the system.
         """
         print(self._stacked_info())
-    
+
     def _stacked_info(self, spaces=''): # pragma: no cover
         """
         Return info with inner layers of path and facilities stacked.
@@ -1758,7 +1763,7 @@ class System:
             info = update_info(f"N_runs={self.N_runs}")
         info += ')'
         return info
-    
+
     def _get_recycle_info(self):
         recycle = self._recycle
         if isinstance(recycle, Stream):
@@ -1767,7 +1772,7 @@ class System:
             recycle = ", ".join([i._source_info() for i in recycle])
             recycle = '{' + recycle + '}'
         return recycle
-    
+
     def _ipython_display_(self):
         if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram('minimal')
         self.show()
@@ -1786,13 +1791,13 @@ class System:
 
     def __str__(self):
         if self.ID: return self.ID
-        else: return type(self).__name__ 
-    
+        else: return type(self).__name__
+
     def __repr__(self):
         if self.ID: return f'<{type(self).__name__}: {self.ID}>'
         else: return f'<{type(self).__name__}>'
 
-    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None, 
+    def show(self, layout=None, T=None, P=None, flow=None, composition=None, N=None,
              IDs=None, data=True):
         """Prints information on system."""
         print(self._info(layout, T, P, flow, composition, N, IDs, data))
@@ -1800,22 +1805,22 @@ class System:
     def _info(self, layout, T, P, flow, composition, N, IDs, data):
         """Return string with all specifications."""
         error = self._error_info()
-        ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs, 
+        ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
         return (f"System: {self.ID}"
                 + error + '\n'
                 + ins_and_outs)
-       
+
 class FacilityLoop(System):
     __slots__ = ()
-    
+
     def _run(self):
         obj = super()
         for i in self.units:
             if i._design or i._cost: Unit._setup(i)
         obj._run()
         self._summary()
-        
+
 from biosteam import _flowsheet as flowsheet_module
 del ignore_docking_warnings
 
@@ -1823,11 +1828,11 @@ del ignore_docking_warnings
 # %% Working with different operation modes
 
 class OperationModeResults:
-    
-    __slots__ = ('unit_capital_costs', 'utility_cost', 'flow_rates', 
+
+    __slots__ = ('unit_capital_costs', 'utility_cost', 'flow_rates',
                  'feeds', 'products', 'operating_hours')
-    
-    def __init__(self, unit_capital_costs, flow_rates, utility_cost, 
+
+    def __init__(self, unit_capital_costs, flow_rates, utility_cost,
                  feeds, products, operating_hours):
         self.unit_capital_costs = unit_capital_costs
         self.flow_rates = flow_rates
@@ -1835,12 +1840,12 @@ class OperationModeResults:
         self.feeds = feeds
         self.products = products
         self.operating_hours = operating_hours
-    
+
     @property
     def material_cost(self):
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price  for i in self.feeds])
-    
+
     @property
     def sales(self):
         flow_rates = self.flow_rates
@@ -1851,16 +1856,16 @@ class OperationMode:
     __slots__ = ('__dict__',)
     def __init__(self, **data):
         self.__dict__ = data
-    
+
     def simulate(self):
         """
-        Simulate operation mode and return an OperationModeResults object with 
+        Simulate operation mode and return an OperationModeResults object with
         data on variable operating costs (i.e. utility and material costs) and sales.
-        
+
         """
         operation_parameters = self.agile_system.operation_parameters
         mode_operation_parameters = self.agile_system.mode_operation_parameters
-        for name, value in self.__dict__.items():    
+        for name, value in self.__dict__.items():
             if name in operation_parameters: operation_parameters[name](value)
             elif name in mode_operation_parameters: mode_operation_parameters[name](value, self)
         system = self.system
@@ -1879,16 +1884,16 @@ class OperationMode:
 
     def __repr__(self):
         return f"{type(self).__name__}({repr_kwargs(self.__dict__, start='')})"
-    
-        
+
+
 class AgileSystem:
     """
     Class for creating objects which may serve to retrive
-    general results from multiple operation modes in such a way that it 
-    represents an agile production process. When simulated, an AgileSystem 
-    generates results from system operation modes and compile them to 
+    general results from multiple operation modes in such a way that it
+    represents an agile production process. When simulated, an AgileSystem
+    generates results from system operation modes and compile them to
     retrieve results later.
-    
+
     Parameters
     ----------
     operation_modes : list[OperationMode], optional
@@ -1896,43 +1901,43 @@ class AgileSystem:
     operation_parameters : dict[str: function], optional
         Defines all parameters available for all operation modes.
     lang_factor : float, optional
-        Lang factor for getting fixed capital investment from 
-        total purchase cost. If no lang factor, installed equipment costs are 
+        Lang factor for getting fixed capital investment from
+        total purchase cost. If no lang factor, installed equipment costs are
         estimated using bare module factors.
-    
+
     """
-    
+
     __slots__ = ('operation_modes', 'operation_parameters',
-                 'mode_operation_parameters', 'unit_capital_costs', 
-                 'utility_cost', 'flow_rates', 'feeds', 'products', 
+                 'mode_operation_parameters', 'unit_capital_costs',
+                 'utility_cost', 'flow_rates', 'feeds', 'products',
                  'purchase_cost', 'installed_equipment_cost',
                  'lang_factor', '_OperationMode', '_TEA', '_LCA')
-    
+
     TEA = System.TEA
     LCA = System.LCA
-    
-    def __init__(self, operation_modes=None, operation_parameters=None, 
+
+    def __init__(self, operation_modes=None, operation_parameters=None,
                  mode_operation_parameters=None, lang_factor=None):
-        self.operation_modes = [] if operation_modes is None else operation_modes 
+        self.operation_modes = [] if operation_modes is None else operation_modes
         self.operation_parameters = {} if operation_parameters  is None else operation_parameters
         self.mode_operation_parameters = {} if mode_operation_parameters is None else mode_operation_parameters
         self.lang_factor = lang_factor
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
-        
+
     def _downstream_system(self, unit):
         return self
 
     def operation_mode(self, system, operating_hours, **data):
         """
         Define and register an operation mode.
-        
+
         Parameters
-        ----------    
+        ----------
         operating_hours : function
             Length of operation in hours.
         **data : str
             Name and value-pairs of operation parameters.
-        
+
         """
         for s in system.streams: s.unlink()
         om = self._OperationMode(system=system, operating_hours=operating_hours, **data)
@@ -1942,16 +1947,16 @@ class AgileSystem:
     def operation_parameter(self, setter=None, name=None, mode_dependent=False):
         """
         Define and register operation parameter.
-        
+
         Parameters
-        ----------    
+        ----------
         setter : function
             Should set parameter in the element.
         name : str
             Name of parameter. If None, default to argument name of setter.
         mode_dependent :
             Whether the setter accepts the OperationMode object as a second argument.
-        
+
         """
         if not setter: return lambda setter: self.operation_parameter(setter, name, mode_dependent)
         if not name: name, *_ = signature(setter).parameters.keys()
@@ -1964,11 +1969,11 @@ class AgileSystem:
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
-    
+
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
         if stream in self.flow_rates:
-            F_mass = self.flow_rates[stream] 
+            F_mass = self.flow_rates[stream]
         else:
             F_mass = 0.
         if not F_mass: warn(f"stream '{stream}' is empty", category=RuntimeWarning)
@@ -1983,12 +1988,12 @@ class AgileSystem:
     def material_cost(self):
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price  for i in self.feeds])
-    
+
     @property
     def sales(self):
         flow_rates = self.flow_rates
         return sum([flow_rates[i] * i.price for i in self.products])
-    
+
     @property
     def streams(self):
         streams = []
@@ -1999,17 +2004,17 @@ class AgileSystem:
                 streams.append(s)
                 stream_set.add(s)
         return streams
-    
+
     @property
     def units(self):
         units = []
-        past_units = set() 
+        past_units = set()
         for i in self.operation_modes:
             for i in i.system.unit_path:
                 if i in past_units: continue
                 units.append(i)
         return units
-    
+
     @property
     def cost_units(self):
         systems = set([i.system for i in self.operation_modes])
@@ -2023,8 +2028,8 @@ class AgileSystem:
     @property
     def empty_recycles(self):
         return self.system.empty_recycles
-    
-    @property    
+
+    @property
     def reset_cache(self):
         return self.system.reset_cache
 
@@ -2035,26 +2040,26 @@ class AgileSystem:
     def operating_hours(self, operating_hours):
         factor = operating_hours / self.operating_hours
         for i in self.operation_modes: i.operating_hours *= factor
-            
+
     def reduce_chemicals(self, required_chemicals=()):
         for i in self.streams: i.unlink()
         unit_thermo = {}
         mixer_thermo = {}
         thermo_cache = {}
-        for mode in self.operation_modes: 
+        for mode in self.operation_modes:
             mode.system._load_configuration()
             mode.system._reduced_thermo_data(required_chemicals, unit_thermo, mixer_thermo, thermo_cache)
-        for mode in self.operation_modes:  
+        for mode in self.operation_modes:
             mode.system._load_configuration()
             for unit, thermo in unit_thermo.items(): unit._reset_thermo(thermo)
-            for mixer, thermo in mixer_thermo.items(): 
+            for mixer, thermo in mixer_thermo.items():
                 for i in mixer._ins:
                     if i._source: i._reset_thermo(unit_thermo[i._source])
                 thermo = mixer_thermo[mixer]
                 mixer._load_thermo(thermo)
                 mixer._outs[0]._reset_thermo(thermo)
             mode.system._interface_property_packages()
-        
+
     def simulate(self):
         operation_mode_results = [i.simulate() for i in self.operation_modes]
         units = set(sum([list(i.unit_capital_costs) for i in operation_mode_results], []))
@@ -2076,6 +2081,6 @@ class AgileSystem:
             for stream, F_mass in results.flow_rates.items():
                 if stream in flow_rates: flow_rates[stream] += F_mass
                 else: flow_rates[stream] = F_mass
-            
+
     def __repr__(self):
         return f"{type(self).__name__}(operation_modes={self.operation_modes}, operation_parameters={self.operation_parameters}, lang_factor={self.lang_factor})"
