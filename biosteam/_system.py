@@ -309,6 +309,7 @@ class System:
         '_TEA',
         '_LCA',
         '_state',
+        '_dct_dy',
     )
 
     ### Class attributes ###
@@ -475,6 +476,7 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
+        self._dct_dy = None
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -495,6 +497,7 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
+        self._dct_dy = None
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1413,6 +1416,7 @@ class System:
         """Reset cache of all unit operations."""
         for unit in self.units: unit.reset_cache()
         self._state = None
+        self._dct_dy = None
 
     def _state_dct2arr(self, dct):
         arr = np.array([])
@@ -1463,7 +1467,8 @@ class System:
 
     def _ODE(self, idx, yshape):
         '''System-wide ODEs.'''
-        dct_dy = self._dstate_arr2dct(np.zeros(yshape), idx)
+        dct_dy = self._dct_dy if self._dct_dy \
+            else self._dstate_arr2dct(np.zeros(yshape), idx)
         def dydt(t, y):
             dct_y = self._state_arr2dct(y, idx)
             for unit in self.units:
@@ -1474,6 +1479,7 @@ class System:
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
             # print("%10.3e"%t)
+            self._dct_dy = dct_dy
             return self._dstate_dct2arr(dct_dy, idx)
         return dydt
 
