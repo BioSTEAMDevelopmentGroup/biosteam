@@ -1505,6 +1505,43 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
     
+    def get_GWP(self, method):
+        """
+        Return the annual global warming potential in kg CO2-eq given the 
+        method name.
+        
+        Notes
+        -----
+        Only the operational phase is included (i.e. material, direct emissions,
+        and electricity). It is assumed that heating and cooling utilities are 
+        produced on-site and, therefore, they are not accounted for directly.
+        
+        """
+        return (
+            sum([s.GWP(method) for s in self.feeds]) # Material
+            + sum([s.GWP(method) for s in self.products  # Direct emissions
+                   if not bst.is_storage_unit(s.source) and s.vapor_fraction])
+            + sum([i.power_utility.GWP for i in self.cost_units]) # Electricity
+        ) * self.operating_hours
+    
+    def get_FEC(self, method):
+        """
+        Return the annual fossil energy consumption in MJ given the method name.
+        
+        Notes
+        -----
+        Only the operational phase is included (i.e. material, direct emissions,
+        and electricity). It is assumed that heating and cooling utilities are 
+        produced on-site and, therefore, they are not accounted for directly.
+        
+        """
+        return (
+            sum([s.FEC(method) for s in self.feeds]) # Material
+            + sum([s.FEC(method) for s in self.products # Direct emissions
+                   if not (bst.is_storage_unit(s.source) or s.price) and s.vapor_fraction])
+            + sum([i.power_utility.FEC for i in self.cost_units]) # Electricity
+        ) * self.operating_hours
+    
     @property
     def sales(self):
         """Annual sales revenue."""
@@ -1515,11 +1552,11 @@ class System:
         return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
     @property
     def utility_cost(self):
-        """Total utility cost (USD/yr)."""
+        """Total utility cost in USD/yr."""
         return sum([u.utility_cost for u in self.cost_units]) * self.operating_hours
     @property
     def purchase_cost(self):
-        """Total purchase cost (USD)."""
+        """Total purchase cost in USD."""
         return sum([u.purchase_cost for u in self.cost_units])
     @property
     def installed_equipment_cost(self):
