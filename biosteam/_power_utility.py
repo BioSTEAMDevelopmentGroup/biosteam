@@ -46,7 +46,7 @@ class PowerUtility:
     PowerUtility objects have `consumption` and `production` attributes
     which are updated when setting the rate with the assumption that
     a positive rate means no production (only consumption) and a negative
-    rate means no consumption (only consumption).
+    rate means no consumption (only production).
     
     >>> pu(rate=-500)
     >>> pu.consumption, pu.production
