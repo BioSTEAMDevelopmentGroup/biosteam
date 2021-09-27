@@ -13,8 +13,6 @@ __all__ = ('PowerUtility',)
 
 
 default_price = 0.0782
-default_GWPCF = 0.48
-default_FECCF = 5.926
 
 class PowerUtility:
     """
@@ -24,16 +22,11 @@ class PowerUtility:
     Notes
     -----
     The default price is 0.0782 USD/kWhr as suggested in [1]_.
-    The default GWP and FEC characterization factors are 0.48 kg CO2-eq / kWhr
-    and 5.926 MJ / kWhr, as suggested in [2]_.
     
     References
     ----------
     [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
         & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-    [2] Argonne National Laboratory. The Greenhouse gases, Regulated Emissions,
-    and Energy use in Transportation (GREET) Model https://greet.es.anl.gov/
-    (accessed Aug 25, 2020).
     
     Examples
     --------
@@ -82,6 +75,9 @@ class PowerUtility:
     """
     __slots__ = ('consumption', 'production')
     
+    #: dict[obj, float] Characterization factors for life cycle assessment in impact/kWhr.
+    characterization_factors = {}
+    
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(rate='kW', cost='USD/hr')
     
@@ -96,29 +92,6 @@ class PowerUtility:
     def default_price(cls):
         """Reset price back to BioSTEAM's default."""
         cls.price = default_price #: [float] USD/kWhr
-    
-    @classmethod
-    def default_GWPCF(cls):
-        """Reset the global warming potential characterization factor 
-        back to BioSTEAM's default."""
-        cls.GWPCF = default_GWPCF #: [float] kg CO2-eq/kWh
-    
-    @classmethod
-    def default_FECCF(cls):
-        """Reset the fossil energy consumption characterization factor 
-        back to BioSTEAM's default."""
-        cls.FECCF = default_FECCF #: [float] MJ/kWh
-    
-    @property
-    def GWP(self):
-        """Return the global warming potential in kg CO2-eq / hr given the 
-        method name."""
-        return (self.consumption - self.production) * self.GWPCF
-    
-    @property
-    def FEC(self):
-        """Return the fossil energy consumption in MJ/hr given the method name."""
-        return (self.consumption - self.production) * self.FECCF
     
     @property
     def rate(self):
@@ -138,6 +111,18 @@ class PowerUtility:
     def cost(self):
         """Cost [USD/hr]"""
         return self.price * self.rate
+    
+    def get_impact(self, consumption_key, production_key=None):
+        """Return the impact in impact / hr given characterization factor keys 
+        for consumption and production. If no production key given, it defaults
+        to the consumption key."""
+        rate = self.consumption - self.production
+        if rate > 0.:
+            return self.characterization_factors[consumption_key] * rate
+        else:
+            cf = self.characterization_factors
+            if production_key is None: production_key = consumption_key
+            return cf[production_key] * rate
     
     def __bool__(self):
         return bool(self.consumption or self.production)
@@ -216,4 +201,3 @@ class PowerUtility:
         return f'{type(self).__name__}(consumption={self.consumption}, production={self.production})'
     
 PowerUtility.default_price()
-PowerUtility.default_GWPCF()

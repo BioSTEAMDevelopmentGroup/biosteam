@@ -1505,41 +1505,27 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
     
-    def get_GWP(self, method):
+    def get_impact(self, 
+            material_cradle_to_gate_key, 
+            material_gate_to_grave_key,
+            electricity_consumption_key, 
+            electricity_production_key,
+        ):
         """
-        Return the annual global warming potential in kg CO2-eq given the 
-        method name.
+        Return the annual impact given the characterization factor keys.
         
         Notes
         -----
-        Only the operational phase is included (i.e. material, direct emissions,
+        Only the operational phase is included (i.e. material, products,
         and electricity). It is assumed that heating and cooling utilities are 
         produced on-site and, therefore, they are not accounted for directly.
         
         """
+        power_utility = bst.PowerUtility.sum([i.power_utility for i in self.cost_units])
         return (
-            sum([s.GWP(method) for s in self.feeds]) # Material
-            + sum([s.GWP(method) for s in self.products  # Direct emissions
-                   if not bst.is_storage_unit(s.source) and s.vapor_fraction])
-            + sum([i.power_utility.GWP for i in self.cost_units]) # Electricity
-        ) * self.operating_hours
-    
-    def get_FEC(self, method):
-        """
-        Return the annual fossil energy consumption in MJ given the method name.
-        
-        Notes
-        -----
-        Only the operational phase is included (i.e. material, direct emissions,
-        and electricity). It is assumed that heating and cooling utilities are 
-        produced on-site and, therefore, they are not accounted for directly.
-        
-        """
-        return (
-            sum([s.FEC(method) for s in self.feeds]) # Material
-            + sum([s.FEC(method) for s in self.products # Direct emissions
-                   if not (bst.is_storage_unit(s.source) or s.price) and s.vapor_fraction])
-            + sum([i.power_utility.FEC for i in self.cost_units]) # Electricity
+            sum([s.get_impact(material_cradle_to_gate_key) for s in self.feeds])
+            + sum([s.get_impact(material_gate_to_grave_key) for s in self.products])
+            + power_utility.get_impact(electricity_consumption_key, electricity_production_key) 
         ) * self.operating_hours
     
     @property
