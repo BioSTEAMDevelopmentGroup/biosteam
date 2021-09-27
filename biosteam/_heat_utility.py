@@ -64,9 +64,9 @@ class UtilityAgent(Stream):
     def __init__(self, ID='', flow=(), phase='l', T=298.15, P=101325., units='kmol/hr',
                  thermo=None, T_limit=None, heat_transfer_price=0.0,
                  regeneration_price=0.0, heat_transfer_efficiency=1.0, 
+                 characterization_factors=None,
                  **chemical_flows):
-        self._GWPCF = {}
-        self._FECCF = {}
+        self.characterization_factors = {} if characterization_factors is None else {}
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
@@ -119,8 +119,7 @@ class UtilityAgent(Stream):
         new._thermal_condition = self._thermal_condition.copy()
         new.reset_cache()
         new._price = 0.
-        new._GWPCF = self._GWPCF
-        new._FECCF = self._FECCF
+        new.characterization_factors = self.characterization_factors
         new.ID = ID
         return new
     
