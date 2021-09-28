@@ -1505,28 +1505,22 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
     
-    def get_impact(self, 
-            material_cradle_to_gate_key, 
-            material_gate_to_grave_key,
-            electricity_consumption_key, 
-            electricity_production_key,
-        ):
+    def get_material_impact(self, stream, key):
         """
-        Return the annual impact given the characterization factor keys.
+        Return the annual material impact given the stream and the 
+        characterization factor key.
         
-        Notes
-        -----
-        Only the operational phase is included (i.e. material, products,
-        and electricity). It is assumed that heating and cooling utilities are 
-        produced on-site and, therefore, they are not accounted for directly.
+        """
+        return stream.get_impact(key) * self.operating_hours
+    
+    def get_electricity_impact(self, consumption_key=None, production_key=None):
+        """
+        Return the annual electricity impact given the 
+        characterization factor keys.
         
         """
         power_utility = bst.PowerUtility.sum([i.power_utility for i in self.cost_units])
-        return (
-            sum([s.get_impact(material_cradle_to_gate_key) for s in self.feeds])
-            + sum([s.get_impact(material_gate_to_grave_key) for s in self.products])
-            + power_utility.get_impact(electricity_consumption_key, electricity_production_key) 
-        ) * self.operating_hours
+        return power_utility.get_impact(consumption_key, production_key)
     
     @property
     def sales(self):
@@ -1757,13 +1751,16 @@ del ignore_docking_warnings
 
 class OperationModeResults:
     
-    __slots__ = ('unit_capital_costs', 'utility_cost', 'flow_rates', 
-                 'feeds', 'products', 'operating_hours')
+    __slots__ = ('unit_capital_costs', 'net_electricity_consumption', 
+                 'utility_cost', 'flow_rates', 'feeds', 'products', 
+                 'operating_hours')
     
-    def __init__(self, unit_capital_costs, flow_rates, utility_cost, 
+    def __init__(self, unit_capital_costs, flow_rates, 
+                 net_electricity_consumption, utility_cost, 
                  feeds, products, operating_hours):
         self.unit_capital_costs = unit_capital_costs
         self.flow_rates = flow_rates
+        self.net_electricity_consumption = net_electricity_consumption
         self.utility_cost = utility_cost
         self.feeds = feeds
         self.products = products
@@ -1805,6 +1802,7 @@ class OperationMode:
         return OperationModeResults(
             {i: i.get_design_and_capital() for i in cost_units},
             {i: i.F_mass * operating_hours for i in feeds + products},
+            operating_hours * sum([i.power_utility.rate for i in cost_units]),
             operating_hours * sum([i.utility_cost for i in cost_units]),
             feeds, products,
             operating_hours,
@@ -1837,7 +1835,7 @@ class AgileSystem:
     
     __slots__ = ('operation_modes', 'operation_parameters',
                  'mode_operation_parameters', 'unit_capital_costs', 
-                 'utility_cost', 'flow_rates', 'feeds', 'products', 
+                 'net_electricity_consumption', 'utility_cost', 'flow_rates', 'feeds', 'products', 
                  'purchase_cost', 'installed_equipment_cost',
                  'lang_factor', '_OperationMode', '_TEA', '_LCA')
     
@@ -1897,6 +1895,24 @@ class AgileSystem:
     def market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
+    
+    def get_material_impact(self, stream, key):
+        """
+        Return the annual material impact given the stream and the 
+        characterization factor key.
+        
+        """
+        return self.flow_rates[stream] * stream.characterization_factor[key]
+    
+    def get_electricity_impact(self, consumption_key=None, production_key=None):
+        """
+        Return the annual electricity impact given the 
+        characterization factor keys.
+        
+        """
+        net_electricity = bst.PowerUtility()
+        net_electricity(self.net_electricity_consumption)
+        return net_electricity.get_impact(consumption_key, production_key)
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
@@ -1995,6 +2011,7 @@ class AgileSystem:
         for results in operation_mode_results:
             for i, j in results.unit_capital_costs.items(): unit_modes[i].append(j)
         self.unit_capital_costs = {i: i.get_agile_design_and_capital(j) for i, j in unit_modes.items()}
+        self.net_electricity_consumption = sum([i.net_electricity_consumption for i in operation_mode_results])
         self.utility_cost = sum([i.utility_cost for i in operation_mode_results])
         self.flow_rates = flow_rates = {}
         self.feeds = list(set(sum([i.feeds for i in operation_mode_results], [])))
