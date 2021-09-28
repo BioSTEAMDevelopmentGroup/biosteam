@@ -1423,9 +1423,9 @@ class System:
         idxer = {}
         for unit in self.units:
             start = len(arr)
-            arr = np.append(arr, dct[unit.ID])
+            arr = np.append(arr, dct[unit._ID])
             stop = len(arr)
-            idxer[unit.ID] = (start, stop)
+            idxer[unit._ID] = (start, stop)
         return arr, idxer
 
     def _dstate_dct2arr(self, dct, idx):
@@ -1440,7 +1440,7 @@ class System:
             start, stop = idx[unit.ID]
             dct_y.update(unit._state_locator(arr[start: stop]))
         for ws in self.feeds:
-            dct_y[ws.ID] = np.append(ws.Conc, ws.get_total_flow('m3/d'))
+            dct_y[ws.ID] = np.append(ws.conc, ws.get_total_flow('m3/d'))
         return dct_y
 
     def _dstate_arr2dct(self, arr, idx):
@@ -1453,10 +1453,9 @@ class System:
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
         if self._state is None:
-            dct_all_but_feed = {}
-            for unit in self.units:
-                dct_all_but_feed.update(unit._load_state())
-            y, idx = self._state_dct2arr(dct_all_but_feed)
+            dct = {}
+            for unit in self.units: dct.update(unit._load_state())
+            y, idx = self._state_dct2arr(dct)
             self._state = {'time': 0,
                            'state': y,
                            'indexer': idx}
@@ -1469,12 +1468,13 @@ class System:
         '''System-wide ODEs.'''
         dct_dy = self._dct_dy if self._dct_dy \
             else self._dstate_arr2dct(np.zeros(yshape), idx)
+        feeds = self.feeds
         def dydt(t, y):
             dct_y = self._state_arr2dct(y, idx)
             for unit in self.units:
-                QC_ins = np.concatenate([dct_y[ws.ID] for ws in unit.ins])
-                dQC_ins = np.concatenate([np.zeros(dct_y[ws.ID].shape) if ws in self.feeds else dct_dy[ws.ID] for ws in unit.ins])
-                QC = dct_y[unit.ID]
+                QC_ins = np.concatenate([dct_y[ws._ID] for ws in unit._ins])
+                dQC_ins = np.concatenate([np.zeros(dct_y[ws._ID].shape) if ws in feeds else dct_dy[ws._ID] for ws in unit._ins])
+                QC = dct_y[unit._ID]
                 dy_dt = unit.ODE
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
@@ -1496,6 +1496,7 @@ class System:
 
     def clear_state(self):
         self._state = None
+        self._dct_dy = None
         for u in self.units:
             u._state = None
 
