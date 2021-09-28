@@ -313,6 +313,7 @@ class System:
         '_LCA',
         '_state',
         '_dct_dy',
+        '_state_sources',
     )
 
     take_place_of = Unit.take_place_of
@@ -483,6 +484,7 @@ class System:
         self.lang_factor = lang_factor
         self._state = None
         self._dct_dy = None
+        self._init_dynamic()
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -502,8 +504,8 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._state = None
-        self._dct_dy = None
+        self._init_dynamic()
+
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1076,7 +1078,9 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        return any([unit._isdynamic for unit in self.units])
+        isdynamic = [unit._isdynamic if hasattr(unit, '_isdynamic') else False
+                                                for unit in self.units]
+        return any(isdynamic)
 
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
@@ -1418,16 +1422,28 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
+    def _init_dynamic(self):
+        '''Initialize attributes related to dynamic simulation.'''
+        self._state = None
+        self._dct_dy = None
+        state_sources = {}
+        for u in self.units:
+            if u.state_source is not None:
+                state_sources[u.ID] = u.state_source
+        self._state_sources = state_sources
+
+
     def reset_cache(self):
         """Reset cache of all unit operations."""
         for unit in self.units: unit.reset_cache()
-        self._state = None
-        self._dct_dy = None
+        self._init_dynamic()
 
     def _state_dct2arr(self, dct):
         arr = np.array([])
         idxer = {}
         for unit in self.units:
+            # if unit.state_source is not None:
+            #     continue
             start = len(arr)
             arr = np.append(arr, dct[unit.ID])
             stop = len(arr)
@@ -1443,6 +1459,8 @@ class System:
     def _state_arr2dct(self, arr, idx):
         dct_y = {}
         for unit in self.units:
+            # if unit.state_source is not None:
+            #     continue
             start, stop = idx[unit.ID]
             dct_y.update(unit._state_locator(arr[start: stop]))
         for ws in self.feeds:
@@ -1452,6 +1470,8 @@ class System:
     def _dstate_arr2dct(self, arr, idx):
         dct_dy = {}
         for unit in self.units:
+            # if unit.state_source is not None:
+            #     continue
             start, stop = idx[unit.ID]
             dct_dy.update(unit._dstate_locator(arr[start: stop]))
         return dct_dy
@@ -1477,14 +1497,25 @@ class System:
             else self._dstate_arr2dct(np.zeros(yshape), idx)
         def dydt(t, y):
             dct_y = self._state_arr2dct(y, idx)
+            # print("\n%10.3e"%t)
             for unit in self.units:
-                QC_ins = np.concatenate([dct_y[ws.ID] for ws in unit.ins])
-                dQC_ins = np.concatenate([np.zeros(dct_y[ws.ID].shape) if ws in self.feeds else dct_dy[ws.ID] for ws in unit.ins])
+                QC_ins = np.concatenate([dct_y[ws.ID] if ws.ID in dct_y.keys() \
+                                          else ws._source._state_locator(dct_y[self._state_sources[ws._source.ID].ID])[ws.ID]
+                                          # else dct_y[self._state_sources[unit.ID].ID]
+                                        for ws in unit.ins
+                                        ])
+                dQC_ins = np.concatenate([np.zeros(dct_y[ws.ID].shape)
+                                          if ws in self.feeds else \
+                                              dct_dy[ws.ID] if ws.ID in dct_dy.keys() \
+                                                  else ws._source._state_locator(dct_dy[self._state_sources[ws._source.ID].ID])[ws.ID]
+                                          for ws in unit.ins])
                 QC = dct_y[unit.ID]
-                dy_dt = unit.ODE
-                QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
+                if unit.state_source is not None:
+                    QC_dot = dct_dy[unit.state_source.ID]
+                else:
+                    dy_dt = unit.ODE
+                    QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
-            # print("%10.3e"%t)
             self._dct_dy = dct_dy
             return self._dstate_dct2arr(dct_dy, idx)
         return dydt
@@ -1497,7 +1528,8 @@ class System:
         idx = self._state['indexer']
         dct_y = self._state_arr2dct(y, idx)
         for unit in self.units:
-            unit.state = dct_y[unit.ID]
+            if unit.state_source is None:
+                unit.state = dct_y[unit.ID]
             unit._define_outs()
 
     def clear_state(self):
