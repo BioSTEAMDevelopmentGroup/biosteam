@@ -112,12 +112,13 @@ class PowerUtility:
         """Cost [USD/hr]"""
         return self.price * self.rate
     
-    def get_impact(self, consumption_key, production_key=None):
+    def get_impact(self, consumption_key=None, production_key=None):
         """Return the impact in impact / hr given characterization factor keys 
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
         rate = self.consumption - self.production
         if rate > 0.:
+            if consumption_key is None: consumption_key = production_key
             return self.characterization_factors[consumption_key] * rate
         else:
             cf = self.characterization_factors
@@ -188,7 +189,7 @@ class PowerUtility:
         cost_units = cost or display_units.cost
         production = convert(self.production, 'kW', rate_units)
         consumption = convert(self.consumption, 'kW', rate_units)
-        rate = production - consumption
+        rate = consumption - production
         cost = convert(self.cost, 'USD/hr', cost_units)
         print(f'{type(self).__name__}:\n'
               f' consumption: {consumption:.3g} {rate_units}\n'
