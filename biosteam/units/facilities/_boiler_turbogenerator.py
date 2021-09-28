@@ -191,7 +191,7 @@ class Boiler(Facility):
         emissions.T = self.agent.T
         emissions.P = 101325
         emissions.phase = 'g'
-        combustion_rxns = chemicals.get_combustion_reactions()
+        self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         
         def calculate_excess_heat_at_natual_gas_flow(natural_gas_flow):
@@ -484,7 +484,7 @@ class BoilerTurbogenerator(Facility):
         emissions.T = self.agent.T
         emissions.P = 101325
         emissions.phase = 'g'
-        combustion_rxns = chemicals.get_combustion_reactions()
+        self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
         non_empty_feeds = [i for i in (feed_solids, feed_gas) if not i.isempty()]
         
         def calculate_excess_electricity_at_natual_gas_flow(natural_gas_flow):
@@ -545,13 +545,16 @@ class BoilerTurbogenerator(Facility):
         emissions_mol = emissions.mol
         if 'SO2' in chemicals: 
             ash_IDs.append('CaSO4')
-            lime_index = chemicals.index(self._ID_lime)
+            lime_index = emissions.chemicals.index(self._ID_lime)
+            sulfur_index = emissions.chemicals.index('CaSO4')
             self.desulfurization_reaction.force_reaction(emissions)
             # FGD lime scaled based on SO2 generated,	
             # 20% stoichiometetric excess based on P52 of ref [1]
             
-            lime.mol[lime_index] = lime_mol = max(0, - emissions_mol[lime_index] * 1.2)
+            lime.mol[lime_index] = lime_mol = max(0, emissions_mol[sulfur_index] * 1.2)
             emissions_mol[emissions_mol < 0.] = 0.
+        else:
+            lime.empty()
         # About 0.4536 kg/hr of boiler chemicals are needed per 234484 kg/hr steam produced
         chems.imol['Ash'] = boiler_chems = 1.9345e-06 * Design['Flow rate']
         ash_disposal.empty()

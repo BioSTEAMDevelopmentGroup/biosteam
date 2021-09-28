@@ -191,8 +191,7 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
     df = bst.UnitGroup.df_from_groups_across_coordinate(unit_groups, f, x)
     metrics = unit_groups[0].metrics
     N_metrics = len(metrics)
-    fig, axes = subplots(N_metrics)
-    N_rows, N_cols = axes.shape
+    fig, axes = plt.subplots(nrows=N_metrics, ncols=1)
     axes_flat = axes.flatten()
     for i in range(N_metrics):
         metric = metrics[i]
@@ -202,16 +201,15 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
         plt.sca(ax)
         df_metric.T.plot(kind='bar', stacked=True, edgecolor='k',
                          ax=ax, **kwargs)
-        plt.ylabel(reformat_units(col))
-    for i in range(N_cols): fig.align_ylabels(axes[:, i])
+        plt.ylabel(reformat_units(col).replace(' [', '\n['))
+    fig.align_ylabels(axes)
     xticks = list(range(len(x)))
-    for ax in axes[:-1].flatten():
+    for ax in axes:
         plt.sca(ax)
         plt.xticks(xticks, (), rotation=0)
-    for ax in axes[-1]: 
-        plt.sca(ax)
-        plt.xticks(xticks, x, rotation=0)
-        plt.xlabel(name)
+    plt.sca(ax)
+    plt.xticks(xticks, x, rotation=0)
+    plt.xlabel(name)
     
     data = [df[i.name_with_units].values for i in metrics]
     data_ub = [np.where(i > 0, i, 0.) for i in data]
@@ -239,7 +237,8 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
     plt.subplots_adjust(hspace=0.1, wspace=0.4)
 
 def plot_unit_groups(unit_groups, colors=None,
-                     hatches=None, fraction=False, joint_group=None, **kwargs):
+                     hatches=None, fraction=False, joint_group=None, 
+                     format_total=None, bold_label=False,**kwargs):
     """Plot unit groups as a stacked bar chart."""
     colors, hatches = default_colors_and_hatches(len(unit_groups), colors, hatches)
     df = bst.UnitGroup.df_from_groups(
@@ -252,9 +251,15 @@ def plot_unit_groups(unit_groups, colors=None,
             joint_group = bst.UnitGroup(None, units)
             joint_group.autofill_metrics()
         N_metrics = len(joint_group.metrics)
-        bar_labels = [f"{i():.3g}" r"\ " f"{format_units(i.units, '', False)}" 
-                      for i in joint_group.metrics]
-        bar_labels = [r"$\mathbf{" + i + "}$" for i in bar_labels]
+        if format_total is None: format_total = lambda x: format(x, '.3g')
+        if bold_label:
+            bar_labels = [r"$\mathbf{" f"{format_total(i())}" "}$" "\n"
+                           "$\mathbf{[" f"{format_units(i.units, '', False)}" "]}$"
+                          for i in joint_group.metrics]
+        else:
+            bar_labels = [f"{format_total(i())}\n[{format_units(i.units)}]"
+                          for i in joint_group.metrics]
+        # bar_labels = [r"$\mathbf{" + i + "}$" for i in bar_labels]
         df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
         locs, labels = plt.xticks()
         plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
@@ -696,7 +701,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                 cs = plt.contour(cp, zorder=1e16,
                                  linestyles='dashed', linewidths=1.,
                                  levels=cp.levels, colors=[linecolor])
-                clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
+                clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
                           fontsize=12, colors=['k'], zorder=1e16)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp

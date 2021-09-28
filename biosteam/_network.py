@@ -321,6 +321,7 @@ class Network:
         if excluded is None: excluded = set()
         for i, u in enumerate(path):
             if isa(u, Unit):
+                if isa(u, bst.HXprocess): excluded.add(u)
                 for s in u.outs:
                     sink = s.sink
                     if u in excluded: continue

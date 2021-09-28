@@ -142,6 +142,13 @@ class BatchBioreactor(Unit, isabstract=True):
         vent.P = effluent.P = self.P
         
     @property
+    def vent(self):
+        return self.outs[0]
+    @property
+    def effluent(self):
+        return self.outs[1]
+        
+    @property
     def N(self):
         """[int] Number of reactor."""
         return self._N
@@ -187,7 +194,7 @@ class BatchBioreactor(Unit, isabstract=True):
         return N - 1
         
     def _design(self):
-        effluent = self.outs[1]
+        effluent = self.effluent
         v_0 = effluent.F_vol
         tau = self._tau
         tau_0 = self.tau_0

@@ -13,14 +13,14 @@ Authors of the BioSTEAM software include:
 
   * Jeremy Guest (led efforts to found, develop, coordinate, and expand the software)
 
+  * Sarang Sunil Bhagwat (led the development of the heat exchanger network and contributed expertise in several other areas)
+
+  * Yalin Li (contributed general expertise throughout development)
+
 * Direct contributers to code base:
 
-  * Sarang Sunil Bhagwat
-
-  * Yalin Li
-  
   * `All other developers <https://github.com/BioSTEAMDevelopmentGroup/biosteam/graphs/contributors>`__ 
-    that have contributed to the biosteam repository 
+    that have contributed to the biosteam repository
 
 * Developers who have contributed in person and through email, including:
 

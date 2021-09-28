@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from warnings import warn
 import openpyxl
+import thermosteam as tmo
 from .._heat_utility import HeatUtility
 import os
 
@@ -80,7 +81,8 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
         
     """
     writer = ExcelWriter(file)
-    units = sorted([i for i in system.units if i._design or i._cost], key=lambda x: x.line)
+    units = sorted(system.units, key=lambda x: x.line)
+    cost_units = [i for i in units if i._design or i._cost]
     try:
         system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
     except:
@@ -124,22 +126,45 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
     tables_to_excel(stream_tables, writer, 'Stream table')
     
     # Heat utility tables
-    heat_utilities = heat_utility_tables(units)
+    heat_utilities = heat_utility_tables(cost_units)
     n_row = tables_to_excel(heat_utilities, writer, 'Utilities')
     
     # Power utility table
-    power_utility = power_utility_table(units)
+    power_utility = power_utility_table(cost_units)
     power_utility.to_excel(writer, 'Utilities', 
                            index_label='Electricity',
                            startrow=n_row)
     
     # General desing requirements
-    results = unit_result_tables(units)
+    results = unit_result_tables(cost_units)
     tables_to_excel(results, writer, 'Design requirements')
+    
+    # Reaction tables
+    reactions = unit_reaction_tables(units)
+    tables_to_excel(reactions, writer, 'Reactions')
+    
     writer.save()
     if diagram_completed: os.remove("flowsheet.png")
 
 save_system_results = save_report
+
+def unit_reaction_tables(units):
+    isa = isinstance
+    tables = []
+    rxntypes = (tmo.Reaction, tmo.ReactionSet)
+    for u in units:
+        all_reactions = {rxn for rxn in u.__dict__.values() if isa(rxn, rxntypes)}
+        for rxn in tuple(all_reactions):
+            if hasattr(rxn, '_parent'):
+                if rxn._parent in all_reactions: all_reactions.discard(rxn)
+            elif hasattr(rxn, '_parent_index'):
+                parent, index = rxn._parent_index
+                if parent in all_reactions: all_reactions.discard(rxn)
+        for rxn in all_reactions:
+            df = rxn.to_df()
+            df.columns.name = '-'.join([u.ID, u.line])
+            tables.append(df)
+    return tables
 
 def unit_result_tables(units,
                        include_utilities=False, 

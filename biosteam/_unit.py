@@ -388,28 +388,19 @@ class Unit:
         if thermo is self.thermo: return
         self._load_thermo(thermo)
         chemicals = thermo.chemicals
-        reactions = []
         dcts = [self.__dict__]
         if hasattr(self, 'components') and isinstance(self.components, dict):
             dcts.append(self.components)
         for dct in dcts:
-            for i, j in self.__dict__.items():
+            for i, j in dct.items():
                 if isinstance(j, tmo.ReactionSystem):
                     for rxn in j._reactions:
                         if hasattr(rxn, 'reset_chemicals') and rxn.chemicals is not chemicals:
-                            if isinstance(j, (tmo.Reaction, tmo.ReactionSet)):
-                                reactions.append([rxn, rxn.X])
-                            try: rxn.reset_chemicals(chemicals)
-                            except TypeError: pass
+                            rxn.reset_chemicals(chemicals)
                 elif hasattr(j, 'reset_chemicals') and j.chemicals is not chemicals:
-                    if isinstance(j, (tmo.Reaction, tmo.ReactionSet)):
-                        reactions.append([j, j.X])
-                    try: j.reset_chemicals(chemicals)
-                    except TypeError: pass
+                    j.reset_chemicals(chemicals)
                 elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
                     j._reset_thermo(thermo)
-        for rxn, X in reactions: 
-            rxn.X = X
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -654,29 +645,33 @@ class Unit:
         return convert(self.design_results[key], self._units[key], units)
     
     @piping.ignore_docking_warnings
-    def take_place_of(self, other):
-        """Replace inlets and outlets from this unit with that of another unit."""
+    def take_place_of(self, other, discard=False):
+        """Replace inlets and outlets from this unit or system with that of 
+        another unit or system."""
         self.ins[:] = other.ins
         self.outs[:] = other.outs
+        if discard: bst.main_flowsheet.unit.discard(other)
     
     @piping.ignore_docking_warnings
     def replace_with(self, other=None, discard=False):
         """Replace inlets and outlets from another unit with this unit."""
-        if isinstance(other, Unit):
-            other.take_place_of(self)
-        else:
-            for inlet, outlet in zip(self.ins, self.outs):
-                sink = outlet.sink
-                if sink: 
-                    sink.ins.replace(outlet, inlet)
-                    continue
+        if other is None:
+            ins = self.ins
+            outs = self.outs
+            for inlet, outlet in zip(tuple(ins), tuple(outs)):
                 source = inlet.source
-                if source: source.outs.replace(inlet, outlet)
-        if discard:
-            registry = bst.main_flowsheet.unit
-            registry.discard(self)
+                if source:
+                    source.outs.replace(inlet, outlet)
+                else:
+                    sink = outlet.sink
+                    if sink: sink.ins.replace(outlet, inlet)
+            ins.empty()
+            outs.empty()
+        else:
+            other.ins[:] = self.ins
+            other.outs[:] = self.outs
+        if discard: bst.main_flowsheet.unit.discard(self)
                     
-    
     # Forward pipping
     def __sub__(self, other):
         """Source streams."""

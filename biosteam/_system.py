@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
+#                          Sarang Bhagwat <sarangb2@illinois.edu>,
+#                          Joy Zhang <joycheung1994@gmail.com>,
+#                          Yalin Li <zoe.yalin.li@gmail.com>
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -310,7 +313,11 @@ class System:
         '_LCA',
         '_state',
         '_dct_dy',
+        '_state_sources',
     )
+
+    take_place_of = Unit.take_place_of
+    replace_with = Unit.replace_with
 
     ### Class attributes ###
 
@@ -475,8 +482,7 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._state = None
-        self._dct_dy = None
+        self._init_dynamic()
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -496,8 +502,7 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._state = None
-        self._dct_dy = None
+        self._init_dynamic()
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1070,7 +1075,9 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        return any([unit._isdynamic for unit in self.units])
+        isdynamic = [unit._isdynamic if hasattr(unit, '_isdynamic') else False
+                                                for unit in self.units]
+        return any(isdynamic)
 
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
@@ -1412,16 +1419,30 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
+
+    def _init_dynamic(self):
+        '''Initialize attributes related to dynamic simulation.'''
+        self._state = None
+        self._dct_dy = None
+        state_sources = {}
+        for u in self.units:
+            if u.state_source is not None:
+                state_sources[u.ID] = u.state_source
+        self._state_sources = state_sources
+
+
     def reset_cache(self):
         """Reset cache of all unit operations."""
         for unit in self.units: unit.reset_cache()
-        self._state = None
-        self._dct_dy = None
+        self._init_dynamic()
+
 
     def _state_dct2arr(self, dct):
         arr = np.array([])
         idxer = {}
         for unit in self.units:
+            # if unit.state_source is not None:
+            #     continue
             start = len(arr)
             arr = np.append(arr, dct[unit._ID])
             stop = len(arr)
@@ -1437,6 +1458,8 @@ class System:
     def _state_arr2dct(self, arr, idx):
         dct_y = {}
         for unit in self.units:
+            # if unit.state_source is not None:
+            #     continue
             start, stop = idx[unit.ID]
             dct_y.update(unit._state_locator(arr[start: stop]))
         for ws in self.feeds:
@@ -1446,9 +1469,12 @@ class System:
     def _dstate_arr2dct(self, arr, idx):
         dct_dy = {}
         for unit in self.units:
+            # if unit.state_source is not None:
+            #     continue
             start, stop = idx[unit.ID]
             dct_dy.update(unit._dstate_locator(arr[start: stop]))
         return dct_dy
+
 
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
@@ -1471,6 +1497,7 @@ class System:
         feeds = self.feeds
         def dydt(t, y):
             dct_y = self._state_arr2dct(y, idx)
+            # print("\n%10.3e"%t)
             for unit in self.units:
                 QC_ins = np.concatenate([dct_y[ws._ID] for ws in unit._ins])
                 dQC_ins = np.concatenate([np.zeros(dct_y[ws._ID].shape) if ws in feeds else dct_dy[ws._ID] for ws in unit._ins])
@@ -1478,7 +1505,6 @@ class System:
                 dy_dt = unit.ODE
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
-            # print("%10.3e"%t)
             self._dct_dy = dct_dy
             return self._dstate_dct2arr(dct_dy, idx)
         return dydt
@@ -1491,7 +1517,8 @@ class System:
         idx = self._state['indexer']
         dct_y = self._state_arr2dct(y, idx)
         for unit in self.units:
-            unit.state = dct_y[unit.ID]
+            if unit.state_source is None:
+                unit.state = dct_y[unit.ID]
             unit._define_outs()
 
     def clear_state(self):
@@ -1607,6 +1634,30 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
+    def get_impact(self,
+            material_cradle_to_gate_key,
+            material_gate_to_grave_key,
+            electricity_consumption_key,
+            electricity_production_key,
+        ):
+        """
+        Return the annual impact given the characterization factor keys.
+
+        Notes
+        -----
+        Only the operational phase is included (i.e. material, products,
+        and electricity). It is assumed that heating and cooling utilities are
+        produced on-site and, therefore, they are not accounted for directly.
+
+        """
+        power_utility = bst.PowerUtility.sum([i.power_utility for i in self.cost_units])
+        return (
+            sum([s.get_impact(material_cradle_to_gate_key) for s in self.feeds])
+            + sum([s.get_impact(material_gate_to_grave_key) for s in self.products])
+            + power_utility.get_impact(electricity_consumption_key, electricity_production_key)
+        ) * self.operating_hours
+
+
     @property
     def sales(self):
         """Annual sales revenue."""
@@ -1617,11 +1668,11 @@ class System:
         return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
     @property
     def utility_cost(self):
-        """Total utility cost (USD/yr)."""
+        """Total utility cost in USD/yr."""
         return sum([u.utility_cost for u in self.cost_units]) * self.operating_hours
     @property
     def purchase_cost(self):
-        """Total purchase cost (USD)."""
+        """Total purchase cost in USD."""
         return sum([u.purchase_cost for u in self.cost_units])
     @property
     def installed_equipment_cost(self):

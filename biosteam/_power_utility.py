@@ -11,13 +11,23 @@ from thermosteam.units_of_measure import DisplayUnits, convert
 
 __all__ = ('PowerUtility',)
 
+
 default_price = 0.0782
 
 class PowerUtility:
     """
-    Create an PowerUtility object that, when called, calculates the cost of 
-    power [kW] and saves the rate and cost.
+    Create an PowerUtility object that stores data on consumption and production
+    of electricity.
             
+    Notes
+    -----
+    The default price is 0.0782 USD/kWhr as suggested in [1]_.
+    
+    References
+    ----------
+    [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+    
     Examples
     --------
     Create a PowerUtility object:
@@ -29,7 +39,7 @@ class PowerUtility:
     PowerUtility objects have `consumption` and `production` attributes
     which are updated when setting the rate with the assumption that
     a positive rate means no production (only consumption) and a negative
-    rate means no consumption (only consumption).
+    rate means no consumption (only production).
     
     >>> pu(rate=-500)
     >>> pu.consumption, pu.production
@@ -65,6 +75,9 @@ class PowerUtility:
     """
     __slots__ = ('consumption', 'production')
     
+    #: dict[obj, float] Characterization factors for life cycle assessment in impact/kWhr.
+    characterization_factors = {}
+    
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(rate='kW', cost='USD/hr')
     
@@ -98,6 +111,19 @@ class PowerUtility:
     def cost(self):
         """Cost [USD/hr]"""
         return self.price * self.rate
+    
+    def get_impact(self, consumption_key=None, production_key=None):
+        """Return the impact in impact / hr given characterization factor keys 
+        for consumption and production. If no production key given, it defaults
+        to the consumption key."""
+        rate = self.consumption - self.production
+        if rate > 0.:
+            if consumption_key is None: consumption_key = production_key
+            return self.characterization_factors[consumption_key] * rate
+        else:
+            cf = self.characterization_factors
+            if production_key is None: production_key = consumption_key
+            return cf[production_key] * rate
     
     def __bool__(self):
         return bool(self.consumption or self.production)
@@ -163,7 +189,7 @@ class PowerUtility:
         cost_units = cost or display_units.cost
         production = convert(self.production, 'kW', rate_units)
         consumption = convert(self.consumption, 'kW', rate_units)
-        rate = production - consumption
+        rate = consumption - production
         cost = convert(self.cost, 'USD/hr', cost_units)
         print(f'{type(self).__name__}:\n'
               f' consumption: {consumption:.3g} {rate_units}\n'
