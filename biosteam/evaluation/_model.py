@@ -328,7 +328,7 @@ class Model(State):
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
                     if self._exception_hook: 
-                        values = self._exception_hook(exception, sample)
+                        values = self._exception_hook(new_exception, sample)
                         self._reset_system()
                         if isinstance(values, Sized) and len(values) == len(self.metrics):
                             return values

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
+#                          Sarang Bhagwat <sarangb2@illinois.edu>,
+#                          Joy Zhang <joycheung1994@gmail.com>,
+#                          Yalin Li <zoe.yalin.li@gmail.com>
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -311,6 +314,9 @@ class System:
         '_state',
         '_dct_dy',
     )
+
+    take_place_of = Unit.take_place_of
+    replace_with = Unit.replace_with
 
     ### Class attributes ###
 
@@ -1606,6 +1612,30 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
+    def get_impact(self,
+            material_cradle_to_gate_key,
+            material_gate_to_grave_key,
+            electricity_consumption_key,
+            electricity_production_key,
+        ):
+        """
+        Return the annual impact given the characterization factor keys.
+
+        Notes
+        -----
+        Only the operational phase is included (i.e. material, products,
+        and electricity). It is assumed that heating and cooling utilities are
+        produced on-site and, therefore, they are not accounted for directly.
+
+        """
+        power_utility = bst.PowerUtility.sum([i.power_utility for i in self.cost_units])
+        return (
+            sum([s.get_impact(material_cradle_to_gate_key) for s in self.feeds])
+            + sum([s.get_impact(material_gate_to_grave_key) for s in self.products])
+            + power_utility.get_impact(electricity_consumption_key, electricity_production_key)
+        ) * self.operating_hours
+
+
     @property
     def sales(self):
         """Annual sales revenue."""
@@ -1616,11 +1646,11 @@ class System:
         return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
     @property
     def utility_cost(self):
-        """Total utility cost (USD/yr)."""
+        """Total utility cost in USD/yr."""
         return sum([u.utility_cost for u in self.cost_units]) * self.operating_hours
     @property
     def purchase_cost(self):
-        """Total purchase cost (USD)."""
+        """Total purchase cost in USD."""
         return sum([u.purchase_cost for u in self.cost_units])
     @property
     def installed_equipment_cost(self):

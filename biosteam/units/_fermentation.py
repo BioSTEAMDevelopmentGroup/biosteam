@@ -175,7 +175,7 @@ class Fermentation(BatchBioreactor):
         self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
         cell_growth.basis = 'mol'
         if all([i in self.chemicals for i in ('FFA', 'DAG', 'TAG', 'Glycerol')]):
-            self.lipid_reaction = ParallelReaction([
+            self.lipid_reaction = self.oil_reaction = ParallelReaction([
                 Reaction('TAG + 3Water -> 3FFA + Glycerol', 'TAG', 0.23, chemicals),
                 Reaction('TAG + Water -> FFA + DAG', 'TAG', 0.02, chemicals)
             ])
