@@ -482,8 +482,6 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._state = None
-        self._dct_dy = None
         self._init_dynamic()
         return self
 
@@ -505,7 +503,6 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._init_dynamic()
-
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1422,6 +1419,7 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
+
     def _init_dynamic(self):
         '''Initialize attributes related to dynamic simulation.'''
         self._state = None
@@ -1438,6 +1436,7 @@ class System:
         for unit in self.units: unit.reset_cache()
         self._init_dynamic()
 
+
     def _state_dct2arr(self, dct):
         arr = np.array([])
         idxer = {}
@@ -1445,6 +1444,8 @@ class System:
             # if unit.state_source is not None:
             #     continue
             start = len(arr)
+            # if unit.state_source is not None:
+            #     continue
             arr = np.append(arr, dct[unit.ID])
             stop = len(arr)
             idxer[unit.ID] = (start, stop)
@@ -1476,11 +1477,14 @@ class System:
             dct_dy.update(unit._dstate_locator(arr[start: stop]))
         return dct_dy
 
+
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
         if self._state is None:
             dct_all_but_feed = {}
             for unit in self.units:
+                # if unit.state_source is None:
+                #     dct_all_but_feed.update(unit._load_state())
                 dct_all_but_feed.update(unit._load_state())
             y, idx = self._state_dct2arr(dct_all_but_feed)
             self._state = {'time': 0,
