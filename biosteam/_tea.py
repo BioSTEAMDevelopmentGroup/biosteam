@@ -744,7 +744,7 @@ class TEA:
         determined by the annual production multiplied by its selling price.
         """
         system = self.system
-        market_values = np.array([system.market_value(i) for i in products])
+        market_values = np.array([system.get_market_value(i) for i in products])
         total_market_value = market_values.sum()
         weights = market_values/total_market_value
         return weights * self.total_production_cost(products, with_annual_depreciation)
@@ -761,7 +761,7 @@ class TEA:
         
         """
         system = self.system
-        coproduct_sales = self.sales - sum([system.market_value(i) for i in products])
+        coproduct_sales = self.sales - sum([system.get_market_value(i) for i in products])
         if with_annual_depreciation:
             TDC = self.TDC
             annual_depreciation = TDC/(self.duration[1]-self.duration[0])
@@ -807,7 +807,7 @@ class TEA:
             current_price = 0.
             for i, j in zip(streams, original_prices): i.price = j 
         else:
-            current_price = sum([system.market_value(i) for i in streams]) / abs(price2cost)
+            current_price = sum([system.get_market_value(i) for i in streams]) / abs(price2cost)
         return current_price + sales / price2cost 
         
     def solve_sales(self):

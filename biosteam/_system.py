@@ -1489,7 +1489,7 @@ class System:
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
     
-    def market_value(self, stream):
+    def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
     
@@ -1892,7 +1892,7 @@ class AgileSystem:
             self.operation_parameters[name] = setter
         return setter
 
-    def market_value(self, stream):
+    def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
     
