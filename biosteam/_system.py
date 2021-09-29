@@ -25,6 +25,7 @@ from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
 from .process_tools import utils
+from .utils import NotImplementedMethod
 from collections.abc import Iterable
 from warnings import warn
 from inspect import signature
@@ -1505,6 +1506,25 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
     
+    
+    def get_total_feeds_impact(self, key):
+        """
+        Return the total annual impact of all feeds given 
+        the characterization factor key.
+        
+        """
+        return sum([s.F_mass * s.characterization_factors[key] for s in self.products
+                    if key in s.characterization_factors]) * self.operating_hours
+    
+    def get_total_products_impact(self, key):
+        """
+        Return the total annual impact of all products given 
+        the characterization factor key.
+        
+        """
+        return sum([s.F_mass * s.characterization_factors[key] for s in self.products
+                    if key in s.characterization_factors]) * self.operating_hours
+    
     def get_material_impact(self, stream, key):
         """
         Return the annual material impact given the stream and the 
@@ -1802,16 +1822,27 @@ class OperationMode:
         return OperationModeResults(
             {i: i.get_design_and_capital() for i in cost_units},
             {i: i.F_mass * operating_hours for i in feeds + products},
-            operating_hours * sum([i.power_utility.rate for i in cost_units]),
             operating_hours * sum([i.utility_cost for i in cost_units]),
             feeds, products,
-            operating_hours,
         )
 
     def __repr__(self):
         return f"{type(self).__name__}({repr_kwargs(self.__dict__, start='')})"
+
+
+class OperationMetric:
+    __slots__ = ('getter', 'value')
     
-        
+    def __init__(self, getter):
+        self.getter = getter
+    
+    def __call__(self):
+        return self.value
+    
+    def __repr__(self):
+        return f"{type(self).__name__}(getter={self.getter})"
+
+
 class AgileSystem:
     """
     Class for creating objects which may serve to retrive
@@ -1830,6 +1861,10 @@ class AgileSystem:
         Lang factor for getting fixed capital investment from 
         total purchase cost. If no lang factor, installed equipment costs are 
         estimated using bare module factors.
+    mode_hook : function(<OperationMode>), optional
+        Function that serves as a method for OperationMode objects. This 
+        method is called after simulation and serves as a hook to collect
+        data on each operation mode post simulation.
     
     """
     
@@ -1877,8 +1912,8 @@ class AgileSystem:
         Parameters
         ----------    
         setter : function
-            Should set parameter in the element.
-        name : str
+            Should set parameter.
+        name : str, optional
             Name of parameter. If None, default to argument name of setter.
         mode_dependent :
             Whether the setter accepts the OperationMode object as a second argument.
@@ -1892,9 +1927,52 @@ class AgileSystem:
             self.operation_parameters[name] = setter
         return setter
 
+    def operation_metric(self, getter=None, annualize=False):
+        """
+        Return an OperationMetric object.
+        
+        Parameters
+        ----------    
+        getter : Callable(<OperationMode>)
+            Should get parameter.
+        annualize : bool, optional
+            Whether to multiply by operating hourse and sum across operation modes.
+            If True, return value of the OperationMetric is a float. Otherwise, 
+            the OperationMetric returns a dictionary of results with OperationMode
+            objects as keys.
+        
+        """
+        if not getter: return lambda getter: self.operation_metric(getter, annualize)
+        operation_metric = OperationMetric(getter)
+        if annualize:
+            self.annual_operation_metrics.append(operation_metric)
+        else:
+            self.operation_metrics.append(operation_metric)
+        return operation_metric
+
     def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
+    
+    def get_total_feeds_impact(self, key):
+        """
+        Return the total annual impact of all feeds given 
+        the characterization factor key.
+        
+        """
+        flow_rates = self.flow_rates
+        return sum([flow_rates[s] * s.characterization_factors[key] for s in self.feeds
+                    if key in s.characterization_factors])
+    
+    def get_total_products_impact(self, key):
+        """
+        Return the total annual impact of all products given 
+        the characterization factor key.
+        
+        """
+        flow_rates = self.flow_rates
+        return sum([flow_rates[s] * s.characterization_factors[key] for s in self.products
+                    if key in s.characterization_factors])
     
     def get_material_impact(self, stream, key):
         """
@@ -1903,16 +1981,6 @@ class AgileSystem:
         
         """
         return self.flow_rates[stream] * stream.characterization_factor[key]
-    
-    def get_electricity_impact(self, consumption_key=None, production_key=None):
-        """
-        Return the annual electricity impact given the 
-        characterization factor keys.
-        
-        """
-        net_electricity = bst.PowerUtility()
-        net_electricity(self.net_electricity_consumption)
-        return net_electricity.get_impact(consumption_key, production_key)
     
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost for cash flow in solve_price method."""
@@ -2005,13 +2073,37 @@ class AgileSystem:
             mode.system._interface_property_packages()
         
     def simulate(self):
-        operation_mode_results = [i.simulate() for i in self.operation_modes]
+        operation_modes = self.operation_modes
+        operation_metrics = self.operation_metrics
+        annual_operation_metrics = self.annual_operation_metrics
+        N_modes = len(operation_modes)
+        N_metrics = len(operation_metrics)
+        N_annual_metrics = len(annual_operation_metrics)
+        operation_mode_results = N_modes * [None]
+        annual_values = N_annual_metrics * [N_modes * [None]]
+        annual_metric_range = range(N_annual_metrics)
+        metric_range = range(N_metrics)
+        values = [{i: None for i in operation_modes} for i in metric_range]
+        for i in range(N_modes):
+            mode = operation_modes[i]
+            operation_mode_results[i] = mode.simulate()
+            for j in annual_metric_range:
+                metric = annual_operation_metrics[j]
+                annual_values[j][i] = metric.getter(mode) * mode.operating_hours
+            for j in metric_range:
+                metric = operation_metrics[j]
+                values[j][mode] = metric.getter(mode)
+        for i in annual_metric_range:
+            metric = annual_operation_metrics[i]
+            metric.value = sum(annual_values[i])
+        for i in metric_range:
+            metric = operation_metrics[i]
+            metric.value = values[i]
         units = set(sum([list(i.unit_capital_costs) for i in operation_mode_results], []))
         unit_modes = {i: [] for i in units}
         for results in operation_mode_results:
             for i, j in results.unit_capital_costs.items(): unit_modes[i].append(j)
         self.unit_capital_costs = {i: i.get_agile_design_and_capital(j) for i, j in unit_modes.items()}
-        self.net_electricity_consumption = sum([i.net_electricity_consumption for i in operation_mode_results])
         self.utility_cost = sum([i.utility_cost for i in operation_mode_results])
         self.flow_rates = flow_rates = {}
         self.feeds = list(set(sum([i.feeds for i in operation_mode_results], [])))
