@@ -47,12 +47,14 @@ def format_title(line):
     line = line.replace('_', ' ')
     words = []
     word = ''
+    last = ''
     for i in line:
-        if i.isupper():
+        if i.isupper() and last.isalpha() and not last.isupper():
             words.append(word)
             word = i
         else:
             word += i
+        last = i
     words.append(word)
     line = ''
     for word in words:
@@ -65,7 +67,7 @@ def format_title(line):
     first_word, *rest = line.split(' ')
     words = [first_word[0].capitalize() + first_word[1:]]
     for word in rest:
-        if not all([i.isupper() for i in word]):
+        if not all([(i.isupper() or not last.isalpha()) for i in word]):
             word = word.lower()
         words.append(word)
     return ' '.join(words)

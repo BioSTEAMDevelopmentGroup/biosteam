@@ -123,7 +123,7 @@ class DrumDryer(Unit):
         dry_solids.T = hot_air.T = self.T
         duty = (dry_solids.H + hot_air.H) - (wet_solids.H + air.H)
         natural_gas.empty()
-        CO2 = CH4 = duty / self.chemicals.CH4.LHV
+        CO2 = CH4 = duty / - self.chemicals.CH4.LHV
         H2O = 2. * CH4
         natural_gas.imol['CH4'] = CH4
         emissions.imol['CO2', 'H2O'] = [CO2, H2O]

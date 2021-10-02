@@ -1490,6 +1490,10 @@ class System:
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
     
+    def get_mass_flow(self, stream):
+        """Return the mass flow rate of a stream [kg/yr]."""
+        return stream.F_mass * self.operating_hours
+    
     def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
@@ -1506,14 +1510,13 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
     
-    
     def get_total_feeds_impact(self, key):
         """
         Return the total annual impact of all feeds given 
         the characterization factor key.
         
         """
-        return sum([s.F_mass * s.characterization_factors[key] for s in self.products
+        return sum([s.F_mass * s.characterization_factors[key] for s in self.feeds
                     if key in s.characterization_factors]) * self.operating_hours
     
     def get_total_products_impact(self, key):
@@ -1532,15 +1535,6 @@ class System:
         
         """
         return stream.get_impact(key) * self.operating_hours
-    
-    def get_electricity_impact(self, consumption_key=None, production_key=None):
-        """
-        Return the annual electricity impact given the 
-        characterization factor keys.
-        
-        """
-        power_utility = bst.PowerUtility.sum([i.power_utility for i in self.cost_units])
-        return power_utility.get_impact(consumption_key, production_key)
     
     @property
     def sales(self):
@@ -1771,20 +1765,16 @@ del ignore_docking_warnings
 
 class OperationModeResults:
     
-    __slots__ = ('unit_capital_costs', 'net_electricity_consumption', 
-                 'utility_cost', 'flow_rates', 'feeds', 'products', 
-                 'operating_hours')
+    __slots__ = ('unit_capital_costs', 
+                 'utility_cost', 'flow_rates', 'feeds', 'products')
     
     def __init__(self, unit_capital_costs, flow_rates, 
-                 net_electricity_consumption, utility_cost, 
-                 feeds, products, operating_hours):
+                 utility_cost, feeds, products):
         self.unit_capital_costs = unit_capital_costs
         self.flow_rates = flow_rates
-        self.net_electricity_consumption = net_electricity_consumption
         self.utility_cost = utility_cost
         self.feeds = feeds
         self.products = products
-        self.operating_hours = operating_hours
     
     @property
     def material_cost(self):
@@ -1861,15 +1851,12 @@ class AgileSystem:
         Lang factor for getting fixed capital investment from 
         total purchase cost. If no lang factor, installed equipment costs are 
         estimated using bare module factors.
-    mode_hook : function(<OperationMode>), optional
-        Function that serves as a method for OperationMode objects. This 
-        method is called after simulation and serves as a hook to collect
-        data on each operation mode post simulation.
     
     """
     
     __slots__ = ('operation_modes', 'operation_parameters',
-                 'mode_operation_parameters', 'unit_capital_costs', 
+                 'mode_operation_parameters', 'annual_operation_metrics',
+                 'operation_metrics', 'unit_capital_costs', 
                  'net_electricity_consumption', 'utility_cost', 'flow_rates', 'feeds', 'products', 
                  'purchase_cost', 'installed_equipment_cost',
                  'lang_factor', '_OperationMode', '_TEA', '_LCA')
@@ -1878,10 +1865,13 @@ class AgileSystem:
     LCA = System.LCA
     
     def __init__(self, operation_modes=None, operation_parameters=None, 
-                 mode_operation_parameters=None, lang_factor=None):
+                 mode_operation_parameters=None, annual_operation_metrics=None,
+                 operation_metrics=None, lang_factor=None):
         self.operation_modes = [] if operation_modes is None else operation_modes 
         self.operation_parameters = {} if operation_parameters  is None else operation_parameters
         self.mode_operation_parameters = {} if mode_operation_parameters is None else mode_operation_parameters
+        self.annual_operation_metrics = [] if annual_operation_metrics is None else annual_operation_metrics
+        self.operation_metrics = [] if operation_metrics is None else operation_metrics
         self.lang_factor = lang_factor
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
         
@@ -1934,9 +1924,9 @@ class AgileSystem:
         Parameters
         ----------    
         getter : Callable(<OperationMode>)
-            Should get parameter.
+            Should return the metric value.
         annualize : bool, optional
-            Whether to multiply by operating hourse and sum across operation modes.
+            Whether to multiply by operating hours and sum across operation modes.
             If True, return value of the OperationMetric is a float. Otherwise, 
             the OperationMetric returns a dictionary of results with OperationMode
             objects as keys.
@@ -1953,6 +1943,10 @@ class AgileSystem:
     def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
+    
+    def get_mass_flow(self, stream):
+        """Return the mass flow rate of a stream [kg/yr]."""
+        return self.flow_rates[stream]
     
     def get_total_feeds_impact(self, key):
         """
