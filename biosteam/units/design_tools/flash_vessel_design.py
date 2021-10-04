@@ -47,7 +47,7 @@ def compute_horizontal_vessel_purchase_cost(W):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
+    C_v = exp(5.6336 + 0.4599*ln(W) + 0.00582*ln(W)**2)
     return bst.CE/567 * C_v
 
 @njit(cache=True)
