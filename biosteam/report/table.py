@@ -12,6 +12,7 @@ import pandas as pd
 from warnings import warn
 import openpyxl
 import thermosteam as tmo
+import biosteam as bst
 from .._heat_utility import HeatUtility
 import os
 
@@ -326,13 +327,26 @@ def power_utility_table(units):
     units = sorted(units, key=(lambda u: type(u).__name__))
     units = [u for u in units if u.power_utility]
     power_utilities = [u.power_utility for u in units]
-    lenght = len(power_utilities)
+    length = len(power_utilities)
     data = []
-    for i, u, pu in zip(range(lenght), units, power_utilities):
+    for i, u, pu in zip(range(length), units, power_utilities):
         data.append((u.line, pu.rate, pu.cost))
     return DataFrame(data, index=[u.ID for u in units if u.power_utility],
                      columns=('Unit Operation', 'Rate (kW)', 'Cost (USD/hr)'))
 
+# def lca_tables(sys):
+#     all_feeds = [i for i in sys.feeds if i.characterization_factors]
+#     all_products = [i for i in sys.products if i.characterization_factors]
+#     net_electricity = bst.PowerUtility.sum([i.power_utility for i in sys.cost_units])
+#     keys = list(net_electricity.characterization_factors)
+#     keys = set(sum([list(i.characterization_factors) for i in (all_feeds + all_products)], keys))
+#     tables = []
+#     for key in keys:
+#         feeds = [i for i in all_feeds if key in i.characterization_factors]
+#         mass_flows = [i.F_mass for i in feeds]
+        
+#         df = DataFrame(data, index=[])
+#         tables.append(df)
 
 # %% Streams
 

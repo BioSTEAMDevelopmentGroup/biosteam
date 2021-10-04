@@ -121,9 +121,8 @@ class PowerUtility:
             if consumption_key is None: consumption_key = production_key
             return self.characterization_factors[consumption_key] * rate
         else:
-            cf = self.characterization_factors
             if production_key is None: production_key = consumption_key
-            return cf[production_key] * rate
+            return self.characterization_factors[production_key] * rate
     
     def __bool__(self):
         return bool(self.consumption or self.production)
