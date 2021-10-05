@@ -111,13 +111,15 @@ class Mixer(Unit):
 class SteamMixer(Unit):
     """
     Create a mixer that varies the flow of steam to achieve a specified outlet
-    pressure.
+    pressure and varies the flow of process water to achieve a specified 
+    solids loading (by wt).
     
     Parameters
     ----------
     ins : stream sequence
         [0] Feed    
         [1] Steam
+        [2] Process water
     outs : stream
         Mixed product.
     P : float
@@ -125,14 +127,15 @@ class SteamMixer(Unit):
     
     """
     _N_outs = 1
-    _N_ins = 2
+    _N_ins = 3
     _ins_size_is_fixed = False
     _N_heat_utilities = 1
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, solids_loading=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
+        self.solids_loading = solids_loading
     
     @property
     def steam(self):
@@ -144,9 +147,18 @@ class SteamMixer(Unit):
         self.steam.copy_like(utility)
     
     def pressure_objective_function(self, steam_mol):
-        steam = self.ins[1]
+        feed, steam, process_water, *others = self.ins
+        feeds = [feed, *others]
         mixed = self.outs[0]
         steam.imol['7732-18-5'] = steam_mol
+        solids_loading = self.solids_loading
+        if solids_loading is not None:
+            chemicals = self.chemicals
+            index = chemicals.index('7732-18-5')
+            F_mass_feed = sum([i.F_mass for i in feeds if i])
+            available_water = (18.01528 * sum([i.mol[index] for i in feeds if i])).sum()
+            required_water = (F_mass_feed - available_water) * (1. - solids_loading) / solids_loading
+            process_water.mol[index] = max(required_water - available_water, 0.) / 18.01528
         mixed.mix_from(self.ins)
         P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
         return self.P - P_new
