@@ -249,6 +249,9 @@ class HeatUtility:
 
     #: [Thermo] Used broadly throughout BioSTEAM utilities.
     thermo_water = Thermo(['Water'])
+    
+    #: [Thermo] Used for BioSTEAM refrigeration utility.
+    thermo_propane = Thermo(['Propane'])
 
     def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
@@ -328,9 +331,19 @@ class HeatUtility:
             T_limit = 275.372,
             heat_transfer_price = 8.145e-6,
         )
+        propane = UtilityAgent(
+            'propane',
+            Propane=1,
+            thermo=cls.thermo_propane,
+            T=273.15 - 42.11,
+            P=101325,
+            heat_transfer_price = 13.17e-6,
+            phase='l',
+        )
         cls.cooling_agents = [cooling_water, 
                               chilled_water, 
-                              chilled_brine]
+                              chilled_brine,
+                              propane]
 
     def copy(self):
         hu = HeatUtility()

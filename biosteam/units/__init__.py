@@ -23,6 +23,7 @@ from ._flash import *
 from ._multi_effect_evaporator import *
 from .solids_separation import *
 from ._batch_bioreactor import *
+from ._batch_crystallizer import *
 from ._fermentation import *
 from ._transesterification import *
 from ._enzyme_treatment import *
@@ -78,6 +79,7 @@ from . import (
     _duplicator,
     _diagram_only_units, 
     _batch_bioreactor,
+    _batch_crystallizer,
     _carbon_capture, 
 )
 
@@ -112,6 +114,7 @@ __all__ = ('Unit',
            *_process_specification.__all__,
            *_duplicator.__all__,
            *_batch_bioreactor.__all__,
+           *_batch_crystallizer.__all__,
            *_carbon_capture.__all__,
            *wastewater.__all__,
            *drying.__all__,
