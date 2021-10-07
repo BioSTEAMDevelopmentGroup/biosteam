@@ -34,7 +34,7 @@ from inspect import signature
 from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, odeint
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
@@ -1424,11 +1424,6 @@ class System:
         '''Initialize attributes related to dynamic simulation.'''
         self._state = None
         self._dct_dy = None
-        state_sources = {}
-        for u in self.units:
-            if u.state_source is not None:
-                state_sources[u.ID] = u.state_source
-        self._state_sources = state_sources
 
 
     def reset_cache(self):
@@ -1441,8 +1436,6 @@ class System:
         arr = np.array([])
         idxer = {}
         for unit in self.units:
-            # if unit.state_source is not None:
-            #     continue
             start = len(arr)
             arr = np.append(arr, dct[unit._ID])
             stop = len(arr)
@@ -1458,21 +1451,19 @@ class System:
     def _state_arr2dct(self, arr, idx):
         dct_y = {}
         for unit in self.units:
-            # if unit.state_source is not None:
-            #     continue
-            start, stop = idx[unit.ID]
+            start, stop = idx[unit._ID]
             dct_y.update(unit._state_locator(arr[start: stop]))
         for ws in self.feeds:
-            dct_y[ws.ID] = np.append(ws.conc, ws.get_total_flow('m3/d'))
+            dct_y[ws._ID] = np.append(ws.conc, ws.get_total_flow('m3/d'))
         return dct_y
 
     def _dstate_arr2dct(self, arr, idx):
         dct_dy = {}
         for unit in self.units:
-            # if unit.state_source is not None:
-            #     continue
             start, stop = idx[unit.ID]
             dct_dy.update(unit._dstate_locator(arr[start: stop]))
+        # for ws in self.feeds:
+        #     dct_dy[ws._ID]
         return dct_dy
 
 
@@ -1499,6 +1490,9 @@ class System:
             dct_y = self._state_arr2dct(y, idx)
             # print("\n%10.3e"%t)
             for unit in self.units:
+                # unit._refresh_ins()
+                # QC_ins = unit._ins_y
+                # dQC_ins = unit._ins_dy
                 QC_ins = np.concatenate([dct_y[ws._ID] for ws in unit._ins])
                 dQC_ins = np.concatenate([np.zeros(dct_y[ws._ID].shape) if ws in feeds else dct_dy[ws._ID] for ws in unit._ins])
                 QC = dct_y[unit._ID]
@@ -1517,8 +1511,7 @@ class System:
         idx = self._state['indexer']
         dct_y = self._state_arr2dct(y, idx)
         for unit in self.units:
-            if unit.state_source is None:
-                unit.state = dct_y[unit.ID]
+            unit._state = dct_y[unit._ID]
             unit._define_outs()
 
     def clear_state(self):
@@ -1538,8 +1531,12 @@ class System:
             dydt = self._ODE(idx, y0.shape)
             # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
             sol = solve_ivp(fun=dydt, y0=y0, **kwarg)
+            # t = np.arange(0, 2.31, 0.01)
+            # sol = odeint(func=dydt, y0=y0, t=t, tfirst=True)
             np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
             self._write_state(sol.t[-1], sol.y.T[-1])
+            # np.savetxt('sol.txt', sol, delimiter='\t')
+            # self._write_state(t[-1], sol[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
