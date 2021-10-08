@@ -258,7 +258,12 @@ class Flash(design.PressureVessel, Unit):
         elif vessel_type == 'Horizontal': 
             args = self._horizontal_vessel_pressure_diameter_and_length()
         else: raise RuntimeError('unknown vessel type') # pragma: no cover
-        self.heat_exchanger._summary()
+        if self.Q == 0:
+            self.heat_exchanger.baseline_purchase_costs.clear()
+            self.heat_exchanger.purchase_costs.clear()
+            self.heat_exchanger.installed_costs.clear()
+        else:
+            self.heat_exchanger._summary()
         self.design_results.update(
             self._vessel_design(*args)
         )

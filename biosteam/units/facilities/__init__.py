@@ -17,6 +17,7 @@ from ._process_water_center import *
 from ._air_distribution_package import *
 from ._blowdown_mixer import *
 from ._cleaning_in_place import *
+from ._refrigeration_package import *
 from .hxn import *
 
 from . import _chemical_capital_investment
@@ -27,6 +28,7 @@ from . import _chilled_water_package
 from . import _process_water_center
 from . import _air_distribution_package
 from . import _cleaning_in_place
+from . import _refrigeration_package
 from . import hxn
 
 __all__ = ('Facility',
@@ -38,5 +40,6 @@ __all__ = ('Facility',
            *_chilled_water_package.__all__,
            *_process_water_center.__all__,
            *_cleaning_in_place.__all__,
+           *_refrigeration_package.__all__,
            *hxn.__all__,
 )
