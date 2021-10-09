@@ -201,7 +201,7 @@ class CO2Compression(Unit):
         phase: 'l', T: 303.15 K, P: 1.1e+07 Pa
         flow (kmol/hr): CO2  2.61e+03
     >>> U1.results()
-    CO2 compression                   Units       U1
+    CO2Compression                    Units       U1
     Power               Rate             kW      360
                         Cost         USD/hr     28.2
     Design              Total flow  kmol/hr 2.61e+03

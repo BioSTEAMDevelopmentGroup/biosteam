@@ -69,7 +69,7 @@ class PowerUtility:
     PowerUtility:
      consumption: 474 BTU/s
      production: 94.8 BTU/s
-     rate: -379 BTU/s
+     rate: 379 BTU/s
      cost: 31.3 USD/hr
     
     """

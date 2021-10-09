@@ -112,7 +112,7 @@ class MultiEffectEvaporator(Unit):
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
-        phase: 'l', T: 352.12 K, P: 101325 Pa
+        phase: 'l', T: 352.12 K, P: 20000 Pa
         flow (kmol/hr): Water       34.9
                         AceticAcid  0.00643
                         Furfural    0.000967
@@ -168,7 +168,7 @@ class MultiEffectEvaporator(Unit):
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
-        phase: 'l', T: 361.2 K, P: 101325 Pa
+        phase: 'l', T: 361.2 K, P: 50892 Pa
         flow (kmol/hr): Water       5.55
                         AceticAcid  0.00143
                         Furfural    0.000462
@@ -366,6 +366,7 @@ class MultiEffectEvaporator(Unit):
         mixed_stream.vle(P=last_evaporator.P, V=V_overall)
         out_wt_solids.mol = mixed_stream.imol['l']
         liq.mol = mixed_stream.imol['g']
+        liq.P = out_wt_solids.P
         
     def _design(self):
         if self.V == 0: return
