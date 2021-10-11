@@ -1,4 +1,4 @@
-thermosteam>=0.27.2
+thermosteam>=0.27.11
 IPython>=7.9.0
 colorpalette>=0.3.0
 chaospy>=3.3.9

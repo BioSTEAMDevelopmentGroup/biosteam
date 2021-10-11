@@ -116,6 +116,7 @@ class DrumDryer(Unit):
         dry_solids, hot_air, emissions = self.outs
         wet_solids.split_to(hot_air, dry_solids, self.split)
         sep.adjust_moisture_content(dry_solids, hot_air, self.moisture_content)
+        emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
         design_results = self.design_results
         design_results['Evaporation'] = evaporation = hot_air.F_mass
         air.imass['N2', 'O2'] = np.array([0.78, 0.32]) * self.R * evaporation
@@ -128,7 +129,6 @@ class DrumDryer(Unit):
         natural_gas.imol['CH4'] = CH4
         emissions.imol['CO2', 'H2O'] = [CO2, H2O]
         emissions.T = self.T + 30.
-        emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
         
     def _design(self):
         length_to_diameter = self.length_to_diameter
@@ -148,12 +148,13 @@ class ThermalOxidizer(Unit):
     ins : stream sequence
         [0] Feed gas
         [1] Air
+        [2] Natural gas
     outs : stream
         Emissions.
     tau : float, optional
         Residence time [hr]. Defaults to 0.00014 (0.5 seconds).
-    kW_per_m3 : float, optional
-        Power requirement [kW/m3]. Defaults to 18.47.
+    duty_per_kg : float, optional
+        Duty per kg of feed. Defaults to 105858 kJ / kg.
     V_wf : float, optional
         Fraction of working volume. Defaults to 0.95.
     
@@ -169,27 +170,42 @@ class ThermalOxidizer(Unit):
         https://doi.org/10.1016/j.indcrop.2005.08.004.
 
     """
-    _N_ins = 2
+    _N_ins = 3
     _N_outs = 1
     max_volume = 20. # m3
     _F_BM_default = {'Vessels': 2.06} # Assume same as dryer
     
-    def __init__(self, *args, tau=0.00014, kW_per_m3=18.47, V_wf=0.95, **kwargs):
+    @property
+    def natural_gas(self):
+        """[Stream] Natural gas to satisfy steam and electricity requirements."""
+        return self.ins[2]
+    
+    @property
+    def utility_cost(self):
+        return super().utility_cost + self.natural_gas_cost
+    
+    @property
+    def natural_gas_cost(self):
+        return self.natural_gas_price * self.natural_gas.F_mass
+    
+    def __init__(self, *args, tau=0.00014, duty_per_kg=61., V_wf=0.95, 
+                 natural_gas_price=0.289, **kwargs):
         Unit.__init__(self, *args, **kwargs)
         self.tau = tau
-        self.kW_per_m3 = kW_per_m3
+        self.duty_per_kg = duty_per_kg
+        self.natural_gas_price = natural_gas_price
         self.V_wf = V_wf
 
     def _run(self):
-        feed, air = self.ins
+        feed, air, ng = self.ins
+        ng.imol['CH4'] = - self.duty_per_kg * feed.F_mass / self.chemicals.CH4.LHV
         emissions, = self.outs
-        emissions.copy_like(feed)
+        emissions.mix_from([feed, ng])
         combustion_rxns = self.chemicals.get_combustion_reactions()
         combustion_rxns.force_reaction(emissions)
         O2 = max(-emissions.imol['O2'], 0.)
-        emissions.copy_like(feed)
         air.imol['N2', 'O2'] = [0.78/0.32 * O2, O2]
-        emissions.mol += air.mol
+        emissions.mix_from(self.ins)
         combustion_rxns.adiabatic_reaction(emissions)
         
     def _design(self):
@@ -205,6 +221,5 @@ class ThermalOxidizer(Unit):
         total_volume = design_results['Total volume']
         N = design_results['Number of vessels']
         vessel_volume = design_results['Vessel volume']
-        self.power_utility.consumption = total_volume * self.kW_per_m3
         C = self.baseline_purchase_costs
         C['Vessels'] = N * 918300. * (vessel_volume / 13.18)**0.6

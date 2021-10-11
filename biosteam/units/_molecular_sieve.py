@@ -67,16 +67,10 @@ class MolecularSieve(Splitter):
     Molecular sieve                  Units       MS1
     Power               Rate            kW      14.2
                         Cost        USD/hr      1.11
-    Low pressure steam  Duty         kJ/hr  3.21e+06
-                        Flow       kmol/hr      82.7
-                        Cost        USD/hr      19.7
-    Chilled water       Duty         kJ/hr -1.18e+05
-                        Flow       kmol/hr       123
-                        Cost        USD/hr     0.592
     Design              Flow rate    kg/hr  2.13e+03
     Purchase cost       Column         USD  6.85e+05
     Total purchase cost                USD  6.85e+05
-    Utility cost                    USD/hr      21.4
+    Utility cost                    USD/hr      1.11
     
     References
     ----------
@@ -89,9 +83,10 @@ class MolecularSieve(Splitter):
         Washington and Atlanta, Georgia)
     
     """
-    _N_heat_utilities = 2
+    _N_heat_utilities = 1
     _units = {'Flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(), *, order=None, split, P=101325):
+    def __init__(self, ID='', ins=None, outs=(), *, order=None, split,
+                 P=101325, ):
         Splitter.__init__(self, ID, ins, outs, order=order, split=split)
         self.P = 101325
         
@@ -100,9 +95,9 @@ class MolecularSieve(Splitter):
         for i in self.outs: i.P = self.P
 
     def _design(self):
-        self.design_results['Flow rate'] = flow = self._outs[1].F_mass
-        T = self.ins[0].T
-        hu1, hu2 = self.heat_utilities
-        hu1(1429.65*flow, T)
-        hu2(-55.51*flow, T)
+        self.design_results['Flow rate'] = self._outs[1].F_mass
+        # T = self.ins[0].T
+        # hu1, hu2 = self.heat_utilities
+        # hu1(1429.65*flow, T)
+        # hu2(-55.51*flow, T)
 

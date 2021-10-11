@@ -257,9 +257,9 @@ class UnitGroup:
         if isinstance(agent, str): agent = HeatUtility.get_agent(agent)
         name = agent.ID.replace('_', ' ').capitalize()
         if basis == 'duty':
-            self.metric(name, 'GJ', lambda: self.get_utility_duty(agent))
+            self.metric(lambda: self.get_utility_duty(agent), name, 'GJ')
         elif basis == 'flow':
-            self.metric(name, 'MT', lambda: self.get_utility_flow(agent))
+            self.metric(lambda: self.get_utility_flow(agent), name, 'MT')
         else:
             raise ValueError(f"basis must be either 'duty' or 'flow', not {repr(basis)}")
     
