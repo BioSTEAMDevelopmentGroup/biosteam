@@ -231,11 +231,13 @@ class TEA:
         Start and end year of venture (e.g. (2018, 2038)).
     depreciation : str, int, float, or iterable
         How to depreciate the capital cost, can be any of
-        'SL' (straight-line), 'SYD' (sum-of-the-years' digits),
-        a number as the accelarator for declining balance depreciation
-        (e.g., 2 for double declining balance),
+        'SLX' (straight line), 'DDB' (double declining balance),
+        'SYDX' (sum-of-the-years' digits)
+        ('X' representing the number of years,
+        and will equal the venture years if not given),
         an iterable of floats as the depreciation schedule, 
-        'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'
+        'MACRS3', 'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'
+        (from U.S. IRS publication 946, half-year convention).
     operating_days : float 
         Number of operating days per year.
     income_tax : float
@@ -287,9 +289,12 @@ class TEA:
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
     
-    
+    # Modified accelerated cost recovery system from
+    # U.S. IRS publicaiton 946, half-year convention
     #: dict[str, 1d-array] Available depreciation schedules.
     depreciation_schedules = {
+        'MACRS3': np.array([.3333, .4445, .1481, .0741]),
+
         'MACRS5': np.array([.2000, .3200, .1920,
                             .1152, .1152, .0576]),
               
@@ -311,7 +316,7 @@ class TEA:
       
         'MACRS20': np.array([0.03750, 0.07219, 0.06677,
                              0.06177, 0.05713, 0.05285,
-                             0.04888, 0.04522, 0.4462,
+                             0.04888, 0.04522, 0.04462,
                              0.04461, 0.04462, 0.04461,
                              0.04462, 0.04461, 0.04462,
                              0.04461, 0.04462, 0.04461,
@@ -475,6 +480,16 @@ class TEA:
         self._years = end - start
         
     @staticmethod
+    def _generate_DDB_schedule(yrs):
+        val = 1
+        arr = []
+        for y in range(yrs):
+            deprecd = 2 * val/yrs
+            arr.append(deprecd)
+            val -= deprecd
+        return np.array(arr)
+        
+    @staticmethod
     def _generate_SYD_schedule(yrs):
         digit_sum = yrs*(yrs+1)/2
         val = 1
@@ -482,65 +497,53 @@ class TEA:
         for y in range(yrs):
             deprecd = (yrs-y)/digit_sum * val
             arr.append(deprecd)
-            val -= deprecd
-        return  _update_deprecd_arr(np.array(arr))
-
-    @staticmethod
-    def _generate_DB_schedule(factor):
-        val = 1
-        arr = []
-        for y in range(yrs):
-            deprecd = factor * val/yrs
-            arr.append(deprecd)
-            val -= deprecd
-        return _update_deprecd_arr(np.array(arr))
-
-    @staticmethod
-    def _update_deprecd_arr(arr):
-        val_arr = np.ones_like(arr) - arr
-        val_arr[val_arr<0] = 0.
-        return  np.ones_like(arr) - val_arr
+        return np.array(arr)
 
     @property
     def depreciation(self):
         '''
         How to depreciate the capital cost, can be any of
-        'SL' (straight-line), 'SYD' (sum-of-the-years' digits),
+        'SLX' (straight line), 'DDB' (double declining balance),
+        'SYDX' (sum-of-the-years' digits)
+        ('X' representing the number of years,
+         and will equal the venture years if not given),
         a number as the accelarator for declining balance depreciation
         (e.g., 2 for double declining balance),
         an iterable of floats as the depreciation schedule, 
-        'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'.
+        'MACRS3', 'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'
+        (from U.S. IRS publication 946, half-year convention).
         '''
         return self._depreciation
     @depreciation.setter
     def depreciation(self, depreciation):
-        yrs = self._years
-        # MACRS depreciation by U.S. IRS
-        if depreciation in self.depreciation_schedules:
-            self._depreciation_array = self.depreciation_schedules[depreciation]
-        # Straight line depreciation
-        elif depreciation == 'SL':
-            self._depreciation_array = np.full(yrs, 1/yrs)
-        # Sum-of-the-years' digits
-        elif depreciaiton == 'SYD':
-            self._depreciation_array = self._update_deprecd_arr(
-                self._generate_SYD_schedule(yrs))
-        # Declining balance depreciation
-        elif isinstance(depreciation, (int, float)):
-            self._depreciation_array = self._update_deprecd_arr(
-                self._generate_BD_schedule(depreciation, yrs))
+        if isinstance(depreciation, str):
+            # MACRS depreciation by U.S. IRS
+            if depreciation in self.depreciation_schedules:
+                self._depreciation_array = self.depreciation_schedules[depreciation]
+            else:
+                get_yrs = lambda i: self._years if not depreciation.split(i)[1] \
+                    else int(depreciation.split(i)[1])
+                # Straight line
+                if 'SL' in depreciation:
+                    yrs = get_yrs('SL')
+                    self._depreciation_array = np.full(yrs, 1/yrs)
+                # Double declining balance
+                elif 'DDB' in depreciation:
+                    self._depreciation_array = self._generate_DDB_schedule(get_yrs('DDB'))
+                # Sum-of-the-years' digits
+                elif 'SYD' in depreciation:
+                    self._depreciation_array = self._generate_SYD_schedule(get_yrs('SYD')) 
         # Depreciation given as an iterable of floats
         else:
             try:
-                arr = np.zeros(yrs)
-                arr[:len(depreciation)] = np.array(depreciation, dtype=float)
-                self._depreciation_array = arr
+                self._depreciation_array = np.array(depreciation, dtype=float)
             except:
-                raise ValueError("depreciation must be 'SL' (straight-line), "
-                    "'SYD' (sum-of-the-years' digits), " 
-                    "a number (for declining balance depreciation), "
+                raise ValueError("depreciation must be 'SLX' (straight line), "
+                    "'DDB' (double declining balance), 'SYDX' (sum-of-the-years' digits) "
+                    "('X' representing the number of years, "
+                    "and will equal the venture years if not given), "
                     "an iterable of floats as the depreciation schedule, "
-                    f"'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15' (not {repr(depreciation)}).")
+                    f"'MACRS3', 'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15' (not {repr(depreciation)}).")
         self._depreciation = depreciation
     
     @property
@@ -921,4 +924,3 @@ class TEA:
         """Prints information on unit."""
         print(self._info())
     _ipython_display_ = show
-
