@@ -260,12 +260,12 @@ class TEA:
     
     Warning
     -------
-    When using a Lang factor, the installed equipment cost becomes equivalent
-    to the fixed capital investment for simulation purposes. In actuallity, 
-    the installed equipment cost should be less thant the fixed capital 
-    investment. Note that there is no standard way to compute 
-    the installed equpiment cost as bare-module factors are ignored when using 
-    a Lang factor.
+    When using a Lang factor, a short-cut to get the FCI, we cannot work 
+    backwards to get installed equipment cost. For practical purposes, the
+    code assumes that installed equipment cost, total depreciable capital 
+    (TDC), and fixed capital investment (FCI) are the same when the Lang
+    factor is in use. In actuallity, the installed equipment cost should be 
+    less than the fixed capital investment. 
     
     Examples
     --------
