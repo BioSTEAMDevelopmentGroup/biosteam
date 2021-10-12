@@ -231,7 +231,7 @@ class TEA:
         Start and end year of venture (e.g. (2018, 2038)).
     depreciation : str, int, float, or iterable
         How to depreciate the capital cost, can be any of
-        'SL' (straight-line), 'SYD' (sum-of-years' digits),
+        'SL' (straight-line), 'SYD' (sum-of-the-years' digits),
         a number as the accelarator for declining balance depreciation
         (e.g., 2 for double declining balance),
         an iterable of floats as the depreciation schedule, 
@@ -483,7 +483,7 @@ class TEA:
             deprecd = (yrs-y)/digit_sum * val
             arr.append(deprecd)
             val -= deprecd
-        return  _update_deprecd_arr(arr)
+        return  _update_deprecd_arr(np.array(arr))
 
     @staticmethod
     def _generate_DB_schedule(factor):
@@ -493,19 +493,19 @@ class TEA:
             deprecd = factor * val/yrs
             arr.append(deprecd)
             val -= deprecd
-        return np.array(arr)
+        return _update_deprecd_arr(np.array(arr))
 
     @staticmethod
     def _update_deprecd_arr(arr):
         val_arr = np.ones_like(arr) - arr
-        val_arr[val_arr<0] = 0
+        val_arr[val_arr<0] = 0.
         return  np.ones_like(arr) - val_arr
 
     @property
     def depreciation(self):
         '''
         How to depreciate the capital cost, can be any of
-        'SL' (straight-line), 'SYD' (sum-of-years' digits),
+        'SL' (straight-line), 'SYD' (sum-of-the-years' digits),
         a number as the accelarator for declining balance depreciation
         (e.g., 2 for double declining balance),
         an iterable of floats as the depreciation schedule, 
@@ -524,7 +524,7 @@ class TEA:
         # Sum-of-the-years' digits
         elif depreciaiton == 'SYD':
             self._depreciation_array = self._update_deprecd_arr(
-                self._generate_SYD_schedule(depreciation, yrs))
+                self._generate_SYD_schedule(yrs))
         # Declining balance depreciation
         elif isinstance(depreciation, (int, float)):
             self._depreciation_array = self._update_deprecd_arr(
@@ -537,7 +537,7 @@ class TEA:
                 self._depreciation_array = arr
             except:
                 raise ValueError("depreciation must be 'SL' (straight-line), "
-                    "'SYD' (sum-of-years' digits), " 
+                    "'SYD' (sum-of-the-years' digits), " 
                     "a number (for declining balance depreciation), "
                     "an iterable of floats as the depreciation schedule, "
                     f"'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15' (not {repr(depreciation)}).")
