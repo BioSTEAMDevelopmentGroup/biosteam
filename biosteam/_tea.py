@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+#                          Yalin Li <zoe.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -228,8 +229,13 @@ class TEA:
         Internal rate of return (fraction).
     duration : tuple[int, int]
         Start and end year of venture (e.g. (2018, 2038)).
-    depreciation : str
-        'MACRS' + number of years (e.g. 'MACRS7').
+    depreciation : str, int, float, or iterable
+        How to depreciate the capital cost, can be any of
+        'SL' (straight-line), 'SYD' (sum-of-years' digits),
+        a number as the accelarator for declining balance depreciation
+        (e.g., 2 for double declining balance),
+        an iterable of floats as the depreciation schedule, 
+        'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'
     operating_days : float 
         Number of operating days per year.
     income_tax : float
@@ -282,7 +288,6 @@ class TEA:
                  '_duration_array_cache')
     
     
-    # TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
     #: dict[str, 1d-array] Available depreciation schedules.
     depreciation_schedules = {
         'MACRS5': np.array([.2000, .3200, .1920,
@@ -469,16 +474,73 @@ class TEA:
         self._duration = (start, end)
         self._years = end - start
         
+    @staticmethod
+    def _generate_SYD_schedule(yrs):
+        digit_sum = yrs*(yrs+1)/2
+        val = 1
+        arr = []
+        for y in range(yrs):
+            deprecd = (yrs-y)/digit_sum * val
+            arr.append(deprecd)
+            val -= deprecd
+        return  _update_deprecd_arr(arr)
+
+    @staticmethod
+    def _generate_DB_schedule(factor):
+        val = 1
+        arr = []
+        for y in range(yrs):
+            deprecd = factor * val/yrs
+            arr.append(deprecd)
+            val -= deprecd
+        return np.array(arr)
+
+    @staticmethod
+    def _update_deprecd_arr(arr):
+        val_arr = np.ones_like(arr) - arr
+        val_arr[val_arr<0] = 0
+        return  np.ones_like(arr) - val_arr
+
     @property
     def depreciation(self):
-        """[str] 'MACRS' + number of years (e.g. 'MACRS7')."""
+        '''
+        How to depreciate the capital cost, can be any of
+        'SL' (straight-line), 'SYD' (sum-of-years' digits),
+        a number as the accelarator for declining balance depreciation
+        (e.g., 2 for double declining balance),
+        an iterable of floats as the depreciation schedule, 
+        'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'.
+        '''
         return self._depreciation
     @depreciation.setter
     def depreciation(self, depreciation):
-        try:
+        yrs = self._years
+        # MACRS depreciation by U.S. IRS
+        if depreciation in self.depreciation_schedules:
             self._depreciation_array = self.depreciation_schedules[depreciation]
-        except KeyError:
-            raise ValueError(f"depreciation must be either 'MACRS5', 'MACRS7', 'MACRS10' or 'MACRS15 (not {repr(depreciation)})")
+        # Straight line depreciation
+        elif depreciation == 'SL':
+            self._depreciation_array = np.full(yrs, 1/yrs)
+        # Sum-of-the-years' digits
+        elif depreciaiton == 'SYD':
+            self._depreciation_array = self._update_deprecd_arr(
+                self._generate_SYD_schedule(depreciation, yrs))
+        # Declining balance depreciation
+        elif isinstance(depreciation, (int, float)):
+            self._depreciation_array = self._update_deprecd_arr(
+                self._generate_BD_schedule(depreciation, yrs))
+        # Depreciation given as an iterable of floats
+        else:
+            try:
+                arr = np.zeros(yrs)
+                arr[:len(depreciation)] = np.array(depreciation, dtype=float)
+                self._depreciation_array = arr
+            except:
+                raise ValueError("depreciation must be 'SL' (straight-line), "
+                    "'SYD' (sum-of-years' digits), " 
+                    "a number (for declining balance depreciation), "
+                    "an iterable of floats as the depreciation schedule, "
+                    f"'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15' (not {repr(depreciation)}).")
         self._depreciation = depreciation
     
     @property
