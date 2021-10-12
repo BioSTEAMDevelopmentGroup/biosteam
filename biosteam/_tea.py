@@ -12,7 +12,7 @@ import numpy as np
 import flexsolve as flx
 from copy import copy as copy_
 from numba import njit
-from math import floor
+from math import ceil
 from warnings import warn
 import biosteam as bst
 
@@ -73,7 +73,7 @@ def add_replacement_cost_to_cashflow_array(equipment_installed_cost,
                                            cashflow_array, 
                                            venture_years,
                                            start):
-    N_purchases = floor(venture_years / equipment_lifetime) 
+    N_purchases = ceil(venture_years / equipment_lifetime) 
     for i in range(1, N_purchases):
         cashflow_array[start + i * equipment_lifetime] += equipment_installed_cost
 
@@ -258,6 +258,15 @@ class TEA:
     finance_fraction : float
                        Fraction of capital cost that needs to be financed.
     
+    Warning
+    -------
+    When using a Lang factor, the installed equipment cost becomes equivalent
+    to the fixed capital investment for simulation purposes. In actuallity, 
+    the installed equipment cost should be less thant the fixed capital 
+    investment. Note that there is no standard way to compute 
+    the installed equpiment cost as bare-module factors are ignored when using 
+    a Lang factor.
+    
     Examples
     --------
     :doc:`tutorial/Techno-economic_analysis` 
@@ -397,10 +406,13 @@ class TEA:
         return (self._start, self._years)
 
     def _DPI(self, installed_equipment_cost):
-        return installed_equipment_cost # Default for backwards compatibility
+        return installed_equipment_cost # For compatibility with Lang factors
 
     def _TDC(self, DPI):
-        return DPI # Default for backwards compatibility
+        return DPI # For compatibility with Lang factors
+    
+    def _FCI(self, TDC):
+        return TDC # For compatibility with Lang factors
 
     @property
     def units(self):
@@ -536,11 +548,11 @@ class TEA:
         return self.FOC + self.VOC
     @property
     def working_capital(self):
-        return self.WC_over_FCI * self.TDC
+        return self.WC_over_FCI * self.FCI
     
     @property
     def annual_depreciation(self):
-        """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
+        """Depreciation (USD/yr) equivalent to TDC dived by the the duration of the venture."""
         return self.TDC/(self.duration[1]-self.duration[0])
 
     @property
