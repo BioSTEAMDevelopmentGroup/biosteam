@@ -552,6 +552,8 @@ class TEA:
                 arr = generate_DDB_schedule(years)
             elif schedule == 'SYD':
                 arr = generate_SYD_schedule(years)
+            else: # pragma: no cover
+                raise RuntimeError(f'unknown depreciation schedule {repr(schedule)}')
             self.depreciation_schedules[key] = arr
             return arr
     
