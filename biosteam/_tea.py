@@ -41,6 +41,25 @@ cashflow_columns = ('Depreciable capital [MM$]',
 # %% Utilities for TEA calculations
 
 @njit(cache=True)
+def generate_DDB_schedule(years):
+    val = 1.
+    arr = np.ones(years)
+    factor = 2. / years
+    for i in range(years):
+        depreciation = val * factor
+        arr[i] = depreciation
+        val -= depreciation
+    return arr
+    
+@njit(cache=True)
+def generate_SYD_schedule(years):
+    digit_sum = years * (years + 1.) * 0.5
+    arr = np.ones(years)
+    for i in range(years):
+        arr[i] = (years - i) / digit_sum
+    return arr
+
+@njit(cache=True)
 def NPV_at_IRR(IRR, cashflow_array, duration_array):
     """Return NPV at given IRR and cashflow data."""
     return (cashflow_array/(1.+IRR)**duration_array).sum()
@@ -229,15 +248,13 @@ class TEA:
         Internal rate of return (fraction).
     duration : tuple[int, int]
         Start and end year of venture (e.g. (2018, 2038)).
-    depreciation : str, int, float, or iterable
-        How to depreciate the capital cost, can be any of
-        'SLX' (straight line), 'DDB' (double declining balance),
-        'SYDX' (sum-of-the-years' digits)
-        ('X' representing the number of years,
-        and will equal the venture years if not given),
-        an iterable of floats as the depreciation schedule, 
-        'MACRS3', 'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'
-        (from U.S. IRS publication 946, half-year convention).
+    depreciation : array or str
+        Depreciation schedule array or a string with format '{schedule}{years}', 
+        where years is the number of years until the property value is zero 
+        and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), 
+        'SL' (straight line), 'DDB' (double declining balance), or 
+        'SYD' (sum-of-the-years' digits). If years is not given, it defaults 
+        to the venture years at run time. 
     operating_days : float 
         Number of operating days per year.
     income_tax : float
@@ -285,42 +302,43 @@ class TEA:
                  '_construction_schedule', '_startup_time',
                  'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
                  '_startup_schedule', '_operating_days',
-                 '_duration', '_depreciation_array', '_depreciation', '_years',
+                 '_duration', '_depreciation_key', '_depreciation',
+                 '_depreciation_array', '_years',
                  '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
     
-    # Modified accelerated cost recovery system from
-    # U.S. IRS publicaiton 946, half-year convention
-    #: dict[str, 1d-array] Available depreciation schedules.
+    # Defaults include modified accelerated cost recovery system from
+    # U.S. IRS publicaiton 946 (MACRS), half-year convention
+    #: dict[tuple(str, int), 1d-array] Available depreciation schedules.
     depreciation_schedules = {
-        'MACRS3': np.array([.3333, .4445, .1481, .0741]),
+        ('MACRS', 3): np.array([.3333, .4445, .1481, .0741]),
 
-        'MACRS5': np.array([.2000, .3200, .1920,
-                            .1152, .1152, .0576]),
+        ('MACRS', 5): np.array([.2000, .3200, .1920,
+                                .1152, .1152, .0576]),
               
-        'MACRS7':  np.array([.1429, .2449, .1749,
-                             .1249, .0893, .0892,
-                             .0893, .0446]),
+        ('MACRS', 7):  np.array([.1429, .2449, .1749,
+                                 .1249, .0893, .0892,
+                                 .0893, .0446]),
         
-        'MACRS10': np.array([.1000, .1800, .1440,
-                             .1152, .0922, .0737,
-                             .0655, .0655, .0656,
-                             .0655, .0328]),
+        ('MACRS', 10): np.array([.1000, .1800, .1440,
+                                 .1152, .0922, .0737,
+                                 .0655, .0655, .0656,
+                                 .0655, .0328]),
       
-        'MACRS15': np.array([.0500, .0950, .0855,
-                             .0770, .0693, .0623,
-                             .0590, .0590, .0591,
-                             .0590, .0591, .0590,
-                             .0591, .0590, .0591,
-                             .0295]),
+        ('MACRS', 15): np.array([.0500, .0950, .0855,
+                                 .0770, .0693, .0623,
+                                 .0590, .0590, .0591,
+                                 .0590, .0591, .0590,
+                                 .0591, .0590, .0591,
+                                 .0295]),
       
-        'MACRS20': np.array([0.03750, 0.07219, 0.06677,
-                             0.06177, 0.05713, 0.05285,
-                             0.04888, 0.04522, 0.04462,
-                             0.04461, 0.04462, 0.04461,
-                             0.04462, 0.04461, 0.04462,
-                             0.04461, 0.04462, 0.04461,
-                             0.04462, 0.04461, 0.02231])
+        ('MACRS', 20): np.array([0.03750, 0.07219, 0.06677,
+                                 0.06177, 0.05713, 0.05285,
+                                 0.04888, 0.04522, 0.04462,
+                                 0.04461, 0.04462, 0.04461,
+                                 0.04462, 0.04461, 0.04462,
+                                 0.04461, 0.04462, 0.04461,
+                                 0.04462, 0.04461, 0.02231])
     }
     
     #: dict[str, float] Investment site factors used to multiply the total permanent 
@@ -478,73 +496,64 @@ class TEA:
         start, end = [int(i) for i in duration]
         self._duration = (start, end)
         self._years = end - start
-        
-    @staticmethod
-    def _generate_DDB_schedule(yrs):
-        val = 1
-        arr = []
-        for y in range(yrs):
-            deprecd = 2 * val/yrs
-            arr.append(deprecd)
-            val -= deprecd
-        return np.array(arr)
-        
-    @staticmethod
-    def _generate_SYD_schedule(yrs):
-        digit_sum = yrs*(yrs+1)/2
-        val = 1
-        arr = []
-        for y in range(yrs):
-            deprecd = (yrs-y)/digit_sum * val
-            arr.append(deprecd)
-        return np.array(arr)
 
     @property
     def depreciation(self):
-        '''
-        How to depreciate the capital cost, can be any of
-        'SLX' (straight line), 'DDB' (double declining balance),
-        'SYDX' (sum-of-the-years' digits)
-        ('X' representing the number of years,
-         and will equal the venture years if not given),
-        a number as the accelarator for declining balance depreciation
-        (e.g., 2 for double declining balance),
-        an iterable of floats as the depreciation schedule, 
-        'MACRS3', 'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15'
-        (from U.S. IRS publication 946, half-year convention).
-        '''
+        """
+        [array or str] Depreciation schedule array or a string with format '{schedule}{years}', 
+        where years is the number of years until the property value is zero 
+        and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), 
+        'SL' (straight line), 'DDB' (double declining balance), or 
+        'SYD' (sum-of-the-years' digits). If years is not given, it defaults 
+        to the venture years at run time.
+        """
         return self._depreciation
     @depreciation.setter
     def depreciation(self, depreciation):
         if isinstance(depreciation, str):
-            # MACRS depreciation by U.S. IRS
-            if depreciation in self.depreciation_schedules:
-                self._depreciation_array = self.depreciation_schedules[depreciation]
-            else:
-                get_yrs = lambda i: self._years if not depreciation.split(i)[1] \
-                    else int(depreciation.split(i)[1])
-                # Straight line
-                if 'SL' in depreciation:
-                    yrs = get_yrs('SL')
-                    self._depreciation_array = np.full(yrs, 1/yrs)
-                # Double declining balance
-                elif 'DDB' in depreciation:
-                    self._depreciation_array = self._generate_DDB_schedule(get_yrs('DDB'))
-                # Sum-of-the-years' digits
-                elif 'SYD' in depreciation:
-                    self._depreciation_array = self._generate_SYD_schedule(get_yrs('SYD')) 
-        # Depreciation given as an iterable of floats
+            for prefix in ('MACRS', 'SL', 'DDB', 'SYD'):
+                if depreciation.startswith(prefix):
+                    years = depreciation[len(prefix):]
+                    key = (prefix, int(years) if years else None)
+                    if prefix == 'MACRS' and key not in self.depreciation_schedules:
+                        raise ValueError(
+                            f"depreciation schedule {repr(depreciation)} has a valid "
+                             "format, but is not yet implemented in BioSTEAM"
+                        )
+                    self._depreciation = depreciation
+                    self._depreciation_key = key
+                    self._depreciation_array = None
+                    return
+        try:
+            self._depreciation = self._depreciation_array = np.array(depreciation, dtype=float)
+        except: 
+            raise ValueError(
+               f"invalid depreciation {repr(depreciation)}; "
+                "depreciation must be either an array or a string with format '{schedule}{years}', "
+                "where years is the number of years until the property value is zero "
+                "and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), "
+                "'SL' (straight line), 'DDB' (double declining balance), or "
+                "'SYD' (sum-of-the-years' digits)"
+            )
+        
+    def _get_depreciation_array(self):
+        arr = self._depreciation_array
+        if arr is not None: return arr
+        schedule, years = key = self._depreciation_key
+        if years is None: 
+            years = self._years
+            key = (schedule, years)
+        if key in self.depreciation_schedules:
+            return self.depreciation_schedules[key]
         else:
-            try:
-                self._depreciation_array = np.array(depreciation, dtype=float)
-            except:
-                raise ValueError("depreciation must be 'SLX' (straight line), "
-                    "'DDB' (double declining balance), 'SYDX' (sum-of-the-years' digits) "
-                    "('X' representing the number of years, "
-                    "and will equal the venture years if not given), "
-                    "an iterable of floats as the depreciation schedule, "
-                    f"'MACRS3', 'MACRS5', 'MACRS7', 'MACRS10', or 'MACRS15' (not {repr(depreciation)}).")
-        self._depreciation = depreciation
+            if schedule == 'SL':
+                arr = np.full(years, 1./years)
+            elif schedule == 'DDB':
+                arr = generate_DDB_schedule(years)
+            elif schedule == 'SYD':
+                arr = generate_SYD_schedule(years)
+            self.depreciation_schedules[key] = arr
+            return arr
     
     @property
     def construction_schedule(self):
@@ -648,7 +657,7 @@ class TEA:
         return duration_array
 
     def _fill_depreciation_array(self, D, start, years, TDC):
-        depreciation_array = self._depreciation_array
+        depreciation_array = self._get_depreciation_array()
         N_depreciation_years = depreciation_array.size
         if N_depreciation_years > years:
             raise RuntimeError('depreciation schedule is longer than plant lifetime')

@@ -20,7 +20,7 @@ def test_depreciation_schedule():
 		'SL5'   : np.array([0.2000, 0.2000, 0.2000, 0.2000, 0.2000]),
 		'DDB5'  : np.array([0.4000, 0.2400, 0.1440, 0.0864, 0.0518]),
 		'SYD5'  : np.array([0.3333, 0.2667, 0.2000, 0.1333, 0.0667]),
-        }
+    }
     
     empty_sys = System('Empty')
     tea = TEA(
@@ -36,14 +36,20 @@ def test_depreciation_schedule():
 
     for k, v in correct_arrs.items():
         tea.depreciation = k
-        assert_allclose(tea._depreciation_array, v, atol=1e-4)
+        assert_allclose(tea._get_depreciation_array(), v, atol=1e-4)
     
     defined = np.array([0.4000, 0.2400, 0.1400, 0.0900, 0.1300])
     tea.depreciation = defined
-    assert_allclose(tea._depreciation_array, defined)
+    assert_allclose(tea._get_depreciation_array(), defined)
     
     with pytest.raises(ValueError):
         tea.depreciation = np.array([0.5, 0.1, 'bad'])
+        
+    with pytest.raises(ValueError):
+        tea.depreciation = 'MACRS12312'
+        
+    with pytest.raises(ValueError):
+        tea.depreciation = 'bad'
 
 
 if __name__ == '__main__':
