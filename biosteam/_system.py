@@ -1562,28 +1562,30 @@ class System:
             return sum([u.installed_cost for u in self.cost_units])
     
     def get_electricity_consumption(self):
-        """Return the total electricity consumption in MW."""
-        return self.operating_hours * utils.get_electricity_consumption(self.power_utilities)
+        """Return the total electricity consumption in kWhr / yr."""
+        return self.operating_hours * sum([i.consumption for i in self.power_utilities])
 
     def get_electricity_production(self):
-        """Return the total electricity production in MW."""
-        return self.operating_hours * utils.get_electricity_production(self.power_utilities)
+        """Return the total electricity production in kWhr / yr."""
+        return self.operating_hours * sum([i.consumption for i in self.power_utilities])
     
     def get_utility_duty(self, agent):
-        """Return the total utility duty for given agent in GJ/hr"""
-        return self.operating_hours * utils.get_utility_duty(self.heat_utilities, agent)
+        """Return the total utility duty for given agent in kJ/yr."""
+        if isinstance(agent, str): agent = bst.HeatUtility.get_agent(agent)
+        return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.agent is agent]) 
     
     def get_utility_flow(self, agent):
-        """Return the total utility flow for given agent in MT/hr"""
-        return self.operating_hours * utils.get_utility_flow(self.heat_utilities, agent)
+        """Return the total utility flow for given agent in kJ/yr."""
+        if isinstance(agent, str): agent = bst.HeatUtility.get_agent(agent)
+        return self.operating_hours * sum([i.flow for i in self.heat_utilities if i.agent is agent]) 
     
     def get_cooling_duty(self):
-        """Return the total cooling duty in GJ/yr."""
-        return self.operating_hours * utils.get_cooling_duty(self.heat_utilities)
+        """Return the total cooling duty in kJ/yr."""
+        return - self.operating_hours * sum([i.duty for i in self.heat_utilities if i.flow * i.duty < 0])
     
     def get_heating_duty(self):
-        """Return the total heating duty in GJ/yr."""
-        return self.operating_hours * utils.get_heating_duty(self.heat_utilities)
+        """Return the total heating duty in kJ/yr."""
+        return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.flow * i.duty > 0])
     
     def get_purchase_cost(self):
         """Return the total equipment purchase cost in million USD."""
