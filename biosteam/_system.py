@@ -1588,12 +1588,12 @@ class System:
         return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.flow * i.duty > 0])
     
     def get_purchase_cost(self):
-        """Return the total equipment purchase cost in million USD."""
-        return utils.get_purchase_cost(self.cost_units)
+        """Return the total equipment purchase cost in USD."""
+        return sum([i.purchase_cost for i in self.cost_units])
     
     def get_installed_equipment_cost(self):
-        """Return the total installed equipment cost in million USD."""
-        return utils.get_installed_cost(self.cost_units)
+        """Return the total installed equipment cost in USD."""
+        return sum([i.installed_cost for i in self.cost_units])
     
     # Other
     def to_network(self):
