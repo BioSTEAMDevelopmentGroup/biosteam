@@ -1587,14 +1587,6 @@ class System:
         """Return the total heating duty in kJ/yr."""
         return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.flow * i.duty > 0])
     
-    def get_purchase_cost(self):
-        """Return the total equipment purchase cost in USD."""
-        return sum([i.purchase_cost for i in self.cost_units])
-    
-    def get_installed_equipment_cost(self):
-        """Return the total installed equipment cost in USD."""
-        return sum([i.installed_cost for i in self.cost_units])
-    
     # Other
     def to_network(self):
         """Return network that defines the system path."""
