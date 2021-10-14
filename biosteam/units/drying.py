@@ -16,6 +16,7 @@ Unit operations
 
 
 """
+import flexsolve as flx
 import numpy as np
 from thermosteam import separations as sep
 from .design_tools import (
@@ -101,7 +102,7 @@ class DrumDryer(Unit):
     
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
                  split, R=1.4, H=20., length_to_diameter=25, T=343.15,
-                 natural_gas_price=0.289, moisture_content=0.10):
+                 natural_gas_price=0.289, moisture_content=0.15):
         super().__init__(ID, ins, outs, thermo)
         self._isplit = self.chemicals.isplit(split)
         self.T = T
@@ -122,13 +123,19 @@ class DrumDryer(Unit):
         air.imass['N2', 'O2'] = np.array([0.78, 0.32]) * self.R * evaporation
         hot_air.mol += air.mol
         dry_solids.T = hot_air.T = self.T
-        duty = (dry_solids.H + hot_air.H) - (wet_solids.H + air.H)
-        natural_gas.empty()
-        CO2 = CH4 = duty / - self.chemicals.CH4.LHV
-        H2O = 2. * CH4
-        natural_gas.imol['CH4'] = CH4
-        emissions.imol['CO2', 'H2O'] = [CO2, H2O]
         emissions.T = self.T + 30.
+        natural_gas.empty()
+        emissions.empty()
+        LHV = self.chemicals.CH4.LHV
+        def f(CH4):
+            CO2 = CH4    
+            H2O = 2. * CH4
+            natural_gas.imol['CH4'] = CH4
+            emissions.imol['CO2', 'H2O'] = [CO2, H2O]    
+            duty = (dry_solids.H + hot_air.H + natural_gas.H) - (wet_solids.H + air.H + emissions.H)
+            CH4 = duty / - LHV
+            return CH4
+        flx.wegstein(f, 0., 1e-3)
         
     def _design(self):
         length_to_diameter = self.length_to_diameter
