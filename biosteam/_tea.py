@@ -537,14 +537,14 @@ class TEA:
                          "format, but is not yet implemented in BioSTEAM"
                     )
                 return key
-            raise ValueError(
-                   f"invalid depreciation name {repr(name)}; "
-                    "name must have format '{schedule}{years}', "
-                    "where years is the number of years until the property value is zero "
-                    "and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), "
-                    "'SL' (straight line), 'DDB' (double declining balance), or "
-                    "'SYD' (sum-of-the-years' digits)"
-                )
+        raise ValueError(
+               f"invalid depreciation name {repr(name)}; "
+                "name must have format '{schedule}{years}', "
+                "where years is the number of years until the property value is zero "
+                "and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), "
+                "'SL' (straight line), 'DDB' (double declining balance), or "
+                "'SYD' (sum-of-the-years' digits)"
+            )
 
     @classmethod
     def _depreciation_array_from_key(cls, key):
