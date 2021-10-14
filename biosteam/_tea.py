@@ -38,7 +38,7 @@ cashflow_columns = ('Depreciable capital [MM$]',
                     'Net present value (NPV) [MM$]',
                     'Cumulative NPV [MM$]')
 
-# %% Utilities for TEA calculations
+# %% Depreciation utilities
 
 @njit(cache=True)
 def generate_DDB_schedule(years):
@@ -58,6 +58,8 @@ def generate_SYD_schedule(years):
     for i in range(years):
         arr[i] = (years - i) / digit_sum
     return arr
+
+# %% Utilities for TEA calculations
 
 @njit(cache=True)
 def NPV_at_IRR(IRR, cashflow_array, duration_array):
@@ -303,8 +305,7 @@ class TEA:
                  'startup_FOCfrac', 'startup_VOCfrac', 'startup_salesfrac',
                  '_startup_schedule', '_operating_days',
                  '_duration', '_depreciation_key', '_depreciation',
-                 '_depreciation_array', '_years',
-                 '_duration', '_start',  'IRR', '_IRR', '_sales',
+                 '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
     
     # Defaults include modified accelerated cost recovery system from
@@ -511,41 +512,47 @@ class TEA:
     @depreciation.setter
     def depreciation(self, depreciation):
         if isinstance(depreciation, str):
-            for prefix in ('MACRS', 'SL', 'DDB', 'SYD'):
-                if depreciation.startswith(prefix):
-                    years = depreciation[len(prefix):]
-                    key = (prefix, int(years) if years else None)
-                    if prefix == 'MACRS' and key not in self.depreciation_schedules:
-                        raise ValueError(
-                            f"depreciation schedule {repr(depreciation)} has a valid "
-                             "format, but is not yet implemented in BioSTEAM"
-                        )
-                    self._depreciation = depreciation
-                    self._depreciation_key = key
-                    self._depreciation_array = None
-                    return
-        try:
-            self._depreciation = self._depreciation_array = np.array(depreciation, dtype=float)
-        except: 
-            raise ValueError(
-               f"invalid depreciation {repr(depreciation)}; "
-                "depreciation must be either an array or a string with format '{schedule}{years}', "
-                "where years is the number of years until the property value is zero "
-                "and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), "
-                "'SL' (straight line), 'DDB' (double declining balance), or "
-                "'SYD' (sum-of-the-years' digits)"
-            )
-        
-    def _get_depreciation_array(self):
-        arr = self._depreciation_array
-        if arr is not None: return arr
-        schedule, years = key = self._depreciation_key
-        if years is None: 
-            years = self._years
-            key = (schedule, years)
-        if key in self.depreciation_schedules:
-            return self.depreciation_schedules[key]
+            self._depreciation_key = self._depreciation_key_from_name(depreciation)
+            self._depreciation = depreciation
         else:
+            try:
+                self._depreciation = np.array(depreciation, dtype=float)
+            except: 
+                raise TypeError(
+                   f"invalid depreciation type '{type(depreciation).__name__}'; "
+                    "depreciation must be either an array or a string"
+                ) from None
+            else:
+                self._depreciation_key = None
+    
+    @classmethod
+    def _depreciation_key_from_name(cls, name):
+        for prefix in ('MACRS', 'SL', 'DDB', 'SYD'):
+            if name.startswith(prefix):
+                years = name[len(prefix):]
+                key = (prefix, int(years) if years else None)
+                if prefix == 'MACRS' and key not in cls.depreciation_schedules:
+                    raise ValueError(
+                        f"depreciation name {repr(name)} has a valid "
+                         "format, but is not yet implemented in BioSTEAM"
+                    )
+                return key
+            raise ValueError(
+                   f"invalid depreciation name {repr(name)}; "
+                    "name must have format '{schedule}{years}', "
+                    "where years is the number of years until the property value is zero "
+                    "and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), "
+                    "'SL' (straight line), 'DDB' (double declining balance), or "
+                    "'SYD' (sum-of-the-years' digits)"
+                )
+
+    @classmethod
+    def _depreciation_array_from_key(cls, key):
+        depreciation_schedules = cls.depreciation_schedules
+        if key in depreciation_schedules:
+            return depreciation_schedules[key]
+        else:
+            schedule, years = key
             if schedule == 'SL':
                 arr = np.full(years, 1./years)
             elif schedule == 'DDB':
@@ -554,7 +561,7 @@ class TEA:
                 arr = generate_SYD_schedule(years)
             else: # pragma: no cover
                 raise RuntimeError(f'unknown depreciation schedule {repr(schedule)}')
-            self.depreciation_schedules[key] = arr
+            depreciation_schedules[key] = arr
             return arr
     
     @property
@@ -658,6 +665,17 @@ class TEA:
             _duration_array_cache[key] = duration_array = np.arange(-start+1, years+1, dtype=float)
         return duration_array
 
+    def _get_depreciation_array(self):
+        key = self._depreciation_key
+        if key is None: 
+            return self._depreciation
+        else:
+            schedule, years = self._depreciation_key
+            if years is None:
+                years = self._years
+                key = (schedule, years)
+            return self._depreciation_array_from_key(key)
+            
     def _fill_depreciation_array(self, D, start, years, TDC):
         depreciation_array = self._get_depreciation_array()
         N_depreciation_years = depreciation_array.size
