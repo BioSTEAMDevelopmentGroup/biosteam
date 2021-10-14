@@ -1693,7 +1693,7 @@ class System:
 
     def get_electricity_production(self):
         """Return the total electricity production in kWhr / yr."""
-        return self.operating_hours * sum([i.consumption for i in self.power_utilities])
+        return self.operating_hours * sum([i.production for i in self.power_utilities])
     
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in kJ/yr."""
