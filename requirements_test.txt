@@ -6,8 +6,8 @@ coveralls
 nbval
 sympy
 IPython>=7.9.0
-biorefineries>=2.23.0
-thermosteam>=0.27.11
+biorefineries>=2.23.7
+thermosteam>=0.27.13
 graphviz>=0.17
 chaospy==3.3.9
 SALib

@@ -42,7 +42,7 @@ def test_depreciation_schedule():
     tea.depreciation = defined
     assert_allclose(tea._get_depreciation_array(), defined)
     
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         tea.depreciation = np.array([0.5, 0.1, 'bad'])
         
     with pytest.raises(ValueError):

@@ -17,12 +17,12 @@ H3PO4
 rvf_wash_water
 s63
 s61
+s62
+s64
 s67
 s68
 s69
-s62
 s70
-s64
 polymer
 natural_gas
 dilution_water
@@ -46,8 +46,8 @@ dryer_emissions
 rejected_water_and_blowdown
 Yeast
 s4
-s66
 s42
+s66
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
@@ -70,39 +70,18 @@ H3PO4
 rvf_wash_water
 s63
 s61
+s62
+s64
 s67
 s68
 s69
-s62
 s70
-s64
 polymer
 natural_gas
 dilution_water
 cooling_tower_chemicals
 " -> "sugarcane_sys
 System" [style=dashed]
-	s72
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
-	"s.7
-s.9
-vinasse
-s65
-wastewater
-emissions
-dryer_outlet_air
-evaporation_and_blowdown
-ethanol
-vent
-ash_disposal
-filter_cake
-dryer_emissions
-rejected_water_and_blowdown
-Yeast
-s4
-s66
-s42
-" -> s72
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"sugarcane_sys
 System" -> "s.7
@@ -121,9 +100,30 @@ dryer_emissions
 rejected_water_and_blowdown
 Yeast
 s4
-s66
 s42
+s66
 " [style=dashed]
+	s72
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"s.7
+s.9
+vinasse
+s65
+wastewater
+emissions
+dryer_outlet_air
+evaporation_and_blowdown
+ethanol
+vent
+ash_disposal
+filter_cake
+dryer_emissions
+rejected_water_and_blowdown
+Yeast
+s4
+s42
+s66
+" -> s72
 	s73
 	edge [arrowhead=none arrowtail=none headport=c tailport=e]
 	s73 -> "s.6
@@ -143,12 +143,12 @@ H3PO4
 rvf_wash_water
 s63
 s61
+s62
+s64
 s67
 s68
 s69
-s62
 s70
-s64
 polymer
 natural_gas
 dilution_water

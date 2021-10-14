@@ -517,7 +517,7 @@ class TEA:
         else:
             try:
                 self._depreciation = np.array(depreciation, dtype=float)
-            except: 
+            except:
                 raise TypeError(
                    f"invalid depreciation type '{type(depreciation).__name__}'; "
                     "depreciation must be either an array or a string"
