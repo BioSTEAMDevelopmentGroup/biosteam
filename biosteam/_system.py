@@ -28,7 +28,7 @@ from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
 from .process_tools import utils
-from .utils import NotImplementedMethod
+# from .utils import NotImplementedMethod
 from collections.abc import Iterable
 from warnings import warn
 from inspect import signature
@@ -314,7 +314,7 @@ class System:
         '_LCA',
         '_state',
         '_dct_dy',
-        '_state_sources',
+        '_dy',
     )
 
     take_place_of = Unit.take_place_of
@@ -1425,6 +1425,7 @@ class System:
         '''Initialize attributes related to dynamic simulation.'''
         self._state = None
         self._dct_dy = None
+        self._dy = []
 
 
     def reset_cache(self):
@@ -1491,9 +1492,6 @@ class System:
             dct_y = self._state_arr2dct(y, idx)
             # print("\n%10.3e"%t)
             for unit in self.units:
-                # unit._refresh_ins()
-                # QC_ins = unit._ins_y
-                # dQC_ins = unit._ins_dy
                 QC_ins = np.concatenate([dct_y[ws._ID] for ws in unit._ins])
                 dQC_ins = np.concatenate([np.zeros(dct_y[ws._ID].shape) if ws in feeds else dct_dy[ws._ID] for ws in unit._ins])
                 QC = dct_y[unit._ID]
@@ -1501,6 +1499,9 @@ class System:
                 QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
                 dct_dy.update(unit._dstate_locator(QC_dot))
             self._dct_dy = dct_dy
+            # dy = self._dstate_dct2arr(dct_dy, idx)            
+            # self._dy.append(np.append(t, dy))
+            # return dy
             return self._dstate_dct2arr(dct_dy, idx)
         return dydt
 
@@ -1522,7 +1523,7 @@ class System:
             u._state = None
 
 
-    def simulate(self, start_from_cached_state=True, **kwarg):
+    def simulate(self, start_from_cached_state=True, solver='solve_ivp', **kwargs):
         """Converge the path and simulate all units."""
         self._setup()
         self._converge()
@@ -1530,14 +1531,16 @@ class System:
             if not start_from_cached_state: self.clear_state()
             y0, idx = self._load_state()
             dydt = self._ODE(idx, y0.shape)
+            if solver == 'odeint':
+                sol = odeint(func=dydt, y0=y0, tfirst=True, **kwargs)
+                np.savetxt('sol.txt', sol, delimiter='\t')
+                # np.savetxt('dy.txt', np.vstack(self._dy), delimiter='\t')
+                self._write_state(kwargs['t'][-1], sol[-1])
             # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
-            sol = solve_ivp(fun=dydt, y0=y0, **kwarg)
-            # t = np.arange(0, 2.31, 0.01)
-            # sol = odeint(func=dydt, y0=y0, t=t, tfirst=True)
-            np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
-            self._write_state(sol.t[-1], sol.y.T[-1])
-            # np.savetxt('sol.txt', sol, delimiter='\t')
-            # self._write_state(t[-1], sol[-1])
+            else:
+                sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
+                np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
+                self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
