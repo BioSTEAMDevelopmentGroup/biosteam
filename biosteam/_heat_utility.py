@@ -66,7 +66,8 @@ class UtilityAgent(Stream):
                  regeneration_price=0.0, heat_transfer_efficiency=1.0, 
                  characterization_factors=None,
                  **chemical_flows):
-        self.characterization_factors = {} if characterization_factors is None else {}
+        if hasattr(self, 'characterization_factors'):
+            self.characterization_factors = {} if characterization_factors is None else {}
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
