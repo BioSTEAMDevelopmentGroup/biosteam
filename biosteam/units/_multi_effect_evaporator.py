@@ -21,6 +21,7 @@ from thermosteam import MultiStream, settings
 import flexsolve as flx
 from warnings import warn
 import numpy as np
+from collections import deque
 from .design_tools import heat_transfer as ht
 
 __all__ = ('MultiEffectEvaporator',)
@@ -320,14 +321,15 @@ class MultiEffectEvaporator(Unit):
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
-            self.P = list(P)
-            for i in range(self._N_evap-1):
+            self.P = deque(P)
+            for i in range(self._N_evap - 1):
                 if self._V_overall(0.) > self.V:
-                    self.P.pop()
+                    self.P.popleft()
                     self._load_components()
                     self._reload_components = True
                 else:
                     break
+            
             self.P = P
             self._V_first_effect = flx.IQ_interpolation(self._V_overall_objective_function,
                                                         0., 1., None, None, self._V_first_effect, 
@@ -386,7 +388,7 @@ class MultiEffectEvaporator(Unit):
         Q = abs(duty)
         Tci = first_evaporator.ins[0].T
         Tco = first_evaporator.outs[0].T
-        hu(duty, Tci, Tco)
+        hu(duty, Tco)
         Th = hu.inlet_utility_stream.T
         LMTD = ht.compute_LMTD(Th, Th, Tci, Tco)
         ft = 1
