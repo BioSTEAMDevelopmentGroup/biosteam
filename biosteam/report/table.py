@@ -21,12 +21,66 @@ ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'save_report', 'unit_result_tables', 'heat_utility_tables',
-           'power_utility_table', 'tables_to_excel')
+           'power_utility_table', 'tables_to_excel', 'VOC_table')
 
 def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
     if num.isnumeric(): return int(num)
     else: return -1
+
+# %% Multiple system tables
+
+def VOC_table(systems, product_IDs, system_names=None):
+    # Not ready for users yet
+    isa = isinstance
+    natural_gas_streams = []
+    for system in systems:
+        for i in set(system.facilities):
+            if isa(i, bst.BoilerTurbogenerator):
+                natural_gas = i.ins[3]
+                if natural_gas.isempty(): continue
+                natural_gas.price = i.natural_gas_price
+                natural_gas_streams.append(natural_gas)
+    def reformat(name):
+        name = name.replace('_', ' ')
+        if name.islower(): name= name.capitalize()
+        return name
+    
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if i.price})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if i.price and i.ID not in product_IDs})
+    index = [('Raw materials', reformat(i)) for i in feeds] + [('By-products and credits', reformat(i)) for i in coproducts]
+    index.append(('By-products and credits', 'Electricity production [USD/kWh]'))
+    index.append(('Total variable operating cost', ''))
+    N_cols = len(systems) + 1
+    N_rows = len(index)
+    data = np.zeros([N_rows, N_cols])
+    N_feeds = len(feeds)
+    for col, sys in enumerate(systems):
+        for feed in sys.feeds:
+            cost = sys.get_market_value(feed)
+            if cost:
+                ind = feeds.index(feed.ID)
+                data[ind, 0] = feed.price * 907.185 # USD / ton
+                data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for coproduct in sys.products:
+            ID = coproduct.ID
+            if ID in product_IDs: continue
+            cost = sys.get_market_value(coproduct)
+            if cost:
+                ind = N_feeds + coproducts.index(coproduct.ID)
+                data[ind, 0] = coproduct.price * 907.185 # USD / ton
+                data[ind, col + 1] = cost / 1e6 # million USD / yr
+        excess_electricity = max(-sum([i.cost for i in sys.power_utilities]) * sys.operating_hours / 1e6, 0.)
+        data[-2, col + 1] = excess_electricity
+    data[-2, 0] = bst.PowerUtility.price
+    data[-1] = data[:N_feeds].sum(axis=0) - data[N_feeds:].sum(axis=0)
+    for i in natural_gas_streams: i.price = 0.
+    if system_names is None:
+        system_names = [i.ID for i in systems]
+    systems_names = [i + "\n[MM$/yr]" for i in system_names]
+    return pd.DataFrame(data, 
+                        index=pd.MultiIndex.from_tuples(index),
+                        columns=('Price [$/ton]', *systems_names))
 
 # %% Helpful functions
 
