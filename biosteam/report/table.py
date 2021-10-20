@@ -21,7 +21,7 @@ ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'save_report', 'unit_result_tables', 'heat_utility_tables',
-           'power_utility_table', 'tables_to_excel', 'VOC_table')
+           'power_utility_table', 'tables_to_excel', 'voc_table')
 
 def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
@@ -30,7 +30,7 @@ def _stream_key(s): # pragma: no coverage
 
 # %% Multiple system tables
 
-def VOC_table(systems, product_IDs, system_names=None):
+def voc_table(systems, product_IDs, system_names=None):
     # Not ready for users yet
     isa = isinstance
     natural_gas_streams = []
