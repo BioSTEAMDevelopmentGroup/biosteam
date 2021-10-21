@@ -14,7 +14,7 @@ from collections import namedtuple
 from warnings import warn
 __all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
            'InletPort', 'OutletPort', 'StreamPorts', 'Connection', 
-           'as_stream', 'as_upstream', 'as_downstream', 
+           'StreamUtility', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings')
 
 DOCKING_WARNINGS = True
@@ -678,10 +678,29 @@ class StreamPorts:
             for i, j in zip(ports, streams): i.set_stream(j, stacklevel)
         else:
             raise IndexError("number of inlets must match the size of slice")
-        
-    def __repr__(self):
+    
+    def __repr__ (self):
         ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
+    
+
+# %% Special utility management
+
+class StreamUtility:
+    __slots__ = ('stream', 'price')
+    
+    def __init__(self, stream, price):
+        self.stream = stream
+        self.price = price
+        
+    @property
+    def cost(self):
+        return self.stream.F_mass * self.price
+            
+    def __repr__(self):
+        return f"{type(self).__name__}(stream={self.stream}, price={self.price})"
+    
+
 
 # %% Configuration bookkeeping
 

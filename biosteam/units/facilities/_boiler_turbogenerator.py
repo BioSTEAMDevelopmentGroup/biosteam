@@ -108,7 +108,7 @@ class Boiler(Facility):
                  natural_gas_price=0.218):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
-        self.natural_gas_price = natural_gas_price
+        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
         self.boiler_efficiency = boiler_efficiency
         self.steam_utilities = set()
         self.power_utilities = set()
@@ -145,10 +145,6 @@ class Boiler(Facility):
     def natural_gas(self):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[3]
-    
-    @property
-    def utility_cost(self):
-        return super().utility_cost + self.natural_gas_price * self.natural_gas.F_mass
     
     def _run(self): pass
 
@@ -395,7 +391,7 @@ class BoilerTurbogenerator(Facility):
                  natural_gas_price=0.218):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
-        self.natural_gas_price = natural_gas_price
+        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
@@ -436,10 +432,6 @@ class BoilerTurbogenerator(Facility):
     def natural_gas(self):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[3]
-    
-    @property
-    def utility_cost(self):
-        return super().utility_cost + self.natural_gas_price * self.natural_gas.F_mass
     
     def _run(self): pass
 

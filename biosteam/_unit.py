@@ -358,6 +358,12 @@ class Unit:
         # pressure, and material factors.
         self.installed_costs = {}
         
+        # dict[str: StreamUtility] Additional utilities given by inlet streams 
+        self.inlet_utilities = {}
+        
+        # dict[str: StreamUtility] Additional utilities given by outlet streams 
+        self.outlet_utilities = {}
+        
         try:
             #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
             #: the class attribute `_default_equipment_lifetime`. Use an integer 
@@ -401,6 +407,19 @@ class Unit:
                     j.reset_chemicals(chemicals)
                 elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
                     j._reset_thermo(thermo)
+    
+    
+    def define_utility(self, name, stream, price):
+        if stream.sink is self:
+            self.inlet_utilities[name] = piping.StreamUtility(
+                stream, price,
+            )
+        elif stream.source is self:
+            self.outlet_utilities[name] = piping.StreamUtility(
+                stream, price,
+            )
+        else:
+            raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -806,7 +825,15 @@ class Unit:
     @property
     def utility_cost(self):
         """Total utility cost [USD/hr]."""
-        return sum([i.cost for i in self.heat_utilities]) + self.power_utility.cost
+        try:
+            return (
+                sum([i.cost for i in self.heat_utilities]) 
+                + self.power_utility.cost
+                + sum([i.cost for i in self.inlet_utilities.values()])
+                - sum([i.cost for i in self.outlet_utilities.values()])
+            )
+        except:
+            breakpoint()
 
     @property
     def auxiliary_units(self):

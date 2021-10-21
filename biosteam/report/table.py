@@ -31,16 +31,29 @@ def _stream_key(s): # pragma: no coverage
 # %% Multiple system tables
 
 def voc_table(systems, product_IDs, system_names=None):
+    raise RuntimeError('function not ready')
     # Not ready for users yet
     isa = isinstance
     natural_gas_streams = []
+    systems_have_BT = False
+    if isa(systems, bst.System): systems = [systems]
+    other_utilities_dct = {'Natural gas': {}}
+    other_byproducts_dct = {'Electicity': {}}
     for system in systems:
         for i in set(system.facilities):
             if isa(i, bst.BoilerTurbogenerator):
+                systems_have_BT = True
                 natural_gas = i.ins[3]
                 if natural_gas.isempty(): continue
-                natural_gas.price = i.natural_gas_price
-                natural_gas_streams.append(natural_gas)
+                cost = natural_gas.F_mass * BT.natural_gas_price * system.operating_hours
+                other_utilities['Natural gas'][system] = (BT.natural_gas_price * 907.185, cost / 1e6)
+                break
+        electricity_cost = sum([i.cost for i in sys.power_utilities]) * sys.operating_hours / 1e6
+        if electricity_cost < 0.: 
+            other_utilities['Electicity'][system] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
+        else:
+            other_byproducts['Electicity production'][system] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
+        
     def reformat(name):
         name = name.replace('_', ' ')
         if name.islower(): name= name.capitalize()
@@ -48,38 +61,57 @@ def voc_table(systems, product_IDs, system_names=None):
     
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if i.price})
     coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if i.price and i.ID not in product_IDs})
-    index = [('Raw materials', reformat(i)) for i in feeds] + [('By-products and credits', reformat(i)) for i in coproducts]
-    index.append(('By-products and credits', 'Electricity production [USD/kWh]'))
-    index.append(('Total variable operating cost', ''))
+    system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
+    other_utilities = [i for i,j in other_utilities_dct.items() if j]
+    other_byproducts = [i for i,j in other_byproducts_dct.items() if j]
+    heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0.] for hus in system_heat_utilities], [])))
+    cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0.] for hus in system_heat_utilities], [])))
+    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + coproducts)}
+    table_index = [*[('Raw materials', reformat(i)) for i in feeds],
+                   *[('Heating utilities', reformat(i)) for i in heating_agents],
+                   *[('Cooling utilities', reformat(i)) for i in cooling_agents],
+                   *[('Other utilities', i) for i in other_utilities],
+                   *[('By-products and credits', reformat(i)) for i in coproducts],
+                   *[('By-products and credits', i) for i in other_byproducts]]
+    table_index.append(('Total variable operating cost', ''))
     N_cols = len(systems) + 1
-    N_rows = len(index)
-    data = np.zeros([N_rows, N_cols])
-    N_feeds = len(feeds)
+    N_rows = len(table_index)
+    data = np.zeros([N_rows, N_cols], dtype=object)
+    N_coproducts = len(coproducts)
     for col, sys in enumerate(systems):
-        for feed in sys.feeds:
-            cost = sys.get_market_value(feed)
+        for stream in sys.feeds + sys.products:
+            if stream.ID in product_IDs: continue
+            cost = sys.get_market_value(stream)
             if cost:
-                ind = feeds.index(feed.ID)
-                data[ind, 0] = feed.price * 907.185 # USD / ton
+                ind = index[stream.ID]
+                data[ind, 0] = stream.price * 907.185 # USD / ton
                 data[ind, col + 1] = cost / 1e6 # million USD / yr
-        for coproduct in sys.products:
-            ID = coproduct.ID
-            if ID in product_IDs: continue
-            cost = sys.get_market_value(coproduct)
-            if cost:
-                ind = N_feeds + coproducts.index(coproduct.ID)
-                data[ind, 0] = coproduct.price * 907.185 # USD / ton
-                data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for hu in system_heat_utilities[col]:
+            try:
+                ind = index[hu.agent.ID]
+            except:
+                continue
+            cost = sys.operating_hours * hu.cost
+            price = ""
+            if hu.agent.heat_transfer_price:
+                price += f"{hu.agent.heat_transfer_price} USD/kJ"
+            if hu.agent.regeneration_price:
+                if price: price += ", "
+                price += f"{hu.agent.regeneration_price} USD/kmol"
+            data[ind, 0] = price 
+            data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for i, j in other_byproducts:
+            pass
         excess_electricity = max(-sum([i.cost for i in sys.power_utilities]) * sys.operating_hours / 1e6, 0.)
         data[-2, col + 1] = excess_electricity
-    data[-2, 0] = bst.PowerUtility.price
-    data[-1] = data[:N_feeds].sum(axis=0) - data[N_feeds:].sum(axis=0)
+    data[-2, 0] = f"{bst.PowerUtility.price} $/kWh"
+    data[-1, 1:] = data[:-N_coproducts, 1:].sum(axis=0) - data[-N_coproducts:, 1:].sum(axis=0)
     for i in natural_gas_streams: i.price = 0.
     if system_names is None:
         system_names = [i.ID for i in systems]
     systems_names = [i + "\n[MM$/yr]" for i in system_names]
     return pd.DataFrame(data, 
-                        index=pd.MultiIndex.from_tuples(index),
+                        index=pd.MultiIndex.from_tuples(table_index),
                         columns=('Price [$/ton]', *systems_names))
 
 # %% Helpful functions
