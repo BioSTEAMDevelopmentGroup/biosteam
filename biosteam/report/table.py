@@ -21,20 +21,47 @@ ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'save_report', 'unit_result_tables', 'heat_utility_tables',
-           'power_utility_table', 'tables_to_excel', 'voc_table')
+           'power_utility_table', 'tables_to_excel', 'voc_table',
+           'FOCTableBuilder')
 
 def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
     if num.isnumeric(): return int(num)
     else: return -1
 
+# %% Detailed TEA tables
+
+class FOCTableBuilder:
+    __slots__ = ('index', 'costs', 'notes')
+    
+    def __init__(self):
+        self.index = []
+        self.costs = []
+        self.notes = []
+        
+    def entry(self, index, cost, notes='-'):
+        self.index.append(index)
+        self.notes.append(notes)
+        self.costs.append(cost)
+    
+    def table(self):
+        data = list(zip(self.notes, self.costs))
+        index = self.index.copy()
+        index.append('Fixed operating cost (FOC)')
+        data.append(("", sum(self.costs)))
+        return pd.DataFrame(data, 
+                            index=index,
+                            columns=(
+                                'Notes',
+                                'Cost [MM$ / yr]',
+                            )
+        )
+
 # %% Multiple system tables
 
 def voc_table(systems, product_IDs, system_names=None):
     # Not ready for users yet
     isa = isinstance
-    natural_gas_streams = []
-    systems_have_BT = False
     if isa(systems, bst.System): systems = [systems]
     other_utilities_dct = {}
     other_byproducts_dct = {}
@@ -78,14 +105,14 @@ def voc_table(systems, product_IDs, system_names=None):
     other_byproducts = sorted(other_byproducts_dct)
     heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0.] for hus in system_heat_utilities], [])))
     cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0.] for hus in system_heat_utilities], [])))
-    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + coproducts + other_utilities + other_byproducts)}
+    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + other_utilities + coproducts + other_byproducts)}
     table_index = [*[('Raw materials', reformat(i)) for i in feeds],
                    *[('Heating utilities', reformat(i)) for i in heating_agents],
                    *[('Cooling utilities', reformat(i)) for i in cooling_agents],
                    *[('Other utilities', i) for i in other_utilities],
                    *[('By-products and credits', reformat(i)) for i in coproducts],
                    *[('By-products and credits', i) for i in other_byproducts]]
-    table_index.append(('Total variable operating cost', ''))
+    table_index.append(('Variable operating cost', ''))
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
@@ -122,8 +149,8 @@ def voc_table(systems, product_IDs, system_names=None):
             ind = index[i]
             data[ind, 0] = price
             data[ind, col + 1] = cost / 1e6 # million USD / yr
-    data[-1, 1:] = data[:-N_coproducts, 1:].sum(axis=0) - data[-N_coproducts:, 1:].sum(axis=0)
-    for i in natural_gas_streams: i.price = 0.
+    N_consumed = N_rows - N_coproducts
+    data[-1, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:, 1:].sum(axis=0)
     if system_names is None:
         system_names = [i.ID for i in systems]
     systems_names = [i + "\n[MM$/yr]" for i in system_names]
