@@ -433,11 +433,11 @@ class Unit:
             
     def get_inlet_utility_results(self):
         ins = self.ins._streams
-        return {name: StreamUtilityResult(price, ins[i].F_mass) for name, (index, price) in self.inlet_utility_prices.items()}
+        return {name: StreamUtilityResult(price, ins[index].F_mass) for name, (index, price) in self.inlet_utility_prices.items()}
     
     def get_outlet_utility_results(self):
         outs = self.outs._streams
-        return {name: StreamUtilityResult(price, outs[i].F_mass) for name, (index, price) in self.outlet_utility_prices.items()}
+        return {name: StreamUtilityResult(price, outs[index].F_mass) for name, (index, price) in self.outlet_utility_prices.items()}
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -916,15 +916,13 @@ class Unit:
                         if include_zeros or heat_utility.cost: 
                             addkey((ID, 'Cost'))
                             addval(('USD/hr', heat_utility.cost))
-                # TODO: Left off here
-                # inlet_utility_results = self.get_inlet_utility_results()
-                # for name, utility_results in inlet_utility_results.items():
-                #     if include_zeros or utility_results.flow:
-                #         addkey((name, 'Flow'))
-                #         addval(('kg/hr', utility_results.flow))
-                #         addkey((name, 'Cost'))
-                #         addval(('USD/hr', utility_results.cost))
-                        
+                for dct in (self.get_inlet_utility_results(), self.get_outlet_utility_results()):
+                    for name, utility_results in dct.items():
+                        if include_zeros or utility_results.flow:
+                            addkey((name, 'Flow'))
+                            addval(('kg/hr', utility_results.flow))
+                            addkey((name, 'Cost'))
+                            addval(('USD/hr', utility_results.cost))
                 
             units = self._units
             Cost = self.purchase_costs
@@ -985,6 +983,13 @@ class Unit:
                         if include_zeros or heat_utility.cost:
                             addkey((ID, 'Cost'))
                             addval(heat_utility.cost)
+                for dct in (self.get_inlet_utility_results(), self.get_outlet_utility_results()):
+                    for name, utility_results in dct.items():
+                        if include_zeros or utility_results.flow:
+                            addkey((name, 'Flow'))
+                            addval(utility_results.flow)
+                            addkey((name, 'Cost'))
+                            addval(utility_results.cost)
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval(vi)
