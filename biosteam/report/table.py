@@ -80,7 +80,7 @@ def voc_table(systems, product_IDs, system_names=None):
             dct = getsubdct(other_utilities_dct, 'Electricity')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
         else:
-            dct = getsubdct(other_byproducts_dct, 'Electicity production')
+            dct = getsubdct(other_byproducts_dct, 'Electricity production')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
         inlet_flows = sys.get_inlet_utility_flows()
         for name, flow in inlet_flows.items():
