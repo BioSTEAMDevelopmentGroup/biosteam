@@ -277,6 +277,10 @@ class Unit:
         
     ### Abstract Attributes ###
     
+    # dict[str, float] Price of stream utilities which are defined as inlets
+    # and outlets to unti operations
+    stream_utility_prices = {}
+    
     # tuple[str] Name of attributes that are auxiliary units. These units
     # will be accounted for in the purchase and installed equipment costs
     # without having add these costs in the `purchase_costs` dictionary
@@ -372,11 +376,11 @@ class Unit:
         # pressure, and material factors.
         self.installed_costs = {}
         
-        # dict[str: tuple(int, float)] Index and price of additional utilities given by inlet streams.
-        self.inlet_utility_prices = {}
+        # dict[str: tuple(int, float)] Indices of additional utilities given by inlet streams.
+        self.inlet_utility_indices = {}
         
-        # dict[str: tuple(int, float)] Index and price of additional utilities given by outlet streams.
-        self.outlet_utility_prices = {}
+        # dict[str: tuple(int, float)] Indices of additional utilities given by outlet streams.
+        self.outlet_utility_indices = {}
         
         try:
             #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
@@ -400,7 +404,7 @@ class Unit:
         self.run_after_specification = False 
     
     def _reset_thermo(self, thermo):
-        for i in (self._ins + self._outs):
+        for i in (self._ins._streams + self._outs._streams):
             try:
                 if i: i._reset_thermo(thermo)
             except:
@@ -423,21 +427,25 @@ class Unit:
                     j._reset_thermo(thermo)
     
     
-    def define_utility(self, name, stream, price):
-        if stream.sink is self:
-            self.inlet_utility_prices[name] = (self.ins.index(stream), price)
-        elif stream.source is self:
-            self.outlet_utility_prices[name] = (self.outs.index(stream), price)
+    def define_utility(self, name, stream, price=None):
+        if stream._sink is self:
+            self.inlet_utility_indices[name] = self._ins._streams.index(stream)
+        elif stream._source is self:
+            self.outlet_utility_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
+        if price is not None:
+            prices = self.stream_utility_prices
+            prices[name] = price
             
-    def get_inlet_utility_results(self):
-        ins = self.ins._streams
-        return {name: StreamUtilityResult(price, ins[index].F_mass) for name, (index, price) in self.inlet_utility_prices.items()}
+    def get_inlet_utility_flows(self):
+        ins = self._ins._streams
+        prices = self.stream_utility_prices
+        return {name: ins[index].F_mass for name, index in self.inlet_utility_indices.items()}
     
-    def get_outlet_utility_results(self):
-        outs = self.outs._streams
-        return {name: StreamUtilityResult(price, outs[index].F_mass) for name, (index, price) in self.outlet_utility_prices.items()}
+    def get_outlet_utility_flows(self):
+        outs = self._outs._streams
+        return {name: outs[index].F_mass for name, index in self.outlet_utility_indices.items()}
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -685,16 +693,16 @@ class Unit:
     def take_place_of(self, other, discard=False):
         """Replace inlets and outlets from this unit or system with that of 
         another unit or system."""
-        self.ins[:] = other.ins
-        self.outs[:] = other.outs
+        self._ins[:] = other.ins
+        self._outs[:] = other.outs
         if discard: bst.main_flowsheet.unit.discard(other)
     
     @piping.ignore_docking_warnings
     def replace_with(self, other=None, discard=False):
         """Replace inlets and outlets from another unit with this unit."""
         if other is None:
-            ins = self.ins
-            outs = self.outs
+            ins = self._ins
+            outs = self._outs
             for inlet, outlet in zip(tuple(ins), tuple(outs)):
                 source = inlet.source
                 if source:
@@ -705,8 +713,8 @@ class Unit:
             ins.empty()
             outs.empty()
         else:
-            other.ins[:] = self.ins
-            other.outs[:] = self.outs
+            other.ins[:] = self._ins
+            other.outs[:] = self._outs
         if discard: bst.main_flowsheet.unit.discard(self)
                     
     # Forward pipping
@@ -715,18 +723,19 @@ class Unit:
         isa = isinstance
         int_types = (int, np.int)
         if isa(other, (Unit, bst.System)):
-            other.ins[:] = self.outs
+            other._ins[:] = self._outs
             return other
         elif isa(other, int_types):
-            return self.outs[other]
+            return self._outs[other]
         elif isa(other, Stream):
-            self.outs[:] = (other,)
+            self._outs[:] = (other,)
             return self
         elif isa(other, (tuple, list, np.ndarray)):
             if all([isa(i, int_types) for i in other]):
-                return [self.outs[i] for i in other]
+                outs = self._outs
+                return [outs[i] for i in other]
             else:
-                self.outs[:] = other
+                self._outs[:] = other
                 return self
         else:
             return other.__rsub__(self)
@@ -736,15 +745,16 @@ class Unit:
         isa = isinstance
         int_types = (int, np.int)
         if isa(other, int_types):
-            return self.ins[other]
+            return self._ins[other]
         elif isa(other, Stream):
-            self.ins[:] = (other,)
+            self._ins[:] = (other,)
             return self
         elif isa(other, (tuple, list, np.ndarray)):
             if all([isa(i, int_types) for i in other]):
-                return [self.ins[i] for i in other]
+                ins = self._ins
+                return [ins[i] for i in other]
             else:
-                self.ins[:] = other
+                self._ins[:] = other
                 return self
         else:
             raise ValueError(f"cannot pipe '{type(other).__name__}' object")
@@ -805,6 +815,15 @@ class Unit:
         self._design()
         self._cost()
         self._load_capital_costs()
+        ins = self._ins._streams
+        outs = self._outs._streams
+        prices = self.stream_utility_prices
+        self._utility_cost = (
+            sum([i.cost for i in self.heat_utilities]) 
+            + self.power_utility.cost
+            + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
+            - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
+        )
     
     @property
     def specification(self):
@@ -843,14 +862,18 @@ class Unit:
     @property
     def utility_cost(self):
         """Total utility cost [USD/hr]."""
-        ins = self._ins._streams
-        outs = self._outs._streams
-        return (
-            sum([i.cost for i in self.heat_utilities]) 
-            + self.power_utility.cost
-            + sum([ins[index].F_mass * price for index, price in self.inlet_utility_prices.values()])
-            - sum([outs[index].F_mass * price for index, price in self.outlet_utility_prices.values()])
-        )
+        try:
+            return self._utility_cost
+        except:
+            ins = self._ins._streams
+            outs = self._outs._streams
+            prices = self.stream_utility_prices
+            self._utility_cost = (
+                sum([i.cost for i in self.heat_utilities]) 
+                + self.power_utility.cost
+                + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
+                - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
+            )
 
     @property
     def auxiliary_units(self):
@@ -868,7 +891,7 @@ class Unit:
         If value is positive, the atom is being created. If negative, the atom 
         is being destroyed."""
         from chemicals import elements
-        mol = sum([i.mol for i in self.outs]) - sum([i.mol for i in self.ins])
+        mol = sum([i.mol for i in self._outs._streams]) - sum([i.mol for i in self._ins._streams])
         formula_array = self.chemicals.formula_array
         unbalanced_array = formula_array @ mol
         return elements.array_to_atoms(unbalanced_array)
@@ -897,6 +920,7 @@ class Unit:
         
         keys = []; 
         vals = []; addval = vals.append
+        stream_utility_prices = self.stream_utility_prices
         if with_units:
             if include_utilities:
                 power_utility = self.power_utility
@@ -916,13 +940,20 @@ class Unit:
                         if include_zeros or heat_utility.cost: 
                             addkey((ID, 'Cost'))
                             addval(('USD/hr', heat_utility.cost))
-                for dct in (self.get_inlet_utility_results(), self.get_outlet_utility_results()):
-                    for name, utility_results in dct.items():
-                        if include_zeros or utility_results.flow:
-                            addkey((name, 'Flow'))
-                            addval(('kg/hr', utility_results.flow))
-                            addkey((name, 'Cost'))
-                            addval(('USD/hr', utility_results.cost))
+                for name, flow in self.get_inlet_utility_flows().items():
+                    if include_zeros or flow:
+                        ID = name + ' (inlet)'
+                        addkey((ID, 'Flow'))
+                        addval(('kg/hr', flow))
+                        addkey((ID, 'Cost'))
+                        addval(('USD/hr', flow * stream_utility_prices[name]))
+                for name, flow in self.get_outlet_utility_flows().items():
+                    if include_zeros or flow:
+                        ID = name + ' (outlet)'
+                        addkey((ID, 'Flow'))
+                        addval(('kg/hr', flow))
+                        addkey((ID, 'Cost'))
+                        addval(('USD/hr', - flow * stream_utility_prices[name]))
                 
             units = self._units
             Cost = self.purchase_costs
@@ -983,13 +1014,21 @@ class Unit:
                         if include_zeros or heat_utility.cost:
                             addkey((ID, 'Cost'))
                             addval(heat_utility.cost)
-                for dct in (self.get_inlet_utility_results(), self.get_outlet_utility_results()):
-                    for name, utility_results in dct.items():
-                        if include_zeros or utility_results.flow:
-                            addkey((name, 'Flow'))
-                            addval(utility_results.flow)
-                            addkey((name, 'Cost'))
-                            addval(utility_results.cost)
+                for name, flow in self.get_inlet_utility_flows().items():
+                    if include_zeros or flow:
+                        ID = name + ' (inlet)'
+                        addkey((ID, 'Flow'))
+                        addval(flow)
+                        addkey((ID, 'Cost'))
+                        addval(flow * stream_utility_prices[name])
+                for name, flow in self.get_outlet_utility_flows().items():
+                    if include_zeros or flow:
+                        ID = name + ' (outlet)'
+                        addkey((ID, 'Flow'))
+                        addval(flow)
+                        addkey((ID, 'Cost'))
+                        addval(-flow * stream_utility_prices[name])
+                            
             for ki, vi in self.design_results.items():
                 addkey(('Design', ki))
                 addval(vi)

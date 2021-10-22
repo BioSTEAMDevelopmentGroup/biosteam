@@ -31,7 +31,6 @@ def _stream_key(s): # pragma: no coverage
 # %% Multiple system tables
 
 def voc_table(systems, product_IDs, system_names=None):
-    raise RuntimeError('function not ready')
     # Not ready for users yet
     isa = isinstance
     natural_gas_streams = []
@@ -40,19 +39,11 @@ def voc_table(systems, product_IDs, system_names=None):
     other_utilities_dct = {'Natural gas': {}}
     other_byproducts_dct = {'Electicity': {}}
     for system in systems:
-        for i in set(system.facilities):
-            if isa(i, bst.BoilerTurbogenerator):
-                systems_have_BT = True
-                natural_gas = i.ins[3]
-                if natural_gas.isempty(): continue
-                cost = natural_gas.F_mass * BT.natural_gas_price * system.operating_hours
-                other_utilities['Natural gas'][system] = (BT.natural_gas_price * 907.185, cost / 1e6)
-                break
         electricity_cost = sum([i.cost for i in sys.power_utilities]) * sys.operating_hours / 1e6
         if electricity_cost < 0.: 
-            other_utilities['Electicity'][system] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
+            other_utilities_dct['Electicity'][system] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
         else:
-            other_byproducts['Electicity production'][system] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
+            other_byproducts_dct['Electicity production'][system] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
         
     def reformat(name):
         name = name.replace('_', ' ')

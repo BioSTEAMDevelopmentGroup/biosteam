@@ -1598,6 +1598,40 @@ class System:
         """[tuple] All PowerUtility objects."""
         return tuple(utils.get_power_utilities(self.cost_units))
 
+    def get_inlet_utility_flows(self):
+        """
+        Return a dictionary with inlet stream utility flow rates, including
+        natural gas and ash disposal but excluding heating, refrigeration, and
+        electricity utilities.
+        
+        """
+        dct = {}
+        for unit in self.units:
+            for name, flow in unit.get_inlet_utility_flows().items():
+                if flow:
+                    if name in dct:
+                        dct[name] += flow
+                    else:
+                        dct[name] = flow
+        return dct
+
+    def get_outlet_utility_flows(self):
+        """
+        Return a dictionary with inlet stream utility flow rates, including
+        natural gas and ash disposal but excluding heating, refrigeration, and
+        electricity utilities.
+        
+        """
+        dct = {}
+        for unit in self.units:
+            for name, flow in unit.get_outlet_utility_flows().items():
+                if flow:
+                    if name in dct:
+                        dct[name] += flow
+                    else:
+                        dct[name] = flow
+        return dct
+
     def get_inlet_flow(self, units, key=None):
         """
         Return total flow across all inlets per year.
