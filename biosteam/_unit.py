@@ -277,10 +277,6 @@ class Unit:
         
     ### Abstract Attributes ###
     
-    # dict[str, float] Price of stream utilities which are defined as inlets
-    # and outlets to unti operations
-    stream_utility_prices = {}
-    
     # tuple[str] Name of attributes that are auxiliary units. These units
     # will be accounted for in the purchase and installed equipment costs
     # without having add these costs in the `purchase_costs` dictionary
@@ -427,16 +423,15 @@ class Unit:
                     j._reset_thermo(thermo)
     
     
-    def define_utility(self, name, stream, price=None):
+    def define_utility(self, name, stream):
+        if name not in bst.stream_utility_prices:
+            raise ValueError(f"price of '{name}' must be defined in biosteam.stream_utility_prices")
         if stream._sink is self:
             self.inlet_utility_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
             self.outlet_utility_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
-        if price is not None:
-            prices = self.stream_utility_prices
-            prices[name] = price
             
     def get_inlet_utility_flows(self):
         ins = self._ins._streams
@@ -817,7 +812,7 @@ class Unit:
         self._load_capital_costs()
         ins = self._ins._streams
         outs = self._outs._streams
-        prices = self.stream_utility_prices
+        prices = bst.stream_utility_prices
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
@@ -867,7 +862,7 @@ class Unit:
         except:
             ins = self._ins._streams
             outs = self._outs._streams
-            prices = self.stream_utility_prices
+            prices = bst.stream_utility_prices
             self._utility_cost = (
                 sum([i.cost for i in self.heat_utilities]) 
                 + self.power_utility.cost
@@ -920,7 +915,7 @@ class Unit:
         
         keys = []; 
         vals = []; addval = vals.append
-        stream_utility_prices = self.stream_utility_prices
+        stream_utility_prices = bst.stream_utility_prices
         if with_units:
             if include_utilities:
                 power_utility = self.power_utility

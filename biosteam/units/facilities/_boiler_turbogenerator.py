@@ -66,10 +66,6 @@ class Boiler(Facility):
         Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent]
         Other steams produced.
-    natural_gas_price = 0.218 : float
-        Price of natural gas [USD/kg].
-    ash_disposal_price = -0.0318 : float
-        Price of disposing ash [USD/kg].
     
     Notes
     -----
@@ -106,13 +102,11 @@ class Boiler(Facility):
                  boiler_efficiency=0.80,
                  side_steam=None,
                  agent=None,
-                 other_agents = (),
-                 natural_gas_price=0.218,
-                 ash_disposal_price=-0.0318):
+                 other_agents = ()):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
-        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
-        self.define_utility('Ash disposal', self.ash_disposal, ash_disposal_price)
+        self.define_utility('Natural gas', self.natural_gas)
+        self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.steam_utilities = set()
         self.power_utilities = set()
@@ -400,8 +394,8 @@ class BoilerTurbogenerator(Facility):
                  ash_disposal_price=-0.0318):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
-        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
-        self.define_utility('Ash disposal', self.ash_disposal, ash_disposal_price)
+        self.define_utility('Natural gas', self.natural_gas)
+        self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()

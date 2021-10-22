@@ -1617,7 +1617,7 @@ class System:
 
     def get_outlet_utility_flows(self):
         """
-        Return a dictionary with inlet stream utility flow rates, including
+        Return a dictionary with outlet stream utility flow rates, including
         natural gas and ash disposal but excluding heating, refrigeration, and
         electricity utilities.
         

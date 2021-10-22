@@ -57,8 +57,6 @@ class DrumDryer(Unit):
         Note that the drum is horizontal. Defaults to 25.
     T : float, optional
         Operating temperature [K]. Defaults to 343.15.
-    natural_gas_price : float
-        Price of natural gas [USD/kg]. Defaults to 0.218.
     moisture_content : float
         Moisutre content of solids [wt / wt]. Defaults to 0.10.
         
@@ -94,10 +92,10 @@ class DrumDryer(Unit):
     
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
                  split, R=1.4, H=20., length_to_diameter=25, T=343.15,
-                 natural_gas_price=0.289, moisture_content=0.15):
+                 moisture_content=0.15):
         super().__init__(ID, ins, outs, thermo)
         self._isplit = self.chemicals.isplit(split)
-        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
+        self.define_utility('Natural gas', self.natural_gas)
         self.T = T
         self.R = R
         self.H = H
@@ -180,9 +178,9 @@ class ThermalOxidizer(Unit):
         return self.ins[2]
     
     def __init__(self, *args, tau=0.00014, duty_per_kg=61., V_wf=0.95, 
-                 natural_gas_price=0.289, **kwargs):
+                 **kwargs):
         Unit.__init__(self, *args, **kwargs)
-        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
+        self.define_utility('Natural gas', self.natural_gas)
         self.tau = tau
         self.duty_per_kg = duty_per_kg
         self.V_wf = V_wf
