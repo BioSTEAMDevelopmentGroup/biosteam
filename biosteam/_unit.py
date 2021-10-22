@@ -31,6 +31,20 @@ def count():
     _count[0] += 1
     print(_count)
 
+# %% Small data classes
+
+class StreamUtilityResult:
+    __slots__ = ('price', 'flow', 'cost')
+    
+    def __init__(self, price, flow):
+        self.price = price
+        self.flow = flow
+        self.cost = price * flow
+        
+    def __repr__(self):
+        return f"{type(self).__name__}(price={self.price}, flow={self.flow}, cost={self.cost})"
+
+
 # %% Inlet and outlet representation
 
 def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
@@ -358,11 +372,11 @@ class Unit:
         # pressure, and material factors.
         self.installed_costs = {}
         
-        # dict[str: StreamUtility] Additional utilities given by inlet streams 
-        self.inlet_utilities = {}
+        # dict[str: tuple(int, float)] Index and price of additional utilities given by inlet streams.
+        self.inlet_utility_prices = {}
         
-        # dict[str: StreamUtility] Additional utilities given by outlet streams 
-        self.outlet_utilities = {}
+        # dict[str: tuple(int, float)] Index and price of additional utilities given by outlet streams.
+        self.outlet_utility_prices = {}
         
         try:
             #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
@@ -411,15 +425,19 @@ class Unit:
     
     def define_utility(self, name, stream, price):
         if stream.sink is self:
-            self.inlet_utilities[name] = piping.StreamUtility(
-                stream, price,
-            )
+            self.inlet_utility_prices[name] = (self.ins.index(stream), price)
         elif stream.source is self:
-            self.outlet_utilities[name] = piping.StreamUtility(
-                stream, price,
-            )
+            self.outlet_utility_prices[name] = (self.outs.index(stream), price)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
+            
+    def get_inlet_utility_results(self):
+        ins = self.ins._streams
+        return {name: StreamUtilityResult(price, ins[i].F_mass) for name, (index, price) in self.inlet_utility_prices.items()}
+    
+    def get_outlet_utility_results(self):
+        outs = self.outs._streams
+        return {name: StreamUtilityResult(price, outs[i].F_mass) for name, (index, price) in self.outlet_utility_prices.items()}
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -825,15 +843,14 @@ class Unit:
     @property
     def utility_cost(self):
         """Total utility cost [USD/hr]."""
-        try:
-            return (
-                sum([i.cost for i in self.heat_utilities]) 
-                + self.power_utility.cost
-                + sum([i.cost for i in self.inlet_utilities.values()])
-                - sum([i.cost for i in self.outlet_utilities.values()])
-            )
-        except:
-            breakpoint()
+        ins = self._ins._streams
+        outs = self._outs._streams
+        return (
+            sum([i.cost for i in self.heat_utilities]) 
+            + self.power_utility.cost
+            + sum([ins[index].F_mass * price for index, price in self.inlet_utility_prices.values()])
+            - sum([outs[index].F_mass * price for index, price in self.outlet_utility_prices.values()])
+        )
 
     @property
     def auxiliary_units(self):
@@ -899,6 +916,16 @@ class Unit:
                         if include_zeros or heat_utility.cost: 
                             addkey((ID, 'Cost'))
                             addval(('USD/hr', heat_utility.cost))
+                # TODO: Left off here
+                # inlet_utility_results = self.get_inlet_utility_results()
+                # for name, utility_results in inlet_utility_results.items():
+                #     if include_zeros or utility_results.flow:
+                #         addkey((name, 'Flow'))
+                #         addval(('kg/hr', utility_results.flow))
+                #         addkey((name, 'Cost'))
+                #         addval(('USD/hr', utility_results.cost))
+                        
+                
             units = self._units
             Cost = self.purchase_costs
             for ki, vi in self.design_results.items():

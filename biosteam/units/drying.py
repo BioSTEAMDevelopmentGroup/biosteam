@@ -92,24 +92,16 @@ class DrumDryer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    @property
-    def utility_cost(self):
-        return super().utility_cost + self.natural_gas_cost
-    
-    @property
-    def natural_gas_cost(self):
-        return self.natural_gas_price * self.natural_gas.F_mass
-    
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
                  split, R=1.4, H=20., length_to_diameter=25, T=343.15,
                  natural_gas_price=0.289, moisture_content=0.15):
         super().__init__(ID, ins, outs, thermo)
         self._isplit = self.chemicals.isplit(split)
+        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
         self.T = T
         self.R = R
         self.H = H
         self.length_to_diameter = length_to_diameter
-        self.natural_gas_price = natural_gas_price
         self.moisture_content = moisture_content
         
     def _run(self):
@@ -187,20 +179,12 @@ class ThermalOxidizer(Unit):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[2]
     
-    @property
-    def utility_cost(self):
-        return super().utility_cost + self.natural_gas_cost
-    
-    @property
-    def natural_gas_cost(self):
-        return self.natural_gas_price * self.natural_gas.F_mass
-    
     def __init__(self, *args, tau=0.00014, duty_per_kg=61., V_wf=0.95, 
                  natural_gas_price=0.289, **kwargs):
         Unit.__init__(self, *args, **kwargs)
+        self.define_utility('Natural gas', self.natural_gas, natural_gas_price)
         self.tau = tau
         self.duty_per_kg = duty_per_kg
-        self.natural_gas_price = natural_gas_price
         self.V_wf = V_wf
 
     def _run(self):

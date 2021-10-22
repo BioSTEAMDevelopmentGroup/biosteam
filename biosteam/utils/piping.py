@@ -14,7 +14,7 @@ from collections import namedtuple
 from warnings import warn
 __all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
            'InletPort', 'OutletPort', 'StreamPorts', 'Connection', 
-           'StreamUtility', 'as_stream', 'as_upstream', 'as_downstream', 
+           'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings')
 
 DOCKING_WARNINGS = True
@@ -682,24 +682,6 @@ class StreamPorts:
     def __repr__ (self):
         ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
-    
-
-# %% Special utility management
-
-class StreamUtility:
-    __slots__ = ('stream', 'price')
-    
-    def __init__(self, stream, price):
-        self.stream = stream
-        self.price = price
-        
-    @property
-    def cost(self):
-        return self.stream.F_mass * self.price
-            
-    def __repr__(self):
-        return f"{type(self).__name__}(stream={self.stream}, price={self.price})"
-    
 
 
 # %% Configuration bookkeeping
