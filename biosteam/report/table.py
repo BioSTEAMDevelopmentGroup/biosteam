@@ -36,14 +36,35 @@ def voc_table(systems, product_IDs, system_names=None):
     natural_gas_streams = []
     systems_have_BT = False
     if isa(systems, bst.System): systems = [systems]
-    other_utilities_dct = {'Natural gas': {}}
-    other_byproducts_dct = {'Electicity': {}}
-    for system in systems:
-        electricity_cost = sum([i.cost for i in sys.power_utilities]) * sys.operating_hours / 1e6
-        if electricity_cost < 0.: 
-            other_utilities_dct['Electicity'][system] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
+    other_utilities_dct = {}
+    other_byproducts_dct = {}
+    prices = bst.stream_utility_prices
+    kg_per_ton = 907.185
+    def getsubdct(dct, name):
+        if name in dct:
+            subdct = dct[name]
         else:
-            other_byproducts_dct['Electicity production'][system] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
+            dct[name] = subdct = {}
+        return subdct
+    
+    for sys in systems:
+        electricity_cost = sum([i.cost for i in sys.power_utilities]) * sys.operating_hours
+        if electricity_cost > 0.: 
+            dct = getsubdct(other_utilities_dct, 'Electricity')
+            dct[sys] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
+        else:
+            dct = getsubdct(other_byproducts_dct, 'Electicity production')
+            dct[sys] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
+        inlet_flows = sys.get_inlet_utility_flows()
+        for name, flow in inlet_flows.items():
+            dct = getsubdct(other_utilities_dct, name)
+            price = prices[name]
+            dct[sys] = (price * kg_per_ton, price * flow)
+        outlet_flows = sys.get_outlet_utility_flows()
+        for name, flow in outlet_flows.items():
+            dct = getsubdct(other_byproducts_dct, name)
+            price = prices[name]
+            dct[sys] = (price * kg_per_ton, price * flow)
         
     def reformat(name):
         name = name.replace('_', ' ')
@@ -53,11 +74,11 @@ def voc_table(systems, product_IDs, system_names=None):
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if i.price})
     coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if i.price and i.ID not in product_IDs})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
-    other_utilities = [i for i,j in other_utilities_dct.items() if j]
-    other_byproducts = [i for i,j in other_byproducts_dct.items() if j]
+    other_utilities = sorted(other_utilities_dct)
+    other_byproducts = sorted(other_byproducts_dct)
     heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0.] for hus in system_heat_utilities], [])))
     cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0.] for hus in system_heat_utilities], [])))
-    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + coproducts)}
+    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + coproducts + other_utilities + other_byproducts)}
     table_index = [*[('Raw materials', reformat(i)) for i in feeds],
                    *[('Heating utilities', reformat(i)) for i in heating_agents],
                    *[('Cooling utilities', reformat(i)) for i in cooling_agents],
@@ -75,7 +96,7 @@ def voc_table(systems, product_IDs, system_names=None):
             cost = sys.get_market_value(stream)
             if cost:
                 ind = index[stream.ID]
-                data[ind, 0] = stream.price * 907.185 # USD / ton
+                data[ind, 0] = stream.price * kg_per_ton # USD / ton
                 data[ind, col + 1] = cost / 1e6 # million USD / yr
         for hu in system_heat_utilities[col]:
             try:
@@ -91,11 +112,16 @@ def voc_table(systems, product_IDs, system_names=None):
                 price += f"{hu.agent.regeneration_price} USD/kmol"
             data[ind, 0] = price 
             data[ind, col + 1] = cost / 1e6 # million USD / yr
-        for i, j in other_byproducts:
-            pass
-        excess_electricity = max(-sum([i.cost for i in sys.power_utilities]) * sys.operating_hours / 1e6, 0.)
-        data[-2, col + 1] = excess_electricity
-    data[-2, 0] = f"{bst.PowerUtility.price} $/kWh"
+        for i, dct in other_byproducts_dct.items():
+            price, cost = dct[sys]
+            ind = index[i]
+            data[ind, 0] = price
+            data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for i, dct in other_utilities_dct.items():
+            price, cost = dct[sys]
+            ind = index[i]
+            data[ind, 0] = price
+            data[ind, col + 1] = cost / 1e6 # million USD / yr
     data[-1, 1:] = data[:-N_coproducts, 1:].sum(axis=0) - data[-N_coproducts:, 1:].sum(axis=0)
     for i in natural_gas_streams: i.price = 0.
     if system_names is None:

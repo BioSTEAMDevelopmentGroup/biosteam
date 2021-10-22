@@ -435,7 +435,6 @@ class Unit:
             
     def get_inlet_utility_flows(self):
         ins = self._ins._streams
-        prices = self.stream_utility_prices
         return {name: ins[index].F_mass for name, index in self.inlet_utility_indices.items()}
     
     def get_outlet_utility_flows(self):
