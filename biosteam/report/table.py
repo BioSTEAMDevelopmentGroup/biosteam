@@ -139,16 +139,13 @@ def voc_table(systems, product_IDs, system_names=None):
                 price += f"{hu.agent.regeneration_price} USD/kmol"
             data[ind, 0] = price 
             data[ind, col + 1] = cost / 1e6 # million USD / yr
-        for i, dct in other_byproducts_dct.items():
-            price, cost = dct[sys]
-            ind = index[i]
-            data[ind, 0] = price
-            data[ind, col + 1] = cost / 1e6 # million USD / yr
-        for i, dct in other_utilities_dct.items():
-            price, cost = dct[sys]
-            ind = index[i]
-            data[ind, 0] = price
-            data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for sysdct in (other_byproducts_dct, other_utilities_dct):
+            for i, dct in sysdct.items():
+                if sys not in dct: continue
+                price, cost = dct[sys]
+                ind = index[i]
+                data[ind, 0] = price
+                data[ind, col + 1] = cost / 1e6 # million USD / yr
     N_consumed = N_rows - N_coproducts
     data[-1, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:, 1:].sum(axis=0)
     if system_names is None:

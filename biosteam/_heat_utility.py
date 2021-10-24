@@ -444,8 +444,12 @@ class HeatUtility:
             dH = self.inlet_utility_stream.H - self.outlet_utility_stream.H
         else:
             # Phase change
-            self.outlet_utility_stream.phase = 'g' if self.inlet_utility_stream.phase == 'l' else 'l'
-            dH = self.outlet_utility_stream.Hvap
+            if self.inlet_utility_stream.phase == 'l' :
+                self.outlet_utility_stream.phase = 'g'
+                dH = -self.outlet_utility_stream.Hvap
+            else:
+                dH = self.outlet_utility_stream.Hvap
+                self.outlet_utility_stream.phase = 'l'
         
         # Update utility flow
         self.outlet_utility_stream.mol[:] *= duty / dH
