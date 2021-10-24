@@ -21,7 +21,6 @@ from thermosteam import MultiStream, settings
 import flexsolve as flx
 from warnings import warn
 import numpy as np
-from collections import deque
 from .design_tools import heat_transfer as ht
 
 __all__ = ('MultiEffectEvaporator',)
@@ -321,10 +320,10 @@ class MultiEffectEvaporator(Unit):
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
-            self.P = deque(P)
+            self.P = list(P)
             for i in range(self._N_evap - 1):
                 if self._V_overall(0.) > self.V:
-                    self.P.popleft()
+                    self.P.pop()
                     self._load_components()
                     self._reload_components = True
                 else:
