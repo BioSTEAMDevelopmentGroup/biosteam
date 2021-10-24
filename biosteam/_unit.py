@@ -31,20 +31,6 @@ def count():
     _count[0] += 1
     print(_count)
 
-# %% Small data classes
-
-class StreamUtilityResult:
-    __slots__ = ('price', 'flow', 'cost')
-    
-    def __init__(self, price, flow):
-        self.price = price
-        self.flow = flow
-        self.cost = price * flow
-        
-    def __repr__(self):
-        return f"{type(self).__name__}(price={self.price}, flow={self.flow}, cost={self.cost})"
-
-
 # %% Inlet and outlet representation
 
 def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):

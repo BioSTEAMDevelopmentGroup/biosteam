@@ -644,7 +644,13 @@ class System:
             else:
                 mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
 
+    def _delete_path_cache(self):
+        for i in ('_units', '_unit_path', '_streams'):
+            if hasattr(self, i): delattr(self, i)
+        for i in self.subsystems: i._delete_path_cache()
+
     def reduce_chemicals(self, required_chemicals=()):
+        self._delete_path_cache()
         unit_thermo = {}
         mixer_thermo = {}
         thermo_cache = {}
@@ -2249,6 +2255,7 @@ class AgileSystem:
         for i in self.operation_modes: i.operating_hours *= factor
 
     def reduce_chemicals(self, required_chemicals=()):
+        de
         for i in self.streams: i.unlink()
         unit_thermo = {}
         mixer_thermo = {}
