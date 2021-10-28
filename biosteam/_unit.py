@@ -854,6 +854,7 @@ class Unit:
                 + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
                 - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
             )
+            return self._utility_cost
 
     @property
     def auxiliary_units(self):
