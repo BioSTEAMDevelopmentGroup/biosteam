@@ -103,8 +103,8 @@ def voc_table(systems, product_IDs, system_names=None):
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
     other_utilities = sorted(other_utilities_dct)
     other_byproducts = sorted(other_byproducts_dct)
-    heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0.] for hus in system_heat_utilities], [])))
-    cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0.] for hus in system_heat_utilities], [])))
+    heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
+    cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
     index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + other_utilities + coproducts + other_byproducts)}
     table_index = [*[('Raw materials', reformat(i)) for i in feeds],
                    *[('Heating utilities', reformat(i)) for i in heating_agents],
