@@ -2229,11 +2229,13 @@ class AgileSystem:
 
     @property
     def empty_recycles(self):
-        return self.system.empty_recycles()
+        for mode in self.operation_modes:
+            mode.system.empty_recycles()
 
     @property
     def reset_cache(self):
-        return self.system.reset_cache
+        for mode in self.operation_modes:
+            mode.system.system.reset_cache()
 
     @property
     def operating_hours(self):
