@@ -2229,7 +2229,7 @@ class AgileSystem:
 
     @property
     def empty_recycles(self):
-        return self.system.empty_recycles
+        return self.system.empty_recycles()
 
     @property
     def reset_cache(self):
@@ -2244,7 +2244,6 @@ class AgileSystem:
         for i in self.operation_modes: i.operating_hours *= factor
 
     def reduce_chemicals(self, required_chemicals=()):
-        de
         for i in self.streams: i.unlink()
         unit_thermo = {}
         mixer_thermo = {}
