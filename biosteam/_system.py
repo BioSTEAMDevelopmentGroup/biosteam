@@ -2233,7 +2233,7 @@ class AgileSystem:
 
     def reset_cache(self):
         for mode in self.operation_modes:
-            mode.system.system.reset_cache()
+            mode.system.reset_cache()
 
     @property
     def operating_hours(self):
