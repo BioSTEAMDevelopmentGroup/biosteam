@@ -2227,12 +2227,10 @@ class AgileSystem:
             for i in systems: units.update(i.cost_units)
             return units
 
-    @property
     def empty_recycles(self):
         for mode in self.operation_modes:
             mode.system.empty_recycles()
 
-    @property
     def reset_cache(self):
         for mode in self.operation_modes:
             mode.system.system.reset_cache()
