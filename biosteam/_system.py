@@ -41,19 +41,6 @@ __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
            'mark_disjunction', 'unmark_disjunction')
 
-# %% Utilities
-
-def get_path_units(path):
-    units = []
-    isa = isinstance
-    for i in system._path + system._facilities:
-        if isa(i, Unit):
-            units.append(i)
-        elif isa(i, System):
-            units.extend(get_path_units(system))
-    return units
-
-
 # %% Customization to system creation
 
 disjunctions = []
@@ -84,10 +71,12 @@ def find_blowdown_recycle(facilities):
 # %% Functions for recycle
 
 def check_recycle_feasibility(material: np.ndarray):
-    if fn.infeasible(material):
-        raise InfeasibleRegion('recycle material flow rate')
-    else:
-        material[material < 0.] = 0.
+    negatives = material < 0.
+    if negatives.any():
+        if material[negatives].sum() < -1e-16:
+            raise InfeasibleRegion('recycle material flow rate')
+        else:
+            material[negatives] = 0.
 
 
 # %% Functions for taking care of numerical specifications within a system path
