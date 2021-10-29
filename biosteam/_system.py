@@ -67,18 +67,6 @@ def find_blowdown_recycle(facilities):
     for i in facilities:
         if isa(i, bst.BlowdownMixer): return i.outs[0]
 
-
-# %% Functions for recycle
-
-def check_recycle_feasibility(material: np.ndarray):
-    negatives = material < 0.
-    if negatives.any():
-        if material[negatives].sum() < -1e-16:
-            raise InfeasibleRegion('recycle material flow rate')
-        else:
-            material[negatives] = 0.
-
-
 # %% Functions for taking care of numerical specifications within a system path
 
 def converge_system_in_path(system):
@@ -1250,7 +1238,7 @@ class System:
             True if recycle has not converged.
 
         """
-        check_recycle_feasibility(mol)
+        mol[mol < 0.] = 0.
         self._set_recycle_data(mol)
         T = self._get_recycle_temperatures()
         self._run()
