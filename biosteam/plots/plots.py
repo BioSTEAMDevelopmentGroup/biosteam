@@ -307,7 +307,7 @@ def plot_spearman(rhos, top=None, name=None, color_wheel=None, index=None):
     if isinstance(rhos, list): 
         return plot_spearman_2d(rhos, top, name, color_wheel=color_wheel, index=index)
     else:
-        return plot_spearman_1d(rhos, top, name, color_wheel=color_wheel, index=index)
+        return plot_spearman_1d(rhos, top, name, color=color_wheel, index=index)
 
 def format_spearman_plot(ax, index, name, yranges):
     plot_vertical_line(0, color=c.neutral_shade.RGBn, lw=1)
