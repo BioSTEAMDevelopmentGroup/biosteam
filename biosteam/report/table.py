@@ -217,14 +217,22 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
         diagram_completed = False
         warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
     else:
+        import PIL.Image
         try:
             # Assume openpyxl is used
             worksheet = writer.book.create_sheet('Flowsheet')
             flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
             worksheet.add_image(flowsheet, anchor='A1')
+        except PIL.Image.DecompressionBombError:
+            PIL.Image.MAX_IMAGE_PIXELS = int(1e9)
+            flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
+            worksheet.add_image(flowsheet, anchor='A1')
         except:
             # Assume xlsx writer is used
-            worksheet = writer.book.add_worksheet('Flowsheet')
+            try:
+                worksheet = writer.book.add_worksheet('Flowsheet')
+            except:
+                breakpoint()
             worksheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     
