@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
+#                          Yalin Li <zoe.yalin.li@gmail.com>
 #
 # This module implements a filtering feature from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
@@ -17,8 +18,6 @@ from ._state import State
 from ._metric import Metric
 from ._parameter import Parameter
 from ._utils import var_indices, var_columns, indices_to_multiindex
-from ..utils import format_title
-import biosteam as bst
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
 from collections.abc import Sized
@@ -547,10 +546,18 @@ class Model(State):
         from scipy.stats import kendalltau
         return self._correlation(kendalltau, parameters, metrics, filter, kwargs)
     
-    def kolmogorov_smirnov_d(self, parameters=None, metrics=None, filter=None, **kwargs):
+    def kolmogorov_smirnov_d(self, parameters=None, metrics=None, thresholds=[],
+                             filter=None, **kwargs):
         """
-        Return two DataFrame objects of Kolmogorov–Smirnov's D and p-values 
-        between metrics and parameters.
+        Return two DataFrame objects of Kolmogorov–Smirnov's D and p-values
+        with the given thresholds for the metrics.
+        
+        For one particular parameter, all of the sampled values will be divided into two sets,
+        one where the resulting metric value is smaller than or equal to the threshold,
+        and the other where the resulting value is larger than the threshold.
+        
+        Kolmogorov–Smirnov test will then be performed for these two sets of values
+        for the particular parameter.
         
         Parameters
         ----------
@@ -558,6 +565,8 @@ class Model(State):
             Parameters to be correlated with metrics. Defaults to all parameters.
         metrics : Iterable[Metric], optional 
             Metrics to be correlated with parameters. Defaults to all metrics.
+        thresholds : Iterable[float]
+            The
             
         Other Parameters
         ----------------
@@ -583,6 +592,11 @@ class Model(State):
         
         """
         from scipy.stats import kstest
+        metrics = metrics or self.metrics
+        if len(thresholds) != len(metrics):
+            raise ValueError(f'The number of metrics {len(metrics)} must match '
+                             f'the number of thresholds ({len(thresholds)}).')
+        kwargs['thresholds'] = thresholds
         return self._correlation(kstest, parameters, metrics, filter, kwargs)
     
     def _correlation(self, f, parameters, metrics, filter, kwargs):
@@ -623,6 +637,7 @@ class Model(State):
         parameter_data = [values[index(i)] for i in parameter_indices]
         metric_indices = var_indices(metrics or self.metrics)
         metric_data = [values[index(i)] for i in metric_indices]
+                
         if not filter: filter = 'propagate nan'
         if isinstance(filter, str):
             name = filter.lower()
@@ -654,7 +669,18 @@ class Model(State):
         else: #: pragma: no cover
             raise TypeError("filter must be either a string or a callable; "
                             "not a '{type(filter).__name__}' object")
-        data = np.array([[corr(p, m) for m in metric_data] for p in parameter_data])
+
+        if 'thresholds' not in kwargs:
+            data = np.array([[corr(p, m) for m in metric_data] for p in parameter_data])
+        else: # KS test
+            thresholds = kwargs.pop('thresholds')
+            data = np.array(
+                [
+                    [corr(parameter_data[n_p][metric_data[n_m]<=thresholds[n_m]],
+                          parameter_data[n_p][metric_data[n_m]>thresholds[n_m]]) \
+                     for n_m in range(len(metric_data))] \
+                for n_p in range(len(parameter_data))])
+        
         index = indices_to_multiindex(parameter_indices, ('Element', 'Parameter'))
         columns = indices_to_multiindex(metric_indices, ('Element', 'Metric'))        
         return [pd.DataFrame(i, index=index, columns=columns) for i in (data[..., 0], data[..., 1])]
