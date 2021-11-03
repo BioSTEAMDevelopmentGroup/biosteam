@@ -31,6 +31,8 @@ class MetricBar(NamedTuple): # pragma: no coverage
     N_decimals: int = 0
     center: float = None
     units_dlim: str = '\n'
+    ub: bool = False
+    lb: bool = False
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -68,7 +70,11 @@ class MetricBar(NamedTuple): # pragma: no coverage
         cbar_ax.set_title(self.title)
         ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
         ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
-        cbar_ax.set_yticklabels([self.fmt(float(y)) for y in ylabels])
+        if self.ub:
+            ylabels[-1] = '> ' + ylabels[-1]
+        if self.lb:
+            ylabels[0] = '< ' + ylabels[0]
+        cbar_ax.set_yticklabels(ylabels)
         return cbar
         
 # %% Helpful functions

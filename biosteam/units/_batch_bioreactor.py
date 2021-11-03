@@ -204,9 +204,14 @@ class BatchBioreactor(Unit, isabstract=True):
             N = self.N_at_minimum_capital_cost
         elif self.V:
             f = lambda N: v_0 / N / V_wf * (tau + tau_0) / (1 - 1 / N) - self.V
-            N = flx.IQ_interpolation(f, self.Nmin, self.Nmax,
-                                     xtol=0.01, ytol=0.5, checkbounds=False)
-            N = ceil(N)
+            if f(self.Nmax) > 0.:
+                N = self.Nmax
+            elif f(self.Nmin) < 0.:
+                N = self.Nmin
+            else:
+                N = flx.IQ_interpolation(f, self.Nmin, self.Nmax,
+                                         xtol=0.01, ytol=0.5, checkbounds=False)
+                N = ceil(N)
         else:
             N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, V_wf))

@@ -16,6 +16,7 @@ Unit operations
 
 
 """
+import biosteam as bst
 import flexsolve as flx
 import numpy as np
 from thermosteam import separations as sep
@@ -70,6 +71,7 @@ class DrumDryer(Unit):
     dried distillers grains with solubles (DDGS).
     
     """
+    # auxiliary_unit_names = ('heat_exchanger',)
     _units = {'Evaporation': 'kg/hr',
               'Peripheral drum area': 'm2',
               'Diameter': 'm'}
@@ -92,7 +94,7 @@ class DrumDryer(Unit):
     
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
                  split, R=1.4, H=20., length_to_diameter=25, T=343.15,
-                 moisture_content=0.15):
+                 moisture_content=0.15, utility_agent='Natural gas'):
         super().__init__(ID, ins, outs, thermo)
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
@@ -101,6 +103,21 @@ class DrumDryer(Unit):
         self.H = H
         self.length_to_diameter = length_to_diameter
         self.moisture_content = moisture_content
+        self.utility_agent = utility_agent
+        
+    @property
+    def utility_agent(self):
+        return self._utility_agent
+    
+    @utility_agent.setter
+    def utility_agent(self, utility_agent):
+        if utility_agent == 'Natural gas':
+            pass
+        elif utility_agent == 'Steam':
+            self.heat_utilities = (bst.HeatUtility(),)
+        else:
+            raise ValueError(f"utility agent must be either 'Steam' or 'Natural gas'; not '{utility_agent}'")
+        self._utility_agent = utility_agent
         
     def _run(self):
         wet_solids, air, natural_gas = self.ins
@@ -116,16 +133,17 @@ class DrumDryer(Unit):
         emissions.T = self.T + 30.
         natural_gas.empty()
         emissions.empty()
-        LHV = self.chemicals.CH4.LHV
-        def f(CH4):
-            CO2 = CH4    
-            H2O = 2. * CH4
-            natural_gas.imol['CH4'] = CH4
-            emissions.imol['CO2', 'H2O'] = [CO2, H2O]    
-            duty = (dry_solids.H + hot_air.H + natural_gas.H) - (wet_solids.H + air.H + emissions.H)
-            CH4 = duty / - LHV
-            return CH4
-        flx.wegstein(f, 0., 1e-3)
+        if self.utility_agent == 'Natural gas':
+            LHV = self.chemicals.CH4.LHV
+            def f(CH4):
+                CO2 = CH4    
+                H2O = 2. * CH4
+                natural_gas.imol['CH4'] = CH4
+                emissions.imol['CO2', 'H2O'] = [CO2, H2O]    
+                duty = (dry_solids.H + hot_air.H + emissions.H) - (wet_solids.H + air.H + natural_gas.H)
+                CH4 = duty / - LHV
+                return CH4
+            flx.wegstein(f, 0., 1e-3)
         
     def _design(self):
         length_to_diameter = self.length_to_diameter
@@ -134,6 +152,8 @@ class DrumDryer(Unit):
         design_results['Diameter'] = diameter = cylinder_diameter_from_volume(volume, length_to_diameter)
         design_results['Length'] = length = diameter * length_to_diameter
         design_results['Peripheral drum area'] = cylinder_area(diameter, length)
+        if self.utility_agent == 'Steam':
+            self.heat_utilities[0](self.H_out - self.H_in, self.T)
         
         
 class ThermalOxidizer(Unit):
