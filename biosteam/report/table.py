@@ -32,28 +32,28 @@ def _stream_key(s): # pragma: no coverage
 # %% Detailed TEA tables
 
 class FOCTableBuilder:
-    __slots__ = ('index', 'costs', 'notes')
+    __slots__ = ('index', 'data', 'costs')
     
     def __init__(self):
         self.index = []
+        self.data = []
         self.costs = []
-        self.notes = []
         
-    def entry(self, index, cost, notes='-'):
+    def entry(self, index, costs, notes='-'):
         self.index.append(index)
-        self.notes.append(notes)
-        self.costs.append(cost)
+        self.data.append([notes, *costs])
+        self.costs.append(costs)
     
-    def table(self):
-        data = list(zip(self.notes, self.costs))
+    def table(self, names):
+        data = self.data
         index = self.index.copy()
         index.append('Fixed operating cost (FOC)')
-        data.append(("", sum(self.costs)))
-        return pd.DataFrame(data, 
+        data.append(("", *sum(self.costs)))
+        return pd.DataFrame(np.array(data), 
                             index=index,
                             columns=(
                                 'Notes',
-                                'Cost [MM$ / yr]',
+                                *[i + '\n[MM$ / yr]' for i in names],
                             )
         )
 
