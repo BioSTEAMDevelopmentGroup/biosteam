@@ -1425,7 +1425,7 @@ class System:
         '''Initialize attributes related to dynamic simulation.'''
         self._state = None
         self._dct_dy = None
-        self._dy = []
+        # self._dy = []
 
 
     def reset_cache(self):
@@ -1464,8 +1464,6 @@ class System:
         for unit in self.units:
             start, stop = idx[unit.ID]
             dct_dy.update(unit._dstate_locator(arr[start: stop]))
-        # for ws in self.feeds:
-        #     dct_dy[ws._ID]
         return dct_dy
 
 
@@ -1473,7 +1471,12 @@ class System:
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
         if self._state is None:
             dct = {}
-            for unit in self.units: dct.update(unit._load_state())
+            n_rotate = 0
+            for u in self.units:
+                if not u.isdynamic: n_rotate += 1
+                else: break
+            units = self.units[n_rotate:] + self.units[:n_rotate]
+            for unit in units: dct.update(unit._load_state())
             y, idx = self._state_dct2arr(dct)
             self._state = {'time': 0,
                            'state': y,
@@ -1536,10 +1539,11 @@ class System:
                 np.savetxt('sol.txt', sol, delimiter='\t')
                 # np.savetxt('dy.txt', np.vstack(self._dy), delimiter='\t')
                 self._write_state(kwargs['t'][-1], sol[-1])
-            # time span for the simulation needs to be provided as kwarg, see solve_ivp for details
             else:
                 sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
                 np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
+                print(sol.status)
+                print(sol.message)
                 self._write_state(sol.t[-1], sol.y.T[-1])
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
