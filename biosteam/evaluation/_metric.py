@@ -38,6 +38,11 @@ class Metric(Variable):
     def __call__(self):
         self.cache = self.getter()
         return self.cache
+    
+    def difference(self):
+        """Return the difference between the current metric value and the last one 
+        evaluated by calling this object."""
+        return self.getter() - self.cache
         
     
 def metric(getter=None, name=None, units=None, element='Biorefinery'):

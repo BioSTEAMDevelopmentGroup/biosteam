@@ -21,12 +21,139 @@ ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'save_report', 'unit_result_tables', 'heat_utility_tables',
-           'power_utility_table', 'tables_to_excel')
+           'power_utility_table', 'tables_to_excel', 'voc_table',
+           'FOCTableBuilder')
 
 def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
     if num.isnumeric(): return int(num)
     else: return -1
+
+# %% Detailed TEA tables
+
+class FOCTableBuilder:
+    __slots__ = ('index', 'data', 'costs')
+    
+    def __init__(self):
+        self.index = []
+        self.data = []
+        self.costs = []
+        
+    def entry(self, index, costs, notes='-'):
+        self.index.append(index)
+        self.data.append([notes, *costs])
+        self.costs.append(costs)
+    
+    def table(self, names):
+        data = self.data
+        index = self.index.copy()
+        index.append('Fixed operating cost (FOC)')
+        data.append(("", *sum(self.costs)))
+        return pd.DataFrame(np.array(data), 
+                            index=index,
+                            columns=(
+                                'Notes',
+                                *[i + '\n[MM$ / yr]' for i in names],
+                            )
+        )
+
+# %% Multiple system tables
+
+def voc_table(systems, product_IDs, system_names=None):
+    # Not ready for users yet
+    isa = isinstance
+    if isa(systems, bst.System): systems = [systems]
+    other_utilities_dct = {}
+    other_byproducts_dct = {}
+    prices = bst.stream_utility_prices
+    kg_per_ton = 907.185
+    def getsubdct(dct, name):
+        if name in dct:
+            subdct = dct[name]
+        else:
+            dct[name] = subdct = {}
+        return subdct
+    
+    for sys in systems:
+        electricity_cost = sum([i.cost for i in sys.power_utilities]) * sys.operating_hours
+        if electricity_cost > 0.: 
+            dct = getsubdct(other_utilities_dct, 'Electricity')
+            dct[sys] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
+        else:
+            dct = getsubdct(other_byproducts_dct, 'Electricity production')
+            dct[sys] = (f"{bst.PowerUtility.price} $/kWh", -electricity_cost)
+        inlet_flows = sys.get_inlet_utility_flows()
+        for name, flow in inlet_flows.items():
+            dct = getsubdct(other_utilities_dct, name)
+            price = prices[name]
+            dct[sys] = (price * kg_per_ton, price * flow)
+        outlet_flows = sys.get_outlet_utility_flows()
+        for name, flow in outlet_flows.items():
+            dct = getsubdct(other_byproducts_dct, name)
+            price = prices[name]
+            dct[sys] = (price * kg_per_ton, price * flow)
+        
+    def reformat(name):
+        name = name.replace('_', ' ')
+        if name.islower(): name= name.capitalize()
+        return name
+    
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if i.price})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if i.price and i.ID not in product_IDs})
+    system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
+    other_utilities = sorted(other_utilities_dct)
+    other_byproducts = sorted(other_byproducts_dct)
+    heating_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty > 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
+    cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if i.cost and i.flow * i.duty < 0. and abs(i.flow) > 1e-6] for hus in system_heat_utilities], [])))
+    index = {j: i for (i, j) in enumerate(feeds + heating_agents + cooling_agents + other_utilities + coproducts + other_byproducts)}
+    table_index = [*[('Raw materials', reformat(i)) for i in feeds],
+                   *[('Heating utilities', reformat(i)) for i in heating_agents],
+                   *[('Cooling utilities', reformat(i)) for i in cooling_agents],
+                   *[('Other utilities', i) for i in other_utilities],
+                   *[('By-products and credits', reformat(i)) for i in coproducts],
+                   *[('By-products and credits', i) for i in other_byproducts]]
+    table_index.append(('Variable operating cost', ''))
+    N_cols = len(systems) + 1
+    N_rows = len(table_index)
+    data = np.zeros([N_rows, N_cols], dtype=object)
+    N_coproducts = len(coproducts)
+    for col, sys in enumerate(systems):
+        for stream in sys.feeds + sys.products:
+            if stream.ID in product_IDs: continue
+            cost = sys.get_market_value(stream)
+            if cost:
+                ind = index[stream.ID]
+                data[ind, 0] = stream.price * kg_per_ton # USD / ton
+                data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for hu in system_heat_utilities[col]:
+            try:
+                ind = index[hu.agent.ID]
+            except:
+                continue
+            cost = sys.operating_hours * hu.cost
+            price = ""
+            if hu.agent.heat_transfer_price:
+                price += f"{hu.agent.heat_transfer_price} USD/kJ"
+            if hu.agent.regeneration_price:
+                if price: price += ", "
+                price += f"{hu.agent.regeneration_price} USD/kmol"
+            data[ind, 0] = price 
+            data[ind, col + 1] = cost / 1e6 # million USD / yr
+        for sysdct in (other_byproducts_dct, other_utilities_dct):
+            for i, dct in sysdct.items():
+                if sys not in dct: continue
+                price, cost = dct[sys]
+                ind = index[i]
+                data[ind, 0] = price
+                data[ind, col + 1] = cost / 1e6 # million USD / yr
+    N_consumed = N_rows - N_coproducts
+    data[-1, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:, 1:].sum(axis=0)
+    if system_names is None:
+        system_names = [i.ID for i in systems]
+    systems_names = [i + "\n[MM$/yr]" for i in system_names]
+    return pd.DataFrame(data, 
+                        index=pd.MultiIndex.from_tuples(table_index),
+                        columns=('Price [$/ton]', *systems_names))
 
 # %% Helpful functions
 
@@ -90,14 +217,22 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
         diagram_completed = False
         warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
     else:
+        import PIL.Image
         try:
             # Assume openpyxl is used
             worksheet = writer.book.create_sheet('Flowsheet')
             flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
             worksheet.add_image(flowsheet, anchor='A1')
+        except PIL.Image.DecompressionBombError:
+            PIL.Image.MAX_IMAGE_PIXELS = int(1e9)
+            flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
+            worksheet.add_image(flowsheet, anchor='A1')
         except:
             # Assume xlsx writer is used
-            worksheet = writer.book.add_worksheet('Flowsheet')
+            try:
+                worksheet = writer.book.add_worksheet('Flowsheet')
+            except:
+                breakpoint()
             worksheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     

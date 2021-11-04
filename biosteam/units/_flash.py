@@ -220,11 +220,10 @@ class Flash(design.PressureVessel, Unit):
         
     def _load_components(self):
         self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
+        self.heat_exchanger = hx = HXutility(None, (), ms, thermo=self.thermo) 
         hx.owner = self.owner
         hx._ID = 'Heat exchanger'
         self.heat_utilities = (*hx.heat_utilities, bst.HeatUtility(), bst.HeatUtility())
-        hx._ins = self._ins
         
     def reset_cache(self):
         self._multi_stream.reset_cache()
@@ -258,6 +257,9 @@ class Flash(design.PressureVessel, Unit):
         elif vessel_type == 'Horizontal': 
             args = self._horizontal_vessel_pressure_diameter_and_length()
         else: raise RuntimeError('unknown vessel type') # pragma: no cover
+        feed = self.heat_exchanger.ins[0]
+        feed.mix_from(self.ins)
+        feed.vle(P=self.outs[0].P, H=feed.H)
         if self.Q == 0:
             self.heat_exchanger.baseline_purchase_costs.clear()
             self.heat_exchanger.purchase_costs.clear()

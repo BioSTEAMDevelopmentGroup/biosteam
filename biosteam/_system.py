@@ -67,16 +67,6 @@ def find_blowdown_recycle(facilities):
     for i in facilities:
         if isa(i, bst.BlowdownMixer): return i.outs[0]
 
-
-# %% Functions for recycle
-
-def check_recycle_feasibility(material: np.ndarray):
-    if fn.infeasible(material):
-        raise InfeasibleRegion('recycle material flow rate')
-    else:
-        material[material < 0.] = 0.
-
-
 # %% Functions for taking care of numerical specifications within a system path
 
 def converge_system_in_path(system):
@@ -172,21 +162,21 @@ class MockSystem:
     @property
     def ins(self):
         """StreamPorts[:class:`~InletPort`] All inlets to the system."""
-        if hasattr(self, '_ins'):
-            ins = self._ins
-        else:
+        try:
+            return self._ins
+        except:
             inlets = bst.utils.feeds_from_units(self.units)
             self._ins = ins = StreamPorts.from_inlets(inlets, sort=True)
-        return ins
+            return ins
     @property
     def outs(self):
         """StreamPorts[:class:`~OutletPort`] All outlets to the system."""
-        if hasattr(self, '_outs'):
-            outs = self._outs
-        else:
+        try:
+            return self._outs
+        except:
             outlets = bst.utils.products_from_units(self.units)
             self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
-        return outs
+            return outs
 
     def load_inlet_ports(self, inlets, optional=()):
         """Load inlet ports to system."""
@@ -312,6 +302,13 @@ class System:
         '_converge_method',
         '_TEA',
         '_LCA',
+        '_subsystems',
+        '_units',
+        '_unit_path',
+        '_cost_units',
+        '_streams',
+        '_feeds',
+        '_products',
         '_state',
         '_dct_dy',
         '_dy',
@@ -508,6 +505,7 @@ class System:
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
             raise RuntimeError("only empty systems can enter `with` statement")
+        del self._unit_path, self._units, 
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
         unit_registry._open_dump(self)
@@ -623,7 +621,13 @@ class System:
             else:
                 mixer_thermo[mixer] = thermo_cache[IDs] = unit.thermo.subset(chemicals)
 
+    def _delete_path_cache(self):
+        for i in ('_units', '_unit_path', '_streams'):
+            if hasattr(self, i): delattr(self, i)
+        for i in self.subsystems: i._delete_path_cache()
+
     def reduce_chemicals(self, required_chemicals=()):
+        self._delete_path_cache()
         unit_thermo = {}
         mixer_thermo = {}
         thermo_cache = {}
@@ -935,7 +939,7 @@ class System:
 
     def _set_facility_recycle(self, recycle):
         if recycle:
-            sys = self._downstream_system(recycle.sink)
+            sys = self._downstream_system(recycle._sink)
             sys.recycle = recycle
             sys.__class__ = FacilityLoop
             #: [FacilityLoop] Recycle loop for converging facilities
@@ -954,63 +958,87 @@ class System:
     @property
     def subsystems(self):
         """list[System] All subsystems in the system."""
-        return [i for i in self._path if isinstance(i, System)]
+        try:
+            return self._subsystems
+        except:
+            self._subsystems = [i for i in self._path if isinstance(i, System)]
+            return self._subsystems
 
     @property
     def units(self):
         """[list] All unit operations as ordered in the path without repetitions."""
-        units = []
-        past_units = set()
-        isa = isinstance
-        for i in self._path + self._facilities:
-            if isa(i, Unit):
-                if i in past_units: continue
-                units.append(i)
-                past_units.add(i)
-            elif isa(i, System):
-                sys_units = i.units
-                units.extend([i for i in sys_units if i not in past_units])
-                past_units.update(sys_units)
-        return units
+        try:
+            return self._units
+        except:
+            self._units = units = []
+            past_units = set()
+            isa = isinstance
+            for i in self._path + self._facilities:
+                if isa(i, Unit):
+                    if i in past_units: continue
+                    units.append(i)
+                    past_units.add(i)
+                elif isa(i, System):
+                    sys_units = i.units
+                    units.extend([i for i in sys_units if i not in past_units])
+                    past_units.update(sys_units)
+            return units
 
     @property
     def unit_path(self):
         """[list] Unit operations as ordered in the path (some units may be repeated)."""
-        units = []
-        isa = isinstance
-        for i in self._path + self._facilities:
-            if isa(i, Unit):
-                units.append(i)
-            elif isa(i, System):
-                units.extend(i.unit_path)
-        return units
+        try:
+            return self._unit_path
+        except:
+            self._unit_path = units = []
+            isa = isinstance
+            for i in self._path + self._facilities:
+                if isa(i, Unit):
+                    units.append(i)
+                elif isa(i, System):
+                    units.extend(i.unit_path)
+            return units
 
     @property
     def cost_units(self):
         """[set] All unit operations with costs."""
-        units = set()
-        isa = isinstance
-        for i in self._path + self._facilities:
-            if isa(i, Unit) and (i._design or i._cost):
-                units.add(i)
-            elif isa(i, System):
-                units.update(i.cost_units)
-        return units
-
+        try:
+            return self._cost_units
+        except:
+            self._cost_units = units = set()
+            isa = isinstance
+            for i in self._path + self._facilities:
+                if isa(i, Unit) and (i._design or i._cost):
+                    units.add(i)
+                elif isa(i, System):
+                    units.update(i.cost_units)
+            return units
+        
     @property
     def streams(self):
         """set[:class:`~thermosteam.Stream`] All streams within the system."""
-        streams = bst.utils.streams_from_units(self.unit_path)
-        bst.utils.filter_out_missing_streams(streams)
-        return streams
+        try:
+            return self._streams
+        except:
+            self._streams = streams = bst.utils.streams_from_units(self.unit_path)
+            bst.utils.filter_out_missing_streams(streams)
+            return streams
     @property
     def feeds(self):
         """set[:class:`~thermosteam.Stream`] All feeds to the system."""
-        return bst.utils.feeds(self.streams)
+        try:
+            return self._feeds
+        except:
+            self._feeds = feeds = bst.utils.feeds(self.streams)
+            return feeds
     @property
     def products(self):
         """set[:class:`~thermosteam.Stream`] All products of the system."""
-        return bst.utils.products(self.streams)
+        try:
+            return self._products
+        except:
+            self._products = products = bst.utils.products(self.streams)
+            return products
 
     @property
     def facilities(self):
@@ -1076,8 +1104,8 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        isdynamic = [unit._isdynamic if hasattr(unit, '_isdynamic') else False
-                                                for unit in self.units]
+        isdynamic = [(unit._isdynamic if hasattr(unit, '_isdynamic') else False)
+                     for unit in self.units]
         return any(isdynamic)
 
     def _downstream_path(self, unit):
@@ -1210,7 +1238,7 @@ class System:
             True if recycle has not converged.
 
         """
-        check_recycle_feasibility(mol)
+        mol[mol < 0.] = 0.
         self._set_recycle_data(mol)
         T = self._get_recycle_temperatures()
         self._run()
@@ -1247,9 +1275,9 @@ class System:
     def _get_recycle_data(self):
         recycle = self._recycle
         if isinstance(recycle, Stream):
-            return recycle.imol.data.copy()
+            return recycle._imol.data.copy()
         elif isinstance(recycle, Iterable):
-            return np.vstack([i.imol.data for i in recycle])
+            return np.vstack([i._imol.data for i in recycle])
         else:
             raise RuntimeError('no recycle available')
 
@@ -1559,6 +1587,40 @@ class System:
     def power_utilities(self):
         """[tuple] All PowerUtility objects."""
         return tuple(utils.get_power_utilities(self.cost_units))
+
+    def get_inlet_utility_flows(self):
+        """
+        Return a dictionary with inlet stream utility flow rates, including
+        natural gas and ash disposal but excluding heating, refrigeration, and
+        electricity utilities.
+        
+        """
+        dct = {}
+        for unit in self.units:
+            for name, flow in unit.get_inlet_utility_flows().items():
+                if flow:
+                    if name in dct:
+                        dct[name] += flow
+                    else:
+                        dct[name] = flow
+        return dct
+
+    def get_outlet_utility_flows(self):
+        """
+        Return a dictionary with outlet stream utility flow rates, including
+        natural gas and ash disposal but excluding heating, refrigeration, and
+        electricity utilities.
+        
+        """
+        dct = {}
+        for unit in self.units:
+            for name, flow in unit.get_outlet_utility_flows().items():
+                if flow:
+                    if name in dct:
+                        dct[name] += flow
+                    else:
+                        dct[name] = flow
+        return dct
 
     def get_inlet_flow(self, units, key=None):
         """
@@ -2160,13 +2222,13 @@ class AgileSystem:
             for i in systems: units.update(i.cost_units)
             return units
 
-    @property
     def empty_recycles(self):
-        return self.system.empty_recycles
+        for mode in self.operation_modes:
+            mode.system.empty_recycles()
 
-    @property
     def reset_cache(self):
-        return self.system.reset_cache
+        for mode in self.operation_modes:
+            mode.system.reset_cache()
 
     @property
     def operating_hours(self):

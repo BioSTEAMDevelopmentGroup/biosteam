@@ -35,6 +35,7 @@ class RefrigerationPackage(Facility):
     _N_heat_utilities = 1
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID='', agent=None, efficiency=0.35):
+        raise NotImplementedError('not yet ready for users')
         self.agent = agent or HeatUtility.get_cooling_agent('propane')
         self.efficiency = efficiency
         super().__init__(ID)

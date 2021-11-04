@@ -678,10 +678,11 @@ class StreamPorts:
             for i, j in zip(ports, streams): i.set_stream(j, stacklevel)
         else:
             raise IndexError("number of inlets must match the size of slice")
-        
-    def __repr__(self):
+    
+    def __repr__ (self):
         ports = ', '.join([str(i) for i in self._ports])
         return f"[{ports}]"
+
 
 # %% Configuration bookkeeping
 

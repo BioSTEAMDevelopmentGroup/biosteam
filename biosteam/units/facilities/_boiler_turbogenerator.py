@@ -66,8 +66,6 @@ class Boiler(Facility):
         Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent]
         Other steams produced.
-    natural_gas_price = 0.218 : float
-        Price of natural gas [USD/kg].
     
     Notes
     -----
@@ -104,11 +102,11 @@ class Boiler(Facility):
                  boiler_efficiency=0.80,
                  side_steam=None,
                  agent=None,
-                 other_agents = (),
-                 natural_gas_price=0.218):
+                 other_agents = ()):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
-        self.natural_gas_price = natural_gas_price
+        self.define_utility('Natural gas', self.natural_gas)
+        self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.steam_utilities = set()
         self.power_utilities = set()
@@ -147,8 +145,9 @@ class Boiler(Facility):
         return self.ins[3]
     
     @property
-    def utility_cost(self):
-        return super().utility_cost + self.natural_gas_price * self.natural_gas.F_mass
+    def ash_disposal(self):
+        """[Stream] Ash disposal."""
+        return self.outs[2]
     
     def _run(self): pass
 
@@ -174,8 +173,6 @@ class Boiler(Facility):
         feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
         emissions, blowdown_water, ash_disposal, remainder_feed_solids, remainder_feed_gas = self.outs
         chemicals = emissions.chemicals
-        if not ash_disposal.price: 
-            ash_disposal.price = -0.031812704433277834
         if not lime.price:
             lime.price = 0.19937504680689402
         if not chems.price:
@@ -297,7 +294,6 @@ class Boiler(Facility):
         ash_disposal.imol['Ash'] += boiler_chems
         dry_ash = ash_disposal.F_mass
         ash_disposal.imass['Water'] = moisture = dry_ash * 0.3 # ~20% moisture
-        Design['Ash disposal'] = dry_ash + moisture
         if 'SO2' in chemicals:
             if self._ID_lime == '1305-62-0': # Ca(OH)2
                 lime.imol['Water'] = 4 * lime_mol # Its a slurry
@@ -356,7 +352,9 @@ class BoilerTurbogenerator(Facility):
         Other steams produced.
     natural_gas_price = 0.218 : float
         Price of natural gas [USD/kg].
-    
+    ash_disposal_price = -0.0318 : float
+        Price of disposing ash [USD/kg].
+        
     Notes
     -----
     The flow rate of natural gas, lime, and boiler chemicals (streams 3-5)
@@ -392,10 +390,12 @@ class BoilerTurbogenerator(Facility):
                  side_steam=None,
                  agent=None,
                  other_agents = (),
-                 natural_gas_price=0.218):
+                 natural_gas_price=0.218,
+                 ash_disposal_price=-0.0318):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
-        self.natural_gas_price = natural_gas_price
+        self.define_utility('Natural gas', self.natural_gas)
+        self.define_utility('Ash disposal', self.ash_disposal)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
@@ -438,8 +438,9 @@ class BoilerTurbogenerator(Facility):
         return self.ins[3]
     
     @property
-    def utility_cost(self):
-        return super().utility_cost + self.natural_gas_price * self.natural_gas.F_mass
+    def ash_disposal(self):
+        """[Stream] Ash disposal."""
+        return self.outs[2]
     
     def _run(self): pass
 
@@ -467,8 +468,6 @@ class BoilerTurbogenerator(Facility):
         mol_steam = sum([i.flow for i in self.steam_utilities])
         feed_solids, feed_gas, makeup_water, feed_CH4, lime, chems = self.ins
         emissions, blowdown_water, ash_disposal = self.outs
-        if not ash_disposal.price: 
-            ash_disposal.price = -0.031812704433277834
         if not lime.price:
             lime.price = 0.19937504680689402
         if not chems.price:
