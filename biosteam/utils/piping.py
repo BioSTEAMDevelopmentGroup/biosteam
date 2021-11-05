@@ -8,11 +8,11 @@
 """
 This module includes classes and functions concerning Stream objects.
 """
-from thermosteam import Stream, MultiStream
-from collections.abc import Iterable
+from thermosteam.utils.decorators import registered_franchise
+from thermosteam import Stream
 from collections import namedtuple
 from warnings import warn
-__all__ = ('MissingStream', 'Inlets', 'Outlets', 'Sink', 'Source',
+__all__ = ('MissingStream', 'MockStream', 'Inlets', 'Outlets', 'Sink', 'Source',
            'InletPort', 'OutletPort', 'StreamPorts', 'Connection', 
            'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings')
@@ -79,6 +79,12 @@ class MissingStream:
     """
     __slots__ = ('_source', '_sink')
     
+    disconnect = Stream.disconnect
+    disconnect_source = Stream.disconnect_source
+    disconnect_sink = Stream.disconnect_sink
+    isfeed = Stream.isfeed
+    isproduct = Stream.isproduct
+    
     def __init__(self, source, sink):
         self._source = source
         self._sink = sink
@@ -101,6 +107,12 @@ class MissingStream:
         if source: source._outs.replace(self, material_stream)
         if sink: sink._ins.replace(self, material_stream)
         return material_stream
+    
+    def get_impact(self, key):
+        return 0.
+    
+    def get_CF(self, key):
+        return 0.
     
     def reset_cache(self):
         """Does nothing, MissingStream objects do not contain cache."""
@@ -165,11 +177,75 @@ class MissingStream:
         return False
 
     def __repr__(self):
-        return '<MissingStream>'
+        return f'<{type(self).__name__}>'
     
     def __str__(self):
         return 'missing stream'
 
+@registered_franchise(Stream)
+class MockStream:
+    """
+    Create a MockStream object that acts as a dummy Stream object that is always
+    empty. A MockStream behaves similar to a MissingStream, with the following 
+    differences: they have an ID and are registered in the flowsheet as streams,
+    they cannot serve as inlets or outlets and cannot be materialized, you can
+    set life-cycle characterization factors.
+    
+    """
+    __slots__ = ('_ID', 'characterization_factors')
+    
+    def __init__(self, ID):
+        self._ID = ID
+        self.characterization_factors = {}
+        self._register(ID)
+
+    def _register(self, ID):
+        replace_ticket_number = isinstance(ID, int)
+        if replace_ticket_number: 
+            Stream.ticket_numbers[Stream.ticket_name] = ID
+        if ID == "" or replace_ticket_number: 
+            registry = Stream.registry
+            data = registry.data
+            ID = Stream._take_ticket()
+            while ID in data: ID = Stream._take_ticket()
+            registry.register(ID, self)
+        elif ID:
+            Stream.registry.register_safely(ID, self) 
+        else:
+            self._ID = Stream._take_unregistered_ticket()
+    
+    @property
+    def ID(self):
+        """Unique identification (str). If set as '', it will choose a default ID."""
+        return self._ID
+
+    @ID.setter
+    def ID(self, ID):
+        Stream._register(self, ID)
+    
+    get_CF = Stream.get_CF
+    set_CF = Stream.set_CF
+    get_impact = MissingStream.get_impact
+    reset_cache = MissingStream.reset_cache
+    get_data = MissingStream.get_data
+    set_data = MissingStream.set_data
+    get_total_flow = MissingStream.get_total_flow
+    get_flow = MissingStream.get_flow
+    link = MissingStream.link
+    H = MissingStream.H
+    Hf = MissingStream.Hf
+    Hnet = MissingStream.Hnet
+    LHV = MissingStream.LHV
+    HHV = MissingStream.HHV
+    Hvap = MissingStream.Hvap
+    C = MissingStream.C
+    F_mol = MissingStream.F_mol
+    F_mass = MissingStream.F_mass
+    F_vol = MissingStream.F_vol
+    isempty = MissingStream.isempty
+    
+    __str__ = Stream.__str__
+    __repr__ = Stream.__repr__
 
 # %% Utilities
 
@@ -717,7 +793,7 @@ def get_connection(self):
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
-Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
-Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
+MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
+MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"
                                    f"{pipe_info(self._source, self._sink)}\n")
