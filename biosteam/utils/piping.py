@@ -161,6 +161,12 @@ class MissingStream:
     @property
     def F_vol(self):
         return 0.
+    @property
+    def cost(self):
+        return 0.
+    @property
+    def price(self):
+        return 0.
     
     def isempty(self):
         return True
@@ -192,11 +198,12 @@ class MockStream:
     set life-cycle characterization factors.
     
     """
-    __slots__ = ('_ID', 'characterization_factors')
+    __slots__ = ('_ID', 'characterization_factors', 'price')
     
     def __init__(self, ID):
         self._ID = ID
         self.characterization_factors = {}
+        self.price = 0.
         self._register(ID)
 
     def _register(self, ID):
@@ -243,6 +250,7 @@ class MockStream:
     F_mass = MissingStream.F_mass
     F_vol = MissingStream.F_vol
     isempty = MissingStream.isempty
+    cost = MissingStream.cost
     
     __str__ = Stream.__str__
     __repr__ = Stream.__repr__
