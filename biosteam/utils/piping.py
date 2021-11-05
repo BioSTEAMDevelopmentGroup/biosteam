@@ -78,6 +78,7 @@ class MissingStream:
     objects until replaced by an actual Stream object.
     """
     __slots__ = ('_source', '_sink')
+    line = 'Stream'
     
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
@@ -199,6 +200,7 @@ class MockStream:
     
     """
     __slots__ = ('_ID', 'characterization_factors', 'price')
+    line = 'Stream'
     
     def __init__(self, ID):
         self._ID = ID
