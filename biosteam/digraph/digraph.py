@@ -329,4 +329,9 @@ def finalize_digraph(digraph, file, format): # pragma: no coverage
         try:
             if file: save_digraph(digraph, file, format)
             else: display_digraph(digraph, format)
-        except: pass
+        except Exception as exp: 
+            warn(
+                f"a '{type(exp).__name__}' was raised when generating "
+                "graphviz diagram, possibly due to graphviz installation issues",
+                RuntimeWarning
+            )
