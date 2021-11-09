@@ -39,6 +39,14 @@ class Metric(Variable):
         self.cache = self.getter()
         return self.cache
     
+    def get(self):
+        """Return value of metric. This method caches the value for future calls."""
+        try:
+            return self.cache
+        except:
+            self.cache = self.getter()
+            return self.cache
+    
     def difference(self):
         """Return the difference between the current metric value and the last one 
         evaluated by calling this object."""
