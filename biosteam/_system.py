@@ -1512,17 +1512,18 @@ class System:
         else:
             y = self._state['state']
             idx = self._state['indexer']
-        return y, idx
+        return y, idx, n_rotate
 
-    def _ODE(self, idx, yshape):
+    def _ODE(self, idx, yshape, n_rotate):
         '''System-wide ODEs.'''
         dct_dy = self._dct_dy if self._dct_dy \
             else self._dstate_arr2dct(np.zeros(yshape), idx)
         feeds = self.feeds
+        units = self.units[n_rotate:] + self.units[:n_rotate]
         def dydt(t, y):
             dct_y = self._state_arr2dct(y, idx)
             # print("\n%10.3e"%t)
-            for unit in self.units:
+            for unit in units:
                 QC_ins = np.concatenate([dct_y[ws._ID] for ws in unit._ins])
                 dQC_ins = np.concatenate([np.zeros(dct_y[ws._ID].shape) if ws in feeds else dct_dy[ws._ID] for ws in unit._ins])
                 QC = dct_y[unit._ID]
@@ -1560,8 +1561,8 @@ class System:
         self._converge()
         if self.isdynamic:
             if not start_from_cached_state: self.clear_state()
-            y0, idx = self._load_state()
-            dydt = self._ODE(idx, y0.shape)
+            y0, idx, nr = self._load_state()
+            dydt = self._ODE(idx, y0.shape, nr)
             if solver == 'odeint':
                 sol = odeint(func=dydt, y0=y0, tfirst=True, **kwargs)
                 np.savetxt('sol.txt', sol, delimiter='\t')
