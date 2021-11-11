@@ -228,8 +228,8 @@ def lca_table_displacement_allocation(systems, key, units, basis, basis_units, s
     data[-1, 1:] = data[:N_inputs, 1:].sum(axis=0) - data[N_inputs:, 1:].sum(axis=0)
     if system_names is None:
         system_names = [i.ID for i in systems]
-    units = f"\n[{units}/{basis_units}]"
-    systems_names = [i + units for i in system_names]
+    sys_units = f"\n[{units}/{basis_units}]"
+    systems_names = [i + sys_units for i in system_names]
     return pd.DataFrame(data, 
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=(f'Characterization factor [{units}/kg]', *systems_names))
