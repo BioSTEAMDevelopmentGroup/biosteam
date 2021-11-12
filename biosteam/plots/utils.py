@@ -71,9 +71,9 @@ class MetricBar(NamedTuple): # pragma: no coverage
         ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
         ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
         if self.ub:
-            ylabels[-1] = '> ' + ylabels[-1]
+            ylabels[-1] = '>' + ylabels[-1]
         if self.lb:
-            ylabels[0] = '< ' + ylabels[0]
+            ylabels[0] = '<' + ylabels[0]
         cbar_ax.set_yticklabels(ylabels)
         return cbar
         

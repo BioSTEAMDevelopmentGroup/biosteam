@@ -523,9 +523,19 @@ class Distillation(Unit, isabstract=True):
         LK_bottoms, HK_bottoms = bottoms_product.imol[LHK]
         if self.product_specification_format == 'Composition':
             if LK_distillate < 0. or LK_bottoms < 0.:
-                raise InfeasibleRegion("light key composition")
+                raise InfeasibleRegion(
+                    region='light key molar fraction',
+                    msg=('the molar fraction of the light key in the feed must be '
+                         'between the bottoms product and distillate compositions '
+                         '(i.e. z_bottoms_LK < z_feed_LK < z_distillate_LK)')
+                )
             if HK_distillate < 0. or HK_bottoms < 0.:
-                raise InfeasibleRegion("heavy key composition")
+                raise InfeasibleRegion(
+                    region='heavy key molar fraction',
+                    msg=('the molar fraction of the heavy key in the feed must be '
+                         'between the distillate and bottoms product compositions '
+                         '(i.e. z_distillate_HK < z_feed_HK < z_bottoms_HK)')
+                )
         if tmo.settings.debug:
             intermediate_chemicals = self._intermediate_volatile_chemicals
             intermediate_flows = self.feed.imol[intermediate_chemicals]
