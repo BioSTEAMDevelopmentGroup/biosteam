@@ -149,7 +149,10 @@ class SteamMixer(Unit):
         self.steam.copy_like(utility)
     
     def pressure_objective_function(self, steam_mol):
-        feed, steam, process_water, *others = self.ins
+        try:
+            feed, steam, process_water, *others = self.ins
+        except ValueError:
+            feed, steam, *others = self.ins
         feeds = [feed, *others]
         mixed = self.outs[0]
         steam.imol[self.liquid_IDs] = steam_mol
@@ -160,7 +163,10 @@ class SteamMixer(Unit):
             F_mass_feed = sum([i.F_mass for i in feeds if i])
             available_water = (18.01528 * sum([i.mol[index].sum() for i in feeds if i])).sum()
             required_water = (F_mass_feed - available_water) * (1. - solids_loading) / solids_loading
-            process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
+            try:
+                process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
+            except NameError:
+                raise RuntimeError('missing process water stream')
         mixed.mix_from(self.ins)
         P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
         return self.P - P_new

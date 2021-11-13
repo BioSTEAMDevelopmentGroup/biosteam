@@ -657,7 +657,7 @@ def plot_contour_1d(X_grid, Y_grid, data,
                              norm=metric_bar.norm,
                              levels=metric_bar.levels, colors=[linecolor])
             clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                      fontsize=12, colors=['k'], zorder=1e6)
+                      colors=['k'], zorder=1e6)
             for clabel in clabels: clabel.set_rotation(0)
         cps[i] = cp
         style_axis(ax, xticks, yticks, xticklabels, yticklabels)
@@ -705,7 +705,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                                  linestyles='dashed', linewidths=1.,
                                  levels=cp.levels, colors=[linecolor])
                 clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          fontsize=12, colors=['k'], zorder=1e16)
+                          colors=['k'], zorder=1e16)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
@@ -758,7 +758,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
                                  norm=metric_bar.norm,
                                  levels=metric_bar.levels, colors=[linecolor])
                 clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
-                          fontsize=12, colors=['k'], zorder=1e16)
+                          colors=['k'], zorder=1e16)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
@@ -805,7 +805,7 @@ def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap)
             clabels = ax.clabel(cp, levels=cp.levels, inline=True, fmt=lambda x: f'{round(x):,}',
-                      fontsize=12, colors=['k'], zorder=1e16)
+                      colors=['k'], zorder=1e16)
             for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
