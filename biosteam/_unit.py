@@ -879,7 +879,7 @@ class Unit:
 
     def simulate(self):
         """
-        Run rigourous simulation and determine all design requirements.
+        Run rigorous simulation and determine all design requirements.
         
         """
         self._setup()

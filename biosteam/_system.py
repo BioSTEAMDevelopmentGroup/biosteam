@@ -1497,13 +1497,13 @@ class System:
 
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
+        n_rotate = 0
+        for u in self.units:
+            if not u.isdynamic: n_rotate += 1
+            else: break
+        units = self.units[n_rotate:] + self.units[:n_rotate]
         if self._state is None:
             dct = {}
-            n_rotate = 0
-            for u in self.units:
-                if not u.isdynamic: n_rotate += 1
-                else: break
-            units = self.units[n_rotate:] + self.units[:n_rotate]
             for unit in units: dct.update(unit._load_state())
             y, idx = self._state_dct2arr(dct)
             self._state = {'time': 0,
@@ -1555,8 +1555,9 @@ class System:
             u._state = None
 
 
-    def simulate(self, start_from_cached_state=True, solver='solve_ivp', **kwargs):
+    def simulate(self, t_span=(0, 0), start_from_cached_state=True, solver='solve_ivp', **kwargs):
         """Converge the path and simulate all units."""
+        #TODO: potentially save `sol` as a system attribute, remove the print message, do not save file
         self._setup()
         self._converge()
         if self.isdynamic:
@@ -1564,12 +1565,12 @@ class System:
             y0, idx, nr = self._load_state()
             dydt = self._ODE(idx, y0.shape, nr)
             if solver == 'odeint':
-                sol = odeint(func=dydt, y0=y0, tfirst=True, **kwargs)
+                sol = odeint(func=dydt, t_span=t_span, y0=y0, tfirst=True, **kwargs)
                 np.savetxt('sol.txt', sol, delimiter='\t')
                 # np.savetxt('dy.txt', np.vstack(self._dy), delimiter='\t')
                 self._write_state(kwargs['t'][-1], sol[-1])
             else:
-                sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
+                sol = solve_ivp(fun=dydt, t_span=t_span, y0=y0, **kwargs)
                 np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
                 print(sol.status)
                 print(sol.message)
@@ -1577,7 +1578,7 @@ class System:
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
-    # Convinience methods
+    # Convenience methods
 
     @property
     def heat_utilities(self):
