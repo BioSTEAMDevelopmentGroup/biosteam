@@ -1712,6 +1712,7 @@ class System:
     def get_net_heat_utility_impact(self, agent, key):
         if isinstance(agent, str): 
             ID = agent
+            agent = bst.HeatUtility.get_agent(ID)
         elif isinstance(agent, bst.UtilityAgent):
             ID = agent.ID
         else:
