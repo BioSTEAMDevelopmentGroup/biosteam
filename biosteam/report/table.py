@@ -213,8 +213,7 @@ def lca_table_displacement_allocation(systems, key, units, basis, basis_units, s
                 ind = index[hu.agent.ID]
             except:
                 continue
-            stream = hu.inlet_utility_stream
-            impact = sys.operating_hours * stream.get_impact(key)
+            impact = sys.operating_hours * hu.get_impact(key)
             if impact:
                 data[ind, 0] = stream.characterization_factors[key]
                 data[ind, col + 1] = impact / basis

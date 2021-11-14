@@ -86,6 +86,14 @@ class UtilityAgent(Stream):
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
     
+    def iscooling_agent(self):
+        T_limit = self.T_limit 
+        return T_limit > self.T if T_limit else self.phase == 'l'
+    
+    def isheating_agent(self):
+        T_limit = self.T_limit 
+        return T_limit < self.T if T_limit else self.phase == 'g'
+    
     @property
     def price(self):
         raise AttributeError(f"'{type(self).__name__}' object has no attribute 'price'")
@@ -260,7 +268,8 @@ class HeatUtility:
     characterization_factors = {}
     
     @classmethod
-    def set_CF(self, agent, key, value, units=None):
+    def set_CF(self, ID, key, value, units=None):
+        agent = self.get_agent(ID)
         if units is None:
             units = 'kg/hr'
         else:
@@ -271,19 +280,24 @@ class HeatUtility:
                 basis = mass_units
             elif dim == energy_units.dimensionality:
                 basis = energy_units
+                if agent.iscooling_agent() and value > 0.: 
+                    raise ValueError('characterization factor must be negative for cooling agents')
             else:
                 raise DimensionError(
                     "unit dimensions for characterization factors must be in a molar, "
                    f"mass or energy basis, not '{dim}'"
                 )
             value = basis.unconvert(value, units)
-        self.characterization_factors[agent, key] = value, basis
+        self.characterization_factors[agent.ID, key] = value, basis
 
     @classmethod
-    def get_CF(self, agent, key, units=None):
+    def get_CF(self, ID, key, units=None):
         try:
-            value, basis = self.characterization_factors[agent, key]
-        except:
+            value, basis = self.characterization_factors[
+                ID, 
+                key
+            ]
+        except KeyError:
             if units is None:
                 return 0., None
             else:
@@ -295,9 +309,9 @@ class HeatUtility:
 
     def get_impact(self, key):
         agent = self.agent
-        CF, units = self.get_CF(agent, key)
+        CF, units = self.get_CF(agent.ID, key)
         if units == 'kg/hr':
-            return self.flow * self.agent.MW * CF
+            return self.flow * agent.MW * CF
         elif units == 'kmol/hr':
             return self.flow * CF
         elif units == 'kJ/hr':
@@ -572,21 +586,21 @@ class HeatUtility:
         """Return utility agent with given ID."""
         for agent in cls.heating_agents + cls.cooling_agents:
             if agent.ID == ID: return agent
-        raise KeyError(ID)
+        raise LookupError(ID)
 
     @classmethod
     def get_heating_agent(cls, ID):
         """Return heating agent with given ID."""
         for agent in cls.heating_agents:
             if agent.ID == ID: return agent
-        raise KeyError(ID)
+        raise LookupError(ID)
   
     @classmethod
     def get_cooling_agent(cls, ID):
         """Return cooling agent with given ID."""
         for agent in cls.cooling_agents:
             if agent.ID == ID: return agent
-        raise KeyError(ID)
+        raise LookupError(ID)
     
     @classmethod
     def get_suitable_heating_agent(cls, T_pinch):

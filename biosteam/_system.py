@@ -1710,25 +1710,37 @@ class System:
             raise ValueError("stream must be either a feed or a product")
 
     def get_net_heat_utility_impact(self, agent, key):
-        if isinstance(agent, str):
-            agent = bst.HeatUtility.get_agent(agent)
-        elif not isinstance(agent, bst.UtilityAgent): 
+        if isinstance(agent, str): 
+            ID = agent
+        elif isinstance(agent, bst.UtilityAgent):
+            ID = agent.ID
+        else:
             raise TypeError(
                  "agent must be a UtilityAgent object or a string; "
                 f"not a '{type(agent).__name__}' object"
             )
-        try:
-            CF = agent.characterization_factors[agent, key]
-        except KeyError:
-            return 0.
-        
-        # TODO
+        CF, units = bst.HeatUtility.get_CF(ID, key)
+        if CF == 0.: return 0.
+        heat_utilities = self.heat_utilities
+        if units == 'kg/hr':
+            return sum([i.flow for i in heat_utilities if i.agent.ID == ID]) * CF * agent.MW
+        elif units == 'kmol/hr':
+            return sum([i.flow for i in heat_utilities if i.agent.ID == ID]) * CF
+        elif units == 'kJ/hr':
+            return sum([i.duty for i in heat_utilities if i.agent.ID == ID]) * CF
+        else:
+            raise RuntimeError("unknown error")
     
     def get_net_electricity_impact(self, key):
-        pass
+        try:
+            return bst.PowerUtility.characterization_factors[key] * sum([i.rate for i in self.power_utilities]) 
+        except KeyError:
+            return 0.
 
     def get_net_utility_impact(self, key):
-        pass
+        agents = (*bst.HeatUtility.cooling_agents,
+                  *bst.HeatUtility.heating_agents)
+        return sum([self.get_net_heat_utility_impact(i, key) for i in agents], self.get_net_electricity_impact())
     
     def get_total_feeds_impact(self, key):
         """
