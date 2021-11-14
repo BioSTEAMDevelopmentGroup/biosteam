@@ -21,7 +21,7 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-mol_units = AbsoluteUnitsOfMeasure('mol')
+mol_units = AbsoluteUnitsOfMeasure('kmol')
 mass_units = AbsoluteUnitsOfMeasure('kg')
 energy_units = AbsoluteUnitsOfMeasure('kJ')
 
@@ -265,15 +265,60 @@ class HeatUtility:
     #: [Thermo] Used for BioSTEAM refrigeration utility.
     thermo_propane = Thermo(['Propane'])
 
+    #: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] 
+    #: Characterization factor data (value and units) by agent ID and impact key.
     characterization_factors = {}
     
     @classmethod
     def set_CF(self, ID, key, value, basis=None):
+        """
+        Set the cacharacterization factor of a utility agent for a given impact 
+        key.
+
+        Parameters
+        ----------
+        ID : str
+            ID of utility agent.
+        key : str
+            Key for impact.
+        value : float
+            Characterization factor value.
+        basis : str, optional
+            Basis of characterization factor. Valid dimensions include weight, 
+            molar, and energy (e.g. 'kg', 'kmol', 'kJ'). Defaults to 'kg'.
+
+        Raises
+        ------
+        ValueError
+            When the characterization factor for a cooling agent is positive (should be negative).
+        DimensionError
+            When characterization factor is not given in dimensions of
+            weight, molar, or energy.
+
+        See Also
+        --------
+        HeatUtility.get_CF
+        
+        Examples
+        --------
+        Set the GWP characterization factor for low pressure steam at 
+        88.44 kg CO2e / mmBtu (example value):
+        
+        >>> import biosteam as bst
+        >>> bst.HeatUtility.set_CF('low_pressure_steam', 'GWP', 88.44, basis='MMBtu')
+        
+        Retrieve the GWP characterization factor for low pressure steam on a
+        Btu basis.
+        
+        >>> bst.HeatUtility.get_CF('low_pressure_steam', 'GWP', 88.44, basis='Btu')
+        8.844e-05
+
+        """
         agent = self.get_agent(ID)
         if basis is None:
             units = mass_units
         else:
-            dim = get_dimensionality(units)
+            dim = get_dimensionality(basis)
             if dim == mol_units.dimensionality: 
                 units = mol_units
             elif dim == mass_units.dimensionality:
@@ -281,7 +326,9 @@ class HeatUtility:
             elif dim == energy_units.dimensionality:
                 units = energy_units
                 if agent.iscooling_agent() and value > 0.: 
-                    raise ValueError('characterization factor must be negative for cooling agents')
+                    raise ValueError(
+                        'characterization factor must be negative for cooling agents'
+                    )
             else:
                 raise DimensionError(
                     "dimensions for characterization factors must be in a molar, "
@@ -292,6 +339,32 @@ class HeatUtility:
 
     @classmethod
     def get_CF(self, ID, key, basis=None):
+        """
+        Return the cacharacterization factor of a utility agent for a given impact 
+        key.
+
+        Parameters
+        ----------
+        ID : str
+            ID of utility agent.
+        key : str
+            Key for impact.
+        basis : str, optional
+            Basis of characterization factor. Defaults to either 
+            'kg', 'kmol', or 'kJ', depending on what dimensions was the basis
+            set originally.
+
+        Raises
+        ------
+        DimensionalityError
+            When the characterization factor cannot be converted to the given basis 
+            due to inconsistent dimensions with the original basis.
+
+        See Also
+        --------
+        HeatUtility.set_CF
+
+        """
         try:
             value, units = self.characterization_factors[ID, key]
         except KeyError:
