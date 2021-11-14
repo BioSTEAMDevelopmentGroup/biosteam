@@ -27,6 +27,7 @@ def save_diagrams():
 
 def test_unit_diagram():
     import biorefineries.sugarcane as sc
+    sc.load() # Reload system to make sure all is consistent
     f = sc.C201.diagram(display=DISPLAY)
     file = os.path.join(folder, 'Clarifier.txt')
     with open(file) as f_expected:
