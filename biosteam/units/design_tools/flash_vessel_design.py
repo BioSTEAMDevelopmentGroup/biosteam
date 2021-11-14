@@ -47,7 +47,8 @@ def compute_horizontal_vessel_purchase_cost(W):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_v = exp(5.6336 + 0.4599*ln(W) + 0.00582*ln(W)**2)
+    lnW = ln(W)
+    C_v = exp(5.6336 + 0.4599 * lnW + 0.00582 * lnW * lnW)
     return bst.CE/567 * C_v
 
 @njit(cache=True)
@@ -68,8 +69,8 @@ def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_pl = 2275*D**0.20294
-    return bst.CE/567 * C_pl
+    C_pl = 2275.*D**0.20294
+    return bst.CE/567. * C_pl
 
 @njit(cache=True)
 def compute_vertical_vessel_purchase_cost(W):
@@ -89,8 +90,9 @@ def compute_vertical_vessel_purchase_cost(W):
     Plant Cost Index, `biosteam.CE`.
     
     """
-    C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
-    return bst.CE/567 * C_v
+    lnW = ln(W)
+    C_v = exp(7.1390 + 0.18255 * lnW + 0.02297 * lnW * lnW)
+    return bst.CE/567. * C_v
 
 @njit(cache=True)
 def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):

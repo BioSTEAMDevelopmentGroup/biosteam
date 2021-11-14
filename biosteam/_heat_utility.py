@@ -302,15 +302,15 @@ class HeatUtility:
         Examples
         --------
         Set the GWP characterization factor for low pressure steam at 
-        88.44 kg CO2e / mmBtu (example value):
+        88.44 kg CO2e / mmBtu (GREET 2020; Steam Production via Small Boiler from North American Natural Gas):
         
         >>> import biosteam as bst
-        >>> bst.HeatUtility.set_CF('low_pressure_steam', 'GWP', 88.44, basis='MMBtu')
+        >>> bst.HeatUtility.set_CF('low_pressure_steam', 'GWP [kg CO2e]', 88.44, basis='MMBtu')
         
         Retrieve the GWP characterization factor for low pressure steam on a
-        Btu basis.
+        Btu basis:
         
-        >>> bst.HeatUtility.get_CF('low_pressure_steam', 'GWP', 88.44, basis='Btu')
+        >>> bst.HeatUtility.get_CF('low_pressure_steam', 'GWP [kg CO2e]', basis='Btu')
         8.844e-05
 
         """
@@ -340,7 +340,7 @@ class HeatUtility:
     @classmethod
     def get_CF(self, ID, key, basis=None):
         """
-        Return the cacharacterization factor of a utility agent for a given impact 
+        Return the characterization factor of a utility agent for a given impact 
         key.
 
         Parameters

@@ -3,9 +3,9 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 
 .. figure:: ./images/BioSTEAM_logo.png
 
-BioSTEAM is a fast and flexible package for the design, simulation, and 
-techno-economic analysis of biorefineries under uncertainty. BioSTEAM is built
-to streamline and automate early-stage technology evaluations and to enable 
+BioSTEAM is a fast and flexible package for the design, simulation, techno-economic 
+analysis (TEA) and life cycle assessment (LCA) of biorefineries under uncertainty. BioSTEAM 
+is built to streamline and automate early-stage technology evaluations and to enable 
 rigorous sensitivity and uncertainty analyses. Complete biorefinery 
 configurations are available at the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_ 
 GitHub repository, BioSTEAM's premier repository for biorefinery models and 
@@ -96,6 +96,7 @@ technologies and chart development pathways for various bioproducts:
    tutorial/Inheriting_from_Unit
    tutorial/Unit_decorators
    tutorial/Techno-economic_analysis
+   tutorial/Life_cycle_assessment
 
 .. toctree::
    :maxdepth: 2

@@ -1724,24 +1724,24 @@ class System:
         if CF == 0.: return 0.
         heat_utilities = self.heat_utilities
         if units == 'kg/hr':
-            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * agent.MW
+            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * agent.MW * self.operating_hours
         elif units == 'kmol/hr':
-            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF
+            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
         elif units == 'kJ/hr':
-            return sum([i.duty for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF
+            return sum([i.duty for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
         else:
             raise RuntimeError("unknown error")
     
     def get_net_electricity_impact(self, key):
         try:
-            return bst.PowerUtility.characterization_factors[key] * sum([i.rate for i in self.power_utilities]) 
+            return bst.PowerUtility.characterization_factors[key] * sum([i.rate for i in self.power_utilities]) * self.operating_hours
         except KeyError:
             return 0.
 
     def get_net_utility_impact(self, key):
         agents = (*bst.HeatUtility.cooling_agents,
                   *bst.HeatUtility.heating_agents)
-        return sum([self.get_net_heat_utility_impact(i, key) for i in agents], self.get_net_electricity_impact(key))
+        return sum([self.get_net_heat_utility_impact(i, key) for i in agents], self.get_net_electricity_impact(key)) * self.operating_hours
     
     def get_total_feeds_impact(self, key):
         """

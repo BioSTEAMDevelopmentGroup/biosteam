@@ -89,6 +89,23 @@ class PowerUtility:
         self.production = production
     
     @classmethod
+    def get_CF(cls, key):
+        """
+        Returns the life-cycle characterization factor on a kg basis given the key.
+        """
+        try:
+            return cls.characterization_factors[key]
+        except:
+            return 0.
+
+    @classmethod
+    def set_CF(cls, key, value):
+        """
+        Set the life-cycle characterization factor on a kg basis given the key.
+        """
+        cls.characterization_factors[key] = value
+    
+    @classmethod
     def default_price(cls):
         """Reset price back to BioSTEAM's default."""
         cls.price = default_price #: [float] USD/kWhr
