@@ -10,19 +10,18 @@ cooling_tower_makeup_water
 stripping_water
 boiler_makeup_water
 dryer_natural_gas
-enzyme
 denaturant
 lime
 H3PO4
 rvf_wash_water
-s63
-s61
 s62
-s64
+s60
+s61
+s63
+s66
 s67
 s68
 s69
-s70
 polymer
 natural_gas
 dilution_water
@@ -33,21 +32,21 @@ System" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin
 	"s.7
 s.9
 vinasse
-s65
+s64
 wastewater
 emissions
 dryer_outlet_air
 evaporation_and_blowdown
 ethanol
 vent
+dryer_emissions
 ash_disposal
 filter_cake
-dryer_emissions
 rejected_water_and_blowdown
 Yeast
 s4
-s42
-s66
+s65
+s41
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
@@ -63,19 +62,18 @@ cooling_tower_makeup_water
 stripping_water
 boiler_makeup_water
 dryer_natural_gas
-enzyme
 denaturant
 lime
 H3PO4
 rvf_wash_water
-s63
-s61
 s62
-s64
+s60
+s61
+s63
+s66
 s67
 s68
 s69
-s70
 polymer
 natural_gas
 dilution_water
@@ -87,46 +85,46 @@ System" [style=dashed]
 System" -> "s.7
 s.9
 vinasse
-s65
+s64
 wastewater
 emissions
 dryer_outlet_air
 evaporation_and_blowdown
 ethanol
 vent
+dryer_emissions
 ash_disposal
 filter_cake
-dryer_emissions
 rejected_water_and_blowdown
 Yeast
 s4
-s42
-s66
+s65
+s41
 " [style=dashed]
 	s72
 	edge [arrowhead=none arrowtail=none headport=w tailport=c]
 	"s.7
 s.9
 vinasse
-s65
+s64
 wastewater
 emissions
 dryer_outlet_air
 evaporation_and_blowdown
 ethanol
 vent
+dryer_emissions
 ash_disposal
 filter_cake
-dryer_emissions
 rejected_water_and_blowdown
 Yeast
 s4
-s42
-s66
+s65
+s41
 " -> s72
-	s73
+	s71
 	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	s73 -> "s.6
+	s71 -> "s.6
 recirculated_chilled_water
 sugarcane
 makeup_water
@@ -136,19 +134,18 @@ cooling_tower_makeup_water
 stripping_water
 boiler_makeup_water
 dryer_natural_gas
-enzyme
 denaturant
 lime
 H3PO4
 rvf_wash_water
-s63
-s61
 s62
-s64
+s60
+s61
+s63
+s66
 s67
 s68
 s69
-s70
 polymer
 natural_gas
 dilution_water
