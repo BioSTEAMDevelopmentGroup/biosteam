@@ -1287,8 +1287,11 @@ class System:
         if isa(recycle, Stream):
             try:
                 recycle._imol._data[:] = data
-            except:
-                raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
+            except IndexError as e:
+                if data.shape[0] != 1:
+                    raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
+                else:
+                    raise e from None
         elif isa(recycle, Iterable):
             length = len
             N_rows = data.shape[0]
@@ -1706,6 +1709,27 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
+    def get_heat_utility_consumption_impact(self, agent, key):
+        pass
+
+    def get_heat_utility_production_impact(self, agent, key):
+        pass
+
+    def get_net_heat_utility_impact(self, agent, key):
+        pass
+
+    def get_electricity_consumption_impact(self, key):
+        pass
+
+    def get_electricity_production_impact(self, key):
+        pass
+    
+    def get_net_electricity_impact(self, key):
+        pass
+
+    def get_net_utility_impact(self, key):
+        pass
+    
     def get_total_feeds_impact(self, key):
         """
         Return the total annual impact of all feeds given 
