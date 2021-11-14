@@ -1709,20 +1709,20 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
-    def get_heat_utility_consumption_impact(self, agent, key):
-        pass
-
-    def get_heat_utility_production_impact(self, agent, key):
-        pass
-
     def get_net_heat_utility_impact(self, agent, key):
-        pass
-
-    def get_electricity_consumption_impact(self, key):
-        pass
-
-    def get_electricity_production_impact(self, key):
-        pass
+        if isinstance(agent, str):
+            agent = bst.HeatUtility.get_agent(agent)
+        elif not isinstance(agent, bst.UtilityAgent): 
+            raise TypeError(
+                 "agent must be a UtilityAgent object or a string; "
+                f"not a '{type(agent).__name__}' object"
+            )
+        try:
+            CF = agent.characterization_factors[agent, key]
+        except KeyError:
+            return 0.
+        
+        # TODO
     
     def get_net_electricity_impact(self, key):
         pass

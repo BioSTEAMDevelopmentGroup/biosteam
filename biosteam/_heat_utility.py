@@ -7,9 +7,12 @@
 # for license details.
 """
 """
-from thermosteam.units_of_measure import convert, DisplayUnits
+from thermosteam.units_of_measure import (
+    convert, DisplayUnits, AbsoluteUnitsOfMeasure, get_dimensionality
+)
 from thermosteam.utils import unregistered
 from thermosteam import Thermo, Stream, ThermalCondition
+from .exceptions import DimensionError
 from math import copysign
 
 __all__ = ('HeatUtility', 'UtilityAgent')
@@ -18,7 +21,10 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-
+mol_units = AbsoluteUnitsOfMeasure('mol/hr')
+mass_units = AbsoluteUnitsOfMeasure('kg/hr')
+energy_units = AbsoluteUnitsOfMeasure('kJ/hr')
+\
 # %% Utility agents
 
 @unregistered
@@ -63,10 +69,8 @@ class UtilityAgent(Stream):
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, ID='', flow=(), phase='l', T=298.15, P=101325., units='kmol/hr',
                  thermo=None, T_limit=None, heat_transfer_price=0.0,
-                 regeneration_price=0.0, heat_transfer_efficiency=1.0, 
-                 characterization_factors=None,
+                 regeneration_price=0.0, heat_transfer_efficiency=1.0,                  
                  **chemical_flows):
-        self.characterization_factors = {} if characterization_factors is None else {}
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
@@ -119,7 +123,7 @@ class UtilityAgent(Stream):
         new._thermal_condition = self._thermal_condition.copy()
         new.reset_cache()
         new._price = 0.
-        new.characterization_factors = self.characterization_factors
+        new.characterization_factors = {}
         new.ID = ID
         return new
     
@@ -252,6 +256,54 @@ class HeatUtility:
     
     #: [Thermo] Used for BioSTEAM refrigeration utility.
     thermo_propane = Thermo(['Propane'])
+
+    characterization_factors = {}
+    
+    @classmethod
+    def set_CF(self, agent, key, value, units=None):
+        if units is None:
+            units = 'kg/hr'
+        else:
+            dim = get_dimensionality(units)
+            if dim == mol_units.dimensionality: 
+                basis = mol_units
+            elif dim == mass_units.dimensionality:
+                basis = mass_units
+            elif dim == energy_units.dimensionality:
+                basis = energy_units
+            else:
+                raise DimensionError(
+                    "unit dimensions for characterization factors must be in a molar, "
+                   f"mass or energy basis, not '{dim}'"
+                )
+            value = basis.unconvert(value, units)
+        self.characterization_factors[agent, key] = value, basis
+
+    @classmethod
+    def get_CF(self, agent, key, units=None):
+        try:
+            value, basis = self.characterization_factors[agent, key]
+        except:
+            if units is None:
+                return 0., None
+            else:
+                return 0.
+        if units is None:
+            return value, basis._units
+        else:
+            return basis.convert(value, units)
+
+    def get_impact(self, key):
+        agent = self.agent
+        CF, units = self.get_CF(agent, key)
+        if units == 'kg/hr':
+            return self.flow * self.agent.MW * CF
+        elif units == 'kmol/hr':
+            return self.flow * CF
+        elif units == 'kJ/hr':
+            return self.duty * CF
+        else:
+            raise RuntimeError("unknown error")
 
     def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
