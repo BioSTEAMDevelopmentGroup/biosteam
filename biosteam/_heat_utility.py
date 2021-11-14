@@ -271,7 +271,7 @@ class HeatUtility:
     def set_CF(self, ID, key, value, units=None):
         agent = self.get_agent(ID)
         if units is None:
-            units = 'kg/hr'
+            basis = mass_units
         else:
             dim = get_dimensionality(units)
             if dim == mol_units.dimensionality: 

@@ -1724,11 +1724,11 @@ class System:
         if CF == 0.: return 0.
         heat_utilities = self.heat_utilities
         if units == 'kg/hr':
-            return sum([i.flow for i in heat_utilities if i.agent.ID == ID]) * CF * agent.MW
+            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * agent.MW
         elif units == 'kmol/hr':
-            return sum([i.flow for i in heat_utilities if i.agent.ID == ID]) * CF
+            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF
         elif units == 'kJ/hr':
-            return sum([i.duty for i in heat_utilities if i.agent.ID == ID]) * CF
+            return sum([i.duty for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF
         else:
             raise RuntimeError("unknown error")
     
@@ -1741,7 +1741,7 @@ class System:
     def get_net_utility_impact(self, key):
         agents = (*bst.HeatUtility.cooling_agents,
                   *bst.HeatUtility.heating_agents)
-        return sum([self.get_net_heat_utility_impact(i, key) for i in agents], self.get_net_electricity_impact())
+        return sum([self.get_net_heat_utility_impact(i, key) for i in agents], self.get_net_electricity_impact(key))
     
     def get_total_feeds_impact(self, key):
         """
