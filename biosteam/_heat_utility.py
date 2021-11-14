@@ -21,10 +21,10 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-mol_units = AbsoluteUnitsOfMeasure('mol/hr')
-mass_units = AbsoluteUnitsOfMeasure('kg/hr')
-energy_units = AbsoluteUnitsOfMeasure('kJ/hr')
-\
+mol_units = AbsoluteUnitsOfMeasure('mol')
+mass_units = AbsoluteUnitsOfMeasure('kg')
+energy_units = AbsoluteUnitsOfMeasure('kJ')
+
 # %% Utility agents
 
 @unregistered
@@ -268,53 +268,50 @@ class HeatUtility:
     characterization_factors = {}
     
     @classmethod
-    def set_CF(self, ID, key, value, units=None):
+    def set_CF(self, ID, key, value, basis=None):
         agent = self.get_agent(ID)
-        if units is None:
-            basis = mass_units
+        if basis is None:
+            units = mass_units
         else:
             dim = get_dimensionality(units)
             if dim == mol_units.dimensionality: 
-                basis = mol_units
+                units = mol_units
             elif dim == mass_units.dimensionality:
-                basis = mass_units
+                units = mass_units
             elif dim == energy_units.dimensionality:
-                basis = energy_units
+                units = energy_units
                 if agent.iscooling_agent() and value > 0.: 
                     raise ValueError('characterization factor must be negative for cooling agents')
             else:
                 raise DimensionError(
-                    "unit dimensions for characterization factors must be in a molar, "
+                    "dimensions for characterization factors must be in a molar, "
                    f"mass or energy basis, not '{dim}'"
                 )
-            value = basis.unconvert(value, units)
-        self.characterization_factors[agent.ID, key] = value, basis
+            value *= units.conversion_factor(basis)
+        self.characterization_factors[agent.ID, key] = value, units
 
     @classmethod
-    def get_CF(self, ID, key, units=None):
+    def get_CF(self, ID, key, basis=None):
         try:
-            value, basis = self.characterization_factors[
-                ID, 
-                key
-            ]
+            value, units = self.characterization_factors[ID, key]
         except KeyError:
-            if units is None:
+            if basis is None:
                 return 0., None
             else:
                 return 0.
-        if units is None:
-            return value, basis._units
+        if basis is None:
+            return value, units._units
         else:
-            return basis.convert(value, units)
+            return value / units.conversion_factor(basis)
 
     def get_impact(self, key):
         agent = self.agent
         CF, units = self.get_CF(agent.ID, key)
-        if units == 'kg/hr':
+        if units == mass_units:
             return self.flow * agent.MW * CF
-        elif units == 'kmol/hr':
+        elif units == mol_units:
             return self.flow * CF
-        elif units == 'kJ/hr':
+        elif units == energy_units:
             return self.duty * CF
         else:
             raise RuntimeError("unknown error")
