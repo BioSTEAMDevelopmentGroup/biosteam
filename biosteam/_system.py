@@ -1508,6 +1508,7 @@ class System:
             y, idx = self._state_dct2arr(dct)
             self._state = {'time': 0,
                            'state': y,
+                           'state_over_time': None,
                            'indexer': idx}
         else:
             y = self._state['state']
@@ -1554,27 +1555,78 @@ class System:
         for u in self.units:
             u._state = None
 
+    def _state2df(self, path=''):
+        header = [('-', 't [d]')] + sum([[(m, n) for m, n in zip([u.ID]*len(u._state_header), u._state_header)] for u in self.units], [])
+        import pandas as pd
+        header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
+        data = self._state['state_over_time']
+        df = pd.DataFrame(data, columns=header)
+        if not path:
+            return df
+        if path.endswith(('.xlsx', '.xls')):
+            df.to_excel(path)
+        elif path.endswith('.csv'):
+            df.to_csv(path)
+        elif path.endswith('.tsv'):
+            df.to_csv(path, sep='\t')
+        else:
+            ext = path.split('.')[-1]
+            raise ValueError('Only support file extensions of '
+                             '".xlsx", ".xls", ".csv", and ".tsv", '
+                             f'not .{ext}.')
 
-    def simulate(self, t_span=(0, 0), start_from_cached_state=True, solver='solve_ivp', **kwargs):
-        """Converge the path and simulate all units."""
-        #TODO: potentially save `sol` as a system attribute, remove the print message, do not save file
+    def simulate(self, t_span=(0, 0), start_from_cached_state=True,
+                 solver='solve_ivp', export_state_to='', print_msg=False,
+                 **kwargs):
+        """
+        Converge the path and simulate all units.
+        
+        Parameters
+        ----------
+        t_span : tuple(float, float)
+            Integration time span for dynamic units.
+        start_from_cached_state: bool
+            Whether to start from the cached state.
+        solver : str
+            Which ``scipy`` function to use, either "solve_ivp" (default and preferred)
+            or "odeint".
+        export_state_to: str
+            If provided with a path, will save the simulated states over time to the given path,
+            supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
+        kwargs : dict
+            Other keyword arguments that will be passed to ``solve_ivp``
+            or ``odeint``.
+        """
         self._setup()
         self._converge()
         if self.isdynamic:
             if not start_from_cached_state: self.clear_state()
             y0, idx, nr = self._load_state()
             dydt = self._ODE(idx, y0.shape, nr)
-            if solver == 'odeint':
+            if solver == 'solve_ivp':
+                sol = solve_ivp(fun=dydt, t_span=t_span, y0=y0, **kwargs)
+                self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
+                # np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
+                if sol.status == 0:
+                    print('Simulation completed.')
+                else:
+                    print(sol.message)
+                self._write_state(sol.t[-1], sol.y.T[-1])
+            elif solver=='odeint':
                 sol = odeint(func=dydt, t_span=t_span, y0=y0, tfirst=True, **kwargs)
-                np.savetxt('sol.txt', sol, delimiter='\t')
+                if sol.shape[0]==1 and t_span[1]!=t_span[0]:
+                    print('Simulation failed.')
+                else:
+                    print('Simulation completed.')
+                self._state['state_over_time'] = sol
+                # np.savetxt('sol.txt', sol, delimiter='\t')
                 # np.savetxt('dy.txt', np.vstack(self._dy), delimiter='\t')
                 self._write_state(kwargs['t'][-1], sol[-1])
             else:
-                sol = solve_ivp(fun=dydt, t_span=t_span, y0=y0, **kwargs)
-                np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
-                print(sol.status)
-                print(sol.message)
-                self._write_state(sol.t[-1], sol.y.T[-1])
+                raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
+                                 f'not {solver}.')
+            if export_state_to:
+                self._state2df(export_state_to)
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
