@@ -752,6 +752,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
                               levels=metric_bar.levels,
                               cmap=metric_bar.cmap,
                               norm=metric_bar.norm)
+            for i in cp.collections: i.set_edgecolor('face') # For svg background
             if label:
                 cs = plt.contour(cp, zorder=1e16,
                                  linestyles='dashed', linewidths=1.,
@@ -762,7 +763,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
-    cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=nrows * 0.13)
+    cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=0.5)
     plt.sca(ax_colorbar)
     plt.axis('off')
     if titles:

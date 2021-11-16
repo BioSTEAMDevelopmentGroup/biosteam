@@ -650,6 +650,7 @@ class System:
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system."""
         self._path = other._path
+        self._subsystems = other._subsystems
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._recycle = other._recycle
