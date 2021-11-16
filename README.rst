@@ -27,8 +27,8 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is a fast and flexible package for the design, simulation, and 
-techno-economic analysis of biorefineries under uncertainty [1]_. 
+BioSTEAM is a fast and flexible package for the design, simulation, 
+techno-economic analysis, and life cycle assessment of biorefineries under uncertainty [1]_. 
 BioSTEAM is built to streamline and automate early-stage technology evaluations 
 and to enable rigorous sensitivity and uncertainty analyses. Complete 
 biorefinery configurations are available at the `Bioindustrial-Park 
