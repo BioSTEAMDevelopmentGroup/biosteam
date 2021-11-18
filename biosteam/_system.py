@@ -1756,7 +1756,7 @@ class System:
     def get_total_products_impact(self, key):
         """
         Return the total annual impact of all products given 
-        the characterization factor key.
+        the impact indicator key.
         
         """
         return sum([s.F_mass * s.characterization_factors[key] for s in self.products
@@ -1765,27 +1765,20 @@ class System:
     def get_material_impact(self, stream, key):
         """
         Return the annual material impact given the stream and the 
-        characterization factor key.
+        impact indicator key.
         
         """
         return stream.get_impact(key) * self.operating_hours
     
-    def get_displacement_allocated_impact(self, key, item):
-        if isinstance(item, Stream):
-            if item in self.products:
-                correction = item.get_impact(key)
-            else:
-                raise ValueError(f"item '{item}' must be a product")
-        elif item == 'electricity':
-            item = bst.PowerUtility.sum(self.power_utilities)
-            correction = -item.get_impact(key)
-        else:
-            raise ValueError(f"invalid item '{item}'")
+    def get_total_impact(self, key):
+        """
+        Return total annual impact given the impact indicator key.
+        
+        """
         return (
             self.get_total_feeds_impact(key) 
             + self.get_net_utility_impact(key)
             - self.get_total_products_impact(key)
-            + correction * self.operating_hours
         )
     
     def get_property_allocated_impact(self, key, property=None, units=None):
@@ -1807,8 +1800,6 @@ class System:
         if power_utility.rate > 0.:
             impact += power_utility.get_impact(key)
         return impact / total_property
-    
-    
     
     @property
     def sales(self):
