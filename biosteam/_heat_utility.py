@@ -407,6 +407,19 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
+    def get_inventory(self, key):
+        agent = self.agent
+        CF, basis_units = self.get_CF(agent.ID, key)
+        units = str(basis_units)
+        if basis_units == mass_basis_units:
+            return self.flow * agent.MW, units
+        elif basis_units == mol_basis_units:
+            return self.flow, units
+        elif basis_units == energy_basis_units:
+            return self.duty, units
+        else:
+            raise RuntimeError("unknown error")
+
     def __init__(self, heat_transfer_efficiency=None, heat_exchanger=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
         self.heat_exchanger = heat_exchanger

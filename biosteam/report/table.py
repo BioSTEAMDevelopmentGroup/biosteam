@@ -22,7 +22,9 @@ ExcelWriter = pd.ExcelWriter
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'save_report', 'unit_result_tables', 'heat_utility_tables',
            'power_utility_table', 'tables_to_excel', 'voc_table',
-           'lca_table_displacement_allocation', 'FOCTableBuilder')
+           'lca_displacement_allocation_table', 
+           'lca_inventory_table',
+           'FOCTableBuilder')
 
 def _stream_key(s): # pragma: no coverage
     num = s.ID[1:]
@@ -155,7 +157,83 @@ def voc_table(systems, product_IDs, system_names=None):
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=('Price [$/ton]', *systems_names))
 
-def lca_table_displacement_allocation(systems, key, items, 
+def lca_inventory_table(systems, key, system_names=None):
+    # Not ready for users yet
+    isa = isinstance
+    if isa(systems, bst.System): systems = [systems]
+    PowerUtility = bst.PowerUtility
+    other_utilities = []
+    other_byproducts = []
+    other_values = {}
+    def get_subdct(name):
+        if name in other_values:
+            return other_values[name]
+        else:
+            other_values[name] = dct = {}
+            return dct
+        
+    for sys in systems:
+        electricity_consumption = sum([i.rate for i in sys.power_utilities]) * sys.operating_hours
+        if electricity_consumption > 0.: 
+            if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
+            cf = PowerUtility.characterization_factors.get(key, 0.)
+            if cf:
+                dct = get_subdct('Electricity')
+                dct[sys] = f"{electricity_consumption} [kWhr]"
+        else:
+            if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
+            cf = PowerUtility.characterization_factors.get(key, 0.)
+            if cf:
+                dct = get_subdct('Electricity')
+                dct[sys] = f"{-electricity_consumption} [kWhr]"
+        
+    def reformat(name):
+        name = name.replace('_', ' ')
+        if name.islower(): name= name.capitalize()
+        return name
+    
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors})
+    system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
+    input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
+    output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
+    index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents)}
+    table_index = [*[('Inputs', reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
+                   *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents]]
+    N_cols = len(systems)
+    N_rows = len(table_index)
+    data = np.zeros([N_rows, N_cols], dtype=object)
+    for col, sys in enumerate(systems):
+        for stream in sys.feeds + sys.products:
+            if stream.get_CF(key):
+                ind = index[stream.ID]
+                data[ind, col] = sys.get_mass_flow(stream)
+        for hu in system_heat_utilities[col]:
+            try:
+                ind = index[hu.agent.ID]
+            except:
+                continue
+            if (hu.agent.ID, key) in hu.characterization_factors:
+                flow, units = hu.get_inventory()
+                if flow:
+                    flow = sys.operating_hours * flow
+                    data[ind, col] = f"{flow} [{units}]"
+        for i, subdct in other_values.items():
+            if sys not in subdct: continue
+            value = subdct[sys]
+            ind = index[i]
+            data[ind, col] = value
+    if system_names is None:
+        system_names = [i.ID for i in systems]
+    sys_units = " Inventory [kg/yr]"
+    systems_names = [i + sys_units for i in system_names]
+    return pd.DataFrame(data, 
+                        index=pd.MultiIndex.from_tuples(table_index),
+                        columns=systems_names)
+
+def lca_displacement_allocation_table(systems, key, items, 
                                       item_name, system_names=None):
     # Not ready for users yet
     isa = isinstance
@@ -199,7 +277,7 @@ def lca_table_displacement_allocation(systems, key, items,
     output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents)}
     table_index = [*[('Inputs', reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
-                   *[('Outputs', i) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents]]
+                   *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents]]
     table_index.append(("Total", ''))
     N_cols = len(systems) + 1
     N_rows = len(table_index)
@@ -220,7 +298,8 @@ def lca_table_displacement_allocation(systems, key, items,
                 continue
             impact = sys.operating_hours * hu.get_impact(key)
             if impact:
-                data[ind, 0] = stream.characterization_factors[key]
+                cf, basis = hu.characterization_factors[hu.agent.ID, key]
+                data[ind, 0] = f"{cf} [{impact_units}{basis}]"
                 data[ind, col + 1] = impact / item_flow
         for i, subdct in other_values.items():
             if sys not in subdct: continue
