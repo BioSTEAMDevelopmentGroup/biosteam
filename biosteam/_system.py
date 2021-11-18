@@ -1724,11 +1724,11 @@ class System:
         CF, units = bst.HeatUtility.get_CF(ID, key)
         if CF == 0.: return 0.
         heat_utilities = self.heat_utilities
-        if units == 'kg/hr':
+        if units == 'kg':
             return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * agent.MW * self.operating_hours
-        elif units == 'kmol/hr':
+        elif units == 'kmol':
             return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
-        elif units == 'kJ/hr':
+        elif units == 'kJ':
             return sum([i.duty for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
         else:
             raise RuntimeError("unknown error")

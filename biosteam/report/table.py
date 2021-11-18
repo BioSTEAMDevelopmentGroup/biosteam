@@ -157,7 +157,7 @@ def voc_table(systems, product_IDs, system_names=None):
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=('Price [$/ton]', *systems_names))
 
-def lca_inventory_table(systems, key, system_names=None):
+def lca_inventory_table(systems, key, items=(), system_names=None):
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
@@ -175,17 +175,17 @@ def lca_inventory_table(systems, key, system_names=None):
     for sys in systems:
         electricity_consumption = sum([i.rate for i in sys.power_utilities]) * sys.operating_hours
         if electricity_consumption > 0.: 
-            if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
+            if 'Electricity [kWhr/yr]' not in other_utilities: other_utilities.append('Electricity [kWhr/yr]')
             cf = PowerUtility.characterization_factors.get(key, 0.)
             if cf:
-                dct = get_subdct('Electricity')
-                dct[sys] = f"{electricity_consumption} [kWhr]"
+                dct = get_subdct('Electricity [kWhr/yr]')
+                dct[sys] = electricity_consumption
         else:
-            if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
+            if 'Electricity [kWhr/yr]' not in other_byproducts: other_byproducts.append('Electricity [kWhr/yr]')
             cf = PowerUtility.characterization_factors.get(key, 0.)
             if cf:
-                dct = get_subdct('Electricity')
-                dct[sys] = f"{-electricity_consumption} [kWhr]"
+                dct = get_subdct('Electricity [kWhr/yr]')
+                dct[sys] = -electricity_consumption
         
     def reformat(name):
         name = name.replace('_', ' ')
@@ -193,7 +193,7 @@ def lca_inventory_table(systems, key, system_names=None):
         return name
     
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors or i in items})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
     input_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty > 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
     input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
@@ -207,7 +207,7 @@ def lca_inventory_table(systems, key, system_names=None):
     data = np.zeros([N_rows, N_cols], dtype=object)
     for col, sys in enumerate(systems):
         for stream in sys.feeds + sys.products:
-            if stream.get_CF(key):
+            if stream.get_CF(key) or stream in items:
                 ind = index[stream.ID]
                 data[ind, col] = sys.get_mass_flow(stream)
         for hu in system_heat_utilities[col]:
@@ -225,16 +225,19 @@ def lca_inventory_table(systems, key, system_names=None):
             value = subdct[sys]
             ind = index[i]
             data[ind, col] = value
-    if system_names is None:
-        system_names = [i.ID for i in systems]
-    sys_units = " Inventory [kg/yr]"
-    systems_names = [i + sys_units for i in system_names]
+    if system_names is None and len(systems) == 1:
+        system_names = ["Inventory [kg/yr]"]
+    else:
+        if system_names is None:
+            system_names = [i.ID for i in systems]
+        sys_units = " Inventory [kg/yr]"
+        system_names = [i + sys_units for i in system_names]
     return pd.DataFrame(data, 
                         index=pd.MultiIndex.from_tuples(table_index),
-                        columns=systems_names)
+                        columns=system_names)
 
 def lca_displacement_allocation_table(systems, key, items, 
-                                      item_name, system_names=None):
+                                      item_name=None, system_names=None):
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
@@ -268,6 +271,7 @@ def lca_displacement_allocation_table(systems, key, items,
         if name.islower(): name= name.capitalize()
         return name
     
+    if item_name is None: item_name = items[0].ID.replace('_', ' ')
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
     coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if key in i.characterization_factors})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
@@ -309,13 +313,16 @@ def lca_displacement_allocation_table(systems, key, items,
             data[ind, col + 1] = impact / item_flow
     N_inputs = N_rows - N_outputs - 1
     data[-1, 1:] = (data[:N_inputs, 1:].sum(axis=0) - data[N_inputs:, 1:].sum(axis=0))
-    if system_names is None:
-        system_names = [i.ID for i in systems]
-    sys_units = f" {key} [{impact_units}/kg*{item_name}]"
-    systems_names = [i + sys_units for i in system_names]
+    if system_names is None and len(systems) == 1:
+        system_names = [f"{key} [{impact_units}/kg*{item_name}]"]
+    else:
+        if system_names is None:
+            system_names = [i.ID for i in systems]
+        sys_units = f" {key} [{impact_units}/kg*{item_name}]"
+        system_names = [i + sys_units for i in system_names]
     return pd.DataFrame(data, 
                         index=pd.MultiIndex.from_tuples(table_index),
-                        columns=(f'Characterization factor [{impact_units}/kg]', *systems_names))
+                        columns=(f'Characterization factor [{impact_units}/kg]', *system_names))
 
 # %% Helpful functions
 
