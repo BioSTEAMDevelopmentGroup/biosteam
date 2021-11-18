@@ -1770,9 +1770,7 @@ class System:
         """
         return stream.get_impact(key) * self.operating_hours
     
-    def get_displacement_allocated_impact(self, key, 
-            item, property=None, units=None
-        ):
+    def get_displacement_allocated_impact(self, key, item):
         if isinstance(item, Stream):
             if item in self.products:
                 correction = item.get_impact(key)
@@ -1788,7 +1786,7 @@ class System:
             + self.get_net_utility_impact(key)
             - self.get_total_products_impact(key)
             + correction * self.operating_hours
-        ) / (item.get_property(property, units) * self.operating_hours)
+        )
     
     def get_property_allocated_impact(self, key, property=None, units=None):
         total_property = 0.
