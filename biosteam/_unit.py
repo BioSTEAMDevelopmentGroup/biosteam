@@ -786,7 +786,9 @@ class Unit:
             
     def _reevaluate(self):
         """Reevaluate design and costs."""
-        self._setup()
+        self.baseline_purchase_costs.clear()
+        self.purchase_costs.clear()
+        self.installed_costs.clear()
         self._summary()
     
     def _summary(self):

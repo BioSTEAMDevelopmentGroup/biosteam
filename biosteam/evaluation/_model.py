@@ -566,7 +566,7 @@ class Model(State):
         metrics : Iterable[Metric], optional 
             Metrics to be correlated with parameters. Defaults to all metrics.
         thresholds : Iterable[float]
-            The
+            The thresholds for separating parameters into sets.
             
         Other Parameters
         ----------------

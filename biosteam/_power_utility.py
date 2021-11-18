@@ -7,13 +7,17 @@
 # for license details.
 """
 """
-from thermosteam.units_of_measure import DisplayUnits, convert
+from thermosteam.utils import units_of_measure
+from thermosteam.units_of_measure import (
+    DisplayUnits, convert, power_utility_units_of_measure
+)
 
 __all__ = ('PowerUtility',)
 
 
 default_price = 0.0782
 
+@units_of_measure(power_utility_units_of_measure)
 class PowerUtility:
     """
     Create an PowerUtility object that stores data on consumption and production
@@ -87,6 +91,23 @@ class PowerUtility:
         
         #: Electricity production [kW]
         self.production = production
+    
+    @classmethod
+    def get_CF(cls, key):
+        """
+        Returns the life-cycle characterization factor on a kg basis given the key.
+        """
+        try:
+            return cls.characterization_factors[key]
+        except:
+            return 0.
+
+    @classmethod
+    def set_CF(cls, key, value):
+        """
+        Set the life-cycle characterization factor on a kg basis given the key.
+        """
+        cls.characterization_factors[key] = value
     
     @classmethod
     def default_price(cls):

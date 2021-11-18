@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>, Yalin Li <zoe.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -127,19 +127,6 @@ def test_kendall_tau(model):
     assert_allclose(tau, expected, atol=0.15)
     assert_allclose(tau, model.kendall_tau(filter='omit nan')[0])
     
-def test_kolmogorov_smirnov_d(model):
-    rho, p = model.kolmogorov_smirnov_d()
-    NaN = float('NaN')
-    expected = np.array([[0.17, NaN, 1.0],
-                         [1.0,  NaN, 0.5]])
-    index = ~np.isnan(expected)
-    assert_allclose(rho.values[index], expected[index], atol=0.15)
-    
-    d, p = model.kolmogorov_smirnov_d(filter='omit nan')
-    expected = np.array([[0.17, 0.194, 1.0],
-                         [1.0,  1.0, 0.5]])
-    assert_allclose(d, expected, atol=0.15)
-    assert_allclose(d, model.kolmogorov_smirnov_d(filter='omit nan')[0])
     
 def test_model_index():
     from biorefineries.sugarcane import sugarcane_sys, flowsheet as f
@@ -246,3 +233,44 @@ def test_model_exception_hook():
     
     # Note that the possibilities are infinite here...
     
+def test_kolmogorov_smirnov_d(model):
+    # Test made by Yalin.
+    import numpy as np
+    import biosteam as bst
+    from chaospy import distributions as shape
+    
+    bst.settings.set_thermo(['H2O', 'Ethanol'], cache=True)
+    
+    s1 = bst.Stream('s1', H2O=100)
+    M1 = bst.MixTank(ins=s1)
+    M2 = bst.MixTank(ins=M1-0)
+    sys = bst.System('sys', path=(M1, M2))
+    
+    model = bst.Model(sys)
+    
+    baseline = 1
+    distribution = shape.Uniform(lower=0.5, upper=1.5)
+    @model.parameter(name='M1 tau', element=M1, kind='coupled', distribution=distribution,
+                     units='hr', baseline=baseline)
+    def set_M1_tau(i):
+        M1.tau = i
+        
+    baseline = 1.75
+    distribution = shape.Uniform(lower=1, upper=2)
+    @model.parameter(name='M2 tau', element=M2, kind='coupled', distribution=distribution,
+                     units='hr', baseline=baseline)
+    def set_M2_tau(i):
+        M2.tau = i
+    
+    model.metrics = [
+        bst.Metric(name='tau1', getter=lambda: M1.tau, units='hr', element=M1),
+        bst.Metric(name='tau2', getter=lambda: M2.tau, units='hr', element=M2),
+        ]
+    
+    np.random.seed(3221)
+    samples = model.sample(100, rule='L')
+    model.load_samples(samples)
+    model.evaluate()
+    
+    D, p = model.kolmogorov_smirnov_d(thresholds=[1, 1.5]) # Just make sure it works for now
+    # TODO: Add tests that make sense for comparing statistics

@@ -197,10 +197,10 @@ class Boiler(Facility):
                 feed_CH4.imol['CH4'] = natural_gas_flow
             else:
                 feed_CH4.empty()
-            H_combustion = feed_CH4.H - feed_CH4.HHV
+            H_combustion = feed_CH4.H + feed_CH4.HHV
             emissions_mol[:] = feed_CH4.mol
             for feed in non_empty_feeds:
-                H_combustion += feed.H - feed.HHV
+                H_combustion += feed.H + feed.HHV
                 emissions_mol[:] += feed.mol
             
             combustion_rxns.force_reaction(emissions_mol)
@@ -230,7 +230,7 @@ class Boiler(Facility):
             flx.IQ_interpolation(f, lb, ub, xtol=1, ytol=1)
         elif excess_heat > 1:
             def calculate_excess_heat_with_diverted_gas(fraction_burned):
-                H_combustion = fraction_burned*(feed_gas.H - feed_gas.HHV) + (feed_solids.H - feed_solids.HHV)
+                H_combustion = fraction_burned*(feed_gas.H + feed_gas.HHV) + (feed_solids.H + feed_solids.HHV)
                 emissions_mol[:] = fraction_burned*feed_gas.mol + feed_solids.mol
                 combustion_rxns.force_reaction(emissions_mol)
                 emissions.imol['O2'] = 0
@@ -251,7 +251,7 @@ class Boiler(Facility):
             
             if gas_fraction_burned == 0.:
                 def calculate_excess_heat_with_diverted_solids(fraction_burned):
-                    H_combustion = fraction_burned * (feed_solids.H - feed_solids.HHV)
+                    H_combustion = fraction_burned * (feed_solids.H + feed_solids.HHV)
                     emissions_mol[:] = fraction_burned * feed_solids.mol
                     combustion_rxns.force_reaction(emissions_mol)
                     emissions.imol['O2'] = 0
@@ -492,10 +492,10 @@ class BoilerTurbogenerator(Facility):
                 feed_CH4.imol['CH4'] = natural_gas_flow
             else:
                 feed_CH4.empty()
-            H_combustion = feed_CH4.H - feed_CH4.HHV
+            H_combustion = feed_CH4.H + feed_CH4.HHV
             emissions_mol[:] = feed_CH4.mol
             for feed in non_empty_feeds:
-                H_combustion += feed.H - feed.HHV
+                H_combustion += feed.H + feed.HHV
                 emissions_mol[:] += feed.mol
             
             combustion_rxns.force_reaction(emissions_mol)
@@ -525,7 +525,7 @@ class BoilerTurbogenerator(Facility):
         if excess_electricity < 0:
             f = calculate_excess_electricity_at_natual_gas_flow
             lb = 0.
-            ub = excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
+            ub = - excess_electricity * 3600 / feed_CH4.chemicals.CH4.LHV
             while f(ub) < 0.: 
                 lb = ub
                 ub *= 2

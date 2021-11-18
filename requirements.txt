@@ -3,6 +3,7 @@ IPython>=7.9.0
 colorpalette>=0.3.0
 chaospy>=3.3.9
 graphviz>=0.8.3
+sphinx>=4.2.0
 sphinx_rtd_theme
 ipykernel
 nbsphinx

@@ -648,6 +648,7 @@ class System:
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system."""
         self._path = other._path
+        self._subsystems = other._subsystems
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._recycle = other._recycle
@@ -1285,8 +1286,11 @@ class System:
         if isa(recycle, Stream):
             try:
                 recycle._imol._data[:] = data
-            except:
-                raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
+            except IndexError as e:
+                if data.shape[0] != 1:
+                    raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
+                else:
+                    raise e from None
         elif isa(recycle, Iterable):
             length = len
             N_rows = data.shape[0]
@@ -1731,6 +1735,40 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
+    def get_net_heat_utility_impact(self, agent, key):
+        if isinstance(agent, str): 
+            ID = agent
+            agent = bst.HeatUtility.get_agent(ID)
+        elif isinstance(agent, bst.UtilityAgent):
+            ID = agent.ID
+        else:
+            raise TypeError(
+                 "agent must be a UtilityAgent object or a string; "
+                f"not a '{type(agent).__name__}' object"
+            )
+        CF, units = bst.HeatUtility.get_CF(ID, key)
+        if CF == 0.: return 0.
+        heat_utilities = self.heat_utilities
+        if units == 'kg':
+            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * agent.MW * self.operating_hours
+        elif units == 'kmol':
+            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
+        elif units == 'kJ':
+            return sum([i.duty for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
+        else:
+            raise RuntimeError("unknown error")
+    
+    def get_net_electricity_impact(self, key):
+        try:
+            return bst.PowerUtility.characterization_factors[key] * sum([i.rate for i in self.power_utilities]) * self.operating_hours
+        except KeyError:
+            return 0.
+
+    def get_net_utility_impact(self, key):
+        agents = (*bst.HeatUtility.cooling_agents,
+                  *bst.HeatUtility.heating_agents)
+        return sum([self.get_net_heat_utility_impact(i, key) for i in agents]) * self.operating_hours + self.get_net_electricity_impact(key)
+    
     def get_total_feeds_impact(self, key):
         """
         Return the total annual impact of all feeds given 
@@ -1743,7 +1781,7 @@ class System:
     def get_total_products_impact(self, key):
         """
         Return the total annual impact of all products given 
-        the characterization factor key.
+        the impact indicator key.
         
         """
         return sum([s.F_mass * s.characterization_factors[key] for s in self.products
@@ -1752,10 +1790,41 @@ class System:
     def get_material_impact(self, stream, key):
         """
         Return the annual material impact given the stream and the 
-        characterization factor key.
+        impact indicator key.
         
         """
         return stream.get_impact(key) * self.operating_hours
+    
+    def get_total_impact(self, key):
+        """
+        Return total annual impact given the impact indicator key.
+        
+        """
+        return (
+            self.get_total_feeds_impact(key) 
+            + self.get_net_utility_impact(key)
+            - self.get_total_products_impact(key)
+        )
+    
+    def get_property_allocated_impact(self, key, property=None, units=None):
+        total_property = 0.
+        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
+        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        if hasattr(bst.PowerUtility, property):
+            if power_utility.rate < 0.:
+                total_property += power_utility.get_property(property, units)
+        if hasattr(bst.HeatUtility, property):
+            for hu in heat_utilities:
+                if hu.flow < 0.: total_property += hu.get_property(property, units)
+        if hasattr(bst.Stream, property):
+            for stream in self.products:
+                total_property += stream.get_property(property, units)
+        impact = self.get_total_feeds_impact(key) / self.operating_hours
+        for hu in heat_utilities:
+            if hu.flow > 0.: impact += hu.get_impact(key)
+        if power_utility.rate > 0.:
+            impact += power_utility.get_impact(key)
+        return impact / total_property
     
     @property
     def sales(self):

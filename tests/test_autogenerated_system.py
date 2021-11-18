@@ -617,7 +617,6 @@ def test_sugarcane_ethanol_biorefinery_network():
         [U101,
          U102,
          U103,
-         T201,
          Network(
             [U201,
              S201,

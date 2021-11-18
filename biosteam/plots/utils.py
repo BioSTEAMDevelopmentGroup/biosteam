@@ -33,6 +33,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     units_dlim: str = '\n'
     ub: bool = False
     lb: bool = False
+    forced_size: float = None
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -64,6 +65,8 @@ class MetricBar(NamedTuple): # pragma: no coverage
                                 vmax=self.ticks[-1])
     
     def colorbar(self, fig, ax, colorplot, **cbarkwargs):
+        if self.forced_size is not None:
+            cbarkwargs['fraction'] = self.forced_size
         cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)

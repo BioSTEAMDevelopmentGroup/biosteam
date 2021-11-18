@@ -141,7 +141,7 @@ class DrumDryer(Unit):
                 natural_gas.imol['CH4'] = CH4
                 emissions.imol['CO2', 'H2O'] = [CO2, H2O]    
                 duty = (dry_solids.H + hot_air.H + emissions.H) - (wet_solids.H + air.H + natural_gas.H)
-                CH4 = duty / - LHV
+                CH4 = duty / LHV
                 return CH4
             flx.wegstein(f, 0., 1e-3)
         
@@ -207,7 +207,7 @@ class ThermalOxidizer(Unit):
 
     def _run(self):
         feed, air, ng = self.ins
-        ng.imol['CH4'] = - self.duty_per_kg * feed.F_mass / self.chemicals.CH4.LHV
+        ng.imol['CH4'] = self.duty_per_kg * feed.F_mass / self.chemicals.CH4.LHV
         emissions, = self.outs
         emissions.mix_from([feed, ng])
         combustion_rxns = self.chemicals.get_combustion_reactions()
