@@ -155,7 +155,7 @@ def voc_table(systems, product_IDs, system_names=None):
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=('Price [$/ton]', *systems_names))
 
-def lca_table_displacement_allocation(systems, key, units, basis, basis_units, system_names=None):
+def lca_table_displacement_allocation(systems, key, property, units, system_names=None):
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
@@ -163,6 +163,7 @@ def lca_table_displacement_allocation(systems, key, units, basis, basis_units, s
     other_utilities = []
     other_byproducts = []
     other_values = {}
+    impact_units = str(bst.settings.get_impact_indicator_units(key))
     def get_subdct(name):
         if name in other_values:
             return other_values[name]

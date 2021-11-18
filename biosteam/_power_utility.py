@@ -7,13 +7,17 @@
 # for license details.
 """
 """
-from thermosteam.units_of_measure import DisplayUnits, convert
+from thermosteam.utils import units_of_measure
+from thermosteam.units_of_measure import (
+    DisplayUnits, convert, power_utility_units_of_measure
+)
 
 __all__ = ('PowerUtility',)
 
 
 default_price = 0.0782
 
+@units_of_measure(power_utility_units_of_measure)
 class PowerUtility:
     """
     Create an PowerUtility object that stores data on consumption and production

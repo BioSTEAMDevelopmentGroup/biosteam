@@ -1742,7 +1742,7 @@ class System:
     def get_net_utility_impact(self, key):
         agents = (*bst.HeatUtility.cooling_agents,
                   *bst.HeatUtility.heating_agents)
-        return sum([self.get_net_heat_utility_impact(i, key) for i in agents], self.get_net_electricity_impact(key)) * self.operating_hours
+        return sum([self.get_net_heat_utility_impact(i, key) for i in agents]) * self.operating_hours + self.get_net_electricity_impact(key)
     
     def get_total_feeds_impact(self, key):
         """
@@ -1769,6 +1769,48 @@ class System:
         
         """
         return stream.get_impact(key) * self.operating_hours
+    
+    def get_displacement_allocated_impact(self, key, 
+            item, property=None, units=None
+        ):
+        if isinstance(item, Stream):
+            if item in self.products:
+                correction = item.get_impact(key)
+            else:
+                raise ValueError(f"item '{item}' must be a product")
+        elif item == 'electricity':
+            item = bst.PowerUtility.sum(self.power_utilities)
+            correction = -item.get_impact(key)
+        else:
+            raise ValueError(f"invalid item '{item}'")
+        return (
+            self.get_total_feeds_impact(key) 
+            + self.get_net_utility_impact(key)
+            - self.get_total_products_impact(key)
+            + correction * self.operating_hours
+        ) / (item.get_property(property, units) * self.operating_hours)
+    
+    def get_property_allocated_impact(self, key, property=None, units=None):
+        total_property = 0.
+        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
+        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        if hasattr(bst.PowerUtility, property):
+            if power_utility.rate < 0.:
+                total_property += power_utility.get_property(property, units)
+        if hasattr(bst.HeatUtility, property):
+            for hu in heat_utilities:
+                if hu.flow < 0.: total_property += hu.get_property(property, units)
+        if hasattr(bst.Stream, property):
+            for stream in self.products:
+                total_property += stream.get_property(property, units)
+        impact = self.get_total_feeds_impact(key) / self.operating_hours
+        for hu in heat_utilities:
+            if hu.flow > 0.: impact += hu.get_impact(key)
+        if power_utility.rate > 0.:
+            impact += power_utility.get_impact(key)
+        return impact / total_property
+    
+    
     
     @property
     def sales(self):

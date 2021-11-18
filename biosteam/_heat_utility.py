@@ -8,10 +8,11 @@
 """
 """
 from thermosteam.units_of_measure import (
-    convert, DisplayUnits, AbsoluteUnitsOfMeasure, get_dimensionality
+    convert, DisplayUnits, AbsoluteUnitsOfMeasure, get_dimensionality,
+    heat_utility_units_of_measure
 )
-from thermosteam.utils import unregistered
-from thermosteam import Thermo, Stream, ThermalCondition
+from thermosteam.utils import unregistered, units_of_measure
+from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
 
@@ -21,9 +22,9 @@ __all__ = ('HeatUtility', 'UtilityAgent')
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-mol_units = AbsoluteUnitsOfMeasure('kmol')
-mass_units = AbsoluteUnitsOfMeasure('kg')
-energy_units = AbsoluteUnitsOfMeasure('kJ')
+mol_basis_units = AbsoluteUnitsOfMeasure('kmol')
+mass_basis_units = AbsoluteUnitsOfMeasure('kg')
+energy_basis_units = AbsoluteUnitsOfMeasure('kJ')
 
 # %% Utility agents
 
@@ -176,6 +177,7 @@ class UtilityAgent(Stream):
        
 # %%
 
+@units_of_measure(heat_utility_units_of_measure)
 class HeatUtility:
     """
     Create an HeatUtility object that can choose a utility stream and 
@@ -270,7 +272,7 @@ class HeatUtility:
     characterization_factors = {}
     
     @classmethod
-    def set_CF(self, ID, key, value, basis=None):
+    def set_CF(self, ID, key, value, basis=None, units=None):
         """
         Set the cacharacterization factor of a utility agent for a given impact 
         key.
@@ -280,13 +282,18 @@ class HeatUtility:
         ID : str
             ID of utility agent.
         key : str
-            Key for impact.
+            Key of impact indicator.
         value : float
             Characterization factor value.
         basis : str, optional
             Basis of characterization factor. Valid dimensions include weight, 
             molar, and energy (e.g. 'kg', 'kmol', 'kJ'). Defaults to 'kg'.
-
+        units : str, optional
+            Units of impact indicator. Before using this argument, the default units 
+            of the impact indicator should be defined with 
+            thermosteam.settings.define_impact_indicator.
+            Units must also be dimensionally consistent with the default units.
+            
         Raises
         ------
         ValueError
@@ -315,16 +322,19 @@ class HeatUtility:
 
         """
         agent = self.get_agent(ID)
+        if units is not None:
+            original_units = settings.get_impact_indicator_units(units)
+            value = original_units.unconvert(value, units)
         if basis is None:
-            units = mass_units
+            basis_units = mass_basis_units
         else:
             dim = get_dimensionality(basis)
-            if dim == mol_units.dimensionality: 
-                units = mol_units
-            elif dim == mass_units.dimensionality:
-                units = mass_units
-            elif dim == energy_units.dimensionality:
-                units = energy_units
+            if dim == mol_basis_units.dimensionality: 
+                basis_units = mol_basis_units
+            elif dim == mass_basis_units.dimensionality:
+                basis_units = mass_basis_units
+            elif dim == energy_basis_units.dimensionality:
+                basis_units = energy_basis_units
                 if agent.iscooling_agent() and value > 0.: 
                     raise ValueError(
                         'characterization factor must be negative for cooling agents'
@@ -334,11 +344,11 @@ class HeatUtility:
                     "dimensions for characterization factors must be in a molar, "
                    f"mass or energy basis, not '{dim}'"
                 )
-            value *= units.conversion_factor(basis)
-        self.characterization_factors[agent.ID, key] = value, units
+            value *= basis_units.conversion_factor(basis)
+        self.characterization_factors[agent.ID, key] = value, basis_units
 
     @classmethod
-    def get_CF(self, ID, key, basis=None):
+    def get_CF(self, ID, key, basis=None, units=None):
         """
         Return the characterization factor of a utility agent for a given impact 
         key.
@@ -348,12 +358,16 @@ class HeatUtility:
         ID : str
             ID of utility agent.
         key : str
-            Key for impact.
+            Key of impact indicator.
         basis : str, optional
-            Basis of characterization factor. Defaults to either 
-            'kg', 'kmol', or 'kJ', depending on what dimensions was the basis
-            set originally.
-
+            Basis of characterization factor. Valid dimensions include weight, 
+            molar, and energy (e.g. 'kg', 'kmol', 'kJ'). Defaults to 'kg'.
+        units : str, optional
+            Units of impact indicator. Before using this argument, the default units 
+            of the impact indicator should be defined with 
+            thermosteam.settings.define_impact_indicator.
+            Units must also be dimensionally consistent with the default units.
+            
         Raises
         ------
         DimensionalityError
@@ -366,25 +380,29 @@ class HeatUtility:
 
         """
         try:
-            value, units = self.characterization_factors[ID, key]
+            value, basis_units = self.characterization_factors[ID, key]
         except KeyError:
             if basis is None:
                 return 0., None
             else:
                 return 0.
+        if units is not None:
+            original_units = settings.get_impact_indicator_units(units)
+            value = original_units.convert(value, units)
         if basis is None:
-            return value, units._units
+            return value, basis_units._units
         else:
-            return value / units.conversion_factor(basis)
+            return value / basis_units.conversion_factor(basis)
 
     def get_impact(self, key):
         agent = self.agent
-        CF, units = self.get_CF(agent.ID, key)
-        if units == mass_units:
+        CF, basis_units = self.get_CF(agent.ID, key)
+        if CF == 0.: return 0.
+        if basis_units == mass_basis_units:
             return self.flow * agent.MW * CF
-        elif units == mol_units:
+        elif basis_units == mol_basis_units:
             return self.flow * CF
-        elif units == energy_units:
+        elif basis_units == energy_basis_units:
             return self.duty * CF
         else:
             raise RuntimeError("unknown error")
