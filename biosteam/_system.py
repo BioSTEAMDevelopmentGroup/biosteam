@@ -41,6 +41,12 @@ __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
            'mark_disjunction', 'unmark_disjunction')
 
+def _reformat(name):
+    name = name.replace('_', ' ')
+    if name.islower(): name= name.capitalize()
+    return name
+
+
 # %% Customization to system creation
 
 disjunctions = []
@@ -1770,9 +1776,23 @@ class System:
         """
         return stream.get_impact(key) * self.operating_hours
     
-    def get_total_impact(self, key):
+    def get_total_input_impact(self, key):
         """
-        Return total annual impact given the impact indicator key.
+        Return total annual impact of inputs given the impact indicator key.
+        
+        """
+        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
+        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        impact = self.get_total_feeds_impact(key) / self.operating_hours
+        for hu in heat_utilities:
+            if hu.flow > 0.: impact += hu.get_impact(key)
+        if power_utility.rate > 0.:
+            impact += power_utility.get_impact(key)
+        return impact * self.operating_hours
+    
+    def get_net_impact(self, key):
+        """
+        Return net annual impact, including displaced impacts, given the impact indicator key.
         
         """
         return (
@@ -1781,7 +1801,7 @@ class System:
             - self.get_total_products_impact(key)
         )
     
-    def get_property_allocated_impact(self, key, property=None, units=None):
+    def get_property_allocated_impact(self, key, property, units):
         total_property = 0.
         heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
         power_utility = bst.PowerUtility.sum(self.power_utilities)
@@ -1800,6 +1820,71 @@ class System:
         if power_utility.rate > 0.:
             impact += power_utility.get_impact(key)
         return impact / total_property
+    
+    def get_property_allocation_factors(self, property, units):
+        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
+        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        properties = {}
+        if hasattr(bst.PowerUtility, property):
+            if power_utility.rate < 0.:
+                value = power_utility.get_property(property, units)
+                if value: properties['Electricity'] = value
+        if hasattr(bst.HeatUtility, property):
+            for hu in heat_utilities:
+                if hu.flow < 0.: 
+                    value = hu.get_property(property, units)
+                    if value: properties[_reformat(hu.agent.ID)] = value
+        if hasattr(bst.Stream, property):
+            for stream in self.products:
+                value = stream.get_property(property, units)
+                if value: properties[_reformat(stream.ID)] = value
+        total_property = sum(properties.values())
+        allocation_factors = {i: j / total_property for i, j in properties.items()}
+        return allocation_factors
+    
+    def get_displacement_allocation_factors(self, main_product, key):
+        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
+        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        allocation_factors = {}
+        isa = isinstance
+        if isa(main_product, bst.Stream):
+            CF_original = main_product.get_CF(key)
+        elif main_product == 'Electricity':
+            main_product = power_utility
+            CF_original = main_product.get_CF(key)
+        else:
+            raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
+        items = [main_product]
+        for stream in self.products:
+            if key in stream.characterization_factors:
+                items.append(stream)
+        for hu in heat_utilities:
+            if hu.flow > 0. and (hu.agent.ID, key) in hu.characterization_factors:
+                items.append(hu)
+        if power_utility.rate < 0. and key in power_utility.characterization_factors:
+            items.append(power_utility)
+        for item in items:
+            total_input_impact = self.get_total_input_impact(key)
+            net_impact = self.get_net_impact(key)
+            item_impact = item.get_impact(key) * self.operating_hours
+            if not isa(item, Stream): item_impact *= -1
+            displaced_impact = net_impact + item_impact
+            if isa(item, bst.Stream):
+                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
+            elif isa(item, bst.HeatUtility):
+                allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
+            elif isa(item, bst.PowerUtility):
+                allocation_factors['Electricity'] = displaced_impact / total_input_impact
+            else:
+                raise RuntimeError('unknown error')
+            if item is main_product:
+                if isa(main_product, bst.Stream):
+                    main_product.set_CF(key, displaced_impact / self.get_mass_flow(main_product))
+                elif main_product == 'Electricity':
+                    main_product.set_CF(key, displaced_impact / (main_product.rate * self.operating_hours))
+        main_product.set_CF(key, CF_original)
+        total = sum(allocation_factors.values())
+        return {i: j / total for i, j in allocation_factors.items()}
     
     @property
     def sales(self):

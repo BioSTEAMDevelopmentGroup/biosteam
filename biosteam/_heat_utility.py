@@ -398,11 +398,11 @@ class HeatUtility:
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)
         if CF == 0.: return 0.
-        if basis_units == mass_basis_units:
+        if basis_units == 'kg':
             return self.flow * agent.MW * CF
-        elif basis_units == mol_basis_units:
+        elif basis_units == 'mol':
             return self.flow * CF
-        elif basis_units == energy_basis_units:
+        elif basis_units == 'kJ':
             return self.duty * CF
         else:
             raise RuntimeError("unknown error")
@@ -410,13 +410,12 @@ class HeatUtility:
     def get_inventory(self, key):
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)
-        units = str(basis_units)
-        if basis_units == mass_basis_units:
-            return self.flow * agent.MW, units
-        elif basis_units == mol_basis_units:
-            return self.flow, units
-        elif basis_units == energy_basis_units:
-            return self.duty, units
+        if basis_units == 'kg':
+            return self.flow * agent.MW, basis_units
+        elif basis_units == 'mol':
+            return self.flow, basis_units
+        elif basis_units == 'kJ':
+            return self.duty, basis_units
         else:
             raise RuntimeError("unknown error")
 
