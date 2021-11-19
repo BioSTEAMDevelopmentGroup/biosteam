@@ -316,8 +316,6 @@ class System:
         '_feeds',
         '_products',
         '_state',
-        '_dct_dy',
-        '_dy',
     )
 
     take_place_of = Unit.take_place_of
@@ -1458,136 +1456,168 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
-
     def _init_dynamic(self):
         '''Initialize attributes related to dynamic simulation.'''
         self._state = None
-        self._dct_dy = None
-        # self._dy = []
-
 
     def reset_cache(self):
         """Reset cache of all unit operations."""
         for unit in self.units: unit.reset_cache()
         self._init_dynamic()
 
-
-    def _state_dct2arr(self, dct):
+    def _state_attr2arr(self):
         arr = np.array([])
         idxer = {}
         for unit in self.units:
             start = len(arr)
-            arr = np.append(arr, dct[unit._ID])
+            arr = np.append(arr, unit._state)
             stop = len(arr)
             idxer[unit._ID] = (start, stop)
         return arr, idxer
 
-    def _dstate_dct2arr(self, dct, idx):
-        arr = np.zeros(max([i[-1] for i in idx.values()]))
-        for k,v in idx.items():
-            arr[v[0]:v[1]] = dct[k]
-        return arr
-
-    def _state_arr2dct(self, arr, idx):
-        dct_y = {}
+    def _dstate_attr2arr(self, arr, idx):
+        dy = np.zeros_like(arr)
         for unit in self.units:
             start, stop = idx[unit._ID]
-            dct_y.update(unit._state_locator(arr[start: stop]))
-        for ws in self.feeds:
-            dct_y[ws._ID] = np.append(ws.conc, ws.get_total_flow('m3/d'))
-        return dct_y
+            dy[start: stop] = unit._dstate
+        return dy
 
-    def _dstate_arr2dct(self, arr, idx):
-        dct_dy = {}
+    def _state_arr2attr(self, arr, idx):
         for unit in self.units:
-            start, stop = idx[unit.ID]
-            dct_dy.update(unit._dstate_locator(arr[start: stop]))
-        return dct_dy
-
+            start, stop = idx[unit._ID]
+            unit._update_state(arr[start: stop])
 
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
         if self._state is None:
-            dct = {}
+            for ws in self.feeds:
+                if ws._state is None: ws._init_state()
             n_rotate = 0
             for u in self.units:
                 if not u.isdynamic: n_rotate += 1
                 else: break
             units = self.units[n_rotate:] + self.units[:n_rotate]
-            for unit in units: dct.update(unit._load_state())
-            y, idx = self._state_dct2arr(dct)
+            for unit in units: 
+                if unit._state is None: unit._init_state()   
+                unit._update_state(unit._state)
+                unit._update_dstate()  
+            y, idx = self._state_attr2arr()
             self._state = {'time': 0,
                            'state': y,
-                           'indexer': idx}
+                           'indexer': idx,
+                           'state_over_time': None,
+                           'n_rotate': n_rotate}
         else:
             y = self._state['state']
             idx = self._state['indexer']
+            n_rotate = self._state['n_rotate']
         return y, idx, n_rotate
 
-    def _ODE(self, idx, yshape, n_rotate):
+    def _ODE(self, idx, n_rotate):
         '''System-wide ODEs.'''
-        dct_dy = self._dct_dy if self._dct_dy \
-            else self._dstate_arr2dct(np.zeros(yshape), idx)
-        feeds = self.feeds
         units = self.units[n_rotate:] + self.units[:n_rotate]
         def dydt(t, y):
-            dct_y = self._state_arr2dct(y, idx)
-            # print("\n%10.3e"%t)
+            self._state_arr2attr(y, idx)
             for unit in units:
-                QC_ins = np.concatenate([dct_y[ws._ID] for ws in unit._ins])
-                dQC_ins = np.concatenate([np.zeros(dct_y[ws._ID].shape) if ws in feeds else dct_dy[ws._ID] for ws in unit._ins])
-                QC = dct_y[unit._ID]
-                dy_dt = unit.ODE
-                QC_dot = dy_dt(t, QC_ins, QC, dQC_ins)
-                dct_dy.update(unit._dstate_locator(QC_dot))
-            self._dct_dy = dct_dy
-            # dy = self._dstate_dct2arr(dct_dy, idx)            
-            # self._dy.append(np.append(t, dy))
-            # return dy
-            return self._dstate_dct2arr(dct_dy, idx)
+                QC_ins = unit._collect_ins_state()
+                dQC_ins = unit._collect_ins_dstate()
+                QC = unit._state
+                unit.ODE(t, QC_ins, QC, dQC_ins)   
+            return self._dstate_attr2arr(y, idx)
         return dydt
-
 
     def _write_state(self, t, y):
         '''record the states at a certain time point of the dynamic simulation and define wastestreams '''
         self._state['time'] = t
         self._state['state'] = y
         idx = self._state['indexer']
-        dct_y = self._state_arr2dct(y, idx)
-        for unit in self.units:
-            unit._state = dct_y[unit._ID]
-            unit._define_outs()
+        self._state_arr2attr(y, idx)
+        for ws in self.streams - set(self.feeds):
+            ws._state2flows()
 
     def clear_state(self):
         self._state = None
-        self._dct_dy = None
         for u in self.units:
             u._state = None
+        for ws in self.streams:
+            ws._state = None
 
+    def _state2df(self, path=''):
+        header = [('-', 't [d]')] + sum([[(m, n) for m, n in zip([u.ID]*len(u._state_header), u._state_header)] for u in self.units], [])
+        import pandas as pd
+        header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
+        data = self._state['state_over_time']
+        df = pd.DataFrame(data, columns=header)
+        if not path:
+            return df
+        if path.endswith(('.xlsx', '.xls')):
+            df.to_excel(path)
+        elif path.endswith('.csv'):
+            df.to_csv(path)
+        elif path.endswith('.tsv'):
+            df.to_csv(path, sep='\t')
+        else:
+            ext = path.split('.')[-1]
+            raise ValueError('Only support file extensions of '
+                             '".xlsx", ".xls", ".csv", and ".tsv", '
+                             f'not .{ext}.')
 
-    def simulate(self, start_from_cached_state=True, solver='solve_ivp', **kwargs):
-        """Converge the path and simulate all units."""
+    def simulate(self, start_from_cached_state=True,
+                 solver='solve_ivp', export_state_to='', print_msg=False,
+                 **kwargs):
+        """
+        Converge the path and simulate all units.
+        
+        Parameters
+        ----------
+        start_from_cached_state: bool
+            Whether to start from the cached state.
+        solver : str
+            Which ``scipy`` function to use, either "solve_ivp" or "odeint".
+        export_state_to: str
+            If provided with a path, will save the simulated states over time to the given path,
+            supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
+        kwargs : dict
+            Other keyword arguments that will be passed to ``solve_ivp``
+            or ``odeint``. Must contain t_span for ``solve_ivp`` or t for ``odeint``.
+        
+        See Also
+        --------
+        `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
+        `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_        
+        """
         self._setup()
         self._converge()
         if self.isdynamic:
             if not start_from_cached_state: self.clear_state()
             y0, idx, nr = self._load_state()
-            dydt = self._ODE(idx, y0.shape, nr)
-            if solver == 'odeint':
-                sol = odeint(func=dydt, y0=y0, tfirst=True, **kwargs)
-                np.savetxt('sol.txt', sol, delimiter='\t')
-                # np.savetxt('dy.txt', np.vstack(self._dy), delimiter='\t')
-                self._write_state(kwargs['t'][-1], sol[-1])
-            else:
+            dydt = self._ODE(idx, nr)
+            if solver == 'solve_ivp':
                 sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
-                np.savetxt('sol.txt', np.vstack((sol.t, sol.y)).T, delimiter='\t')
-                print(sol.status)
-                print(sol.message)
+                self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
+                if sol.status == 0:
+                    print('Simulation completed.')
+                else:
+                    print(sol.message)
                 self._write_state(sol.t[-1], sol.y.T[-1])
+            elif solver=='odeint':
+                sol = odeint(func=dydt, y0=y0, printmessg=print_msg, tfirst=True, **kwargs)
+                t_arr = kwargs['t']
+                if sol.shape[0] < len(t_arr):
+                    print('Simulation failed.')
+                else:
+                    print('Simulation completed.')
+                self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
+                self._write_state(t_arr[-1], sol[-1])
+            else:
+                raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
+                                 f'not {solver}.')
+            if export_state_to:
+                self._state2df(export_state_to)
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
-    # Convinience methods
+    # Convenience methods
 
     @property
     def heat_utilities(self):
