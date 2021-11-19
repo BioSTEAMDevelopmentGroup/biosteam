@@ -1567,14 +1567,18 @@ class System:
         start_from_cached_state: bool
             Whether to start from the cached state.
         solver : str
-            Which ``scipy`` function to use, either "solve_ivp" (default and preferred)
-            or "odeint".
+            Which ``scipy`` function to use, either "solve_ivp" or "odeint".
         export_state_to: str
             If provided with a path, will save the simulated states over time to the given path,
             supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
         kwargs : dict
             Other keyword arguments that will be passed to ``solve_ivp``
             or ``odeint``. Must contain t_span for ``solve_ivp`` or t for ``odeint``.
+        
+        See Also
+        --------
+        `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
+        `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_        
         """
         self._setup()
         self._converge()
@@ -1592,12 +1596,13 @@ class System:
                 self._write_state(sol.t[-1], sol.y.T[-1])
             elif solver=='odeint':
                 sol = odeint(func=dydt, y0=y0, printmessg=print_msg, tfirst=True, **kwargs)
-                if sol.shape[0] < len(kwargs['t']):
+                t_arr = kwargs['t']
+                if sol.shape[0] < len(t_arr):
                     print('Simulation failed.')
                 else:
                     print('Simulation completed.')
-                self._state['state_over_time'] = np.hstack((kwargs['t'], sol))
-                self._write_state(kwargs['t'][-1], sol[-1])
+                self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
+                self._write_state(t_arr[-1], sol[-1])
             else:
                 raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
                                  f'not {solver}.')
