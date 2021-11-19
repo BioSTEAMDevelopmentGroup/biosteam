@@ -159,7 +159,7 @@ def voc_table(systems, product_IDs, system_names=None):
     data[-1, 1:] = data[:N_consumed, 1:].sum(axis=0) - data[N_consumed:, 1:].sum(axis=0)
     if system_names is None:
         system_names = [i.ID for i in systems]
-    columns = [i + "\n[MM$/yr]" for i in system_names]
+    columns = [i + " [MM$/yr]" for i in system_names]
     return pd.DataFrame(data, 
                         index=pd.MultiIndex.from_tuples(table_index),
                         columns=('Price [$/ton]', *columns))
@@ -278,14 +278,18 @@ def lca_displacement_allocation_table(systems, key, items,
     input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
     output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
-    index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents)}
+    inputs = [*feeds, *input_heating_agents, *input_cooling_agents, *other_utilities]
+    outputs = [*coproducts, *other_byproducts, *output_heating_agents, *output_cooling_agents]
+    keys = [*inputs, 'Total inputs', *outputs, 'Total outputs displaced', 'Total']
+    index = {j: i for (i, j) in enumerate(keys)}
     table_index = [*[('Inputs', _reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
-                   *[('Outputs', _reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents]]
-    table_index.append(("Total", ''))
+                   ('Total inputs', ''),
+                   *[('Outputs displaced', _reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents],
+                   ('Total outputs displaced', ''),
+                   ("Total", '')]
     N_cols = len(systems) + 1
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
-    N_outputs = len(coproducts) + len(other_byproducts)
     for col, sys in enumerate(systems):
         item_flow = sys.get_mass_flow(items[col])
         for stream in sys.feeds + sys.products:
@@ -307,8 +311,14 @@ def lca_displacement_allocation_table(systems, key, items,
             ind = index[i]
             data[ind, 0] = cf
             data[ind, col + 1] = impact / item_flow
-    N_inputs = N_rows - N_outputs - 1
-    data[-1, 1:] = (data[:N_inputs, 1:].sum(axis=0) - data[N_inputs:, 1:].sum(axis=0))
+    total_inputs_index = index['Total inputs']
+    data[total_inputs_index, 1:] = total_inputs = data[:total_inputs_index, 1:].sum(axis=0)
+    data[total_inputs_index, 0] = ''
+    total_outputs_index = index['Total outputs displaced']
+    data[total_outputs_index, 1:] = total_outputs = data[total_inputs_index + 1:total_outputs_index, 1:].sum(axis=0)
+    data[total_outputs_index, 0] = ''
+    data[-1, 1:] = total_inputs - total_outputs
+    data[-1, 0] = ''
     if system_names is None and len(systems) == 1:
         columns = [f"{key} [{impact_units}/kg*{item_name}]"]
     else:
