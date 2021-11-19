@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.31.17'
+__version__ = '2.31.18'
 
 #: dict[str, float] Price of stream utilities (in USD/kg) which are defined as 
 #: inlets and outlets to unit operations.
