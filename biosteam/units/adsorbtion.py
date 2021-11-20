@@ -15,11 +15,59 @@ __all__ = ('AdsorbtionColumnTSA',)
 
 class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
     """
+    Create a temperature swing adsorption (TSA) column. Default parameters
+    are heuristic values for adsorption of water and polar components using
+    silica gel. The design and cost algorithm of the adsorption column is 
+    based on [1]_, [2]_, and [4]_. Three vessels are used: a lead, a guard, 
+    and a standby vessel. The lead is in equilibrium, guard holds the 
+    breakthrough curve and mass transfer zone, and the standby is in regeneration.
+    Once the standby vessel is regenerated, it becomes the guard, the lead becomes
+    the standby, and the guard becomes the lead. Therefore, the cycle time is
+    the regeneration time.
+    
+    Parameters
+    ----------
+    ins : stream sequence
+        [0] Feed
+        [1] Air
+    outs : stream sequence
+        [0] Effluent
+        [1] Purge
+    mean_velocity : float, optional
+        Mean velocity of the feed. The diameter of the receiving vessel adjusts
+        accordingly. Defaults to 7.2 [m / hr]. Typical velocities are 4 to 14.4 m / hr for liquids [1]_.
+    regeneration_air_velocity : float, optional
+        Mean velocity of the air used to regenerate the bed. Defaults to 540 [m / hr]. 
+        Common velocity range for gasses is 504-2160 m / hr [1]_.
+    cycle_time : float, optional
+        Time at which the receiving vessel is switched. Defaults to 3 [hr]. 
+        Note that 1-2 hours required for thermal-swing-adsorption 
+        (TSA) for silica gels. One hr is added to be conservative [2]_. 
+    rho_adsorbent : float, optional
+        The density of the adsorbent. Defaults to 480 [kg/m3], which is common 
+        for silica gels [3]_.
+    adsorbent_capacity : float, optional
+        Fraction of absorbate that the absorbent can hold. Defaults to 0.1, a 
+        conservative heuristic from [2]_.
+    T_regeneration : float, optional
+        Temperature during the regeneration phase. Defaults to 393.15 [K], which
+        is used for silica gels [2]_.
+    vessel_material : float, optional
+        Vessel material. Defaults to 'Stainless steel 316',
+    vessel_type : float, optional
+        Vessel type. Defaults to 'Vertical'.
+    adsorbate_ID : string
+        Name of adsorbate.
+    order : tuple[str], optional
+        Order of component splits.
+    split : dict[str, float] or list[float], optional
+        Component splits towards the effluent (0th outlet).
+    
     Examples
     --------
     >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['Water', 'O2', 'N2'])
-    >>> feed = bst.Stream('feed', O2=0.32, N2=0.78, Water=0.1, units='kg/hr', total_flow=1000.)
+    >>> bst.settings.set_thermo(['Water', 'O2', 'N2', 'Hexane'])
+    >>> feed = bst.Stream('feed', Hexane=0.9, Water=0.1, units='kg/hr', total_flow=1000.)
     >>> A1 = AdsorbtionColumnTSA('A1', [feed, 'air'], 
     ...     split=dict(Water=0., O2=0.99, N2=0.99),
     ...     adsorbate_ID='Water',
@@ -27,22 +75,31 @@ class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
     >>> A1.simulate()
     >>> A1.results()
     Adsorbtion column TSA                           Units                   A1
-    Low pressure steam  Duty                        kJ/hr              2.3e+05
-                        Flow                      kmol/hr                 5.94
-                        Cost                       USD/hr                 1.41
-    Design              Vessel diameter                                  0.494
-                        Vessel length                                     10.8
+    Low pressure steam  Duty                        kJ/hr             7.85e+05
+                        Flow                      kmol/hr                 20.2
+                        Cost                       USD/hr                 4.81
+    Design              Vessel diameter                                   0.51
+                        Vessel length                                     12.6
                         Number of reactors                                   3
                         Vessel type                                   Vertical
-                        Length                         ft                  3.3
-                        Diameter                       ft                0.151
-                        Weight                         lb                 16.7
+                        Length                         ft                 3.83
+                        Diameter                       ft                0.156
+                        Weight                         lb                 19.9
                         Wall thickness                 in                 0.25
                         Vessel material                    Stainless steel 316
-    Purchase cost       Vertical pressure vessel      USD             1.52e+04
-                        Platform and ladders          USD                  675
-    Total purchase cost                               USD             1.59e+04
-    Utility cost                                   USD/hr                 1.41
+    Purchase cost       Vertical pressure vessel      USD             1.68e+04
+                        Platform and ladders          USD                  803
+    Total purchase cost                               USD             1.76e+04
+    Utility cost                                   USD/hr                 4.81
+    
+    References
+    ----------
+    [1] Adsorption basics Alan Gabelman (2017) Adsorption basics Part 1. AICHE
+    [2] Seader, J. D., Separation Process Principles: Chemical and Biochemical Operations,” 3rd ed., Wiley, Hoboken, NJ (2011).
+    [3] https://www.daisogelusa.com/technical-notes/approximate-packing-density-for-daisogel-bulk-silica-gel/
+    [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani,
+        R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     # NOTE: Unit ignores cost of compressing air.
@@ -52,7 +109,7 @@ class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
     
     def __init__(self, 
             ID='', ins=None, outs=(), thermo=None, *,
-            mean_velocity=14.4, # m / hr; Alan Gabelman (2017) Adsorption basics Part 1. AICHE
+            mean_velocity=7.2, # m / hr; typical velocities are 4 to 14.4 m /hr for liquids; Adsorption basics Alan Gabelman (2017) Adsorption basics Part 1. AICHE
             regeneration_air_velocity=540, # Lower bound common velocity range for gasses, m / hr; Alan Gabelman (2017) Adsorption basics Part 1. AICHE
             cycle_time=3, # 1-2 hours required for thermal-swing-adsorption (TSA) for silica gels (add 1 hr for conservativeness); Seader, J. D., Separation Process Principles: Chemical and Biochemical Operations,” 3rd ed., Wiley, Hoboken, NJ (2011).
             rho_adsorbent=480, # (in kg/m3) Common for silica gels https://www.daisogelusa.com/technical-notes/approximate-packing-density-for-daisogel-bulk-silica-gel/
@@ -126,8 +183,6 @@ class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
             )
         )    
         self.heat_utilities[0](self.regeneration_purge.H, 273.15 + 25, self.T_regeneration)
-        # TODO: Think about heating duty associated to flowing dry air for regeneration.
-        # TODO: Add tests for sizing and costs for the pressure vessels
     
     def _cost(self):
         design_results = self.design_results
