@@ -42,7 +42,7 @@ from .size_enlargement import *
 from .liquid_liquid_extraction import *
 from .wastewater import *
 from .facilities import *
-
+from .adsorption import *
 
 from . import (
     _flash, 
@@ -61,6 +61,7 @@ from . import (
     _balance,  
     _screw_feeder,
     _continuous_reactor,
+    adsorption,
     size_reduction, 
     size_enlargement,
     drying,
@@ -118,6 +119,8 @@ __all__ = ('Unit',
            *_carbon_capture.__all__,
            *wastewater.__all__,
            *drying.__all__,
+           *adsorption.__all__,
+           'adsorption',
            'drying',
            'tank',
            'mixing',

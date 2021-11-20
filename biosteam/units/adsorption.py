@@ -8,12 +8,13 @@
 """
 """
 import biosteam as bst
+from .splitting import Splitter
 from biosteam.units.design_tools import PressureVessel
 from math import sqrt, pi
 
-__all__ = ('AdsorbtionColumnTSA',)
+__all__ = ('AdsorptionColumnTSA',)
 
-class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
+class AdsorptionColumnTSA(PressureVessel, Splitter):
     """
     Create a temperature swing adsorption (TSA) column. Default parameters
     are heuristic values for adsorption of water and polar components using
@@ -68,7 +69,7 @@ class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['Water', 'O2', 'N2', 'Hexane'])
     >>> feed = bst.Stream('feed', Hexane=0.9, Water=0.1, units='kg/hr', total_flow=1000.)
-    >>> A1 = AdsorbtionColumnTSA('A1', [feed, 'air'], 
+    >>> A1 = AdsorptionColumnTSA('A1', [feed, 'air'], 
     ...     split=dict(Water=0., O2=0.99, N2=0.99),
     ...     adsorbate_ID='Water',
     ...  )
@@ -168,7 +169,7 @@ class AdsorbtionColumnTSA(PressureVessel, bst.Splitter):
         feed = self.ins[0]
         rho_adsorbent = self.rho_adsorbent
         adsorbent_capacity = self.adsorbent_capacity
-        F_mass_adsorbate = feed.imass[self.adsorbate_ID].value
+        F_mass_adsorbate = float(feed.imass[self.adsorbate_ID])
         diameter = design_results['Vessel diameter']
         online_length = (
             self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * diameter)
