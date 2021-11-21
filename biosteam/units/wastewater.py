@@ -66,10 +66,10 @@ __all__ = (
 
 # %% Functional utilities
 
-#: tuple[str] IDs for non-digestable components in wastewater
-non_digestables = ('WWTsludge', 'Cellulose', 'Xylan', 'CellulaseNutrients',
+#: list[str] IDs for non-digestable components in wastewater
+non_digestables = ['WWTsludge', 'Cellulose', 'Xylan', 'CellulaseNutrients',
                    'Mannan', 'Lignin', 'Galactan', 'Glucan', 'Acetate',
-                   'Biomass', 'Arabinan', 'Tar', 'CO', 'CO2', 'CH4')
+                   'Biomass', 'Arabinan', 'Tar', 'CO', 'CO2', 'CH4']
 
 def get_digestable_organic_chemicals(chemicals):
     """

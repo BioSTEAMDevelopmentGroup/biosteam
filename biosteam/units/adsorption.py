@@ -69,16 +69,16 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['Water', 'O2', 'N2', 'Hexane'])
     >>> feed = bst.Stream('feed', Hexane=0.9, Water=0.1, units='kg/hr', total_flow=1000.)
-    >>> A1 = AdsorptionColumnTSA('A1', [feed, 'air'], 
-    ...     split=dict(Water=0., O2=0.99, N2=0.99),
+    >>> A1 = bst.AdsorptionColumnTSA('A1', [feed, 'air'], 
+    ...     split=dict(Water=0., Hexane=1.0),
     ...     adsorbate_ID='Water',
     ...  )
     >>> A1.simulate()
     >>> A1.results()
-    Adsorbtion column TSA                           Units                   A1
-    Low pressure steam  Duty                        kJ/hr             7.85e+05
-                        Flow                      kmol/hr                 20.2
-                        Cost                       USD/hr                 4.81
+    Adsorption column TSA                           Units                   A1
+    Low pressure steam  Duty                        kJ/hr             2.75e+05
+                        Flow                      kmol/hr                  7.1
+                        Cost                       USD/hr                 1.69
     Design              Vessel diameter                                   0.51
                         Vessel length                                     12.6
                         Number of reactors                                   3
@@ -91,7 +91,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     Purchase cost       Vertical pressure vessel      USD             1.68e+04
                         Platform and ladders          USD                  803
     Total purchase cost                               USD             1.76e+04
-    Utility cost                                   USD/hr                 4.81
+    Utility cost                                   USD/hr                 1.69
     
     References
     ----------
@@ -111,7 +111,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     def __init__(self, 
             ID='', ins=None, outs=(), thermo=None, *,
             mean_velocity=7.2, # m / hr; typical velocities are 4 to 14.4 m /hr for liquids; Adsorption basics Alan Gabelman (2017) Adsorption basics Part 1. AICHE
-            regeneration_air_velocity=540, # Lower bound common velocity range for gasses, m / hr; Alan Gabelman (2017) Adsorption basics Part 1. AICHE
+            regeneration_air_velocity=1332, # Mid point in velocity range for gasses, m / hr; Alan Gabelman (2017) Adsorption basics Part 1. AICHE
             cycle_time=3, # 1-2 hours required for thermal-swing-adsorption (TSA) for silica gels (add 1 hr for conservativeness); Seader, J. D., Separation Process Principles: Chemical and Biochemical Operations,” 3rd ed., Wiley, Hoboken, NJ (2011).
             rho_adsorbent=480, # (in kg/m3) Common for silica gels https://www.daisogelusa.com/technical-notes/approximate-packing-density-for-daisogel-bulk-silica-gel/
             adsorbent_capacity=0.1, # Conservative heuristic from Seider et. al. (2017) Product and Process Design Principles. Wiley
