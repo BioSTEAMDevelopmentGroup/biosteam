@@ -252,6 +252,7 @@ class HeatExchangerNetwork(Facility):
                 sys._converge()
             except:
                 warning = RuntimeWarning('heat exchanger network was not able to converge')
+                for i in sys.units: i._run()
                 warn(warning)
             for i in sys.units:
                 i._summary()
