@@ -171,13 +171,14 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
     PowerUtility = bst.PowerUtility
     other_utilities = []
     other_byproducts = []
+    process_items = []
     other_values = {}
-    def get_subdct(name):
+    def set_value(name, sys, value):
         if name in other_values:
-            return other_values[name]
+            dct = other_values[name]
         else:
             other_values[name] = dct = {}
-            return dct
+        dct[sys] = value
         
     for sys in systems:
         electricity_consumption = sum([i.rate for i in sys.power_utilities]) * sys.operating_hours
@@ -185,14 +186,20 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
             if 'Electricity [kWhr/yr]' not in other_utilities: other_utilities.append('Electricity [kWhr/yr]')
             cf = PowerUtility.characterization_factors.get(key, 0.)
             if cf:
-                dct = get_subdct('Electricity [kWhr/yr]')
-                dct[sys] = electricity_consumption
+                set_value('Electricity [kWhr/yr]', sys, electricity_consumption)
         else:
             if 'Electricity [kWhr/yr]' not in other_byproducts: other_byproducts.append('Electricity [kWhr/yr]')
             cf = PowerUtility.characterization_factors.get(key, 0.)
             if cf:
-                dct = get_subdct('Electricity [kWhr/yr]')
-                dct[sys] = -electricity_consumption
+                set_value('Electricity [kWhr/yr]', sys, -electricity_consumption)
+        try: process_impact_items = sys.process_impact_items[key]
+        except: continue
+        for item in process_impact_items:
+            if item.name not in process_items: process_items.append(item.name)
+            value = item.inventory()
+            if item.basis != 'kg':
+                value = f"{value} [{item.basis}/yr]"
+            set_value(item.name, sys, value)
         
     def reformat(name):
         name = name.replace('_', ' ')
@@ -206,9 +213,10 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
     input_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow > 1e-6] for hus in system_heat_utilities], [])))
     output_heating_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty > 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
-    index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents)}
+    index = {j: i for (i, j) in enumerate(feeds + input_heating_agents + input_cooling_agents + other_utilities + coproducts + other_byproducts + output_heating_agents + output_cooling_agents + process_items)}
     table_index = [*[('Inputs', reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
-                   *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents]]
+                   *[('Outputs', reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents],
+                   *[(i, '') for i in process_items]]
     N_cols = len(systems)
     N_rows = len(table_index)
     data = np.zeros([N_rows, N_cols], dtype=object)
@@ -248,27 +256,37 @@ def lca_displacement_allocation_table(systems, key, items,
     PowerUtility = bst.PowerUtility
     other_utilities = []
     other_byproducts = []
+    process_inventory = []
     other_values = {}
     impact_units = str(bst.settings.get_impact_indicator_units(key))
-    def get_subdct(name):
+    def set_value(name, sys, CF, value):
         if name in other_values:
-            return other_values[name]
+            dct = other_values[name]
         else:
             other_values[name] = dct = {}
-            return dct
+        dct[sys] = (CF, value)
         
     for sys in systems:
         electricity_consumption = sum([i.rate for i in sys.power_utilities]) * sys.operating_hours
         if electricity_consumption > 0.: 
             if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
             cf = PowerUtility.characterization_factors.get(key, 0.)
-            dct = get_subdct('Electricity')
-            dct[sys] = (f"{cf} {impact_units}/kWhr", electricity_consumption * cf)
+            set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", electricity_consumption * cf)
         else:
             if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
             cf = PowerUtility.characterization_factors.get(key, 0.)
-            dct = get_subdct('Electricity')
-            dct[sys] = (f"{cf} {impact_units}/kWhr", - electricity_consumption * cf)
+            set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", - electricity_consumption * cf)
+        try: process_impact_items = sys.process_impact_items[key]
+        except: continue
+        for item in process_impact_items:
+            if item.name not in process_inventory: process_inventory.append(item.name)
+            value = item.impact()
+            CF = item.CF
+            basis = item.basis
+            if basis != 'kg':
+                CF = f"{CF} [{impact_units}/{basis}"
+                value = f"{value} [{basis}/yr]"
+            set_value(item.name, sys, CF, value)
     
     if item_name is None: item_name = items[0].ID.replace('_', ' ')
     feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if key in i.characterization_factors})
@@ -280,12 +298,13 @@ def lca_displacement_allocation_table(systems, key, items,
     output_cooling_agents = sorted(set(sum([[i.agent.ID for i in hus if (key, i.agent.ID) in i.characterization_factors and i.flow * i.duty < 0. and i.flow < -1e-6] for hus in system_heat_utilities], [])))
     inputs = [*feeds, *input_heating_agents, *input_cooling_agents, *other_utilities]
     outputs = [*coproducts, *other_byproducts, *output_heating_agents, *output_cooling_agents]
-    keys = [*inputs, 'Total inputs', *outputs, 'Total outputs displaced', 'Total']
+    keys = [*inputs, 'Total inputs', *outputs, 'Total outputs displaced', *process_inventory, 'Total']
     index = {j: i for (i, j) in enumerate(keys)}
     table_index = [*[('Inputs', _reformat(i)) for i in feeds + input_heating_agents + input_cooling_agents + other_utilities],
                    ('Total inputs', ''),
                    *[('Outputs displaced', _reformat(i)) for i in coproducts + other_byproducts + output_heating_agents + output_cooling_agents],
                    ('Total outputs displaced', ''),
+                   *[("Process impacts", i) for i in process_inventory],
                    ("Total", '')]
     N_cols = len(systems) + 1
     N_rows = len(table_index)
@@ -317,7 +336,7 @@ def lca_displacement_allocation_table(systems, key, items,
     total_outputs_index = index['Total outputs displaced']
     data[total_outputs_index, 1:] = total_outputs = data[total_inputs_index + 1:total_outputs_index, 1:].sum(axis=0)
     data[total_outputs_index, 0] = ''
-    data[-1, 1:] = total_inputs - total_outputs
+    data[-1, 1:] = total_inputs - total_outputs + data[total_outputs_index + 1:-1, 1:].sum(axis=0)
     data[-1, 0] = ''
     if system_names is None and len(systems) == 1:
         columns = [f"{key} [{impact_units}/kg*{item_name}]"]

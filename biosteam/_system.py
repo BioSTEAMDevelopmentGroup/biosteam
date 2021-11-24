@@ -46,6 +46,20 @@ def _reformat(name):
     if name.islower(): name= name.capitalize()
     return name
 
+# %% LCA
+
+class ProcessImpactItem:
+    __slots__ = ('name', 'basis', 'inventory', 'CF')
+    
+    def __init__(self, name, basis, inventory, CF):
+        self.name = name
+        self.basis = basis
+        self.inventory = inventory
+        self.CF = CF
+        
+    def impact(self):
+        return self.inventory() * self.CF
+
 
 # %% Customization to system creation
 
@@ -302,6 +316,7 @@ class System:
         'operating_hours',
         'flowsheet',
         'lang_factor',
+        'process_impact_items',
         '_stabilized',
         '_connections',
         '_irrelevant_units',
@@ -1617,6 +1632,43 @@ class System:
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
+    # User definitions
+    
+    def define_process_impact(self, key, name, basis, inventory, CF):
+        """
+        Define a process impact.
+
+        Parameters
+        ----------
+        key : str
+            Impact indicator key.
+        name : str
+            Name of process impact.
+        basis : str
+            Functional unit for the charaterization factor.
+        inventory : callable
+            Should return the annualized (not hourly) inventory flow rate 
+            given no parameters. Units should be in basis / yr
+        CF : float
+            Characterization factor in impact / basis.
+
+        """
+        item = ProcessImpactItem(name, basis, inventory, CF)
+        try:
+            if key in self.process_impact_items:
+                items = self.process_impact_items[key]
+                name = item.name
+                for i in items:
+                    if i.name == name:
+                        raise ValueError(
+                            f"item with name '{name}' already defined"
+                        )
+                items.append(item)
+            else:
+                self.process_impact_items[key] = [item]
+        except AttributeError:
+            self.process_impact_items = {key: [item]}
+
     # Convenience methods
 
     @property
@@ -1783,7 +1835,7 @@ class System:
     def get_total_feeds_impact(self, key):
         """
         Return the total annual impact of all feeds given 
-        the characterization factor key.
+        the impact indicator key.
         
         """
         return sum([s.F_mass * s.characterization_factors[key] for s in self.feeds
@@ -1820,13 +1872,26 @@ class System:
             impact += power_utility.get_impact(key)
         return impact * self.operating_hours
     
+    def get_process_impact(self, key):
+        """
+        Return the annual process impact given the impact indicator key.
+        
+        """
+        try:
+            process_impact_items = self.process_impact_items
+        except:
+            return 0.
+        else:
+            return sum([item.impact() for item in process_impact_items[key]])
+    
     def get_net_impact(self, key):
         """
         Return net annual impact, including displaced impacts, given the impact indicator key.
         
         """
         return (
-            self.get_total_feeds_impact(key) 
+            self.get_total_feeds_impact(key)
+            + self.get_process_impact(key)
             + self.get_net_utility_impact(key)
             - self.get_total_products_impact(key)
         )
@@ -1849,6 +1914,7 @@ class System:
             if hu.flow > 0.: impact += hu.get_impact(key)
         if power_utility.rate > 0.:
             impact += power_utility.get_impact(key)
+        impact += self.get_process_impact(key) / self.operating_hours
         return impact / total_property
     
     def get_property_allocation_factors(self, property, units):
