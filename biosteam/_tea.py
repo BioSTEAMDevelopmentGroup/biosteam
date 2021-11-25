@@ -936,9 +936,21 @@ class TEA:
                 sales_coefficients,
                 discount_factors,
                 self._fill_tax_and_incentives)
-        sales = flx.aitken_secant(NPV_with_sales,
-                                  sales, 1.0001 * sales + 1e-4, xtol=1e-6, ytol=10.,
-                                  maxiter=1000, args=args, checkiter=True)
+        x0 = sales
+        x1 = 1.01 * sales + 10
+        f = NPV_with_sales
+        try:
+            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
+                                      maxiter=1000, args=args, checkiter=True)
+        except Exception as e:
+            y0 = f(x0, *args)
+            y1 = f(x1, *args)
+            if y0 == y1 and y0 < 0.:
+                x0 = -y1 / self._years
+            else:
+                raise e
+            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
+                                      maxiter=1000, args=args, checkiter=True)
         self._sales = sales
         return sales
     
