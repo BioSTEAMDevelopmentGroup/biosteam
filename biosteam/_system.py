@@ -762,8 +762,8 @@ class System:
 
     @property
     def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether stablized convergence by adding an inner loop that uses
-        mass and energy balance approximations when applicable."""
+        """[bool] Whether to use a stablized convergence algorithm that implements 
+        an inner loop with mass and energy balance approximations when applicable."""
         return self._stabilized
     @use_stabilized_convergence_algorithm.setter
     def use_stabilized_convergence_algorithm(self, stabilized):
@@ -1673,13 +1673,13 @@ class System:
 
     @property
     def heat_utilities(self):
-        """[tuple] All HeatUtility objects."""
-        return utils.get_heat_utilities(self.cost_units)
+        """tuple[HeatUtility] the sum of all heat utilities in the system by agent."""
+        return bst.HeatUtility.sum_by_agent(utils.get_heat_utilities(self.cost_units))
 
     @property
-    def power_utilities(self):
-        """[tuple] All PowerUtility objects."""
-        return tuple(utils.get_power_utilities(self.cost_units))
+    def power_utility(self):
+        """[PowerUtility] Sum of all power utilities in the system."""
+        return bst.PowerUtility.sum(utils.get_power_utilities(self.cost_units))
 
     def get_inlet_utility_flows(self):
         """
@@ -1786,6 +1786,10 @@ class System:
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
 
+    def get_property(self, stream, name, units=None):
+        """Return the annualized property of a stream."""
+        return stream.get_property(name, units) * self.operating_hours
+
     def _price2cost(self, stream):
         """Get factor to convert stream price to cost."""
         F_mass = stream.F_mass
@@ -1798,7 +1802,7 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
-    def get_net_heat_utility_impact(self, agent, key):
+    def get_net_heat_utility_impact(self, agent, key, heat_utilities=None):
         if isinstance(agent, str): 
             ID = agent
             agent = bst.HeatUtility.get_agent(ID)
@@ -1811,26 +1815,30 @@ class System:
             )
         CF, units = bst.HeatUtility.get_CF(ID, key)
         if CF == 0.: return 0.
-        heat_utilities = self.heat_utilities
-        if units == 'kg':
-            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * agent.MW * self.operating_hours
-        elif units == 'kmol':
-            return sum([i.flow for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
-        elif units == 'kJ':
-            return sum([i.duty for i in heat_utilities if i.agent and i.agent.ID == ID]) * CF * self.operating_hours
-        else:
-            raise RuntimeError("unknown error")
+        if heat_utilities is None: heat_utilities = self.heat_utilities
+        for hu in heat_utilities:
+            if hu.agent and hu.agent.ID == ID:
+                if units == 'kg':
+                    return hu.flow * CF * agent.MW * self.operating_hours
+                elif units == 'kmol':
+                    return hu.flow * CF * self.operating_hours
+                elif units == 'kJ':
+                    return hu.duty * CF * self.operating_hours
+                else:
+                    raise RuntimeError("unknown error")
+        return 0.
     
     def get_net_electricity_impact(self, key):
         try:
-            return bst.PowerUtility.characterization_factors[key] * sum([i.rate for i in self.power_utilities]) * self.operating_hours
+            return self.power_utility.get_impact(key) * self.operating_hours
         except KeyError:
             return 0.
 
     def get_net_utility_impact(self, key):
         agents = (*bst.HeatUtility.cooling_agents,
                   *bst.HeatUtility.heating_agents)
-        return sum([self.get_net_heat_utility_impact(i, key) for i in agents]) * self.operating_hours + self.get_net_electricity_impact(key)
+        heat_utilities = self.heat_utilities
+        return sum([self.get_net_heat_utility_impact(i, key, heat_utilities) for i in agents]) * self.operating_hours + self.get_net_electricity_impact(key)
     
     def get_total_feeds_impact(self, key):
         """
@@ -1863,8 +1871,8 @@ class System:
         Return total annual impact of inputs given the impact indicator key.
         
         """
-        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
-        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
         impact = self.get_total_feeds_impact(key) / self.operating_hours
         for hu in heat_utilities:
             if hu.flow > 0.: impact += hu.get_impact(key)
@@ -1896,51 +1904,53 @@ class System:
             - self.get_total_products_impact(key)
         )
     
-    def get_property_allocated_impact(self, key, property, units):
+    def get_property_allocated_impact(self, key, name, units):
         total_property = 0.
-        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
-        power_utility = bst.PowerUtility.sum(self.power_utilities)
-        if hasattr(bst.PowerUtility, property):
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        operating_hours = self.operating_hours
+        if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
-                total_property += power_utility.get_property(property, units)
-        if hasattr(bst.HeatUtility, property):
+                total_property += power_utility.get_property(name, units) * operating_hours
+        if hasattr(bst.HeatUtility, name):
             for hu in heat_utilities:
-                if hu.flow < 0.: total_property += hu.get_property(property, units)
-        if hasattr(bst.Stream, property):
+                if hu.flow < 0.: total_property += hu.get_property(name, units) * operating_hours
+        if hasattr(bst.Stream, name):
             for stream in self.products:
-                total_property += stream.get_property(property, units)
-        impact = self.get_total_feeds_impact(key) / self.operating_hours
+                total_property += self.get_property(stream, name, units)
+        impact = self.get_total_feeds_impact(key)
         for hu in heat_utilities:
-            if hu.flow > 0.: impact += hu.get_impact(key)
+            if hu.flow > 0.: impact += hu.get_impact(key) * operating_hours
         if power_utility.rate > 0.:
-            impact += power_utility.get_impact(key)
-        impact += self.get_process_impact(key) / self.operating_hours
+            impact += power_utility.get_impact(key) * operating_hours
+        impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, property, units):
-        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
-        power_utility = bst.PowerUtility.sum(self.power_utilities)
+    def get_property_allocation_factors(self, name, units):
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        operating_hours = self.operating_hours
         properties = {}
-        if hasattr(bst.PowerUtility, property):
+        if hasattr(bst.PowerUtility, name):
             if power_utility.rate < 0.:
-                value = power_utility.get_property(property, units)
-                if value: properties['Electricity'] = value
-        if hasattr(bst.HeatUtility, property):
+                value = power_utility.get_property(name, units)
+                if value: properties['Electricity'] = value * operating_hours
+        if hasattr(bst.HeatUtility, name):
             for hu in heat_utilities:
                 if hu.flow < 0.: 
-                    value = hu.get_property(property, units)
-                    if value: properties[_reformat(hu.agent.ID)] = value
-        if hasattr(bst.Stream, property):
+                    value = hu.get_property(name, units)
+                    if value: properties[_reformat(hu.agent.ID)] = value * operating_hours
+        if hasattr(bst.Stream, name):
             for stream in self.products:
-                value = stream.get_property(property, units)
+                value = self.get_property(stream, name, units)
                 if value: properties[_reformat(stream.ID)] = value
         total_property = sum(properties.values())
         allocation_factors = {i: j / total_property for i, j in properties.items()}
         return allocation_factors
     
     def get_displacement_allocation_factors(self, main_product, key):
-        heat_utilities = bst.HeatUtility.sum_by_agent(self.heat_utilities)
-        power_utility = bst.PowerUtility.sum(self.power_utilities)
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
         allocation_factors = {}
         isa = isinstance
         if isa(main_product, bst.Stream):
@@ -1962,8 +1972,10 @@ class System:
         for item in items:
             total_input_impact = self.get_total_input_impact(key)
             net_impact = self.get_net_impact(key)
-            item_impact = item.get_impact(key) * self.operating_hours
-            if not isa(item, Stream): item_impact *= -1
+            if isa(item, bst.Stream):
+                item_impact = self.get_material_impact(item, key)
+            else:
+                item_impact = -1 * item.get_impact(key) * self.operating_hours
             displaced_impact = net_impact + item_impact
             if isa(item, bst.Stream):
                 allocation_factors[_reformat(item.ID)] = displaced_impact / total_input_impact
@@ -2206,24 +2218,30 @@ del ignore_docking_warnings
 class OperationModeResults:
   
     __slots__ = ('unit_capital_costs', 
-                 'utility_cost', 'flow_rates', 'feeds', 'products')
+                 'utility_cost', 
+                 'stream_properties',
+                 'feeds', 'products',
+                 'heat_utilities',
+                 'power_utility')
     
-    def __init__(self, unit_capital_costs, flow_rates, 
-                 utility_cost, feeds, products):
+    def __init__(self, unit_capital_costs, stream_properties, 
+                 utility_cost, feeds, products, heat_utilities, power_utility):
         self.unit_capital_costs = unit_capital_costs
-        self.flow_rates = flow_rates
+        self.stream_properties = stream_properties
         self.utility_cost = utility_cost
         self.feeds = feeds
         self.products = products
+        self.heat_utilities = heat_utilities
+        self.power_utility = power_utility
 
     @property
     def material_cost(self):
-        flow_rates = self.flow_rates
+        flow_rates = self.stream_properties['F_mass']
         return sum([flow_rates[i] * i.price  for i in self.feeds])
 
     @property
     def sales(self):
-        flow_rates = self.flow_rates
+        flow_rates = self.stream_properties['F_mass']
         return sum([flow_rates[i] * i.price for i in self.products])
 
 
@@ -2238,8 +2256,10 @@ class OperationMode:
         data on variable operating costs (i.e. utility and material costs) and sales.
 
         """
-        operation_parameters = self.agile_system.operation_parameters
-        mode_operation_parameters = self.agile_system.mode_operation_parameters
+        agile_system = self.agile_system
+        operation_parameters = agile_system.operation_parameters
+        mode_operation_parameters = agile_system.mode_operation_parameters
+        stream_properties = agile_system.stream_properties
         for name, value in self.__dict__.items():
             if name in operation_parameters: operation_parameters[name](value)
             elif name in mode_operation_parameters: mode_operation_parameters[name](value, self)
@@ -2249,11 +2269,13 @@ class OperationMode:
         products = system.products
         cost_units = system.cost_units
         operating_hours = self.operating_hours
+        streams = feeds + products
         return OperationModeResults(
             {i: i.get_design_and_capital() for i in cost_units},
-            {i: i.F_mass * operating_hours for i in feeds + products},
+            {name: {stream: getattr(stream, name) for stream in streams}
+             for name in stream_properties},
             operating_hours * sum([i.utility_cost for i in cost_units]),
-            feeds, products,
+            feeds, products, system.heat_utilities, system.power_utility
         )
 
     def __repr__(self):
@@ -2296,25 +2318,47 @@ class AgileSystem:
 
     """
 
-    __slots__ = ('operation_modes', 'operation_parameters',
-                 'mode_operation_parameters', 'annual_operation_metrics',
-                 'operation_metrics', 'unit_capital_costs', 
-                 'net_electricity_consumption', 'utility_cost', 'flow_rates', 'feeds', 'products', 
-                 'purchase_cost', 'installed_equipment_cost',
-                 'lang_factor', '_OperationMode', '_TEA', '_LCA')
+    __slots__ = (
+        'operation_modes', 'operation_parameters',
+        'mode_operation_parameters', 'annual_operation_metrics',
+        'operation_metrics', 'unit_capital_costs', 
+        'net_electricity_consumption', 'utility_cost', 
+        'stream_properties', 'flow_rates', 'feeds', 'products', 'purchase_cost', 
+        'installed_equipment_cost', 'heat_utilities', 'power_utility',
+        'process_impact_items', 'lang_factor', '_OperationMode', 
+        '_TEA', '_LCA', '_units', '_streams',
+    )
 
     TEA = System.TEA
     LCA = System.LCA
  
+    define_process_impact = System.define_process_impact
+    get_net_heat_utility_impact = System.get_net_heat_utility_impact
+    get_net_electricity_impact = System.get_net_electricity_impact
+    get_net_utility_impact = System.get_net_utility_impact
+    get_total_input_impact = System.get_total_input_impact
+    get_process_impact = System.get_process_impact
+    get_net_impact = System.get_net_impact
+    get_property_allocated_impact = System.get_property_allocated_impact
+    get_property_allocation_factors = System.get_property_allocation_factors
+    get_displacement_allocation_factors = System.get_displacement_allocation_factors
+ 
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, annual_operation_metrics=None,
-                 operation_metrics=None, lang_factor=None):
+                 operation_metrics=None, lang_factor=None, 
+                 stream_property_names=None):
         self.operation_modes = [] if operation_modes is None else operation_modes 
         self.operation_parameters = {} if operation_parameters  is None else operation_parameters
         self.mode_operation_parameters = {} if mode_operation_parameters is None else mode_operation_parameters
         self.annual_operation_metrics = [] if annual_operation_metrics is None else annual_operation_metrics
         self.operation_metrics = [] if operation_metrics is None else operation_metrics
+        self.flow_rates = flow_rates = {}
+        self.stream_properties = stream_properties = {'F_mass': flow_rates}
+        if stream_property_names is not None:
+            for i in stream_property_names: stream_properties[i] = {}
         self.lang_factor = lang_factor
+        self.heat_utilities = None
+        self.power_utility = None
         self._OperationMode = type('OperationMode', (OperationMode,), {'agile_system': self})
 
     def _downstream_system(self, unit):
@@ -2390,6 +2434,16 @@ class AgileSystem:
         """Return the mass flow rate of a stream [kg/yr]."""
         return self.flow_rates[stream]
     
+    def get_property(self, stream, name, units=None):
+        """Return the annualized property of a stream."""
+        value = self.stream_properties[name][stream] * self.operating_hours
+        if units is None:
+            return value
+        else:
+            units_dct = bst.Stream._units_of_measure
+            original_units = units_dct[name]
+            return original_units.convert(value, units)
+    
     def get_total_feeds_impact(self, key):
         """
         Return the total annual impact of all feeds given 
@@ -2444,24 +2498,30 @@ class AgileSystem:
 
     @property
     def streams(self):
-        streams = []
-        stream_set = set()
-        for u in self.units:
-            for s in u._ins + u._outs:
-                if not s or s in stream_set: continue
-                streams.append(s)
-                stream_set.add(s)
-        return streams
+        try:
+            return self._streams
+        except:
+            self._streams = streams = []
+            stream_set = set()
+            for u in self.units:
+                for s in u._ins + u._outs:
+                    if not s or s in stream_set: continue
+                    streams.append(s)
+                    stream_set.add(s)
+            return streams
 
     @property
     def units(self):
-        units = []
-        past_units = set()
-        for i in self.operation_modes:
-            for i in i.system.unit_path:
-                if i in past_units: continue
-                units.append(i)
-        return units
+        try:
+            return self._units
+        except:
+            self._units = units = []
+            past_units = set()
+            for i in self.operation_modes:
+                for i in i.system.unit_path:
+                    if i in past_units: continue
+                    units.append(i)
+            return units
 
     @property
     def cost_units(self):
@@ -2519,16 +2579,21 @@ class AgileSystem:
         annual_values = N_annual_metrics * [N_modes * [None]]
         annual_metric_range = range(N_annual_metrics)
         metric_range = range(N_metrics)
+        mode_range = range(N_modes)
         values = [{i: None for i in operation_modes} for i in metric_range]
-        for i in range(N_modes):
+        total_operating_hours = self.operating_hours
+        for i in mode_range:
             mode = operation_modes[i]
-            operation_mode_results[i] = mode.simulate()
+            operation_mode_results[i] = results = mode.simulate()
             for j in annual_metric_range:
                 metric = annual_operation_metrics[j]
                 annual_values[j][i] = metric.getter(mode) * mode.operating_hours
             for j in metric_range:
                 metric = operation_metrics[j]
                 values[j][mode] = metric.getter(mode)
+            scale = mode.operating_hours / total_operating_hours
+            for hu in results.heat_utilities: hu.scale(scale)
+            results.power_utility.scale(scale)
         for i in annual_metric_range:
             metric = annual_operation_metrics[i]
             metric.value = sum(annual_values[i])
@@ -2539,9 +2604,10 @@ class AgileSystem:
         unit_modes = {i: [] for i in units}
         for results in operation_mode_results:
             for i, j in results.unit_capital_costs.items(): unit_modes[i].append(j)
+        self.heat_utilities = bst.HeatUtility.sum_by_agent(sum([r.heat_utilities for r in operation_mode_results], ()))
+        self.power_utility = bst.PowerUtility.sum([r.power_utility for r in operation_mode_results])
         self.unit_capital_costs = {i: i.get_agile_design_and_capital(j) for i, j in unit_modes.items()}
         self.utility_cost = sum([i.utility_cost for i in operation_mode_results])
-        self.flow_rates = flow_rates = {}
         self.feeds = list(set(sum([i.feeds for i in operation_mode_results], [])))
         self.products = list(set(sum([i.products for i in operation_mode_results], [])))
         self.purchase_cost = sum([u.purchase_cost for u in self.unit_capital_costs])
@@ -2550,10 +2616,16 @@ class AgileSystem:
             self.installed_equipment_cost = sum([u.purchase_cost * lang_factor for u in self.unit_capital_costs.values()])
         else:
             self.installed_equipment_cost = sum([u.installed_cost for u in self.unit_capital_costs.values()])
-        for results in operation_mode_results:
-            for stream, F_mass in results.flow_rates.items():
-                if stream in flow_rates: flow_rates[stream] += F_mass
-                else: flow_rates[stream] = F_mass
+        stream_properties = self.stream_properties
+        for dct in stream_properties.values(): dct.clear()
+        for i in mode_range:
+            results = operation_mode_results[i]
+            operating_hours = operation_modes[i].operating_hours
+            for name, dct in results.stream_properties.items():
+                propdct = stream_properties[name]
+                for stream, property in dct.items():
+                    if stream in propdct: propdct[stream] += property * operating_hours
+                    else: propdct[stream] = property * operating_hours
 
     def __repr__(self):
         return f"{type(self).__name__}(operation_modes={self.operation_modes}, operation_parameters={self.operation_parameters}, lang_factor={self.lang_factor})"
