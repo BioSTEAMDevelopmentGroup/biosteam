@@ -2575,11 +2575,11 @@ class AgileSystem:
         N_modes = len(operation_modes)
         N_metrics = len(operation_metrics)
         N_annual_metrics = len(annual_operation_metrics)
-        operation_mode_results = N_modes * [None]
-        annual_values = N_annual_metrics * [N_modes * [None]]
         annual_metric_range = range(N_annual_metrics)
         metric_range = range(N_metrics)
         mode_range = range(N_modes)
+        operation_mode_results = N_modes * [None]
+        annual_values = [N_modes * [None] for i in annual_metric_range]
         values = [{i: None for i in operation_modes} for i in metric_range]
         total_operating_hours = self.operating_hours
         for i in mode_range:
