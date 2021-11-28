@@ -240,6 +240,8 @@ class HeatExchangerNetwork(Facility):
                         if s_out: unit.ins[i.index] = s_out
                         s_out = unit.outs[i.index]
                 self.HXN_sys = sys = bst.System.from_units(None, all_units)
+                sys.converge_method = 'fixedpoint'
+                for i in sys.subsystems: i.converge_method = 'fixedpoint'
             
             original_purchase_costs = [hx.purchase_cost for hx in hxs]
             original_installed_costs = [hx.installed_cost for hx in hxs]
