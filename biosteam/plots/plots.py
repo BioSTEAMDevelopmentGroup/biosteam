@@ -15,7 +15,6 @@ from biosteam.utils import colors as c, CABBI_colors
 from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
 from thermosteam.units_of_measure import format_units, reformat_units
 import matplotlib.patches as mpatches
-from thermosteam.utils import CABBI_colors
 from math import floor, ceil
 from matplotlib.ticker import MultipleLocator
 
@@ -436,9 +435,10 @@ def plot_single_point_sensitivity(baseline, lb, ub,
         format_single_point_sensitivity_plot(baseline, diff, ax, index, name, yranges)
     return fig, ax    
 
-def plot_spearman_1d(rhos, top=None, name=None, color=None,
+def plot_spearman_1d(rhos, top=None, name=None, color=None, 
                      w=1., s=1., offset=0., style=True, 
-                     fig=None, ax=None, sort=True, index=None): # pragma: no coverage
+                     fig=None, ax=None, sort=True, index=None,
+                     cutoff=None): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -460,9 +460,14 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
         if index is None: index = rhos.index
         if name is None: name = rhos.name
         rhos = rhos.values
+    if cutoff:
+        cutoff_index = np.where(np.any(np.abs(rhos) > cutoff))
+        index = index[cutoff_index]
+        rhos = rhos[cutoff_index]
     if sort:
         rhos, index = zip(*sorted(zip(rhos, index),
                                   key=lambda x: abs_(x[0])))
+
     if top:
         rhos = rhos[-top:]
         index = index[-top:]
@@ -485,7 +490,7 @@ def plot_spearman_1d(rhos, top=None, name=None, color=None,
     return fig, ax
 
 def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
-                     ignored=None, sort=True): # pragma: no coverage
+                     cutoff=None, sort=True): # pragma: no coverage
     """
     Display Spearman's rank correlation plot.
     
@@ -506,10 +511,12 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
     rhos = list(reversed(rhos))
     values = np.array([i.values for i in rhos])
     indices = list(range(values.shape[1]))
+    if cutoff:
+        cutoff_index, = np.where(np.any(np.abs(rhos) > cutoff, axis=0))
+        indices = [indices[i] for i in cutoff_index]
     if sort:
-        rhos_mean = np.abs(values.mean(axis=0))
+        rhos_mean = np.abs(values).max(axis=0)
         indices.sort(key=lambda x: rhos_mean[x])
-    if ignored: indices = [i for i in indices if i not in ignored]
     if top is not None: indices = indices[-top:]
     rhos = [[rho[i] for i in indices] for rho in values]
     index = [index[i] for i in indices]
