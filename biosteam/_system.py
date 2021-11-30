@@ -1512,8 +1512,13 @@ class System:
                 if not u.isdynamic: n_rotate += 1
                 else: break
             units = self.units[n_rotate:] + self.units[:n_rotate]
+            for inf in units[0].ins:
+                inf._init_state()
             for unit in units: 
-                if unit._state is None: unit._init_state()   
+                try:
+                    if unit._state is None: unit._init_state()   
+                except AttributeError:
+                    raise AttributeError(f'{unit.ID} does not have `_init_state`, check if it is a dynamic unit.')
                 unit._update_state(unit._state)
                 unit._update_dstate()  
             y, idx = self._state_attr2arr()
