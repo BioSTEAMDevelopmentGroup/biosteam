@@ -61,7 +61,7 @@ def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black',
     return plt.scatter(xs, ys, marker=marker, s=s, color=color,
                        zorder=zorder, edgecolor=edgecolor, **kwargs) 
 
-def rounded_tickmarks_from_data(data, N_ticks, step_min, 
+def rounded_tickmarks_from_data(data, N_ticks, step_min=None, 
                                 lb_max=None, ub_min=None, expand=None, f=None,
                                 center=None, lb_min=None, ub_max=None):
     get_max = lambda x: max([i.max() for i in x]) if isinstance(x, list) else x.max()
@@ -71,10 +71,10 @@ def rounded_tickmarks_from_data(data, N_ticks, step_min,
     return rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max, ub_min, expand, f, center,
                                         lb_min, ub_max)
 
-def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max=None, ub_min=None,
+def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min=None, lb_max=None, ub_min=None,
                                  expand=None, f=None, center=None, lb_min=None, ub_max=None):
     if lb_max is not None: lb = min(lb, lb_max)
-    if expand is None: expand = 0.1
+    if expand is None: expand = 0.10
     diff = expand * (ub - lb)
     ub += diff
     if ub_min is not None: ub = max(ub, ub_min)
@@ -83,8 +83,9 @@ def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max=None, ub_min=
     return rounded_linspace(lb, ub, N_ticks, step_min, f, center)
 
 def rounded_linspace(lb, ub, N, step_min, f=None, center=None):
-    lb = floor(lb / step_min) * step_min
-    ub = ceil(ub / step_min) * step_min
+    if step_min is not None:
+        lb = floor(lb / step_min) * step_min
+        ub = ceil(ub / step_min) * step_min
     step = (ub - lb) / (N - 1)
     if f is None:
         if int(step) == step: step = int(step)
@@ -97,7 +98,7 @@ def rounded_linspace(lb, ub, N, step_min, f=None, center=None):
         offset = min(values, key=lambda x: abs(center - x))
         values = [i - offset for i in values[0:-1]]
         values = [values[0] - step, *values, values[-1] + step]
-    return values
+    return [f(i) for i in values]
         
 def default_colors_and_hatches(length, colors, hatches):
     if colors is None:
