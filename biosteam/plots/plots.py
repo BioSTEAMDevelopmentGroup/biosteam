@@ -88,6 +88,7 @@ def rounded_linspace(lb, ub, N, step_min, f=None, center=None):
         ub = ceil(ub / step_min) * step_min
     step = (ub - lb) / (N - 1)
     if f is None:
+        f = int
         if int(step) == step: step = int(step)
         if int(lb) == lb: lb = int(lb)
     else:
@@ -138,34 +139,40 @@ def contour_subplots(N_rows, N_cols, single_colorbar=False):
     else:
         return fig, axes
     
-def modify_stacked_bars(axes, N_marks, names, colors, hatches):
+def modify_stacked_bars(axes, N_marks, names, colors, hatches, legend=True, 
+                        loc='upper left', bbox_to_anchor=(1.05, 1),
+                        labelspacing=1.5, handlelength=4, scale=1.0, **kwargs):
     for ax in axes.flatten(): 
         plt.sca(ax)
-        ax.get_legend().remove()
+        lg = ax.get_legend()
+        if lg is not None: lg.remove()
         bars = ax.patches
         color_sets = sum([[i]*N_marks for i in colors], [])
         hatch_sets = sum([[i]*N_marks for i in hatches], [])
         for bar, hatch, color in zip(bars, hatch_sets, color_sets):
             bar.set_facecolor(color)
             bar.set_hatch(hatch)
-    if axes.ndim == 1: 
-        ax = axes[-1]
-    elif axes.ndim == 2:
-        ax = axes[0, -1]
-    else:
-        raise ValueError('axes dimensions must 1 or 2')
-    plt.sca(ax)
-    patches = [mpatches.Patch(facecolor=i, hatch=j, label=k, edgecolor='k') for i,j,k in 
-           zip(colors, hatches, names)]
-    patches.reverse()
-    leg = plt.legend(
-        handles=patches, loc='upper left', bbox_to_anchor=(1.05, 1),
-        labelspacing=1.5, handlelength=4
-    )
-    leg.get_frame().set_linewidth(0.0)
-    for patch in leg.get_patches():
-        patch.set_height(22)
-        patch.set_y(-6)
+    if legend:
+        if axes.ndim == 1: 
+            ax = axes[-1]
+        elif axes.ndim == 2:
+            ax = axes[0, -1]
+        else:
+            raise ValueError('axes dimensions must 1 or 2')
+        plt.sca(ax)
+        patches = [mpatches.Patch(facecolor=i, hatch=j, label=k, edgecolor='k') for i,j,k in 
+               zip(colors, hatches, names)]
+        patches.reverse()
+        leg = plt.legend(
+            handles=patches, loc=loc, bbox_to_anchor=bbox_to_anchor,
+            labelspacing=labelspacing, handlelength=handlelength,
+            **kwargs,
+        )
+        leg.get_frame().set_linewidth(0.0)
+        for patch in leg.get_patches():
+            patch.set_height(22 * scale)
+            patch.set_width(22 * scale)
+            patch.set_y(-6 * scale)
 
 
 # %% General
@@ -189,7 +196,7 @@ def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # prag
 # %% Plot unit groups
 
 def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
-        colors=None, hatches=None, fraction=False, 
+        colors=None, hatches=None, fraction=False, legend_kwargs=None,
         **kwargs):
     df = bst.UnitGroup.df_from_groups_across_coordinate(unit_groups, f, x)
     metrics = unit_groups[0].metrics
@@ -234,14 +241,15 @@ def plot_unit_groups_across_coordinate(f, x, name, unit_groups,
             yticks=yticks,
             ytickf=False,
         )
-    
+    if legend_kwargs is None: legend_kwargs = {}
     modify_stacked_bars(axes, len(x), [i.name for i in unit_groups],
-                        colors, hatches)
+                        colors, hatches, legend_kwargs)
     plt.subplots_adjust(hspace=0.1, wspace=0.4)
 
 def plot_unit_groups(unit_groups, colors=None,
                      hatches=None, fraction=False, joint_group=None, 
-                     format_total=None, bold_label=False,**kwargs):
+                     format_total=None, bold_label=False, legend=True, 
+                     legend_kwargs=None, **kwargs):
     """Plot unit groups as a stacked bar chart."""
     colors, hatches = default_colors_and_hatches(len(unit_groups), colors, hatches)
     df = bst.UnitGroup.df_from_groups(
@@ -266,10 +274,10 @@ def plot_unit_groups(unit_groups, colors=None,
         df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
         locs, labels = plt.xticks()
         plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
-        plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+        if legend: plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
         plt.xticks(rotation=0)
-        axes = plt.gcf().get_axes()
-        ax = axes[0] 
+        fig = plt.gcf()
+        ax = plt.gca()
         ax.set_ylabel('Cost and Utility Breakdown [%]')
         values = df.values
         negative_values = np.where(values < 0., values, 0.).sum(axis=0)
@@ -284,6 +292,7 @@ def plot_unit_groups(unit_groups, colors=None,
         y_twin.tick_params(axis='x', top=True, direction="in", length=0)
         y_twin.zorder = 2
         plt.xlim(xlim)
+        if len(xticks) != len(bar_labels): xticks = xticks[1:]
         plt.xticks(xticks, bar_labels, va='baseline')
         N_marks = N_metrics
     else:
@@ -302,7 +311,10 @@ def plot_unit_groups(unit_groups, colors=None,
         plt.subplots_adjust(hspace=0.1, wspace=0.4)
         for i in range(N_cols): fig.align_ylabels(axes[:, i])
         N_marks = 1
-    modify_stacked_bars(np.array(axes), N_marks, names, colors, hatches)
+    axes = np.array([ax])
+    if legend_kwargs is None: legend_kwargs = {}
+    modify_stacked_bars(axes, N_marks, names, colors, hatches, legend, **legend_kwargs)
+    return fig, axes
     
 # %% Sensitivity analysis
 
