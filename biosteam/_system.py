@@ -2026,21 +2026,21 @@ class System:
 
     def get_electricity_consumption(self):
         """Return the total electricity consumption in kWhr / yr."""
-        return self.operating_hours * sum([i.consumption for i in self.power_utilities])
+        return self.operating_hours * self.power_utility.consumption
 
     def get_electricity_production(self):
         """Return the total electricity production in kWhr / yr."""
-        return self.operating_hours * sum([i.production for i in self.power_utilities])
+        return self.operating_hours * self.power_utility.production
     
     def get_utility_duty(self, agent):
         """Return the total utility duty for given agent in kJ/yr."""
-        if isinstance(agent, str): agent = bst.HeatUtility.get_agent(agent)
-        return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.agent is agent]) 
+        if not isinstance(agent, str): agent = agent.ID
+        return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.agent.ID == agent]) 
     
     def get_utility_flow(self, agent):
         """Return the total utility flow for given agent in kJ/yr."""
-        if isinstance(agent, str): agent = bst.HeatUtility.get_agent(agent)
-        return self.operating_hours * sum([i.flow for i in self.heat_utilities if i.agent is agent]) 
+        if not isinstance(agent, str): agent = agent.ID
+        return self.operating_hours * sum([i.flow for i in self.heat_utilities if i.agent.ID == agent]) 
     
     def get_cooling_duty(self):
         """Return the total cooling duty in kJ/yr."""
@@ -2347,7 +2347,13 @@ class AgileSystem:
     get_property_allocated_impact = System.get_property_allocated_impact
     get_property_allocation_factors = System.get_property_allocation_factors
     get_displacement_allocation_factors = System.get_displacement_allocation_factors
- 
+    get_electricity_consumption = System.get_electricity_consumption
+    get_electricity_production = System.get_electricity_production
+    get_utility_duty = System.get_utility_duty
+    get_utility_flow = System.get_utility_flow
+    get_cooling_duty = System.get_cooling_duty
+    get_heating_duty = System.get_heating_duty
+
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, annual_operation_metrics=None,
                  operation_metrics=None, lang_factor=None, 

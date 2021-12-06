@@ -84,7 +84,7 @@ def voc_table(systems, product_IDs, system_names=None):
         return subdct
     
     for sys in systems:
-        electricity_cost = sum([i.cost for i in sys.power_utilities]) * sys.operating_hours
+        electricity_cost = sys.power_utility.cost * sys.operating_hours
         if electricity_cost > 0.: 
             dct = getsubdct(other_utilities_dct, 'Electricity')
             dct[sys] = (f"{bst.PowerUtility.price} $/kWh", electricity_cost)
@@ -181,7 +181,7 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
         dct[sys] = value
         
     for sys in systems:
-        electricity_consumption = sum([i.rate for i in sys.power_utilities]) * sys.operating_hours
+        electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
             if 'Electricity [kWhr/yr]' not in other_utilities: other_utilities.append('Electricity [kWhr/yr]')
             cf = PowerUtility.characterization_factors.get(key, 0.)
@@ -267,7 +267,7 @@ def lca_displacement_allocation_table(systems, key, items,
         dct[sys] = (CF, value)
         
     for sys in systems:
-        electricity_consumption = sum([i.rate for i in sys.power_utilities]) * sys.operating_hours
+        electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
             if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
             cf = PowerUtility.characterization_factors.get(key, 0.)
