@@ -369,15 +369,13 @@ class TEA:
                      "'isabstract' keyword argument is True"
                 )
 
-    @staticmethod
-    def like(system, other):
-        """Create a TEA object from `system` with the same settings as `other`."""
-        self = copy_(other)
-        self.system = system
-        self.feeds = system.feeds
-        self.products = system.products
-        system._TEA = self
-        return self
+    def copy(self, system=None):
+        """Create a copy."""
+        new = copy_(self)
+        if system is not None:
+            new.system = system
+            system._TEA = new
+        return new
 
     def __init__(self, system, IRR, duration, depreciation, income_tax,
                 operating_days, lang_factor, construction_schedule,

@@ -46,10 +46,11 @@ class Parameter(Variable):
         
     """
     __slots__ = ('setter', 'system', 'distribution', 
-                 'baseline', 'bounds', 'kind', 'hook')
+                 'baseline', 'bounds', 'kind', 'hook',
+                 'description')
     
     def __init__(self, name, setter, element, system, distribution,
-                 units, baseline, bounds, kind, hook):
+                 units, baseline, bounds, kind, hook, description):
         if not name: name, *_ = signature(setter).parameters.keys()
         super().__init__(format_title(name), units, element)
         self.setter = setter
@@ -64,6 +65,7 @@ class Parameter(Variable):
         self.bounds = bounds
         self.kind = kind
         self.hook = hook
+        self.description = description
     
     @classmethod
     def sort_parameters(cls, parameters):

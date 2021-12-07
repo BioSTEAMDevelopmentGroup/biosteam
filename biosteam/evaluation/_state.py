@@ -203,7 +203,7 @@ class State:
     
     def parameter(self, setter=None, element=None, kind='isolated', name=None, 
                   distribution=None, units=None, baseline=None, bounds=None, 
-                  hook=None):
+                  hook=None, description=None):
         """
         Define and register parameter.
         
@@ -213,21 +213,21 @@ class State:
                  Should set parameter in the element.
         element : Unit or :class:`~thermosteam.Stream`
                   Element in the system being altered.
-        kind : {'coupled', 'isolated', 'design', 'cost'}
+        kind : {'coupled', 'isolated', 'design', 'cost'}, optional
             * 'coupled': parameter is coupled to the system.
             * 'isolated': parameter does not affect the system but does affect the element (if any).
             * 'design': parameter only affects design and/or cost of the element.
-        name : str
+        name : str, optional
                Name of parameter. If None, default to argument name of setter.
         distribution : chaospy.Dist
                        Parameter distribution.
-        units : str
+        units : str, optional
                 Parameter units of measure
-        baseline : float
+        baseline : float, optional
             Baseline value of parameter.
-        bounds : tuple[float, float]
+        bounds : tuple[float, float], optional
             Lower and upper bounds of parameter.
-        hook : Callable
+        hook : Callable, optional
             Should return the new parameter value given the sample.
         
         Notes
@@ -240,10 +240,10 @@ class State:
         if not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
-                                                 bounds, hook)
+                                                 bounds, hook, description)
         p = Parameter(name, setter, element or 'biorefinery',
                       self.system, distribution, units, 
-                      baseline, bounds, kind, hook)
+                      baseline, bounds, kind, hook, description)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         self._erase()
