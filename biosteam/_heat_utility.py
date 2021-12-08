@@ -297,7 +297,7 @@ class HeatUtility:
         Raises
         ------
         ValueError
-            When the characterization factor for a cooling agent is positive (should be negative).
+            When the duty characterization factor for a cooling agent is positive (should be negative).
         DimensionError
             When characterization factor is not given in dimensions of
             weight, molar, or energy.
@@ -337,7 +337,7 @@ class HeatUtility:
                 basis_units = energy_basis_units
                 if agent.iscooling_agent() and value > 0.: 
                     raise ValueError(
-                        'characterization factor must be negative for cooling agents'
+                        'duty characterization factor must be negative for cooling agents'
                     )
             else:
                 raise DimensionError(

@@ -1962,7 +1962,7 @@ class System:
             CF_original = main_product.get_CF(key)
         elif main_product == 'Electricity':
             main_product = power_utility
-            CF_original = main_product.get_CF(key)
+            CF_original = main_product.get_CF(key, consumption=False)
         else:
             raise NotImplementedError(f"main product '{main_product}' is not yet an option for this method")
         items = [main_product]

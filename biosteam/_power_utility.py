@@ -156,7 +156,10 @@ class PowerUtility:
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
         rate = self.consumption - self.production
-        cf = self.characterization_factors[key]
+        try: 
+            cf = self.characterization_factors[key]
+        except:
+            return 0.
         return (cf[0] if rate > 0. else cf[1]) * rate
     
     def __bool__(self):
