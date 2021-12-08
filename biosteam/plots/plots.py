@@ -38,7 +38,8 @@ __all__ = (
     'plot_contour_2d', 
     'plot_contour_single_metric',
     'plot_contour_across_coordinate',
-    'plot_contour_2d_curves'
+    'plot_contour_2d_curves',
+    'plot_heatmap',
 )
 
 # %% Utilities
@@ -192,6 +193,30 @@ def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # prag
     plt.tight_layout()
     plt.legend()
 
+def plot_heatmap(
+        data, ax=None, colormap=None, cell_labels=None,
+        metric_bar=None, ax_cbar=None, xlabels=None, ylabels=None, **kwargs
+    ):
+    if colormap is None: colormap = plt.cm.get_cmap('RdYlGn')
+    if ax is None: fig, ax = plt.subplots()
+    if ax_cbar is None: ax_cbar = ax
+    data = np.asarray(data)
+    nrows, ncols = data.shape
+    im = ax.imshow(data, cmap=colormap, **kwargs)
+    if metric_bar is not None:
+        cbar = metric_bar.colorbar(fig, ax_cbar, im)
+    else:
+        cbar = None
+    if cell_labels is not None:
+        for i in range(len(nrows)):
+            for j in range(len(ncols)):
+                ax.text(j, i, cell_labels[i, j], ha="center", va="center", color="k")
+    xticks = np.arange(ncols)
+    yticks = np.arange(nrows)
+    style_axis(ax, xticks, yticks, xlabels, ylabels, offset_xticks=True, 
+               offset_yticks=True)
+    ax.set_aspect('auto')
+    return im, cbar
 
 # %% Plot unit groups
 

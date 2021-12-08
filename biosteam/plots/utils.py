@@ -29,11 +29,11 @@ class MetricBar(NamedTuple): # pragma: no coverage
     ticks: Iterable[float] = None
     N_levels: int = 20
     N_decimals: int = 0
-    center: float = None
     units_dlim: str = '\n'
     ub: bool = False
     lb: bool = False
     forced_size: float = None
+    ylabelkwargs: dict = {}
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -70,14 +70,17 @@ class MetricBar(NamedTuple): # pragma: no coverage
         cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)
-        cbar_ax.set_title(self.title)
-        ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
-        ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
-        if self.ub:
-            ylabels[-1] = '>' + ylabels[-1]
-        if self.lb:
-            ylabels[0] = '<' + ylabels[0]
-        cbar_ax.set_yticklabels(ylabels)
+        cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
+        try:
+            ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
+            ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
+            if self.ub:
+                ylabels[-1] = '>' + ylabels[-1]
+            if self.lb:
+                ylabels[0] = '<' + ylabels[0]
+            cbar_ax.set_yticklabels(ylabels)
+        except:
+            pass
         return cbar
         
 # %% Helpful functions
