@@ -79,7 +79,8 @@ class PowerUtility:
     """
     __slots__ = ('consumption', 'production')
     
-    #: dict[obj, float] Characterization factors for life cycle assessment in impact/kWhr.
+    #: dict[tuple[str, str], float] Characterization factors for life cycle 
+    #: assessment in impact/kWhr by impact key and kind (None, 'consumption', or 'production').
     characterization_factors = {}
     
     #: [DisplayUnits] Units of measure for IPython display
@@ -93,21 +94,38 @@ class PowerUtility:
         self.production = production
     
     @classmethod
-    def get_CF(cls, key):
+    def get_CF(cls, key, consumption=True, production=True):
         """
-        Returns the life-cycle characterization factor on a kg basis given the key.
+        Return the life-cycle characterization factor for consumption and 
+        production on a kg basis given the impact key.
         """
         try:
-            return cls.characterization_factors[key]
+            value = cls.characterization_factors[key]
         except:
-            return 0.
+            value = (0., 0.)
+        if consumption:
+            if production:
+                return value
+            else:
+                return value[0]
+        elif production:
+            return value[1]
+        else:
+            return None
 
     @classmethod
-    def set_CF(cls, key, value):
+    def set_CF(cls, key, consumption=None, production=None):
         """
-        Set the life-cycle characterization factor on a kg basis given the key.
+        Set the life-cycle characterization factors for consumption and production
+        on a kg basis given the impact key.
         """
-        cls.characterization_factors[key] = value
+        if consumption is None:
+            if production is None:
+                raise ValueError("must pass at least one of either 'consumption' or 'production'")
+            consumption = production
+        elif production is None:
+            production = consumption
+        cls.characterization_factors[key] = (consumption, production)
     
     @classmethod
     def default_price(cls):
@@ -134,9 +152,12 @@ class PowerUtility:
         return self.price * self.rate
     
     def get_impact(self, key):
-        """Return the impact in impact / hr given impact indicator key for the 
-        rate."""
-        return self.characterization_factors[key] * (self.consumption - self.production)
+        """Return the impact in impact / hr given characterization factor keys 
+        for consumption and production. If no production key given, it defaults
+        to the consumption key."""
+        rate = self.consumption - self.production
+        cf = self.characterization_factors[key]
+        return (cf[0] if rate > 0. else cf[1]) * rate
     
     def __bool__(self):
         return bool(self.consumption or self.production)

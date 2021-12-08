@@ -184,12 +184,12 @@ def lca_inventory_table(systems, key, items=(), system_names=None):
         electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
             if 'Electricity [kWhr/yr]' not in other_utilities: other_utilities.append('Electricity [kWhr/yr]')
-            cf = PowerUtility.characterization_factors.get(key, 0.)
+            cf = PowerUtility.get_CF(key, production=False)
             if cf:
                 set_value('Electricity [kWhr/yr]', sys, electricity_consumption)
         else:
             if 'Electricity [kWhr/yr]' not in other_byproducts: other_byproducts.append('Electricity [kWhr/yr]')
-            cf = PowerUtility.characterization_factors.get(key, 0.)
+            cf = PowerUtility.get_CF(key, consumption=False)
             if cf:
                 set_value('Electricity [kWhr/yr]', sys, -electricity_consumption)
         try: process_impact_items = sys.process_impact_items[key]
@@ -270,11 +270,11 @@ def lca_displacement_allocation_table(systems, key, items,
         electricity_consumption = sys.power_utility.rate * sys.operating_hours
         if electricity_consumption > 0.: 
             if 'Electricity' not in other_utilities: other_utilities.append('Electricity')
-            cf = PowerUtility.characterization_factors.get(key, 0.)
+            cf = PowerUtility.get_CF(key, production=False)
             set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", electricity_consumption * cf)
         else:
             if 'Electricity' not in other_byproducts: other_byproducts.append('Electricity')
-            cf = PowerUtility.characterization_factors.get(key, 0.)
+            cf = PowerUtility.get_CF(key, consumption=False)
             set_value('Electricity', sys, f"{cf} {impact_units}/kWhr", - electricity_consumption * cf)
         try: process_impact_items = sys.process_impact_items[key]
         except: continue
