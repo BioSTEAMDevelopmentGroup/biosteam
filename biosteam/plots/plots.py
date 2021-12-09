@@ -194,22 +194,24 @@ def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None): # prag
     plt.legend()
 
 def plot_heatmap(
-        data, ax=None, colormap=None, cell_labels=None,
+        data, ax=None, cell_labels=None,
         metric_bar=None, ax_cbar=None, xlabels=None, ylabels=None, **kwargs
     ):
-    if colormap is None: colormap = plt.cm.get_cmap('RdYlGn')
     if ax is None: fig, ax = plt.subplots()
+    else: fig = ax.figure    
     if ax_cbar is None: ax_cbar = ax
+    if metric_bar is None:
+        cbar = None
+        cmap = None
+    else:
+        cmap = metric_bar.cmap
     data = np.asarray(data)
     nrows, ncols = data.shape
-    im = ax.imshow(data, cmap=colormap, **kwargs)
-    if metric_bar is not None:
-        cbar = metric_bar.colorbar(fig, ax_cbar, im)
-    else:
-        cbar = None
+    im = ax.imshow(data, cmap=cmap, **kwargs)
+    if metric_bar is not None: cbar = metric_bar.colorbar(fig, ax_cbar, im)
     if cell_labels is not None:
-        for i in range(len(nrows)):
-            for j in range(len(ncols)):
+        for i in range(nrows):
+            for j in range(ncols):
                 ax.text(j, i, cell_labels[i, j], ha="center", va="center", color="k")
     xticks = np.arange(ncols)
     yticks = np.arange(nrows)
