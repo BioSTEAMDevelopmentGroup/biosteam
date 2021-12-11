@@ -240,12 +240,12 @@ def heuristic_pressure_drop(inlet_phase, outlet_phase):
     if ('l' in inlet_phase and 'g' in outlet_phase) or ('g' in inlet_phase and 'l' in outlet_phase):
         # Latent fluid (boiling or condensing)
         dP = 1.5
-    elif inlet_phase == 'l':
+    elif 'l' in inlet_phase:
         # Sensible liquid
-        dP = 5
-    elif outlet_phase == 'g':
+        dP = 5.
+    elif 'g' in outlet_phase:
         # Sensible vapor
-        dP = 3
+        dP = 3.
     return dP
 
 def heuristic_tubeside_and_shellside_pressure_drops(ci, hi, co, ho,
