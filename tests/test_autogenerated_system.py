@@ -673,13 +673,7 @@ def test_sugarcane_ethanol_biorefinery_network():
          P303,
          M305,
          U202,
-         U401,
-         U402,
-         U403,
-         U404,
-         U405,
-         T305]
-    )
+         T305])
     assert network == actual_network
     sugarcane_sys.empty_recycles()
     sugarcane_sys.simulate()

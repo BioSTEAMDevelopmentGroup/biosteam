@@ -888,9 +888,9 @@ class MixerSettler(bst.Unit):
     Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
                         Mixer - Vertical pressure vessel        USD    4.59e+03
                         Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD    1.16e+04
-                        Settler - Platform and ladders          USD    3.08e+03
-    Total purchase cost                                         USD    2.62e+04
+                        Settler - Horizontal pressure ve...     USD    1.08e+04
+                        Settler - Platform and ladders          USD    2.87e+03
+    Total purchase cost                                         USD    2.52e+04
     Utility cost                                             USD/hr       0.155
     
     Simulate with user defined partition coefficients:
@@ -934,10 +934,11 @@ class MixerSettler(bst.Unit):
     Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
                         Mixer - Vertical pressure vessel        USD    4.59e+03
                         Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD    1.16e+04
-                        Settler - Platform and ladders          USD    3.08e+03
-    Total purchase cost                                         USD    2.62e+04
+                        Settler - Horizontal pressure ve...     USD    1.08e+04
+                        Settler - Platform and ladders          USD    2.87e+03
+    Total purchase cost                                         USD    2.52e+04
     Utility cost                                             USD/hr       0.155
+    
     """
     _N_ins = 2
     _ins_size_is_fixed = False
@@ -1095,8 +1096,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Weight              lb    1.44e+03
                         Settler - Wall thickness      in        0.25
     Purchase cost       Mixers and agitators         USD    1.05e+04
-                        Settlers                     USD    2.93e+04
-    Total purchase cost                              USD    3.97e+04
+                        Settlers                     USD    2.73e+04
+    Total purchase cost                              USD    3.78e+04
     Utility cost                                  USD/hr       0.309
     
     Simulate with user defined partition coefficients:
@@ -1137,8 +1138,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Weight              lb    2.52e+04
                         Settler - Wall thickness      in       0.438
     Purchase cost       Mixers and agitators         USD    1.08e+05
-                        Settlers                     USD    6.15e+05
-    Total purchase cost                              USD    7.22e+05
+                        Settlers                     USD    5.74e+05
+    Total purchase cost                              USD    6.82e+05
     Utility cost                                  USD/hr        15.5
 
     """

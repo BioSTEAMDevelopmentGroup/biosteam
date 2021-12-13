@@ -40,6 +40,11 @@ def compute_horizontal_vessel_purchase_cost(W):
     W : float
         Weight [lb].
     
+    Examples
+    --------
+    >>> compute_horizontal_vessel_purchase_cost(W=1e3)
+    8857.9578
+    
     Notes
     -----
     The purchase cost is given by [1]_. See source code for details.
@@ -62,6 +67,11 @@ def compute_horizontal_vessel_platform_and_ladders_purchase_cost(D):
     D : float
         Diameter [ft].
     
+    Examples
+    --------
+    >>> compute_horizontal_vessel_platform_and_ladders_purchase_cost(D=4)
+    3016.7982
+    
     Notes
     -----
     The purchase cost is given by [1]_. See source code for details.
@@ -82,6 +92,11 @@ def compute_vertical_vessel_purchase_cost(W):
     ----------
     W : float
         Weight [lb].
+    
+    Examples
+    --------
+    >>> compute_vertical_vessel_purchase_cost(1e3)
+    13319.0892
     
     Notes
     -----
@@ -106,6 +121,11 @@ def compute_vertical_vessel_platform_and_ladders_purchase_cost(D, L):
         Diameter [ft].
     L : float
         Length [ft].
+    
+    Examples
+    --------
+    >>> compute_vertical_vessel_platform_and_ladders_purchase_cost(3, 10)
+    4708.5321
     
     Notes
     -----
@@ -286,6 +306,11 @@ def compute_vessel_weight_and_wall_thickness(P, D, L, rho_M, Je=0.85):
     Je: float
         Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel),
     
+    Examples
+    --------
+    >>> compute_vessel_weight_and_wall_thickness(14.7, 3, 10, 490)
+    (1116.83, 0.25)
+    
     Notes
     -----
     Equations are given by [2]_. See source code for details.
@@ -399,7 +424,16 @@ def compute_Stokes_law_York_Demister_K_value(P):
     ----------
     P : float
         Pressure [psia].
-        
+    
+    Examples
+    --------
+    >>> compute_Stokes_law_York_Demister_K_value(14)
+    0.34409663
+    >>> compute_Stokes_law_York_Demister_K_value(20)
+    0.35
+    >>> compute_Stokes_law_York_Demister_K_value(125)
+    0.31894878
+    
     Notes
     -----
     Equations are given by [2]_. See source code for details.
