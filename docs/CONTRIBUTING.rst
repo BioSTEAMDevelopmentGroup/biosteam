@@ -11,7 +11,7 @@ for a link to join. Here is the agenda for this month's coordination call:
 .. toctree::
    :maxdepth: 2
    
-   coordination/November-19-2021
+   coordination/December-17-2021
 
 General Process
 ---------------
