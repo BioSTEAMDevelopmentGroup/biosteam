@@ -1531,6 +1531,8 @@ class System:
             y = self._state['state']
             idx = self._state['indexer']
             n_rotate = self._state['n_rotate']
+            units = self.units[n_rotate:] + self.units[:n_rotate]
+            for unit in units: unit._update_dstate()  
         return y, idx, n_rotate
 
     def _ODE(self, idx, n_rotate):
