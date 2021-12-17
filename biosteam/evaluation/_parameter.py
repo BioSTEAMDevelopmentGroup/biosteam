@@ -61,6 +61,7 @@ class Parameter(Variable):
                 bounds = (distribution.lower[0], distribution.upper[0])
         if bounds and not baseline:
             baseline = 0.5 * (bounds[0] + bounds[1])
+            if hook: baseline = hook(baseline)
         self.baseline = baseline
         self.bounds = bounds
         self.kind = kind

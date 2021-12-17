@@ -122,16 +122,14 @@ class State:
         return copy
     
     def get_baseline_sample(self):
-        """Return an array of parameter baseline values."""
+        """Return a pandas Series object of parameter baseline values."""
         parameters = self.get_parameters()
-        N_parameters = len(parameters)
-        sample = np.zeros(N_parameters)
-        for i, p in enumerate(parameters):
+        sample = {}
+        for p in parameters:
             baseline = p.baseline
-            if baseline is None: raise RuntimeError(f'{p} has no baseline value')
-            if p.hook: baseline = p.hook(baseline)    
-            sample[i] = baseline
-        return sample
+            if baseline is None: raise RuntimeError(f'{p} has no baseline value')  
+            sample[p.index] = baseline
+        return pd.Series(sample)
     
     def _erase(self):
         """Erase cached data."""
