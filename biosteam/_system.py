@@ -100,7 +100,6 @@ def converge_system_in_path(system):
 def simulate_unit_in_path(unit):
     try_method_with_object_stamp(unit, unit.simulate)
 
-
 # %% Debugging and exception handling
 
 def raise_recycle_type_error(recycle):
@@ -1544,7 +1543,7 @@ class System:
                 QC_ins = unit._collect_ins_state()
                 dQC_ins = unit._collect_ins_dstate()
                 QC = unit._state
-                unit.ODE(t, QC_ins, QC, dQC_ins)   
+                unit.ODE(t, QC_ins, QC, dQC_ins)
             return self._dstate_attr2arr(y, idx)
         return dydt
 
@@ -1625,12 +1624,17 @@ class System:
             elif solver=='odeint':
                 sol = odeint(func=dydt, y0=y0, printmessg=print_msg, tfirst=True, **kwargs)
                 t_arr = kwargs['t']
-                if sol.shape[0] < len(t_arr):
+                full_output = kwargs.get('full_output')
+                sol_shape = sol.shape if full_output != 1 else sol[0].shape
+                if sol_shape[0] < len(t_arr):
                     print('Simulation failed.')
                 else:
-                    print('Simulation completed.')
-                self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
-                self._write_state(t_arr[-1], sol[-1])
+                    try:
+                        self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
+                        self._write_state(t_arr[-1], sol[-1])
+                        print('Simulation completed.')
+                    except:
+                        print('Simulation failed.')
             else:
                 raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
                                  f'not {solver}.')
@@ -1638,6 +1642,30 @@ class System:
                 self._state2df(export_state_to)
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
+
+    
+    def get_SRT(self, biomass_IDs, active_unit_IDs=None):
+        """
+        Estimate sludge residence time of an activated sludge system.
+    
+        Parameters
+        ----------
+        biomass_IDs : tuple[str]
+            Component IDs of active biomass
+        active_unit_IDs : tuple[str], optional
+            IDs of activated sludge units. The default is None, meaning to include
+            all units in the system.
+    
+        Returns
+        -------
+        [float] Estimated sludge residence time in days.
+    
+        """
+        waste = sum([ws.composite('solids', subgroup=biomass_IDs)*ws.F_vol*24 for ws in self.products])
+        units = self.units if active_unit_IDs is None \
+            else [u for u in self.units if u.ID in active_unit_IDs]
+        retain = sum([u.get_retained_mass(biomass_IDs) for u in units if u.isdynamic])
+        return retain/waste
 
     # User definitions
     
