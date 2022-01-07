@@ -1625,12 +1625,17 @@ class System:
             elif solver=='odeint':
                 sol = odeint(func=dydt, y0=y0, printmessg=print_msg, tfirst=True, **kwargs)
                 t_arr = kwargs['t']
-                if sol.shape[0] < len(t_arr):
+                full_output = kwargs.get('full_output')
+                sol_shape = sol.shape if full_output != 1 else sol[0].shape
+                if sol_shape[0] < len(t_arr):
                     print('Simulation failed.')
                 else:
-                    print('Simulation completed.')
-                self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
-                self._write_state(t_arr[-1], sol[-1])
+                    try:
+                        self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
+                        self._write_state(t_arr[-1], sol[-1])
+                        print('Simulation completed.')
+                    except:
+                        print('Simulation failed.')
             else:
                 raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
                                  f'not {solver}.')
