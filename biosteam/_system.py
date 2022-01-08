@@ -1537,14 +1537,19 @@ class System:
     def _ODE(self, idx, n_rotate):
         '''System-wide ODEs.'''
         units = self.units[n_rotate:] + self.units[:n_rotate]
+        _state_arr2attr = self._state_arr2attr
+        _dstate_attr2arr = self._dstate_attr2arr
+        _collect_ins_states = [u._collect_ins_state for u in units]
+        _collect_ins_dstates = [u._collect_ins_dstate for u in units]
+        ODEs = [u.ODE for u in units]
         def dydt(t, y):
-            self._state_arr2attr(y, idx)
-            for unit in units:
-                QC_ins = unit._collect_ins_state()
-                dQC_ins = unit._collect_ins_dstate()
+            _state_arr2attr(y, idx)
+            for n, unit in enumerate(units):
+                QC_ins = _collect_ins_states[n]()
+                dQC_ins = _collect_ins_dstates[n]()
                 QC = unit._state
-                unit.ODE(t, QC_ins, QC, dQC_ins)
-            return self._dstate_attr2arr(y, idx)
+                ODEs[n](t, QC_ins, QC, dQC_ins)
+            return _dstate_attr2arr(y, idx)
         return dydt
 
     def _write_state(self, t, y):
