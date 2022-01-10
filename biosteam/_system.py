@@ -1490,7 +1490,8 @@ class System:
         return arr, idxer
 
     def _dstate_attr2arr(self, arr, idx):
-        dy = np.zeros_like(arr)
+        # dy = np.zeros_like(arr)
+        dy = arr.copy()
         for unit in self.units:
             start, stop = idx[unit._ID]
             dy[start: stop] = unit._dstate
