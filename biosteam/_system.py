@@ -1537,14 +1537,19 @@ class System:
     def _ODE(self, idx, n_rotate):
         '''System-wide ODEs.'''
         units = self.units[n_rotate:] + self.units[:n_rotate]
+        _state_arr2attr = self._state_arr2attr
+        _dstate_attr2arr = self._dstate_attr2arr
+        _collect_ins_states = [u._collect_ins_state for u in units]
+        _collect_ins_dstates = [u._collect_ins_dstate for u in units]
+        ODEs = [u.ODE for u in units]
         def dydt(t, y):
-            self._state_arr2attr(y, idx)
-            for unit in units:
-                QC_ins = unit._collect_ins_state()
-                dQC_ins = unit._collect_ins_dstate()
+            _state_arr2attr(y, idx)
+            for n, unit in enumerate(units):
+                QC_ins = _collect_ins_states[n]()
+                dQC_ins = _collect_ins_dstates[n]()
                 QC = unit._state
-                unit.ODE(t, QC_ins, QC, dQC_ins)
-            return self._dstate_attr2arr(y, idx)
+                ODEs[n](t, QC_ins, QC, dQC_ins)
+            return _dstate_attr2arr(y, idx)
         return dydt
 
     def _write_state(self, t, y):
@@ -1643,29 +1648,6 @@ class System:
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 
-    
-    def get_SRT(self, biomass_IDs, active_unit_IDs=None):
-        """
-        Estimate sludge residence time of an activated sludge system.
-    
-        Parameters
-        ----------
-        biomass_IDs : tuple[str]
-            Component IDs of active biomass
-        active_unit_IDs : tuple[str], optional
-            IDs of activated sludge units. The default is None, meaning to include
-            all units in the system.
-    
-        Returns
-        -------
-        [float] Estimated sludge residence time in days.
-    
-        """
-        waste = sum([ws.composite('solids', subgroup=biomass_IDs)*ws.F_vol*24 for ws in self.products])
-        units = self.units if active_unit_IDs is None \
-            else [u for u in self.units if u.ID in active_unit_IDs]
-        retain = sum([u.get_retained_mass(biomass_IDs) for u in units if u.isdynamic])
-        return retain/waste
 
     # User definitions
     
