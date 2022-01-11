@@ -1513,7 +1513,7 @@ class System:
                 else: break
             units = self.units[n_rotate:] + self.units[:n_rotate]
             for inf in units[0].ins:
-                inf._init_state()
+                if inf._state is None: inf._init_state()
             for unit in units: 
                 try:
                     if unit._state is None: unit._init_state()   
@@ -1540,15 +1540,13 @@ class System:
         units = self.units[n_rotate:] + self.units[:n_rotate]
         _state_arr2attr = self._state_arr2attr
         _dstate_attr2arr = self._dstate_attr2arr
-        _collect_ins_states = [u._collect_ins_state for u in units]
-        _collect_ins_dstates = [u._collect_ins_dstate for u in units]
+        _refresh_ins = [u._refresh_ins for u in units]
         ODEs = [u.ODE for u in units]
         def dydt(t, y):
             _state_arr2attr(y, idx)
             for n, unit in enumerate(units):
-                QC_ins = _collect_ins_states[n]()
-                dQC_ins = _collect_ins_dstates[n]()
-                QC = unit._state
+                _refresh_ins[n]()
+                QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
                 ODEs[n](t, QC_ins, QC, dQC_ins)
             return _dstate_attr2arr(y, idx)
         return dydt
