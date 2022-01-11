@@ -1544,10 +1544,10 @@ class System:
         ODEs = [u.ODE for u in units]
         def dydt(t, y):
             _state_arr2attr(y, idx)
-            for n, unit in enumerate(units):
-                _refresh_ins[n]()
+            for unit_refresh_ins, unit, ODE in zip(_refresh_ins, units, ODEs):
+                unit_refresh_ins()
                 QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
-                ODEs[n](t, QC_ins, QC, dQC_ins)
+                ODE(t, QC_ins, QC, dQC_ins)
             return _dstate_attr2arr(y, idx)
         return dydt
 
