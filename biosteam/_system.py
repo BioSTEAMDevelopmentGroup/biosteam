@@ -1577,7 +1577,11 @@ class System:
             return df
         if path.endswith(('.xlsx', '.xls')):
             name = sheet_name or 'Sheet1'
-            df.to_excel(path, sheet_name=name)
+            try:
+                with pd.ExcelWriter(path, mode='a') as writer:
+                    df.to_excel(writer, sheet_name=name)
+            except FileNotFoundError:
+                df.to_excel(path, sheet_name=name)                
         elif path.endswith('.csv'):
             df.to_csv(path)
         elif path.endswith('.tsv'):
