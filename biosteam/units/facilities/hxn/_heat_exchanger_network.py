@@ -279,9 +279,15 @@ class HeatExchangerNetwork(Facility):
                         self._cost()
                         return
                 else:
-                    np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
-                    np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-                    np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                    try:
+                        np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
+                        np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
+                        np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                    except:
+                        s_util.show()
+                        s_lc.show()
+                        import pdb
+                        pdb.set_trace()
             new_purchase_costs_HXp = []
             new_purchase_costs_HXu = []
             new_installed_costs_HXp = []
