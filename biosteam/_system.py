@@ -1567,7 +1567,7 @@ class System:
         for ws in self.streams:
             ws._state = None
 
-    def _state2df(self, path=''):
+    def _state2df(self, path='', sheet_name=''):
         header = [('-', 't [d]')] + sum([[(m, n) for m, n in zip([u.ID]*len(u._state_header), u._state_header)] for u in self.units], [])
         import pandas as pd
         header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
@@ -1576,7 +1576,8 @@ class System:
         if not path:
             return df
         if path.endswith(('.xlsx', '.xls')):
-            df.to_excel(path)
+            name = sheet_name or 'Sheet1'
+            df.to_excel(path, sheet_name=name)
         elif path.endswith('.csv'):
             df.to_csv(path)
         elif path.endswith('.tsv'):
@@ -1588,7 +1589,8 @@ class System:
                              f'not .{ext}.')
 
     def simulate(self, start_from_cached_state=True,
-                 solver='solve_ivp', export_state_to='', print_msg=False,
+                 solver='solve_ivp', export_state_to='', sample_id='',
+                 print_msg=False,
                  **kwargs):
         """
         Converge the path and simulate all units.
@@ -1602,6 +1604,9 @@ class System:
         export_state_to: str
             If provided with a path, will save the simulated states over time to the given path,
             supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
+        sample_id : int or str
+            If `export_state_to` is provided with a valid path with extension
+            '.xlsx' or '.xls' , sample_id will be used as the sheet name.
         kwargs : dict
             Other keyword arguments that will be passed to ``solve_ivp``
             or ``odeint``. Must contain t_span for ``solve_ivp`` or t for ``odeint``.
@@ -1643,7 +1648,7 @@ class System:
                 raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
                                  f'not {solver}.')
             if export_state_to:
-                self._state2df(export_state_to)
+                self._state2df(export_state_to, str(sample_id))
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 

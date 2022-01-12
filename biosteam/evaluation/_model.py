@@ -196,7 +196,7 @@ class Model(State):
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def single_point_sensitivity(self, etol=0.01):
+    def single_point_sensitivity(self, etol=0.01, **dyn_sim_kwargs):
         parameters = self.parameters
         bounds = [i.bounds for i in parameters]
         sample = self.get_baseline_sample()
@@ -207,7 +207,7 @@ class Model(State):
         values_lb = np.zeros([N_parameters, N_metrics])
         values_ub = values_lb.copy()
         evaluate = self._evaluate_sample
-        baseline_1 = np.array(evaluate(sample, True))
+        baseline_1 = np.array(evaluate(sample, True, **dyn_sim_kwargs))
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
@@ -219,9 +219,9 @@ class Model(State):
             else:
                 sample_lb[i] = lb
                 sample_ub[i] = ub
-            values_lb[i, :] = evaluate(sample_lb, True)
-            values_ub[i, :] = evaluate(sample_ub, True)
-        baseline_2 = np.array(evaluate(sample, True))
+            values_lb[i, :] = evaluate(sample_lb, True, **dyn_sim_kwargs)
+            values_ub[i, :] = evaluate(sample_ub, True, **dyn_sim_kwargs)
+        baseline_2 = np.array(evaluate(sample, True, **dyn_sim_kwargs))
         error = np.abs(baseline_2 - baseline_1)
         index, = np.where(error > 1e-6)
         error = error[index]
@@ -243,7 +243,8 @@ class Model(State):
         return baseline, df_lb, df_ub
     
     def evaluate(self, thorough=True, notify=0, 
-                 file=None, autosave=0, autoload=False):
+                 file=None, autosave=0, autoload=False,
+                 **dyn_sim_kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -261,6 +262,8 @@ class Model(State):
             If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
+        dyn_sim_kwargs : dict
+            Any keyword arguments passed to `:class:biosteam.System`.simulate() for dynamic simulation
         
         Warning
         -------
@@ -277,9 +280,9 @@ class Model(State):
             timer = TicToc()
             timer.tic()
             count = [0]
-            def evaluate(sample, thorough, count=count):
+            def evaluate(sample, thorough, count=count, **kwargs):
                 count[0] += 1
-                values = evaluate_sample(sample, thorough)
+                values = evaluate_sample(sample, thorough, **kwargs)
                 if not count[0] % notify:
                     print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
@@ -307,23 +310,26 @@ class Model(State):
         if autosave:
             layout = table.index, table.columns
             for number, i in enumerate(index, number): 
-                values[i] = evaluate(samples[i], thorough)
+                dyn_sim_kwargs['sample_id'] = i
+                values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
                     with open(file, 'wb') as f: pickle.dump(obj, f)
         else:
-            for i in index: values[i] = evaluate(samples[i], thorough)
+            for i in index: 
+                dyn_sim_kwargs['sample_id'] = i
+                values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
         table[var_indices(self._metrics)] = values
     
-    def _evaluate_sample(self, sample, thorough):
+    def _evaluate_sample(self, sample, thorough, **dyn_sim_kwargs):
         try:
-            self._update_state(sample, thorough)
+            self._update_state(sample, thorough, **dyn_sim_kwargs)
             return [i() for i in self.metrics]
         except Exception as exception:
             self._reset_system()
             if self.retry_evaluation:
                 try:
-                    self._specification() if self._specification else self._system.simulate()
+                    self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
                     if self._exception_hook: 
