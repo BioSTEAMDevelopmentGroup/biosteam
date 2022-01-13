@@ -101,7 +101,7 @@ class Parameter(Variable):
             unit = self.unit
             return system._downstream_system(unit) if unit else system
     
-    def simulate(self):
+    def simulate(self, **kwargs):
         """Simulate paramater."""
         kind = self.kind
         if kind in ('design', 'cost'):
@@ -111,7 +111,7 @@ class Parameter(Variable):
         elif kind == 'coupled':
             subsystem = self.subsystem
             if not subsystem: raise RuntimeError(f'no system to run {kind} algorithm')
-            self.subsystem.simulate()
+            self.subsystem.simulate(**kwargs)
         elif kind == 'isolated':
             pass
         else:

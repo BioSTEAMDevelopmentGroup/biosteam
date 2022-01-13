@@ -498,7 +498,7 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._init_dynamic()
+        self._state = None
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -518,7 +518,7 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._init_dynamic()
+        self._state = None
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1470,14 +1470,14 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
-    def _init_dynamic(self):
-        '''Initialize attributes related to dynamic simulation.'''
-        self._state = None
-
     def reset_cache(self):
         """Reset cache of all unit operations."""
+        if self.isdynamic:
+            self._state = None
+            for s in self.streams:
+                s._state = None
+                s._dstate = None
         for unit in self.units: unit.reset_cache()
-        self._init_dynamic()
 
     def _state_attr2arr(self):
         arr = np.array([])
@@ -1564,8 +1564,10 @@ class System:
         self._state = None
         for u in self.units:
             u._state = None
+            u._dstate = None
         for ws in self.streams:
             ws._state = None
+            ws._dstate = None
 
     def _state2df(self, path='', sheet_name=''):
         header = [('-', 't [d]')] + sum([[(m, n) for m, n in zip([u.ID]*len(u._state_header), u._state_header)] for u in self.units], [])
@@ -1576,12 +1578,14 @@ class System:
         if not path:
             return df
         if path.endswith(('.xlsx', '.xls')):
-            name = sheet_name or 'Sheet1'
-            try:
-                with pd.ExcelWriter(path, mode='a') as writer:
-                    df.to_excel(writer, sheet_name=name)
-            except FileNotFoundError:
-                df.to_excel(path, sheet_name=name)                
+            if sheet_name:
+                try:
+                    with pd.ExcelWriter(path, mode='a', \
+                                        if_sheet_exists='replace') as writer:
+                        df.to_excel(writer, sheet_name=sheet_name)
+                except FileNotFoundError:
+                    df.to_excel(path, sheet_name=sheet_name)                   
+            else: df.to_excel(path)
         elif path.endswith('.csv'):
             df.to_csv(path)
         elif path.endswith('.tsv'):
@@ -1592,7 +1596,7 @@ class System:
                              '".xlsx", ".xls", ".csv", and ".tsv", '
                              f'not .{ext}.')
 
-    def simulate(self, start_from_cached_state=True,
+    def simulate(self, state_reset_hook=None,
                  solver='solve_ivp', export_state_to='', sample_id='',
                  print_msg=False,
                  **kwargs):
@@ -1621,9 +1625,13 @@ class System:
         `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_        
         """
         self._setup()
-        self._converge()
         if self.isdynamic:
-            if not start_from_cached_state: self.clear_state()
+            if state_reset_hook:
+                isa = isinstance
+                if isa(state_reset_hook, str):
+                    f = getattr(self, state_reset_hook)
+                f()
+            self._converge()
             y0, idx, nr = self._load_state()
             dydt = self._ODE(idx, nr)
             if solver == 'solve_ivp':
@@ -1653,6 +1661,7 @@ class System:
                                  f'not {solver}.')
             if export_state_to:
                 self._state2df(export_state_to, str(sample_id))
+        else: self._converge()
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
 

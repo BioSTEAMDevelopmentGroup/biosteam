@@ -368,7 +368,7 @@ class State:
                 if self._specification: self._specification()
                 for p, x, same in zip(self._parameters, sample, same_arr):
                     if same: continue
-                    p.simulate()
+                    p.simulate(**dyn_sim_kwargs)
                     if p.kind == 'coupled': break
                 self._sample_cache = sample.copy()
         except Exception as Error:
