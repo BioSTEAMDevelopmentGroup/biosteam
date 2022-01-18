@@ -330,6 +330,7 @@ class System:
         '_feeds',
         '_products',
         '_state',
+        '_state_header',
     )
 
     take_place_of = Unit.take_place_of
@@ -499,6 +500,7 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
+        self._state_header = None
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -519,6 +521,7 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
+        self._state_header = None
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1531,7 +1534,14 @@ class System:
             idx = self._state['indexer']
             n_rotate = self._state['n_rotate']
             units = self.units[n_rotate:] + self.units[:n_rotate]
-            for unit in units: unit._update_dstate()  
+            for unit in units: unit._update_dstate()
+        if self._state_header is None:
+            header = [('-', 't [d]')] + \
+                sum([[(m, n) for m, n in \
+                      zip([u.ID]*len(u._state_header), u._state_header)] \
+                     for u in self.units], [])
+            import pandas as pd
+            self._state_header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
         return y, idx, n_rotate
 
     def _ODE(self, idx, n_rotate):
@@ -1569,32 +1579,38 @@ class System:
             ws._state = None
             ws._dstate = None
 
-    def _state2df(self, path='', sheet_name=''):
-        header = [('-', 't [d]')] + sum([[(m, n) for m, n in zip([u.ID]*len(u._state_header), u._state_header)] for u in self.units], [])
-        import pandas as pd
-        header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
+    def _state2df(self, path='', sample_id=''):
         data = self._state['state_over_time']
-        df = pd.DataFrame(data, columns=header)
-        if not path:
-            return df
-        if path.endswith(('.xlsx', '.xls')):
-            if sheet_name:
-                try:
-                    with pd.ExcelWriter(path, mode='a', \
-                                        if_sheet_exists='replace') as writer:
-                        df.to_excel(writer, sheet_name=sheet_name)
-                except FileNotFoundError:
-                    df.to_excel(path, sheet_name=sheet_name)                   
-            else: df.to_excel(path)
-        elif path.endswith('.csv'):
-            df.to_csv(path)
-        elif path.endswith('.tsv'):
-            df.to_csv(path, sep='\t')
+        if path: 
+            try: file, ext = path.rsplit('.', 1)
+            except ValueError: 
+                file = path
+                ext = 'npy'
+            if sample_id:
+                if ext != 'npy':
+                    warn(f'file extension .{ext} ignored. Time-series data of '
+                         f"{self.ID}'s state variables saved as a .npy file.")
+                path = f'{file}_{sample_id}.{ext}'
+                np.save(path, data)
+            else:
+                header = self._state_header
+                import pandas as pd
+                df = pd.DataFrame(data, columns=header)
+                if ext in ('xlsx', 'xls'):
+                    df.to_excel(path)
+                elif ext == 'csv':
+                    df.to_csv(path)
+                elif ext == 'tsv':
+                    df.to_csv(path, sep='\t')
+                else:
+                    raise ValueError('Only support file extensions of ".npy", '
+                                     '".xlsx", ".xls", ".csv", and ".tsv", '
+                                     f'not .{ext}.')
         else:
-            ext = path.split('.')[-1]
-            raise ValueError('Only support file extensions of '
-                             '".xlsx", ".xls", ".csv", and ".tsv", '
-                             f'not .{ext}.')
+            header = self._state_header
+            import pandas as pd
+            return pd.DataFrame(data, columns=header)
+       
 
     def simulate(self, state_reset_hook=None,
                  solver='solve_ivp', export_state_to='', sample_id='',
