@@ -284,7 +284,7 @@ class System:
         only to systems with no recycle loop.
     operating_hours : float, optional
         Number of operating hours in a year. This parameter is used to
-        compute convinience properties such as utility cost and material cost
+        compute convenience properties such as utility cost and material cost
         on a per year basis.
     lang_factor : float, optional
         Lang factor for getting fixed capital investment from
@@ -386,7 +386,7 @@ class System:
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute convenience properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -424,7 +424,7 @@ class System:
             defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute convenience properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -472,7 +472,7 @@ class System:
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute convenience properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -761,7 +761,7 @@ class System:
 
     @property
     def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether to use a stablized convergence algorithm that implements 
+        """[bool] Whether to use a stabilized convergence algorithm that implements 
         an inner loop with mass and energy balance approximations when applicable."""
         return self._stabilized
     @use_stabilized_convergence_algorithm.setter
@@ -1355,13 +1355,13 @@ class System:
             elif isa(i, System): converge(i)
             else: i() # Assume it's a function
 
-    # Methods for convering the recycle stream
+    # Methods for converging the recycle stream
     def _fixedpoint(self):
         """Converge system recycle iteratively using fixed-point iteration."""
         self._solve(flx.conditional_fixed_point)
 
     def _wegstein(self):
-        """Converge the system recycle iteratively using wegstein's method."""
+        """Converge the system recycle iteratively using Wegstein's method."""
         self._solve(flx.conditional_wegstein)
 
     def _aitken(self):
@@ -1490,7 +1490,6 @@ class System:
         return arr, idxer
 
     def _dstate_attr2arr(self, arr, idx):
-        # dy = np.zeros_like(arr)
         dy = arr.copy()
         for unit in self.units:
             start, stop = idx[unit._ID]
@@ -1561,6 +1560,7 @@ class System:
             ws._state2flows()
 
     def clear_state(self):
+        '''Clear all states and dstates (system, units, and streams).'''
         self._state = None
         for u in self.units:
             u._state = None
@@ -1605,8 +1605,11 @@ class System:
         
         Parameters
         ----------
-        start_from_cached_state: bool
-            Whether to start from the cached state.
+        state_reset_hook: str or callable
+            Hook function to reset the cache state between simulations
+            for dynamic systems).
+            Can be "reset_cache" or "clear_state" to call `System.reset_cache`
+            or `System.clear_state`, or None to avoiding resetting.
         solver : str
             Which ``scipy`` function to use, either "solve_ivp" or "odeint".
         export_state_to: str
