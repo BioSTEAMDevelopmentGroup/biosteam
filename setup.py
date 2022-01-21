@@ -5,7 +5,7 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='biosteam',
