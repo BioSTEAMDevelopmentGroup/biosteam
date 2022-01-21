@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.31.22'
+__version__ = '2.31.23'
 
 #: dict[str, float] Price of stream utilities (in USD/kg) which are defined as 
 #: inlets and outlets to unit operations.
@@ -47,7 +47,7 @@ try:
 except RuntimeError:
     def njit(*args, **kwargs):
         kwargs['cache'] = False
-        numba.jit(*args, **kwargs)
+        return numba.jit(*args, **kwargs)
     numba.njit = njit
     del njit
 else:
