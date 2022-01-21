@@ -138,6 +138,8 @@ class Unit:
         tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
         without having add these costs in the `purchase_costs` dictionary.
+        Utility costs, however, are not automatically accounted for and must
+        be hardcoded in the unit operation logic.
     **_default_equipment_lifetime=None**
         [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
         production venture. Use an integer to specify the lifetime for all
@@ -171,13 +173,13 @@ class Unit:
     outs : Outlets[:class:`~thermosteam.Stream`]
         Output streams.
     power_utility : PowerUtility
-        Electricity rate requirements are stored here (not including auxiliary units).
+        Electricity rate requirements are stored here (including auxiliary units).
     heat_utilities : tuple[:class:`~biosteam.HeatUtility`]
-        Cooling and heating requirements are stored here (not including auxiliary units).
+        Cooling and heating requirements are stored here (including auxiliary units).
     design_results : dict
         All design requirements (not including auxiliary units).
     purchase_costs : dict[str, float]
-        Itemized purchase costs (not including auxiliary units).
+        Itemized purchase costs (including auxiliary units).
     thermo : Thermo
         The thermodynamic property package used by the unit.
     
