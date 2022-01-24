@@ -35,7 +35,7 @@ from inspect import signature
 from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
-from scipy.integrate import solve_ivp, odeint
+from scipy.integrate import solve_ivp
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
@@ -1613,7 +1613,7 @@ class System:
        
 
     def simulate(self, state_reset_hook=None,
-                 solver='solve_ivp', export_state_to='', sample_id='',
+                 export_state_to='', sample_id='',
                  print_msg=False,
                  **kwargs):
         """
@@ -1626,8 +1626,6 @@ class System:
             for dynamic systems).
             Can be "reset_cache" or "clear_state" to call `System.reset_cache`
             or `System.clear_state`, or None to avoiding resetting.
-        solver : str
-            Which ``scipy`` function to use, either "solve_ivp" or "odeint".
         export_state_to: str
             If provided with a path, will save the simulated states over time to the given path,
             supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
@@ -1653,31 +1651,11 @@ class System:
             self._converge()
             y0, idx, nr = self._load_state()
             dydt = self._ODE(idx, nr)
-            if solver == 'solve_ivp':
-                sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
-                self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
-                if sol.status == 0:
-                    print('Simulation completed.')
-                else:
-                    print(sol.message)
-                self._write_state(sol.t[-1], sol.y.T[-1])
-            elif solver=='odeint':
-                sol = odeint(func=dydt, y0=y0, printmessg=print_msg, tfirst=True, **kwargs)
-                t_arr = kwargs['t']
-                full_output = kwargs.get('full_output')
-                sol_shape = sol.shape if full_output != 1 else sol[0].shape
-                if sol_shape[0] < len(t_arr):
-                    print('Simulation failed.')
-                else:
-                    try:
-                        self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
-                        self._write_state(t_arr[-1], sol[-1])
-                        print('Simulation completed.')
-                    except:
-                        print('Simulation failed.')
-            else:
-                raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
-                                 f'not {solver}.')
+            sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
+            self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
+            if sol.status == 0: print('Simulation completed.')
+            else: print(sol.message)
+            self._write_state(sol.t[-1], sol.y.T[-1])
             if export_state_to:
                 self._state2df(export_state_to, str(sample_id))
         else: self._converge()
