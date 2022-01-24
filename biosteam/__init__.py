@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.31.21'
+__version__ = '2.31.23'
 
 #: dict[str, float] Price of stream utilities (in USD/kg) which are defined as 
 #: inlets and outlets to unit operations.
@@ -37,6 +37,21 @@ PROFILE_UNITS_IN_DIAGRAMS = False
 
 #: Whether to raise exception regarding problems displaying graphviz diagrams
 RAISE_GRAPHVIZ_EXCEPTION = False
+
+# %% Workaround for readthedocs, which fails to cache numba
+
+import numba
+try:
+    @numba.njit(cache=True)
+    def f_dummy(): pass
+except RuntimeError:
+    def njit(*args, **kwargs):
+        kwargs['cache'] = False
+        return numba.jit(*args, **kwargs)
+    numba.njit = njit
+    del njit
+else:
+    del f_dummy
 
 # %% Initialize BioSTEAM 
 
