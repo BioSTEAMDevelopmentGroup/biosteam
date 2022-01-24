@@ -185,7 +185,7 @@ class MultiEffectEvaporator(Unit):
                           Flow           kmol/hr                          2.56
                           Cost            USD/hr                         0.707
     Design                Area               m^2                          1.64
-                          Volume             m^3                          6.64
+                          Volume             m^3                          6.62
                           Vacuum system           Steam-jet ejector, one stage
     Purchase cost         Condenser          USD                      3.89e+03
                           Evaporators        USD                      2.77e+03

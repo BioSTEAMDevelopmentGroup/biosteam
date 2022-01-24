@@ -5,18 +5,18 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='2.31.20',
+    version='2.31.21',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst', encoding='utf-8').read(),
     author='Yoel Cortes-Pena',
     install_requires=['IPython>=7.9.0',
-                      'thermosteam>=0.27.17', 
+                      'thermosteam>=0.27.18', 
                       'graphviz>=0.17',
                       'chaospy>=3.3.9'],
     extras_require={ 
