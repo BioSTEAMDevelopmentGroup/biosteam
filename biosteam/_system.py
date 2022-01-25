@@ -1647,6 +1647,8 @@ class System:
                 isa = isinstance
                 if isa(state_reset_hook, str):
                     f = getattr(self, state_reset_hook)
+                else:
+                    f = state_reset_hook # assume to be a function
                 f()
             self._converge()
             y0, idx, nr = self._load_state()
