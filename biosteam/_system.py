@@ -35,7 +35,7 @@ from inspect import signature
 from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
-from scipy.integrate import solve_ivp, odeint
+from scipy.integrate import solve_ivp
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',
@@ -99,7 +99,6 @@ def converge_system_in_path(system):
 
 def simulate_unit_in_path(unit):
     try_method_with_object_stamp(unit, unit.simulate)
-
 
 # %% Debugging and exception handling
 
@@ -285,7 +284,7 @@ class System:
         only to systems with no recycle loop.
     operating_hours : float, optional
         Number of operating hours in a year. This parameter is used to
-        compute convinience properties such as utility cost and material cost
+        compute annualized properties such as utility cost and material cost
         on a per year basis.
     lang_factor : float, optional
         Lang factor for getting fixed capital investment from
@@ -331,6 +330,7 @@ class System:
         '_feeds',
         '_products',
         '_state',
+        '_state_header',
     )
 
     take_place_of = Unit.take_place_of
@@ -387,7 +387,7 @@ class System:
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute annualized properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -425,7 +425,7 @@ class System:
             defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute annualized properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -473,7 +473,7 @@ class System:
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute annualized properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -499,7 +499,8 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._init_dynamic()
+        self._state = None
+        self._state_header = None
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -519,7 +520,8 @@ class System:
         self._load_stream_links()
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
-        self._init_dynamic()
+        self._state = None
+        self._state_header = None
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -762,7 +764,7 @@ class System:
 
     @property
     def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether to use a stablized convergence algorithm that implements 
+        """[bool] Whether to use a stabilized convergence algorithm that implements 
         an inner loop with mass and energy balance approximations when applicable."""
         return self._stabilized
     @use_stabilized_convergence_algorithm.setter
@@ -1124,9 +1126,9 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        isdynamic = [(unit._isdynamic if hasattr(unit, '_isdynamic') else False)
-                     for unit in self.units]
-        return any(isdynamic)
+        for i in self.units:
+            if i._isdynamic: return True
+        return False
 
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
@@ -1356,13 +1358,13 @@ class System:
             elif isa(i, System): converge(i)
             else: i() # Assume it's a function
 
-    # Methods for convering the recycle stream
+    # Methods for converging the recycle stream
     def _fixedpoint(self):
         """Converge system recycle iteratively using fixed-point iteration."""
         self._solve(flx.conditional_fixed_point)
 
     def _wegstein(self):
-        """Converge the system recycle iteratively using wegstein's method."""
+        """Converge the system recycle iteratively using Wegstein's method."""
         self._solve(flx.conditional_wegstein)
 
     def _aitken(self):
@@ -1471,14 +1473,14 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
-    def _init_dynamic(self):
-        '''Initialize attributes related to dynamic simulation.'''
-        self._state = None
-
     def reset_cache(self):
         """Reset cache of all unit operations."""
+        if self.isdynamic:
+            self._state = None
+            for s in self.streams:
+                s._state = None
+                s._dstate = None
         for unit in self.units: unit.reset_cache()
-        self._init_dynamic()
 
     def _state_attr2arr(self):
         arr = np.array([])
@@ -1491,7 +1493,7 @@ class System:
         return arr, idxer
 
     def _dstate_attr2arr(self, arr, idx):
-        dy = np.zeros_like(arr)
+        dy = arr.copy()
         for unit in self.units:
             start, stop = idx[unit._ID]
             dy[start: stop] = unit._dstate
@@ -1513,7 +1515,7 @@ class System:
                 else: break
             units = self.units[n_rotate:] + self.units[:n_rotate]
             for inf in units[0].ins:
-                inf._init_state()
+                if inf._state is None: inf._init_state()
             for unit in units: 
                 try:
                     if unit._state is None: unit._init_state()   
@@ -1532,20 +1534,30 @@ class System:
             idx = self._state['indexer']
             n_rotate = self._state['n_rotate']
             units = self.units[n_rotate:] + self.units[:n_rotate]
-            for unit in units: unit._update_dstate()  
+            for unit in units: unit._update_dstate()
+        if self._state_header is None:
+            header = [('-', 't [d]')] + \
+                sum([[(m, n) for m, n in \
+                      zip([u.ID]*len(u._state_header), u._state_header)] \
+                     for u in self.units], [])
+            import pandas as pd
+            self._state_header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
         return y, idx, n_rotate
 
     def _ODE(self, idx, n_rotate):
         '''System-wide ODEs.'''
         units = self.units[n_rotate:] + self.units[:n_rotate]
+        _state_arr2attr = self._state_arr2attr
+        _dstate_attr2arr = self._dstate_attr2arr
+        _refresh_ins = [u._refresh_ins for u in units]
+        ODEs = [u.ODE for u in units]
         def dydt(t, y):
-            self._state_arr2attr(y, idx)
-            for unit in units:
-                QC_ins = unit._collect_ins_state()
-                dQC_ins = unit._collect_ins_dstate()
-                QC = unit._state
-                unit.ODE(t, QC_ins, QC, dQC_ins)   
-            return self._dstate_attr2arr(y, idx)
+            _state_arr2attr(y, idx)
+            for unit_refresh_ins, unit, ODE in zip(_refresh_ins, units, ODEs):
+                unit_refresh_ins()
+                QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
+                ODE(t, QC_ins, QC, dQC_ins)
+            return _dstate_attr2arr(y, idx)
         return dydt
 
     def _write_state(self, t, y):
@@ -1558,47 +1570,68 @@ class System:
             ws._state2flows()
 
     def clear_state(self):
+        '''Clear all states and dstates (system, units, and streams).'''
         self._state = None
         for u in self.units:
             u._state = None
+            u._dstate = None
         for ws in self.streams:
             ws._state = None
+            ws._dstate = None
 
-    def _state2df(self, path=''):
-        header = [('-', 't [d]')] + sum([[(m, n) for m, n in zip([u.ID]*len(u._state_header), u._state_header)] for u in self.units], [])
-        import pandas as pd
-        header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
+    def _state2df(self, path='', sample_id=''):
         data = self._state['state_over_time']
-        df = pd.DataFrame(data, columns=header)
-        if not path:
-            return df
-        if path.endswith(('.xlsx', '.xls')):
-            df.to_excel(path)
-        elif path.endswith('.csv'):
-            df.to_csv(path)
-        elif path.endswith('.tsv'):
-            df.to_csv(path, sep='\t')
+        if path: 
+            try: file, ext = path.rsplit('.', 1)
+            except ValueError: 
+                file = path
+                ext = 'npy'
+            if sample_id:
+                if ext != 'npy':
+                    warn(f'file extension .{ext} ignored. Time-series data of '
+                         f"{self.ID}'s state variables saved as a .npy file.")
+                path = f'{file}_{sample_id}.{ext}'
+                np.save(path, data)
+            else:
+                header = self._state_header
+                import pandas as pd
+                df = pd.DataFrame(data, columns=header)
+                if ext in ('xlsx', 'xls'):
+                    df.to_excel(path)
+                elif ext == 'csv':
+                    df.to_csv(path)
+                elif ext == 'tsv':
+                    df.to_csv(path, sep='\t')
+                else:
+                    raise ValueError('Only support file extensions of ".npy", '
+                                     '".xlsx", ".xls", ".csv", and ".tsv", '
+                                     f'not .{ext}.')
         else:
-            ext = path.split('.')[-1]
-            raise ValueError('Only support file extensions of '
-                             '".xlsx", ".xls", ".csv", and ".tsv", '
-                             f'not .{ext}.')
+            header = self._state_header
+            import pandas as pd
+            return pd.DataFrame(data, columns=header)
+       
 
-    def simulate(self, start_from_cached_state=True,
-                 solver='solve_ivp', export_state_to='', print_msg=False,
+    def simulate(self, state_reset_hook=None,
+                 export_state_to='', sample_id='',
+                 print_msg=False,
                  **kwargs):
         """
         Converge the path and simulate all units.
         
         Parameters
         ----------
-        start_from_cached_state: bool
-            Whether to start from the cached state.
-        solver : str
-            Which ``scipy`` function to use, either "solve_ivp" or "odeint".
+        state_reset_hook: str or callable
+            Hook function to reset the cache state between simulations
+            for dynamic systems).
+            Can be "reset_cache" or "clear_state" to call `System.reset_cache`
+            or `System.clear_state`, or None to avoiding resetting.
         export_state_to: str
             If provided with a path, will save the simulated states over time to the given path,
             supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
+        sample_id : int or str
+            If `export_state_to` is provided with a valid path with extension
+            '.xlsx' or '.xls' , sample_id will be used as the sheet name.
         kwargs : dict
             Other keyword arguments that will be passed to ``solve_ivp``
             or ``odeint``. Must contain t_span for ``solve_ivp`` or t for ``odeint``.
@@ -1609,35 +1642,26 @@ class System:
         `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_        
         """
         self._setup()
-        self._converge()
         if self.isdynamic:
-            if not start_from_cached_state: self.clear_state()
+            if state_reset_hook:
+                isa = isinstance
+                if isa(state_reset_hook, str):
+                    f = getattr(self, state_reset_hook)
+                f()
+            self._converge()
             y0, idx, nr = self._load_state()
             dydt = self._ODE(idx, nr)
-            if solver == 'solve_ivp':
-                sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
-                self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
-                if sol.status == 0:
-                    print('Simulation completed.')
-                else:
-                    print(sol.message)
-                self._write_state(sol.t[-1], sol.y.T[-1])
-            elif solver=='odeint':
-                sol = odeint(func=dydt, y0=y0, printmessg=print_msg, tfirst=True, **kwargs)
-                t_arr = kwargs['t']
-                if sol.shape[0] < len(t_arr):
-                    print('Simulation failed.')
-                else:
-                    print('Simulation completed.')
-                self._state['state_over_time'] = np.hstack((t_arr.reshape((len(t_arr), 1)), sol))
-                self._write_state(t_arr[-1], sol[-1])
-            else:
-                raise ValueError('`solver` can only be "solve_ivp" or "odeint", '
-                                 f'not {solver}.')
+            sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
+            self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
+            if sol.status == 0: print('Simulation completed.')
+            else: print(sol.message)
+            self._write_state(sol.t[-1], sol.y.T[-1])
             if export_state_to:
-                self._state2df(export_state_to)
+                self._state2df(export_state_to, str(sample_id))
+        else: self._converge()
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
+
 
     # User definitions
     

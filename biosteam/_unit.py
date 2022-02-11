@@ -301,6 +301,7 @@ class Unit:
     ### Other defaults ###
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        self._isdynamic = False
         self._register(ID)
         self._specification = None
         self._load_thermo(thermo)

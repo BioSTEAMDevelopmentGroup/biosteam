@@ -355,11 +355,11 @@ class State:
             self._N_parameters_cache = N_parameters
             Parameter.sort_parameters(parameters)
     
-    def _update_state(self, sample, thorough=True):
+    def _update_state(self, sample, thorough=True, **dyn_sim_kwargs):
         try:
             if thorough: 
                 for f, s in zip(self._parameters, sample): f.setter(s)
-                self._specification() if self._specification else self._system.simulate()
+                self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
             else:
                 same_arr = self._sample_cache==sample
                 for p, x, same in zip(self._parameters, sample, same_arr):
@@ -368,7 +368,7 @@ class State:
                 if self._specification: self._specification()
                 for p, x, same in zip(self._parameters, sample, same_arr):
                     if same: continue
-                    p.simulate()
+                    p.simulate(**dyn_sim_kwargs)
                     if p.kind == 'coupled': break
                 self._sample_cache = sample.copy()
         except Exception as Error:
