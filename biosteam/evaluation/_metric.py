@@ -30,6 +30,7 @@ class Metric(Variable):
     """
     __slots__ = ('getter', 'cache')
     distribution = None
+    caching = True
     def __init__(self, name, getter, units=None, element='Biorefinery'):
         if name is None and hasattr(getter, '__name__'): name = format_title(getter.__name__)
         super().__init__(name, units, element)
@@ -42,10 +43,11 @@ class Metric(Variable):
     def get(self):
         """Return value of metric. This method caches the value for future calls."""
         try:
-            return self.cache
+            if self.caching: return self.cache
         except:
             self.cache = self.getter()
             return self.cache
+        return self.getter()
     
     def difference(self):
         """Return the difference between the current metric value and the last one 

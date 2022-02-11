@@ -284,7 +284,7 @@ class System:
         only to systems with no recycle loop.
     operating_hours : float, optional
         Number of operating hours in a year. This parameter is used to
-        compute convenience properties such as utility cost and material cost
+        compute annualized properties such as utility cost and material cost
         on a per year basis.
     lang_factor : float, optional
         Lang factor for getting fixed capital investment from
@@ -387,7 +387,7 @@ class System:
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convenience properties such as utility cost and material cost
+            compute annualized properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -425,7 +425,7 @@ class System:
             defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convenience properties such as utility cost and material cost
+            compute annualized properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -473,7 +473,7 @@ class System:
             Recycle stream between facilities and system path.
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convenience properties such as utility cost and material cost
+            compute annualized properties such as utility cost and material cost
             on a per year basis.
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from
@@ -1126,9 +1126,9 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        isdynamic = [(unit._isdynamic if hasattr(unit, '_isdynamic') else False)
-                     for unit in self.units]
-        return any(isdynamic)
+        for i in self.units:
+            if i._isdynamic: return True
+        return False
 
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
