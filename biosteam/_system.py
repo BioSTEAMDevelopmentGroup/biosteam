@@ -1495,7 +1495,9 @@ class System:
             for s in self.streams:
                 s._state = None
                 s._dstate = None
-        for unit in self.units: unit.reset_cache()
+        for unit in self.units: 
+            unit.reset_cache(self.isdynamic)
+            
     
     # _hasode = lambda unit: hasattr(unit, '_compile_ODE')
     
@@ -1523,21 +1525,21 @@ class System:
             for inf in units[0].ins:
                 if not inf.state.all(): inf._init_state()
             y = np.array([])
-            idx = self._state_idx = {}
+            idx = {}
             for unit in units: 
-                y0 = unit._init_state()
+                unit._init_state()
                 unit._update_state()
                 unit._update_dstate()
                 if unit.hasode:
-                    start = len(y0)
-                    y = np.append(y0, unit._state)
-                    stop = len(y0)
+                    start = len(y)
+                    y = np.append(y, unit._state)
+                    stop = len(y)
                     idx[unit._ID] = (start, stop)
             self._state = y
             self._state_idx = idx
             for unit in units:
                 if unit.hasode:
-                    start, stop = idx[unit._IDD]
+                    start, stop = idx[unit._ID]
                     unit._state = self._state[start: stop]
         else:
             y = self._state
@@ -1566,7 +1568,7 @@ class System:
                     func(t, QC_ins, QC, dQC_ins)   # updates dstate
                 else:
                     QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
-                    func(t, QC_ins, QC, dQC_ins)   # updates both state and dstate
+                    func(t, QC_ins, dQC_ins)   # updates both state and dstate
             return _dstate_attr2arr(y)
         self._DAE = dydt
 
@@ -1665,6 +1667,9 @@ class System:
                 else:
                     f = state_reset_hook # assume to be a function
                 f()
+            else: 
+                for u in self.units:
+                    if not u.isdynamic: u._init_dynamic()
             self._converge()
             y0, idx, nr = self._load_state()
             dydt = self.DAE
