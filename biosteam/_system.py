@@ -330,7 +330,9 @@ class System:
         '_feeds',
         '_products',
         '_state',
+        '_state_idx',
         '_state_header',
+        '_DAE'
     )
 
     take_place_of = Unit.take_place_of
@@ -500,7 +502,9 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
+        self._state_idx = None
         self._state_header = None
+        self._DAE = None
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -521,7 +525,9 @@ class System:
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
+        self._state_idx = None
         self._state_header = None
+        self._DAE = None
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1129,6 +1135,14 @@ class System:
         isdynamic = [(unit._isdynamic if hasattr(unit, '_isdynamic') else False)
                      for unit in self.units]
         return any(isdynamic)
+    
+    @property
+    def _n_rotate(self):
+        nr = 0
+        for u in self.units:
+            if not u.isdynamic: nr += 1
+            else: break
+        return nr
 
     def _downstream_path(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
@@ -1476,96 +1490,95 @@ class System:
     def reset_cache(self):
         """Reset cache of all unit operations."""
         if self.isdynamic:
+            self._DAE = None
             self._state = None
             for s in self.streams:
                 s._state = None
                 s._dstate = None
         for unit in self.units: unit.reset_cache()
-
-    def _state_attr2arr(self):
-        arr = np.array([])
-        idxer = {}
+    
+    # _hasode = lambda unit: hasattr(unit, '_compile_ODE')
+    
+    def _dstate_attr2arr(self, y):
+        dy = y.copy()
+        idx = self._state_idx
         for unit in self.units:
-            start = len(arr)
-            arr = np.append(arr, unit._state)
-            stop = len(arr)
-            idxer[unit._ID] = (start, stop)
-        return arr, idxer
-
-    def _dstate_attr2arr(self, arr, idx):
-        dy = arr.copy()
-        for unit in self.units:
-            start, stop = idx[unit._ID]
-            dy[start: stop] = unit._dstate
+            if unit.hasode:
+                start, stop = idx[unit._ID]
+                dy[start: stop] = unit._dstate
         return dy
 
-    def _state_arr2attr(self, arr, idx):
+    def _update_state(self, arr):
+        self._state[:] = arr
         for unit in self.units:
-            start, stop = idx[unit._ID]
-            unit._update_state(arr[start: stop])
+            if unit.hasode: unit._update_state()
 
     def _load_state(self):
         '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
+        nr = self._n_rotate
+        units = self.units[nr:] + self.units[:nr]
         if self._state is None:
             for ws in self.feeds:
-                if ws._state is None: ws._init_state()
-            n_rotate = 0
-            for u in self.units:
-                if not u.isdynamic: n_rotate += 1
-                else: break
-            units = self.units[n_rotate:] + self.units[:n_rotate]
+                if not ws.state.all(): ws._init_state()
             for inf in units[0].ins:
-                if inf._state is None: inf._init_state()
+                if not inf.state.all(): inf._init_state()
+            y = np.array([])
+            idx = self._state_idx = {}
             for unit in units: 
-                try:
-                    if unit._state is None: unit._init_state()   
-                except AttributeError:
-                    raise AttributeError(f'{unit.ID} does not have `_init_state`, check if it is a dynamic unit.')
-                unit._update_state(unit._state)
-                unit._update_dstate()  
-            y, idx = self._state_attr2arr()
-            self._state = {'time': 0,
-                           'state': y,
-                           'indexer': idx,
-                           'state_over_time': None,
-                           'n_rotate': n_rotate}
+                y0 = unit._init_state()
+                unit._update_state()
+                unit._update_dstate()
+                if unit.hasode:
+                    start = len(y0)
+                    y = np.append(y0, unit._state)
+                    stop = len(y0)
+                    idx[unit._ID] = (start, stop)
+            self._state = y
+            self._state_idx = idx
+            for unit in units:
+                if unit.hasode:
+                    start, stop = idx[unit._IDD]
+                    unit._state = self._state[start: stop]
         else:
-            y = self._state['state']
-            idx = self._state['indexer']
-            n_rotate = self._state['n_rotate']
-            units = self.units[n_rotate:] + self.units[:n_rotate]
+            y = self._state
+            idx = self._state_idx
             for unit in units: unit._update_dstate()
         if self._state_header is None:
             header = [('-', 't [d]')] + \
                 sum([[(m, n) for m, n in \
                       zip([u.ID]*len(u._state_header), u._state_header)] \
-                     for u in self.units], [])
+                     for u in units if u.hasode], [])
             import pandas as pd
             self._state_header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
-        return y, idx, n_rotate
+        return y, idx, nr
 
-    def _ODE(self, idx, n_rotate):
-        '''System-wide ODEs.'''
-        units = self.units[n_rotate:] + self.units[:n_rotate]
-        _state_arr2attr = self._state_arr2attr
+    def _compile_DAE(self):
+        nr = self._n_rotate
+        units = self.units[nr:] + self.units[:nr]
+        _update_state = self._update_state
         _dstate_attr2arr = self._dstate_attr2arr
-        _refresh_ins = [u._refresh_ins for u in units]
-        ODEs = [u.ODE for u in units]
+        funcs = [u.ODE if u.hasode else u.AE for u in units]
         def dydt(t, y):
-            _state_arr2attr(y, idx)
-            for unit_refresh_ins, unit, ODE in zip(_refresh_ins, units, ODEs):
-                unit_refresh_ins()
-                QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
-                ODE(t, QC_ins, QC, dQC_ins)
-            return _dstate_attr2arr(y, idx)
-        return dydt
+            _update_state(y)
+            for unit, func in zip(units, funcs):
+                if unit.hasode:
+                    QC_ins, QC, dQC_ins = unit._ins_QC, unit._state, unit._ins_dQC
+                    func(t, QC_ins, QC, dQC_ins)   # updates dstate
+                else:
+                    QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
+                    func(t, QC_ins, QC, dQC_ins)   # updates both state and dstate
+            return _dstate_attr2arr(y)
+        self._DAE = dydt
 
-    def _write_state(self, t, y):
-        '''record the states at a certain time point of the dynamic simulation and define wastestreams '''
-        self._state['time'] = t
-        self._state['state'] = y
-        idx = self._state['indexer']
-        self._state_arr2attr(y, idx)
+    @property
+    def DAE(self):
+        '''System-wide differential algebraic equations.'''
+        if self._DAE is None:
+            try: self._compile_DAE()
+            except AttributeError: return None
+        return self._DAE
+
+    def _write_state(self):
         for ws in self.streams - set(self.feeds):
             ws._state2flows()
 
@@ -1576,11 +1589,13 @@ class System:
             u._state = None
             u._dstate = None
         for ws in self.streams:
+            y = ws.state.copy()
             ws._state = None
             ws._dstate = None
+            ws.state = y*0.0
+            ws.dstate = y*0.0
 
-    def _state2df(self, path='', sample_id=''):
-        data = self._state['state_over_time']
+    def _state2df(self, data, path='', sample_id=''):
         if path: 
             try: file, ext = path.rsplit('.', 1)
             except ValueError: 
@@ -1652,14 +1667,14 @@ class System:
                 f()
             self._converge()
             y0, idx, nr = self._load_state()
-            dydt = self._ODE(idx, nr)
+            dydt = self.DAE
             sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
-            self._state['state_over_time'] = np.vstack((sol.t, sol.y)).T
+            time_series = np.vstack((sol.t, sol.y)).T
             if sol.status == 0: print('Simulation completed.')
             else: print(sol.message)
-            self._write_state(sol.t[-1], sol.y.T[-1])
+            self._write_state()
             if export_state_to:
-                self._state2df(export_state_to, str(sample_id))
+                self._state2df(time_series, export_state_to, str(sample_id))
         else: self._converge()
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
