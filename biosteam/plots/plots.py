@@ -17,6 +17,7 @@ from thermosteam.units_of_measure import format_units, reformat_units
 import matplotlib.patches as mpatches
 from math import floor, ceil
 from matplotlib.ticker import MultipleLocator
+from scipy.stats import kde
 
 __all__ = (
     'rounted_tickmarks_from_range',
@@ -40,6 +41,8 @@ __all__ = (
     'plot_contour_across_coordinate',
     'plot_contour_2d_curves',
     'plot_heatmap',
+    'plot_kde_row',
+    'plot_kde',
 )
 
 # %% Utilities
@@ -670,7 +673,47 @@ def plot_montecarlo_across_coordinate(xs, ys,
              linewidth=1.0) # Upper whisker
     
     return percentiles
-  
+
+# %% KDE
+
+def plot_kde(x, y, nbins=100, ax=None,
+             xticks=None, yticks=None, xticklabels=None, yticklabels=None,
+             **kwargs):
+    if ax:
+        plt.sca(ax)
+    else:
+        ax = plt.gca()
+    # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
+    k = kde.gaussian_kde([x, y])
+    # xmin = x.min()
+    # xmax = x.max()
+    # ymin = y.min()
+    # ymax = y.max()
+    # xi, yi = np.mgrid[xmin:xmax:nbins*1j, ymin:ymax:nbins*1j]
+    # xi = xi.flatten()
+    # yi = yi.flatten()
+    z = k(np.vstack([x, y]))
+    # Sort the points by density, so that the densest points are plotted last
+    idx = z.argsort()
+    x, y, z = x[idx], y[idx], z[idx]
+    
+    # 2D Density with shading
+    # breakpoint()
+    plt.scatter(x, y, c=z, s=1., **kwargs)
+    # style_axis(ax, xticks, yticks, xticklabels, yticklabels)
+    plt.xlim([x.min(), x.max()])
+    plt.ylim([y.min(), y.max()])
+
+def plot_kde_row(xs, y, nbins=100, axes=None, **kwargs):
+    if axes is None:
+        n = len(xs)
+        fig, axes = plt.subplots(ncols=n)
+    N = len(xs)
+    for i in range(N):
+        x = xs[i]
+        ax = axes[i]
+        plot_kde(x, y, nbins=nbins, ax=ax, **kwargs)
+    
 # %% Contours
   
 def plot_contour_1d(X_grid, Y_grid, data, 
