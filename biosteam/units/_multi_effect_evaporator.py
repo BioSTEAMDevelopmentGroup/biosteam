@@ -237,11 +237,13 @@ class MultiEffectEvaporator(Unit):
         else:
             raise ValueError("V_definition must be either 'Overall' or 'First-effect'")
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, V, V_definition='Overall'):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, V, V_definition='Overall',
+                 flash=True):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P #: tuple[float] Pressures describing each evaporator (Pa).
         self.V = V #: [float] Molar fraction evaporated.
         self.V_definition = V_definition
+        self.flash = flash #: [bool] Whether to perform a flash calculation to account for volatile components.
         self._V_first_effect = None
         self._reload_components = True
         self.components = {}
@@ -362,11 +364,12 @@ class MultiEffectEvaporator(Unit):
         mixer._run()
         liq.copy_like(mixer.outs[0])
         
-        mixed_stream = MultiStream(None, thermo=self.thermo)
-        mixed_stream.copy_flow(self.ins[0])
-        mixed_stream.vle(P=last_evaporator.P, V=V_overall)
-        out_wt_solids.mol = mixed_stream.imol['l']
-        liq.mol = mixed_stream.imol['g']
+        if self.flash:
+            mixed_stream = MultiStream(None, thermo=self.thermo)
+            mixed_stream.copy_flow(self.ins[0])
+            mixed_stream.vle(P=last_evaporator.P, V=V_overall)
+            out_wt_solids.mol = mixed_stream.imol['l']
+            liq.mol = mixed_stream.imol['g']
         liq.P = out_wt_solids.P
         
     def _design(self):

@@ -233,7 +233,11 @@ def get_unit_names(f: Digraph, units):
         node = u.get_node()
         name = node['name']
         info = ', '.join(index) 
-        if time is not None: info = f"{info}; {time}"
+        if time is not None:
+            if info:
+                info = f"{info}; {time}"
+            else:
+                info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
         f.node(**node)
