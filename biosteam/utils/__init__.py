@@ -17,6 +17,7 @@ from . import (misc,
                unit_warnings,
                functors,
                stream_filters,
+               scope,
 )
 __all__ = ('colors',
            'misc', 
@@ -34,6 +35,7 @@ __all__ = ('colors',
            *unit_warnings.__all__,
            *functors.__all__,
            *stream_filters.__all__,
+           *scope.__all__,
 )
 from thermosteam.utils import *
 from .not_implemented_method import *
@@ -45,5 +47,6 @@ from .stream_link_options import *
 from .unit_warnings import *
 from .functors import *
 from .stream_filters import *
+from .scope import *
 
 del utils
