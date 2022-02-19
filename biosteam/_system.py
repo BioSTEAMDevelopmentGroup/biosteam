@@ -23,7 +23,7 @@ from .exceptions import try_method_with_object_stamp
 from ._network import Network
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
-from .utils import repr_items, ignore_docking_warnings
+from .utils import repr_items, ignore_docking_warnings, SystemScope
 from .report import save_report
 from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
@@ -332,7 +332,8 @@ class System:
         '_state',
         '_state_idx',
         '_state_header',
-        '_DAE'
+        '_DAE',
+        '_scope'
     )
 
     take_place_of = Unit.take_place_of
@@ -1498,6 +1499,25 @@ class System:
         for unit in self.units: 
             unit.reset_cache(self.isdynamic)
             
+    def set_dynamic_tracker(self, *subjects, **kwargs):
+        """
+        Set up an :class:`SystemScope` object to track the dynamic data.
+
+        Parameters
+        ----------
+        *subjects :
+            Any subjects of the system to track, which must have an `.scope`
+            attribute of type :class:`Scope`.
+        """
+        self._scope = SystemScope(self, *subjects, **kwargs)
+        
+    @property
+    def scope(self):
+        """
+        [:class:`SystemScope`] A tracker of dynamic data of the system, set up
+        with :class:`System`.`set_dynamic_tracker()`
+        """
+        return self._scope
     
     # _hasode = lambda unit: hasattr(unit, '_compile_ODE')
     
@@ -1545,13 +1565,6 @@ class System:
             y = self._state
             idx = self._state_idx
             for unit in units: unit._update_dstate()
-        if self._state_header is None:
-            header = [('-', 't [d]')] + \
-                sum([[(m, n) for m, n in \
-                      zip([u.ID]*len(u._state_header), u._state_header)] \
-                     for u in units if u.hasode], [])
-            import pandas as pd
-            self._state_header = pd.MultiIndex.from_tuples(header, names=['unit', 'variable'])
         return y, idx, nr
 
     def _compile_DAE(self):
@@ -1560,6 +1573,7 @@ class System:
         _update_state = self._update_state
         _dstate_attr2arr = self._dstate_attr2arr
         funcs = [u.ODE if u.hasode else u.AE for u in units]
+        track = self._scope
         def dydt(t, y):
             _update_state(y)
             for unit, func in zip(units, funcs):
@@ -1569,6 +1583,7 @@ class System:
                 else:
                     QC_ins, dQC_ins = unit._ins_QC, unit._ins_dQC
                     func(t, QC_ins, dQC_ins)   # updates both state and dstate
+            track(t)
             return _dstate_attr2arr(y)
         self._DAE = dydt
 
@@ -1596,38 +1611,6 @@ class System:
             ws._dstate = None
             ws.state = y*0.0
             ws.dstate = y*0.0
-
-    def _state2df(self, data, path='', sample_id=''):
-        if path: 
-            try: file, ext = path.rsplit('.', 1)
-            except ValueError: 
-                file = path
-                ext = 'npy'
-            if sample_id:
-                if ext != 'npy':
-                    warn(f'file extension .{ext} ignored. Time-series data of '
-                         f"{self.ID}'s state variables saved as a .npy file.")
-                path = f'{file}_{sample_id}.{ext}'
-                np.save(path, data)
-            else:
-                header = self._state_header
-                import pandas as pd
-                df = pd.DataFrame(data, columns=header)
-                if ext in ('xlsx', 'xls'):
-                    df.to_excel(path)
-                elif ext == 'csv':
-                    df.to_csv(path)
-                elif ext == 'tsv':
-                    df.to_csv(path, sep='\t')
-                else:
-                    raise ValueError('Only support file extensions of ".npy", '
-                                     '".xlsx", ".xls", ".csv", and ".tsv", '
-                                     f'not .{ext}.')
-        else:
-            header = self._state_header
-            import pandas as pd
-            return pd.DataFrame(data, columns=header)
-       
 
     def simulate(self, state_reset_hook=None,
                  export_state_to='', sample_id='',
@@ -1673,13 +1656,23 @@ class System:
             self._converge()
             y0, idx, nr = self._load_state()
             dydt = self.DAE
-            sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
-            time_series = np.vstack((sol.t, sol.y)).T
+            self.scope.sol = sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
             if sol.status == 0: print('Simulation completed.')
             else: print(sol.message)
             self._write_state()
             if export_state_to:
-                self._state2df(time_series, export_state_to, str(sample_id))
+                try: file, ext = export_state_to.rsplit('.', 1)
+                except ValueError: 
+                    file = export_state_to
+                    ext = 'npy'
+                if sample_id:
+                    if ext != 'npy':
+                        warn(f'file extension .{ext} ignored. Time-series data of '
+                              f"{self.ID}'s state variables saved as a .npy file.")
+                    path = f'{file}_{sample_id}.{ext}'
+                else: path = f'{file}.{ext}'
+                t_eval = kwargs.pop('t_eval', None)
+                self.scope.export(path=path, t_eval=t_eval)
         else: self._converge()
         self._summary()
         if self._facility_loop: self._facility_loop._converge()
