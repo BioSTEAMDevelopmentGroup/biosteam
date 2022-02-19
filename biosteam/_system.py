@@ -1497,7 +1497,8 @@ class System:
                 s._state = None
                 s._dstate = None
         for unit in self.units: 
-            unit.reset_cache(self.isdynamic)
+            try: unit.reset_cache(self.isdynamic)
+            except: unit.reset_cache() # when `reset_cache` method does not take args
             
     def set_dynamic_tracker(self, *subjects, **kwargs):
         """
