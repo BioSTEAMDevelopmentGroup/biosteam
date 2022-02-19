@@ -1573,7 +1573,7 @@ class System:
         _update_state = self._update_state
         _dstate_attr2arr = self._dstate_attr2arr
         funcs = [u.ODE if u.hasode else u.AE for u in units]
-        track = self._scope
+        track = self.scope
         def dydt(t, y):
             _update_state(y)
             for unit, func in zip(units, funcs):

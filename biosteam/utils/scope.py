@@ -44,7 +44,7 @@ class Scope():
 
     def getter(self, variable):
         """A function to receive the attribute or variable of interest."""
-        return getattr(self.subject, variable)
+        return getattr(self.subject, variable).copy()
         
     def __call__(self, t):
         """Tracks the variables at time t."""
@@ -53,7 +53,7 @@ class Scope():
             log.append(self.getter(var))
     
     def pop(self):
-        """Removes the last time point tracked."""
+        """Removes the last tracked time point."""
         self._ts.pop()
         for log in self._record.values():
             log.pop()
