@@ -52,6 +52,9 @@ class Scope():
         for var, log in self._record.items():
             log.append(self.getter(var))
     
+    def __repr__(self):
+        return f'<Scope: {self.subject.ID}>'
+
     def pop(self):
         """Removes the last tracked time point."""
         self._ts.pop()
@@ -162,6 +165,9 @@ class SystemScope():
         for s in self.subjects:
             s.scope(t)
     
+    def __repr__(self):
+        return f'<SystemScope: {self.system.ID}>'
+
     @property
     def subjects(self):
         """The subjects of interest to scope during dynamic simulation."""
