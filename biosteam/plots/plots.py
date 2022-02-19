@@ -41,7 +41,7 @@ __all__ = (
     'plot_contour_across_coordinate',
     'plot_contour_2d_curves',
     'plot_heatmap',
-    'plot_kde_row',
+    'plot_kde_2d',
     'plot_kde',
 )
 
@@ -577,12 +577,29 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
 
 # %% Monte Carlo
 
+class Box:
+    __slots__ = ('axis', 'light', 'dark', '_position', '_baseline_position')
+    
+    def __init__(self, axis, position, light=None, dark=None):
+        self.axis = axis
+        self.light = light
+        self.dark = dark
+        self._baseline_position = self._position = position
+        
+    def get_position(self, shift=1):
+        self._position += shift
+        return self._position
+    
+    def reset(self):
+        self._position = self._baseline_position
+
 def plot_montecarlo(data, 
                     light_color=None,
                     dark_color=None,
                     positions=None,
                     xmarks=None,
-                    transpose=None): # pragma: no coverage
+                    transpose=None,
+                    vertical=True): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -619,7 +636,7 @@ def plot_montecarlo(data,
     if light_color is None: light_color = default_light_color
     if dark_color is None: dark_color = default_dark_color
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
-                     widths=0.8, whis=[5, 95],
+                     widths=0.8, whis=[5, 95], vert=vertical,
                      boxprops={'facecolor':light_color,
                                'edgecolor':dark_color},
                      medianprops={'color':dark_color,
@@ -678,41 +695,110 @@ def plot_montecarlo_across_coordinate(xs, ys,
 
 def plot_kde(x, y, nbins=100, ax=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
-             **kwargs):
+             xtick0=True, ytick0=True, xtickf=True, ytickf=True,
+             xbox=None, ybox=None, autobox=True, **kwargs):
     if ax:
         plt.sca(ax)
     else:
         ax = plt.gca()
     # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
     k = kde.gaussian_kde([x, y])
-    # xmin = x.min()
-    # xmax = x.max()
-    # ymin = y.min()
-    # ymax = y.max()
-    # xi, yi = np.mgrid[xmin:xmax:nbins*1j, ymin:ymax:nbins*1j]
-    # xi = xi.flatten()
-    # yi = yi.flatten()
     z = k(np.vstack([x, y]))
     # Sort the points by density, so that the densest points are plotted last
     idx = z.argsort()
     x, y, z = x[idx], y[idx], z[idx]
     
     # 2D Density with shading
-    # breakpoint()
     plt.scatter(x, y, c=z, s=1., **kwargs)
-    # style_axis(ax, xticks, yticks, xticklabels, yticklabels)
-    plt.xlim([x.min(), x.max()])
-    plt.ylim([y.min(), y.max()])
-
-def plot_kde_row(xs, y, nbins=100, axes=None, **kwargs):
+    style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
+               xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
+    if xbox:
+        if not isinstance(xbox, Box): xbox = Box(xbox)
+        plt.sca(xbox.axis)
+        plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False)
+    if ybox:
+        if not isinstance(ybox, Box): ybox = Box(ybox)
+        plt.sca(ybox.axis)
+        plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True)
+    
+def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
+                xticks=None, yticks=None, xticklabels=None, yticklabels=None,
+                autobox=True, between=False,
+                **kwargs):
+    N_rows = len(xs)
+    N_cols = len(ys)
     if axes is None:
-        n = len(xs)
-        fig, axes = plt.subplots(ncols=n)
-    N = len(xs)
-    for i in range(N):
-        x = xs[i]
-        ax = axes[i]
-        plot_kde(x, y, nbins=nbins, ax=ax, **kwargs)
+        if autobox:
+            between = between and N_cols == N_rows == 2
+            if between:
+                grid_kw = dict(height_ratios=[4, 1, 4], width_ratios=[4, 1, 4])
+            else:
+                grid_kw = dict(height_ratios=[1, 4, 4], width_ratios=[4, 4, 1])
+            fig, all_axes = plt.subplots(
+                ncols=N_cols + 1, nrows=N_rows + 1, 
+                gridspec_kw=grid_kw,
+            )
+            if between:
+                axes = np.array([[all_axes[0, 0], all_axes[0, 2]],
+                                 [all_axes[2, 0], all_axes[2, 2]]])
+                ax_empty = all_axes[1, 1]
+                xbox_axes = np.array([all_axes[1, 0], all_axes[1, 2]])
+                ybox_axes = np.array([all_axes[0, 1], all_axes[2, 1]])
+            else:
+                ax_empty = all_axes[0, -1]
+                axes = all_axes[1:, :-1]
+                xbox_axes = all_axes[0, :-1]
+                ybox_axes = all_axes[1:, -1]
+            xboxes = [Box(ax, position=1) for ax in xbox_axes]
+            yboxes = [Box(ax, position=1) for ax in ybox_axes]
+            plt.sca(ax_empty)
+            plt.axis('off')
+            for i, box in enumerate(xboxes):
+                plt.sca(box.axis)
+                plt.axis('off')
+                if xticks: plt.xlim([xticks[i][0], xticks[i][-1]])
+            for i, box in enumerate(yboxes):
+                plt.sca(box.axis)
+                plt.axis('off')
+                if yticks: plt.ylim([yticks[i][0], yticks[i][-1]])
+        else:
+            fig, axes = plt.subplots(ncols=N_cols, nrows=N_rows)
+    for i in range(N_rows):
+        for j in range(N_cols):
+            x = xs[i, j]
+            y = ys[i, j]
+            ax = axes[i, j]
+            xbox = None if xboxes is None else xboxes[j]
+            ybox = None if yboxes is None else yboxes[i]
+            xticksj = None if xticks is None else xticks[j]
+            yticksi = None if yticks is None else yticks[i]
+            xticklabelsj = None if xticklabels is None else xticklabels[j]
+            yticklabelsi = None if yticklabels is None else yticklabels[i]
+            if xticksj is not None and i != N_rows - 1:
+                xticklabelsj = len(xticksj) * ['']
+            if yticksi is not None and j != 0:
+                yticklabelsi = len(yticksi) * ['']
+            tick0 = i == N_rows - 1 and j == 0
+            tickf = not tick0
+            plot_kde(x, y, nbins=nbins, ax=ax, 
+                     xbox=xbox,
+                     ybox=ybox,
+                     xticks=xticksj,
+                     yticks=yticksi,
+                     xticklabels=xticklabelsj,
+                     yticklabels=yticklabelsi,
+                     xtick0=tick0,
+                     ytick0=tick0,
+                     xtickf=tickf,
+                     ytickf=tickf,
+                     autobox=False,
+                     **kwargs)
+    if xboxes: 
+        for i in xboxes: i.reset()
+    if yboxes: 
+        for i in yboxes: i.reset()
+    plt.subplots_adjust(hspace=0, wspace=0)
+
     
 # %% Contours
   
