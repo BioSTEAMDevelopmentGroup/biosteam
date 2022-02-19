@@ -4,9 +4,9 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dyn_sim ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, dyn_sim ]
 
 jobs:
   build:
