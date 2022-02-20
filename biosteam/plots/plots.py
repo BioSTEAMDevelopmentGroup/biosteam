@@ -580,7 +580,7 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
 class Box:
     __slots__ = ('axis', 'light', 'dark', '_position', '_baseline_position')
     
-    def __init__(self, axis, position, light=None, dark=None):
+    def __init__(self, axis, position=0, light=None, dark=None):
         self.axis = axis
         self.light = light
         self.dark = dark
@@ -701,68 +701,63 @@ def plot_kde(x, y, nbins=100, ax=None,
         plt.sca(ax)
     else:
         ax = plt.gca()
-    # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
-    k = kde.gaussian_kde([x, y])
-    z = k(np.vstack([x, y]))
-    # Sort the points by density, so that the densest points are plotted last
-    idx = z.argsort()
-    x, y, z = x[idx], y[idx], z[idx]
-    
-    # 2D Density with shading
-    plt.scatter(x, y, c=z, s=1., **kwargs)
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
-    if xbox:
-        if not isinstance(xbox, Box): xbox = Box(xbox)
-        plt.sca(xbox.axis)
-        plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False)
-    if ybox:
-        if not isinstance(ybox, Box): ybox = Box(ybox)
-        plt.sca(ybox.axis)
-        plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True)
+    xs = x if isinstance(x, tuple) else (x,)
+    ys = y if isinstance(y, tuple) else (y,)
+    for x, y in zip(xs, ys):
+        # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
+        k = kde.gaussian_kde([x, y])
+        z = k(np.vstack([x, y]))
+        # Sort the points by density, so that the densest points are plotted last
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+        
+        # 2D Density with shading
+        plt.sca(ax)
+        plt.scatter(x, y, c=z, s=1., **kwargs)
+        if xbox:
+            if not isinstance(xbox, Box): xbox = Box(xbox, position=len(xs))
+            plt.sca(xbox.axis)
+            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False)
+        if ybox:
+            if not isinstance(ybox, Box): ybox = Box(ybox, position=0)
+            plt.sca(ybox.axis)
+            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True)
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticks=None, yticks=None, xticklabels=None, yticklabels=None,
-                autobox=True, between=False,
+                autobox=True, xbox_kwargs=None, ybox_kwargs=None,
                 **kwargs):
-    N_rows = len(xs)
-    N_cols = len(ys)
+    N_rows, N_cols, *_ = xs.shape
     if axes is None:
         if autobox:
-            between = between and N_cols == N_rows == 2
-            if between:
-                grid_kw = dict(height_ratios=[4, 1, 4], width_ratios=[4, 1, 4])
-            else:
-                grid_kw = dict(height_ratios=[1, 4, 4], width_ratios=[4, 4, 1])
+            grid_kw = dict(height_ratios=[1, *N_rows*[4]], width_ratios=[*N_cols*[4], 1])
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,
             )
-            if between:
-                axes = np.array([[all_axes[0, 0], all_axes[0, 2]],
-                                 [all_axes[2, 0], all_axes[2, 2]]])
-                ax_empty = all_axes[1, 1]
-                xbox_axes = np.array([all_axes[1, 0], all_axes[1, 2]])
-                ybox_axes = np.array([all_axes[0, 1], all_axes[2, 1]])
-            else:
-                ax_empty = all_axes[0, -1]
-                axes = all_axes[1:, :-1]
-                xbox_axes = all_axes[0, :-1]
-                ybox_axes = all_axes[1:, -1]
-            xboxes = [Box(ax, position=1) for ax in xbox_axes]
-            yboxes = [Box(ax, position=1) for ax in ybox_axes]
+            ax_empty = all_axes[0, -1]
+            axes = all_axes[1:, :-1]
+            xbox_axes = all_axes[0, :-1]
+            ybox_axes = all_axes[1:, -1]
+            if xbox_kwargs is None: xbox_kwargs = N_cols*[{}]
+            if ybox_kwargs is None: ybox_kwargs = N_rows*[{}]
+            xboxes = [Box(xbox_axes[i], **xbox_kwargs[i]) for i in range(N_cols)]
+            yboxes = [Box(ybox_axes[i], **ybox_kwargs[i]) for i in range(N_rows)]
             plt.sca(ax_empty)
             plt.axis('off')
             for i, box in enumerate(xboxes):
                 plt.sca(box.axis)
                 plt.axis('off')
-                if xticks: plt.xlim([xticks[i][0], xticks[i][-1]])
+                if xticks is not None: plt.xlim([xticks[i][0], xticks[i][-1]])
             for i, box in enumerate(yboxes):
                 plt.sca(box.axis)
                 plt.axis('off')
-                if yticks: plt.ylim([yticks[i][0], yticks[i][-1]])
+                if yticks is not None: plt.ylim([yticks[i][0], yticks[i][-1]])
         else:
             fig, axes = plt.subplots(ncols=N_cols, nrows=N_rows)
+            axes = axes.reshape([N_rows, N_cols])
     for i in range(N_rows):
         for j in range(N_cols):
             x = xs[i, j]
