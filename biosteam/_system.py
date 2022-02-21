@@ -1496,6 +1496,7 @@ class System:
             for s in self.streams:
                 s._state = None
                 s._dstate = None
+            self.scope.reset_cache()
         for unit in self.units: 
             try: unit.reset_cache(self.isdynamic)
             except: unit.reset_cache() # when `reset_cache` method does not take args
@@ -1510,7 +1511,12 @@ class System:
             Any subjects of the system to track, which must have an `.scope`
             attribute of type :class:`Scope`.
         """
-        self._scope = SystemScope(self, *subjects, **kwargs)
+        if self.isdynamic:
+            self._scope = {'subjects':subjects, 'kwargs':kwargs}
+        else:
+            warn(f'{self.__repr__} must have at least one dynamic unit to '
+                 f'set up a dynamic tracker.')
+        
         
     @property
     def scope(self):
@@ -1518,6 +1524,11 @@ class System:
         [:class:`SystemScope`] A tracker of dynamic data of the system, set up
         with :class:`System`.`set_dynamic_tracker()`
         """
+        if not hasattr(self, '_scope'): self._scope = SystemScope(self)
+        elif isinstance(self._scope, dict): 
+            subjects = self._scope['subjects']
+            kwargs = self._scope['kwargs']
+            self._scope = SystemScope(self, *subjects, **kwargs)
         return self._scope
     
     # _hasode = lambda unit: hasattr(unit, '_compile_ODE')
@@ -1556,6 +1567,7 @@ class System:
                     y = np.append(y, unit._state)
                     stop = len(y)
                     idx[unit._ID] = (start, stop)
+            if len(y) == 0: y = np.array([0])
             self._state = y
             self._state_idx = idx
             for unit in units:
@@ -1653,7 +1665,7 @@ class System:
                 f()
             else: 
                 for u in self.units:
-                    if not u.isdynamic: u._init_dynamic()
+                    if not hasattr(u, '_state'): u._init_dynamic()
             self._converge()
             y0, idx, nr = self._load_state()
             dydt = self.DAE
@@ -1669,8 +1681,8 @@ class System:
                 if sample_id:
                     if ext != 'npy':
                         warn(f'file extension .{ext} ignored. Time-series data of '
-                              f"{self.ID}'s state variables saved as a .npy file.")
-                    path = f'{file}_{sample_id}.{ext}'
+                              f"{self.ID}'s tracked variables saved as a .npy file.")
+                    path = f'{file}_{sample_id}.npy'
                 else: path = f'{file}.{ext}'
                 t_eval = kwargs.pop('t_eval', None)
                 self.scope.export(path=path, t_eval=t_eval)

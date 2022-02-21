@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline as ius
+from warnings import warn
 
 __all__ = ('Scope', 'SystemScope')
 
@@ -36,9 +37,14 @@ class Scope():
     """    
     def __init__(self, subject, variables, header=None, **kwargs):
         self.subject = subject
-        self._record = {key: [] for key in variables if hasattr(subject, key)}
         self._ts = []
         self._header = header
+        rcd = {}
+        for var in variables:
+            if hasattr(subject, var): rcd[var] = []
+            else: warn(f'Variable {var} ignored in {self.__repr__} because '
+                       f'{self.subject} has no attribute {var}.')
+        self._record = rcd
         for k, v in kwargs:
             setattr(self, k, v)
 
@@ -51,6 +57,10 @@ class Scope():
         self._ts.append(t)
         for var, log in self._record.items():
             log.append(self.getter(var))
+    
+    def reset_cache(self):
+        self._ts = []
+        self._record = {var:[] for var in self._record.keys()}
     
     def __repr__(self):
         return f'<Scope: {self.subject.ID}>'
@@ -148,13 +158,15 @@ class SystemScope():
     --------
     `scipy.interpolate.InterpolatedUnivariateSpline <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.InterpolatedUnivariateSpline.html>`
     """
-    def __init__(self, system, *subjects, interpolator=None):
+    def __init__(self, system, *subjects, interpolator=None, **kwargs):
         self.system = system
         self.subjects = subjects
         self._method = interpolator or ius
         self._ts = []
         self.sol = None
         self.sol_header = system._state_header
+        for k,v in kwargs:
+            setattr(self, k, v)
     
     def __call__(self, t):
         ts = self._ts
@@ -164,6 +176,12 @@ class SystemScope():
         ts.append(t)
         for s in self.subjects:
             s.scope(t)
+    
+    def reset_cache(self):
+        self._ts = []
+        self.sol = None
+        for s in self.subjects:
+            s.scope.reset_cache()
     
     def __repr__(self):
         return f'<SystemScope: {self.system.ID}>'
