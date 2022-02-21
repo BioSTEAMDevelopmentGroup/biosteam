@@ -1526,6 +1526,9 @@ class System:
         """
         if not hasattr(self, '_scope'): self._scope = SystemScope(self)
         elif isinstance(self._scope, dict): 
+            #!!! sys._converge() seems to break WasteStreamScope, so it's now 
+            # set up to initiate the SystemScope object after _converge() when 
+            # the system is run the first time 
             subjects = self._scope['subjects']
             kwargs = self._scope['kwargs']
             self._scope = SystemScope(self, *subjects, **kwargs)
@@ -1678,7 +1681,7 @@ class System:
                 except ValueError: 
                     file = export_state_to
                     ext = 'npy'
-                if sample_id:
+                if sample_id != '':
                     if ext != 'npy':
                         warn(f'file extension .{ext} ignored. Time-series data of '
                               f"{self.ID}'s tracked variables saved as a .npy file.")

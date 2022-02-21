@@ -257,7 +257,7 @@ class SystemScope():
         df = pd.DataFrame(data.T, columns=self._get_headers())
         if path:
             file, ext = path.rsplit('.', 1)
-            if ext == '.npy': 
+            if ext == 'npy': 
                 np.save(path, data.T)
             elif ext in ('xlsx', 'xls'):
                 df.to_excel(path)
