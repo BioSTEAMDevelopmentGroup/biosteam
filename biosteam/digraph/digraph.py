@@ -319,6 +319,7 @@ def display_digraph(digraph, format): # pragma: no coverage
 
 def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
+        if format is None: format='svg'
         file += '.' + format
     img = digraph.pipe(format=format)
     f = open(file, 'wb')
@@ -333,6 +334,8 @@ def finalize_digraph(digraph, file, format): # pragma: no coverage
         try:
             if file: save_digraph(digraph, file, format)
             else: display_digraph(digraph, format)
+        except (OSError, TypeError) as exp:
+            raise exp from None
         except Exception as exp: 
             warn(
                 f"a '{type(exp).__name__}' was raised when generating "
