@@ -1514,7 +1514,7 @@ class System:
         if self.isdynamic:
             self._scope = {'subjects':subjects, 'kwargs':kwargs}
         else:
-            warn(f'{self.__repr__} must have at least one dynamic unit to '
+            warn(f'{self.__repr__()} must have at least one dynamic unit to '
                  f'set up a dynamic tracker.')
         
         

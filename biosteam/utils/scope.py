@@ -42,7 +42,7 @@ class Scope():
         rcd = {}
         for var in variables:
             if hasattr(subject, var): rcd[var] = []
-            else: warn(f'Variable {var} ignored in {self.__repr__} because '
+            else: warn(f'Variable {var} ignored in {self.__repr__()} because '
                        f'{self.subject} has no attribute {var}.')
         self._record = rcd
         for k, v in kwargs:
