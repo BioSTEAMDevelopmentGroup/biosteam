@@ -147,7 +147,7 @@ class SteamMixer(Unit):
     def steam(self):
         return self.ins[1]
     
-    def reset_cache(self): 
+    def reset_cache(self, isdynamic=None): 
         for utility in bst.HeatUtility.heating_agents:
             if utility.P > self.P: break
         self.steam.copy_like(utility)

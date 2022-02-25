@@ -248,7 +248,7 @@ class MultiEffectEvaporator(Unit):
         self._reload_components = True
         self.components = {}
         
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         self._reload_components = True
         
     def _load_components(self):

@@ -1085,7 +1085,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         self._run_binary_distillation_mass_balance()
         self._update_distillate_and_bottoms_temperature()
 
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         if not hasattr(self, '_McCabeThiele_args'):
             self._McCabeThiele_args = np.zeros(6)
         else:
@@ -1544,7 +1544,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         # Remove temporary data
         if composition_spec: self._Lr = self._Hr = None
         
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         self._vle_chemicals = None
 
     def plot_stages(self):

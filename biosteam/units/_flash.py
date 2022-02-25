@@ -224,7 +224,7 @@ class Flash(design.PressureVessel, Unit):
         hx.owner = self.owner
         self.heat_utilities = (*hx.heat_utilities, bst.HeatUtility(), bst.HeatUtility())
         
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         self._multi_stream.reset_cache()
         self.heat_exchanger.reset_cache()
         

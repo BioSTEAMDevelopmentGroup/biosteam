@@ -822,7 +822,7 @@ class LiquidsPartitionSettler(LiquidsSettler):
         self.partion_IDs = partion_IDs
         self.reset_cache()
     
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         self._phi = None
     
     def _run(self):
@@ -1192,7 +1192,7 @@ class MultiStageMixerSettlers(bst.Unit):
             )
             self._last_args = args
     
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         self.stages = None
         self._last_args = None
         

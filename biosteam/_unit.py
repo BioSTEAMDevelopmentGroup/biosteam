@@ -102,7 +102,7 @@ class Unit:
 
     **Abstract class methods**
     
-    reset_cache()
+    reset_cache(isdynamic)
         Reset unit operation cache.
     _setup()
         Set stream conditions and constant data.

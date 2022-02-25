@@ -1133,9 +1133,7 @@ class System:
     @property
     def isdynamic(self):
         '''Whether the system contains any dynamic Unit.'''
-        isdynamic = [(unit._isdynamic if hasattr(unit, '_isdynamic') else False)
-                     for unit in self.units]
-        return any(isdynamic)
+        return any([unit._isdynamic for unit in self.units])
     
     @property
     def _n_rotate(self):
@@ -1498,8 +1496,7 @@ class System:
                 s._dstate = None
             self.scope.reset_cache()
         for unit in self.units: 
-            try: unit.reset_cache(self.isdynamic)
-            except: unit.reset_cache() # when `reset_cache` method does not take args
+            unit.reset_cache(self.isdynamic)
             
     def set_dynamic_tracker(self, *subjects, **kwargs):
         """

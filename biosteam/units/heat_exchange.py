@@ -114,7 +114,7 @@ class HX(Unit, isabstract=True):
                                  f"{', '.join(Cb_dict)}")
         self._heat_exchanger_type = heat_exchanger_type     
 
-    def reset_cache(self):
+    def reset_cache(self, isdynamic=None):
         for i in self.outs: i.reset_cache()
 
     def _assert_compatible_property_package(self):
