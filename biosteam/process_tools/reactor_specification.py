@@ -316,5 +316,5 @@ class ReactorSpecification:
         feed = self.feed
         mass_substrates = feed.imass[self.substrates]
         r_substrates = mass_substrates / mass_substrates.sum()
-        mass_substrates[:] = substrates * r_substrates
+        feed.imass[self.substrates] = substrates * r_substrates
         return self._calculate_titer() - self.titer
