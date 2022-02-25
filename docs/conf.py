@@ -43,6 +43,7 @@ autodoc_member_order = 'bysource'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx_rtd_dark_mode',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
@@ -54,6 +55,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.autosummary',
     'nbsphinx']
+
+default_dark_mode = True
 
 nbsphinx_execute = 'never'
 
