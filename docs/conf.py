@@ -56,7 +56,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'nbsphinx']
 
-default_dark_mode = True
+default_dark_mode = False
 
 nbsphinx_execute = 'never'
 
