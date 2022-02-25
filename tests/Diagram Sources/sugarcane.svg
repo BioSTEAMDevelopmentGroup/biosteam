@@ -18,15 +18,15 @@
 <polygon fill="#79bf82" fill-opacity="0.247059" stroke="black" stroke-dasharray="5,2" points="3741.98,-283.74 3741.98,-433.74 4499.38,-433.74 4499.38,-283.74 3741.98,-283.74"/>
 <text text-anchor="middle" x="4120.68" y="-418.54" font-family="Times,serif" font-weight="bold" font-size="14.00">SYS3 [DEPTH 1]</text>
 </g>
-<g id="clust1" class="cluster">
-<title>cluster_SYS1</title>
-<polygon fill="#79bf82" fill-opacity="0.247059" stroke="black" stroke-dasharray="5,2" points="744,-339.74 744,-513.74 1255.59,-513.74 1255.59,-339.74 744,-339.74"/>
-<text text-anchor="middle" x="999.8" y="-498.54" font-family="Times,serif" font-weight="bold" font-size="14.00">SYS1 [DEPTH 1]</text>
-</g>
 <g id="clust4" class="cluster">
 <title>cluster_SYS4</title>
 <polygon fill="#79bf82" fill-opacity="0.247059" stroke="black" stroke-dasharray="5,2" points="4540.38,-302.74 4540.38,-519.74 5011.3,-519.74 5011.3,-302.74 4540.38,-302.74"/>
 <text text-anchor="middle" x="4775.84" y="-504.54" font-family="Times,serif" font-weight="bold" font-size="14.00">SYS4 [DEPTH 1]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_SYS1</title>
+<polygon fill="#79bf82" fill-opacity="0.247059" stroke="black" stroke-dasharray="5,2" points="744,-339.74 744,-513.74 1255.59,-513.74 1255.59,-339.74 744,-339.74"/>
+<text text-anchor="middle" x="999.8" y="-498.54" font-family="Times,serif" font-weight="bold" font-size="14.00">SYS1 [DEPTH 1]</text>
 </g>
 <g id="clust5" class="cluster">
 <title>cluster_SYS5</title>
@@ -36,7 +36,7 @@
 <!-- U101
 Conveying belt&#45;&gt;U102
 Magnetic separator -->
-<g id="edge26" class="edge">
+<g id="edge16" class="edge">
 <title>U101
 Conveying belt:c&#45;&gt;U102
 Magnetic separator:c</title>
@@ -47,7 +47,7 @@ Magnetic separator:c</title>
 <!-- U102
 Magnetic separator&#45;&gt;U103
 Shredder -->
-<g id="edge34" class="edge">
+<g id="edge13" class="edge">
 <title>U102
 Magnetic separator:c&#45;&gt;U103
 Shredder:c</title>
@@ -57,7 +57,7 @@ Shredder:c</title>
 </g>
 <!-- U102
 Magnetic separator&#45;&gt;s4 -->
-<g id="edge52" class="edge">
+<g id="edge54" class="edge">
 <title>U102
 Magnetic separator:c&#45;&gt;s4:w</title>
 <path fill="none" stroke="black" d="M559.72,-320.15C586.18,-317.81 617.59,-315.74 646,-315.74"/>
@@ -76,7 +76,7 @@ Crushing mill:c</title>
 <!-- U201
 Crushing mill&#45;&gt;S201
 Vibrating screen -->
-<g id="edge63" class="edge">
+<g id="edge62" class="edge">
 <title>U201
 Crushing mill:c&#45;&gt;S201
 Vibrating screen:c</title>
@@ -87,7 +87,7 @@ Vibrating screen:c</title>
 <!-- U201
 Crushing mill&#45;&gt;U202
 Conveying belt -->
-<g id="edge90" class="edge">
+<g id="edge92" class="edge">
 <title>U201
 Crushing mill:c&#45;&gt;U202
 Conveying belt:c</title>
@@ -98,7 +98,7 @@ Conveying belt:c</title>
 <!-- S201
 Vibrating screen&#45;&gt;M201
 Mixer -->
-<g id="edge62" class="edge">
+<g id="edge63" class="edge">
 <title>S201
 Vibrating screen:c&#45;&gt;M201
 Mixer:c</title>
@@ -109,7 +109,7 @@ Mixer:c</title>
 <!-- S201
 Vibrating screen&#45;&gt;T202
 Storage tank -->
-<g id="edge87" class="edge">
+<g id="edge88" class="edge">
 <title>S201
 Vibrating screen:c&#45;&gt;T202
 Storage tank:c</title>
@@ -131,7 +131,7 @@ Crushing mill:c</title>
 <!-- T202
 Storage tank&#45;&gt;H201
 Heating -->
-<g id="edge21" class="edge">
+<g id="edge8" class="edge">
 <title>T202
 Storage tank:c&#45;&gt;H201
 Heating:c</title>
@@ -142,7 +142,7 @@ Heating:c</title>
 <!-- H201
 Heating&#45;&gt;T203
 Mix tank -->
-<g id="edge9" class="edge">
+<g id="edge12" class="edge">
 <title>H201
 Heating:c&#45;&gt;T203
 Mix tank:c</title>
@@ -153,7 +153,7 @@ Mix tank:c</title>
 <!-- T203
 Mix tank&#45;&gt;P201
 Pump -->
-<g id="edge19" class="edge">
+<g id="edge34" class="edge">
 <title>T203
 Mix tank:c&#45;&gt;P201
 Pump:c</title>
@@ -164,7 +164,7 @@ Pump:c</title>
 <!-- P201
 Pump&#45;&gt;T205
 Mix tank -->
-<g id="edge24" class="edge">
+<g id="edge28" class="edge">
 <title>P201
 Pump:c&#45;&gt;T205
 Mix tank:c</title>
@@ -175,7 +175,7 @@ Mix tank:c</title>
 <!-- T204
 Mix tank&#45;&gt;T205
 Mix tank -->
-<g id="edge44" class="edge">
+<g id="edge42" class="edge">
 <title>T204
 Mix tank:c&#45;&gt;T205
 Mix tank:c</title>
@@ -186,7 +186,7 @@ Mix tank:c</title>
 <!-- T205
 Mix tank&#45;&gt;P202
 Pump -->
-<g id="edge6" class="edge">
+<g id="edge30" class="edge">
 <title>T205
 Mix tank:c&#45;&gt;P202
 Pump:c</title>
@@ -197,7 +197,7 @@ Pump:c</title>
 <!-- P202
 Pump&#45;&gt;M202
 Mixer -->
-<g id="edge92" class="edge">
+<g id="edge94" class="edge">
 <title>P202
 Pump:c&#45;&gt;M202
 Mixer:c</title>
@@ -208,7 +208,7 @@ Mixer:c</title>
 <!-- M202
 Mixer&#45;&gt;H202
 Heating -->
-<g id="edge65" class="edge">
+<g id="edge67" class="edge">
 <title>M202
 Mixer:e&#45;&gt;H202
 Heating:c</title>
@@ -219,7 +219,7 @@ Heating:c</title>
 <!-- H202
 Heating&#45;&gt;T206
 Mix tank -->
-<g id="edge67" class="edge">
+<g id="edge68" class="edge">
 <title>H202
 Heating:c&#45;&gt;T206
 Mix tank:c</title>
@@ -230,7 +230,7 @@ Mix tank:c</title>
 <!-- T206
 Mix tank&#45;&gt;C201
 Clarifier -->
-<g id="edge68" class="edge">
+<g id="edge66" class="edge">
 <title>T206
 Mix tank:c&#45;&gt;C201
 Clarifier:c</title>
@@ -252,7 +252,7 @@ Rotary vacuum filter:c</title>
 <!-- C201
 Clarifier&#45;&gt;S202
 Vibrating screen -->
-<g id="edge93" class="edge">
+<g id="edge90" class="edge">
 <title>C201
 Clarifier:c&#45;&gt;S202
 Vibrating screen:c</title>
@@ -273,7 +273,7 @@ Pump:c</title>
 </g>
 <!-- C202
 Rotary vacuum filter&#45;&gt;filter_cake -->
-<g id="edge66" class="edge">
+<g id="edge65" class="edge">
 <title>C202
 Rotary vacuum filter:c&#45;&gt;filter_cake:w</title>
 <path fill="none" stroke="black" d="M2740.56,-237.21C2785.43,-235.06 2846.51,-232.74 2900.38,-232.74"/>
@@ -292,7 +292,7 @@ Mixer:c</title>
 <!-- S202
 Vibrating screen&#45;&gt;S301
 Splitter -->
-<g id="edge2" class="edge">
+<g id="edge25" class="edge">
 <title>S202
 Vibrating screen:c&#45;&gt;S301
 Splitter:w</title>
@@ -303,7 +303,7 @@ Splitter:w</title>
 <!-- S202
 Vibrating screen&#45;&gt;M305
 Mixer -->
-<g id="edge55" class="edge">
+<g id="edge56" class="edge">
 <title>S202
 Vibrating screen:c&#45;&gt;M305
 Mixer:c</title>
@@ -314,7 +314,7 @@ Mixer:c</title>
 <!-- S301
 Splitter&#45;&gt;F301
 Multi&#45;Effect Evaporator -->
-<g id="edge56" class="edge">
+<g id="edge52" class="edge">
 <title>S301
 Splitter:c&#45;&gt;F301
 Multi&#45;Effect Evaporator:c</title>
@@ -325,7 +325,7 @@ Multi&#45;Effect Evaporator:c</title>
 <!-- S301
 Splitter&#45;&gt;M301
 Mixer -->
-<g id="edge23" class="edge">
+<g id="edge17" class="edge">
 <title>S301
 Splitter:c&#45;&gt;M301
 Mixer:c</title>
@@ -336,7 +336,7 @@ Mixer:c</title>
 <!-- F301
 Multi&#45;Effect Evaporator&#45;&gt;P306
 Pump -->
-<g id="edge16" class="edge">
+<g id="edge7" class="edge">
 <title>F301
 Multi&#45;Effect Evaporator:c&#45;&gt;P306
 Pump:c</title>
@@ -369,7 +369,7 @@ Mixer:c</title>
 <!-- M301
 Mixer&#45;&gt;H301
 Cooling -->
-<g id="edge28" class="edge">
+<g id="edge32" class="edge">
 <title>M301
 Mixer:e&#45;&gt;H301
 Cooling:c</title>
@@ -380,7 +380,7 @@ Cooling:c</title>
 <!-- H301
 Cooling&#45;&gt;R301
 Fermentation -->
-<g id="edge94" class="edge">
+<g id="edge89" class="edge">
 <title>H301
 Cooling:c&#45;&gt;R301
 Fermentation:c</title>
@@ -391,7 +391,7 @@ Fermentation:c</title>
 <!-- R301
 Fermentation&#45;&gt;T301
 Beer tank -->
-<g id="edge78" class="edge">
+<g id="edge77" class="edge">
 <title>R301
 Fermentation:c&#45;&gt;T301
 Beer tank:c</title>
@@ -413,7 +413,7 @@ Vent scrubber:c</title>
 <!-- T301
 Beer tank&#45;&gt;C301
 Solids centrifuge -->
-<g id="edge74" class="edge">
+<g id="edge75" class="edge">
 <title>T301
 Beer tank:c&#45;&gt;C301
 Solids centrifuge:c</title>
@@ -424,7 +424,7 @@ Solids centrifuge:c</title>
 <!-- C301
 Solids centrifuge&#45;&gt;S302
 Splitter -->
-<g id="edge75" class="edge">
+<g id="edge74" class="edge">
 <title>C301
 Solids centrifuge:c&#45;&gt;S302
 Splitter:w</title>
@@ -435,7 +435,7 @@ Splitter:w</title>
 <!-- C301
 Solids centrifuge&#45;&gt;M302
 Mixer -->
-<g id="edge98" class="edge">
+<g id="edge96" class="edge">
 <title>C301
 Solids centrifuge:c&#45;&gt;M302
 Mixer:c</title>
@@ -456,7 +456,7 @@ Fermentation:c</title>
 </g>
 <!-- S302
 Splitter&#45;&gt;Yeast -->
-<g id="edge77" class="edge">
+<g id="edge78" class="edge">
 <title>S302
 Splitter:c&#45;&gt;Yeast:w</title>
 <path fill="none" stroke="black" d="M4346.94,-346.74C4373.74,-346.74 4410.22,-346.74 4442.38,-346.74"/>
@@ -474,7 +474,7 @@ Mixer:c</title>
 </g>
 <!-- D301
 Vent scrubber&#45;&gt;vent -->
-<g id="edge12" class="edge">
+<g id="edge14" class="edge">
 <title>D301
 Vent scrubber:c&#45;&gt;vent:w</title>
 <path fill="none" stroke="black" d="M4006.15,-253.74C4032.08,-253.74 4064.8,-253.74 4093.98,-253.74"/>
@@ -482,7 +482,7 @@ Vent scrubber:c&#45;&gt;vent:w</title>
 <!-- M302
 Mixer&#45;&gt;P301
 Pump -->
-<g id="edge11" class="edge">
+<g id="edge18" class="edge">
 <title>M302
 Mixer:e&#45;&gt;P301
 Pump:c</title>
@@ -493,13 +493,13 @@ Pump:c</title>
 <!-- P301
 Pump&#45;&gt;H302
  Heat exchanger -->
-<g id="edge89" class="edge">
+<g id="edge93" class="edge">
 <title>P301
 Pump:c&#45;&gt;H302
  Heat exchanger:c</title>
-<path fill="none" stroke="black" d="M4489.61,-267.45C4508.03,-286.29 4535.45,-314.32 4559.49,-338.9"/>
-<polygon fill="black" stroke="black" points="4557,-341.36 4566.5,-346.07 4562.01,-336.47 4557,-341.36"/>
-<text text-anchor="middle" x="4520.38" y="-308.54" font-family="Times New Roman,serif" font-size="14.00">s39</text>
+<path fill="none" stroke="black" d="M4492.43,-267.45C4509.89,-283.21 4534.21,-305.16 4556.22,-325.03"/>
+<polygon fill="black" stroke="black" points="4554.12,-327.85 4563.89,-331.95 4558.81,-322.66 4554.12,-327.85"/>
+<text text-anchor="middle" x="4520.38" y="-301.54" font-family="Times New Roman,serif" font-size="14.00">s39</text>
 </g>
 <!-- H302
  Heat exchanger&#45;&gt;D302
@@ -508,21 +508,21 @@ Distillation Column -->
 <title>H302
  Heat exchanger:c&#45;&gt;D302
 Distillation Column:c</title>
-<path fill="none" stroke="black" d="M4673.05,-378.11C4688.12,-374.98 4704.38,-371.61 4719.87,-368.4"/>
-<polygon fill="black" stroke="black" points="4720.83,-371.77 4729.91,-366.31 4719.41,-364.92 4720.83,-371.77"/>
-<text text-anchor="middle" x="4702" y="-376.54" font-family="Times New Roman,serif" font-size="14.00">s42</text>
+<path fill="none" stroke="black" d="M4674.05,-366.8C4688.76,-365.15 4704.57,-363.38 4719.65,-361.69"/>
+<polygon fill="black" stroke="black" points="4720.4,-365.12 4729.95,-360.53 4719.62,-358.17 4720.4,-365.12"/>
+<text text-anchor="middle" x="4702" y="-367.54" font-family="Times New Roman,serif" font-size="14.00">s42</text>
 </g>
 <!-- H302
  Heat exchanger&#45;&gt;vinasse -->
-<g id="edge82" class="edge">
+<g id="edge81" class="edge">
 <title>H302
  Heat exchanger:c&#45;&gt;vinasse:w</title>
-<path fill="none" stroke="black" d="M4670.14,-413.2C4697.43,-421.87 4730.69,-429.74 4761.5,-429.74"/>
+<path fill="none" stroke="black" d="M4666.05,-404.53C4693.68,-417.54 4728.42,-429.74 4761.5,-429.74"/>
 </g>
 <!-- D302
 Distillation Column&#45;&gt;P302
 Pump -->
-<g id="edge81" class="edge">
+<g id="edge82" class="edge">
 <title>D302
 Distillation Column:s&#45;&gt;P302
 Pump:c</title>
@@ -533,7 +533,7 @@ Pump:c</title>
 <!-- D302
 Distillation Column&#45;&gt;M303
 Mixer -->
-<g id="edge88" class="edge">
+<g id="edge87" class="edge">
 <title>D302
 Distillation Column:n&#45;&gt;M303
 Mixer:c</title>
@@ -548,9 +548,9 @@ Pump&#45;&gt;H302
 <title>P302
 Pump:c&#45;&gt;H302
  Heat exchanger:c</title>
-<path fill="none" stroke="#d71622" d="M4952.9,-411.2C4928.74,-426.43 4890.09,-448 4853,-456.74 4799.79,-469.27 4782.9,-470.55 4730,-456.74 4709.82,-451.47 4689.45,-441.9 4671.44,-431.65"/>
-<polygon fill="#d71622" stroke="#d71622" points="4673.2,-428.62 4662.81,-426.57 4669.66,-434.66 4673.2,-428.62"/>
-<text text-anchor="middle" x="4791.5" y="-469.54" font-family="Times New Roman,serif" font-size="14.00">s41</text>
+<path fill="none" stroke="#d71622" d="M4952.9,-411.2C4928.74,-426.43 4890.09,-448 4853,-456.74 4799.79,-469.27 4782.11,-473.25 4730,-456.74 4707.15,-449.5 4684.9,-436.05 4666,-422.05"/>
+<polygon fill="#d71622" stroke="#d71622" points="4667.91,-419.11 4657.84,-415.82 4663.66,-424.67 4667.91,-419.11"/>
+<text text-anchor="middle" x="4791.5" y="-470.54" font-family="Times New Roman,serif" font-size="14.00">s41</text>
 </g>
 <!-- M303
 Mixer&#45;&gt;D303
@@ -577,7 +577,7 @@ Heat exchanger:c</title>
 <!-- D303
 Divided Distillation Column&#45;&gt;P303
 Pump -->
-<g id="edge96" class="edge">
+<g id="edge97" class="edge">
 <title>D303
 Divided Distillation Column:s&#45;&gt;P303
 Pump:c</title>
@@ -610,7 +610,7 @@ Mixer:c</title>
 <!-- U301
 Molecular sieve&#45;&gt;H304
 Cooling -->
-<g id="edge97" class="edge">
+<g id="edge98" class="edge">
 <title>U301
 Molecular sieve:c&#45;&gt;H304
 Cooling:c</title>
@@ -621,7 +621,7 @@ Cooling:c</title>
 <!-- H304
 Cooling&#45;&gt;T302
 Storage tank -->
-<g id="edge3" class="edge">
+<g id="edge20" class="edge">
 <title>H304
 Cooling:c&#45;&gt;T302
 Storage tank:c</title>
@@ -632,7 +632,7 @@ Storage tank:c</title>
 <!-- T302
 Storage tank&#45;&gt;P304
 Pump -->
-<g id="edge32" class="edge">
+<g id="edge27" class="edge">
 <title>T302
 Storage tank:c&#45;&gt;P304
 Pump:c</title>
@@ -654,7 +654,7 @@ Mixer:c</title>
 <!-- T303
 Storage tank&#45;&gt;P305
 Pump -->
-<g id="edge14" class="edge">
+<g id="edge31" class="edge">
 <title>T303
 Storage tank:c&#45;&gt;P305
 Pump:c</title>
@@ -665,7 +665,7 @@ Pump:c</title>
 <!-- P305
 Pump&#45;&gt;M304
 Mixer -->
-<g id="edge25" class="edge">
+<g id="edge4" class="edge">
 <title>P305
 Pump:c&#45;&gt;M304
 Mixer:c</title>
@@ -676,7 +676,7 @@ Mixer:c</title>
 <!-- M304
 Mixer&#45;&gt;T304
 Storage tank -->
-<g id="edge13" class="edge">
+<g id="edge6" class="edge">
 <title>M304
 Mixer:e&#45;&gt;T304
 Storage tank:c</title>
@@ -686,7 +686,7 @@ Storage tank:c</title>
 </g>
 <!-- T304
 Storage tank&#45;&gt;ethanol -->
-<g id="edge4" class="edge">
+<g id="edge19" class="edge">
 <title>T304
 Storage tank:c&#45;&gt;ethanol:w</title>
 <path fill="none" stroke="black" d="M6492.05,-198.74C6503.94,-198.74 6516.89,-198.74 6528.82,-198.74"/>
@@ -694,7 +694,7 @@ Storage tank:c&#45;&gt;ethanol:w</title>
 <!-- P303
 Pump&#45;&gt;M305
 Mixer -->
-<g id="edge36" class="edge">
+<g id="edge40" class="edge">
 <title>P303
 Pump:c&#45;&gt;M305
 Mixer:c</title>
@@ -704,7 +704,7 @@ Mixer:c</title>
 </g>
 <!-- M305
 Mixer&#45;&gt;wastewater -->
-<g id="edge1" class="edge">
+<g id="edge24" class="edge">
 <title>M305
 Mixer:e&#45;&gt;wastewater:w</title>
 <path fill="none" stroke="black" d="M5773.23,-53.74C5798.12,-53.74 5804.34,-53.74 5829.23,-53.74"/>
@@ -712,7 +712,7 @@ Mixer:e&#45;&gt;wastewater:w</title>
 <!-- U202
 Conveying belt&#45;&gt;BT
 Boiler turbogenerator -->
-<g id="edge27" class="edge">
+<g id="edge9" class="edge">
 <title>U202
 Conveying belt:c&#45;&gt;BT
 Boiler turbogenerator:c</title>
@@ -722,14 +722,14 @@ Boiler turbogenerator:c</title>
 </g>
 <!-- T305
 Mix tank&#45;&gt;s36 -->
-<g id="edge5" class="edge">
+<g id="edge2" class="edge">
 <title>T305
 Mix tank:c&#45;&gt;s36:w</title>
 <path fill="none" stroke="black" d="M324.15,-407.74C360.55,-407.74 422.09,-407.74 475,-407.74"/>
 </g>
 <!-- BT
 Boiler turbogenerator&#45;&gt;emissions -->
-<g id="edge22" class="edge">
+<g id="edge29" class="edge">
 <title>BT
 Boiler turbogenerator:c&#45;&gt;emissions:w</title>
 <path fill="none" stroke="black" d="M1224.58,-163.3C1259.54,-177.97 1309.57,-194.74 1355.59,-194.74"/>
@@ -750,7 +750,7 @@ Boiler turbogenerator:c&#45;&gt;ash_disposal:w</title>
 </g>
 <!-- CWP
 Chilled water package&#45;&gt;s.9 -->
-<g id="edge20" class="edge">
+<g id="edge3" class="edge">
 <title>CWP
 Chilled water package:c&#45;&gt;s.9:w</title>
 <path fill="none" stroke="black" d="M361.4,-542.74C395.56,-542.74 437.45,-542.74 475,-542.74"/>
@@ -771,73 +771,73 @@ Cooling tower:c&#45;&gt;evaporation_and_blowdown:w</title>
 </g>
 <!-- PWC
 Process water center&#45;&gt;s59 -->
-<g id="edge29" class="edge">
+<g id="edge21" class="edge">
 <title>PWC
 Process water center:c&#45;&gt;s59:w</title>
 <path fill="none" stroke="black" d="M358.04,-798.29C392.65,-791.87 435.92,-785.74 475,-785.74"/>
 </g>
 <!-- PWC
 Process water center&#45;&gt;s60 -->
-<g id="edge54" class="edge">
+<g id="edge55" class="edge">
 <title>PWC
 Process water center:c&#45;&gt;s60:w</title>
 <path fill="none" stroke="black" d="M358.04,-827.19C392.65,-833.61 435.92,-839.74 475,-839.74"/>
 </g>
 <!-- stripping_water&#45;&gt;D301
 Vent scrubber -->
-<g id="edge7" class="edge">
+<g id="edge1" class="edge">
 <title>stripping_water:e&#45;&gt;D301
 Vent scrubber:c</title>
 <path fill="none" stroke="black" d="M3845.98,-253.74C3866.89,-253.74 3890.02,-253.74 3909.72,-253.74"/>
 </g>
-<!-- recirculated_chilled_water&#45;&gt;CWP
-Chilled water package -->
-<g id="edge8" class="edge">
-<title>recirculated_chilled_water:e&#45;&gt;CWP
-Chilled water package:c</title>
-<path fill="none" stroke="black" d="M174.5,-542.74C189.81,-542.74 206.25,-542.74 221.8,-542.74"/>
-</g>
-<!-- denaturant&#45;&gt;T303
-Storage tank -->
-<g id="edge10" class="edge">
-<title>denaturant:e&#45;&gt;T303
-Storage tank:c</title>
-<path fill="none" stroke="black" d="M5906.23,-164.74C5924.82,-164.74 5945.34,-165.63 5962.86,-166.66"/>
-</g>
-<!-- lime&#45;&gt;T204
-Mix tank -->
-<g id="edge17" class="edge">
-<title>lime:e&#45;&gt;T204
-Mix tank:c</title>
-<path fill="none" stroke="black" d="M1600.09,-230.74C1621.82,-230.74 1646.28,-230.74 1665.2,-230.74"/>
-</g>
-<!-- s58&#45;&gt;PWC
-Process water center -->
-<g id="edge18" class="edge">
-<title>s58:e&#45;&gt;PWC
-Process water center:c</title>
-<path fill="none" stroke="black" d="M115.5,-866.74C161.6,-866.74 211.62,-849.42 246.33,-834.39"/>
-</g>
 <!-- s.6&#45;&gt;CT
 Cooling tower -->
-<g id="edge30" class="edge">
+<g id="edge5" class="edge">
 <title>s.6:e&#45;&gt;CT
 Cooling tower:c</title>
 <path fill="none" stroke="black" d="M115.5,-704.74C161.6,-704.74 211.62,-687.42 246.33,-672.39"/>
 </g>
+<!-- s62&#45;&gt;T305
+Mix tank -->
+<g id="edge10" class="edge">
+<title>s62:e&#45;&gt;T305
+Mix tank:c</title>
+<path fill="none" stroke="black" d="M115.5,-434.74C166.07,-434.74 223.91,-423.59 258.79,-415.62"/>
+</g>
+<!-- denaturant&#45;&gt;T303
+Storage tank -->
+<g id="edge11" class="edge">
+<title>denaturant:e&#45;&gt;T303
+Storage tank:c</title>
+<path fill="none" stroke="black" d="M5906.23,-164.74C5924.82,-164.74 5945.34,-165.63 5962.86,-166.66"/>
+</g>
+<!-- recirculated_chilled_water&#45;&gt;CWP
+Chilled water package -->
+<g id="edge22" class="edge">
+<title>recirculated_chilled_water:e&#45;&gt;CWP
+Chilled water package:c</title>
+<path fill="none" stroke="black" d="M174.5,-542.74C189.81,-542.74 206.25,-542.74 221.8,-542.74"/>
+</g>
 <!-- sugarcane&#45;&gt;U101
 Conveying belt -->
-<g id="edge31" class="edge">
+<g id="edge23" class="edge">
 <title>sugarcane:e&#45;&gt;U101
 Conveying belt:c</title>
 <path fill="none" stroke="black" d="M129.5,-326.74C166.82,-326.74 209,-326.74 240.82,-326.74"/>
 </g>
-<!-- s63&#45;&gt;T305
+<!-- s58&#45;&gt;PWC
+Process water center -->
+<g id="edge26" class="edge">
+<title>s58:e&#45;&gt;PWC
+Process water center:c</title>
+<path fill="none" stroke="black" d="M115.5,-866.74C161.6,-866.74 211.62,-849.42 246.33,-834.39"/>
+</g>
+<!-- lime&#45;&gt;T204
 Mix tank -->
 <g id="edge33" class="edge">
-<title>s63:e&#45;&gt;T305
+<title>lime:e&#45;&gt;T204
 Mix tank:c</title>
-<path fill="none" stroke="black" d="M115.5,-434.74C166.07,-434.74 223.91,-423.59 258.79,-415.62"/>
+<path fill="none" stroke="black" d="M1600.09,-230.74C1621.82,-230.74 1646.28,-230.74 1665.2,-230.74"/>
 </g>
 <!-- s55&#45;&gt;BT
 Boiler turbogenerator -->
@@ -845,6 +845,13 @@ Boiler turbogenerator -->
 <title>s55:e&#45;&gt;BT
 Boiler turbogenerator:c</title>
 <path fill="none" stroke="black" d="M982.5,-249.74C1053.07,-249.74 1122.02,-194.85 1155.8,-163.34"/>
+</g>
+<!-- makeup_water&#45;&gt;PWC
+Process water center -->
+<g id="edge36" class="edge">
+<title>makeup_water:e&#45;&gt;PWC
+Process water center:c</title>
+<path fill="none" stroke="black" d="M142.5,-812.74C169.48,-812.74 199.22,-812.74 224.93,-812.74"/>
 </g>
 <!-- cooling_tower_makeup_water&#45;&gt;CT
 Cooling tower -->
@@ -860,61 +867,54 @@ Boiler turbogenerator -->
 Boiler turbogenerator:c</title>
 <path fill="none" stroke="black" d="M1028,-195.74C1067.97,-195.74 1110.55,-178.42 1139.97,-163.39"/>
 </g>
-<!-- makeup_water&#45;&gt;PWC
-Process water center -->
-<g id="edge40" class="edge">
-<title>makeup_water:e&#45;&gt;PWC
-Process water center:c</title>
-<path fill="none" stroke="black" d="M142.5,-812.74C169.48,-812.74 199.22,-812.74 224.93,-812.74"/>
-</g>
 <!-- natural_gas&#45;&gt;BT
 Boiler turbogenerator -->
-<g id="edge42" class="edge">
+<g id="edge43" class="edge">
 <title>natural_gas:e&#45;&gt;BT
 Boiler turbogenerator:c</title>
 <path fill="none" stroke="black" d="M1000.5,-141.74C1036.87,-141.74 1077.45,-141.74 1110.55,-141.74"/>
 </g>
+<!-- s63&#45;&gt;T305
+Mix tank -->
+<g id="edge44" class="edge">
+<title>s63:e&#45;&gt;T305
+Mix tank:c</title>
+<path fill="none" stroke="black" d="M115.5,-380.74C166.07,-380.74 223.91,-391.89 258.79,-399.86"/>
+</g>
 <!-- H3PO4&#45;&gt;T203
 Mix tank -->
-<g id="edge43" class="edge">
+<g id="edge45" class="edge">
 <title>H3PO4:e&#45;&gt;T203
 Mix tank:c</title>
 <path fill="none" stroke="black" d="M1423.59,-248.74C1466.3,-248.74 1513.98,-262.28 1544.47,-272.75"/>
 </g>
-<!-- s64&#45;&gt;T305
-Mix tank -->
-<g id="edge45" class="edge">
-<title>s64:e&#45;&gt;T305
-Mix tank:c</title>
-<path fill="none" stroke="black" d="M115.5,-380.74C166.07,-380.74 223.91,-391.89 258.79,-399.86"/>
-</g>
-<!-- s56&#45;&gt;BT
-Boiler turbogenerator -->
-<g id="edge46" class="edge">
-<title>s56:e&#45;&gt;BT
-Boiler turbogenerator:c</title>
-<path fill="none" stroke="black" d="M982.5,-87.74C1033.39,-87.74 1089.12,-105.06 1127.89,-120.09"/>
-</g>
 <!-- cooling_tower_chemicals&#45;&gt;CT
 Cooling tower -->
-<g id="edge47" class="edge">
+<g id="edge46" class="edge">
 <title>cooling_tower_chemicals:e&#45;&gt;CT
 Cooling tower:c</title>
 <path fill="none" stroke="black" d="M173.5,-596.74C205.94,-596.74 239.17,-614.06 261.88,-629.09"/>
 </g>
+<!-- s64&#45;&gt;PWC
+Process water center -->
+<g id="edge47" class="edge">
+<title>s64:e&#45;&gt;PWC
+Process water center:c</title>
+<path fill="none" stroke="black" d="M115.5,-758.74C161.6,-758.74 211.62,-776.06 246.33,-791.09"/>
+</g>
+<!-- s56&#45;&gt;BT
+Boiler turbogenerator -->
+<g id="edge48" class="edge">
+<title>s56:e&#45;&gt;BT
+Boiler turbogenerator:c</title>
+<path fill="none" stroke="black" d="M982.5,-87.74C1033.39,-87.74 1089.12,-105.06 1127.89,-120.09"/>
+</g>
 <!-- dilution_water&#45;&gt;M301
 Mixer -->
-<g id="edge48" class="edge">
+<g id="edge49" class="edge">
 <title>dilution_water:e&#45;&gt;M301
 Mixer:c</title>
 <path fill="none" stroke="black" d="M3373.58,-92.74C3408.22,-92.74 3441.02,-114.87 3464.21,-135.71"/>
-</g>
-<!-- s62&#45;&gt;PWC
-Process water center -->
-<g id="edge49" class="edge">
-<title>s62:e&#45;&gt;PWC
-Process water center:c</title>
-<path fill="none" stroke="black" d="M115.5,-758.74C161.6,-758.74 211.62,-776.06 246.33,-791.09"/>
 </g>
 <!-- s57&#45;&gt;BT
 Boiler turbogenerator -->
@@ -1419,14 +1419,14 @@ Pump</title>
 <title>H302
  Heat exchanger</title>
 <defs>
-<linearGradient id="l_29" gradientUnits="userSpaceOnUse" x1="4611.19" y1="-328.11" x2="4611.19" y2="-453.37" >
+<linearGradient id="l_29" gradientUnits="userSpaceOnUse" x1="4611.19" y1="-311.11" x2="4611.19" y2="-436.37" >
 <stop offset="0" style="stop-color:#cfecf0;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#fad6d8;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<ellipse fill="url(#l_29)" stroke="transparent" cx="4611.19" cy="-390.74" rx="62.63" ry="62.63"/>
-<text text-anchor="middle" x="4611.19" y="-394.54" font-family="Times New Roman,serif" font-size="14.00">H302</text>
-<text text-anchor="middle" x="4611.19" y="-379.54" font-family="Times New Roman,serif" font-size="14.00"> Heat exchanger</text>
+<ellipse fill="url(#l_29)" stroke="transparent" cx="4611.19" cy="-373.74" rx="62.63" ry="62.63"/>
+<text text-anchor="middle" x="4611.19" y="-377.54" font-family="Times New Roman,serif" font-size="14.00">H302</text>
+<text text-anchor="middle" x="4611.19" y="-362.54" font-family="Times New Roman,serif" font-size="14.00"> Heat exchanger</text>
 </g>
 <!-- D302
 Distillation Column -->
@@ -1752,35 +1752,35 @@ Process water center</title>
 <text text-anchor="middle" x="291.5" y="-816.54" font-family="Times New Roman,serif" font-size="14.00">PWC</text>
 <text text-anchor="middle" x="291.5" y="-801.54" font-family="Times New Roman,serif" font-size="14.00">Process water center</text>
 </g>
-<!-- wastewater -->
-<g id="node56" class="node">
-<title>wastewater</title>
-<polygon fill="#79dae8" stroke="black" points="5889.23,-69.24 5829.23,-69.24 5829.23,-38.24 5889.23,-38.24 5889.23,-32.24 5907.23,-53.74 5889.23,-75.24 5889.23,-69.24"/>
-<text text-anchor="middle" x="5868.23" y="-50.04" font-family="Times New Roman,serif" font-size="14.00">wastewater</text>
-</g>
-<!-- ethanol -->
-<g id="node57" class="node">
-<title>ethanol</title>
-<polygon fill="#79dae8" stroke="black" points="6566.82,-214.24 6528.82,-214.24 6528.82,-183.24 6566.82,-183.24 6566.82,-177.24 6584.82,-198.74 6566.82,-220.24 6566.82,-214.24"/>
-<text text-anchor="middle" x="6556.82" y="-195.04" font-family="Times New Roman,serif" font-size="14.00">ethanol</text>
-</g>
-<!-- s36 -->
-<g id="node58" class="node">
-<title>s36</title>
-<polygon fill="#79dae8" stroke="black" points="501.5,-423.24 476.5,-423.24 476.5,-392.24 501.5,-392.24 501.5,-386.24 519.5,-407.74 501.5,-429.24 501.5,-423.24"/>
-<text text-anchor="middle" x="498" y="-404.04" font-family="Times New Roman,serif" font-size="14.00">s36</text>
-</g>
 <!-- stripping_water -->
-<g id="node59" class="node">
+<g id="node56" class="node">
 <title>stripping_water</title>
 <polygon fill="#79dae8" stroke="black" points="3827.98,-269.24 3742.98,-269.24 3742.98,-238.24 3827.98,-238.24 3827.98,-232.24 3845.98,-253.74 3827.98,-275.24 3827.98,-269.24"/>
 <text text-anchor="middle" x="3794.48" y="-250.04" font-family="Times New Roman,serif" font-size="14.00">stripping_water</text>
 </g>
-<!-- recirculated_chilled_water -->
+<!-- s36 -->
+<g id="node57" class="node">
+<title>s36</title>
+<polygon fill="#79dae8" stroke="black" points="501.5,-423.24 476.5,-423.24 476.5,-392.24 501.5,-392.24 501.5,-386.24 519.5,-407.74 501.5,-429.24 501.5,-423.24"/>
+<text text-anchor="middle" x="498" y="-404.04" font-family="Times New Roman,serif" font-size="14.00">s36</text>
+</g>
+<!-- s.9 -->
+<g id="node58" class="node">
+<title>s.9</title>
+<polygon fill="#79dae8" stroke="black" points="501.5,-558.24 476.5,-558.24 476.5,-527.24 501.5,-527.24 501.5,-521.24 519.5,-542.74 501.5,-564.24 501.5,-558.24"/>
+<text text-anchor="middle" x="498" y="-539.04" font-family="Times New Roman,serif" font-size="14.00">s.9</text>
+</g>
+<!-- s.6 -->
+<g id="node59" class="node">
+<title>s.6</title>
+<polygon fill="#79dae8" stroke="black" points="96,-720.24 71,-720.24 71,-689.24 96,-689.24 96,-683.24 114,-704.74 96,-726.24 96,-720.24"/>
+<text text-anchor="middle" x="92.5" y="-701.04" font-family="Times New Roman,serif" font-size="14.00">s.6</text>
+</g>
+<!-- s62 -->
 <g id="node60" class="node">
-<title>recirculated_chilled_water</title>
-<polygon fill="#79dae8" stroke="black" points="155.5,-558.24 11.5,-558.24 11.5,-527.24 155.5,-527.24 155.5,-521.24 173.5,-542.74 155.5,-564.24 155.5,-558.24"/>
-<text text-anchor="middle" x="92.5" y="-539.04" font-family="Times New Roman,serif" font-size="14.00">recirculated_chilled_water</text>
+<title>s62</title>
+<polygon fill="#79dae8" stroke="black" points="96,-450.24 71,-450.24 71,-419.24 96,-419.24 96,-413.24 114,-434.74 96,-456.24 96,-450.24"/>
+<text text-anchor="middle" x="92.5" y="-431.04" font-family="Times New Roman,serif" font-size="14.00">s62</text>
 </g>
 <!-- denaturant -->
 <g id="node61" class="node">
@@ -1800,53 +1800,53 @@ Process water center</title>
 <polygon fill="#79dae8" stroke="black" points="501.5,-612.24 476.5,-612.24 476.5,-581.24 501.5,-581.24 501.5,-575.24 519.5,-596.74 501.5,-618.24 501.5,-612.24"/>
 <text text-anchor="middle" x="498" y="-593.04" font-family="Times New Roman,serif" font-size="14.00">s.7</text>
 </g>
-<!-- lime -->
+<!-- ethanol -->
 <g id="node64" class="node">
-<title>lime</title>
-<polygon fill="#79dae8" stroke="black" points="1580.59,-246.24 1555.59,-246.24 1555.59,-215.24 1580.59,-215.24 1580.59,-209.24 1598.59,-230.74 1580.59,-252.24 1580.59,-246.24"/>
-<text text-anchor="middle" x="1577.09" y="-227.04" font-family="Times New Roman,serif" font-size="14.00">lime</text>
-</g>
-<!-- s58 -->
-<g id="node65" class="node">
-<title>s58</title>
-<polygon fill="#79dae8" stroke="black" points="96,-882.24 71,-882.24 71,-851.24 96,-851.24 96,-845.24 114,-866.74 96,-888.24 96,-882.24"/>
-<text text-anchor="middle" x="92.5" y="-863.04" font-family="Times New Roman,serif" font-size="14.00">s58</text>
-</g>
-<!-- s.9 -->
-<g id="node66" class="node">
-<title>s.9</title>
-<polygon fill="#79dae8" stroke="black" points="501.5,-558.24 476.5,-558.24 476.5,-527.24 501.5,-527.24 501.5,-521.24 519.5,-542.74 501.5,-564.24 501.5,-558.24"/>
-<text text-anchor="middle" x="498" y="-539.04" font-family="Times New Roman,serif" font-size="14.00">s.9</text>
-</g>
-<!-- emissions -->
-<g id="node67" class="node">
-<title>emissions</title>
-<polygon fill="#79dae8" stroke="black" points="1410.09,-210.24 1357.09,-210.24 1357.09,-179.24 1410.09,-179.24 1410.09,-173.24 1428.09,-194.74 1410.09,-216.24 1410.09,-210.24"/>
-<text text-anchor="middle" x="1392.59" y="-191.04" font-family="Times New Roman,serif" font-size="14.00">emissions</text>
+<title>ethanol</title>
+<polygon fill="#79dae8" stroke="black" points="6566.82,-214.24 6528.82,-214.24 6528.82,-183.24 6566.82,-183.24 6566.82,-177.24 6584.82,-198.74 6566.82,-220.24 6566.82,-214.24"/>
+<text text-anchor="middle" x="6556.82" y="-195.04" font-family="Times New Roman,serif" font-size="14.00">ethanol</text>
 </g>
 <!-- s59 -->
-<g id="node68" class="node">
+<g id="node65" class="node">
 <title>s59</title>
 <polygon fill="#79dae8" stroke="black" points="501.5,-801.24 476.5,-801.24 476.5,-770.24 501.5,-770.24 501.5,-764.24 519.5,-785.74 501.5,-807.24 501.5,-801.24"/>
 <text text-anchor="middle" x="498" y="-782.04" font-family="Times New Roman,serif" font-size="14.00">s59</text>
 </g>
-<!-- s.6 -->
-<g id="node69" class="node">
-<title>s.6</title>
-<polygon fill="#79dae8" stroke="black" points="96,-720.24 71,-720.24 71,-689.24 96,-689.24 96,-683.24 114,-704.74 96,-726.24 96,-720.24"/>
-<text text-anchor="middle" x="92.5" y="-701.04" font-family="Times New Roman,serif" font-size="14.00">s.6</text>
+<!-- recirculated_chilled_water -->
+<g id="node66" class="node">
+<title>recirculated_chilled_water</title>
+<polygon fill="#79dae8" stroke="black" points="155.5,-558.24 11.5,-558.24 11.5,-527.24 155.5,-527.24 155.5,-521.24 173.5,-542.74 155.5,-564.24 155.5,-558.24"/>
+<text text-anchor="middle" x="92.5" y="-539.04" font-family="Times New Roman,serif" font-size="14.00">recirculated_chilled_water</text>
 </g>
 <!-- sugarcane -->
-<g id="node70" class="node">
+<g id="node67" class="node">
 <title>sugarcane</title>
 <polygon fill="#79dae8" stroke="black" points="110.5,-342.24 56.5,-342.24 56.5,-311.24 110.5,-311.24 110.5,-305.24 128.5,-326.74 110.5,-348.24 110.5,-342.24"/>
 <text text-anchor="middle" x="92.5" y="-323.04" font-family="Times New Roman,serif" font-size="14.00">sugarcane</text>
 </g>
-<!-- s63 -->
+<!-- wastewater -->
+<g id="node68" class="node">
+<title>wastewater</title>
+<polygon fill="#79dae8" stroke="black" points="5889.23,-69.24 5829.23,-69.24 5829.23,-38.24 5889.23,-38.24 5889.23,-32.24 5907.23,-53.74 5889.23,-75.24 5889.23,-69.24"/>
+<text text-anchor="middle" x="5868.23" y="-50.04" font-family="Times New Roman,serif" font-size="14.00">wastewater</text>
+</g>
+<!-- s58 -->
+<g id="node69" class="node">
+<title>s58</title>
+<polygon fill="#79dae8" stroke="black" points="96,-882.24 71,-882.24 71,-851.24 96,-851.24 96,-845.24 114,-866.74 96,-888.24 96,-882.24"/>
+<text text-anchor="middle" x="92.5" y="-863.04" font-family="Times New Roman,serif" font-size="14.00">s58</text>
+</g>
+<!-- emissions -->
+<g id="node70" class="node">
+<title>emissions</title>
+<polygon fill="#79dae8" stroke="black" points="1410.09,-210.24 1357.09,-210.24 1357.09,-179.24 1410.09,-179.24 1410.09,-173.24 1428.09,-194.74 1410.09,-216.24 1410.09,-210.24"/>
+<text text-anchor="middle" x="1392.59" y="-191.04" font-family="Times New Roman,serif" font-size="14.00">emissions</text>
+</g>
+<!-- lime -->
 <g id="node71" class="node">
-<title>s63</title>
-<polygon fill="#79dae8" stroke="black" points="96,-450.24 71,-450.24 71,-419.24 96,-419.24 96,-413.24 114,-434.74 96,-456.24 96,-450.24"/>
-<text text-anchor="middle" x="92.5" y="-431.04" font-family="Times New Roman,serif" font-size="14.00">s63</text>
+<title>lime</title>
+<polygon fill="#79dae8" stroke="black" points="1580.59,-246.24 1555.59,-246.24 1555.59,-215.24 1580.59,-215.24 1580.59,-209.24 1598.59,-230.74 1580.59,-252.24 1580.59,-246.24"/>
+<text text-anchor="middle" x="1577.09" y="-227.04" font-family="Times New Roman,serif" font-size="14.00">lime</text>
 </g>
 <!-- s55 -->
 <g id="node72" class="node">
@@ -1854,23 +1854,23 @@ Process water center</title>
 <polygon fill="#79dae8" stroke="black" points="963,-265.24 938,-265.24 938,-234.24 963,-234.24 963,-228.24 981,-249.74 963,-271.24 963,-265.24"/>
 <text text-anchor="middle" x="959.5" y="-246.04" font-family="Times New Roman,serif" font-size="14.00">s55</text>
 </g>
-<!-- cooling_tower_makeup_water -->
+<!-- makeup_water -->
 <g id="node73" class="node">
+<title>makeup_water</title>
+<polygon fill="#79dae8" stroke="black" points="123.5,-828.24 43.5,-828.24 43.5,-797.24 123.5,-797.24 123.5,-791.24 141.5,-812.74 123.5,-834.24 123.5,-828.24"/>
+<text text-anchor="middle" x="92.5" y="-809.04" font-family="Times New Roman,serif" font-size="14.00">makeup_water</text>
+</g>
+<!-- cooling_tower_makeup_water -->
+<g id="node74" class="node">
 <title>cooling_tower_makeup_water</title>
 <polygon fill="#79dae8" stroke="black" points="167,-666.24 0,-666.24 0,-635.24 167,-635.24 167,-629.24 185,-650.74 167,-672.24 167,-666.24"/>
 <text text-anchor="middle" x="92.5" y="-647.04" font-family="Times New Roman,serif" font-size="14.00">cooling_tower_makeup_water</text>
 </g>
 <!-- boiler_makeup_water -->
-<g id="node74" class="node">
+<g id="node75" class="node">
 <title>boiler_makeup_water</title>
 <polygon fill="#79dae8" stroke="black" points="1010,-211.24 891,-211.24 891,-180.24 1010,-180.24 1010,-174.24 1028,-195.74 1010,-217.24 1010,-211.24"/>
 <text text-anchor="middle" x="959.5" y="-192.04" font-family="Times New Roman,serif" font-size="14.00">boiler_makeup_water</text>
-</g>
-<!-- makeup_water -->
-<g id="node75" class="node">
-<title>makeup_water</title>
-<polygon fill="#79dae8" stroke="black" points="123.5,-828.24 43.5,-828.24 43.5,-797.24 123.5,-797.24 123.5,-791.24 141.5,-812.74 123.5,-834.24 123.5,-828.24"/>
-<text text-anchor="middle" x="92.5" y="-809.04" font-family="Times New Roman,serif" font-size="14.00">makeup_water</text>
 </g>
 <!-- natural_gas -->
 <g id="node76" class="node">
@@ -1878,41 +1878,41 @@ Process water center</title>
 <polygon fill="#79dae8" stroke="black" points="981.5,-157.24 919.5,-157.24 919.5,-126.24 981.5,-126.24 981.5,-120.24 999.5,-141.74 981.5,-163.24 981.5,-157.24"/>
 <text text-anchor="middle" x="959.5" y="-138.04" font-family="Times New Roman,serif" font-size="14.00">natural_gas</text>
 </g>
-<!-- H3PO4 -->
+<!-- s63 -->
 <g id="node77" class="node">
+<title>s63</title>
+<polygon fill="#79dae8" stroke="black" points="96,-396.24 71,-396.24 71,-365.24 96,-365.24 96,-359.24 114,-380.74 96,-402.24 96,-396.24"/>
+<text text-anchor="middle" x="92.5" y="-377.04" font-family="Times New Roman,serif" font-size="14.00">s63</text>
+</g>
+<!-- H3PO4 -->
+<g id="node78" class="node">
 <title>H3PO4</title>
 <polygon fill="#79dae8" stroke="black" points="1404.09,-264.24 1363.09,-264.24 1363.09,-233.24 1404.09,-233.24 1404.09,-227.24 1422.09,-248.74 1404.09,-270.24 1404.09,-264.24"/>
 <text text-anchor="middle" x="1392.59" y="-245.04" font-family="Times New Roman,serif" font-size="14.00">H3PO4</text>
 </g>
-<!-- s64 -->
-<g id="node78" class="node">
-<title>s64</title>
-<polygon fill="#79dae8" stroke="black" points="96,-396.24 71,-396.24 71,-365.24 96,-365.24 96,-359.24 114,-380.74 96,-402.24 96,-396.24"/>
-<text text-anchor="middle" x="92.5" y="-377.04" font-family="Times New Roman,serif" font-size="14.00">s64</text>
-</g>
-<!-- s56 -->
-<g id="node79" class="node">
-<title>s56</title>
-<polygon fill="#79dae8" stroke="black" points="963,-103.24 938,-103.24 938,-72.24 963,-72.24 963,-66.24 981,-87.74 963,-109.24 963,-103.24"/>
-<text text-anchor="middle" x="959.5" y="-84.04" font-family="Times New Roman,serif" font-size="14.00">s56</text>
-</g>
 <!-- cooling_tower_chemicals -->
-<g id="node80" class="node">
+<g id="node79" class="node">
 <title>cooling_tower_chemicals</title>
 <polygon fill="#79dae8" stroke="black" points="154,-612.24 13,-612.24 13,-581.24 154,-581.24 154,-575.24 172,-596.74 154,-618.24 154,-612.24"/>
 <text text-anchor="middle" x="92.5" y="-593.04" font-family="Times New Roman,serif" font-size="14.00">cooling_tower_chemicals</text>
 </g>
-<!-- dilution_water -->
+<!-- s64 -->
+<g id="node80" class="node">
+<title>s64</title>
+<polygon fill="#79dae8" stroke="black" points="96,-774.24 71,-774.24 71,-743.24 96,-743.24 96,-737.24 114,-758.74 96,-780.24 96,-774.24"/>
+<text text-anchor="middle" x="92.5" y="-755.04" font-family="Times New Roman,serif" font-size="14.00">s64</text>
+</g>
+<!-- s56 -->
 <g id="node81" class="node">
+<title>s56</title>
+<polygon fill="#79dae8" stroke="black" points="963,-103.24 938,-103.24 938,-72.24 963,-72.24 963,-66.24 981,-87.74 963,-109.24 963,-103.24"/>
+<text text-anchor="middle" x="959.5" y="-84.04" font-family="Times New Roman,serif" font-size="14.00">s56</text>
+</g>
+<!-- dilution_water -->
+<g id="node82" class="node">
 <title>dilution_water</title>
 <polygon fill="#79dae8" stroke="black" points="3355.58,-108.24 3278.58,-108.24 3278.58,-77.24 3355.58,-77.24 3355.58,-71.24 3373.58,-92.74 3355.58,-114.24 3355.58,-108.24"/>
 <text text-anchor="middle" x="3326.08" y="-89.04" font-family="Times New Roman,serif" font-size="14.00">dilution_water</text>
-</g>
-<!-- s62 -->
-<g id="node82" class="node">
-<title>s62</title>
-<polygon fill="#79dae8" stroke="black" points="96,-774.24 71,-774.24 71,-743.24 96,-743.24 96,-737.24 114,-758.74 96,-780.24 96,-774.24"/>
-<text text-anchor="middle" x="92.5" y="-755.04" font-family="Times New Roman,serif" font-size="14.00">s62</text>
 </g>
 <!-- s57 -->
 <g id="node83" class="node">
@@ -1926,17 +1926,17 @@ Process water center</title>
 <polygon fill="#79dae8" stroke="black" points="1470.59,-156.24 1296.59,-156.24 1296.59,-125.24 1470.59,-125.24 1470.59,-119.24 1488.59,-140.74 1470.59,-162.24 1470.59,-156.24"/>
 <text text-anchor="middle" x="1392.59" y="-137.04" font-family="Times New Roman,serif" font-size="14.00">rejected_water_and_blowdown</text>
 </g>
-<!-- s4 -->
-<g id="node85" class="node">
-<title>s4</title>
-<polygon fill="#79dae8" stroke="black" points="672.5,-331.24 647.5,-331.24 647.5,-300.24 672.5,-300.24 672.5,-294.24 690.5,-315.74 672.5,-337.24 672.5,-331.24"/>
-<text text-anchor="middle" x="669" y="-312.04" font-family="Times New Roman,serif" font-size="14.00">s4</text>
-</g>
 <!-- evaporation_and_blowdown -->
-<g id="node86" class="node">
+<g id="node85" class="node">
 <title>evaporation_and_blowdown</title>
 <polygon fill="#79dae8" stroke="black" points="568,-666.24 410,-666.24 410,-635.24 568,-635.24 568,-629.24 586,-650.74 568,-672.24 568,-666.24"/>
 <text text-anchor="middle" x="498" y="-647.04" font-family="Times New Roman,serif" font-size="14.00">evaporation_and_blowdown</text>
+</g>
+<!-- s4 -->
+<g id="node86" class="node">
+<title>s4</title>
+<polygon fill="#79dae8" stroke="black" points="672.5,-331.24 647.5,-331.24 647.5,-300.24 672.5,-300.24 672.5,-294.24 690.5,-315.74 672.5,-337.24 672.5,-331.24"/>
+<text text-anchor="middle" x="669" y="-312.04" font-family="Times New Roman,serif" font-size="14.00">s4</text>
 </g>
 <!-- s60 -->
 <g id="node87" class="node">
