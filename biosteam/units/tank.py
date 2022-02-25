@@ -126,6 +126,7 @@ def tank_factory(name, *, CE, cost, S, tau, n=0.6, kW_per_m3=0., V_wf=0.9,
         dct['_ins_size_is_fixed'] = False
         dct['_N_ins'] = 2
         dct['_run'] = Mixer._run
+        dct['rigorous'] = False
     cls = type(name, (Tank,), dct)
     if module: cls.__module__ = module
     return cls
