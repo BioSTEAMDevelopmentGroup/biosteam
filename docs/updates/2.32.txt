@@ -1,0 +1,13 @@
+2.32
+====
+
+2.32.0
+------
+
+Changes:
+
+* :class:`~biosteam.Mixer` objects can now run vapor-liquid equilibrium by setting the `<Mixer>.rigorous=True`.
+* No more linked "property objects"; property arrays behave just like numpy arrays regarding indexing. 
+  For example, type(<Stream>.imass['Water']) is now a float and type(<Stream.imass['Water', 'Ethanol']) is an array of floats. 
+* New :doc:`../tutorial/Gotchas` tutorial.
+

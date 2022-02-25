@@ -97,6 +97,7 @@ technologies and chart development pathways for various bioproducts:
    tutorial/Unit_decorators
    tutorial/Techno-economic_analysis
    tutorial/Life_cycle_assessment
+   tutorial/Gotchas
 
 .. toctree::
    :maxdepth: 2

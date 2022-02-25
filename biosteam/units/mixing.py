@@ -69,9 +69,13 @@ class Mixer(Unit):
     def _assert_compatible_property_package(self): 
         pass # Not necessary for mixing streams
     
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, rigorous=False):
+        Unit.__init__(self, ID, ins, outs, thermo)
+        self.rigorous = rigorous
+    
     def _run(self):
         s_out, = self.outs
-        s_out.mix_from(self.ins)
+        s_out.mix_from(self.ins, vle=self.rigorous)
         
     @ignore_docking_warnings
     def insert(self, stream):
