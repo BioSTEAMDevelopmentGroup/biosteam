@@ -4,9 +4,9 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dyn_sim ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, dyn_sim ]
 
 jobs:
   build:
@@ -53,6 +53,8 @@ jobs:
         python -c "import platform; print(platform.platform()); print(platform.architecture())"
         python -m pip install --upgrade pip
         python -m pip install wheel
+        pip install git+https://github.com/QSD-Group/QSDsan.git
+        pip install git+https://github.com/QSD-Group/EXPOsan.git
         pip install -r requirements_test.txt
     - name: Test without numba
       run: |

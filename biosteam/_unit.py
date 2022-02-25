@@ -103,7 +103,7 @@ class Unit:
     **Abstract class methods**
     
     reset_cache()
-        Reset unit operartion cache.
+        Reset unit operation cache.
     _setup()
         Set stream conditions and constant data.
     _run()
@@ -111,7 +111,7 @@ class Unit:
     _design()
         Add design requirements to the `design_results` dictionary.
     _cost()
-        Add itemized purchse costs to the `baseline_purchase_costs` dictionary.
+        Add itemized purchase costs to the `baseline_purchase_costs` dictionary.
 
     **Abstract class attributes**
     
