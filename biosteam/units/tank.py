@@ -397,6 +397,7 @@ class MixTank(Tank):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
 
     """
+    rigorous = False
     _N_ins = 2
     _ins_size_is_fixed = False
     _run = Mixer._run
