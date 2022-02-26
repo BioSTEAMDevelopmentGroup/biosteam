@@ -135,6 +135,7 @@ class UtilityAgent(Stream):
         new._thermal_condition = self._thermal_condition.copy()
         new.reset_cache()
         new._price = 0.
+        new._user_equilibrium = self._user_equilibrium
         new.characterization_factors = {}
         new.ID = ID
         return new
