@@ -81,6 +81,7 @@ class UtilityAgent(Stream):
             flow[:] = self.mol / factor
         self._islinked = False
         self._sink = self._source = None
+        self._user_equilibrium = None
         self.reset_cache()
         self._register(ID)
         self.T_limit = T_limit
