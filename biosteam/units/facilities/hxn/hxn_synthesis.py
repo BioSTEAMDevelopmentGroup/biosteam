@@ -316,10 +316,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             cold_stream.ID = 's_%s__%s'%(cold,ID)
-            hot_out = bst.Stream('%s__s_%s'%(ID,hot), thermo=hot_stream.thermo)
-            cold_out = bst.Stream('%s__s_%s'%(ID,cold), thermo=cold_stream.thermo)
-            hot_out._user_equilibrium = hot_stream._user_equilibrium
-            cold_out._user_equilibrium = cold_stream._user_equilibrium
+            hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
+            cold_out = cold_stream.copy('%s__s_%s'%(ID,cold))
             H_lim = H_out_arr[hot]
             new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
                      outs = (hot_out, cold_out), H_lim0 = H_lim, 
@@ -378,10 +376,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             cold_stream = streams_transient_hot_side[cold].copy()
             cold_stream.ID = 's_%s__%s'%(cold,ID)
             hot_stream.ID = 's_%s__%s'%(hot,ID)
-            hot_out = bst.Stream('%s__s_%s'%(ID,hot), thermo=hot_stream.thermo)
-            cold_out = bst.Stream('%s__s_%s'%(ID,cold), thermo=cold_stream.thermo)
-            hot_out._user_equilibrium = hot_stream._user_equilibrium
-            cold_out._user_equilibrium = cold_stream._user_equilibrium
+            hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
+            cold_out = cold_stream.copy('%s__s_%s'%(ID,cold))
             H_lim = H_out_arr[cold]
             new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
                      outs = (cold_out, hot_out), H_lim0 = H_lim,
@@ -424,10 +420,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                     cold_stream = streams_transient_cold_side[cold].copy()
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
-                    hot_out = bst.Stream('%s__s_%s'%(ID,hot), thermo=hot_stream.thermo)
-                    cold_out = bst.Stream('%s__s_%s'%(ID,cold), thermo=cold_stream.thermo)
-                    hot_out._user_equilibrium = hot_stream._user_equilibrium
-                    cold_out._user_equilibrium = cold_stream._user_equilibrium
+                    hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
+                    cold_out = cold_stream.copy('%s__s_%s'%(ID,cold))
                     new_HX = bst.units.HXprocess(ID = ID, ins = (hot_stream, cold_stream),
                              outs = (hot_out, cold_out), H_lim0 = H_out_arr[hot],
                              T_lim1 = T_out_arr[cold], dT = T_min_app,
@@ -466,10 +460,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                     hot_stream = streams_transient_hot_side[hot].copy()
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
-                    hot_out = bst.Stream('%s__s_%s'%(ID,hot), thermo=hot_stream.thermo)
-                    cold_out = bst.Stream('%s__s_%s'%(ID,cold), thermo=cold_stream.thermo)
-                    hot_out._user_equilibrium = hot_stream._user_equilibrium
-                    cold_out._user_equilibrium = cold_stream._user_equilibrium
+                    hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
+                    cold_out = cold_stream.copy('%s__s_%s'%(ID,cold))
                     H_lim = H_out_arr[cold]
                     new_HX = bst.units.HXprocess(ID = ID, ins = (cold_stream, hot_stream),
                              outs = (cold_out, hot_out), H_lim0 = H_lim, 
@@ -523,8 +515,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         hot_stream = get_coldest_stream_from_life_cycle(hot).copy()
         ID = 'Util_%s_cs'%(hot)
         hot_stream.ID = 's_%s__%s'%(hot,ID)
-        outsID = '%s__s_%s'%(ID,hot)
-        new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outsID,
+        outlet = hot_stream.copy('%s__s_%s'%(ID,hot))
+        new_HX_util = bst.units.HXutility(ID = ID, ins = hot_stream, outs = outlet,
                                           H = H_out_arr[hot], rigorous = True,
                                           thermo = hot_stream.thermo)
         new_HX_util._run()
@@ -539,8 +531,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         cold_stream = get_hottest_stream_from_life_cycle(cold).copy()
         ID = 'Util_%s_hs'%(cold)
         cold_stream.ID = 's_%s__%s'%(cold,ID)
-        outsID = '%s__s_%s'%(ID,cold)
-        new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outsID,
+        outlet = cold_stream.copy('%s__s_%s'%(ID,cold))
+        new_HX_util = bst.units.HXutility(ID = ID, ins = cold_stream, outs = outlet,
                                           H = H_out_arr[cold], rigorous = True,
                                           thermo = cold_stream.thermo)
         new_HX_util._run()
