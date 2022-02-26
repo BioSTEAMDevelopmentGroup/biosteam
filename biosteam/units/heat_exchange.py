@@ -320,13 +320,14 @@ class HXutility(HX):
     _graphics = utility_heat_exchanger_graphics
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 T=None, V=None, rigorous=False, U=None, H=None,
-                 heat_exchanger_type="Floating head",
-                 material="Carbon steel/carbon steel",
-                 N_shells=2,
-                 ft=None,
-                 heat_only=None,
-                 cool_only=None):
+            T=None, V=None, rigorous=False, U=None, H=None,
+            heat_exchanger_type="Floating head",
+            material="Carbon steel/carbon steel",
+            N_shells=2,
+            ft=None,
+            heat_only=None,
+            cool_only=None,
+        ):
         super().__init__(ID, ins, outs, thermo)
         self.T = T #: [float] Temperature of outlet stream (K).
         self.V = V #: [float] Vapor fraction of outlet stream.
@@ -399,7 +400,9 @@ class HXutility(HX):
         if N_given == 0:
             raise RuntimeError("no specification available; must define at either "
                                "temperature 'T', vapor fraction, 'V', or enthalpy 'H'")
-        if self.rigorous:
+        if outlet.has_user_equilibrium:
+            outlet.user_equilibrium(T=T, H=H, P=outlet.P, V=V)
+        elif self.rigorous:
             if N_given > 1:
                 raise RuntimeError("may only specify either temperature, 'T', "
                                    "vapor fraction 'V', or enthalpy 'H', "
@@ -461,10 +464,13 @@ class HXutility(HX):
                 if len(phase) == 1: outlet.phase = phase
             if H_given:
                 outlet.H = H
-        if self.heat_only:
-            if outlet.H - feed.H < 0.: outlet.copy_like(feed)
-        if self.cool_only:
-            if outlet.H - feed.H > 0.: outlet.copy_like(feed)
+                
+        if self.heat_only and outlet.H - feed.H < 0.: 
+            outlet.copy_like(feed)
+            return
+        if self.cool_only and outlet.H - feed.H > 0.: 
+            outlet.copy_like(feed)
+            return
 
     def get_streams(self):
         """
@@ -642,7 +648,8 @@ class HXprocess(HX):
                  phase0=None,
                  phase1=None,
                  H_lim0=None,
-                 H_lim1=None):
+                 H_lim1=None,
+        ):
         super().__init__(ID, ins, outs, thermo)
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
@@ -672,10 +679,10 @@ class HXprocess(HX):
         #: [float] Temperature limit of outlet stream at index 1.
         self.H_lim1 = H_lim1
         
-        #: Enforced phase of outlet at index 0
+        #: [str] Enforced phase of outlet at index 0
         self.phase0 = phase0
         
-        #: Enforced phase of outlet at index 1
+        #: [str] Enforced phase of outlet at index 1
         self.phase1 = phase1
         
         self.material = material
