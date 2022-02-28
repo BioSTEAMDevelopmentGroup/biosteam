@@ -152,7 +152,7 @@ class SystemScope():
         An interpolation method that takes in time-series data and returns
         an interpolant. Used to export the data at certain time points. 
         When none specified, will use `scipy.interpolate.InterpolatedUnivariateSpline` 
-        and will raise error when trying to extrapolate.
+        with k=1 (i.e., linear) and will raise error when trying to extrapolate.
         
     See Also
     --------
@@ -236,24 +236,27 @@ class SystemScope():
                 headers += s.scope.header
         return pd.MultiIndex.from_tuples(headers, names=['ID', 'variable'])
 
-    def _interpolate_eval(self, t_arr, y_arrs, t_eval):
+    def _interpolate_eval(self, t_arr, y_arrs, t_eval, **interpolation_kwargs):
         f = self._method
         y_eval = np.empty((y_arrs.shape[0], len(t_eval)))
-        for i, y in enumerate(y_arrs):
-            intpl = f(t_arr, y)
-            try: y_eval[i,:] = intpl(t_eval, ext=2) # raise a ValueError if try to extrapolate
-            except TypeError: 
-                y_eval[i,:] = intpl(t_eval)
+        if f is ius and 'k' not in interpolation_kwargs.keys(): 
+            interpolation_kwargs['k'] = 1
+        for i, y in enumerate(y_arrs):            
+            intpl = f(t_arr, y, **interpolation_kwargs)
+            if max(t_eval) > max(t_arr):
+                raise RuntimeError(f'Extrapolation is tempted! t_eval must be '
+                                   f'within the range of [{min(t_arr)}, {max(t_arr)}].')
+            y_eval[i,:] = intpl(t_eval)
         return np.vstack([t_eval, y_eval])
     
-    def export(self, path='', t_eval=None):
+    def export(self, path='', t_eval=None, **interpolation_kwargs):
         """Exports recorded time-series data to given path."""
         ts = self.time_series
         ys = self._get_records()
         if t_eval is None:
             data = np.vstack([ts, ys])
         else:
-            data = self._interpolate_eval(ts, ys, t_eval)
+            data = self._interpolate_eval(ts, ys, t_eval, **interpolation_kwargs)
         df = pd.DataFrame(data.T, columns=self._get_headers())
         if path:
             file, ext = path.rsplit('.', 1)
