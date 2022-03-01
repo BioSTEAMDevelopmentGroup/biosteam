@@ -166,7 +166,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             ID = self.adsorbate_ID
             K = self.K # (g adsorbate / mL solvent)  /  (g adsorbate / g adsorbent)
             adsorbate = purge.imass[ID]
-            adsorbent = adsorbate / adsorbent_capacity
+            self.adsorbent = adsorbent = adsorbate / adsorbent_capacity
             # R * y + A * x = total
             # K = y / x
             # R * y  + A * y / K = total
