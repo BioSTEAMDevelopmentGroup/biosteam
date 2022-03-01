@@ -11,9 +11,7 @@
 """
 
 def test_dyn_sys():
-    from qsdsan import processes as pc, sanunits as su, set_thermo
-    # from biosteam.settings import set_thermo
-    from biosteam import System
+    from qsdsan import processes as pc, sanunits as su, set_thermo, System
     import numpy as np
     from numpy.testing import assert_allclose
     
@@ -36,8 +34,6 @@ def test_dyn_sys():
 
 def test_qsdsan():
     from exposan import bwaise as bw
-    # TODO: Make tests with assertions
-    # Just make sure it can simulate for now
     for i in (bw.sysA, bw.sysB, bw.sysC): i.simulate() 
     test_dyn_sys()
 
