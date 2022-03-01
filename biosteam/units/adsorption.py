@@ -81,8 +81,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     >>> A1.results()
     Adsorption column TSA                           Units                   A1
     Low pressure steam  Duty                        kJ/hr             2.75e+05
-                        Flow                      kmol/hr                  7.1
-                        Cost                       USD/hr                 1.69
+                        Flow                      kmol/hr                 7.07
+                        Cost                       USD/hr                 1.68
     Design              Vessel diameter                                   0.51
                         Vessel length                                     12.6
                         Number of reactors                                   3
@@ -92,10 +92,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                         Weight                         lb                 19.9
                         Wall thickness                 in                 0.25
                         Vessel material                    Stainless steel 316
-    Purchase cost       Vertical pressure vessel      USD             1.68e+04
-                        Platform and ladders          USD                  803
-    Total purchase cost                               USD             1.76e+04
-    Utility cost                                   USD/hr                 1.69
+    Purchase cost       Vertical pressure vessel      USD             1.61e+04
+                        Platform and ladders          USD                  766
+    Total purchase cost                               USD             1.68e+04
+    Utility cost                                   USD/hr                 1.68
     
     References
     ----------
@@ -122,7 +122,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             T_regeneration=30 + 273.15, # For silica gels; Seader, J. D., Separation Process Principles: Chemical and Biochemical Operations,” 3rd ed., Wiley, Hoboken, NJ (2011).
             vessel_material='Stainless steel 316',
             vessel_type='Vertical',
-            regeneration_fluid={'N2': 0.78, 'O2': 0.32, 'phase': 'g'},
+            regeneration_fluid=dict(N2=0.78, O2=0.32, phase='g', units='kg/hr'),
             K=None,
             adsorbate_ID, 
             order=None, 
@@ -173,8 +173,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             # y = total / (R + A / K)
             y = adsorbate / (F_vol_regen * 1000 + adsorbent / K)
             adsorbate_recovered = y * F_vol_regen * 1000 
-            efficiency = adsorbate_recovered / adsorbate
-            print(efficiency)
+            self.regeneration_efficiency = adsorbate_recovered / adsorbate
             
         purge.T = regen.T = self.T_regeneration
         regen.reset_flow(**self.regeneration_fluid)

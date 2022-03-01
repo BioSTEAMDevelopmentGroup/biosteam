@@ -60,6 +60,7 @@ def test_saving():
     with pytest.raises(TypeError):
         sc.sugarcane_sys.diagram(file=1.11)
     sc.sugarcane_sys.diagram(file=os.path.join(folder, 'sugarcane'))
+    os.remove(os.path.join(folder, 'sugarcane.svg'))
     
     
 # TODO: Find out why this test is not working
