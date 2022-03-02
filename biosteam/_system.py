@@ -1496,6 +1496,7 @@ class System:
                 s._dstate = None
             self.scope.reset_cache()
         for unit in self.units: 
+            print(repr(unit))
             unit.reset_cache(self.isdynamic)
             
     def set_dynamic_tracker(self, *subjects, **kwargs):

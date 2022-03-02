@@ -747,11 +747,13 @@ class Unit:
     __rpow__ = __rsub__
     
     # Abstract methods
-    reset_cache = NotImplementedMethod
     _load_components = NotImplementedMethod
     _run = NotImplementedMethod
     _design = NotImplementedMethod
     _cost = NotImplementedMethod
+    
+    def reset_cache(self, isdynamic=None):
+        pass
     
     def _get_design_info(self): 
         return ()
