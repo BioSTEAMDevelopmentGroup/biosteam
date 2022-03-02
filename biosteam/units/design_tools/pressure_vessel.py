@@ -82,9 +82,9 @@ class PressureVessel:
         return method(pressure, diameter, length)
     
     def _horizontal_vessel_design(self, pressure, diameter, length) -> dict:
-        pressure = float(pressure)
-        diameter = float(diameter)
-        length = float(length)
+        pressure = pressure
+        diameter = diameter
+        length = length
         # Calculate vessel weight and wall thickness
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
         if pressure < 14.68:
@@ -106,9 +106,9 @@ class PressureVessel:
         return Design
     
     def _vertical_vessel_design(self, pressure, diameter, length) -> dict:
-        pressure = float(pressure)
-        diameter = float(diameter)
-        length = float(length)
+        pressure = pressure
+        diameter = diameter
+        length = length
         rho_M = material_densities_lb_per_ft3[self._vessel_material]
         if pressure < 14.68:
             warn('vacuum pressure vessel ASME codes not implemented yet; '
@@ -131,9 +131,9 @@ class PressureVessel:
         return Design
 
     def _vessel_purchase_cost(self, weight, diameter, length) -> dict:
-        weight = float(weight)
-        diameter = float(diameter)
-        length = float(length)
+        weight = weight
+        diameter = diameter
+        length = length
         vessel_type = self.vessel_type
         if vessel_type == 'Horizontal':
             method = self._horizontal_vessel_purchase_cost
@@ -144,9 +144,9 @@ class PressureVessel:
         return method(weight, diameter, length)
 
     def _horizontal_vessel_purchase_cost(self, weight, diameter, length=None) -> dict:
-        return {'Horizontal pressure vessel': design.compute_horizontal_vessel_purchase_cost(float(weight)),
-                'Platform and ladders': design.compute_horizontal_vessel_platform_and_ladders_purchase_cost(float(diameter))}
+        return {'Horizontal pressure vessel': design.compute_horizontal_vessel_purchase_cost(weight),
+                'Platform and ladders': design.compute_horizontal_vessel_platform_and_ladders_purchase_cost(diameter)}
 
     def _vertical_vessel_purchase_cost(self, weight, diameter, length) -> dict:
-        return {'Vertical pressure vessel': design.compute_vertical_vessel_purchase_cost(float(weight)),
-                'Platform and ladders': design.compute_vertical_vessel_platform_and_ladders_purchase_cost(float(diameter), float(length))}
+        return {'Vertical pressure vessel': design.compute_vertical_vessel_purchase_cost(weight),
+                'Platform and ladders': design.compute_vertical_vessel_platform_and_ladders_purchase_cost(diameter, length)}

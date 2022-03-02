@@ -71,7 +71,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     Examples
     --------
     >>> import biosteam as bst
-    >>> bst.settings.set_thermo(['Water', 'O2', 'N2', 'Hexane'])
+    >>> bst.default()
+    >>> bst.settings.set_thermo(['Water', 'O2', 'N2', 'Hexane'], cache=True)
     >>> feed = bst.Stream('feed', Hexane=0.9, Water=0.1, units='kg/hr', total_flow=1000.)
     >>> A1 = bst.AdsorptionColumnTSA('A1', [feed, 'air'], 
     ...     split=dict(Water=0., Hexane=1.0),
@@ -92,9 +93,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                         Weight                         lb                 19.9
                         Wall thickness                 in                 0.25
                         Vessel material                    Stainless steel 316
-    Purchase cost       Vertical pressure vessel      USD             1.61e+04
-                        Platform and ladders          USD                  766
-    Total purchase cost                               USD             1.68e+04
+    Purchase cost       Vertical pressure vessel      USD             1.68e+04
+                        Platform and ladders          USD                  803
+    Total purchase cost                               USD             1.76e+04
     Utility cost                                   USD/hr                 1.68
     
     References

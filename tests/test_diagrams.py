@@ -55,8 +55,6 @@ def test_system_cluster_diagram():
     
 def test_saving():
     import biorefineries.sugarcane as sc
-    with pytest.raises(OSError):
-        sc.sugarcane_sys.diagram(file='/asd/asd/asd')
     with pytest.raises(TypeError):
         sc.sugarcane_sys.diagram(file=1.11)
     sc.sugarcane_sys.diagram(file=os.path.join(folder, 'sugarcane'))
