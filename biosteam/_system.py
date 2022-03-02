@@ -1514,7 +1514,6 @@ class System:
             warn(f'{self.__repr__()} must have at least one dynamic unit to '
                  f'set up a dynamic tracker.')
         
-        
     @property
     def scope(self):
         """

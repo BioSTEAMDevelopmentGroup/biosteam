@@ -927,7 +927,6 @@ class TEA:
         w0 = self._startup_time
         sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         sales = self._sales
-        if not np.isfinite(sales): sales = 0.
         taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
         args = (taxable_cashflow, 
                 nontaxable_cashflow, 
@@ -935,20 +934,24 @@ class TEA:
                 discount_factors,
                 self._fill_tax_and_incentives)
         x0 = sales
-        x1 = 1.01 * sales + 10
         f = NPV_with_sales
+        if not np.isfinite(x0):
+            x0 = 0.
+        y0 = f(x0, *args)
+        x1 = x0 + -y0 / self._years
         try:
             sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
                                       maxiter=1000, args=args, checkiter=True)
         except Exception as e:
+            if x0 == 0: raise e from None
+            x0 = 0.
             y0 = f(x0, *args)
-            y1 = f(x1, *args)
-            if y0 == y1 and y0 < 0.:
-                x0 = -y1 / self._years
-            else:
-                raise e
-            sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
-                                      maxiter=1000, args=args, checkiter=True)
+            x1 = x0 - y0 
+            try:
+                sales = flx.aitken_secant(f, x0, x1, xtol=100, ytol=1000.,
+                                          maxiter=10000, args=args, checkiter=True)
+            except Exception as e:
+                raise e from None
         self._sales = sales
         return sales
     
