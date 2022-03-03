@@ -477,7 +477,8 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
             try:
                 worksheet = writer.book.add_worksheet('Flowsheet')
             except:
-                breakpoint()
+                warn("problem in saving flowsheet; please submit issue to BioSTEAM with"
+                     "your current version of openpyxl and xlsx writer", RuntimeWarning)
             worksheet.insert_image('A1', 'flowsheet.png')
         diagram_completed = True
     
@@ -488,8 +489,8 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
         cost.to_excel(writer, 'Itemized costs')
         tea.get_cashflow_table().to_excel(writer, 'Cash flow')
     else:
-        warn(RuntimeWarning(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.'), stacklevel=2)
-    
+        warn(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.',
+             RuntimeWarning, stacklevel=2)
     
     # Stream tables
     # Organize streams by chemicals first
