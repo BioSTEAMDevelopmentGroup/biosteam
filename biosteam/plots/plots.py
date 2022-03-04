@@ -697,11 +697,19 @@ def plot_montecarlo_across_coordinate(xs, ys,
 def plot_kde(x, y, nbins=100, ax=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
-             xbox=None, ybox=None, autobox=True, **kwargs):
-    if ax:
-        plt.sca(ax)
-    else:
-        ax = plt.gca()
+             xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, **kwargs):
+    if ax is None:
+        grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, 0.8])
+        fig, all_axes = plt.subplots(
+            ncols=2, nrows=2, 
+            gridspec_kw=grid_kw,
+        )
+        ax_empty = all_axes[0, 1]
+        ax = all_axes[1, 0]
+        xbox_ax = all_axes[0, 0]
+        ybox_ax = all_axes[1, 1]
+        xbox = Box(xbox_ax, **(xbox_kwargs or {}))
+        ybox = Box(ybox_ax, **(ybox_kwargs or {}))
     xs = x if isinstance(x, tuple) else (x,)
     ys = y if isinstance(y, tuple) else (y,)
     for x, y in zip(xs, ys):
@@ -716,15 +724,30 @@ def plot_kde(x, y, nbins=100, ax=None,
         plt.sca(ax)
         plt.scatter(x, y, c=z, s=1., **kwargs)
         if xbox:
-            if not isinstance(xbox, Box): xbox = Box(xbox, position=len(xs))
             plt.sca(xbox.axis)
             plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False)
         if ybox:
-            if not isinstance(ybox, Box): ybox = Box(ybox, position=0)
             plt.sca(ybox.axis)
             plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True)
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
+    plt.sca(ax)
+    if xticks is None:
+        x0, xf = plt.xlim()
+    else:
+        x0 = xticks[0]
+        xf = xticks[-1]
+    if yticks is None:
+        y0, yf = plt.ylim()
+    else:
+        y0 = yticks[0]
+        yf = yticks[-1]
+    plt.sca(ax_empty); plt.axis('off')
+    plt.sca(xbox.axis); plt.axis('off')
+    plt.xlim([x0, xf])
+    plt.sca(ybox.axis); plt.axis('off')
+    plt.ylim([y0, yf])
+    plt.subplots_adjust(hspace=0.05, wspace=0.05)
     return ax
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
@@ -788,7 +811,6 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                      ytick0=tick0,
                      xtickf=tickf,
                      ytickf=tickf,
-                     autobox=False,
                      **kwargs)
     if xboxes: 
         for i in xboxes: i.reset()
@@ -1042,7 +1064,7 @@ def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data,
             
 def plot_quadrants(x=0, y=0, colors=None, line_color=None,
                    xlim=None, ylim=None, linewidth=1.0):
-    colors = [[*c.blue_tint.RGBn, 0.5], None, None, [*c.red_tint.RGBn, 0.5]]
+    colors = [[*c.CABBI_teal.tint(90).RGBn, 0.9], None, None, [*c.red.tint(80).RGBn, 0.9]]
     if line_color is None: line_color = c.grey.RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
