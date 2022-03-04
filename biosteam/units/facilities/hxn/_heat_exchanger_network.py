@@ -253,11 +253,16 @@ class HeatExchangerNetwork(Facility):
             try: 
                 sys._converge()
             except:
-                warning = RuntimeWarning('heat exchanger network was not able to converge')
                 for i in sys.units: i._run()
-                warn(warning)
+                warn('heat exchanger network was not able to converge', RuntimeWarning)
             for i in sys.units:
+                i.baseline_purchase_costs.clear()
+                i.purchase_costs.clear()
+                i.installed_costs.clear()
                 i._summary()
+                if not np.isfinite(i.installed_cost):
+                    i.simulate()
+                    warn('heat exchanger network was not able to converge', RuntimeWarning)
             for i in range(len(stream_life_cycles)):
                 s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
                 lc = stream_life_cycles[i].life_cycle[-1]

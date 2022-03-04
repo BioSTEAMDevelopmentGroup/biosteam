@@ -389,6 +389,9 @@ class MultiEffectEvaporator(Unit):
         
         first_evaporator = evaporators[0]
         heat_exchanger = first_evaporator.heat_exchanger
+        if not self.flash:
+            product = heat_exchanger.outs[0]
+            product.vle(P=product.P, H=product.H)
         hu = heat_exchanger.heat_utilities[0]
         duty = first_evaporator.H_out - first_evaporator.H_in
         Q = abs(duty)

@@ -309,15 +309,16 @@ class Model(State):
         
         if autosave:
             layout = table.index, table.columns
+            export = 'export_state_to' in dyn_sim_kwargs
             for number, i in enumerate(index, number): 
-                dyn_sim_kwargs['sample_id'] = i
+                if export: dyn_sim_kwargs['sample_id'] = i
                 values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
                     with open(file, 'wb') as f: pickle.dump(obj, f)
         else:
             for i in index: 
-                dyn_sim_kwargs['sample_id'] = i
+                if export: dyn_sim_kwargs['sample_id'] = i
                 values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
         table[var_indices(self._metrics)] = values
     
