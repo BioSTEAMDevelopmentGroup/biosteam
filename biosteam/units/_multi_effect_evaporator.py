@@ -12,7 +12,7 @@ import biosteam as bst
 from .. import Unit
 from .mixing import Mixer
 from .heat_exchange import HXutility
-from ._flash import Flash, Evaporator_PQ
+from ._flash import Flash, Evaporator_PQ, Evaporator_PV
 from .design_tools import (
     compute_vacuum_system_power_and_cost,
     compute_heat_transfer_area
@@ -258,10 +258,14 @@ class MultiEffectEvaporator(Unit):
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
         
-        first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
-        first_evaporator.owner = self.owner
-        first_evaporator._ID = 'First evaporator'
-        
+        if self.flash:
+            first_evaporator = Flash(None, outs=(None, None), P=P[0], thermo=thermo)
+            first_evaporator.owner = self.owner
+            first_evaporator._ID = 'First evaporator'
+        else:
+            first_evaporator = Evaporator_PV(None, outs=(None, None), P=P[0], thermo=thermo)
+            first_evaporator.owner = self.owner
+            first_evaporator._ID = 'First evaporator'
         # Put liquid first, then vapor side stream
         evaporators = [first_evaporator]
         for i in range(1, n):

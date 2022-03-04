@@ -53,7 +53,7 @@ class Parameter(Variable):
                  units, baseline, bounds, kind, hook, description):
         if not name: name, *_ = signature(setter).parameters.keys()
         super().__init__(format_title(name), units, element)
-        self.setter = setter
+        self.setter = setter.setter if isinstance(setter, Parameter) else setter
         self.system = system
         self.distribution = distribution
         if not bounds:

@@ -256,14 +256,14 @@ class Flash(design.PressureVessel, Unit):
         elif vessel_type == 'Horizontal': 
             args = self._horizontal_vessel_pressure_diameter_and_length()
         else: raise RuntimeError('unknown vessel type') # pragma: no cover
-        feed = self.heat_exchanger.ins[0]
-        feed.mix_from(self.ins)
-        feed.vle(P=self.outs[0].P, H=feed.H)
         if self.Q == 0:
             self.heat_exchanger.baseline_purchase_costs.clear()
             self.heat_exchanger.purchase_costs.clear()
             self.heat_exchanger.installed_costs.clear()
         else:
+            feed = self.heat_exchanger.ins[0]
+            feed.mix_from(self.ins)
+            feed.vle(P=self.outs[0].P, H=feed.H)
             self.heat_exchanger._summary()
         self.design_results.update(
             self._vessel_design(*args)
@@ -673,7 +673,7 @@ class Evaporator_PQ(Unit):
         self._V = V
 
 
-class Evaporator_PV(Unit):
+class Evaporator_PV(Flash):
     _N_heat_utilities = 0
     _N_outs = 2
     
@@ -682,26 +682,19 @@ class Evaporator_PV(Unit):
         return self._P
     @P.setter
     def P(self, P):
-        water = getattr(self.chemicals, '7732-18-5')
-        self._T = water.Tsat(P)
+        if P is not None:
+            water = getattr(self.chemicals, '7732-18-5')
+            self._T = water.Tsat(P)
         self._P = P
     @property
     def T(self):
         return self._T
     @T.setter
     def T(self, T): # pragma: no cover
-        water = getattr(self.chemicals, '7732-18-5')
-        self._P = water.Psat(T)
+        if T is not None:
+            water = getattr(self.chemicals, '7732-18-5')
+            self._P = water.Psat(T)
         self._T = T
-    
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, V=0.5, P=101325):
-        super().__init__(ID, ins, outs, thermo)
-        self._multi_stream = ms = MultiStream(None, thermo=self.thermo)
-        self.heat_exchanger = hx = HXutility(None, None, ms, thermo=self.thermo) 
-        self.heat_utilities = hx.heat_utilities
-        self.V = V
-        self.P = P
-        hx._ins = self._ins
 
     def _run(self):
         feed = self.ins[0]
@@ -716,6 +709,7 @@ class Evaporator_PV(Unit):
         liquid_mol[:] = feed.mol
         liquid_mol[H2O_index] = (1-self.V) * water_mol
         ms = self._multi_stream
-        self.design_results['Heat transfer'] = self.heat_exchanger.Q = (vapor.H + liquid.H) - feed.H
+        self.heat_exchanger._summary()
+        self.design_results['Heat transfer'] = self.heat_exchanger.Q
         ms['g'].copy_like(vapor)
         ms['l'].copy_like(liquid)

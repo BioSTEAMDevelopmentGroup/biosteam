@@ -114,7 +114,7 @@ def get_prefered_vacuum_systems(preference):
         if isinstance(preference, str):
             if preference not in defaults:
                 raise ValueError(f"preference must be in the following list: {list(defaults)}")
-            preference = (preference,)
+            preference = (preference, *defaults)
         else:
             for name in preference:
                 if name not in defaults:

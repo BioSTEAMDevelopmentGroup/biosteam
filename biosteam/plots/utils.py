@@ -34,6 +34,8 @@ class MetricBar(NamedTuple): # pragma: no coverage
     lb: bool = False
     forced_size: float = None
     ylabelkwargs: dict = {}
+    center: bool = None
+    title_position: str = 'top'
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'
@@ -70,7 +72,10 @@ class MetricBar(NamedTuple): # pragma: no coverage
         cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)
-        cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
+        if self.title_position == 'top':
+            cbar_ax.set_title(self.title, self.ylabelkwargs)
+        else:
+            cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
         try:
             ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
             ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]

@@ -43,6 +43,7 @@ __all__ = (
     'plot_heatmap',
     'plot_kde_2d',
     'plot_kde',
+    'plot_quadrants',
 )
 
 # %% Utilities
@@ -701,8 +702,6 @@ def plot_kde(x, y, nbins=100, ax=None,
         plt.sca(ax)
     else:
         ax = plt.gca()
-    style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
-               xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     xs = x if isinstance(x, tuple) else (x,)
     ys = y if isinstance(y, tuple) else (y,)
     for x, y in zip(xs, ys):
@@ -724,6 +723,9 @@ def plot_kde(x, y, nbins=100, ax=None,
             if not isinstance(ybox, Box): ybox = Box(ybox, position=0)
             plt.sca(ybox.axis)
             plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True)
+    style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
+               xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
+    return ax
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticks=None, yticks=None, xticklabels=None, yticklabels=None,
@@ -793,6 +795,7 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
     if yboxes: 
         for i in yboxes: i.reset()
     plt.subplots_adjust(hspace=0, wspace=0)
+    return axes
 
     
 # %% Contours
@@ -1037,6 +1040,40 @@ def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data,
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes
             
+def plot_quadrants(x=0, y=0, colors=None, line_color=None,
+                   xlim=None, ylim=None, linewidth=1.0):
+    colors = [[*c.blue_tint.RGBn, 0.5], None, None, [*c.red_tint.RGBn, 0.5]]
+    if line_color is None: line_color = c.grey.RGBn
+    if xlim is None: xlim = plt.xlim()
+    if ylim is None: ylim = plt.ylim()
+    plot_vertical_line(x, line_color, zorder=0)
+    plot_horizontal_line(y, line_color, zorder=0)
+    x0, x1 = xlim
+    y0, y1 = ylim
+    color = colors[0] # Top left
+    if color is not None:
+        plt.fill_between([x0, x], y, y1,
+                         color=color,
+                         linewidth=linewidth,
+                         zorder=0)
+    color = colors[1] # Top right
+    if color is not None:
+        plt.fill_between([x, x1], y, y1,
+                         color=color,
+                         linewidth=linewidth,
+                         zorder=0)
+    color = colors[2] # Bottom left
+    if color is not None:
+        plt.fill_between([x0, x], y0, y,
+                         color=color,
+                         linewidth=linewidth,
+                         zorder=0)
+    color = colors[3] # Bottom right
+    if color is not None:
+        plt.fill_between([x, x1], y0, y,
+                         color=color,
+                         linewidth=linewidth,
+                         zorder=0)
 # def plot_contour_across_metric(X_grid, Y_grid, data, 
 #                                xlabel, ylabel, xticks, yticks, 
 #                                metric_bars, Z_value_format=lambda Z: str(Z),
