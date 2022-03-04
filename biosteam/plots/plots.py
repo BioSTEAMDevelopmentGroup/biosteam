@@ -698,7 +698,8 @@ def plot_kde(x, y, nbins=100, ax=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, **kwargs):
-    if ax is None:
+    axis_not_given = ax is None
+    if axis_not_given:
         grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, 0.8])
         fig, all_axes = plt.subplots(
             ncols=2, nrows=2, 
@@ -732,22 +733,27 @@ def plot_kde(x, y, nbins=100, ax=None,
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     plt.sca(ax)
-    if xticks is None:
-        x0, xf = plt.xlim()
-    else:
-        x0 = xticks[0]
-        xf = xticks[-1]
-    if yticks is None:
-        y0, yf = plt.ylim()
-    else:
-        y0 = yticks[0]
-        yf = yticks[-1]
-    plt.sca(ax_empty); plt.axis('off')
-    plt.sca(xbox.axis); plt.axis('off')
-    plt.xlim([x0, xf])
-    plt.sca(ybox.axis); plt.axis('off')
-    plt.ylim([y0, yf])
-    plt.subplots_adjust(hspace=0.05, wspace=0.05)
+    if axis_not_given:
+        if xticks is None:
+            x0, xf = plt.xlim()
+        else:
+            x0 = xticks[0]
+            xf = xticks[-1]
+        if yticks is None:
+            y0, yf = plt.ylim()
+        else:
+            y0 = yticks[0]
+            yf = yticks[-1]
+        plt.sca(ax_empty); plt.axis('off')
+        plt.sca(xbox.axis); plt.axis('off')
+        plt.xlim([x0, xf])
+        plt.sca(ybox.axis); plt.axis('off')
+        plt.ylim([y0, yf])
+        plt.subplots_adjust(
+            hspace=0.05, wspace=0.05,
+            top=0.95, bottom=0.12,
+            left=0.1, right=0.96,
+        )
     return ax
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
@@ -757,7 +763,7 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
     N_rows, N_cols, *_ = xs.shape
     if axes is None:
         if autobox:
-            grid_kw = dict(height_ratios=[1, *N_rows*[4]], width_ratios=[*N_cols*[4], 1])
+            grid_kw = dict(height_ratios=[1/N_cols, *N_rows*[4]], width_ratios=[*N_cols*[4], 1/N_rows])
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,
