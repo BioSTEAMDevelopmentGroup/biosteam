@@ -11,7 +11,7 @@ import biosteam as bst
 from .splitting import Splitter
 from biosteam.units.design_tools import PressureVessel
 from thermosteam.equilibrium import phase_fraction
-from math import sqrt, pi
+from math import sqrt, pi, ceil
 import numpy as np
 
 __all__ = ('AdsorptionColumnTSA',)
@@ -124,6 +124,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             vessel_material='Stainless steel 316',
             vessel_type='Vertical',
             regeneration_fluid=dict(N2=0.78, O2=0.32, phase='g', units='kg/hr'),
+            void_fraction=0.35, # Only matters when K given; 0.30 - 0.35 for activated carbon
+            length_plus=0.61, # Equilibrium length plus 2 ft accounting for mass transfer limitations
             K=None,
             adsorbate_ID, 
             order=None, 
@@ -140,6 +142,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.T_regeneration = T_regeneration
         self.regeneration_velocity = regeneration_velocity
         self.regeneration_fluid = regeneration_fluid
+        self.void_fraction = void_fraction
+        self.length_plus = length_plus
         self.K = K
         
     @property
@@ -156,7 +160,15 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         feed.split_to(effluent, purge, self.split)
         F_vol_feed = feed.F_vol
         mean_velocity = self.mean_velocity
-        self.design_results['Vessel diameter'] = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
+        rho_adsorbent = self.rho_adsorbent
+        adsorbent_capacity = self.adsorbent_capacity
+        F_mass_adsorbate = purge.imass[self.adsorbate_ID]
+        self.diameter = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
+        online_length = (
+            self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * diameter)
+        ) + self.length_plus
+        self.length = length = online_length / 2. # Size of each column
+        
         regeneration_velocity = self.regeneration_velocity
         diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
         radius = diameter * 0.5
@@ -164,17 +176,26 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         K = self.K
         adsorbent_capacity = self.adsorbent_capacity
         if K:
-            ID = self.adsorbate_ID
+            vessel_volume = length * 0.25 * diameter * diameter
+            void_volume = self.void_fraction * vessel_volume
+            N_washes = ceil(F_vol_regen * self.cycle_time / void_volume)
+            solvent = void_volume * 1e6 # m3 -> mL
+            print('Solvent', solvent)
             K = self.K # (g adsorbate / mL solvent)  /  (g adsorbate / g adsorbent)
-            adsorbate = purge.imass[ID]
-            self.adsorbent = adsorbent = adsorbate / adsorbent_capacity
-            # R * y + A * x = total
-            # K = y / x
-            # R * y  + A * y / K = total
-            # y = total / (R + A / K)
-            y = adsorbate / (F_vol_regen * 1000 + adsorbent / K)
-            adsorbate_recovered = y * F_vol_regen * 1000 
-            self.regeneration_efficiency = adsorbate_recovered / adsorbate
+            self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
+            total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
+            print('Adsorbent', adsorbent)
+            for i in range(N_washes):
+                # R * y + A * x = total
+                # K = y / x
+                # R * y  + A * y / K = total
+                # y = total / (R + A / K)
+                y = adsorbate / (solvent + adsorbent / K)
+                adsorbate_recovered = y * solvent
+                adsorbate -= adsorbate_recovered
+            self.regeneration_efficiency = 1 - adsorbate / total_adsorbate
+            print(self.regeneration_efficiency)
+            print('N_washes', N_washes)
             
         purge.T = regen.T = self.T_regeneration
         regen.reset_flow(**self.regeneration_fluid)
@@ -190,14 +211,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     def _design(self):
         design_results = self.design_results
         feed = self.ins[0]
-        rho_adsorbent = self.rho_adsorbent
-        adsorbent_capacity = self.adsorbent_capacity
-        F_mass_adsorbate = feed.imass[self.adsorbate_ID]
-        diameter = design_results['Vessel diameter']
-        online_length = (
-            self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * diameter)
-        ) + 0.61 # Equilibrium length plus 2 ft accounting for mass transfer limitations
-        design_results['Vessel length'] = length = online_length / 2. # Size of each column
+        design_results = self.design_results
+        diameter = design_results['Vessel diameter'] = self.diameter
+        length = design_results['Vessel length'] = self.length
         design_results['Number of reactors'] = 3
         design_results.update(
             self._vessel_design(
