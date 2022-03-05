@@ -109,8 +109,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     
     """
     # NOTE: Unit ignores cost of compressing 2.
-    _N_ins = 2
-    _N_outs = 2
+    _N_ins = 3
+    _N_outs = 3
     _N_heat_utilities = 1
     
     def __init__(self, 
@@ -126,6 +126,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             regeneration_fluid=dict(N2=0.78, O2=0.32, phase='g', units='kg/hr'),
             void_fraction=0.35, # Only matters when K given; 0.30 - 0.35 for activated carbon
             length_plus=0.61, # Equilibrium length plus 2 ft accounting for mass transfer limitations
+            drying_time=0., # Time for drying after regeneration
+            T_air = 100 + 273.15,
+            air_velocity = 1332,
             K=None,
             adsorbate_ID, 
             order=None, 
@@ -144,6 +147,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.regeneration_fluid = regeneration_fluid
         self.void_fraction = void_fraction
         self.length_plus = length_plus
+        self.T_air = T_air
+        self.air_velocity = air_velocity
+        self.drying_time = drying_time
         self.K = K
         
     @property
@@ -155,8 +161,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         return self.outs[1]
     
     def _run(self):
-        feed, regen = self.ins
-        effluent, purge = self.outs 
+        feed, regen, dry_air = self.ins
+        effluent, purge, air_purge = self.outs 
         feed.split_to(effluent, purge, self.split)
         F_vol_feed = feed.F_vol
         mean_velocity = self.mean_velocity
@@ -178,7 +184,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         if K:
             vessel_volume = length * 0.25 * diameter * diameter
             void_volume = self.void_fraction * vessel_volume
-            N_washes = ceil(F_vol_regen * self.cycle_time / void_volume)
+            N_washes = ceil(F_vol_regen *(self.cycle_time - self.drying_time) / void_volume)
             solvent = void_volume * 1e6 # m3 -> mL
             print('Solvent', solvent)
             K = self.K # (g adsorbate / mL solvent)  /  (g adsorbate / g adsorbent)
@@ -193,10 +199,17 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 y = adsorbate / (solvent + adsorbent / K)
                 adsorbate_recovered = y * solvent
                 adsorbate -= adsorbate_recovered
+                
             self.regeneration_efficiency = 1 - adsorbate / total_adsorbate
             print(self.regeneration_efficiency)
             print('N_washes', N_washes)
-            
+        
+        if self.drying_time:
+            air_purge.T = self.T_air
+            air_purge.imass['N2', 'O2'] = [0.78, 0.32]
+            air_purge.phase = dry_air.phase = 'g'
+            air_purge.F_vol = radius * radius * self.air_velocity * pi
+            dry_air.copy_flow(air_purge)
         purge.T = regen.T = self.T_regeneration
         regen.reset_flow(**self.regeneration_fluid)
         regen.P = 10 * 101325
