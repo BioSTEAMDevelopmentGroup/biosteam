@@ -260,16 +260,15 @@ class HeatExchangerNetwork(Facility):
                 i.purchase_costs.clear()
                 i.installed_costs.clear()
                 i._summary()
-                if not np.isfinite(i.installed_cost):
-                    i.simulate()
-                    warn('heat exchanger network was not able to converge', RuntimeWarning)
             for i in range(len(stream_life_cycles)):
-                s_util = hx_utils_rearranged[i].heat_exchanger.outs[0]
+                hx = hx_utils_rearranged[i].heat_exchanger
+                s_util = hx.outs[0]
                 lc = stream_life_cycles[i].life_cycle[-1]
                 s_lc = lc.unit.outs[lc.index]
                 IDs = tuple([i.ID for i in s_util.available_chemicals])
                 if use_cached_network:
                     try:
+                        assert np.isfinite(hx.installed_cost)
                         np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
                         np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
                         try:

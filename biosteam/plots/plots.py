@@ -855,7 +855,7 @@ def plot_contour_1d(X_grid, Y_grid, data,
                           cmap=metric_bar.cmap)
         if label:
             cs = plt.contour(cp, zorder=1e6,
-                             linestyles='dashed', linewidths=1.,
+                             linestyles='dashed', linewidths=0.5,
                              norm=metric_bar.norm,
                              levels=metric_bar.levels, colors=[linecolor])
             clabels = ax.clabel(cs, levels=[i for i in cs.levels if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
@@ -904,7 +904,7 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                               cmap=metric_bar.cmap)
             if label:
                 cs = plt.contour(cp, zorder=1e16,
-                                 linestyles='dashed', linewidths=1.,
+                                 linestyles='dashed', linewidths=0.5,
                                  levels=cp.levels, colors=[linecolor])
                 clabels = ax.clabel(cs, levels=[i for i in cs.levels[::2] if i!=metric_bar.levels[-1]], inline=True, fmt=metric_bar.fmt,
                           colors=['k'], zorder=1e16)
