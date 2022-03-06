@@ -170,8 +170,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         adsorbent_capacity = self.adsorbent_capacity
         F_mass_adsorbate = purge.imass[self.adsorbate_ID]
         self.diameter = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
+        area = pi * diameter * diameter / 4
         online_length = (
-            self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * diameter)
+            self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
         ) + self.length_plus
         self.length = length = online_length / 2. # Size of each column
         
@@ -184,13 +185,11 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         if K:
             vessel_volume = length * 0.25 * diameter * diameter
             void_volume = self.void_fraction * vessel_volume
-            N_washes = ceil(F_vol_regen *(self.cycle_time - self.drying_time) / void_volume)
+            N_washes = ceil(F_vol_regen * (self.cycle_time - self.drying_time) / void_volume)
             solvent = void_volume * 1e6 # m3 -> mL
-            print('Solvent', solvent)
             K = self.K # (g adsorbate / mL solvent)  /  (g adsorbate / g adsorbent)
             self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
             total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
-            print('Adsorbent', adsorbent)
             for i in range(N_washes):
                 # R * y + A * x = total
                 # K = y / x
@@ -201,8 +200,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 adsorbate -= adsorbate_recovered
                 
             self.regeneration_efficiency = 1 - adsorbate / total_adsorbate
-            print(self.regeneration_efficiency)
-            print('N_washes', N_washes)
         
         if self.drying_time:
             air_purge.T = self.T_air
@@ -215,7 +212,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         regen.P = 10 * 101325
         regen.F_vol = F_vol_regen
         purge.mol += regen.mol
-        purge.phase = 'g'
         
     @property
     def online_time(self):
