@@ -162,8 +162,7 @@ class HeatExchangerNetwork(Facility):
             hxs_cache = self.original_heat_exchangers
             hxs = [hu.heat_exchanger for hu in hx_utils]
             hxs_dct = {(i.owner, i._ID): i for i in hxs}
-            try:
-                hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
+            try: hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
             except: pass
             else: use_cached_network = len(hxs) == len(hx_utils)
         try:
@@ -335,6 +334,10 @@ class HeatExchangerNetwork(Facility):
             self.actual_heat_util_load = sum([hu.duty for hu in new_hus if hu.duty>0])
             self.actual_cool_util_load = sum([abs(hu.duty) for hu in new_hus if hu.duty<0])
             if abs(energy_balance_error) > self.acceptable_energy_balance_error:
+                if use_cached_network:
+                    del self.original_heat_utils
+                    self._cost()
+                    return
                 msg = ("heat exchanger network energy balance is off by "
                       f"{energy_balance_error:.2%} (an absolute error greater "
                       f"than {self.acceptable_energy_balance_error:.2%})")

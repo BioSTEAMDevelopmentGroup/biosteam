@@ -301,9 +301,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         )
         for cold in potential_matches:
             ID = 'HX_%s_%s_cs'%(hot, cold)
-            match = (hot, cold)
-            if match in attempts: continue
-            attempts.add(match)
+            if ID in attempts: continue
+            attempts.add(ID)
             Q_hstr = Q_cold_side[hot][1]
             Q_cstr = Q_cold_side[cold][1]
             Q_res = Q_cstr - Q_hstr
@@ -369,9 +368,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         stream_quenched = False
         for hot in potential_matches:
             ID = 'HX_%s_%s_hs'%(cold, hot)
-            match = (hot, cold)
-            if match in attempts: continue
-            attempts.add(match)
+            if ID in attempts: continue
+            attempts.add(ID)
             Q_hstr = Q_hot_side[hot][1]
             Q_cstr = Q_hot_side[cold][1]
             Q_res = Q_cstr - Q_hstr
@@ -415,9 +413,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         if Q_cold_side[cold][0]=='heat' and Q_cold_side[cold][1]>0:
             for hot in hot_indices:
                 ID = 'HX_%s_%s_cs'%(hot, cold)
-                match = (hot, cold)
-                if match in attempts: continue
-                attempts.add(match)
+                if ID in attempts: continue
+                attempts.add(ID)
                 T_cold_in = get_T_transient_cold_side(cold)
                 T_hot_in = get_T_transient_cold_side(hot)
                 # if ((cold in matches_cs and hot in matches_cs[cold])
@@ -460,9 +457,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         if Q_hot_side[hot][0]=='cool' and Q_hot_side[hot][1]>0:
             for cold in cold_indices:
                 ID = 'HX_%s_%s_hs'%(cold, hot)
-                match = (hot, cold)
-                if match in attempts: continue
-                attempts.add(match)
+                if ID in attempts: continue
+                attempts.add(ID)
                 # if ((hot in matches_cs and cold in matches_cs[hot])
                 #     or (hot in matches_hs and cold in matches_hs[hot])):
                 #     continue
