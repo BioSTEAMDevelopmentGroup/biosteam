@@ -233,7 +233,6 @@ def get_T_transient(pinch_T_arr, indices, T_in_arr):
     T_transient[indices] = T_in_arr[indices]
     return T_transient
 
-
 def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):  
     pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
         hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
@@ -250,11 +249,9 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
     load_duties(streams_inlet, streams_quenched, pinch_T_arr, T_out_arr, indices, is_cold, Q_hot_side, Q_cold_side)
     matches_hs = {i: [] for i in cold_indices}
     matches_cs = {i: [] for i in hot_indices}
-    candidate_hot_streams = hot_indices.copy()
-    candidate_cold_streams = cold_indices.copy()
     HXs_hot_side = []
     HXs_cold_side = []
-    streams_transient_cold_side = [i.copy() for i in streams_inlet]
+    streams_transient_cold_side = streams_inlet
     streams_transient_hot_side = [i.copy() for i in streams_inlet]
     for i in hot_indices:
         s = streams_transient_cold_side[i]
@@ -292,7 +289,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             if (C_flow_vector[hot]>= C_flow_vector[cold] and
                     get_T_transient_cold_side(hot) > get_T_transient_cold_side(cold) + T_min_app and
                     (hot not in unavailables) and (cold not in unavailables) and
-                    (cold not in matches_cs[hot]) and (cold in candidate_cold_streams)): 
+                    (cold not in matches_cs[hot]) and (cold in cold_indices)): 
                 potential_matches.append(cold)
         potential_matches = sorted(
             potential_matches, 
@@ -304,15 +301,16 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         )
         for cold in potential_matches:
             ID = 'HX_%s_%s_cs'%(hot, cold)
-            if ID in attempts: continue
-            attempts.add(ID)
+            match = frozenset([hot, cold])
+            if match in attempts: continue
+            attempts.add(match)
             Q_hstr = Q_cold_side[hot][1]
             Q_cstr = Q_cold_side[cold][1]
             Q_res = Q_cstr - Q_hstr
             # if abs(get_T_transient_cold_side(cold) - pinch_T_arr[cold])<= 0.01:
             #     continue
-            hot_stream = streams_transient_cold_side[hot].copy()
-            cold_stream = streams_transient_cold_side[cold].copy()
+            hot_stream = streams_transient_cold_side[hot]
+            cold_stream = streams_transient_cold_side[cold]
             
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             cold_stream.ID = 's_%s__%s'%(cold,ID)
@@ -323,8 +321,14 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                      outs = (hot_out, cold_out), H_lim0 = H_lim, 
                      T_lim1 = pinch_T_arr[cold], dT = T_min_app,
                      thermo = hot_stream.thermo)
-            new_HX._run()
-            if abs(new_HX.Q )< Qmin: continue
+            try:
+                new_HX._run()
+                if abs(new_HX.Q )< Qmin:
+                    new_HX.ins.empty()
+                    continue
+            except:
+                new_HX.ins.empty()
+                continue
             HXs_cold_side.append(new_HX)
             stream_HXs_dict[hot].append(new_HX)
             stream_HXs_dict[cold].append(new_HX)
@@ -347,14 +351,14 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         # streams_transient_hot_side[cold] = streams_transient_cold_side[cold].copy()
         # T_transient_hot_side[cold] = min(T_transient_hot_side[cold], get_T_transient_cold_side(cold))
         potential_matches = []
-        for hot in candidate_hot_streams:
+        for hot in hot_indices:
             if ((cold in matches_cs and hot in matches_cs[cold])
                 or (cold in matches_hs and hot in matches_hs[cold])):
                 break
             if (C_flow_vector[cold]>= C_flow_vector[hot] and
                     get_T_transient_hot_side(hot) > get_T_transient_hot_side(cold) + T_min_app and
                     (hot not in unavailables) and (cold not in unavailables) and
-                    (hot not in matches_hs[cold]) and (hot in candidate_hot_streams)):
+                    (hot not in matches_hs[cold]) and (hot in hot_indices)):
                 potential_matches.append(hot)
                 
         potential_matches = sorted(potential_matches, key = lambda x:
@@ -365,15 +369,16 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         stream_quenched = False
         for hot in potential_matches:
             ID = 'HX_%s_%s_hs'%(cold, hot)
-            if ID in attempts: continue
-            attempts.add(ID)
+            match = frozenset([hot, cold])
+            if match in attempts: continue
+            attempts.add(match)
             Q_hstr = Q_hot_side[hot][1]
             Q_cstr = Q_hot_side[cold][1]
             Q_res = Q_cstr - Q_hstr
             # if abs(get_T_transient_hot_side(hot) - pinch_T_arr[hot])< 1e-6:
             #     continue
-            hot_stream = streams_transient_hot_side[hot].copy()
-            cold_stream = streams_transient_hot_side[cold].copy()
+            hot_stream = streams_transient_hot_side[hot]
+            cold_stream = streams_transient_hot_side[cold]
             cold_stream.ID = 's_%s__%s'%(cold,ID)
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -383,9 +388,14 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                      outs = (cold_out, hot_out), H_lim0 = H_lim,
                      T_lim1 = pinch_T_arr[hot], dT = T_min_app,
                      thermo = hot_stream.thermo)
-            try: new_HX._run()
-            except: continue
-            if abs(new_HX.Q)< Qmin: continue
+            try:
+                new_HX._run()
+                if abs(new_HX.Q)< Qmin:
+                    new_HX.ins.empty()
+                    continue
+            except:
+                new_HX.ins.empty()    
+                continue
             HXs_hot_side.append(new_HX)
             stream_HXs_dict[hot].append(new_HX)
             stream_HXs_dict[cold].append(new_HX)
@@ -405,8 +415,9 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         if Q_cold_side[cold][0]=='heat' and Q_cold_side[cold][1]>0:
             for hot in hot_indices:
                 ID = 'HX_%s_%s_cs'%(hot, cold)
-                if ID in attempts: continue
-                attempts.add(ID)
+                match = frozenset([hot, cold])
+                if match in attempts: continue
+                attempts.add(match)
                 T_cold_in = get_T_transient_cold_side(cold)
                 T_hot_in = get_T_transient_cold_side(hot)
                 # if ((cold in matches_cs and hot in matches_cs[cold])
@@ -416,8 +427,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                         T_hot_in - T_cold_in >= T_min_app):
                     # if abs(T_cold_in - pinch_T_arr[cold])<= 0.01:
                     #     continue
-                    hot_stream = streams_transient_cold_side[hot].copy()
-                    cold_stream = streams_transient_cold_side[cold].copy()
+                    hot_stream = streams_transient_cold_side[hot]
+                    cold_stream = streams_transient_cold_side[cold]
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
                     hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -426,9 +437,14 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                              outs = (hot_out, cold_out), H_lim0 = H_out_arr[hot],
                              T_lim1 = T_out_arr[cold], dT = T_min_app,
                              thermo = hot_stream.thermo)
-                    try: new_HX._run()
-                    except: continue
-                    if abs(new_HX.Q )< Qmin: continue
+                    try:
+                        new_HX._run()
+                    except:
+                        new_HX.ins.empty()
+                        continue
+                    if abs(new_HX.Q )< Qmin:
+                        new_HX.ins.empty()
+                        continue
                     HXs_cold_side.append(new_HX)
                     stream_HXs_dict[hot].append(new_HX)
                     stream_HXs_dict[cold].append(new_HX)                    
@@ -444,8 +460,9 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         if Q_hot_side[hot][0]=='cool' and Q_hot_side[hot][1]>0:
             for cold in cold_indices:
                 ID = 'HX_%s_%s_hs'%(cold, hot)
-                if ID in attempts: continue
-                attempts.add(ID)
+                match = frozenset([hot, cold])
+                if match in attempts: continue
+                attempts.add(match)
                 # if ((hot in matches_cs and cold in matches_cs[hot])
                 #     or (hot in matches_hs and cold in matches_hs[hot])):
                 #     continue
@@ -456,8 +473,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                         T_hot_in - T_cold_in>= T_min_app): 
                     # if abs(T_hot_in - pinch_T_arr[hot])<= 0.01:
                     #     continue                        
-                    cold_stream = original_cold_stream.copy()
-                    hot_stream = streams_transient_hot_side[hot].copy()
+                    cold_stream = original_cold_stream
+                    hot_stream = streams_transient_hot_side[hot]
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
                     hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -467,9 +484,14 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                              outs = (cold_out, hot_out), H_lim0 = H_lim, 
                              T_lim1 = T_out_arr[hot], dT = T_min_app,
                              thermo = hot_stream.thermo)
-                    try: new_HX._run()
-                    except: continue
-                    if abs(new_HX.Q )< Qmin: continue
+                    try:
+                        new_HX._run()
+                        if abs(new_HX.Q )< Qmin:
+                            new_HX.ins.empty()
+                            continue
+                    except:
+                        new_HX.ins.empty()
+                        continue
                     HXs_hot_side.append(new_HX)                        
                     stream_HXs_dict[hot].append(new_HX)
                     stream_HXs_dict[cold].append(new_HX)                        
@@ -512,7 +534,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
     # Add final utility HXs
     new_HX_utils = []    
     for hot in hot_indices:
-        hot_stream = get_coldest_stream_from_life_cycle(hot).copy()
+        hot_stream = get_coldest_stream_from_life_cycle(hot)
         ID = 'Util_%s_cs'%(hot)
         hot_stream.ID = 's_%s__%s'%(hot,ID)
         outlet = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -528,7 +550,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         stream_HXs_dict[hot].append(new_HX_util)
             
     for cold in cold_indices:
-        cold_stream = get_hottest_stream_from_life_cycle(cold).copy()
+        cold_stream = get_hottest_stream_from_life_cycle(cold)
         ID = 'Util_%s_hs'%(cold)
         cold_stream.ID = 's_%s__%s'%(cold,ID)
         outlet = cold_stream.copy('%s__s_%s'%(ID,cold))

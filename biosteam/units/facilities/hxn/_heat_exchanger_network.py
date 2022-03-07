@@ -10,6 +10,7 @@ Created on Sat Aug 22 21:58:19 2020
 @author: sarangbhagwat and yoelcp
 """
 from .. import Facility
+from ....utils.piping import ignore_docking_warnings
 import biosteam as bst
 import numpy as np
 from .hxn_synthesis import synthesize_network, StreamLifeCycle
@@ -150,6 +151,7 @@ class HeatExchangerNetwork(Facility):
     def _run(self): pass
     def _design(self): pass
     
+    @ignore_docking_warnings
     def _cost(self):
         sys = self.system
         hx_utils = self._get_original_heat_utilties()
@@ -213,7 +215,8 @@ class HeatExchangerNetwork(Facility):
                 HXs_hot_side, HXs_cold_side, new_HX_utils, hxs, T_in_arr,\
                 T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
                 hot_indices, cold_indices = \
-                synthesize_network(hx_utils, self.T_min_app, self.Qmin, self.force_ideal_thermo)
+                synthesize_network(hx_utils, self.T_min_app, self.Qmin, 
+                                   self.force_ideal_thermo)
                 new_HXs = HXs_hot_side + HXs_cold_side
                 self.cold_indices = cold_indices
                 self.original_heat_exchangers = hxs
