@@ -10,7 +10,7 @@ Created on Sat Aug 22 21:58:19 2020
 @author: sarangbhagwat and yoelcp
 """
 from .. import Facility
-from ....utils.piping import ignore_docking_warnings
+from ....utils import piping
 import biosteam as bst
 import numpy as np
 from .hxn_synthesis import synthesize_network, StreamLifeCycle
@@ -151,7 +151,6 @@ class HeatExchangerNetwork(Facility):
     def _run(self): pass
     def _design(self): pass
     
-    @ignore_docking_warnings
     def _cost(self):
         sys = self.system
         hx_utils = self._get_original_heat_utilties()
@@ -168,6 +167,7 @@ class HeatExchangerNetwork(Facility):
             except: pass
             else: use_cached_network = len(hxs) == len(hx_utils)
         try:
+            piping.DOCKING_WARNINGS = False
             if use_cached_network:
                 hx_utils_rearranged = [i.heat_utilities[0] for i in hxs]
                 stream_life_cycles = self.stream_life_cycles
@@ -274,11 +274,7 @@ class HeatExchangerNetwork(Facility):
                         assert np.isfinite(hx.installed_cost)
                         np.testing.assert_allclose(s_util.imol[IDs], s_lc.imol[IDs])
                         np.testing.assert_allclose(s_util.P, s_lc.P, rtol=1e-3, atol=0.1)
-                        try:
-                            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
-                        except:
-                            lc.unit.simulate()
-                            np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
+                        np.testing.assert_allclose(s_util.H, s_lc.H, rtol=1e-3, atol=1.)
                     except:
                         msg = ("heat exchanger network cache algorithm failed, cached network ignored")
                         warn(msg, RuntimeWarning, stacklevel=2)
@@ -348,6 +344,7 @@ class HeatExchangerNetwork(Facility):
                     warn(msg, RuntimeWarning, stacklevel=2)
         finally:
             bst.main_flowsheet.set_flowsheet(original_flowsheet)
+            piping.DOCKING_WARNINGS = True
     
     def _energy_balance_error_contributions(self):
         original_ignored = ignored = self.ignored

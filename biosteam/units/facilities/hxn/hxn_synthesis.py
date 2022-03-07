@@ -301,7 +301,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         )
         for cold in potential_matches:
             ID = 'HX_%s_%s_cs'%(hot, cold)
-            match = frozenset([hot, cold])
+            match = (hot, cold)
             if match in attempts: continue
             attempts.add(match)
             Q_hstr = Q_cold_side[hot][1]
@@ -369,7 +369,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         stream_quenched = False
         for hot in potential_matches:
             ID = 'HX_%s_%s_hs'%(cold, hot)
-            match = frozenset([hot, cold])
+            match = (hot, cold)
             if match in attempts: continue
             attempts.add(match)
             Q_hstr = Q_hot_side[hot][1]
@@ -415,7 +415,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         if Q_cold_side[cold][0]=='heat' and Q_cold_side[cold][1]>0:
             for hot in hot_indices:
                 ID = 'HX_%s_%s_cs'%(hot, cold)
-                match = frozenset([hot, cold])
+                match = (hot, cold)
                 if match in attempts: continue
                 attempts.add(match)
                 T_cold_in = get_T_transient_cold_side(cold)
@@ -460,7 +460,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
         if Q_hot_side[hot][0]=='cool' and Q_hot_side[hot][1]>0:
             for cold in cold_indices:
                 ID = 'HX_%s_%s_hs'%(cold, hot)
-                match = frozenset([hot, cold])
+                match = (hot, cold)
                 if match in attempts: continue
                 attempts.add(match)
                 # if ((hot in matches_cs and cold in matches_cs[hot])
