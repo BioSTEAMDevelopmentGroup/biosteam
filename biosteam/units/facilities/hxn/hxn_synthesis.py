@@ -308,8 +308,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             Q_res = Q_cstr - Q_hstr
             # if abs(get_T_transient_cold_side(cold) - pinch_T_arr[cold])<= 0.01:
             #     continue
-            hot_stream = streams_transient_cold_side[hot]
-            cold_stream = streams_transient_cold_side[cold]
+            hot_stream = streams_transient_cold_side[hot].copy()
+            cold_stream = streams_transient_cold_side[cold].copy()
             
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             cold_stream.ID = 's_%s__%s'%(cold,ID)
@@ -375,8 +375,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
             Q_res = Q_cstr - Q_hstr
             # if abs(get_T_transient_hot_side(hot) - pinch_T_arr[hot])< 1e-6:
             #     continue
-            hot_stream = streams_transient_hot_side[hot]
-            cold_stream = streams_transient_hot_side[cold]
+            hot_stream = streams_transient_hot_side[hot].copy()
+            cold_stream = streams_transient_hot_side[cold].copy()
             cold_stream.ID = 's_%s__%s'%(cold,ID)
             hot_stream.ID = 's_%s__%s'%(hot,ID)
             hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -424,8 +424,8 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                         T_hot_in - T_cold_in >= T_min_app):
                     # if abs(T_cold_in - pinch_T_arr[cold])<= 0.01:
                     #     continue
-                    hot_stream = streams_transient_cold_side[hot]
-                    cold_stream = streams_transient_cold_side[cold]
+                    hot_stream = streams_transient_cold_side[hot].copy()
+                    cold_stream = streams_transient_cold_side[cold].copy()
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
                     hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
@@ -470,7 +470,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False):
                     # if abs(T_hot_in - pinch_T_arr[hot])<= 0.01:
                     #     continue                        
                     cold_stream = original_cold_stream
-                    hot_stream = streams_transient_hot_side[hot]
+                    hot_stream = streams_transient_hot_side[hot].copy()
                     cold_stream.ID = 's_%s__%s'%(cold,ID)
                     hot_stream.ID = 's_%s__%s'%(hot,ID)
                     hot_out = hot_stream.copy('%s__s_%s'%(ID,hot))
