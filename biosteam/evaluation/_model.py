@@ -307,9 +307,9 @@ class Model(State):
             index = self._index
             values = [None] * len(index)
         
+        export = 'export_state_to' in dyn_sim_kwargs
         if autosave:
             layout = table.index, table.columns
-            export = 'export_state_to' in dyn_sim_kwargs
             for number, i in enumerate(index, number): 
                 if export: dyn_sim_kwargs['sample_id'] = i
                 values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
