@@ -123,7 +123,7 @@ class HeatExchangerNetwork(Facility):
               'Work': 'kW'}
     
     def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3,
-                 force_ideal_thermo=False, cache_network=False):
+                 force_ideal_thermo=False, cache_network=False, avoid_recycle=False):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
@@ -131,6 +131,7 @@ class HeatExchangerNetwork(Facility):
         self.Qmin = Qmin
         self.force_ideal_thermo = force_ideal_thermo
         self.cache_network = cache_network
+        self.avoid_recycle = avoid_recycle
         
     def _get_original_heat_utilties(self):
         sys = self.system
@@ -215,7 +216,7 @@ class HeatExchangerNetwork(Facility):
                 T_out_arr, pinch_T_arr, C_flow_vector, hx_utils_rearranged, streams_inlet, stream_HXs_dict,\
                 hot_indices, cold_indices = \
                 synthesize_network(hx_utils, self.T_min_app, self.Qmin, 
-                                   self.force_ideal_thermo)
+                                   self.force_ideal_thermo, self.avoid_recycle)
                 new_HXs = HXs_hot_side + HXs_cold_side
                 self.cold_indices = cold_indices
                 self.original_heat_exchangers = hxs
