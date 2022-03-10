@@ -188,10 +188,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 self.radius = radius = diameter * 0.5
                 self._F_vol_regen = F_vol_regen = radius * radius * regeneration_velocity * pi
                 vessel_volume = length * 0.25 * diameter * diameter
-                print('vessel_volume', vessel_volume)
                 self.void_volume = void_volume = self.void_fraction * vessel_volume
                 N_washes = ceil(F_vol_regen * (self.cycle_time - self.drying_time) / void_volume)
-                print(N_washes)
                 self.N_washes = N_washes
                 solvent = void_volume * 1e6 # m3 -> mL
                 self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
@@ -206,7 +204,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                     adsorbate -= adsorbate_recovered
                     
                 adsorbent_usable_fraction = 1 - adsorbate / total_adsorbate
-                # print(adsorbent_usable_fraction)
                 return adsorbent_usable_fraction
             if self.converge_adsorption_recovery:
                 self.adsorbent_usable_fraction = flx.wegstein(f_efficiency, 1, xtol=0.01)
