@@ -242,11 +242,11 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             dry_air.copy_like(air_purge)
             retained_ethanol_mol = self.wet_retention * regen.mol / self.N_washes
             air_purge.mol += retained_ethanol_mol
-            H = air_purge.H
+            H_out = air_purge.H
             regen._property_cache.clear()
-            H_retsolv = regen.H / self.N_washes
+            H_in0 = self.wet_retention * regen.H / self.N_washes
             try:
-                dry_air.H = H - H_retsolv
+                dry_air.H = H_out - H_in0
             except:
                 breakpoint()
             purge.mol -= retained_ethanol_mol
