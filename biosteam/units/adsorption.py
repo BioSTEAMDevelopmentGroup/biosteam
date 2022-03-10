@@ -13,6 +13,7 @@ from biosteam.units.design_tools import PressureVessel
 from thermosteam.equilibrium import phase_fraction
 from math import sqrt, pi, ceil
 import numpy as np
+import flexsolve as flx
 
 __all__ = ('AdsorptionColumnTSA',)
 
@@ -130,8 +131,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             T_air = 100 + 273.15,
             air_velocity = 1332,
             K=None,
+            converge_adsorption_recovery=False,
             adsorbate_ID, 
             order=None, 
+            wet_retention=0.01,
             split,
         ):
         bst.Splitter.__init__(self, ID, ins, outs, thermo, order=order, split=split)
@@ -150,6 +153,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.T_air = T_air
         self.air_velocity = air_velocity
         self.drying_time = drying_time
+        self.converge_adsorption_recovery = converge_adsorption_recovery
+        self.wet_retention = wet_retention
         self.K = K
         
     @property
@@ -168,50 +173,83 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         mean_velocity = self.mean_velocity
         rho_adsorbent = self.rho_adsorbent
         adsorbent_capacity = self.adsorbent_capacity
-        F_mass_adsorbate = purge.imass[self.adsorbate_ID]
+        adsorbate_ID = self.adsorbate_ID
+        F_mass_adsorbate = purge.imass[adsorbate_ID]
         self.diameter = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
         area = pi * diameter * diameter / 4
-        online_length = (
-            self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
-        ) + self.length_plus
-        self.length = length = online_length / 2. # Size of each column
-        
-        regeneration_velocity = self.regeneration_velocity
-        diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
-        radius = diameter * 0.5
-        F_vol_regen = radius * radius * regeneration_velocity * pi
-        K = self.K
-        adsorbent_capacity = self.adsorbent_capacity
-        if K:
-            vessel_volume = length * 0.25 * diameter * diameter
-            void_volume = self.void_fraction * vessel_volume
-            N_washes = ceil(F_vol_regen * (self.cycle_time - self.drying_time) / void_volume)
-            solvent = void_volume * 1e6 # m3 -> mL
+        if self.K:
             K = self.K # (g adsorbate / mL solvent)  /  (g adsorbate / g adsorbent)
-            self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
-            total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
-            for i in range(N_washes):
-                # R * y + A * x = total
-                # K = y / x
-                # R * y  + A * y / K = total
-                # y = total / (R + A / K)
-                y = adsorbate / (solvent + adsorbent / K)
-                adsorbate_recovered = y * solvent
-                adsorbate -= adsorbate_recovered
-                
-            self.regeneration_efficiency = 1 - adsorbate / total_adsorbate
+            def f_efficiency(adsorbent_usable_fraction):
+                online_length = (
+                    self.online_time * F_mass_adsorbate / (adsorbent_capacity * adsorbent_usable_fraction * rho_adsorbent * area)
+                ) + self.length_plus
+                self.length = length = online_length / 2. # Size of each column
+                regeneration_velocity = self.regeneration_velocity
+                self.radius = radius = diameter * 0.5
+                self._F_vol_regen = F_vol_regen = radius * radius * regeneration_velocity * pi
+                vessel_volume = length * 0.25 * diameter * diameter
+                print('vessel_volume', vessel_volume)
+                self.void_volume = void_volume = self.void_fraction * vessel_volume
+                N_washes = ceil(F_vol_regen * (self.cycle_time - self.drying_time) / void_volume)
+                print(N_washes)
+                self.N_washes = N_washes
+                solvent = void_volume * 1e6 # m3 -> mL
+                self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
+                total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
+                for i in range(N_washes):
+                    # R * y + A * x = total
+                    # K = y / x
+                    # R * y  + A * y / K = total
+                    # y = total / (R + A / K)
+                    y = adsorbate / (solvent + adsorbent / K)
+                    adsorbate_recovered = y * solvent
+                    adsorbate -= adsorbate_recovered
+                    
+                adsorbent_usable_fraction = 1 - adsorbate / total_adsorbate
+                # print(adsorbent_usable_fraction)
+                return adsorbent_usable_fraction
+            if self.converge_adsorption_recovery:
+                self.adsorbent_usable_fraction = flx.wegstein(f_efficiency, 1, xtol=0.01)
+            self.adsorbent_usable_fraction = adsorbent_usable_fraction = f_efficiency(1)
+            purge.T = regen.T = self.T_regeneration
+            regen.reset_flow(**self.regeneration_fluid)
+            regen.F_vol = self._F_vol_regen
+            TAL = feed.imol[adsorbate_ID]
+            split = self.isplit[adsorbate_ID]
+            actual_split = 1 - (adsorbent_usable_fraction * (1 - split))
+            effluent.imol[adsorbate_ID] = actual_split * TAL
+            purge.mol += regen.mol
+            purge.imol[adsorbate_ID] = feed.imol[adsorbate_ID] - effluent.imol[adsorbate_ID]
+        else:
+            purge.T = regen.T = self.T_regeneration
+            regen.reset_flow(**self.regeneration_fluid)
+            regen.F_vol = self._F_vol_regen
+            online_length = (
+                self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
+            ) + self.length_plus
+            diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
+            radius = diameter * 0.5
+            purge.mol += regen.mol
         
         if self.drying_time:
+            radius = self.radius
+            air_purge.empty()
             air_purge.T = self.T_air
+            air_purge.P = 101325
             air_purge.imass['N2', 'O2'] = [0.78, 0.32]
             air_purge.phase = dry_air.phase = 'g'
-            air_purge.F_vol = radius * radius * self.air_velocity * pi
-            dry_air.copy_flow(air_purge)
-        purge.T = regen.T = self.T_regeneration
-        regen.reset_flow(**self.regeneration_fluid)
-        regen.P = 10 * 101325
-        regen.F_vol = F_vol_regen
-        purge.mol += regen.mol
+            air_purge.F_vol= radius * radius * self.air_velocity * pi * self.drying_time / self.cycle_time
+            dry_air.copy_like(air_purge)
+            retained_ethanol_mol = self.wet_retention * regen.mol / self.N_washes
+            air_purge.mol += retained_ethanol_mol
+            H = air_purge.H
+            regen._property_cache.clear()
+            H_retsolv = regen.H / self.N_washes
+            try:
+                dry_air.H = H - H_retsolv
+            except:
+                breakpoint()
+            purge.mol -= retained_ethanol_mol
         
     @property
     def online_time(self):

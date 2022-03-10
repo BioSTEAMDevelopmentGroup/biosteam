@@ -437,6 +437,8 @@ class HXutility(HX):
                             else:
                                 raise RuntimeError('outlet in vapor-liquid equilibrium, but stream is linked')
                         outlet.T = T
+                    except ValueError as e:
+                        outlet.vle(T=T, P=outlet.P)
             else:
                 outlet.vle(H=H, P=outlet.P)
         else:
