@@ -193,7 +193,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 solvent = void_volume * 1e6 # m3 -> mL
                 self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
                 total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
-                self.equilibrium_stages = stages = min(int(length / 0.25), 10) # 0.25 m per stage
+                self.equilibrium_stages = stages = int(length / 0.1) # 0.1 m per stage
                 self.N_washes = N_washes
                 solvent /= stages
                 adsorbate_arr = adsorbate * np.ones(stages) / stages
@@ -206,7 +206,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                     adsorbate_collected = 0
                     for j in range(stages):
                         y = (adsorbate_arr[j] + adsorbate_collected) / (solvent + adsorbent_stage / K)
-                        adsorbate_recovered = y * solvent
+                        adsorbate_recovered = y * solvent - adsorbate_collected
                         adsorbate_arr[j] -= adsorbate_recovered
                         adsorbate_collected += adsorbate_recovered
                     

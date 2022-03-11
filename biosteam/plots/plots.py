@@ -565,8 +565,8 @@ def plot_spearman_2d(rhos, top=None, name=None, color_wheel=None, index=None,
         cutoff_index, = np.where(np.any(np.abs(rhos) > cutoff, axis=0))
         indices = [indices[i] for i in cutoff_index]
     if sort:
-        rhos_mean = np.abs(values).max(axis=0)
-        indices.sort(key=lambda x: rhos_mean[x])
+        rhos_max = np.abs(values).max(axis=0)
+        indices.sort(key=lambda x: rhos_max[x])
     if top is not None: indices = indices[-top:]
     rhos = [[rho[i] for i in indices] for rho in values]
     index = [index[i] for i in indices]
