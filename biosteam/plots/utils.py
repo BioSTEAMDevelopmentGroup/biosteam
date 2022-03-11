@@ -66,16 +66,17 @@ class MetricBar(NamedTuple): # pragma: no coverage
                                 vcenter=self.center, 
                                 vmax=self.ticks[-1])
     
-    def colorbar(self, fig, ax, colorplot, **cbarkwargs):
+    def colorbar(self, fig, ax, colorplot, label=True, **cbarkwargs):
         if self.forced_size is not None:
             cbarkwargs['fraction'] = self.forced_size
         cbar = fig.colorbar(colorplot, ax=ax, ticks=self.ticks, **cbarkwargs)
         cbar_ax = cbar.ax
         # cbar_ax.locator_params(nbins=self.N_ticks)
-        if self.title_position == 'top':
-            cbar_ax.set_title(self.title, self.ylabelkwargs)
-        else:
-            cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
+        if label:
+            if self.title_position == 'top':
+                cbar_ax.set_title(self.title, self.ylabelkwargs)
+            else:
+                cbar_ax.set_ylabel(self.title, self.ylabelkwargs)
         try:
             ylabels = [y.get_text() for y in cbar_ax.get_yticklabels()]
             ylabels = [(i if i[0].isdigit() else '-'+i[1:]) for i in ylabels]
