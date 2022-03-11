@@ -613,25 +613,27 @@ class Evaporator_PQ(Unit):
         return self._P
     @P.setter
     def P(self, P):
-        water = getattr(self.chemicals, '7732-18-5')
-        self._T = T = water.Tsat(P)
-        self._Hvap = water.Hvap(T)
+        chemical = self.chemical
+        self._T = T = chemical.Tsat(P)
+        self._Hvap = chemical.Hvap(T)
         self._P = P
     @property
     def T(self):
         return self._T
     @T.setter
     def T(self, T): # pragma: no cover
-        water = getattr(self.chemicals, '7732-18-5')
-        self._P = water.Psat(T)
-        self._Hvap = water.Hvap(T)
+        chemical = self.chemical
+        self._P = chemical.Psat(T)
+        self._Hvap = chemical.Hvap(T)
         self._T = T
     @property
     def V(self):
         return self._V
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, Q=0, P=101325):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
+                 Q=0, P=101325, chemical='7732-18-5'):
         super().__init__(ID, ins, outs, thermo)
+        self.chemical = self.chemicals[chemical]
         self.Q = Q
         self.P = P
         self._V = None
@@ -677,14 +679,18 @@ class Evaporator_PV(Flash):
     _N_heat_utilities = 0
     _N_outs = 2
     
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, chemical='7732-18-5'):
+        super().__init__(ID, ins, outs, thermo)
+        self.chemical = self.chemicals[chemical]
+    
     @property
     def P(self):
         return self._P
     @P.setter
     def P(self, P):
         if P is not None:
-            water = getattr(self.chemicals, '7732-18-5')
-            self._T = water.Tsat(P)
+            chemical = self.chemical
+            self._T = chemical.Tsat(P)
         self._P = P
     @property
     def T(self):
@@ -692,8 +698,8 @@ class Evaporator_PV(Flash):
     @T.setter
     def T(self, T): # pragma: no cover
         if T is not None:
-            water = getattr(self.chemicals, '7732-18-5')
-            self._P = water.Psat(T)
+            chemical = self.chemical
+            self._P = chemical.Psat(T)
         self._T = T
 
     def _run(self):
@@ -702,12 +708,12 @@ class Evaporator_PV(Flash):
         vapor.phase = 'g'
         vapor.T = liquid.T = self.T
         vapor.P = liquid.P = self.P
-        H2O_index = self.chemicals.index('7732-18-5')
-        water_mol = feed.mol[H2O_index]
-        vapor.mol[H2O_index] = self.V * water_mol
+        index = self.chemicals.index(self.chemical.ID)
+        chemical_mol = feed.mol[index]
+        vapor.mol[index] = self.V * chemical_mol
         liquid_mol = liquid.mol
         liquid_mol[:] = feed.mol
-        liquid_mol[H2O_index] = (1-self.V) * water_mol
+        liquid_mol[index] = (1-self.V) * chemical_mol
         ms = self._multi_stream
         self.heat_exchanger._summary()
         self.design_results['Heat transfer'] = self.heat_exchanger.Q

@@ -238,7 +238,7 @@ class MultiEffectEvaporator(Unit):
             raise ValueError("V_definition must be either 'Overall' or 'First-effect'")
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, V, V_definition='Overall',
-                 flash=True):
+                 flash=True, chemical='7732-18-5'):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P #: tuple[float] Pressures describing each evaporator (Pa).
         self.V = V #: [float] Molar fraction evaporated.
@@ -247,6 +247,7 @@ class MultiEffectEvaporator(Unit):
         self._V_first_effect = None
         self._reload_components = True
         self.components = {}
+        self.chemical = chemical
         
     def reset_cache(self, isdynamic=None):
         self._reload_components = True
@@ -263,13 +264,13 @@ class MultiEffectEvaporator(Unit):
             first_evaporator.owner = self.owner
             first_evaporator._ID = 'First evaporator'
         else:
-            first_evaporator = Evaporator_PV(None, outs=(None, None), P=P[0], thermo=thermo)
+            first_evaporator = Evaporator_PV(None, outs=(None, None), P=P[0], thermo=thermo, chemical=self.chemical)
             first_evaporator.owner = self.owner
             first_evaporator._ID = 'First evaporator'
         # Put liquid first, then vapor side stream
         evaporators = [first_evaporator]
         for i in range(1, n):
-            evap = Evaporator_PQ(None, outs=(None, None, None), P=P[i], Q=0, thermo=thermo)
+            evap = Evaporator_PQ(None, outs=(None, None, None), P=P[i], Q=0, thermo=thermo, chemical=self.chemical)
             evaporators.append(evap)
         
         condenser = HXutility(None, outs=[None], thermo=thermo, V=0)
