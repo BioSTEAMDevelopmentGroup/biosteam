@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import biosteam as bst
 from biosteam.utils import colors as c, CABBI_colors
-from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels
+from .utils import style_axis, style_plot_limits, fill_plot, set_axes_labels, MetricBar
 from thermosteam.units_of_measure import format_units, reformat_units
 import matplotlib.patches as mpatches
 from math import floor, ceil
@@ -68,16 +68,16 @@ def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black',
 
 def rounded_tickmarks_from_data(data, N_ticks, step_min=None, 
                                 lb_max=None, ub_min=None, expand=None, f=None,
-                                center=None, lb_min=None, ub_max=None):
+                                center=None, lb_min=None, ub_max=None, p=None):
     get_max = lambda x: max([i.max() for i in x]) if isinstance(x, list) else x.max()
     get_min = lambda x: min([i.min() for i in x]) if isinstance(x, list) else x.min()
     lb = min([get_min(i) for i in data])
     ub = max([get_max(i) for i in data])
     return rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max, ub_min, expand, f, center,
-                                        lb_min, ub_max)
+                                        lb_min, ub_max, p)
 
 def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min=None, lb_max=None, ub_min=None,
-                                 expand=None, f=None, center=None, lb_min=None, ub_max=None):
+                                 expand=None, f=None, center=None, lb_min=None, ub_max=None, p=None):
     if lb_max is not None: lb = min(lb, lb_max)
     if expand is None: expand = 0.10
     diff = expand * (ub - lb)
@@ -85,17 +85,23 @@ def rounted_tickmarks_from_range(lb, ub, N_ticks, step_min=None, lb_max=None, ub
     if ub_min is not None: ub = max(ub, ub_min)
     if ub_max is not None: ub = min(ub, ub_max)
     if lb_min is not None: lb = max(lb, lb_min)
-    return rounded_linspace(lb, ub, N_ticks, step_min, f, center)
+    return rounded_linspace(lb, ub, N_ticks, step_min, f, center, p)
 
-def rounded_linspace(lb, ub, N, step_min, f=None, center=None):
+def rounded_linspace(lb, ub, N, step_min, f=None, center=None, p=None):
     if step_min is not None:
         lb = floor(lb / step_min) * step_min
         ub = ceil(ub / step_min) * step_min
     step = (ub - lb) / (N - 1)
+    if p:
+        x = lb % p
+        if x: lb -= x
+        step = (ub - lb) / (N - 1)
+        x = step % p
+        if x: step += p - x
     if f is None:
         f = int
-        if int(step) == step: step = int(step)
-        if int(lb) == lb: lb = int(lb)
+        step = int(ceil(step))
+        lb = int(floor(lb))
     else:
         step = f(step)
         lb = f(lb)
@@ -878,20 +884,39 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     fillcolor=None, styleaxiskw=None,
                     label=False): # pragma: no coverage
     """Create contour plots and return the figure and the axes."""
-    nrows = len(metric_bars)
-    ncols = len(Z_1d)
+    if isinstance(metric_bars[0], MetricBar):
+        nrows = len(metric_bars)
+        ncols = len(Z_1d)
+        row_bars = True
+    else:
+        nrows = len(metric_bars)
+        ncols = len(metric_bars[0])
+        row_bars = False
     assert data.shape == (*X_grid.shape, nrows, ncols), (
         "data shape must be (X, Y, M, Z), where (X, Y) is the shape of both X_grid and Y_grid, "
         "M is the number of metrics, and Z is the number of elements in Z_1d"
     )
-    fig, axes = contour_subplots(nrows, ncols)
+    if row_bars:
+        fig, axes = contour_subplots(nrows, ncols)
+        cbs = np.zeros([nrows], dtype=object)
+    else:
+        wr = np.ones(ncols)
+        wr[-1] += 1 / (3 * ncols)
+        gs = dict(
+            width_ratios=wr
+        )
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, gridspec_kw=gs)
+        cbs = np.zeros([nrows, ncols], dtype=object)
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
-    cbs = np.zeros([nrows], dtype=object)
     linecolor = c.neutral_shade.RGBn
     for row in range(nrows):
-        metric_bar = metric_bars[row]
+        metric_row = metric_bars[row]
         for col in range(ncols):
+            if row_bars:
+                metric_bar = metric_row
+            else:
+                metric_bar = metric_row[col]
             ax = axes[row, col]
             plt.sca(ax)
             style_plot_limits(xticks, yticks)
@@ -910,9 +935,18 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                           colors=['k'], zorder=1e16)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
+            if not row_bars:
+                clabel = col == ncols - 1
+                if clabel: 
+                    pad = 0.175
+                else:
+                    pad = 0.05
+                cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=0.8, label=clabel, pad=pad)
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
-        cbar_ax = axes[row, -1]
-        cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8)
+        if row_bars:
+            cbar_ax = axes[row, -1]
+            cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, shrink=0.8)
+        
         # plt.clim()
     for col in range(ncols):
         if not col and Z_label:
@@ -921,10 +955,13 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
             title = Z_value_format(Z_1d[col])
         ax = axes[0, col]
         ax.set_title(title)
-    for ax in axes[:, -1]:
-        plt.sca(ax)
-        plt.axis('off')
-    set_axes_labels(axes[:, :-1], xlabel, ylabel)
+    if row_bars:
+        for ax in axes[:, -1]:
+            plt.sca(ax)
+            plt.axis('off')
+        set_axes_labels(axes[:, :-1], xlabel, ylabel)
+    else:
+        set_axes_labels(axes, xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes, cps, cbs
        
