@@ -190,20 +190,27 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 vessel_volume = length * 0.25 * diameter * diameter
                 self.void_volume = void_volume = self.void_fraction * vessel_volume
                 N_washes = ceil(F_vol_regen * (self.cycle_time - self.drying_time) / void_volume)
-                self.N_washes = N_washes
                 solvent = void_volume * 1e6 # m3 -> mL
                 self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
                 total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
-                for i in range(N_washes):
+                self.equilibrium_stages = stages = min(int(length / 0.25), 10)
+                self.N_washes = N_washes
+                solvent /= stages
+                adsorbate_arr = adsorbate * np.ones(stages) / stages
+                adsorbent_stage = adsorbent  / stages
+                for i in range(stages * N_washes):
                     # R * y + A * x = total
                     # K = y / x
                     # R * y  + A * y / K = total
                     # y = total / (R + A / K)
-                    y = adsorbate / (solvent + adsorbent / K)
-                    adsorbate_recovered = y * solvent
-                    adsorbate -= adsorbate_recovered
+                    adsorbate_collected = 0
+                    for j in range(stages):
+                        y = (adsorbate_arr[j] + adsorbate_collected) / (solvent + adsorbent_stage / K)
+                        adsorbate_recovered = y * solvent
+                        adsorbate_arr[j] -= adsorbate_recovered
+                        adsorbate_collected += adsorbate_recovered
                     
-                adsorbent_usable_fraction = 1 - adsorbate / total_adsorbate
+                adsorbent_usable_fraction = 1 - adsorbate_arr.sum() / total_adsorbate
                 return adsorbent_usable_fraction
             if self.converge_adsorption_recovery:
                 self.adsorbent_usable_fraction = flx.wegstein(f_efficiency, 1, xtol=0.01)
@@ -237,6 +244,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             air_purge.phase = dry_air.phase = 'g'
             air_purge.F_vol= radius * radius * self.air_velocity * pi * self.drying_time / self.cycle_time
             dry_air.copy_like(air_purge)
+            
             retained_ethanol_mol = self.wet_retention * regen.mol / self.N_washes
             air_purge.mol += retained_ethanol_mol
             H_out = air_purge.H
