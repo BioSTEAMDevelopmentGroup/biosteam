@@ -109,6 +109,22 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
+    # In $/ft3
+    adsorbent_cost = {
+        'Activated alumina': 72,
+        'Activated carbon': 41,
+        'Silica gel': 210,
+        'Molecular sieves': 85,
+    }
+    
+    # TODO: Update later plus ref
+    _default_equipment_lifetime = {
+        'Activated alumina': 1,
+        'Activated carbon': 1,
+        'Silica gel': 1,
+        'Molecular sieves': 1,
+    }
+    
     # NOTE: Unit ignores cost of compressing 2.
     _N_ins = 3
     _N_outs = 3
@@ -129,7 +145,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             length_plus=0.61, # Equilibrium length plus 2 ft accounting for mass transfer limitations
             drying_time=0., # Time for drying after regeneration
             T_air = 100 + 273.15,
+            adsorbent='Activated carbon',
             air_velocity = 1332,
+            target_recovery=None,
             K=None,
             converge_adsorption_recovery=False,
             adsorbate_ID, 
@@ -155,6 +173,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.drying_time = drying_time
         self.converge_adsorption_recovery = converge_adsorption_recovery
         self.wet_retention = wet_retention
+        self.target_recovery = target_recovery
+        self.adsorbent = adsorbent
         self.K = K
         
     @property
@@ -175,25 +195,26 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         adsorbent_capacity = self.adsorbent_capacity
         adsorbate_ID = self.adsorbate_ID
         F_mass_adsorbate = purge.imass[adsorbate_ID]
-        self.diameter = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
-        area = pi * diameter * diameter / 4
         if self.K:
+            target_recovery = self.target_recovery
             K = self.K # (g adsorbate / mL solvent)  /  (g adsorbate / g adsorbent)
-            def f_efficiency(adsorbent_usable_fraction):
+            def f_efficiency(mean_velocity):
+                self.diameter = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
+                self.area = area = pi * diameter * diameter / 4
                 online_length = (
-                    self.online_time * F_mass_adsorbate / (adsorbent_capacity * adsorbent_usable_fraction * rho_adsorbent * area)
+                    self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
                 ) + self.length_plus
                 self.length = length = online_length / 2. # Size of each column
                 regeneration_velocity = self.regeneration_velocity
                 self.radius = radius = diameter * 0.5
                 self._F_vol_regen = F_vol_regen = radius * radius * regeneration_velocity * pi
-                vessel_volume = length * 0.25 * diameter * diameter
+                self.vessel_volume = vessel_volume = length * 0.25 * diameter * diameter
                 self.void_volume = void_volume = self.void_fraction * vessel_volume
                 N_washes = ceil(F_vol_regen * (self.cycle_time - self.drying_time) / void_volume)
                 solvent = void_volume * 1e6 # m3 -> mL
-                self.adsorbent = adsorbent = 1000 * vessel_volume * rho_adsorbent # g
+                adsorbent = 1000 * vessel_volume * rho_adsorbent # g
                 total_adsorbate = adsorbate = adsorbent * adsorbent_capacity # g
-                self.equilibrium_stages = stages = int(length / 0.1) # 0.1 m per stage
+                self.equilibrium_stages = stages = ceil(length / 0.1) # 0.1 m per stage
                 self.N_washes = N_washes
                 solvent /= stages
                 adsorbate_arr = adsorbate * np.ones(stages) / stages
@@ -210,17 +231,20 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                         adsorbate_arr[j] -= adsorbate_recovered
                         adsorbate_collected += adsorbate_recovered
                     
-                adsorbent_usable_fraction = 1 - adsorbate_arr.sum() / total_adsorbate
-                return adsorbent_usable_fraction
-            if self.converge_adsorption_recovery:
-                self.adsorbent_usable_fraction = flx.wegstein(f_efficiency, 1, xtol=0.01)
-            self.adsorbent_usable_fraction = adsorbent_usable_fraction = f_efficiency(1)
+                if target_recovery is None:
+                    return mean_velocity
+                self.recovery = recovery = 1 - adsorbate_arr.sum() / total_adsorbate
+                return target_recovery - recovery
+            if self.target_recovery is not None:
+                self.mean_velocity = flx.IQ_interpolation(f_efficiency, 0.01, 14.4, x=self.mean_velocity, xtol=0.001, ytol=0.001)
+            else:
+                self.mean_velocity = f_efficiency(mean_velocity)
             purge.T = regen.T = self.T_regeneration
             regen.reset_flow(**self.regeneration_fluid)
             regen.F_vol = self._F_vol_regen
             TAL = feed.imol[adsorbate_ID]
             split = self.isplit[adsorbate_ID]
-            actual_split = 1 - (adsorbent_usable_fraction * (1 - split))
+            actual_split = 1 - (self.recovery * (1 - split))
             effluent.imol[adsorbate_ID] = actual_split * TAL
             purge.mol += regen.mol
             purge.imol[adsorbate_ID] = feed.imol[adsorbate_ID] - effluent.imol[adsorbate_ID]
@@ -228,10 +252,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             purge.T = regen.T = self.T_regeneration
             regen.reset_flow(**self.regeneration_fluid)
             regen.F_vol = self._F_vol_regen
-            online_length = (
-                self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
-            ) + self.length_plus
-            diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
+            diameter = 2 * sqrt(F_vol_feed / (self.mean_velocity * pi))
             radius = diameter * 0.5
             purge.mol += regen.mol
         
@@ -261,11 +282,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         return 2 * self.cycle_time # 3 columns (1 quard, 1 active, 1 regenerating)
     
     def _design(self):
-        design_results = self.design_results
         feed = self.ins[0]
         design_results = self.design_results
-        diameter = design_results['Vessel diameter'] = self.diameter
-        length = design_results['Vessel length'] = self.length
+        diameter = self.diameter
+        length = self.length
         design_results['Number of reactors'] = 3
         design_results.update(
             self._vessel_design(
@@ -281,5 +301,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         baseline_purchase_costs = self.baseline_purchase_costs
         baseline_purchase_costs.update(self._vessel_purchase_cost(
             design_results['Weight'], design_results['Diameter'], design_results['Length']))
+        N_reactors = design_results['Number of reactors']
         for i, j in baseline_purchase_costs.items():
-            baseline_purchase_costs[i] *= design_results['Number of reactors']
+            baseline_purchase_costs[i] *= N_reactors
+        baseline_purchase_costs[self.adsorbent] = N_reactors * 35.3147 * self.vessel_volume * self.adsorbent_cost[self.adsorbent]
