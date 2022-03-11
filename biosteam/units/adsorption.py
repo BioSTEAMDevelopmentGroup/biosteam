@@ -6,6 +6,7 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+@author: yoelcp and sarangbhagwat
 """
 import biosteam as bst
 from .splitting import Splitter
@@ -236,7 +237,13 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 self.recovery = recovery = 1 - adsorbate_arr.sum() / total_adsorbate
                 return target_recovery - recovery
             if self.target_recovery is not None:
-                self.mean_velocity = flx.IQ_interpolation(f_efficiency, 0.01, 14.4, x=self.mean_velocity, xtol=0.001, ytol=0.001)
+                if (y1:=f_efficiency(14.4)) <= 0.:
+                    self.mean_velocity = mean_velocity = 14.4 # typical velocities are 4 to 14.4 m /hr for liquids; Adsorption basics Alan Gabelman (2017) Adsorption basics Part 1. AICHE
+                elif (y0:=f_efficiency(0.1)) >= 0.:
+                    self.mean_velocity = mean_velocity = 0.1 # set minimum velocity
+                else:
+                    self.mean_velocity = mean_velocity = flx.IQ_interpolation(f_efficiency, 0.1, 14.4, x=self.mean_velocity, xtol=0.01, ytol=0.001, y0=y0, y1=y1)
+                
             else:
                 self.mean_velocity = f_efficiency(mean_velocity)
             purge.T = regen.T = self.T_regeneration
