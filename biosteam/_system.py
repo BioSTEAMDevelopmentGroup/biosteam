@@ -1648,9 +1648,6 @@ class System:
                 export_state_to: str
                     If provided with a path, will save the simulated states over time to the given path,
                     supported extensions are ".xlsx", ".xls", "csv", and "tsv".
-                sample_id : int or str
-                    If `export_state_to` is provided with a valid path with extension
-                    ".xlsx" or ".xls'", sample_id will be used as the sheet name.
                 solve_ivp_kwargs
                     All remaining keyword arguments will be passed to ``solve_ivp``.
         
