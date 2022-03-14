@@ -80,7 +80,7 @@ class State:
     ----------
     system : System
     specification=None : Function, optional
-        Loads speficications once all parameters are set.
+        Loads specifications once all parameters are set.
     parameters=None : Iterable[Parameter], optional
         Parameters to sample from.
     
@@ -88,7 +88,7 @@ class State:
     __slots__ = ('_system', # [System]
                  '_parameters', # list[Parameter] All parameters.
                  '_N_parameters_cache', # [int] Number of parameters previously loaded
-                 '_specification', # [function] Loads speficications once all parameters are set.
+                 '_specification', # [function] Loads specifications once all parameters are set.
                  '_sample_cache') # [1d array] Last sample evaluated.
     
     load_default_parameters = load_default_parameters
