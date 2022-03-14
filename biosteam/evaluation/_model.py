@@ -10,8 +10,7 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-"""
-"""
+
 import numpy as np
 import pandas as pd
 from ._state import State
@@ -39,7 +38,7 @@ class Model(State):
     metrics : tuple[Metric]
         Metrics to be evaluated by model.
     specification=None : Function, optional
-        Loads speficications once all parameters are set. Specification should 
+        Loads specifications once all parameters are set. Specification should 
         simulate the system as well.
     params=None : Iterable[Parameter], optional
         Parameters to sample from.

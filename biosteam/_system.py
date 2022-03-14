@@ -16,7 +16,7 @@ from .digraph import (digraph_from_units_and_streams,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
-from thermosteam import functional as fn
+# from thermosteam import functional as fn
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
@@ -25,7 +25,7 @@ from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
 from .utils import repr_items, ignore_docking_warnings, SystemScope
 from .report import save_report
-from .exceptions import InfeasibleRegion
+# from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
 from .process_tools import utils
 # from .utils import NotImplementedMethod
@@ -333,7 +333,8 @@ class System:
         '_state_idx',
         '_state_header',
         '_DAE',
-        '_scope'
+        '_scope',
+        'dynsim_kwargs',
     )
 
     take_place_of = Unit.take_place_of
@@ -506,6 +507,7 @@ class System:
         self._state_idx = None
         self._state_header = None
         self._DAE = None
+        self.dynsim_kwargs = {}
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -529,6 +531,7 @@ class System:
         self._state_idx = None
         self._state_header = None
         self._DAE = None
+        self.dynsim_kwargs = {}
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -1494,6 +1497,7 @@ class System:
             for s in self.streams:
                 s._state = None
                 s._dstate = None
+            self.dynsim_kwargs = {}
             self.scope.reset_cache()
         for unit in self.units:
             unit.reset_cache(self.isdynamic)
@@ -1522,7 +1526,7 @@ class System:
         """
         if not hasattr(self, '_scope'): self._scope = SystemScope(self)
         elif isinstance(self._scope, dict): 
-            #!!! sys._converge() seems to break WasteStreamScope, so it's now 
+            # sys._converge() seems to break WasteStreamScope, so it's now 
             # set up to initiate the SystemScope object after _converge() when 
             # the system is run the first time 
             subjects = self._scope['subjects']
@@ -1624,40 +1628,49 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, state_reset_hook=None,
-                 export_state_to='', sample_id='',
-                 print_msg=False,
-                 **kwargs):
+    def simulate(self, **dynsim_kwargs):
         """
         Converge the path and simulate all units.
         
         Parameters
         ----------
-        state_reset_hook: str or callable
-            Hook function to reset the cache state between simulations
-            for dynamic systems).
-            Can be "reset_cache" or "clear_state" to call `System.reset_cache`
-            or `System.clear_state`, or None to avoiding resetting.
-        export_state_to: str
-            If provided with a path, will save the simulated states over time to the given path,
-            supported extensions are '.xlsx', '.xls', 'csv', and 'tsv'.
-        sample_id : int or str
-            If `export_state_to` is provided with a valid path with extension
-            '.xlsx' or '.xls' , sample_id will be used as the sheet name.
-        kwargs : dict
-            Other keyword arguments that will be passed to ``solve_ivp``
-            or ``odeint``. Must contain t_span for ``solve_ivp`` or t for ``odeint``.
+        dynsim_kwargs : dict
+            Dynamic simulation keyword arguments, could include:
+
+                t_span : Iterable(float)
+                    Interval of integration (t0, tf).
+                    The solver starts with t=t0 and integrates until it reaches t=tf.
+                state_reset_hook: str or callable
+                    Hook function to reset the cache state between simulations
+                    for dynamic systems).
+                    Can be "reset_cache" or "clear_state" to call `System.reset_cache`
+                    or `System.clear_state`, or None to avoiding resetting.
+                export_state_to: str
+                    If provided with a path, will save the simulated states over time to the given path,
+                    supported extensions are ".xlsx", ".xls", "csv", and "tsv".
+                sample_id : int or str
+                    If `export_state_to` is provided with a valid path with extension
+                    ".xlsx" or ".xls'", sample_id will be used as the sheet name.
+                solve_ivp_kwargs
+                    All remaining keyword arguments will be passed to ``solve_ivp``.
         
         See Also
         --------
         `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
-        `scipy.integrate.odeint <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html>`_        
         """
         self._setup()
         if self.isdynamic:
+            dk = self.dynsim_kwargs
+            dk.update(dynsim_kwargs)
+            dk_cp = dk.copy()
+            state_reset_hook = dk_cp.pop('state_reset_hook', None)
+            print_msg = dk_cp.pop('print_msg', False)
+            export_state_to = dk_cp.pop('export_state_to', '')
+            sample_id = dk_cp.pop('sample_id', '')
+            t_eval = dk_cp.pop('t_eval', None)
+            # Reset state, if needed
             if state_reset_hook:
-                isa = isinstance
-                if isa(state_reset_hook, str):
+                if isinstance(state_reset_hook, str):
                     f = getattr(self, state_reset_hook)
                 else:
                     f = state_reset_hook # assume to be a function
@@ -1665,13 +1678,20 @@ class System:
             else: 
                 for u in self.units:
                     if not hasattr(u, '_state'): u._init_dynamic()
+            # Load initial states
             self._converge()
             y0, idx, nr = self._load_state()
             dydt = self.DAE
-            self.scope.sol = sol = solve_ivp(fun=dydt, y0=y0, **kwargs)
-            if sol.status == 0: print('Simulation completed.')
-            else: print(sol.message)
-            self._write_state()
+            dk['y0'] = y0
+            dk['dydt'] = dydt
+            # Integrate
+            self.scope.sol = sol = solve_ivp(fun=dydt, y0=y0, **dk_cp)
+            if print_msg:
+                if sol.status == 0:
+                    print('Simulation completed.')
+                else: print(sol.message)
+            self._write_state()          
+            # Write states to file
             if export_state_to:
                 try: file, ext = export_state_to.rsplit('.', 1)
                 except ValueError: 
@@ -1683,7 +1703,6 @@ class System:
                               f"{self.ID}'s tracked variables saved as a .npy file.")
                     path = f'{file}_{sample_id}.npy'
                 else: path = f'{file}.{ext}'
-                t_eval = kwargs.pop('t_eval', None)
                 self.scope.export(path=path, t_eval=t_eval)
         else: self._converge()
         self._summary()
@@ -1703,7 +1722,7 @@ class System:
         name : str
             Name of process impact.
         basis : str
-            Functional unit for the charaterization factor.
+            Functional unit for the characterization factor.
         inventory : callable
             Should return the annualized (not hourly) inventory flow rate 
             given no parameters. Units should be in basis / yr
@@ -2146,7 +2165,7 @@ class System:
 
     def debug(self):
         """Simulate in debug mode. If an exception is raised, it will
-        automatically enter in a breakpoint"""
+        automatically enter in a breakpoint."""
         self._turn_on('debug')
         try: self.simulate()
         finally: self._turn_off()
@@ -2357,7 +2376,7 @@ class OperationMetric:
 
 class AgileSystem:
     """
-    Class for creating objects which may serve to retrive
+    Class for creating objects which may serve to retrieve
     general results from multiple operation modes in such a way that it
     represents an agile production process. When simulated, an AgileSystem
     generates results from system operation modes and compile them to
