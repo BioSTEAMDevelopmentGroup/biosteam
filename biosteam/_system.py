@@ -1637,7 +1637,7 @@ class System:
         dynsim_kwargs : dict
             Dynamic simulation keyword arguments, could include:
 
-                t_span : Iterable(float)
+                t_span : tuple(float, float)
                     Interval of integration (t0, tf).
                     The solver starts with t=t0 and integrates until it reaches t=tf.
                 state_reset_hook: str or callable
@@ -1681,11 +1681,9 @@ class System:
             # Load initial states
             self._converge()
             y0, idx, nr = self._load_state()
-            dydt = self.DAE
             dk['y0'] = y0
-            dk['dydt'] = dydt
             # Integrate
-            self.scope.sol = sol = solve_ivp(fun=dydt, y0=y0, **dk_cp)
+            self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
             if print_msg:
                 if sol.status == 0:
                     print('Simulation completed.')
