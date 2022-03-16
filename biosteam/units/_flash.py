@@ -679,9 +679,11 @@ class Evaporator_PV(Flash):
     _N_heat_utilities = 0
     _N_outs = 2
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, chemical='7732-18-5'):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P=None, V=None, chemical='7732-18-5'):
         super().__init__(ID, ins, outs, thermo)
         self.chemical = self.chemicals[chemical]
+        self.P = P
+        self.V = V
     
     @property
     def P(self):

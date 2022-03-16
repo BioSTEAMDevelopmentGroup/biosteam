@@ -68,9 +68,10 @@ def plot_scatter_points(xs, ys, color=None, s=50, zorder=1e6, edgecolor='black',
 
 def rounded_tickmarks_from_data(data, N_ticks, step_min=None, 
                                 lb_max=None, ub_min=None, expand=None, f=None,
-                                center=None, lb_min=None, ub_max=None, p=None):
-    get_max = lambda x: max([i.max() for i in x]) if isinstance(x, list) else x.max()
-    get_min = lambda x: min([i.min() for i in x]) if isinstance(x, list) else x.min()
+                                center=None, lb_min=None, ub_max=None, p=None,
+                                f_max=None, f_min=None):
+    get_max = lambda x: max([(f_max or np.max)(i) for i in x]) if isinstance(x, list) else ((f_max or np.max)(x))
+    get_min = lambda x: min([(f_min or np.min)(i) for i in x]) if isinstance(x, list) else (f_min or np.min)(x)
     lb = min([get_min(i) for i in data])
     ub = max([get_max(i) for i in data])
     return rounted_tickmarks_from_range(lb, ub, N_ticks, step_min, lb_max, ub_min, expand, f, center,
@@ -606,7 +607,8 @@ def plot_montecarlo(data,
                     positions=None,
                     xmarks=None,
                     transpose=None,
-                    vertical=True): # pragma: no coverage
+                    vertical=True,
+                    outliers=True): # pragma: no coverage
     """
     Return box plot of Monte Carlo evaluation.
     
@@ -642,16 +644,20 @@ def plot_montecarlo(data,
             positions = list(range(data.shape[1]))
     if light_color is None: light_color = default_light_color
     if dark_color is None: dark_color = default_dark_color
+    if outliers: 
+        flierprops = {'marker':'D',
+                      'markerfacecolor': light_color,
+                      'markeredgecolor': dark_color,
+                      'markersize':6}
+    else:
+        flierprops = {'marker': ''}
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
                      widths=0.8, whis=[5, 95], vert=vertical,
                      boxprops={'facecolor':light_color,
                                'edgecolor':dark_color},
                      medianprops={'color':dark_color,
                                   'linewidth':1.5},
-                     flierprops = {'marker':'D',
-                                   'markerfacecolor': light_color,
-                                   'markeredgecolor': dark_color,
-                                   'markersize':6})
+                     flierprops=flierprops)
     if xmarks: plt.xticks(positions, xmarks)
     return bx
 
@@ -732,10 +738,10 @@ def plot_kde(x, y, nbins=100, ax=None,
         plt.scatter(x, y, c=z, s=1., **kwargs)
         if xbox:
             plt.sca(xbox.axis)
-            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False)
+            plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False)
         if ybox:
             plt.sca(ybox.axis)
-            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True)
+            plot_montecarlo(y, ybox.light, ybox.dark, positions=(ybox.get_position(),), vertical=True, outliers=False)
     style_axis(ax, xticks, yticks, xticklabels, yticklabels, trim_to_limits=True,
                xtick0=xtick0, ytick0=ytick0, xtickf=xtickf, ytickf=ytickf)
     plt.sca(ax)
