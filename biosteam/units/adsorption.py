@@ -231,7 +231,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                         adsorbate_recovered = y * solvent - adsorbate_collected
                         adsorbate_arr[j] -= adsorbate_recovered
                         adsorbate_collected += adsorbate_recovered
-                self.recovery = recovery = 1 - adsorbate_arr.sum() / total_adsorbate    
+                self.recovery = recovery = 1 - adsorbate_arr.sum() / total_adsorbate
                 if target_recovery is None:
                     return mean_velocity
                 return target_recovery - recovery
@@ -250,7 +250,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             regen.F_vol = self._F_vol_regen
             TAL = feed.imol[adsorbate_ID]
             split = self.isplit[adsorbate_ID]
-            actual_split = 1 - (self.recovery * (1 - split))
+            self.actual_split = actual_split = 1 - (self.recovery * (1 - split))
             effluent.imol[adsorbate_ID] = actual_split * TAL
             purge.mol += regen.mol
             purge.imol[adsorbate_ID] = feed.imol[adsorbate_ID] - effluent.imol[adsorbate_ID]
