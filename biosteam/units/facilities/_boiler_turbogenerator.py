@@ -350,10 +350,10 @@ class BoilerTurbogenerator(Facility):
         Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent]
         Other steams produced.
-    natural_gas_price = 0.218 : float
-        Price of natural gas [USD/kg].
-    ash_disposal_price = -0.0318 : float
-        Price of disposing ash [USD/kg].
+    natural_gas_price : float
+        Price of natural gas [USD/kg]. Defaults to 0.218.
+    ash_disposal_price : float
+        Price of disposing ash [USD/kg]. Defaults to -0.0318.
         
     Notes
     -----
@@ -390,8 +390,8 @@ class BoilerTurbogenerator(Facility):
                  side_steam=None,
                  agent=None,
                  other_agents = (),
-                 natural_gas_price=0.218,
-                 ash_disposal_price=-0.0318):
+                 natural_gas_price=None,
+                 ash_disposal_price=None):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
         self.define_utility('Natural gas', self.natural_gas)
@@ -403,7 +403,8 @@ class BoilerTurbogenerator(Facility):
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = other_agents
-        self.natural_gas_price = natural_gas_price
+        if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
+        if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
         self._load_components()
         
     def _load_components(self):
@@ -439,6 +440,11 @@ class BoilerTurbogenerator(Facility):
         return self.ins[3]
     
     @property
+    def ash_disposal(self):
+        """[Stream] Ash disposal."""
+        return self.outs[2]
+    
+    @property
     def natural_gas_price(self):
         """[Float] Price of natural gas."""
         return bst.stream_utility_prices['Natural gas']
@@ -448,9 +454,13 @@ class BoilerTurbogenerator(Facility):
         bst.stream_utility_prices['Natural gas'] = new_price
     
     @property
-    def ash_disposal(self):
-        """[Stream] Ash disposal."""
-        return self.outs[2]
+    def ash_disposal_price(self):
+        """[Float] Price of natural gas."""
+        return bst.stream_utility_prices['Ash disposal']
+    
+    @ash_disposal_price.setter
+    def ash_disposal_price(self, ash_disposal_price):
+        bst.stream_utility_prices['Ash disposal'] = ash_disposal_price
     
     def _run(self): pass
 
