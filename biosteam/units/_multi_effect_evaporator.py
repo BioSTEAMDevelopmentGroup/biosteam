@@ -312,7 +312,6 @@ class MultiEffectEvaporator(Unit):
     def _run(self):
         out_wt_solids, liq = self.outs
         ins = self.ins
-
         if self.V == 0:
             out_wt_solids.copy_like(ins[0])
             for i in self.heat_utilities: 
@@ -324,6 +323,8 @@ class MultiEffectEvaporator(Unit):
         if self._reload_components:
             self._load_components()
             self._reload_components = False
+        else:
+            self.components['evaporators'][0].ins[:] = [i.copy() for i in ins]
         
         if self.V_definition == 'Overall':
             P = tuple(self.P)
