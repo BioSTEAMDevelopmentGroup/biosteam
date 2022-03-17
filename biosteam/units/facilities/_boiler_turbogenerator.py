@@ -403,6 +403,7 @@ class BoilerTurbogenerator(Facility):
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = other_agents
+        self.natural_gas_price = natural_gas_price
         self._load_components()
         
     def _load_components(self):
@@ -436,6 +437,15 @@ class BoilerTurbogenerator(Facility):
     def natural_gas(self):
         """[Stream] Natural gas to satisfy steam and electricity requirements."""
         return self.ins[3]
+    
+    @property
+    def natural_gas_price(self):
+        """[Float] Price of natural gas."""
+        return bst.stream_utility_prices['Natural gas']
+    
+    @natural_gas_price.setter
+    def natural_gas_price(self, new_price):
+        bst.stream_utility_prices['Natural gas'] = new_price
     
     @property
     def ash_disposal(self):
