@@ -143,7 +143,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             vessel_type='Vertical',
             regeneration_fluid=dict(N2=0.78, O2=0.32, phase='g', units='kg/hr'),
             void_fraction=0.35, # Only matters when K given; 0.30 - 0.35 for activated carbon
-            length_plus=0.61, # Equilibrium length plus 2 ft accounting for mass transfer limitations
+            length_plus=0.61, # Additional length of a column to account for mass transfer limitations (due to unused bed). Defaults to +2 ft per column.
             drying_time=0., # Time for drying after regeneration
             T_air = 100 + 273.15,
             adsorbent='Activated carbon',
@@ -202,10 +202,10 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             def f_efficiency(mean_velocity):
                 self.diameter = diameter = 2 * sqrt(F_vol_feed / (mean_velocity * pi))
                 self.area = area = pi * diameter * diameter / 4
-                online_length = (
-                    self.online_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
-                ) + self.length_plus
-                self.length = length = online_length / 2. # Size of each column
+                total_length = (
+                    self.cycle_time * F_mass_adsorbate / (adsorbent_capacity * rho_adsorbent * area)
+                ) + self.length_plus # length of equilibrium section plus unused bed (LES + LUB)
+                self.length = length = total_length / 2 # Size of each column
                 regeneration_velocity = self.regeneration_velocity
                 self.radius = radius = diameter * 0.5
                 self._F_vol_regen = F_vol_regen = radius * radius * regeneration_velocity * pi
@@ -282,10 +282,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             except:
                 breakpoint()
             purge.mol -= retained_ethanol_mol
-        
-    @property
-    def online_time(self):
-        return 2 * self.cycle_time # 3 columns (1 quard, 1 active, 1 regenerating)
     
     def _design(self):
         feed = self.ins[0]
