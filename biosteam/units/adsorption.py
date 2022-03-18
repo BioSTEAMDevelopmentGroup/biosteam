@@ -292,8 +292,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         design_results.update(
             self._vessel_design(
                 feed.P * 0.000145038, # Pa to psi
-                diameter / 3.28084, # m to ft
-                length / 3.28084, # m to ft
+                diameter * 3.28084, # m to ft
+                length * 3.28084, # m to ft
             )
         )    
         self.heat_utilities[0](self.regeneration_purge.H, 273.15 + 25, self.T_regeneration)
