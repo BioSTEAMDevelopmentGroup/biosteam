@@ -143,7 +143,7 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             vessel_type='Vertical',
             regeneration_fluid=dict(N2=0.78, O2=0.32, phase='g', units='kg/hr'),
             void_fraction=0.35, # Only matters when K given; 0.30 - 0.35 for activated carbon
-            length_plus=0.61, # Additional length of a column to account for mass transfer limitations (due to unused bed). Defaults to +2 ft per column.
+            length_plus=1.219, # Additional length of a column to account for mass transfer limitations (due to unused bed). Defaults to +2 ft per column.
             drying_time=0., # Time for drying after regeneration
             T_air = 100 + 273.15,
             adsorbent='Activated carbon',
