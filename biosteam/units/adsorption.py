@@ -157,7 +157,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
-    auxiliary_unit_names = ('heat_exchanger',)
+    auxiliary_unit_names = ('heat_exchanger_regeneration',
+                            'heat_exchanger_drying')
     
     # In $/ft3
     adsorbent_cost = {
@@ -226,8 +227,12 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.target_recovery = target_recovery
         self.adsorbent = adsorbent
         self.K = K
-        self.heat_exchanger = bst.HXutility(None, None, None, thermo=thermo)
-        self.heat_utilities = self.heat_exchanger.heat_utilities
+        self.heat_exchanger_regeneration = bst.HXutility(None, None, None, thermo=thermo)
+        self.heat_exchanger_drying = bst.HXutility(None, None, None, thermo=thermo)
+        self.heat_utilities = (
+            *self.heat_exchanger_regeneration.heat_utilities,
+            *self.heat_exchanger_drying.heat_utilities,
+        )
         
     @property
     def effluent(self):
@@ -297,22 +302,23 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         if self.drying_time:
             air_purge.empty()
             air_purge.T = self.T_air
-            air_purge.P = 101325
-            air_purge.imass['N2', 'O2'] = [0.78, 0.32]
+            air_purge.P = 10 * 101325
+            air_purge.imass['N2'] = 1
             air_purge.phase = dry_air.phase = 'g'
             air_purge.F_vol = self.area * self.air_velocity * self.drying_time / self.cycle_time
             dry_air.copy_like(air_purge)
-            
-            retained_ethanol_mol = self.wet_retention * regen.mol / self.N_washes
-            air_purge.mol += retained_ethanol_mol
+            retained_ethanol_vol = self.wet_retention * self.void_volume 
+            retained_ethanol_mol = retained_ethanol_vol * (regen.mol / regen.F_vol)
+            ethanol_mol = retained_ethanol_mol / self.cycle_time
+            air_purge.mol += ethanol_mol
             H_out = air_purge.H
             regen._property_cache.clear()
-            H_in0 = self.wet_retention * regen.H / self.N_washes
+            H_in0 = (regen.H / regen.F_vol) * retained_ethanol_vol # H_solvent 
             try:
                 dry_air.H = H_out - H_in0
             except:
                 breakpoint()
-            purge.mol -= retained_ethanol_mol
+            purge.mol -= ethanol_mol
     
     def _design(self):
         feed, regen, dry_air = self.ins
@@ -327,13 +333,21 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                 length * 3.28084, # m to ft
             )
         )
-        hx = self.heat_exchanger
-        hx.ins.empty()
-        hx.outs.empty()
-        hx.ins[0] = regen.copy()
-        hx.outs[0] = regen.copy()
-        hx.T = self.T_regeneration
-        hx.simulate()
+        hxr = self.heat_exchanger_regeneration
+        hxr.ins.empty()
+        hxr.outs.empty()
+        hxr.ins[0] = regen.copy()
+        hxr.outs[0] = regen.copy()
+        hxr.T = self.T_regeneration
+        hxr.simulate()
+        hxd = self.heat_exchanger_drying
+        hxd.ins.empty()
+        hxd.outs.empty()
+        hxd.ins[0] = fresh_air = dry_air.copy()
+        fresh_air.T = 298.15
+        hxd.outs[0] = dry_air.copy()
+        hxd.T = dry_air.T
+        hxd.simulate()
     
     def _cost(self):
         design_results = self.design_results
