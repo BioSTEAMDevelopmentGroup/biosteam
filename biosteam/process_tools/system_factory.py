@@ -20,8 +20,8 @@ __all__ = ('SystemFactory', )
 
 class SystemFactory:
     """
-    Decorate a function that returns a system when called, allowing it to
-    default the ID, ins, and outs parameters.
+    Decorate a function to return a system from the unit operations it creates 
+    when called, allowing it to default the ID, ins, and outs parameters.
     
     Parameters
     ----------

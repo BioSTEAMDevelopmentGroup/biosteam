@@ -367,7 +367,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
         stream_quenched = False
         for hot in potential_matches:
             match = (hot, cold)
-            ID = 'HX_%s_%s_hs' % match
+            ID = 'HX_%s_%s_hs' % (cold, hot)
             if ID in attempts or (avoid_recycle and match in success): continue
             attempts.add(ID)
             Q_hstr = Q_hot_side[hot][1]
@@ -450,7 +450,7 @@ def synthesize_network(hus, T_min_app=5., Qmin=1e-3, force_ideal_thermo=False,
         if Q_hot_side[hot][0]=='cool' and Q_hot_side[hot][1]>0:
             for cold in cold_indices:
                 match = (hot, cold)
-                ID = 'HX_%s_%s_hs' % match
+                ID = 'HX_%s_%s_hs' % (cold, hot)
                 if ID in attempts or (avoid_recycle and match in success): continue
                 attempts.add(ID)
                 # if ((hot in matches_cs and cold in matches_cs[hot])

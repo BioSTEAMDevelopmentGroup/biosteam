@@ -118,24 +118,23 @@ class MultiEffectEvaporator(Unit):
                         Furfural    0.000967
     
     >>> E1.results()
-    Multi-Effect Evaporator                Units                            E1
-    Low pressure steam    Duty             kJ/hr                       5.8e+05
-                          Flow           kmol/hr                          14.9
-                          Cost            USD/hr                          3.55
-    Cooling water         Duty             kJ/hr                     -3.49e+05
-                          Flow           kmol/hr                           239
-                          Cost            USD/hr                         0.116
-    Medium pressure steam Duty             kJ/hr                      9.29e+04
-                          Flow           kmol/hr                          2.56
-                          Cost            USD/hr                         0.707
-    Design                Area               m^2                            11
-                          Volume             m^3                          1.29
-                          Vacuum system           Steam-jet ejector, one stage
-    Purchase cost         Condenser          USD                      5.35e+03
-                          Evaporators        USD                      9.59e+03
-                          Vacuum system      USD                           716
-    Total purchase cost                      USD                      1.57e+04
-    Utility cost                          USD/hr                          4.38
+    Multi-Effect Evaporator              Units                                  E1
+    Power               Rate                kW                                5.72
+                        Cost            USD/hr                               0.447
+    Low pressure steam  Duty             kJ/hr                             5.8e+05
+                        Flow           kmol/hr                                14.9
+                        Cost            USD/hr                                3.55
+    Cooling water       Duty             kJ/hr                           -3.49e+05
+                        Flow           kmol/hr                                 239
+                        Cost            USD/hr                               0.116
+    Design              Area               m^2                                  11
+                        Volume             m^3                                1.29
+                        Vacuum system           Liquid-ring pump, one stage wat...
+    Purchase cost       Condenser          USD                            5.35e+03
+                        Evaporators        USD                            9.59e+03
+                        Vacuum system      USD                            1.24e+04
+    Total purchase cost                    USD                            2.74e+04
+    Utility cost                        USD/hr                                4.12
     
     Concentrate sugar setting overall vapor fraction:
     
@@ -174,24 +173,23 @@ class MultiEffectEvaporator(Unit):
                         Furfural    0.000462
     
     >>> E1.results()
-    Multi-Effect Evaporator                Units                            E1
-    Low pressure steam    Duty             kJ/hr                      3.82e+05
-                          Flow           kmol/hr                          9.85
-                          Cost            USD/hr                          2.34
-    Cooling water         Duty             kJ/hr                     -1.15e+05
-                          Flow           kmol/hr                          78.5
-                          Cost            USD/hr                        0.0383
-    Medium pressure steam Duty             kJ/hr                      9.29e+04
-                          Flow           kmol/hr                          2.56
-                          Cost            USD/hr                         0.707
-    Design                Area               m^2                          1.64
-                          Volume             m^3                          6.62
-                          Vacuum system           Steam-jet ejector, one stage
-    Purchase cost         Condenser          USD                      3.89e+03
-                          Evaporators        USD                      2.77e+03
-                          Vacuum system      USD                           488
-    Total purchase cost                      USD                      7.15e+03
-    Utility cost                          USD/hr                          3.09
+    Multi-Effect Evaporator              Units                                  E1
+    Power               Rate                kW                                5.72
+                        Cost            USD/hr                               0.447
+    Low pressure steam  Duty             kJ/hr                            3.82e+05
+                        Flow           kmol/hr                                9.85
+                        Cost            USD/hr                                2.34
+    Cooling water       Duty             kJ/hr                           -1.15e+05
+                        Flow           kmol/hr                                78.5
+                        Cost            USD/hr                              0.0383
+    Design              Area               m^2                                1.64
+                        Volume             m^3                                6.62
+                        Vacuum system           Liquid-ring pump, one stage wat...
+    Purchase cost       Condenser          USD                            3.89e+03
+                        Evaporators        USD                            2.77e+03
+                        Vacuum system      USD                            1.24e+04
+    Total purchase cost                    USD                            1.91e+04
+    Utility cost                        USD/hr                                2.83
     
     """
     line = 'Multi-Effect Evaporator'
