@@ -535,7 +535,7 @@ class Unit:
             pc_auxiliary = unit.purchase_costs
             ic_auxiliary = unit.installed_costs
             for i in unit.baseline_purchase_costs:
-                j = ' - '.join([name.capitalize(), i])
+                j = ' - '.join([name.capitalize().replace('_', ' '), i])
                 if j in baseline_purchase_costs: 
                     raise RuntimeError(
                         f"'{j}' already in `baseline_purchase_cost` "
@@ -822,7 +822,7 @@ class Unit:
             if callable(specification): specification = [(specification, ())]
             self._specification = specification
         else:
-            self._specification = None
+            self._specification = []
     
     @property
     def baseline_purchase_cost(self):

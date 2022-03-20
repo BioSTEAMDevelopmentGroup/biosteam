@@ -53,7 +53,8 @@ class SolidsSeparator(Splitter):
         Fraction of water in solids
     
     """
-    _N_ins = 2
+    _N_ins = 1
+    _ins_size_is_fixed = False
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  order=None, split, moisture_content=None):
