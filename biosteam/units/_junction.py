@@ -71,7 +71,7 @@ class Junction(Unit):
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         self._register(ID)
         thermo = self._load_thermo(thermo)
-        self._specification = None
+        self._specification = []
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
     
