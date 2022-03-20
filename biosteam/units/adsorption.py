@@ -186,7 +186,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
             superficial_velocity=7.2, # m / hr; typical velocities are 4 to 14.4 m /hr for liquids; Adsorption basics Alan Gabelman (2017) Adsorption basics Part 1. AICHE
             regeneration_velocity=1332, # Mid point in velocity range for gasses, m / hr; Alan Gabelman (2017) Adsorption basics Part 1. AICHE
             cycle_time=3, # 1-2 hours required for thermal-swing-adsorption (TSA) for silica gels (add 1 hr for conservativeness); Seader, J. D., Separation Process Principles: Chemical and Biochemical Operations,” 3rd ed., Wiley, Hoboken, NJ (2011).
-            rho_adsorbent=480, # (in kg/m3) Common for silica gels https://www.daisogelusa.com/technical-notes/approximate-packing-density-for-daisogel-bulk-silica-gel/
+            rho_adsorbent=480, # Bulk density, including void fraction (in kg/m3) Common for silica gels https://www.daisogelusa.com/technical-notes/approximate-packing-density-for-daisogel-bulk-silica-gel/
+            rho_adsorbent_solid = None, # Solid density, excluding void fraction (in kg/m3); used only if rho_adsorbent = None or False or 0
             adsorbent_capacity=0.1, # Conservative heuristic from Seider et. al. (2017) Product and Process Design Principles. Wiley
             T_regeneration=30 + 273.15, # For silica gels; Seader, J. D., Separation Process Principles: Chemical and Biochemical Operations,” 3rd ed., Wiley, Hoboken, NJ (2011).
             vessel_material='Stainless steel 316',
@@ -227,6 +228,8 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         self.target_recovery = target_recovery
         self.adsorbent = adsorbent
         self.K = K
+        self.rho_adsorbent_solid = rho_adsorbent_solid
+        self.rho_adsorbent = rho_adsorbent if rho_adsorbent else rho_adsorbent_solid * (1-void_fraction)
         self.heat_exchanger_regeneration = bst.HXutility(None, None, None, thermo=thermo)
         self.heat_exchanger_drying = bst.HXutility(None, None, None, thermo=thermo)
         self.heat_utilities = (
