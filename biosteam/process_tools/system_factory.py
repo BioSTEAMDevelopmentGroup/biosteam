@@ -13,8 +13,38 @@ from biosteam.utils import as_stream
 from biosteam.process_tools import utils
 from inspect import signature
 
-__all__ = ('SystemFactory', )
+__all__ = ('SystemFactory', 'stream_kwargs')
 
+def stream_kwargs(
+        ID=None, flow=None, phase=None, T=None, P=None,
+        units=None, price=None, total_flow=None, thermo=None, 
+        characterization_factors=None, **kwargs
+    ):
+    """Return a dictionary of stream key word arguments as passed to 
+    Stream objects."""
+    if ID is not None:
+        kwargs['ID'] = ID
+    if flow is not None:
+        kwargs['flow'] = flow
+    if phase is not None:
+        kwargs['phase'] = phase 
+    if T is not None:
+        kwargs['T'] = T
+    if P is not None:
+        kwargs['P'] = P
+    if units is not None:
+        kwargs['units'] = units
+    if flow is not None:
+        kwargs['flow'] = flow
+    if price is not None:
+        kwargs['price'] = price 
+    if total_flow is not None:
+        kwargs['total_flow'] = total_flow
+    if thermo is not None:
+        kwargs['thermo'] = thermo
+    if characterization_factors is not None:
+        kwargs['characterization_factors'] = characterization_factors
+    return kwargs
 
 # %% System factory
 

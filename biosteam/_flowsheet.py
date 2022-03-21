@@ -97,11 +97,13 @@ class Flowsheet:
         return self._ID
     
     @classmethod
-    def from_registries(cls, stream, unit, system):
+    def from_registries(cls, ID, stream, unit, system):
         flowsheet = super().__new__(cls)
         flowsheet.stream = stream
         flowsheet.unit = unit
         flowsheet.system = system
+        flowsheet._ID = ID
+        flowsheet.flowsheet.__dict__[ID] = flowsheet
         return flowsheet
     
     @property
@@ -312,4 +314,8 @@ class MainFlowsheet(Flowsheet):
     
 #: [main_flowsheet] Main flowsheet where objects are registered by ID.
 main_flowsheet = object.__new__(MainFlowsheet)
-main_flowsheet.set_flowsheet('default')
+main_flowsheet.set_flowsheet(
+    Flowsheet.from_registries(
+        'default', Stream.registry, Unit.registry, System.registry
+    )
+)

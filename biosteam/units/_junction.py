@@ -28,16 +28,14 @@ class Junction(Unit):
     ----------    
     upstream=None : Stream or str, defaults to missing stream
         Stream that will be copied to `downstream`.
-    downstream="" : Stream or str, defaults to new stream
+    downstream="" : Stream or str, defaults to missing stream
         Flow rate, T, P, and phase information
         will be copied from `upstream` to this stream.
         If None, stream will be missing.
-    species=None : list[str], defaults to all species in common
-        IDs of species to be passed down.
     
     Examples
     --------
-    Create a Junction object and connect streams with different Species objects:
+    Create a Junction object and connect streams with different chemicals:
         
     >>> from biosteam import *
     >>> settings.set_thermo(['Water'])
@@ -73,7 +71,8 @@ class Junction(Unit):
     def __init__(self, ID="", upstream=None, downstream=None, thermo=None):
         self._register(ID)
         thermo = self._load_thermo(thermo)
-        self._specification = None
+        self._init_specification()
+        self._isdynamic = False
         self._ins = Inlets(self, 1, upstream, thermo, True, self._stacklevel)
         self._outs = Outlets(self, 1, downstream, thermo, True, self._stacklevel)
     
@@ -96,4 +95,4 @@ class Junction(Unit):
     
     def _run(self): 
         self._outs[0].copy_like(self._ins[0])
-    simulate = _run
+    simulate = Unit.run

@@ -61,12 +61,12 @@ from ._power_utility import PowerUtility
 from ._unit import Unit
 from . import _system
 from ._system import *
+from . import _flowsheet
+from ._flowsheet import *
 from . import process_tools
 from .process_tools import *
 from . import _tea
 from ._tea import *
-from . import _flowsheet
-from ._flowsheet import *
 from . import utils
 from . import units
 from .units import *

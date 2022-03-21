@@ -123,7 +123,7 @@ class Flash(design.PressureVessel, Unit):
                           Weight                               lb      9.57e+03
                           Wall thickness                       in         0.438
                           Vessel material                          Carbon steel
-    Purchase cost         Heat_exchanger - Floating head      USD      4.24e+04
+    Purchase cost         Heat exchanger - Floating head      USD      4.24e+04
                           Vertical pressure vessel            USD      4.63e+04
                           Platform and ladders                USD      1.39e+04
     Total purchase cost                                       USD      1.03e+05

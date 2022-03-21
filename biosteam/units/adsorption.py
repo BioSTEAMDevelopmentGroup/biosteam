@@ -128,24 +128,24 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     ...     adsorbate_ID='Water',
     ...  )
     >>> A1.simulate()
-    >>> A1.results()
-    Adsorption column TSA                               Units                   A1
-    Low pressure steam  Duty                            kJ/hr             1.68e+03
-                        Flow                          kmol/hr               0.0433
-                        Cost                           USD/hr               0.0103
-    Design              Number of reactors                                       3
-                        Vessel type                                       Vertical
-                        Length                             ft                 52.1
-                        Diameter                           ft                 1.67
-                        Weight                             lb              2.9e+03
-                        Wall thickness                     in                 0.25
-                        Vessel material                        Stainless steel 316
-    Purchase cost       Heat_exchanger - Double pipe      USD                  111
-                        Vertical pressure vessel          USD             1.47e+05
-                        Platform and ladders              USD             2.95e+04
-                        Silica gel                        USD             7.23e+04
-    Total purchase cost                                   USD             2.49e+05
-    Utility cost                                       USD/hr               0.0103
+    >>> A1.results(with_units=False)
+    Low pressure steam   Duty                                                    1.68e+03
+                         Flow                                                      0.0433
+                         Cost                                                      0.0103
+    Design               Number of reactors                                             3
+                         Vessel type                                             Vertical
+                         Length                                                      52.1
+                         Diameter                                                    1.67
+                         Weight                                                   2.9e+03
+                         Wall thickness                                              0.25
+                         Vessel material                              Stainless steel 316
+    Purchase cost        Heat exchanger regeneration - Double pipe                    111
+                         Vertical pressure vessel                                1.47e+05
+                         Platform and ladders                                    2.95e+04
+                         Silica gel                                              7.23e+04
+    Total purchase cost                                                          2.49e+05
+    Utility cost                                                                   0.0103
+    Name: A1, dtype: object
     
     References
     ----------
@@ -343,14 +343,17 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         hxr.outs[0] = regen.copy()
         hxr.T = self.T_regeneration
         hxr.simulate()
-        hxd = self.heat_exchanger_drying
-        hxd.ins.empty()
-        hxd.outs.empty()
-        hxd.ins[0] = fresh_air = dry_air.copy()
-        fresh_air.T = 298.15
-        hxd.outs[0] = dry_air.copy()
-        hxd.T = dry_air.T
-        hxd.simulate()
+        if self.drying_time:
+            hxd = self.heat_exchanger_drying
+            hxd.ins.empty()
+            hxd.outs.empty()
+            hxd.ins[0] = fresh_air = dry_air.copy()
+            fresh_air.T = 298.15
+            hxd.outs[0] = dry_air.copy()
+            hxd.T = dry_air.T
+            hxd.simulate()
+        else:
+            self.heat_exchanger_drying._setup()
     
     def _cost(self):
         design_results = self.design_results

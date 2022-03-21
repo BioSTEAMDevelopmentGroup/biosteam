@@ -535,7 +535,7 @@ class Unit:
             pc_auxiliary = unit.purchase_costs
             ic_auxiliary = unit.installed_costs
             for i in unit.baseline_purchase_costs:
-                j = ' - '.join([name.capitalize(), i])
+                j = ' - '.join([name.capitalize().replace('_', ' '), i])
                 if j in baseline_purchase_costs: 
                     raise RuntimeError(
                         f"'{j}' already in `baseline_purchase_cost` "
@@ -768,10 +768,10 @@ class Unit:
             except:
                 pass
     
-    def add_specification(self, specification=None, run=None):
+    def add_specification(self, specification=None, run=None, args=()):
         if not specification: return lambda specification: self.add_specification(specification, run)
         if not callable(specification): raise ValueError('specification must be callable')
-        self.specification.append(specification)
+        self.specification.append([specification, args])
         if run is not None: self.run_after_specification = run
         return specification
     
@@ -779,7 +779,7 @@ class Unit:
         """Run mass and energy balance."""
         specification = self._specification
         if specification:
-            for i in specification: i()
+            for i, args in specification: i(*args)
             if self.run_after_specification: self._run()
         else:
             self._run()
@@ -819,16 +819,10 @@ class Unit:
     @specification.setter
     def specification(self, specification):
         if specification:
-            if callable(specification):
-                self._specification = specification = [specification]
-            elif (isinstance(specification, list)
-                  and all([callable(i) for i in specification])):
-                self._specification = specification
-            else:
-                raise AttributeError(
-                    "specification must be callable or a list of callables; "
-                   f"not a '{type(specification).__name__}'"
-                )
+            if callable(specification): specification = [(specification, ())]
+            self._specification = specification
+        else:
+            self._specification = []
     
     @property
     def baseline_purchase_cost(self):
