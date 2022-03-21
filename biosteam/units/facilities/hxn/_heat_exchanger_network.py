@@ -310,17 +310,24 @@ class HeatExchangerNetwork(Facility):
             )
             energy_balance_error = Q_bal - 1
             self.energy_balance_percent_error = 100 * energy_balance_error
-            self.installed_costs['Heat exchangers'] = (
-                    sum(new_installed_costs_HXp)
-                    + sum(new_installed_costs_HXu)
-                    - sum(original_installed_costs)
-            )
-            self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
-                sum(new_purchase_costs_HXp) 
-                + sum(new_purchase_costs_HXu)
-                - sum(original_purchase_costs)
-            )
-            self.heat_utilities = hus_final
+            
+            if new_HXs:
+                self.installed_costs['Heat exchangers'] = (
+                        sum(new_installed_costs_HXp)
+                        + sum(new_installed_costs_HXu)
+                        - sum(original_installed_costs)
+                )
+                self.purchase_costs['Heat exchangers'] = self.baseline_purchase_costs['Heat exchangers'] = (
+                    sum(new_purchase_costs_HXp) 
+                    + sum(new_purchase_costs_HXu)
+                    - sum(original_purchase_costs)
+                )
+                self.heat_utilities = hus_final
+            else: # if no matches were made, retain all original HXutilities (i.e., don't add the -- relatively minor -- differences between nuew and HXutilities)
+                self.installed_costs['Heat exchangers'] = 0.
+                self.purchase_costs['Heat exchangers'] = 0.
+                self.heat_utilities = tuple([])
+                
             self.original_heat_utils = hx_utils_rearranged
             self.original_purchase_costs = original_purchase_costs
             self.original_utility_costs = hu_sums1
