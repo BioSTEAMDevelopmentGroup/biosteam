@@ -137,7 +137,7 @@ class UtilityAgent(Stream):
         new._price = 0.
         new._user_equilibrium = self._user_equilibrium
         new.characterization_factors = {}
-        new.ID = ID
+        new._register(ID)
         return new
     
     @property

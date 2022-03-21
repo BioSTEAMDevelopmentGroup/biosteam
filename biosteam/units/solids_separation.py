@@ -57,16 +57,18 @@ class SolidsSeparator(Splitter):
     _ins_size_is_fixed = False
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
-                 order=None, split, moisture_content=None):
+                 order=None, split, moisture_content=None, moisture_ID=None):
         Splitter.__init__(self, ID, ins, outs, thermo, order=order, split=split)
         #: Moisture content of retentate
         self.moisture_content = moisture_content
         if moisture_content is not None:
-            water_split = self.isplit['7732-18-5']
-            if water_split: 
-                warn(RuntimeWarning('cannot define both water split and moisture content'), 
+            self.moisture_ID = moisture_ID
+            if moisture_ID is None: moisture_ID = '7732-18-5'
+            split = self.isplit[moisture_ID]
+            if split: 
+                warn(RuntimeWarning('cannot define both moisture split and moisture content'), 
                      stacklevel=self._stacklevel - 6)
-                self.isplit['7732-18-5'] = 0.
+                self.isplit[moisture_ID] = 0.
     
     def _run(self):
         if self.moisture_content is None:
@@ -75,7 +77,7 @@ class SolidsSeparator(Splitter):
             )
         else:
             separations.mix_and_split_with_moisture_content(
-            self.ins, *self.outs, self.split, self.moisture_content,
+            self.ins, *self.outs, self.split, self.moisture_content, self.moisture_ID
         )
 
 
