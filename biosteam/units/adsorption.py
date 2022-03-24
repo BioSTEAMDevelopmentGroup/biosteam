@@ -248,6 +248,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     def _run(self):
         feed, regen, dry_air = self.ins
         effluent, purge, air_purge = self.outs 
+        regen.empty()
+        dry_air.empty()
+        for i in self.outs: i.empty()
         feed.split_to(effluent, purge, self.split)
         F_vol_feed = feed.F_vol
         superficial_velocity = self.superficial_velocity
