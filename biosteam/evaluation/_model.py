@@ -322,13 +322,16 @@ class Model(State):
         table[var_indices(self._metrics)] = values
     
     def _evaluate_sample(self, sample, thorough, **dyn_sim_kwargs):
+        state_updated = False
         try:
             self._update_state(sample, thorough, **dyn_sim_kwargs)
+            state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
             self._reset_system()
-            if self.retry_evaluation:
+            if self.retry_evaluation and state_updated:
                 try:
+                    self._update_state(sample, thorough, **dyn_sim_kwargs)
                     self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
