@@ -121,6 +121,12 @@ class BatchCrystallizer(Unit):
         effluent.T = self.T
         effluent.P = 101325
     
+    def _run(self):
+        effluent, = self.outs
+        effluent.copy_like(self.ins[0])
+        effluent.T = self.T
+        effluent.P = 101325
+    
     @property
     def effluent(self):
         return self.outs[0]

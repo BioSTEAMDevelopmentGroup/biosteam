@@ -93,12 +93,13 @@ class DrumDryer(Unit):
         return self.ins[2]
     
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *,
-                 split, R=1.4, H=20., length_to_diameter=25, T=343.15,
+                 split, R=1.4, H=20., length_to_diameter=25, T=343.15, P=10*101325,
                  moisture_content=0.15, utility_agent='Natural gas',
                  moisture_ID=None):
         super().__init__(ID, ins, outs, thermo)
         self._isplit = self.chemicals.isplit(split)
         self.define_utility('Natural gas', self.natural_gas)
+        self.P = P
         self.T = T
         self.R = R
         self.H = H
@@ -126,6 +127,7 @@ class DrumDryer(Unit):
         dry_solids, hot_air, emissions = self.outs
         wet_solids.split_to(hot_air, dry_solids, self.split)
         sep.adjust_moisture_content(dry_solids, hot_air, self.moisture_content, self.moisture_ID)
+        hot_air.P = air.P = self.P
         emissions.phase = air.phase = natural_gas.phase = hot_air.phase = 'g'
         design_results = self.design_results
         design_results['Evaporation'] = evaporation = hot_air.F_mass
