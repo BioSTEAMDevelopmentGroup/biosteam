@@ -210,7 +210,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
         bst.Splitter.__init__(self, ID, ins, outs, thermo, order=order, split=split)
         self.superficial_velocity = superficial_velocity
         self.cycle_time = cycle_time
-        self.rho_adsorbent = rho_adsorbent
         self.adsorbent_capacity = adsorbent_capacity
         self.adsorbate_ID = adsorbate_ID
         self.vessel_material = vessel_material
@@ -248,9 +247,6 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     def _run(self):
         feed, regen, dry_air = self.ins
         effluent, purge, air_purge = self.outs 
-        regen.empty()
-        dry_air.empty()
-        for i in self.outs: i.empty()
         feed.split_to(effluent, purge, self.split)
         F_vol_feed = feed.F_vol
         superficial_velocity = self.superficial_velocity
@@ -274,7 +270,9 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
                     self.superficial_velocity = superficial_velocity = 0.1 # set minimum velocity
                 else:
                     self.superficial_velocity = superficial_velocity = flx.IQ_interpolation(
-                        f, 0.1, 14.4, x=self.superficial_velocity, xtol=0.01, ytol=0.001, y0=y0, y1=y1,
+                        f, 0.1, 14.4, 
+                        # x=self.superficial_velocity,
+                        xtol=1e-6, ytol=1e-9, y0=y0, y1=y1,
                         args=args,
                     )
             (_, self.diameter, self.area, self.length,  
