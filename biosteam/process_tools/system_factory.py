@@ -68,10 +68,14 @@ class SystemFactory:
         Whether the number of inlets must match the number expected.
     fixed_outs_size : bool, optional
         Whether the number of outlets must match the number expected.
-    optional_ins_index : list[int]
+    optional_ins_index : list[int], optional
         Indexes of inlets that need not be connected to any unit within the system.
-    optional_outs_index : list[int]
+    optional_outs_index : list[int], optional
         Indexes of inlets that need not be connected to any unit within the system.
+    fthermo : callable, optional
+        Function that returns a :class:`~thermosteam.Thermo` object. The SystemFactory
+        object resorts to this function if no default thermodynamic property package
+        is available.
     
     Examples
     --------
@@ -153,15 +157,19 @@ class SystemFactory:
     <Pump: P201>
     
     """
-    __slots__ = ('f', 'ID', 'ins', 'outs',
-                 'fixed_ins_size',
-                 'fixed_outs_size',
-                 'optional_ins_index',
-                 'optional_outs_index')
+    __slots__ = (
+        'f', 'ID', 'ins', 'outs',
+        'fixed_ins_size',
+        'fixed_outs_size',
+        'optional_ins_index',
+        'optional_outs_index',
+        'fthermo',
+    )
     
     def __new__(cls, f=None, ID=None, ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True,
-                optional_ins_index=(), optional_outs_index=()):
+                optional_ins_index=(), optional_outs_index=(),
+                fthermo=None):
         if f:
             params = list(signature(f).parameters)
             if params[:2] != ['ins', 'outs']:
@@ -180,14 +188,17 @@ class SystemFactory:
             self.fixed_outs_size = fixed_outs_size
             self.optional_ins_index = optional_ins_index
             self.optional_outs_index = optional_outs_index
+            self.fthermo = fthermo
             return self
         else:
             return lambda f: cls(f, ID, ins, outs, 
                                  fixed_ins_size, fixed_outs_size,
-                                 optional_ins_index, optional_outs_index)
+                                 optional_ins_index, optional_outs_index,
+                                 fthermo)
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
                  operating_hours=None, **kwargs):
+        if not bst.settings._thermo and self.fthermo: bst.settings.set_thermo(self.fthermo())
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
