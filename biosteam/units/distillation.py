@@ -1502,6 +1502,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         checkbounds=False,
     )
     iter_solver_kwargs = dict(
+        xtol=5e-6,
         checkiter=False,
         checkconvergence=False, 
         convergenceiter=3,
@@ -1674,7 +1675,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._distillate_recoveries
         flx.wegstein(self._recompute_distillate_recoveries,
-                     distillate_recoveries, 1e-8, **self.iter_solver_kwargs)
+                     distillate_recoveries,**self.iter_solver_kwargs)
         
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
