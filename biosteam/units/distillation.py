@@ -1497,7 +1497,16 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _N_ins = 1
     _N_outs = 2
     minimum_guess_distillate_recovery = 1e-11
-     
+    bounded_solver_kwargs = dict(
+        checkiter=False,
+        checkbounds=False,
+    )
+    iter_solver_kwargs = dict(
+        checkiter=False,
+        checkconvergence=False, 
+        convergenceiter=3,
+    )
+    
     def _run(self):
         # Initial mass balance
         self._run_binary_distillation_mass_balance()
@@ -1614,8 +1623,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         bracket = flx.find_bracket(objective_function_Underwood_constant,
                                    1.0, alpha_LK, lb, ub, args)
         theta = flx.IQ_interpolation(objective_function_Underwood_constant,
-                                     *bracket, args=args, checkiter=False,
-                                     checkbounds=False)
+                                     *bracket, args=args, **self.bounded_solver_kwargs)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
@@ -1666,8 +1674,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._distillate_recoveries
         flx.wegstein(self._recompute_distillate_recoveries,
-                     distillate_recoveries, 1e-8, checkiter=False,
-                     checkconvergence=False, convergenceiter=3)
+                     distillate_recoveries, 1e-8, **self.iter_solver_kwargs)
         
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
