@@ -44,12 +44,14 @@ References
 from .._unit import Unit
 from .decorators import cost
 from .splitting import Splitter
+from .solids_separation import SolidsSeparator
 from biosteam.utils import remove_undefined_chemicals, default_chemical_dict
 import biosteam as bst
 import thermosteam as tmo
 from thermosteam import (
     utils,
     settings,
+    separations,
     Reaction as Rxn,
     ParallelReaction as PRxn,
 )
@@ -168,17 +170,15 @@ class AnaerobicDigestion(Unit):
         Split between wastewater and sludge.
     ins : stream sequence
         * [0] Wastewater
-        * [1] Cool well water
     outs : stream sequence
         * [0] Biogas
         * [1] Wastewater
         * [2] Sludge
-        * [3] Hot well water
     
     """
     purchase_cost = installation_cost = 0
-    _N_ins = 2
-    _N_outs = 4
+    _N_ins = 1
+    _N_outs = 3
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  reactions=None, sludge_split=None):
         Unit.__init__(self, ID, ins, outs, thermo)
@@ -247,14 +247,10 @@ class AnaerobicDigestion(Unit):
         self.multi_stream = tmo.MultiStream(thermo=self.thermo)
     
     def _run(self):
-        feed, cool_water = self.ins
-        biogas, waste, sludge, hot_water = self.outs
+        feed, = self.ins
+        biogas, waste, sludge = self.outs
         biogas.phase = 'g'
-        hot_water.link_with(cool_water, TP=False)
-        biogas.T = waste.T = sludge.T = T = 35+273.15
-        hot_water.T = feed.T - 5
-        H_at_35C = feed.thermo.mixture.H('l', feed.mol, T, 101325)
-        cool_water.mol[:] *= (feed.H - H_at_35C)/(hot_water.H - cool_water.H)
+        biogas.T = waste.T = sludge.T = 35+273.15
         sludge.copy_flow(feed)
         self.reactions(sludge)
         self.multi_stream.copy_flow(sludge)
@@ -321,7 +317,7 @@ class AerobicDigestion(Unit):
         
 
 # TODO: Use moisture content
-class SludgeCentrifuge(Splitter):
+class SludgeCentrifuge(SolidsSeparator):
     """
     Create a centrifuge to separate sludge. The model is based on 
     component splits.
@@ -343,12 +339,11 @@ class SludgeCentrifuge(Splitter):
     """
     purchase_cost = installation_cost = 0
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 split=None, order=None):
+                 split=None, order=None, moisture_content=0.46):
         self._load_thermo(thermo)
         if split is None:
             chemicals = self.chemicals
             split = dict(
-                Water=0.934,
                 Furfural=1,
                 Glycerol=0.8889,
                 LacticAcid=0.935,
@@ -400,7 +395,16 @@ class SludgeCentrifuge(Splitter):
             )
             remove_undefined_chemicals(split, chemicals)
             default_chemical_dict(split, chemicals, 0.9394, 0.9286, 0.04991)
-        Splitter.__init__(self, ID, ins, outs, thermo, split=split, order=order)
+        SolidsSeparator.__init__(
+            self, ID, ins, outs, thermo, split=split, order=order,
+            moisture_content=moisture_content, 
+        )
+        
+    def _run(self):
+        ins = self.ins
+        retentate, permeate = self.outs # Filtrate, solids
+        separations.mix_and_split(ins, retentate, permeate, self.split)
+        separations.adjust_moisture_content(permeate, retentate, self.moisture_content, None)
         
 # TODO: Split values seem arbitrary in NREL 2011 model, perhaps work on a better model
 class MembraneBioreactor(Splitter):
@@ -502,7 +506,7 @@ class ReverseOsmosis(Unit):
         brine.mol[water_index] = water_flow - water_recovered
 
 
-def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
+def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476):
     """
     Create units for wastewater treatment, including anaerobic and aerobic 
     digestion reactors, a membrane bioreactor, a sludge centrifuge, 
@@ -518,21 +522,20 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
         * [2] treated_water
         * [3] waste_brine 
     NaOH_price : float, optional
-        Price of NaOH in USD/kg. The default is 0.15.
+        Price of NaOH in USD/kg. The default is 0.07476.
     
     """
     methane, sludge, treated_water, waste_brine = outs
-    well_water = bst.Stream('well_water', Water=1, T=15+273.15)
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
                      units='kg/hr', price=NaOH_price)
     
     wastewater_mixer = bst.Mixer('M601', ins)
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
-    anaerobic_digestion = AnaerobicDigestion('R601', (WWTC-0, well_water), (methane, '', '', ''))
-    recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None))
+    anaerobic_digestion = AnaerobicDigestion('R601', WWTC-0, (methane, '', ''))
+    recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None, None))
     
-    caustic_over_waste = 2 * caustic.imol['Water', 'NaOH'] / 2544301
+    caustic_over_waste = caustic.imol['Water', 'NaOH'] / 2544301
     air_over_waste = air.imol['O2', 'N2'] / 2544301
     air.mol[:] = 0.
     waste = recycled_sludge_mixer-0
@@ -549,19 +552,59 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.15):
     membrane_bioreactor = MembraneBioreactor('S601', aerobic_digestion-1)
     sludge_splitter = bst.Splitter('S602', membrane_bioreactor-1, split=0.96)
     fresh_sludge_mixer = bst.Mixer('M603', (anaerobic_digestion-2, sludge_splitter-1))
+    sludge_splitter-0-2-recycled_sludge_mixer
     sludge_centrifuge = SludgeCentrifuge('S603', fresh_sludge_mixer-0, outs=('', sludge))
     sludge_centrifuge-0-1-recycled_sludge_mixer
     reverse_osmosis = ReverseOsmosis('S604', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
 
+def default_wastewater_thermo():
+    from biorefineries.cornstover import chemicals
+    return chemicals
+
 create_wastewater_treatment_system = bst.SystemFactory(
     f=create_wastewater_treatment_units,
     ID='wastewater_treatment_sys',
+    ins=[dict(ID='wastewater', 
+              Water=2.634e+04, 
+              Ethanol=0.07225, 
+              AceticAcid=24.67, 
+              Furfural=6.206, 
+              Glycerol=1.784, 
+              LacticAcid=17.7, 
+              SuccinicAcid=3.472, 
+              DAP=1.001, 
+              AmmoniumSulfate=17.63, 
+              HMF=2.366, 
+              Glucose=2.816, 
+              Xylose=6.953, 
+              Arabinose=12.78, 
+              Extract=65.98, 
+              Ash=83.52, 
+              Lignin=1.659, 
+              SolubleLignin=4.202, 
+              GlucoseOligomer=6.796, 
+              GalactoseOligomer=0.01718, 
+              MannoseOligomer=0.009008, 
+              XyloseOligomer=2.878, 
+              ArabinoseOligomer=0.3508, 
+              Z_mobilis=0.6668, 
+              Protein=2.569, 
+              Glucan=0.1555, 
+              Xylan=0.06121, 
+              Xylitol=4.88, 
+              Cellobiose=0.9419, 
+              Arabinan=0.02242, 
+              Mannan=0.06448, 
+              Galactan=0.01504, 
+              Cellulase=25.4, 
+              units='kmol/hr')],
     outs=[dict(ID='methane'),
           dict(ID='sludge'),
           dict(ID='treated_water'),
           dict(ID='waste_brine')],
     fixed_ins_size=False,
+    fthermo=default_wastewater_thermo,
 )
 """
 Return a system for wastewater treatment, which includes anaerobic and aerobic 
@@ -588,5 +631,12 @@ udct : bool, optional
     Whether to also return fictionary of units with their original IDs as keys.
 NaOH_price : float, optional
     Price of NaOH in USD/kg. The default is 0.15.
+
+Examples
+--------
+>>> from biosteam import create_wastewater_treatment_system
+>>> wwt_sys = create_wastewater_treatment_system()
+>>> wwt_sys.simulate()
+>>> wwt_sys.show()
 
 """
