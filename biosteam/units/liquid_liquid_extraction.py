@@ -1182,6 +1182,14 @@ class MultiStageMixerSettlers(bst.Unit):
     raffinate = MixerSettler.raffinate
     extract = MixerSettler.extract
     
+    @property
+    def partition_data(self):
+        return self._partition_data
+    @partition_data.setter
+    def partition_data(self, partition_data):
+        self._partition_data = partition_data
+        self._last_args = None
+    
     def _setup(self):
         super()._setup()
         args = (self.stages, self.feed, self.solvent, self.carrier_chemical)
