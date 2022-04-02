@@ -7,6 +7,7 @@ Created on Sat May  2 16:44:24 2020
 import numpy as np
 import copy
 import biosteam as bst
+from warnings import warn
 
 __all__ = ('StreamLifeCycle', 'synthesize_network')
 
@@ -159,14 +160,17 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
     for i in range(len(all_Ts_descending)-1):
         T_start = all_Ts_descending[i]
         T_end = all_Ts_descending[i+1]
-        for stream_index in range(len(T_changes_tuples)):
+        for stream_index in indices:
             T1, T2 = T_changes_tuples[stream_index]
             if (T1 >= T_start and T2 <= T_end) or (T2 >= T_start and T1 <= T_end):
                 multiplier = -1 if is_cold_stream_index(stream_index) else 1
                 stream = streams_inlet[stream_index].copy()
                 if stream.T != T_start: stream.vle(T = T_start, P = stream.P)
                 H1 = stream.H
-                stream.vle(T = T_end, P = stream.P)
+                try:
+                    stream.vle(T = T_end, P = stream.P)
+                except:
+                    warn(f"could not solve VLE for {repr(stream)} at {repr(hxs[stream_index].owner)}", RuntimeWarning)
                 H2 = stream.H
                 H = multiplier*(H1 - H2)
                 H_for_T_intervals[(T_start, T_end)] += H
