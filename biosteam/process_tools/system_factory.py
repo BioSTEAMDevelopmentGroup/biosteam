@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from thermosteam import Stream
+import thermosteam as tmo
 import biosteam as bst
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
@@ -197,8 +197,11 @@ class SystemFactory:
                                  fthermo)
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
-                 operating_hours=None, **kwargs):
+                 operating_hours=None, autorename=None, **kwargs):
         if not bst.settings._thermo and self.fthermo: bst.settings.set_thermo(self.fthermo())
+        if autorename is not None: 
+            original_autorename = tmo.utils.Registry.AUTORENAME
+            tmo.utils.Registry.AUTORENAME = autorename
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
@@ -210,6 +213,7 @@ class SystemFactory:
             self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, optional=[ins[i] for i in self.optional_ins_index])
         system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
+        if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if rename: 
             units = system.units
             if udct: unit_dct = {i.ID: i for i in units}
@@ -250,6 +254,7 @@ class SystemFactory:
     _ipython_display_ = show
         
 def create_streams(defaults, user_streams, kind, fixed_size):
+    Stream = tmo.Stream
     if user_streams is None:
         return [Stream(**kwargs) for kwargs in defaults]
     isa = isinstance
