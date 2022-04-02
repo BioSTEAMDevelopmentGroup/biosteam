@@ -313,7 +313,15 @@ class Network:
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         network.add_process_heat_exchangers()
+        network.simplify()
         return network
+    
+    def simplify(self):
+        isa = isinstance
+        if isa(self.recycle, set) and isa(self.recycle_sink, (bst.Mixer, bst.MixTank)):
+            self.recycle = self.recycle_sink.outs[0]
+        for i in self.path:
+            if isa(i, Network): i.simplify()
     
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance
