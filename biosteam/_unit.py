@@ -387,6 +387,9 @@ class Unit:
         #: [bool] Whether to run mass and energy balance after calling
         #: specification functions
         self.run_after_specification = False 
+        
+        #: [bool] Safety toggle to prevent infinite recursion
+        self._running_specification = False
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -778,9 +781,11 @@ class Unit:
     def run(self):
         """Run mass and energy balance."""
         specification = self._specification
-        if specification:
+        if specification and not self._running_specification:
+            self._running_specification = True
             for i, args in specification: i(*args)
             if self.run_after_specification: self._run()
+            self._running_specification = False
         else:
             self._run()
             
