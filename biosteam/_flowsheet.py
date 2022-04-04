@@ -239,15 +239,17 @@ class Flowsheet:
             network = Network([])
         return network
     
-    def __call__(self, ID):
+    def __call__(self, ID, strict=False):
         """
-		Return requested biosteam item or all items with given Unit subclass.
+		Return requested biosteam item or a list of all matching items.
     
         Parameters
         ----------
         ID : str or type
             ID of the requested item or Unit subclass.
-    
+        strict : bool
+            Whether an exact match is required. 
+            
         """
         isa = isinstance
         if isa(ID, str):
@@ -255,7 +257,16 @@ class Flowsheet:
             obj = (self.stream.search(ID)
                    or self.unit.search(ID)
                    or self.system.search(ID))
-            if not obj: raise LookupError(f"no registered item '{ID}'")
+            if not obj:
+                if strict:
+                    raise LookupError(f"no registered item '{ID}'")
+                else:
+                    obj = [i for i in self.unit if ID in ' '.join([i.__class__.__name__, i.ID])]
+                    N = len(obj)
+                    if N == 0:
+                        raise LookupError(f"no registered item '{ID}'")
+                    elif N == 1:
+                        obj = obj[0]
             return obj
         elif issubclass(ID, bst.Unit):
             cls = ID
