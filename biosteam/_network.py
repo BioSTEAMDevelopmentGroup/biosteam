@@ -227,7 +227,7 @@ class Network:
         except: self.units = nested_network_units(path)
     
     def __eq__(self, other):
-        return isinstance(other, Network) and self.path == other.path
+        return isinstance(other, Network) and self.path == other.path and self.recycle == other.recycle
     
     def get_all_recycles(self, all_recycles=None):
         if all_recycles is None:
