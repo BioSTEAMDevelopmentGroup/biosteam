@@ -270,7 +270,13 @@ class Flowsheet:
             return obj
         elif issubclass(ID, bst.Unit):
             cls = ID
-            return [i for i in self.unit if isa(i, cls)]
+            obj = [i for i in self.unit if isa(i, cls)]
+            N = len(obj)
+            if N == 0:
+                raise LookupError(f"no registered item '{ID}'")
+            elif N == 1:
+                obj = obj[0]
+            return obj
         else:
             raise ValueError('ID must be either a string or a Unit subclass')
     

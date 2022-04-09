@@ -783,9 +783,11 @@ class Unit:
         specification = self._specification
         if specification and not self._running_specification:
             self._running_specification = True
-            for i, args in specification: i(*args)
-            if self.run_after_specification: self._run()
-            self._running_specification = False
+            try:
+                for i, args in specification: i(*args)
+                if self.run_after_specification: self._run()
+            finally:
+                self._running_specification = False
         else:
             self._run()
             
