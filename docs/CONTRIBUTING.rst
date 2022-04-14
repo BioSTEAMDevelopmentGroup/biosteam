@@ -1,19 +1,6 @@
 Contributing to BioSTEAM
 ========================
 
-Monthly coordination calls
---------------------------
-
-We welcome anyone with an interest in discussing contributions to BioSTEAM to join our
-monthly meeting at 8-9am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 
-for a link to join. Next coordination call will be on February 16 (no call on January).
-Here is the agenda for this month's coordination call:
-
-.. toctree::
-   :maxdepth: 2
-   
-   coordination/February-16-2022
-
 General Process
 ---------------
 
