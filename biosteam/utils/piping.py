@@ -722,13 +722,13 @@ class StreamPorts:
         return cls([InletPort.from_inlet(i) for i in inlets], sort)
     
     @classmethod
-    def from_outlets(cls, inlets, sort=None):
-        return cls([OutletPort.from_outlet(i) for i in inlets], sort)
+    def from_outlets(cls, outlets, sort=None):
+        return cls([OutletPort.from_outlet(i) for i in outlets], sort)
     
     def __init__(self, ports, sort=None):
         if sort: ports = sorted(ports, key=lambda x: x._sorting_key())
-        self._ports = tuple(ports)
-        
+        self._ports = tuple(ports)    
+    
     def __bool__(self):
         return bool(self._ports)
         
