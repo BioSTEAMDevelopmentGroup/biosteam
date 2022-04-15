@@ -209,12 +209,6 @@ class Handle: # pragma: no coverage
             nodes.append(node)
         return nodes
 
-    def sankey_data(self, nodes, node_kwargs=None, link_kwargs=None):
-        return sankey_data(self, nodes, node_kwargs, link_kwargs)
-
-    def sankey_figure(self, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs):
-        return sankey_figure(self, nodes, node_kwargs, link_kwargs, sankey_data_kwargs, **kwargs)
-
 # %% Custum hanldes
 
 class CapitalNodeHandle(Handle): # pragma: no coverage
@@ -431,35 +425,37 @@ class Link: # pragma: no coverage
 
 # %% Functions that use plotly to create diagrams
 
-def sankey_figure(handle, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs): # pragma: no coverage
+def sankey_figure(nodes, arrangement=None, node_kwargs=None, link_kwargs=None, links=None, **kwargs): # pragma: no coverage
     import plotly.graph_objects as go
-    sankey_data_kwargs = sankey_data_kwargs or {}
-    return go.Figure(data=sankey_data(handle, nodes, node_kwargs, link_kwargs, **sankey_data_kwargs), **kwargs)
+    return go.Figure(data=sankey_data(nodes, arrangement, node_kwargs, link_kwargs, links), **kwargs)
 
-def sankey_data(handle, nodes, arrangement = 'snap', node_kwargs=None, link_kwargs=None): # pragma: no coverage
+def sankey_data(nodes, arrangement=None, 
+                node_kwargs=None, link_kwargs=None,
+                links=None): # pragma: no coverage
     import plotly.graph_objects as go
     node_kwargs = node_kwargs or {}
     link_kwargs = link_kwargs or {}
-    links = sum([i.links() for i in nodes], [])
+    if arrangement is None: arrangement = 'snap'
+    if links is None: links = sum([i.links() for i in nodes], [])
     return go.Sankey(
         arrangement = arrangement,
-        node = node_dict(handle, nodes, **node_kwargs),
-        link = link_dict(handle, links, **link_kwargs)
+        node = node_dict(nodes, **node_kwargs),
+        link = link_dict(links, **link_kwargs),
     )
 
-def node_dict(handle, nodes, **kwargs): # pragma: no coverage
+def node_dict(nodes, **kwargs): # pragma: no coverage
     nodes = sorted(nodes, key=lambda x: x.index)
-    dct = {'label': [i.name for i in nodes],
-           **kwargs}
-    if handle.process_color: dct['color'] = [i.color() for i in nodes]
-    return dct
+    return {
+        'label': [i.name for i in nodes], 
+        'color': [i.color() for i in nodes],
+        **kwargs
+    }
                                              
-def link_dict(handle, links, **kwargs): # pragma: no coverage
-    dct = {
+def link_dict(links, **kwargs): # pragma: no coverage
+    return {
         'source': [i.source.index for i in links],
         'target': [i.sink.index for i in links],
         'value': [i.value() for i in links],
+        'color': [i.color() for i in links],
         **kwargs
     }
-    if handle.stream_color: dct['color'] = [i.color() for i in links]
-    return dct
