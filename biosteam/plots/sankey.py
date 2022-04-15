@@ -106,11 +106,11 @@ def reduced_streams(streams, unit_groups):
             append = True
             unit_group = get_unit_group(s, unit_groups)
             for original in originals:
-                if get_unit_group(original, unit_groups) is unit_group:
+                if get_unit_group(original, unit_groups).name == unit_group.name:
                     original.mix_from([original, s])
                     append = False
                     break
-            if append: originals.append(s)
+            if append: originals.append(s) 
         else:
             same_IDs[ID] = [s]
     return sum(same_IDs.values(), [])
@@ -209,7 +209,7 @@ class Handle: # pragma: no coverage
             nodes.append(node)
         return nodes
 
-# %% Custum hanldes
+# %% Custom hanldes
 
 class CapitalNodeHandle(Handle): # pragma: no coverage
     """
@@ -417,7 +417,7 @@ class Link: # pragma: no coverage
         return self.handle.stream_width(self.stream)
     
     def color(self):
-        return self.handle.stream_color(self.stream)
+        return self.handle.link_color(self.stream)
         
     def __repr__(self):
         return f"<{type(self).__name__}: {self.source.name} - {self.sink.name}>"
@@ -435,7 +435,7 @@ def sankey_data(nodes, arrangement=None,
     import plotly.graph_objects as go
     node_kwargs = node_kwargs or {}
     link_kwargs = link_kwargs or {}
-    if arrangement is None: arrangement = 'snap'
+    # if arrangement is None: arrangement = 'snap'
     if links is None: links = sum([i.links() for i in nodes], [])
     return go.Sankey(
         arrangement = arrangement,
