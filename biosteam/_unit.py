@@ -18,6 +18,7 @@ from .utils import NotImplementedMethod, format_title, static
 from .utils import piping
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
+from .exceptions import UnitInheritanceError
 from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
@@ -199,6 +200,10 @@ class Unit:
                           isabstract=False,
                           new_graphics=True):
         dct = cls.__dict__
+        if 'run' in dct:
+            raise UnitInheritanceError(
+                 "the 'run' method cannot be overrided; implement `_run` instead"
+            )
         if 'line' not in dct:
             cls.line = format_title(cls.__name__)
         if 'ticket_name' not in dct:
@@ -226,26 +231,25 @@ class Unit:
         if not isabstract:
             if cls is not Unit:
                 if hasattr(cls, '_BM'): 
-                    raise NotImplementedError(
-                        'the `_BM` class attribute for bare-module factors is '
-                        'deprecated; implement `_F_BM_default` instead'
+                    raise UnitInheritanceError(
+                        'cannot set `_BM`; implement `_F_BM_default` instead'
                     )
                 elif hasattr(cls, '_F_BM_defaults'):
-                    raise NotImplementedError(
-                        '`_F_BM_defaults` is incorrect; implement '
+                    raise UnitInheritanceError(
+                        'cannot set `_F_BM_defaults`; implement '
                         '`_F_BM_default` instead'
                     )
                 elif not hasattr(cls, '_F_BM_default'):
                     cls._F_BM_default = {}
                 
                 if hasattr(cls, '_equipment_lifetime'):
-                    raise NotImplementedError(
-                        'the `_equipment_lifetime` class attribute is '
-                        'deprecated; implement `_default_equipment_lifetime` instead'
+                    raise UnitInheritanceError(
+                        'cannot set `_equipment_lifetime`; '
+                        'implement `_default_equipment_lifetime` instead'
                     )
                 elif hasattr(cls, '_default_equipment_lifetimes'):
-                    raise NotImplementedError(
-                        '`_default_equipment_lifetimes` is incorrect; implement '
+                    raise UnitInheritanceError(
+                        'cannot set `_default_equipment_lifetimes`; implement '
                         '`_default_equipment_lifetime` instead'
                     )
                 elif not hasattr(cls, '_default_equipment_lifetime'): 
@@ -255,7 +259,7 @@ class Unit:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
                 else:
-                    raise NotImplementedError(
+                    raise UnitInheritanceError(
                         "Unit subclass with multiple inlet or outlet streams "
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
