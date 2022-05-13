@@ -1858,6 +1858,10 @@ class System:
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
 
+    def has_market_value(self, stream):
+        """Return whether stream has a market value."""
+        return bool(stream.price) and not stream.isempty()
+        
     def get_property(self, stream, name, units=None):
         """Return the annualized property of a stream."""
         return stream.get_property(name, units) * self.operating_hours
@@ -2507,7 +2511,11 @@ class AgileSystem:
     def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
-  
+    
+    def has_market_value(self, stream):
+        """Return whether stream has a market value."""
+        return bool(self.flow_rates[stream] and stream.price)
+    
     def get_mass_flow(self, stream):
         """Return the mass flow rate of a stream [kg/yr]."""
         return self.flow_rates[stream]

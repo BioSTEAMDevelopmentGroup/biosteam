@@ -885,6 +885,18 @@ class Unit:
         unbalanced_array = formula_array @ mol
         return elements.array_to_atoms(unbalanced_array)
 
+    def empty(self):
+        """
+        Empty all unit operation results.
+        """
+        self.design_results.clear()
+        self.baseline_purchase_costs.clear()
+        self.purchase_costs.clear()
+        self.installed_costs.clear()
+        for i in self.outs: i.empty()
+        for i in self.heat_utilities: i.empty()
+        self.power_utility.empty()
+
     def simulate(self):
         """
         Run rigorous simulation and determine all design requirements.

@@ -425,31 +425,34 @@ class Link: # pragma: no coverage
 
 # %% Functions that use plotly to create diagrams
 
-def sankey_figure(nodes, arrangement=None, node_kwargs=None, link_kwargs=None, links=None, **kwargs): # pragma: no coverage
+def sankey_figure(nodes, arrangement=None, node_kwargs=None, link_kwargs=None, links=None, orientation=None, add_label=None, **kwargs): # pragma: no coverage
     import plotly.graph_objects as go
-    return go.Figure(data=sankey_data(nodes, arrangement, node_kwargs, link_kwargs, links), **kwargs)
+    return go.Figure(data=sankey_data(nodes, arrangement, node_kwargs, link_kwargs, links, orientation, add_label), **kwargs)
 
 def sankey_data(nodes, arrangement=None, 
                 node_kwargs=None, link_kwargs=None,
-                links=None): # pragma: no coverage
+                links=None, orientation=None, add_label=None): # pragma: no coverage
     import plotly.graph_objects as go
     node_kwargs = node_kwargs or {}
     link_kwargs = link_kwargs or {}
     # if arrangement is None: arrangement = 'snap'
     if links is None: links = sum([i.links() for i in nodes], [])
     return go.Sankey(
+        orientation=orientation,
         arrangement = arrangement,
-        node = node_dict(nodes, **node_kwargs),
+        node = node_dict(nodes, add_label, **node_kwargs),
         link = link_dict(links, **link_kwargs),
     )
 
-def node_dict(nodes, **kwargs): # pragma: no coverage
+def node_dict(nodes, add_label=None, **kwargs): # pragma: no coverage
     nodes = sorted(nodes, key=lambda x: x.index)
-    return {
-        'label': [i.name for i in nodes], 
+    dct = {
         'color': [i.color() for i in nodes],
         **kwargs
     }
+    if add_label is None: add_label = True
+    if add_label: dct['label'] = [i.name for i in nodes]
+    return dct
                                              
 def link_dict(links, **kwargs): # pragma: no coverage
     return {
