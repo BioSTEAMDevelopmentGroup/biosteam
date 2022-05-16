@@ -851,17 +851,17 @@ class Unit:
         checkiter: bool, optional
             Whether to raise a Runtimer error when tolerance could not be 
             satisfied before the maximum number of iterations. Defaults to True.
-        checkroot: 
+        checkroot: bool, optional
             Whether satisfying both tolerances, xtol and ytol, are required 
             for termination. Defaults to False.
-        checkbounds: 
+        checkbounds: bool, optional
             Whether to raise a ValueError when in a bounded solver when the 
             root is not certain to lie within bounds (i.e. f(x0) * f(x1) > 0.).
             Defaults to True.
             
-            Examples
-            --------
-            :doc:`tutorial/Process_specifications`
+        Examples
+        --------
+        :doc:`tutorial/Process_specifications`
 
         See Also
         --------
