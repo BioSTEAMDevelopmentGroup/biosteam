@@ -837,7 +837,7 @@ class Unit:
         f: Callable
             Objective function in the form of f(x, *args).
         x: float, optional
-            Iterative solvers: Root guess. Solver begins the iteration by evaluating f(x).
+            Root guess.
         x0, x1: float
             Root bracket. Solution must lie within x0 and x1.
         xtol: float, optional
