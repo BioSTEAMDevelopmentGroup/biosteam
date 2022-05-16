@@ -567,6 +567,7 @@ class System:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream
+        for i in self.units: i._system = self
 
     @ignore_docking_warnings
     def _interface_property_packages(self):

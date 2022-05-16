@@ -159,7 +159,7 @@ class SteamMixer(Unit):
             feed, steam, *others = self.ins
         feeds = [feed, *others]
         mixed = self.outs[0]
-        steam.imol[self.liquid_IDs] = steam_mol
+        steam.imol['7732-18-5'] = steam_mol # Only change water
         solids_loading = self.solids_loading
         if solids_loading is not None:
             chemicals = self.chemicals

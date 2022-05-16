@@ -318,8 +318,10 @@ class Network:
     
     def simplify(self):
         isa = isinstance
-        if isa(self.recycle, set) and isa(self.recycle_sink, (bst.Mixer, bst.MixTank)):
-            self.recycle = self.recycle_sink.outs[0]
+        if isa(self.recycle, set):
+            unit = self.recycle_sink
+            if unit._N_outs == 1 and unit._outs_size_is_fixed:
+                self.recycle = unit.outs[0]
         for i in self.path:
             if isa(i, Network): i.simplify()
     

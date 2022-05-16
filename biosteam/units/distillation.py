@@ -1028,54 +1028,54 @@ class BinaryDistillation(Distillation, new_graphics=False):
     BinaryDistillation: D1
     ins...
     [0] feed
-        phase: 'l', T: 76.129 degC, P: 1 atm
+        phase: 'l', T: 76.12 degC, P: 1 atm
         composition: Water     0.39
                      Methanol  0.488
                      Glycerol  0.122
                      --------  205 kmol/hr
     outs...
     [0] distillate
-        phase: 'g', T: 64.91 degC, P: 1 atm
+        phase: 'g', T: 64.909 degC, P: 1 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
     [1] bottoms_product
-        phase: 'l', T: 100.06 degC, P: 1 atm
+        phase: 'l', T: 100.03 degC, P: 1 atm
         composition: Water     0.754
                      Methanol  0.00761
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                           Units        D1
-    Cooling water       Duty                              kJ/hr -4.87e+06
+    Cooling water       Duty                              kJ/hr -4.88e+06
                         Flow                            kmol/hr  3.33e+03
-                        Cost                             USD/hr      1.62
+                        Cost                             USD/hr      1.63
     Low pressure steam  Duty                              kJ/hr  1.02e+07
-                        Flow                            kmol/hr       263
-                        Cost                             USD/hr      62.6
+                        Flow                            kmol/hr       264
+                        Cost                             USD/hr      62.7
     Design              Theoretical feed stage                          9
                         Theoretical stages                             13
-                        Minimum reflux                    Ratio     0.687
-                        Reflux                            Ratio      1.37
+                        Minimum reflux                    Ratio     0.689
+                        Reflux                            Ratio      1.38
                         Rectifier stages                               15
                         Stripper stages                                13
                         Rectifier height                     ft      34.7
                         Stripper height                      ft      31.7
                         Rectifier diameter                   ft      3.93
-                        Stripper diameter                    ft      3.19
+                        Stripper diameter                    ft       3.2
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
                         Rectifier weight                     lb     6e+03
                         Stripper weight                      lb  4.43e+03
-    Purchase cost       Condenser - Floating head           USD  3.32e+04
+    Purchase cost       Condenser - Floating head           USD  3.33e+04
                         Boiler - Floating head              USD  2.67e+04
-                        Rectifier trays                     USD   1.5e+04
-                        Stripper trays                      USD  1.25e+04
-                        Rectifier tower                     USD  4.56e+04
-                        Stripper platform and ladders       USD  1.39e+04
-                        Stripper tower                      USD  3.83e+04
-                        Rectifier platform and ladders      USD  1.14e+04
-    Total purchase cost                                     USD  1.97e+05
+                        Rectifier trays                     USD  1.43e+04
+                        Stripper trays                      USD  1.19e+04
+                        Rectifier tower                     USD  4.36e+04
+                        Stripper platform and ladders       USD  1.33e+04
+                        Stripper tower                      USD  3.66e+04
+                        Rectifier platform and ladders      USD  1.09e+04
+    Total purchase cost                                     USD  1.91e+05
     Utility cost                                         USD/hr      64.3
     
     """
@@ -1441,35 +1441,35 @@ class ShortcutColumn(Distillation, new_graphics=False):
     ShortcutColumn: D1
     ins...
     [0] feed
-        phase: 'l', T: 76.129 degC, P: 1 atm
+        phase: 'l', T: 76.12 degC, P: 1 atm
         composition: Water     0.39
                      Methanol  0.488
                      Glycerol  0.122
                      --------  205 kmol/hr
     outs...
     [0] distillate
-        phase: 'g', T: 64.91 degC, P: 1 atm
+        phase: 'g', T: 64.909 degC, P: 1 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
     [1] bottoms_product
-        phase: 'l', T: 100.06 degC, P: 1 atm
+        phase: 'l', T: 100.03 degC, P: 1 atm
         composition: Water     0.754
                      Methanol  0.00761
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                           Units        D1
-    Cooling water       Duty                              kJ/hr -7.52e+06
-                        Flow                            kmol/hr  5.14e+03
+    Cooling water       Duty                              kJ/hr -7.53e+06
+                        Flow                            kmol/hr  5.15e+03
                         Cost                             USD/hr      2.51
     Low pressure steam  Duty                              kJ/hr  1.35e+07
                         Flow                            kmol/hr       347
-                        Cost                             USD/hr      82.4
+                        Cost                             USD/hr      82.5
     Design              Theoretical feed stage                          8
                         Theoretical stages                             16
                         Minimum reflux                    Ratio      1.06
-                        Reflux                            Ratio      2.12
+                        Reflux                            Ratio      2.13
                         Rectifier stages                               14
                         Stripper stages                                26
                         Rectifier height                     ft      33.2
@@ -1478,18 +1478,18 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper diameter                    ft      3.65
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
-                        Rectifier weight                     lb  6.71e+03
-                        Stripper weight                      lb  7.93e+03
-    Purchase cost       Condenser - Floating head           USD  4.06e+04
+                        Rectifier weight                     lb  6.72e+03
+                        Stripper weight                      lb  7.94e+03
+    Purchase cost       Condenser - Floating head           USD  4.07e+04
                         Boiler - Floating head              USD  2.93e+04
-                        Rectifier trays                     USD  1.58e+04
-                        Stripper trays                      USD  2.01e+04
-                        Rectifier tower                     USD  4.88e+04
-                        Stripper platform and ladders       USD  1.47e+04
-                        Stripper tower                      USD  5.38e+04
-                        Rectifier platform and ladders      USD  1.81e+04
-    Total purchase cost                                     USD  2.41e+05
-    Utility cost                                         USD/hr      84.9
+                        Rectifier trays                     USD  1.51e+04
+                        Stripper trays                      USD  1.92e+04
+                        Rectifier tower                     USD  4.66e+04
+                        Stripper platform and ladders       USD   1.4e+04
+                        Stripper tower                      USD  5.14e+04
+                        Rectifier platform and ladders      USD  1.73e+04
+    Total purchase cost                                     USD  2.33e+05
+    Utility cost                                         USD/hr      85.1
     
     """
     line = 'Distillation'
