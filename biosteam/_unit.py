@@ -191,7 +191,7 @@ class Unit:
     --------
     :doc:`tutorial/Creating_a_Unit`
     
-    :doc:`tutorial/Using_-pipe-_notation`
+    :doc:`tutorial/-pipe-_notation`
     
     :doc:`tutorial/Inheriting_from_Unit`
     
