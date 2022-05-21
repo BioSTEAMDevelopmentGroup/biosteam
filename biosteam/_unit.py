@@ -232,31 +232,30 @@ class Unit:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
         if not isabstract:
-            if cls is not Unit:
-                if hasattr(cls, '_BM'): 
-                    raise UnitInheritanceError(
-                        'cannot set `_BM`; implement `_F_BM_default` instead'
-                    )
-                elif hasattr(cls, '_F_BM_defaults'):
-                    raise UnitInheritanceError(
-                        'cannot set `_F_BM_defaults`; implement '
-                        '`_F_BM_default` instead'
-                    )
-                elif not hasattr(cls, '_F_BM_default'):
-                    cls._F_BM_default = {}
-                
-                if hasattr(cls, '_equipment_lifetime'):
-                    raise UnitInheritanceError(
-                        'cannot set `_equipment_lifetime`; '
-                        'implement `_default_equipment_lifetime` instead'
-                    )
-                elif hasattr(cls, '_default_equipment_lifetimes'):
-                    raise UnitInheritanceError(
-                        'cannot set `_default_equipment_lifetimes`; implement '
-                        '`_default_equipment_lifetime` instead'
-                    )
-                elif not hasattr(cls, '_default_equipment_lifetime'): 
-                    cls._default_equipment_lifetime = {}
+            if hasattr(cls, '_BM'): 
+                raise UnitInheritanceError(
+                    'cannot set `_BM`; implement `_F_BM_default` instead'
+                )
+            elif hasattr(cls, '_F_BM_defaults'):
+                raise UnitInheritanceError(
+                    'cannot set `_F_BM_defaults`; implement '
+                    '`_F_BM_default` instead'
+                )
+            elif not hasattr(cls, '_F_BM_default'):
+                cls._F_BM_default = {}
+            
+            if hasattr(cls, '_equipment_lifetime'):
+                raise UnitInheritanceError(
+                    'cannot set `_equipment_lifetime`; '
+                    'implement `_default_equipment_lifetime` instead'
+                )
+            elif hasattr(cls, '_default_equipment_lifetimes'):
+                raise UnitInheritanceError(
+                    'cannot set `_default_equipment_lifetimes`; implement '
+                    '`_default_equipment_lifetime` instead'
+                )
+            elif not hasattr(cls, '_default_equipment_lifetime'): 
+                cls._default_equipment_lifetime = {}
             if not hasattr(cls, '_units'): cls._units = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
