@@ -301,8 +301,7 @@ class Unit:
     # [biosteam Graphics] A Graphics object for diagram representation
     _graphics = box_graphics
 
-    # [int] Used for piping warnings. Should be equal to 6 plus the number of
-    # wrappers to Unit.__init__
+    # [int] Used for piping warnings.
     _stacklevel = 5
     
     # [str] The general type of unit, regardless of class
