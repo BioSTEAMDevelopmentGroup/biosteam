@@ -316,7 +316,6 @@ class System:
         'flowsheet',
         'lang_factor',
         'process_impact_items',
-        '_stabilized',
         '_connections',
         '_irrelevant_units',
         '_converge_method',
@@ -359,9 +358,6 @@ class System:
 
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
-
-    # [bool] Whether to use stabilized convergence algorithm.
-    default_stabilized_convergence = False
 
     #: [bool] Whether to raise a RuntimeError when system doesn't converge
     strict_convergence = True
@@ -744,8 +740,6 @@ class System:
         #: [str] Converge method
         self.converge_method = self.default_converge_method
 
-        self.use_stabilized_convergence_algorithm = self.default_stabilized_convergence
-
     @property
     def TEA(self):
         """TEA object linked to the system."""
@@ -772,19 +766,6 @@ class System:
                 )
         else:
             self._specification = None
-
-    @property
-    def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether to use a stabilized convergence algorithm that implements 
-        an inner loop with mass and energy balance approximations when applicable."""
-        return self._stabilized
-    @use_stabilized_convergence_algorithm.setter
-    def use_stabilized_convergence_algorithm(self, stabilized):
-        if stabilized and not self._recycle:
-            for i in self.subsystems: i.use_stabilized_convergence_algorithm = True
-        else:
-            for i in self.subsystems: i.use_stabilized_convergence_algorithm = False
-        self._stabilized = stabilized
 
     save_report = save_report
 
@@ -1392,17 +1373,6 @@ class System:
         """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
         f = iter_run = self._iter_run
-        if self._stabilized:
-            special_units = [i for i in self.units if hasattr(i, '_steady_run')]
-            if special_units:
-                def f(mol):
-                    self._set_recycle_data(mol)
-                    for unit in special_units: unit._run = unit._steady_run
-                    try:
-                        solver(iter_run, self._get_recycle_data())
-                    finally:
-                        for unit in special_units: del unit._run
-                    return iter_run(self._get_recycle_data())
         try:
             solver(f, self._get_recycle_data())
         except IndexError as error:
