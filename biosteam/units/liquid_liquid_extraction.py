@@ -845,9 +845,9 @@ class MixerSettler(bst.Unit):
     outs : stream sequence
         * [0] raffinate
         * [1] extract
-    carrier_chemical : str, optional
-        Name of main chemical in the feed (which is not selectively extracted by the solvent).
-        Defaults to chemical with highest molar fraction in the feed.
+    solvent_ID : str, optional
+        Name of main chemical in the solvent.
+        Defaults to chemical with highest molar fraction in the solvent.
     mixer_data : dict, optional
         Arguments to initialize the "mixer" attribute, a :class:`~biosteam.units.LiquidsMixingTank` object.
     settler_data : dict, optional
@@ -952,7 +952,7 @@ class MixerSettler(bst.Unit):
         _units['Settler - ' + i] = j
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, 
-                 carrier_chemical=None, mixer_data={}, settler_data={}, model="LLE"):
+                 solvent_ID=None, mixer_data={}, settler_data={}, model="LLE"):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         
         #: [LiquidsMixingTank] Mixer portion of the mixer-settler.
@@ -976,7 +976,7 @@ class MixerSettler(bst.Unit):
         self.power_utility = mixer.power_utility
         
         #: [str] ID of carrier component in the feed.
-        self.carrier_chemical = carrier_chemical 
+        self.solvent_ID = solvent_ID 
     
     @property
     def feed(self):
@@ -1012,7 +1012,7 @@ class MixerSettler(bst.Unit):
 
     def _run(self):
         self.mixer._run()
-        self.settler.top_chemical = self.carrier_chemical or self.feed.main_chemical
+        self.settler.top_chemical = self.solvent_ID or self.solvent.main_chemical
         self.settler._run()
         
     def _design(self):
@@ -1047,11 +1047,11 @@ class MultiStageMixerSettlers(bst.Unit):
         Number of stages.
     partition_data : {'IDs': tuple[str], 'K': 1d array}, optional
         IDs of chemicals in equilibrium and partition coefficients (molar 
-        composition ratio of the raffinate over the extract). If given,
+        composition ratio of the extract over the raffinate). If given,
         The mixer-settlers will be modeled with these constants. Otherwise,
         partition coefficients are computed based on temperature and composition.
-    carrier_chemical : str
-        Name of main chemical in the feed (which is not selectively extracted by the solvent).
+    solvent_ID : str
+        Name of main chemical in the solvent.
     mixer_data : dict
         Arguments to initialize the "mixer" attribute, a :class:`~biosteam.units.LiquidsMixingTank` object.
     settler_data : dict
@@ -1096,8 +1096,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Weight              lb    1.44e+03
                         Settler - Wall thickness      in        0.25
     Purchase cost       Mixers and agitators         USD    1.05e+04
-                        Settlers                     USD    2.73e+04
-    Total purchase cost                              USD    3.78e+04
+                        Settlers                     USD    2.93e+04
+    Total purchase cost                              USD    3.97e+04
     Utility cost                                  USD/hr       0.309
     
     Simulate with user defined partition coefficients:
@@ -1109,9 +1109,9 @@ class MultiStageMixerSettlers(bst.Unit):
     >>> solvent = bst.Stream('solvent', Octanol=5000)
     >>> MSMS1 = bst.MultiStageMixerSettlers('MSMS1', ins=(feed, solvent), outs=('raffinate', 'extract'), N_stages=10,
     ...     partition_data={
-    ...         'K': np.array([6.894, 0.7244, 3.381e-04]),
+    ...         'K': np.array([0.1450, 1.380, 2957.]),
     ...         'IDs': ('Water', 'Methanol', 'Octanol'),
-    ...         'phi': 0.4100271108219455 # Initial phase fraction guess. This is optional.
+    ...         'phi': 0.590 # Initial phase fraction guess. This is optional.
     ...     }
     ... )
     >>> MSMS1.simulate()
@@ -1138,8 +1138,8 @@ class MultiStageMixerSettlers(bst.Unit):
                         Settler - Weight              lb    2.52e+04
                         Settler - Wall thickness      in       0.438
     Purchase cost       Mixers and agitators         USD    1.08e+05
-                        Settlers                     USD    5.74e+05
-    Total purchase cost                              USD    6.82e+05
+                        Settlers                     USD    6.15e+05
+    Total purchase cost                              USD    7.22e+05
     Utility cost                                  USD/hr        15.5
 
     """
@@ -1147,13 +1147,13 @@ class MultiStageMixerSettlers(bst.Unit):
     _N_ins = 2
     _N_outs = 2
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
-                 partition_data=None, carrier_chemical=None,
+                 partition_data=None, solvent_ID=None,
                  mixer_data={}, settler_data={}):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         
         #: [str] Name of main chemical in the feed (which is not extracted by 
         #: the solvent).
-        self.carrier_chemical = carrier_chemical
+        self.solvent_ID = solvent_ID
         
         #: [int] Number of stages.
         self.N_stages = N_stages
@@ -1167,7 +1167,7 @@ class MultiStageMixerSettlers(bst.Unit):
         #: [LiquidsMixingTank] Used to design all mixing tanks. 
         #: All data and settings for the design of mixing tanks are stored here.
         self.mixer = mixer = LiquidsMixingTank(None, None, (None,),
-                                                   self.thermo, **mixer_data)
+                                               self.thermo, **mixer_data)
         mixer._ins = self._ins
         
         #: [LiquidsSettler] Used to design all settlers.
@@ -1184,11 +1184,11 @@ class MultiStageMixerSettlers(bst.Unit):
     
     def _setup(self):
         super()._setup()
-        args = (self.stages, self.feed, self.solvent, self.carrier_chemical)
+        args = (self.stages, self.feed, self.solvent, self.solvent_ID)
         if args != self._last_args:
-            self.stages = sep.MultiStageLLE(
-                self.N_stages, self.feed, self.solvent, self.carrier_chemical, 
-                self.thermo, self.partition_data
+            self.stages = sep.MultiStageEquilibrium(
+                self.N_stages, [self.feed, self.solvent], solvent=self.solvent_ID, 
+                thermo=self.thermo, partition_data=self.partition_data, phases=('L', 'l'),
             )
             self._last_args = args
     
@@ -1198,7 +1198,7 @@ class MultiStageMixerSettlers(bst.Unit):
         
     def _run(self):
         stages = self.stages
-        stages.simulate_multi_stage_lle_without_side_draws()
+        stages.simulate()
         extract = self.extract
         extract.copy_like(stages[0].extract)
         raffinate = self.raffinate
