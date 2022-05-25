@@ -96,7 +96,7 @@ you include tests for the following results:
 Also make sure to add a README.rst file to explain basic functionality and 
 design. If a paper is already published, you can add a link to it here too.
 Examples in the readme may be tested using `doctest's testfile <https://docs.python.org/3/library/doctest.html>`__
-method. In the biorefineries repository you can find `example tests <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/BioSTEAM%202.x.x/tests>`__.
+method. In the biorefineries repository you can find `example tests <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/BioSTEAM%202.x.x/biorefineries/tests>`__.
 
 The `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`__ 
 package also uses `pytest` for testing (just run pytest on your local 

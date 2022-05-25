@@ -43,7 +43,7 @@ integrated effort to expedite the evaluation of candidate biofuels and
 bioproducts.
 
 All data on chemicals, fitted coefficients, and functions to estimate chemical 
-properties are imported from `chemicals <https://chemicals.readthedocs.io/en/latest/>`_,
+properties are imported from `chemicals <https://chemicals.readthedocs.io/>`_,
 a community-driven open-source library developed by Caleb Bell. The 
 `thermosteam <https://thermosteam.readthedocs.io/en/latest/>`_ library, 
 BioSTEAM's premire thermodynamic engine, creates thermodynamic property packages 
