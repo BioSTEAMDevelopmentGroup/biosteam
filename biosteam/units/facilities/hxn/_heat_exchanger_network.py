@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This module will be moved to a new reporsitory called "HXN: The automated Heat Exchanger Network design package."
-# Copyright (C) 2020-2023, Sarang Bhagwat <sarangb2@illinois.edu>, Yoel Cortes-Pena, <yoelcortes@gmail.com>
+# Copyright (C) 2020-2023, Sarang Bhagwat <sarangb2@illinois.edu>, Yoel Cortes-Pena <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
