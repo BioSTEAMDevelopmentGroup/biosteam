@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-# BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# This module will be moved to a new reporsitory called:
+# HXN: The automated Heat Exchanger Network design package.
+# Copyright (C) 2020-2023, Sarang Bhagwat, Yoel Cortes-Pena <sarangb2@illinois.edu>, <yoelcortes@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
-# github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
+# github.com/sarangbhagwat/hxn/blob/master/LICENSE.txt
 # for license details.
 """
 Created on Sat Aug 22 21:58:19 2020
