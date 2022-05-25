@@ -93,6 +93,10 @@ class PowerUtility:
         #: Electricity production [kW]
         self.production = production
     
+    def empty(self):
+        """Set consumption and production to zero."""
+        self.consumption = self.production = 0.
+    
     @classmethod
     def get_CF(cls, key, consumption=True, production=True):
         """

@@ -168,7 +168,8 @@ class Model(State):
         self._index = index
         
     def load_samples(self, samples):
-        """Load samples for evaluation
+        """
+        Load samples for evaluation.
         
         Parameters
         ----------

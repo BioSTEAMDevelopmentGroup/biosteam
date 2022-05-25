@@ -316,7 +316,6 @@ class System:
         'flowsheet',
         'lang_factor',
         'process_impact_items',
-        '_stabilized',
         '_connections',
         '_irrelevant_units',
         '_converge_method',
@@ -359,9 +358,6 @@ class System:
 
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
-
-    # [bool] Whether to use stabilized convergence algorithm.
-    default_stabilized_convergence = False
 
     #: [bool] Whether to raise a RuntimeError when system doesn't converge
     strict_convergence = True
@@ -567,6 +563,7 @@ class System:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream
+        for i in self.units: i._system = self
 
     @ignore_docking_warnings
     def _interface_property_packages(self):
@@ -743,8 +740,6 @@ class System:
         #: [str] Converge method
         self.converge_method = self.default_converge_method
 
-        self.use_stabilized_convergence_algorithm = self.default_stabilized_convergence
-
     @property
     def TEA(self):
         """TEA object linked to the system."""
@@ -771,19 +766,6 @@ class System:
                 )
         else:
             self._specification = None
-
-    @property
-    def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether to use a stabilized convergence algorithm that implements 
-        an inner loop with mass and energy balance approximations when applicable."""
-        return self._stabilized
-    @use_stabilized_convergence_algorithm.setter
-    def use_stabilized_convergence_algorithm(self, stabilized):
-        if stabilized and not self._recycle:
-            for i in self.subsystems: i.use_stabilized_convergence_algorithm = True
-        else:
-            for i in self.subsystems: i.use_stabilized_convergence_algorithm = False
-        self._stabilized = stabilized
 
     save_report = save_report
 
@@ -1391,17 +1373,6 @@ class System:
         """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
         f = iter_run = self._iter_run
-        if self._stabilized:
-            special_units = [i for i in self.units if hasattr(i, '_steady_run')]
-            if special_units:
-                def f(mol):
-                    self._set_recycle_data(mol)
-                    for unit in special_units: unit._run = unit._steady_run
-                    try:
-                        solver(iter_run, self._get_recycle_data())
-                    finally:
-                        for unit in special_units: del unit._run
-                    return iter_run(self._get_recycle_data())
         try:
             solver(f, self._get_recycle_data())
         except IndexError as error:
@@ -1858,6 +1829,10 @@ class System:
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
 
+    def has_market_value(self, stream):
+        """Return whether stream has a market value."""
+        return bool(stream.price) and not stream.isempty()
+        
     def get_property(self, stream, name, units=None):
         """Return the annualized property of a stream."""
         return stream.get_property(name, units) * self.operating_hours
@@ -2507,7 +2482,11 @@ class AgileSystem:
     def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
-  
+    
+    def has_market_value(self, stream):
+        """Return whether stream has a market value."""
+        return bool(self.flow_rates[stream] and stream.price)
+    
     def get_mass_flow(self, stream):
         """Return the mass flow rate of a stream [kg/yr]."""
         return self.flow_rates[stream]

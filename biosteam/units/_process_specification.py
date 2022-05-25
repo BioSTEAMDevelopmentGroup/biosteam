@@ -80,23 +80,10 @@ class ProcessSpecification(Unit):
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *,
                  specification, description=None):
         Unit.__init__(self, ID, ins, outs, thermo)
-        self.specification = specification
+        self.add_specification(specification)
         self.description = description or format_title(specification.__name__)
-        
-    @property
-    def specification(self):
-        return self.__specification
-    @specification.setter
-    def specification(self, specification):
-        assert callable(specification), "specification must be a function"
-        self.__specification = specification
-    
-    def run(self):
-        self.outs[0].copy_flow(self.ins[0])
-        self.__specification()
         
     def _run(self):
         self.outs[0].copy_flow(self.ins[0])
-        self.__specification()
         
 

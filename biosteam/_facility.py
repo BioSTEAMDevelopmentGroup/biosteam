@@ -39,10 +39,6 @@ class Facility(Unit, isabstract=True,
         self._other_units = None
     
     @property
-    def system(self):
-        return self._system
-    
-    @property
     def other_units(self):
         return self._other_units
         

@@ -106,11 +106,11 @@ def reduced_streams(streams, unit_groups):
             append = True
             unit_group = get_unit_group(s, unit_groups)
             for original in originals:
-                if get_unit_group(original, unit_groups) is unit_group:
+                if get_unit_group(original, unit_groups).name == unit_group.name:
                     original.mix_from([original, s])
                     append = False
                     break
-            if append: originals.append(s)
+            if append: originals.append(s) 
         else:
             same_IDs[ID] = [s]
     return sum(same_IDs.values(), [])
@@ -209,13 +209,7 @@ class Handle: # pragma: no coverage
             nodes.append(node)
         return nodes
 
-    def sankey_data(self, nodes, node_kwargs=None, link_kwargs=None):
-        return sankey_data(self, nodes, node_kwargs, link_kwargs)
-
-    def sankey_figure(self, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs):
-        return sankey_figure(self, nodes, node_kwargs, link_kwargs, sankey_data_kwargs, **kwargs)
-
-# %% Custum hanldes
+# %% Custom hanldes
 
 class CapitalNodeHandle(Handle): # pragma: no coverage
     """
@@ -423,7 +417,7 @@ class Link: # pragma: no coverage
         return self.handle.stream_width(self.stream)
     
     def color(self):
-        return self.handle.stream_color(self.stream)
+        return self.handle.link_color(self.stream)
         
     def __repr__(self):
         return f"<{type(self).__name__}: {self.source.name} - {self.sink.name}>"
@@ -431,35 +425,40 @@ class Link: # pragma: no coverage
 
 # %% Functions that use plotly to create diagrams
 
-def sankey_figure(handle, nodes, node_kwargs=None, link_kwargs=None, sankey_data_kwargs=None, **kwargs): # pragma: no coverage
+def sankey_figure(nodes, arrangement=None, node_kwargs=None, link_kwargs=None, links=None, orientation=None, add_label=None, **kwargs): # pragma: no coverage
     import plotly.graph_objects as go
-    sankey_data_kwargs = sankey_data_kwargs or {}
-    return go.Figure(data=sankey_data(handle, nodes, node_kwargs, link_kwargs, **sankey_data_kwargs), **kwargs)
+    return go.Figure(data=sankey_data(nodes, arrangement, node_kwargs, link_kwargs, links, orientation, add_label), **kwargs)
 
-def sankey_data(handle, nodes, arrangement = 'snap', node_kwargs=None, link_kwargs=None): # pragma: no coverage
+def sankey_data(nodes, arrangement=None, 
+                node_kwargs=None, link_kwargs=None,
+                links=None, orientation=None, add_label=None): # pragma: no coverage
     import plotly.graph_objects as go
     node_kwargs = node_kwargs or {}
     link_kwargs = link_kwargs or {}
-    links = sum([i.links() for i in nodes], [])
+    # if arrangement is None: arrangement = 'snap'
+    if links is None: links = sum([i.links() for i in nodes], [])
     return go.Sankey(
+        orientation=orientation,
         arrangement = arrangement,
-        node = node_dict(handle, nodes, **node_kwargs),
-        link = link_dict(handle, links, **link_kwargs)
+        node = node_dict(nodes, add_label, **node_kwargs),
+        link = link_dict(links, **link_kwargs),
     )
 
-def node_dict(handle, nodes, **kwargs): # pragma: no coverage
+def node_dict(nodes, add_label=None, **kwargs): # pragma: no coverage
     nodes = sorted(nodes, key=lambda x: x.index)
-    dct = {'label': [i.name for i in nodes],
-           **kwargs}
-    if handle.process_color: dct['color'] = [i.color() for i in nodes]
+    dct = {
+        'color': [i.color() for i in nodes],
+        **kwargs
+    }
+    if add_label is None: add_label = True
+    if add_label: dct['label'] = [i.name for i in nodes]
     return dct
                                              
-def link_dict(handle, links, **kwargs): # pragma: no coverage
-    dct = {
+def link_dict(links, **kwargs): # pragma: no coverage
+    return {
         'source': [i.source.index for i in links],
         'target': [i.sink.index for i in links],
         'value': [i.value() for i in links],
+        'color': [i.color() for i in links],
         **kwargs
     }
-    if handle.stream_color: dct['color'] = [i.color() for i in links]
-    return dct

@@ -295,7 +295,7 @@ class HXutility(HX):
                         Ethanol  200
     outs...
     [0] product
-        phase: 'g', T: 357.45 K, P: 101325 Pa
+        phase: 'g', T: 357.42 K, P: 101325 Pa
         flow (kmol/hr): Water    200
                         Ethanol  200
     >>> hx.results()

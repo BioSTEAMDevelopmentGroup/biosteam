@@ -391,6 +391,14 @@ class StreamSequence:
         self._dock(stream)
         self._streams.append(stream)
     
+    def extend(self, streams):
+        if self._fixed_size: 
+            raise RuntimeError(f"size of '{type(self).__name__}' object is fixed")
+        for i in streams:
+            self._undock(i)
+            self._dock(i)
+            self._streams.append(i)
+    
     def replace(self, stream, other_stream):
         index = self.index(stream)
         self[index] = other_stream
@@ -722,13 +730,13 @@ class StreamPorts:
         return cls([InletPort.from_inlet(i) for i in inlets], sort)
     
     @classmethod
-    def from_outlets(cls, inlets, sort=None):
-        return cls([OutletPort.from_outlet(i) for i in inlets], sort)
+    def from_outlets(cls, outlets, sort=None):
+        return cls([OutletPort.from_outlet(i) for i in outlets], sort)
     
     def __init__(self, ports, sort=None):
         if sort: ports = sorted(ports, key=lambda x: x._sorting_key())
-        self._ports = tuple(ports)
-        
+        self._ports = tuple(ports)    
+    
     def __bool__(self):
         return bool(self._ports)
         

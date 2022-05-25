@@ -71,6 +71,8 @@ Scientific Papers
 Several studies have leveraged the BioSTEAM platform to compare conversion 
 technologies and chart development pathways for various bioproducts:
 
+* `Bhagwat et al. Sustainable Production of Acrylic Acid via 3-Hydroxypropionic Acid from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.1c05441>`_
+
 * `McClelland et al. Renewable linear alpha-olefins by base-catalyzed dehydration of biologically-derived fatty alcohols. Green Chemistry 2021 <https://doi.org/10.1039/D1GC00243K>`_
 
 * `Li et al. Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
@@ -106,7 +108,7 @@ technologies and chart development pathways for various bioproducts:
    
    tutorial/Creating_a_System
    tutorial/Building_a_biorefinery
-   tutorial/Agile_systems
+   tutorial/Operational_flexibility
    tutorial/Uncertainty_and_sensitivity
    tutorial/TRY-Analysis
 

@@ -105,14 +105,14 @@ class MultiEffectEvaporator(Unit):
                         Glucose     0.555
     outs...
     [0] solids
-        phase: 'l', T: 333.24 K, P: 20000 Pa
+        phase: 'l', T: 333.21 K, P: 20000 Pa
         flow (kmol/hr): Water       20.6
-                        AceticAcid  0.00189
-                        Furfural    7.39e-05
+                        AceticAcid  0.0019
+                        Furfural    7.4e-05
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
-        phase: 'l', T: 352.12 K, P: 20000 Pa
+        phase: 'l', T: 352.09 K, P: 20000 Pa
         flow (kmol/hr): Water       34.9
                         AceticAcid  0.00643
                         Furfural    0.000967
@@ -160,14 +160,14 @@ class MultiEffectEvaporator(Unit):
                         Glucose     0.555
     outs...
     [0] solids
-        phase: 'l', T: 354.94 K, P: 50892 Pa
+        phase: 'l', T: 354.91 K, P: 50892 Pa
         flow (kmol/hr): Water       50
                         AceticAcid  0.0069
                         Furfural    0.000579
                         HMF         0.000793
                         Glucose     0.555
     [1] liquid
-        phase: 'l', T: 361.2 K, P: 50892 Pa
+        phase: 'l', T: 361.16 K, P: 50892 Pa
         flow (kmol/hr): Water       5.55
                         AceticAcid  0.00143
                         Furfural    0.000462
@@ -177,7 +177,7 @@ class MultiEffectEvaporator(Unit):
     Power               Rate                kW                                5.72
                         Cost            USD/hr                               0.447
     Low pressure steam  Duty             kJ/hr                            3.82e+05
-                        Flow           kmol/hr                                9.85
+                        Flow           kmol/hr                                9.84
                         Cost            USD/hr                                2.34
     Cooling water       Duty             kJ/hr                           -1.15e+05
                         Flow           kmol/hr                                78.5

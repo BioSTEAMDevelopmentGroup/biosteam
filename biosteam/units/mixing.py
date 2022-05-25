@@ -128,6 +128,8 @@ class SteamMixer(Unit):
         Mixed product.
     P : float
         Outlet pressure.
+    T : float
+        Outlet temperature.
     
     """
     _N_outs = 1
@@ -137,11 +139,13 @@ class SteamMixer(Unit):
     _graphics = mixer_graphics
     installation_cost = purchase_cost = 0.
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
-                 P, solids_loading=None, liquid_IDs=['7732-18-5']):
+                 P=None, T=None, solids_loading=None, liquid_IDs=['7732-18-5'], solid_IDs=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P
+        self.T = T
         self.solids_loading = solids_loading
         self.liquid_IDs = tuple(liquid_IDs)
+        self.solid_IDs = solid_IDs
     
     @property
     def steam(self):
@@ -159,26 +163,34 @@ class SteamMixer(Unit):
             feed, steam, *others = self.ins
         feeds = [feed, *others]
         mixed = self.outs[0]
-        steam.imol[self.liquid_IDs] = steam_mol
+        steam.imol['7732-18-5'] = steam_mol # Only change water
         solids_loading = self.solids_loading
         if solids_loading is not None:
             chemicals = self.chemicals
             index = chemicals.get_index(self.liquid_IDs)
-            F_mass_feed = sum([i.F_mass for i in feeds if i])
             available_water = (18.01528 * sum([i.mol[index].sum() for i in feeds if i])).sum()
-            required_water = (F_mass_feed - available_water) * (1. - solids_loading) / solids_loading
+            solid_IDs = self.solid_IDs
+            if solid_IDs:
+                F_mass_solids = sum([i.imass[solid_IDs].sum() for i in feeds if i])
+            else:
+                F_mass_feed = sum([i.F_mass for i in feeds if i])
+                F_mass_solids = F_mass_feed - available_water
+            required_water = F_mass_solids * (1. - solids_loading) / solids_loading
             try:
                 process_water.imol['7732-18-5'] = max(required_water - available_water, 0.) / 18.01528
             except NameError:
                 raise RuntimeError('missing process water stream')
+        if self.P: mixed.P = self.P # Assume pumps take care of this
         mixed.mix_from(self.ins)
-        P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
-        return self.P - P_new
+        if self.T:
+            return self.T - mixed.T
+        else: # If no pressure, assume it is at the boiling point
+            P_new = mixed.chemicals.Water.Psat(min(mixed.T, mixed.chemicals.Water.Tc - 1))
+            return self.P - P_new
     
     def _setup(self):
         super()._setup()
         if self.steam.isempty(): self.reset_cache()
-        self.outs[0].P = self.P
     
     def _run(self):
         steam = self.ins[1]
@@ -187,6 +199,7 @@ class SteamMixer(Unit):
         steam_mol = flx.IQ_interpolation(f, *flx.find_bracket(f, 0., steam_mol, None, None), 
                                          xtol=1e-2, ytol=1e-4, 
                                          maxiter=500, checkroot=False)
+        self.outs[0].P = self.P
         
     def _design(self): 
         steam = self.ins[1]
