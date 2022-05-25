@@ -1691,6 +1691,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
 
 # %% Rigorous MESH based distillation column 
 
+# NOT YET READY FOR USERS
 class MESHDistillation(Distillation, new_graphics=False):
     r"""
     Create a distillation column that uses MESH (Mass, Equilibrium, 
@@ -1773,74 +1774,9 @@ class MESHDistillation(Distillation, new_graphics=False):
         & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
         Cost Accounting and Capital Cost Estimation (Chapter 16)
 
-    Examples
-    --------
-    >>> from biosteam.units import ShortcutColumn
-    >>> from biosteam import Stream, settings
-    >>> settings.set_thermo(['Water', 'Methanol', 'Glycerol'], cache=True)
-    >>> feed = Stream('feed', flow=(80, 100, 25))
-    >>> bp = feed.bubble_point_at_P()
-    >>> feed.T = bp.T # Feed at bubble point T
-    >>> D1 = ShortcutColumn('D1', ins=feed,
-    ...                     outs=('distillate', 'bottoms_product'),
-    ...                     LHK=('Methanol', 'Water'),
-    ...                     y_top=0.99, x_bot=0.01, k=2,
-    ...                     is_divided=True)
-    >>> D1.simulate()
-    >>> # See all results
-    >>> D1.show(T='degC', P='atm', composition=True)
-    ShortcutColumn: D1
-    ins...
-    [0] feed
-        phase: 'l', T: 76.12 degC, P: 1 atm
-        composition: Water     0.39
-                     Methanol  0.488
-                     Glycerol  0.122
-                     --------  205 kmol/hr
-    outs...
-    [0] distillate
-        phase: 'g', T: 64.909 degC, P: 1 atm
-        composition: Water     0.01
-                     Methanol  0.99
-                     --------  100 kmol/hr
-    [1] bottoms_product
-        phase: 'l', T: 100.03 degC, P: 1 atm
-        composition: Water     0.754
-                     Methanol  0.00761
-                     Glycerol  0.239
-                     --------  105 kmol/hr
-    >>> D1.results()
-    Divided Distillation Column                           Units        D1
-    Cooling water       Duty                              kJ/hr -7.53e+06
-                        Flow                            kmol/hr  5.15e+03
-                        Cost                             USD/hr      2.51
-    Low pressure steam  Duty                              kJ/hr  1.35e+07
-                        Flow                            kmol/hr       347
-                        Cost                             USD/hr      82.5
-    Design              Theoretical feed stage                          8
-                        Theoretical stages                             16
-                        Minimum reflux                    Ratio      1.06
-                        Reflux                            Ratio      2.13
-                        Rectifier stages                               14
-                        Stripper stages                                26
-                        Rectifier height                     ft      33.2
-                        Stripper height                      ft      50.9
-                        Rectifier diameter                   ft      4.52
-                        Stripper diameter                    ft      3.65
-                        Rectifier wall thickness             in     0.312
-                        Stripper wall thickness              in     0.312
-                        Rectifier weight                     lb  6.72e+03
-                        Stripper weight                      lb  7.94e+03
-    Purchase cost       Condenser - Floating head           USD  4.07e+04
-                        Boiler - Floating head              USD  2.93e+04
-                        Rectifier trays                     USD  1.51e+04
-                        Stripper trays                      USD  1.92e+04
-                        Rectifier tower                     USD  4.66e+04
-                        Stripper platform and ladders       USD   1.4e+04
-                        Stripper tower                      USD  5.14e+04
-                        Rectifier platform and ladders      USD  1.73e+04
-    Total purchase cost                                     USD  2.33e+05
-    Utility cost                                         USD/hr      85.1
+    Notes
+    -----
+    Not yet ready for users.
     
     """
     line = 'Distillation'
