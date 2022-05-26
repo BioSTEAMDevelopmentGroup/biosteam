@@ -255,27 +255,28 @@ def add_connection(f: Digraph, connection, unit_names, edge_options):
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
-    if stream and stream.ID:
+    style = 'dashed' if stream.isempty() else 'solid'
+    if stream:
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
             f.node(stream.ID)
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **inlet_options, **edge_options)
+                   tailport='e', style=style, **inlet_options, **edge_options)
             f.edge(stream.ID, unit_names[sink])
         elif has_source and not has_sink:
             # Product stream case
             f.node(stream.ID)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **outlet_options, **edge_options)
+                   headport='w', style=style, **outlet_options, **edge_options)
             f.edge(unit_names[source], stream.ID)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
-            f.attr('edge', arrowtail='none', arrowhead='normal',
+            f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
                    **inlet_options, **outlet_options, **edge_options)
             label = stream.ID if bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS else ''
             f.edge(unit_names[source], unit_names[sink], label=label)

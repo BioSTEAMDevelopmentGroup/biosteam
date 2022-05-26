@@ -12,9 +12,9 @@ from thermosteam.utils.decorators import registered_franchise
 from thermosteam import Stream
 from collections import namedtuple
 from warnings import warn
-__all__ = ('MissingStream', 'MockStream', 'Inlets', 'Outlets', 'Sink', 'Source',
-           'InletPort', 'OutletPort', 'StreamPorts', 'Connection', 
-           'as_stream', 'as_upstream', 'as_downstream', 
+__all__ = ('Dependency', 'MissingStream', 'MockStream', 'Inlets', 
+           'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
+           'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
            'materialize_connections', 'ignore_docking_warnings')
 
 DOCKING_WARNINGS = True
@@ -70,8 +70,8 @@ def materialize_connections(streams):
         if not stream: stream.materialize_connection()
 
 
-# %% Dummy Stream object
-
+# %% Special Stream objects    
+    
 class MissingStream:
     """
     Create a MissingStream object that acts as a dummy in Inlets and Outlets
@@ -189,6 +189,56 @@ class MissingStream:
     def __str__(self):
         return 'missing stream'
 
+class Dependency:
+    """
+    Create a Dependency object that can serve in Inlets and Outlets
+    objects to show a specification dependency between units.
+    """
+    __slots__ = ('_source', '_sink')
+    disconnect = Stream.disconnect
+    disconnect_source = Stream.disconnect_source
+    disconnect_sink = Stream.disconnect_sink
+    
+    def __init__(self, source=None, sink=None):
+        self._source = source
+        self._sink = sink
+    
+    def get_connection(self):
+        return self.get_connection()
+    
+    @property
+    def source(self):
+        return self._source
+    
+    @property
+    def sink(self):
+        return self._sink
+    
+    get_CF = Stream.get_CF
+    set_CF = Stream.set_CF
+    get_impact = MissingStream.get_impact
+    reset_cache = MissingStream.reset_cache
+    get_data = MissingStream.get_data
+    set_data = MissingStream.set_data
+    get_total_flow = MissingStream.get_total_flow
+    get_flow = MissingStream.get_flow
+    link = MissingStream.link
+    H = MissingStream.H
+    Hf = MissingStream.Hf
+    Hnet = MissingStream.Hnet
+    LHV = MissingStream.LHV
+    HHV = MissingStream.HHV
+    Hvap = MissingStream.Hvap
+    C = MissingStream.C
+    F_mol = MissingStream.F_mol
+    F_mass = MissingStream.F_mass
+    F_vol = MissingStream.F_vol
+    isempty = MissingStream.isempty
+    cost = MissingStream.cost
+    __bool__ = MissingStream.__bool__
+    __repr__ = MissingStream.__repr__
+    def __str__(self): return 'Specification dependency'
+
 @registered_franchise(Stream)
 class MockStream:
     """
@@ -287,7 +337,7 @@ class StreamSequence:
             self._streams = [dock(Stream(thermo=thermo)) for i in range(size)]
         else:
             isa = isinstance
-            stream_types = (Stream, MissingStream)
+            stream_types = (Stream, MissingStream, Dependency)
             if fixed_size:
                 self._initialize_missing_streams()
                 if streams is not None:
@@ -354,14 +404,13 @@ class StreamSequence:
                     all_streams[N_streams: size] = self._create_N_missing_streams(N_missing)
        
     def _as_stream(self, stream):
-        if stream:
-            if not isinstance(stream, Stream):
-                raise TypeError(
-                    f"'{type(self).__name__}' object can only contain "
-                    f"'Stream' objects; not '{type(stream).__name__}'"
-                )
-        elif not isinstance(stream, MissingStream):
+        if stream is None:
             stream = self._create_missing_stream()
+        elif not isinstance(stream, (Stream, Dependency, MissingStream)):
+            raise TypeError(
+                f"'{type(self).__name__}' object can only contain "
+                f"'Stream' objects; not '{type(stream).__name__}'"
+            )
         return stream
        
     @property
@@ -811,6 +860,7 @@ def get_connection(self):
     return Connection(source, source_index, self, sink_index, sink)
 
 Stream.get_connection = get_connection
+Dependency.get_connection = get_connection
 MissingStream.__pow__ = MissingStream.__sub__ = Stream.__pow__ = Stream.__sub__ = __sub__  # Forward pipping
 MissingStream.__rpow__ = MissingStream.__rsub__ = Stream.__rpow__ = Stream.__rsub__ = __rsub__ # Backward pipping    
 Stream._basic_info = lambda self: (f"{type(self).__name__}: {self.ID or ''}"

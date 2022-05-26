@@ -391,7 +391,8 @@ class BoilerTurbogenerator(Facility):
                  agent=None,
                  other_agents = (),
                  natural_gas_price=None,
-                 ash_disposal_price=None):
+                 ash_disposal_price=None,
+                 T_emissions=None):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.agent = agent = agent or HeatUtility.get_heating_agent('low_pressure_steam')
         self.define_utility('Natural gas', self.natural_gas)
@@ -403,6 +404,7 @@ class BoilerTurbogenerator(Facility):
         self.steam_demand = agent.to_stream()
         self.side_steam = side_steam
         self.other_agents = other_agents
+        self.T_emissions = self.agent.T if T_emissions is None else T_emissions # Assume no heat integration
         if natural_gas_price is not None: self.natural_gas_price = natural_gas_price
         if ash_disposal_price is not None: self.ash_disposal_price = ash_disposal_price
         self._load_components()
@@ -477,7 +479,7 @@ class BoilerTurbogenerator(Facility):
                     if agent and agent.ID == ID:
                         steam_utilities.add(hu)
         self.electricity_demand = sum([u.power_utility.consumption for u in units])
-
+    stop = False
     def _design(self):
         B_eff = self.boiler_efficiency
         TG_eff = self.turbogenerator_efficiency
@@ -500,7 +502,7 @@ class BoilerTurbogenerator(Facility):
         steam_demand.imol['7732-18-5'] = mol_steam 
         duty_over_mol = 39000 # kJ / mol-superheated steam 
         emissions_mol = emissions.mol
-        emissions.T = self.agent.T
+        emissions.T = self.T_emissions
         emissions.P = 101325
         emissions.phase = 'g'
         self.combustion_reactions = combustion_rxns = chemicals.get_combustion_reactions()
@@ -512,7 +514,7 @@ class BoilerTurbogenerator(Facility):
                 feed_CH4.imol['CH4'] = natural_gas_flow
             else:
                 feed_CH4.empty()
-            H_combustion = feed_CH4.H + feed_CH4.HHV
+            H_combustion = feed_CH4.HHV
             emissions_mol[:] = feed_CH4.mol
             for feed in non_empty_feeds:
                 H_combustion += feed.H + feed.HHV
@@ -530,11 +532,8 @@ class BoilerTurbogenerator(Facility):
             # Heat available for the turbogenerator
             H_electricity = H_content - H_steam
             
-            if H_electricity < 0:
-                self.cooling_duty = electricity = 0
-            else:
-                electricity = H_electricity * TG_eff
-                self.cooling_duty = electricity - H_electricity
+            electricity = H_electricity * TG_eff  # Electricity produced
+            self.cooling_duty = electricity - H_electricity
             
             Design['Work'] = work = electricity/3600
             boiler = self.cost_items['Boiler']

@@ -212,7 +212,10 @@ class SystemFactory:
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, optional=[ins[i] for i in self.optional_ins_index])
-        system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
+        try:
+            system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
+        except:
+            breakpoint()
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if rename: 
             units = system.units
@@ -255,9 +258,10 @@ class SystemFactory:
         
 def create_streams(defaults, user_streams, kind, fixed_size):
     Stream = tmo.Stream
-    if user_streams is None:
-        return [Stream(**kwargs) for kwargs in defaults]
+    isfunc = callable
     isa = isinstance
+    if user_streams is None:
+        return [(kwargs() if isfunc(kwargs) else Stream(**kwargs)) for kwargs in defaults]
     if isa(user_streams, Stream):
         user_streams = [user_streams]
     N_defaults = len(defaults)
@@ -278,12 +282,14 @@ def create_streams(defaults, user_streams, kind, fixed_size):
                     f"{kind} must be streams, strings, or None; "
                     f"invalid type '{type(stream).__name__}' at index {index}"
                 )
+            elif isfunc(kwargs):
+                stream = kwargs()
             else:
                 stream = Stream(**kwargs)
         streams.append(stream)
         index += 1
     if N_streams < N_defaults:
-        streams += [Stream(**kwargs) for kwargs in defaults[index:]]
+        streams += [(kwargs() if isfunc(kwargs) else Stream(**kwargs)) for kwargs in defaults[index:]]
     elif N_streams > N_defaults:
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams
