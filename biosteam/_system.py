@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
-#                          Sarang Bhagwat <sarangb2@illinois.edu>,
+# Copyright (C) 2020-2022, Yoel Cortes-Pena <yoelcortes@gmail.com>,
 #                          Joy Zhang <joycheung1994@gmail.com>,
 #                          Yalin Li <zoe.yalin.li@gmail.com>
+#                          Sarang Bhagwat <sarangb2@illinois.edu>,
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -16,7 +16,6 @@ from .digraph import (digraph_from_units_and_streams,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
-# from thermosteam import functional as fn
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
@@ -25,10 +24,8 @@ from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
 from .utils import repr_items, ignore_docking_warnings, SystemScope
 from .report import save_report
-# from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
 from .process_tools import utils
-# from .utils import NotImplementedMethod
 from collections.abc import Iterable
 from warnings import warn
 from inspect import signature
