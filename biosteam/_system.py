@@ -941,8 +941,6 @@ class System:
         units = self.units.copy()
         for i in self._facilities:
             if isa(i, Facility):
-                if i._system: continue
-                i._system = self
                 i._other_units = other_units = units.copy()
                 other_units.remove(i)
 
