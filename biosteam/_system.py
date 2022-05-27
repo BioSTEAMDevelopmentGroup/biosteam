@@ -1336,8 +1336,8 @@ class System:
 
     def _setup(self):
         """Setup each element of the system."""
-        self._load_facilities()
         self._load_configuration()
+        self._load_facilities()
         for i in self.units: i._setup()
 
     def _run(self):
