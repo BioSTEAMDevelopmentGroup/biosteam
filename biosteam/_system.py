@@ -938,7 +938,7 @@ class System:
 
     def _load_facilities(self):
         isa = isinstance
-        units = self.units.copy()
+        units = self.units
         for i in self._facilities:
             if isa(i, Facility):
                 i._other_units = other_units = units.copy()
