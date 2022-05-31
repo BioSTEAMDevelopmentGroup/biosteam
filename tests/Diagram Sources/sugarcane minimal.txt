@@ -13,13 +13,12 @@ lime
 H3PO4
 rvf_wash_water
 s57
+s56
 s58
 s61
 s62
-s63
-s64
 s55
-s56
+s63
 polymer
 natural_gas
 dilution_water
@@ -41,15 +40,15 @@ filter_cake
 rejected_water_and_blowdown
 Yeast
 s4
-s60
 s36
+s60
 " [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
 	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward]
-	s67
+	s66
 	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	s67 -> "s.6
+	s66 -> "s.6
 recirculated_chilled_water
 sugarcane
 makeup_water
@@ -62,45 +61,36 @@ lime
 H3PO4
 rvf_wash_water
 s57
+s56
 s58
 s61
 s62
-s63
-s64
 s55
-s56
+s63
 polymer
 natural_gas
 dilution_water
 cooling_tower_chemicals
 "
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"s.6
-recirculated_chilled_water
-sugarcane
-makeup_water
-imbibition_water
-cooling_tower_makeup_water
-stripping_water
-boiler_makeup_water
-denaturant
-lime
-H3PO4
-rvf_wash_water
-s57
-s58
-s61
-s62
-s63
-s64
-s55
-s56
-polymer
-natural_gas
-dilution_water
-cooling_tower_chemicals
-" -> "sugarcane_sys
-System" [style=dashed]
+	s65
+	edge [arrowhead=none arrowtail=none headport=w tailport=c]
+	"s.7
+s.9
+vinasse
+emissions
+s59
+wastewater
+evaporation_and_blowdown
+ethanol
+vent
+ash_disposal
+filter_cake
+rejected_water_and_blowdown
+Yeast
+s4
+s36
+s60
+" -> s65
 	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
 	"sugarcane_sys
 System" -> "s.7
@@ -117,26 +107,33 @@ filter_cake
 rejected_water_and_blowdown
 Yeast
 s4
-s60
 s36
+s60
 " [style=dashed]
-	s66
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
-	"s.7
-s.9
-vinasse
-emissions
-s59
-wastewater
-evaporation_and_blowdown
-ethanol
-vent
-ash_disposal
-filter_cake
-rejected_water_and_blowdown
-Yeast
-s4
-s60
-s36
-" -> s66
+	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+	"s.6
+recirculated_chilled_water
+sugarcane
+makeup_water
+imbibition_water
+cooling_tower_makeup_water
+stripping_water
+boiler_makeup_water
+denaturant
+lime
+H3PO4
+rvf_wash_water
+s57
+s56
+s58
+s61
+s62
+s55
+s63
+polymer
+natural_gas
+dilution_water
+cooling_tower_chemicals
+" -> "sugarcane_sys
+System" [style=dashed]
 }

@@ -1,19 +1,6 @@
 Contributing to BioSTEAM
 ========================
 
-Monthly coordination calls
---------------------------
-
-We welcome anyone with an interest in discussing contributions to BioSTEAM to join our
-monthly meeting at 8-9am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 
-for a link to join. Next coordination call will be on February 16 (no call on January).
-Here is the agenda for this month's coordination call:
-
-.. toctree::
-   :maxdepth: 2
-   
-   coordination/February-16-2022
-
 General Process
 ---------------
 
@@ -109,7 +96,7 @@ you include tests for the following results:
 Also make sure to add a README.rst file to explain basic functionality and 
 design. If a paper is already published, you can add a link to it here too.
 Examples in the readme may be tested using `doctest's testfile <https://docs.python.org/3/library/doctest.html>`__
-method. In the biorefineries repository you can find `example tests <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/BioSTEAM%202.x.x/tests>`__.
+method. In the biorefineries repository you can find `example tests <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/BioSTEAM%202.x.x/biorefineries/tests>`__.
 
 The `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`__ 
 package also uses `pytest` for testing (just run pytest on your local 

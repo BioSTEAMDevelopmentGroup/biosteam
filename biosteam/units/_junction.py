@@ -96,3 +96,9 @@ class Junction(Unit):
     def _run(self): 
         self._outs[0].copy_like(self._ins[0])
     simulate = Unit.run
+
+    @property
+    def inlet_utility_indices(self): return {}
+    
+    @property
+    def outlet_utility_indices(self): return {}

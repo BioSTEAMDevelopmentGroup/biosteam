@@ -295,7 +295,7 @@ class HXutility(HX):
                         Ethanol  200
     outs...
     [0] product
-        phase: 'g', T: 357.45 K, P: 101325 Pa
+        phase: 'g', T: 357.42 K, P: 101325 Pa
         flow (kmol/hr): Water    200
                         Ethanol  200
     >>> hx.results()
@@ -506,11 +506,10 @@ class HXutility(HX):
         T_in = inlet.T
         T_out = outlet.T
         iscooling = duty < 0.
-        if any(['gl' in i.phase for i in (inlet, outlet)]):
-            if iscooling:
-                if T_out > T_in: T_in = T_out
-            else:
-                if T_out < T_in: T_out = T_in
+        if iscooling: # Assume there is a pressure drop before the heat exchanger
+            if T_out > T_in: T_in = T_out
+        else:
+            if T_out < T_in: T_out = T_in
         self.heat_utilities[0](duty, T_in, T_out)
         super()._design()
 

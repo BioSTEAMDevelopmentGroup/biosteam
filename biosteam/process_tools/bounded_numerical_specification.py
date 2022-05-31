@@ -7,18 +7,17 @@
 # for license details.
 """
 """
-from scipy.optimize import brentq
+from flexsolve import IQ_interpolation
 
 __all__ = ('BoundedNumericalSpecification',)
 
 class BoundedNumericalSpecification: # pragma: no cover
     __slots__ = ('args', 'solver', 'kwargs')
     
-    def __init__(self, *args, solver=brentq, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.solver = solver
         
     def __call__(self):
-        return self.solver(*self.args, **self.kwargs)
+        return IQ_interpolation(*self.args, **self.kwargs)
     

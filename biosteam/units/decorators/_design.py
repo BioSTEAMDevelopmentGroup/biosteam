@@ -18,7 +18,11 @@ __all__ = ('design',)
 def _design(self):
     D = self.design_results
     U = self._units
-    for i, j in self._design_basis_: D[i] = j(self, U[i])
+    for i, j, k in self._design_basis_: 
+        if k:
+            D[i] = j(self, U[i]) * self.system.operating_hours / 8760.
+        else:
+            D[i] = j(self, U[i])
 
 class DesignCenter:
     """
@@ -66,7 +70,7 @@ class DesignCenter:
         """
         return lambda cls: self.add_design_basis_to_cls(cls, name, units)
     
-    def add_design_basis_to_cls(self, cls, name, units):
+    def add_design_basis_to_cls(self, cls, name, units, annual):
         """
         Add size/design requirement to class.
         
@@ -84,7 +88,11 @@ class DesignCenter:
         :doc:`Unit decorators`
         
         """
-        f = self.design_basis_functions[name.capitalize()]
+        key = name.capitalize()
+        if key.startswith('Annual '):
+            key = key[7:].capitalize()
+            if annual is None: annual = True 
+        f = self.design_basis_functions[key]
         
         # Make sure design basis is not defined
         if name in cls._units:
@@ -94,9 +102,9 @@ class DesignCenter:
         
         # Add design basis
         if hasattr(cls, '_decorated_design'):
-            cls._design_basis_.append((name, f))
+            cls._design_basis_.append((name, f, annual))
         else:
-            cls._design_basis_ = [(name, f)]
+            cls._design_basis_ = [(name, f, annual)]
             cls._decorated_design = _design
         if '_design' not in cls.__dict__:
             cls._design = _design

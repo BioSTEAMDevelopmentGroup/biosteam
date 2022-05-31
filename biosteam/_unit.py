@@ -18,6 +18,7 @@ from .utils import NotImplementedMethod, format_title, static
 from .utils import piping
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
+from .exceptions import UnitInheritanceError
 from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
@@ -145,6 +146,9 @@ class Unit:
         production venture. Use an integer to specify the lifetime for all
         items in the unit purchase costs. Use a dictionary to specify the 
         lifetime of each purchase cost item.
+    **_materials_and_maintenance**
+        [Set] Cost items that need to be summed across operation modes for 
+        flexible operation (e.g., filtration membranes).
     **_graphics**
         [biosteam.Graphics, abstract, optional] Settings for diagram
         representation. Defaults to a box with the same number of input
@@ -187,7 +191,7 @@ class Unit:
     --------
     :doc:`tutorial/Creating_a_Unit`
     
-    :doc:`tutorial/Using_-pipe-_notation`
+    :doc:`tutorial/-pipe-_notation`
     
     :doc:`tutorial/Inheriting_from_Unit`
     
@@ -199,6 +203,10 @@ class Unit:
                           isabstract=False,
                           new_graphics=True):
         dct = cls.__dict__
+        if 'run' in dct:
+            raise UnitInheritanceError(
+                 "the 'run' method cannot be overrided; implement `_run` instead"
+            )
         if 'line' not in dct:
             cls.line = format_title(cls.__name__)
         if 'ticket_name' not in dct:
@@ -224,38 +232,36 @@ class Unit:
             # Set new graphics for specified line
             cls._graphics = UnitGraphics.box(cls._N_ins, cls._N_outs)
         if not isabstract:
-            if cls is not Unit:
-                if hasattr(cls, '_BM'): 
-                    raise NotImplementedError(
-                        'the `_BM` class attribute for bare-module factors is '
-                        'deprecated; implement `_F_BM_default` instead'
-                    )
-                elif hasattr(cls, '_F_BM_defaults'):
-                    raise NotImplementedError(
-                        '`_F_BM_defaults` is incorrect; implement '
-                        '`_F_BM_default` instead'
-                    )
-                elif not hasattr(cls, '_F_BM_default'):
-                    cls._F_BM_default = {}
-                
-                if hasattr(cls, '_equipment_lifetime'):
-                    raise NotImplementedError(
-                        'the `_equipment_lifetime` class attribute is '
-                        'deprecated; implement `_default_equipment_lifetime` instead'
-                    )
-                elif hasattr(cls, '_default_equipment_lifetimes'):
-                    raise NotImplementedError(
-                        '`_default_equipment_lifetimes` is incorrect; implement '
-                        '`_default_equipment_lifetime` instead'
-                    )
-                elif not hasattr(cls, '_default_equipment_lifetime'): 
-                    cls._default_equipment_lifetime = {}
+            if hasattr(cls, '_BM'): 
+                raise UnitInheritanceError(
+                    'cannot set `_BM`; implement `_F_BM_default` instead'
+                )
+            elif hasattr(cls, '_F_BM_defaults'):
+                raise UnitInheritanceError(
+                    'cannot set `_F_BM_defaults`; implement '
+                    '`_F_BM_default` instead'
+                )
+            elif not hasattr(cls, '_F_BM_default'):
+                cls._F_BM_default = {}
+            
+            if hasattr(cls, '_equipment_lifetime'):
+                raise UnitInheritanceError(
+                    'cannot set `_equipment_lifetime`; '
+                    'implement `_default_equipment_lifetime` instead'
+                )
+            elif hasattr(cls, '_default_equipment_lifetimes'):
+                raise UnitInheritanceError(
+                    'cannot set `_default_equipment_lifetimes`; implement '
+                    '`_default_equipment_lifetime` instead'
+                )
+            elif not hasattr(cls, '_default_equipment_lifetime'): 
+                cls._default_equipment_lifetime = {}
             if not hasattr(cls, '_units'): cls._units = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
                 else:
-                    raise NotImplementedError(
+                    raise UnitInheritanceError(
                         "Unit subclass with multiple inlet or outlet streams "
                         "must implement a '_run' method unless the "
                         "'isabstract' keyword argument is True"
@@ -264,6 +270,10 @@ class Unit:
             cls._stacklevel += 1
         
     ### Abstract Attributes ###
+    
+    # [Set] Cost items that need to be summed across operation modes for 
+    # flexible operation.
+    _materials_and_maintenance = frozenset()
     
     # tuple[str] Name of attributes that are auxiliary units. These units
     # will be accounted for in the purchase and installed equipment costs
@@ -291,8 +301,7 @@ class Unit:
     # [biosteam Graphics] A Graphics object for diagram representation
     _graphics = box_graphics
 
-    # [int] Used for piping warnings. Should be equal to 6 plus the number of
-    # wrappers to Unit.__init__
+    # [int] Used for piping warnings.
     _stacklevel = 5
     
     # [str] The general type of unit, regardless of class
@@ -301,9 +310,9 @@ class Unit:
     ### Other defaults ###
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
+        self._system = None
         self._isdynamic = False
         self._register(ID)
-        self._specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)
@@ -387,6 +396,9 @@ class Unit:
         #: [bool] Whether to run mass and energy balance after calling
         #: specification functions
         self.run_after_specification = False 
+        
+        #: [bool] Safety toggle to prevent infinite recursion
+        self._running_specification = False
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
@@ -497,14 +509,21 @@ class Unit:
         baseline_purchase_costs = agile_scenario['baseline_purchase_costs']
         purchase_costs = agile_scenario['purchase_costs']
         installed_costs = agile_scenario['installed_costs']
+        materials_and_maintenance = self._materials_and_maintenance
         for name, Cp in baseline_purchase_costs.items():
             F = F_D.get(name, 1.) * F_P.get(name, 1.) * F_M.get(name, 1.)
             installed_cost = Cp * (F_BM.get(name, 1.) + F - 1.)
             purchase_cost = Cp * F
             if installed_cost > installed_costs[name]:
-                installed_costs[name] = installed_cost
+                if name in materials_and_maintenance:
+                    installed_costs[name] += installed_cost
+                else:
+                    installed_costs[name] = installed_cost
             if purchase_cost > purchase_costs[name]:
-                purchase_costs[name] = purchase_cost
+                if name in materials_and_maintenance:
+                    purchase_costs[name] += purchase_cost
+                else:
+                    purchase_costs[name] = purchase_cost
     
     def _assert_compatible_property_package(self):
         chemicals = self.chemicals
@@ -645,6 +664,10 @@ class Unit:
             if not s: s.materialize_connection()
     
     @property
+    def system(self):
+        return self._system
+    
+    @property
     def owner(self):
         owner = getattr(self, '_owner', None)
         if owner is None:
@@ -769,18 +792,99 @@ class Unit:
                 pass
     
     def add_specification(self, specification=None, run=None, args=()):
+        """
+        Add a specification.
+
+        Parameters
+        ----------
+        specification : Callable
+            Function runned for mass and energy balance. Defaults to None.
+        run : bool, optional
+            Whether to run the built-in mass and energy balance after 
+            specifications. Defaults to False.
+        args : tuple, optional
+            Arguments to pass to the specification function. Defaults to ().
+
+        Examples
+        --------
+        :doc:`tutorial/Process_specifications`
+
+        See Also
+        --------
+        add_bounded_numerical_specification
+
+        Notes
+        -----
+        This method also works as a decorator.
+
+        """
         if not specification: return lambda specification: self.add_specification(specification, run)
         if not callable(specification): raise ValueError('specification must be callable')
         self.specification.append([specification, args])
         if run is not None: self.run_after_specification = run
         return specification
     
+    def add_bounded_numerical_specification(self, f=None, *args, **kwargs):
+        """
+        Add a bounded numerical specification that solves x where f(x) = 0 using an 
+        inverse quadratic interpolation solver.
+        
+        Parameters
+        ----------
+        f: Callable
+            Objective function in the form of f(x, *args).
+        x: float, optional
+            Root guess.
+        x0, x1: float
+            Root bracket. Solution must lie within x0 and x1.
+        xtol: float, optional
+            Solver stops when the root lies within xtol. Defaults to 0.
+        ytol: float, optional 
+            Solver stops when the f(x) lies within ytol of the root. Defaults to 5e-8.
+        args=(): 
+            Arguments to pass to f.
+        maxiter: 
+            Maximum number of iterations. Defaults to 50.
+        checkiter: bool, optional
+            Whether to raise a Runtimer error when tolerance could not be 
+            satisfied before the maximum number of iterations. Defaults to True.
+        checkroot: bool, optional
+            Whether satisfying both tolerances, xtol and ytol, are required 
+            for termination. Defaults to False.
+        checkbounds: bool, optional
+            Whether to raise a ValueError when in a bounded solver when the 
+            root is not certain to lie within bounds (i.e. f(x0) * f(x1) > 0.).
+            Defaults to True.
+            
+        Examples
+        --------
+        :doc:`tutorial/Process_specifications`
+
+        See Also
+        --------
+        add_specification
+        
+        Notes
+        -----
+        This method also works as a decorator.
+
+        """
+        if not f: return lambda f: self.add_bounded_numerical_specification(f, *args, **kwargs)
+        if not callable(f): raise ValueError('f must be callable')
+        specification = bst.BoundedNumericalSpecification(f, *args, **kwargs)
+        self.specification.append([specification, ()])
+        return f
+    
     def run(self):
         """Run mass and energy balance."""
         specification = self._specification
-        if specification:
-            for i, args in specification: i(*args)
-            if self.run_after_specification: self._run()
+        if specification and not self._running_specification:
+            self._running_specification = True
+            try:
+                for i, args in specification: i(*args)
+                if self.run_after_specification: self._run()
+            finally:
+                self._running_specification = False
         else:
             self._run()
             
@@ -877,6 +981,18 @@ class Unit:
         formula_array = self.chemicals.formula_array
         unbalanced_array = formula_array @ mol
         return elements.array_to_atoms(unbalanced_array)
+
+    def empty(self):
+        """
+        Empty all unit operation results.
+        """
+        self.design_results.clear()
+        self.baseline_purchase_costs.clear()
+        self.purchase_costs.clear()
+        self.installed_costs.clear()
+        for i in self.outs: i.empty()
+        for i in self.heat_utilities: i.empty()
+        self.power_utility.empty()
 
     def simulate(self):
         """

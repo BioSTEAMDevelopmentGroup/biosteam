@@ -167,7 +167,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
     return cls
 
 def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=None, BM=1.,
-         units=None, N=None, lifetime=None, f=None):    
+         units=None, N=None, lifetime=None, f=None, annual=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up.
     
@@ -199,6 +199,10 @@ def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=No
         Number of operating years until equipment needs to be replaced.
     f : function, optional
         Should return the cost given the size `S` at the given `CE`.
+    annual : bool, optional
+        Whether to annualize design basis. For example, the yearly flow rate of
+        treated water should be annualized to account for operating hours and
+        plant downtime.
         
     Examples
     --------
@@ -206,9 +210,9 @@ def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=No
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f)
+    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual)
 
-def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f):
+def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual):
     # Make sure new _units dictionary is defined
     if '_units' not in cls.__dict__:
         cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
@@ -218,7 +222,7 @@ def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime,
         elif units != cls._units[basis]:
             raise RuntimeError(f"cost basis '{basis}' already defined in class with units '{cls._units[basis]}'")
     elif units:
-        design.add_design_basis_to_cls(cls, basis, units)
+        design.add_design_basis_to_cls(cls, basis, units, annual)
     else:
         raise RuntimeError(f"units of cost basis '{basis}' not available in '{cls.__name__}._units' dictionary, must pass units or define in class")
     if hasattr(cls, 'cost_items'):

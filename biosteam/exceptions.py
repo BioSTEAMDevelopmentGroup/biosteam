@@ -10,7 +10,12 @@
 from thermosteam import exceptions
 from thermosteam.exceptions import *
 
-__all__ = ('DesignError', *exceptions.__all__)
+__all__ = (
+    'DesignError', 
+    'GraphicsWarning',
+    'FailedEvaluation',
+    'UnitInheritanceError',
+    *exceptions.__all__)
 del exceptions
 
 # %% Biosteam errors
@@ -23,3 +28,6 @@ class GraphicsWarning(RuntimeWarning):
     
 class FailedEvaluation(RuntimeWarning):
     """RuntimeWarning regarding failed model evaluation."""
+    
+class UnitInheritanceError(Exception):
+    """Exception regarding unit inhearitance."""

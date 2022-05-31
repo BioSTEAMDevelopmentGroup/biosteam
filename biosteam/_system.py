@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
-#                          Sarang Bhagwat <sarangb2@illinois.edu>,
+# Copyright (C) 2020-2022, Yoel Cortes-Pena <yoelcortes@gmail.com>,
 #                          Joy Zhang <joycheung1994@gmail.com>,
 #                          Yalin Li <zoe.yalin.li@gmail.com>
+#                          Sarang Bhagwat <sarangb2@illinois.edu>,
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -16,7 +16,6 @@ from .digraph import (digraph_from_units_and_streams,
                       minimal_digraph,
                       surface_digraph,
                       finalize_digraph)
-# from thermosteam import functional as fn
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
@@ -25,10 +24,8 @@ from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
 from .utils import repr_items, ignore_docking_warnings, SystemScope
 from .report import save_report
-# from .exceptions import InfeasibleRegion
 from .utils import StreamPorts, OutletPort, colors
 from .process_tools import utils
-# from .utils import NotImplementedMethod
 from collections.abc import Iterable
 from warnings import warn
 from inspect import signature
@@ -316,7 +313,6 @@ class System:
         'flowsheet',
         'lang_factor',
         'process_impact_items',
-        '_stabilized',
         '_connections',
         '_irrelevant_units',
         '_converge_method',
@@ -359,9 +355,6 @@ class System:
 
     #: [str] Default convergence method.
     default_converge_method = 'Aitken'
-
-    # [bool] Whether to use stabilized convergence algorithm.
-    default_stabilized_convergence = False
 
     #: [bool] Whether to raise a RuntimeError when system doesn't converge
     strict_convergence = True
@@ -567,6 +560,7 @@ class System:
                 i.source.outs[i.source_index] = i.stream
             if i.sink:
                 i.sink.ins[i.sink_index] = i.stream
+        for i in self.units: i._system = self
 
     @ignore_docking_warnings
     def _interface_property_packages(self):
@@ -681,7 +675,6 @@ class System:
     def copy_like(self, other):
         """Copy path, facilities and recycle from other system."""
         self._path = other._path
-        self._subsystems = other._subsystems
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
         self._recycle = other._recycle
@@ -743,8 +736,6 @@ class System:
         #: [str] Converge method
         self.converge_method = self.default_converge_method
 
-        self.use_stabilized_convergence_algorithm = self.default_stabilized_convergence
-
     @property
     def TEA(self):
         """TEA object linked to the system."""
@@ -771,19 +762,6 @@ class System:
                 )
         else:
             self._specification = None
-
-    @property
-    def use_stabilized_convergence_algorithm(self):
-        """[bool] Whether to use a stabilized convergence algorithm that implements 
-        an inner loop with mass and energy balance approximations when applicable."""
-        return self._stabilized
-    @use_stabilized_convergence_algorithm.setter
-    def use_stabilized_convergence_algorithm(self, stabilized):
-        if stabilized and not self._recycle:
-            for i in self.subsystems: i.use_stabilized_convergence_algorithm = True
-        else:
-            for i in self.subsystems: i.use_stabilized_convergence_algorithm = False
-        self._stabilized = stabilized
 
     save_report = save_report
 
@@ -960,14 +938,11 @@ class System:
 
     def _load_facilities(self):
         isa = isinstance
-        units = self.units.copy()
+        units = self.units
         for i in self._facilities:
             if isa(i, Facility):
-                if i._system: continue
-                i._system = self
                 i._other_units = other_units = units.copy()
                 other_units.remove(i)
-
 
     def _set_facility_recycle(self, recycle):
         if recycle:
@@ -1360,8 +1335,8 @@ class System:
 
     def _setup(self):
         """Setup each element of the system."""
-        self._load_facilities()
         self._load_configuration()
+        self._load_facilities()
         for i in self.units: i._setup()
 
     def _run(self):
@@ -1391,17 +1366,6 @@ class System:
         """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
         f = iter_run = self._iter_run
-        if self._stabilized:
-            special_units = [i for i in self.units if hasattr(i, '_steady_run')]
-            if special_units:
-                def f(mol):
-                    self._set_recycle_data(mol)
-                    for unit in special_units: unit._run = unit._steady_run
-                    try:
-                        solver(iter_run, self._get_recycle_data())
-                    finally:
-                        for unit in special_units: del unit._run
-                    return iter_run(self._get_recycle_data())
         try:
             solver(f, self._get_recycle_data())
         except IndexError as error:
@@ -1858,6 +1822,10 @@ class System:
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
 
+    def has_market_value(self, stream):
+        """Return whether stream has a market value."""
+        return bool(stream.price) and not stream.isempty()
+        
     def get_property(self, stream, name, units=None):
         """Return the annualized property of a stream."""
         return stream.get_property(name, units) * self.operating_hours
@@ -2507,7 +2475,11 @@ class AgileSystem:
     def get_market_value(self, stream):
         """Return the market value of a stream [USD/yr]."""
         return self.flow_rates[stream] * stream.price
-  
+    
+    def has_market_value(self, stream):
+        """Return whether stream has a market value."""
+        return bool(self.flow_rates[stream] and stream.price)
+    
     def get_mass_flow(self, stream):
         """Return the mass flow rate of a stream [kg/yr]."""
         return self.flow_rates[stream]

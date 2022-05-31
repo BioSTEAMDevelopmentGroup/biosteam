@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-__version__ = '2.32.4'
+__version__ = '2.32.6'
 
 #: dict[str, float] Price of stream utilities (in USD/kg) which are defined as 
 #: inlets and outlets to unit operations.
@@ -58,6 +58,7 @@ else:
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, speed_up
 from ._heat_utility import HeatUtility, UtilityAgent
 from ._power_utility import PowerUtility
+from .utils import *
 from ._unit import Unit
 from . import _system
 from ._system import *

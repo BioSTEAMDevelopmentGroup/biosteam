@@ -49,101 +49,93 @@ class Splitter(Unit):
     Create a Splitter object with an ID, a feed stream, two outlet streams,
     and an overall split:
         
-    .. code-block:: python
-    
-       >>> from biosteam import units, settings, Stream
-       >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
-       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-       >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
-       >>> S1.simulate()
-       >>> S1.show()
-       Splitter: S1
-       ins...
-       [0] feed
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    20
-                           Ethanol  10
-       outs...
-       [0] top
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    2
-                           Ethanol  1
-       [1] bot
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    18
-                           Ethanol  9
+    >>> from biosteam import units, settings, Stream
+    >>> settings.set_thermo(['Water', 'Ethanol'], cache=True)
+    >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+    >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
+    >>> S1.simulate()
+    >>> S1.show()
+    Splitter: S1
+    ins...
+    [0] feed
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
+    outs...
+    [0] top
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    2
+                        Ethanol  1
+    [1] bot
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    18
+                        Ethanol  9
       
     Create a Splitter object, but this time with a componentwise split
     using a dictionary:
-        
-    .. code-block:: python
     
-       >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
-       ...                     split={'Water': 0.1, 'Ethanol': 0.99})
-       >>> S1.simulate()
-       >>> S1.show()
-       Splitter: S1
-       ins...
-       [0] feed
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    20
-                           Ethanol  10
-       outs...
-       [0] top
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    2
-                           Ethanol  9.9
-       [1] bot
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    18
-                           Ethanol  0.1
+    >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
+    ...                     split={'Water': 0.1, 'Ethanol': 0.99})
+    >>> S1.simulate()
+    >>> S1.show()
+    Splitter: S1
+    ins...
+    [0] feed
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
+    outs...
+    [0] top
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    2
+                        Ethanol  9.9
+    [1] bot
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    18
+                        Ethanol  0.1
                            
     Create a Splitter object using componentwise split, but this time specify the order:
-        
-    .. code-block:: python
     
-       >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
-       ...                     order=('Ethanol', 'Water'),
-       ...                     split=(0.99, 0.10))
-       >>> S1.simulate()
-       >>> S1.show()
-       Splitter: S1
-       ins...
-       [0] feed
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    20
-                           Ethanol  10
-       outs...
-       [0] top
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    2
-                           Ethanol  9.9
-       [1] bot
-           phase: 'l', T: 340 K, P: 101325 Pa
-           flow (kmol/hr): Water    18
-                           Ethanol  0.1
+    >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
+    ...                     order=('Ethanol', 'Water'),
+    ...                     split=(0.99, 0.10))
+    >>> S1.simulate()
+    >>> S1.show()
+    Splitter: S1
+    ins...
+    [0] feed
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    20
+                        Ethanol  10
+    outs...
+    [0] top
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    2
+                        Ethanol  9.9
+    [1] bot
+        phase: 'l', T: 340 K, P: 101325 Pa
+        flow (kmol/hr): Water    18
+                        Ethanol  0.1
 
     Splits can also be altered after creating the splitter:
         
-    .. code-block:: python
-       
-       >>> S1.split = 0.5
-       >>> S1.isplit.show()
-       SplitIndexer:
-        Water    0.5
-        Ethanol  0.5
-        
-       >>> S1.isplit['Water'] = 1.0
-       >>> S1.isplit.show()
-       SplitIndexer:
-        Water    1
-        Ethanol  0.5
-        
-       >>> S1.split = [0.9, 0.8]
-       >>> S1.isplit.show()
-       SplitIndexer:
-        Water    0.9
-        Ethanol  0.8
+    >>> S1.split = 0.5
+    >>> S1.isplit.show()
+    SplitIndexer:
+     Water    0.5
+     Ethanol  0.5
+     
+    >>> S1.isplit['Water'] = 1.0
+    >>> S1.isplit.show()
+    SplitIndexer:
+     Water    1
+     Ethanol  0.5
+     
+    >>> S1.split = [0.9, 0.8]
+    >>> S1.isplit.show()
+    SplitIndexer:
+     Water    0.9
+     Ethanol  0.8
 
     """
     _N_outs = 2
@@ -202,18 +194,18 @@ class PhaseSplitter(Unit):
     PhaseSplitter: PS
     ins...
     [0] feed
-        phases: ('g', 'l'), T: 353.88 K, P: 101325 Pa
+        phases: ('g', 'l'), T: 353.86 K, P: 101325 Pa
         flow (kmol/hr): (g) Water    3.86
                             Ethanol  6.14
                         (l) Water    6.14
                             Ethanol  3.86
     outs...
     [0] s1
-        phase: 'g', T: 353.88 K, P: 101325 Pa
+        phase: 'g', T: 353.86 K, P: 101325 Pa
         flow (kmol/hr): Water    3.86
                         Ethanol  6.14
     [1] s2
-        phase: 'l', T: 353.88 K, P: 101325 Pa
+        phase: 'l', T: 353.86 K, P: 101325 Pa
         flow (kmol/hr): Water    6.14
                         Ethanol  3.86
     

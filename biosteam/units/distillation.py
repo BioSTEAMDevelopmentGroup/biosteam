@@ -37,6 +37,7 @@ from .splitting import FakeSplitter
 from .._graphics import vertical_column_graphics
 from scipy.optimize import brentq
 from warnings import warn
+from thermosteam import separations as sep
 import biosteam as bst
 from .heat_exchange import HXutility
 
@@ -1028,54 +1029,54 @@ class BinaryDistillation(Distillation, new_graphics=False):
     BinaryDistillation: D1
     ins...
     [0] feed
-        phase: 'l', T: 76.129 degC, P: 1 atm
+        phase: 'l', T: 76.12 degC, P: 1 atm
         composition: Water     0.39
                      Methanol  0.488
                      Glycerol  0.122
                      --------  205 kmol/hr
     outs...
     [0] distillate
-        phase: 'g', T: 64.91 degC, P: 1 atm
+        phase: 'g', T: 64.909 degC, P: 1 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
     [1] bottoms_product
-        phase: 'l', T: 100.06 degC, P: 1 atm
+        phase: 'l', T: 100.03 degC, P: 1 atm
         composition: Water     0.754
                      Methanol  0.00761
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                           Units        D1
-    Cooling water       Duty                              kJ/hr -4.87e+06
+    Cooling water       Duty                              kJ/hr -4.88e+06
                         Flow                            kmol/hr  3.33e+03
-                        Cost                             USD/hr      1.62
+                        Cost                             USD/hr      1.63
     Low pressure steam  Duty                              kJ/hr  1.02e+07
-                        Flow                            kmol/hr       263
-                        Cost                             USD/hr      62.6
+                        Flow                            kmol/hr       264
+                        Cost                             USD/hr      62.7
     Design              Theoretical feed stage                          9
                         Theoretical stages                             13
-                        Minimum reflux                    Ratio     0.687
-                        Reflux                            Ratio      1.37
+                        Minimum reflux                    Ratio     0.689
+                        Reflux                            Ratio      1.38
                         Rectifier stages                               15
                         Stripper stages                                13
                         Rectifier height                     ft      34.7
                         Stripper height                      ft      31.7
                         Rectifier diameter                   ft      3.93
-                        Stripper diameter                    ft      3.19
+                        Stripper diameter                    ft       3.2
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
                         Rectifier weight                     lb     6e+03
                         Stripper weight                      lb  4.43e+03
-    Purchase cost       Condenser - Floating head           USD  3.32e+04
+    Purchase cost       Condenser - Floating head           USD  3.33e+04
                         Boiler - Floating head              USD  2.67e+04
-                        Rectifier trays                     USD   1.5e+04
-                        Stripper trays                      USD  1.25e+04
-                        Rectifier tower                     USD  4.56e+04
-                        Stripper platform and ladders       USD  1.39e+04
-                        Stripper tower                      USD  3.83e+04
-                        Rectifier platform and ladders      USD  1.14e+04
-    Total purchase cost                                     USD  1.97e+05
+                        Rectifier trays                     USD  1.43e+04
+                        Stripper trays                      USD  1.19e+04
+                        Rectifier tower                     USD  4.36e+04
+                        Stripper platform and ladders       USD  1.33e+04
+                        Stripper tower                      USD  3.66e+04
+                        Rectifier platform and ladders      USD  1.09e+04
+    Total purchase cost                                     USD  1.91e+05
     Utility cost                                         USD/hr      64.3
     
     """
@@ -1441,35 +1442,35 @@ class ShortcutColumn(Distillation, new_graphics=False):
     ShortcutColumn: D1
     ins...
     [0] feed
-        phase: 'l', T: 76.129 degC, P: 1 atm
+        phase: 'l', T: 76.12 degC, P: 1 atm
         composition: Water     0.39
                      Methanol  0.488
                      Glycerol  0.122
                      --------  205 kmol/hr
     outs...
     [0] distillate
-        phase: 'g', T: 64.91 degC, P: 1 atm
+        phase: 'g', T: 64.909 degC, P: 1 atm
         composition: Water     0.01
                      Methanol  0.99
                      --------  100 kmol/hr
     [1] bottoms_product
-        phase: 'l', T: 100.06 degC, P: 1 atm
+        phase: 'l', T: 100.03 degC, P: 1 atm
         composition: Water     0.754
                      Methanol  0.00761
                      Glycerol  0.239
                      --------  105 kmol/hr
     >>> D1.results()
     Divided Distillation Column                           Units        D1
-    Cooling water       Duty                              kJ/hr -7.52e+06
-                        Flow                            kmol/hr  5.14e+03
+    Cooling water       Duty                              kJ/hr -7.53e+06
+                        Flow                            kmol/hr  5.15e+03
                         Cost                             USD/hr      2.51
     Low pressure steam  Duty                              kJ/hr  1.35e+07
                         Flow                            kmol/hr       347
-                        Cost                             USD/hr      82.4
+                        Cost                             USD/hr      82.5
     Design              Theoretical feed stage                          8
                         Theoretical stages                             16
                         Minimum reflux                    Ratio      1.06
-                        Reflux                            Ratio      2.12
+                        Reflux                            Ratio      2.13
                         Rectifier stages                               14
                         Stripper stages                                26
                         Rectifier height                     ft      33.2
@@ -1478,18 +1479,18 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper diameter                    ft      3.65
                         Rectifier wall thickness             in     0.312
                         Stripper wall thickness              in     0.312
-                        Rectifier weight                     lb  6.71e+03
-                        Stripper weight                      lb  7.93e+03
-    Purchase cost       Condenser - Floating head           USD  4.06e+04
+                        Rectifier weight                     lb  6.72e+03
+                        Stripper weight                      lb  7.94e+03
+    Purchase cost       Condenser - Floating head           USD  4.07e+04
                         Boiler - Floating head              USD  2.93e+04
-                        Rectifier trays                     USD  1.58e+04
-                        Stripper trays                      USD  2.01e+04
-                        Rectifier tower                     USD  4.88e+04
-                        Stripper platform and ladders       USD  1.47e+04
-                        Stripper tower                      USD  5.38e+04
-                        Rectifier platform and ladders      USD  1.81e+04
-    Total purchase cost                                     USD  2.41e+05
-    Utility cost                                         USD/hr      84.9
+                        Rectifier trays                     USD  1.51e+04
+                        Stripper trays                      USD  1.92e+04
+                        Rectifier tower                     USD  4.66e+04
+                        Stripper platform and ladders       USD   1.4e+04
+                        Stripper tower                      USD  5.14e+04
+                        Rectifier platform and ladders      USD  1.73e+04
+    Total purchase cost                                     USD  2.33e+05
+    Utility cost                                         USD/hr      85.1
     
     """
     line = 'Distillation'
@@ -1497,7 +1498,17 @@ class ShortcutColumn(Distillation, new_graphics=False):
     _N_ins = 1
     _N_outs = 2
     minimum_guess_distillate_recovery = 1e-11
-     
+    bounded_solver_kwargs = dict(
+        checkiter=False,
+        checkbounds=False,
+    )
+    iter_solver_kwargs = dict(
+        xtol=5e-6,
+        checkiter=False,
+        checkconvergence=False, 
+        convergenceiter=3,
+    )
+    
     def _run(self):
         # Initial mass balance
         self._run_binary_distillation_mass_balance()
@@ -1614,8 +1625,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         bracket = flx.find_bracket(objective_function_Underwood_constant,
                                    1.0, alpha_LK, lb, ub, args)
         theta = flx.IQ_interpolation(objective_function_Underwood_constant,
-                                     *bracket, args=args, checkiter=False,
-                                     checkbounds=False)
+                                     *bracket, args=args, **self.bounded_solver_kwargs)
         return theta
         
     def _add_trace_heavy_and_light_non_keys_in_products(self):
@@ -1666,8 +1676,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
     def _solve_distillate_recoveries(self):
         distillate_recoveries = self._distillate_recoveries
         flx.wegstein(self._recompute_distillate_recoveries,
-                     distillate_recoveries, 1e-8, checkiter=False,
-                     checkconvergence=False, convergenceiter=3)
+                     distillate_recoveries,**self.iter_solver_kwargs)
         
     def _recompute_distillate_recoveries(self, distillate_recoveries):
         if np.logical_or(distillate_recoveries > 1., distillate_recoveries < 0.).any():
@@ -1678,4 +1687,228 @@ class ShortcutColumn(Distillation, new_graphics=False):
             self._distillate_recoveries_hook(self._IDs_vle, distillate_recoveries)
         self._distillate_recoveries = distillate_recoveries
         return distillate_recoveries
+
+
+# %% Rigorous MESH based distillation column 
+
+# NOT YET READY FOR USERS
+class MESHDistillation(Distillation, new_graphics=False):
+    r"""
+    Create a distillation column that uses MESH (Mass, Equilibrium, 
+    Summation, and Enthalpy) based equations to converge. The Murphree
+    efficiency (i.e. column efficiency) is based on the modified O'Connell
+    correlation [2]_. The diameter is based on tray separation and flooding 
+    velocity [1]_ [3]_. Purchase costs are based on correlations compiled by
+    Warren et. al. [4]_.
+
+    Parameters
+    ----------
+    ins : streams
+        Inlet fluids to be mixed into the feed stage.
+    outs : stream sequence
+        * [0] Distillate
+        * [1] Bottoms product
+    LHK : tuple[str]
+        Light and heavy keys.
+    y_top : float
+        Estimated molar fraction of light key to the light and heavy keys in the
+        distillate.
+    x_bot : float
+        Estimated molar fraction of light key to the light and heavy keys in the bottoms
+        product.
+    Lr : float
+        Estimated recovery of the light key in the distillate.
+    Hr : float
+        Estimated recovery of the heavy key in the bottoms product.
+    N_stages : int
+        Number of stages.
+    feed_stages : tuple[int]
+        Stage at which each inlet enters, respectively
+    vapor_side_draws : tuple[tuple[int]]
+        Stage number and split fraction pairs.
+    liquid_side_draws : tuple[tuple[int]]
+        Stage number and split fraction pairs.
+    specifications : tuple[tuple(int, tuple(str, float))]
+        Stage number and both specification name and value pairs.
+    product_specification_format="Composition" : "Composition" or "Recovery"
+        If composition is used, `y_top` and `x_bot` must be specified.
+        If recovery is used, `Lr` and `Hr` must be specified.
+    P=101325 : float
+        Operating pressure [Pa].
+    vessel_material : str, optional
+        Vessel construction material. Defaults to 'Carbon steel'.
+    tray_material : str, optional
+        Tray construction material. Defaults to 'Carbon steel'.
+    tray_type='Sieve' : 'Sieve', 'Valve', or 'Bubble cap'
+        Tray type.
+    tray_spacing=450 : float
+        Typically between 152 to 915 mm.
+    stage_efficiency=None : 
+        User enforced stage efficiency. If None, stage efficiency is
+        calculated by the O'Connell correlation [2]_.
+    velocity_fraction=0.8 : float
+        Fraction of actual velocity to maximum velocity allowable before
+        flooding.
+    foaming_factor=1.0 : float
+        Must be between 0 to 1.
+    open_tray_area_fraction=0.1 : float
+        Fraction of open area to active area of a tray.
+    downcomer_area_fraction=None : float
+        Enforced fraction of downcomer area to net (total) area of a tray.
+        If None, estimate ratio based on Oliver's estimation [1]_.
+    is_divided=False : bool
+        True if the stripper and rectifier are two separate columns.
+
+    References
+    ----------
+    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
+        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
+
+    .. [2] M. Duss, R. Taylor. (2018)
+        Predict Distillation Tray Efficiency. AICHE 
+    
+    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+        Handbook, 9 ed.; McGraw-Hill Education, 2018.
+
+    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+        Cost Accounting and Capital Cost Estimation (Chapter 16)
+
+    Notes
+    -----
+    Not yet ready for users.
+    
+    """
+    line = 'Distillation'
+    _ins_size_is_fixed = False
+    _N_ins = 1
+    _N_outs = 2
+    minimum_guess_distillate_recovery = 1e-11
+    bounded_solver_kwargs = dict(
+        checkiter=False,
+        checkbounds=False,
+    )
+    iter_solver_kwargs = dict(
+        xtol=5e-6,
+        checkiter=False,
+        checkconvergence=False, 
+        convergenceiter=3,
+    )
+    
+    def __init__(self, ID='', ins=None, outs=(), thermo=None,
+                P=101325, *, LHK, N_stages, feed_stages, 
+                vapor_side_draws=None, liquid_side_draws=None,
+                specifications=None,
+                Lr=None,
+                Hr=None,
+                y_top=None,
+                x_bot=None, 
+                product_specification_format=None,
+                vessel_material='Carbon steel',
+                tray_material='Carbon steel',
+                tray_type='Sieve',
+                tray_spacing=450,
+                stage_efficiency=None,
+                velocity_fraction=0.8,
+                foaming_factor=1.0,
+                open_tray_area_fraction=0.1,
+                downcomer_area_fraction=None,
+                is_divided=False,
+                vacuum_system_preference='Liquid-ring pump',
+                condenser_thermo=None,
+                boiler_thermo=None,
+                partial_condenser=True,
+        ):
+        Unit.__init__(self, ID, ins, outs, thermo)
+        
+        # Operation specifications
+        self.P = P
+        self.N_stages = N_stages
+        self.feed_stages = feed_stages
+        self.vapor_side_draws = vapor_side_draws
+        self.liquid_side_draws = liquid_side_draws
+        self.specifications = specifications
+        self._partial_condenser = partial_condenser
+        self._set_distillation_product_specifications(product_specification_format,
+                                                      x_bot, y_top, Lr, Hr)
+        
+        # Construction specifications
+        self.vessel_material = vessel_material
+        self.tray_type = tray_type
+        self.tray_material = tray_material
+        self.tray_spacing = tray_spacing
+        self.stage_efficiency = stage_efficiency
+        self.velocity_fraction = velocity_fraction
+        self.foaming_factor = foaming_factor
+        self.open_tray_area_fraction = open_tray_area_fraction
+        self.downcomer_area_fraction = downcomer_area_fraction
+        self.is_divided = is_divided
+        self.vacuum_system_preference = vacuum_system_preference
+        self._load_components(partial_condenser, condenser_thermo, boiler_thermo, LHK)
+    
+    def _setup(self):
+        super()._setup()
+        args = (self.N_stages, self.feed_stages, self.vapor_side_draws, 
+                *self._ins, self.liquid_side_draws, self.specifications, self.partition_data)
+        if args != self._last_args:
+            self.stages = sep.MultiStageEquilibrium(
+                self.N_stages, self.ins, self.feed_stages, specifications=self.specifications,
+                top_side_draws=self.vapor_side_draws, bottom_side_draws=self.liquid_side_draws, 
+                thermo=self.thermo, partition_data=self.partition_data, phases=('L', 'l'),
+            )
+            self._last_args = args
+    
+    def _run(self):
+        # Initial mass balance
+        self._run_binary_distillation_mass_balance()
+        
+        # Initialize objects to calculate bubble and dew points
+        vle_chemicals = self.feed.vle_chemicals
+        reset_cache = self._vle_chemicals != vle_chemicals
+        if reset_cache:
+            self._dew_point = DewPoint(vle_chemicals, self.thermo)
+            self._bubble_point = BubblePoint(vle_chemicals, self.thermo)
+            self._IDs_vle = self._dew_point.IDs
+            self._vle_chemicals = vle_chemicals
+            
+        # Setup light and heavy keys
+        LHK = [i.ID for i in self.chemicals[self.LHK]]
+        IDs = self._IDs_vle
+        self._LHK_vle_index = np.array([IDs.index(i) for i in LHK], dtype=int)
+        
+        # Add temporary specification
+        composition_spec = self.product_specification_format == 'Composition'
+        if composition_spec:
+            feed = self.feed
+            distillate, bottoms = self.outs
+            LK_index, HK_index = LHK_index = self._LHK_index
+            LK_feed, HK_feed = feed.mol[LHK_index]
+            self._Lr = distillate.mol[LK_index] / LK_feed
+            self._Hr = bottoms.mol[HK_index] / HK_feed
+            
+        # Set starting point for solving column
+        if reset_cache:
+            self._add_trace_heavy_and_light_non_keys_in_products()
+            self._distillate_recoveries = self._estimate_distillate_recoveries()
+        else:
+            distillate_recoveries = self._distillate_recoveries
+            lb = self.minimum_guess_distillate_recovery
+            ub = 1 - lb
+            distillate_recoveries[distillate_recoveries < lb] = lb
+            distillate_recoveries[distillate_recoveries > ub] = ub
+        
+        # Solve for new recoveries
+        self._solve_distillate_recoveries()
+        self._update_distillate_and_bottoms_temperature()
+        
+        # Remove temporary data
+        if composition_spec: self._Lr = self._Hr = None
+
+    def plot_stages(self):
+        raise TypeError('cannot plot stages for shortcut column')
+        
+    def _design(self):
+        self._run_MESH()
+        self._run_condenser_and_boiler()
+        self._complete_distillation_column_design()
         

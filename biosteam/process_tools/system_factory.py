@@ -7,7 +7,7 @@
 # for license details.
 """
 """
-from thermosteam import Stream
+import thermosteam as tmo
 import biosteam as bst
 from biosteam.utils import as_stream
 from biosteam.process_tools import utils
@@ -197,8 +197,11 @@ class SystemFactory:
                                  fthermo)
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
-                 operating_hours=None, **kwargs):
+                 operating_hours=None, autorename=None, **kwargs):
         if not bst.settings._thermo and self.fthermo: bst.settings.set_thermo(self.fthermo())
+        if autorename is not None: 
+            original_autorename = tmo.utils.Registry.AUTORENAME
+            tmo.utils.Registry.AUTORENAME = autorename
         ins = create_streams(self.ins, ins, 'inlets', self.fixed_ins_size)
         outs = create_streams(self.outs, outs, 'outlets', self.fixed_outs_size)
         rename = area is not None
@@ -209,7 +212,11 @@ class SystemFactory:
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, optional=[ins[i] for i in self.optional_ins_index])
-        system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
+        try:
+            system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
+        except:
+            breakpoint()
+        if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if rename: 
             units = system.units
             if udct: unit_dct = {i.ID: i for i in units}
@@ -250,9 +257,11 @@ class SystemFactory:
     _ipython_display_ = show
         
 def create_streams(defaults, user_streams, kind, fixed_size):
-    if user_streams is None:
-        return [Stream(**kwargs) for kwargs in defaults]
+    Stream = tmo.Stream
+    isfunc = callable
     isa = isinstance
+    if user_streams is None:
+        return [(kwargs() if isfunc(kwargs) else Stream(**kwargs)) for kwargs in defaults]
     if isa(user_streams, Stream):
         user_streams = [user_streams]
     N_defaults = len(defaults)
@@ -273,12 +282,14 @@ def create_streams(defaults, user_streams, kind, fixed_size):
                     f"{kind} must be streams, strings, or None; "
                     f"invalid type '{type(stream).__name__}' at index {index}"
                 )
+            elif isfunc(kwargs):
+                stream = kwargs()
             else:
                 stream = Stream(**kwargs)
         streams.append(stream)
         index += 1
     if N_streams < N_defaults:
-        streams += [Stream(**kwargs) for kwargs in defaults[index:]]
+        streams += [(kwargs() if isfunc(kwargs) else Stream(**kwargs)) for kwargs in defaults[index:]]
     elif N_streams > N_defaults:
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams

@@ -82,7 +82,7 @@ def test_simple_recycle_loop():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = recycle.mol.copy()
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_unconnected_case():
@@ -150,7 +150,7 @@ def test_unconnected_recycle_loop():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     
     feedstock_b.F_mol = 1200 # Larger flow means b has higher priority
     recycle_loop_sys = f.create_system('recycle_loop_sys')
@@ -170,7 +170,7 @@ def test_unconnected_recycle_loop():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_unconnected_recycle_loops():
@@ -208,7 +208,7 @@ def test_unconnected_recycle_loops():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
     
 def test_inner_recycle_loop():
@@ -239,7 +239,7 @@ def test_inner_recycle_loop():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = recycle.mol.copy()
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
     
 def test_inner_recycle_loop_with_bifurcated_feed():
@@ -277,7 +277,7 @@ def test_inner_recycle_loop_with_bifurcated_feed():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = recycle.mol.copy()
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_bifurcated_recycle_loops():
@@ -335,7 +335,7 @@ def test_bifurcated_recycle_loops():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle_a.mol, recycle_b.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_two_recycle_loops_with_complete_overlap():
@@ -376,7 +376,7 @@ def test_two_recycle_loops_with_complete_overlap():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_two_recycle_loops_with_partial_overlap():
@@ -433,7 +433,7 @@ def test_two_recycle_loops_with_partial_overlap():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_feed_forward_recycle_loop():
@@ -462,7 +462,7 @@ def test_feed_forward_recycle_loop():
                  S1,
                  M2,
                  S2],
-                recycle={S2-0, S1-1}),
+                recycle=M1-0),
              P3])
     )
     assert network == actual_network 
@@ -473,7 +473,7 @@ def test_feed_forward_recycle_loop():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([recycle.mol, inner_recycle.mol])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     f.clear()
 
 def test_separate_recycle_loops():
@@ -518,7 +518,7 @@ def test_separate_recycle_loops():
     recycle_loop_sys.empty_recycles()
     recycle_loop_sys.simulate()
     x_flat_solution = np.vstack([i.mol for i in recycles])
-    assert_allclose(x_nested_solution, x_flat_solution, rtol=1e-2)
+    assert_allclose(x_nested_solution, x_flat_solution, rtol=2e-2)
     assert recycle_loop_sys.path == (P1_a, P2_a, M1_a, S1_a, P1_b, P2_b, M1_b, S1_b)
     f.clear()
     

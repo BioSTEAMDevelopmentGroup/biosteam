@@ -68,14 +68,14 @@ class FOCTableBuilder:
 
 # %% Multiple system tables
 
-def voc_table(systems, product_IDs, system_names=None):
+def voc_table(systems, product_IDs, system_names=None, unit='MT'):
     # Not ready for users yet
     isa = isinstance
     if isa(systems, bst.System): systems = [systems]
     other_utilities_dct = {}
     other_byproducts_dct = {}
     prices = bst.stream_utility_prices
-    kg_per_ton = 907.185
+    factor = 1 / tmo.units_of_measure.convert(1, 'kg', unit)
     def getsubdct(dct, name):
         if name in dct:
             subdct = dct[name]
@@ -95,20 +95,20 @@ def voc_table(systems, product_IDs, system_names=None):
         for name, flow in inlet_flows.items():
             dct = getsubdct(other_utilities_dct, name)
             price = prices[name]
-            dct[sys] = (price * kg_per_ton, price * flow)
+            dct[sys] = (price * factor, price * flow)
         outlet_flows = sys.get_outlet_utility_flows()
         for name, flow in outlet_flows.items():
             dct = getsubdct(other_byproducts_dct, name)
             price = prices[name]
-            dct[sys] = (price * kg_per_ton, price * flow)
+            dct[sys] = (price * factor, price * flow)
         
     def reformat(name):
         name = name.replace('_', ' ')
         if name.islower(): name= name.capitalize()
         return name
     
-    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if i.price})
-    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if i.price and i.ID not in product_IDs})
+    feeds = sorted({i.ID for i in sum([i.feeds for i in systems], []) if sys.has_market_value(i)})
+    coproducts = sorted({i.ID for i in sum([i.products for i in systems], []) if sys.has_market_value(i) and i.ID not in product_IDs})
     system_heat_utilities = [bst.HeatUtility.sum_by_agent(sys.heat_utilities) for sys in systems]
     other_utilities = sorted(other_utilities_dct)
     other_byproducts = sorted(other_byproducts_dct)
@@ -132,7 +132,7 @@ def voc_table(systems, product_IDs, system_names=None):
             cost = sys.get_market_value(stream)
             if cost:
                 ind = index[stream.ID]
-                data[ind, 0] = stream.price * kg_per_ton # USD / ton
+                data[ind, 0] = stream.price * factor # USD / ton
                 data[ind, col + 1] = cost / 1e6 # million USD / yr
         for hu in system_heat_utilities[col]:
             try:
@@ -162,7 +162,7 @@ def voc_table(systems, product_IDs, system_names=None):
     columns = [i + " [MM$/yr]" for i in system_names]
     return pd.DataFrame(data, 
                         index=pd.MultiIndex.from_tuples(table_index),
-                        columns=('Price [$/ton]', *columns))
+                        columns=(f'Price [$/{unit}]', *columns))
 
 def lca_inventory_table(systems, key, items=(), system_names=None):
     items = frozenset(items)
@@ -312,9 +312,10 @@ def lca_displacement_allocation_table(systems, key, items,
     for col, sys in enumerate(systems):
         item_flow = sys.get_mass_flow(items[col])
         for stream in sys.feeds + sys.products:
-            try: ind = index[stream.ID]
+            try: 
+                ind = index[stream.ID]
+                data[ind, 0] = stream.characterization_factors[key]
             except: continue
-            data[ind, 0] = stream.characterization_factors[key]
             impact = sys.get_material_impact(stream, key)
             data[ind, col + 1] = impact / item_flow
         for hu in system_heat_utilities[col]:

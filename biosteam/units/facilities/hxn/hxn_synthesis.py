@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+# HXN: The automated Heat Exchanger Network design package.
+# Copyright (C) 2020-2023, Sarang Bhagwat <sarangb2@illinois.edu>
+# 
+# This module is under the UIUC open-source license. See 
+# github.com/sarangbhagwat/hxn/blob/master/LICENSE.txt
+# for license details.
 """
 Created on Sat May  2 16:44:24 2020
 
@@ -7,6 +13,7 @@ Created on Sat May  2 16:44:24 2020
 import numpy as np
 import copy
 import biosteam as bst
+from warnings import warn
 
 __all__ = ('StreamLifeCycle', 'synthesize_network')
 
@@ -143,9 +150,11 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
     T_in_arr = np.array([stream.T for stream in streams_inlet])
     T_out_arr = np.array([i.T for i in streams_quenched])
     adj_T_in_arr = T_in_arr.copy()
-    adj_T_in_arr[:N_heating] -= T_min_app
+    # adj_T_in_arr[:N_heating] -= T_min_app
+    adj_T_in_arr[N_heating:] -= T_min_app
     adj_T_out_arr = T_out_arr.copy()
-    adj_T_out_arr[:N_heating] -= T_min_app
+    # adj_T_out_arr[:N_heating] -= T_min_app
+    adj_T_out_arr[N_heating:] -= T_min_app
     T_changes_tuples = list(zip(adj_T_in_arr, adj_T_out_arr))
     all_Ts_descending = [*adj_T_in_arr, *adj_T_out_arr]
     all_Ts_descending.sort(reverse=True)
@@ -159,18 +168,21 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
     for i in range(len(all_Ts_descending)-1):
         T_start = all_Ts_descending[i]
         T_end = all_Ts_descending[i+1]
-        for stream_index in range(len(T_changes_tuples)):
+        for stream_index in indices:
             T1, T2 = T_changes_tuples[stream_index]
             if (T1 >= T_start and T2 <= T_end) or (T2 >= T_start and T1 <= T_end):
                 multiplier = -1 if is_cold_stream_index(stream_index) else 1
                 stream = streams_inlet[stream_index].copy()
                 if stream.T != T_start: stream.vle(T = T_start, P = stream.P)
                 H1 = stream.H
-                stream.vle(T = T_end, P = stream.P)
+                try:
+                    stream.vle(T = T_end, P = stream.P)
+                except:
+                    warn(f"could not solve VLE for {repr(stream)} at {repr(hxs[stream_index].owner)}", RuntimeWarning)
                 H2 = stream.H
                 H = multiplier*(H1 - H2)
                 H_for_T_intervals[(T_start, T_end)] += H
-                
+        
     res_H_vector = []
     prev_res_H = 0
     for interval, H in H_for_T_intervals.items():
@@ -178,12 +190,16 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
         prev_res_H = res_H_vector[len(res_H_vector)-1]
     hot_util_load = - min(res_H_vector)
     # assert hot_util_load>= 0, 'Hot utility load is negative'
+    if not hot_util_load>=0:
+        warn(f"Hot utility load is negative: {hot_util_load}", RuntimeWarning)
     # print(hot_util_load)
     # the lower temperature of the temperature interval for which the res_H is minimum
     pinch_cold_stream_T = all_Ts_descending[res_H_vector.index(-hot_util_load)+1]
     pinch_hot_stream_T = pinch_cold_stream_T + T_min_app
     cold_util_load = res_H_vector[len(res_H_vector)-1] + hot_util_load
-    assert cold_util_load>=0, 'Cold utility load is negative'
+    # assert cold_util_load>=0, 'Cold utility load is negative'
+    if not cold_util_load>=0:
+        warn(f"Cold utility load is positive: {cold_util_load}", RuntimeWarning)
     pinch_T_arr = []
     for i in cold_indices:
         if T_in_arr[i] > pinch_cold_stream_T:
@@ -200,6 +216,7 @@ def temperature_interval_pinch_analysis(hus, T_min_app = 10, force_ideal_thermo=
         else:
             pinch_T_arr.append(pinch_hot_stream_T)
     pinch_T_arr = np.array(pinch_T_arr)
+    # print(pinch_T_arr, hot_util_load, cold_util_load,)
     return pinch_T_arr, hot_util_load, cold_util_load, T_in_arr, T_out_arr,\
            hxs, hot_indices, cold_indices, indices, streams_inlet, hx_utils_rearranged, \
            streams_quenched

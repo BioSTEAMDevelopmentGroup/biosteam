@@ -250,12 +250,19 @@ class Flash(design.PressureVessel, Unit):
                         self.Q, self.x, self.y, self._multi_stream)
             
     def _design(self):
-        vessel_type = self.vessel_type
-        if vessel_type == 'Vertical': 
-            args = self._vertical_vessel_pressure_diameter_and_length()
-        elif vessel_type == 'Horizontal': 
-            args = self._horizontal_vessel_pressure_diameter_and_length()
-        else: raise RuntimeError('unknown vessel type') # pragma: no cover
+        self.no_vessel_needed = self.outs[0].isempty()
+        if self.no_vessel_needed:
+            self.design_results.clear()
+        else:
+            vessel_type = self.vessel_type
+            if vessel_type == 'Vertical': 
+                args = self._vertical_vessel_pressure_diameter_and_length()
+            elif vessel_type == 'Horizontal': 
+                args = self._horizontal_vessel_pressure_diameter_and_length()
+            else: raise RuntimeError('unknown vessel type') # pragma: no cover
+            self.design_results.update(
+                self._vessel_design(*args)
+            )
         if self.Q == 0:
             self.heat_exchanger.baseline_purchase_costs.clear()
             self.heat_exchanger.purchase_costs.clear()
@@ -265,16 +272,14 @@ class Flash(design.PressureVessel, Unit):
             feed.mix_from(self.ins)
             feed.vle(P=self.outs[0].P, H=feed.H)
             self.heat_exchanger._summary()
-        self.design_results.update(
-            self._vessel_design(*args)
-        )
 
     def _cost(self):
         D = self.design_results
-        self.baseline_purchase_costs.update(
-            self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
-        )
-        self._cost_vacuum()
+        if not self.no_vessel_needed:
+            self.baseline_purchase_costs.update(
+                self._vessel_purchase_cost(D['Weight'], D['Diameter'], D['Length'])
+            )
+            self._cost_vacuum()
 
     def _cost_vacuum(self):
         P = self.P

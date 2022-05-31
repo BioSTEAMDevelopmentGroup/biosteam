@@ -227,7 +227,7 @@ class Network:
         except: self.units = nested_network_units(path)
     
     def __eq__(self, other):
-        return isinstance(other, Network) and self.path == other.path
+        return isinstance(other, Network) and self.path == other.path and self.recycle == other.recycle
     
     def get_all_recycles(self, all_recycles=None):
         if all_recycles is None:
@@ -313,7 +313,17 @@ class Network:
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         network.add_process_heat_exchangers()
+        network.simplify()
         return network
+    
+    def simplify(self):
+        isa = isinstance
+        if isa(self.recycle, set):
+            unit = self.recycle_sink
+            if unit._N_outs == 1 and unit._outs_size_is_fixed:
+                self.recycle = unit.outs[0]
+        for i in self.path:
+            if isa(i, Network): i.simplify()
     
     def add_process_heat_exchangers(self, excluded=None):
         isa = isinstance
