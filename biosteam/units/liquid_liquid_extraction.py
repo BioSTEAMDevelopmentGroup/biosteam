@@ -1197,7 +1197,7 @@ class MultiStageMixerSettlers(bst.Unit):
     def __init__(self, ID="", ins=None, outs=(), thermo=None, *, N_stages,
                  partition_data=None, solvent_ID=None, feed_stages=None, 
                  raffinate_side_draws=None, extract_side_draws=None,
-                 mixer_data={}, settler_data={}):
+                 mixer_data={}, settler_data={}, use_cache=None):
         bst.Unit.__init__(self, ID, ins, outs, thermo)
         self.feed_stages = feed_stages
         self.raffinate_side_draws = raffinate_side_draws
@@ -1227,6 +1227,7 @@ class MultiStageMixerSettlers(bst.Unit):
         self.settler = LiquidsSettler(None, mixer-0, None, self.thermo, **settler_data)
         
         self.settler._outs = self._outs
+        self.use_cache = use_cache
         self.reset_cache()
     
     feed = MixerSettler.feed
@@ -1236,11 +1237,11 @@ class MultiStageMixerSettlers(bst.Unit):
     
     def _setup(self):
         super()._setup()
-        args = (self.N_stages, self.feed_stages, self.extract_side_draws, 
+        args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
             self.stages = sep.MultiStageEquilibrium(
-                self.N_stages, self.ins, self.feed_stages, solvent=self.solvent_ID, 
+                self.N_stages, self.ins, self.feed_stages, solvent=self.solvent_ID, use_cache=self.use_cache,
                 top_side_draws=self.extract_side_draws, bottom_side_draws=self.raffinate_side_draws, 
                 thermo=self.thermo, partition_data=self.partition_data, phases=('L', 'l'),
             )
