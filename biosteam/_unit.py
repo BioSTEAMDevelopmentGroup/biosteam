@@ -313,7 +313,6 @@ class Unit:
         self._system = None
         self._isdynamic = False
         self._register(ID)
-        self._specification = None
         self._load_thermo(thermo)
         self._init_ins(ins)
         self._init_outs(outs)

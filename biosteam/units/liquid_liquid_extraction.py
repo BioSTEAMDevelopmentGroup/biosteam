@@ -347,7 +347,7 @@ class SLLECentrifuge(Unit):
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(['Water', 'Hexane', bst.Chemical('Solids', search_db=False, default=True, phase='s')], cache=True)
     >>> feed = bst.Stream('feed', Water=100, Hexane=100, Solids=10)
-    >>> C1 = bst.SLLECentrifuge('C1', feed, ['oil', 'aqueous', 'solids'], solids_split={'Solids':1.0})
+    >>> C1 = bst.SLLECentrifuge('C1', feed, ['oil', 'aqueous', 'solids'], top_chemical='Hexane', solids_split={'Solids':1.0})
     >>> C1.simulate()
     >>> C1.show()
     SLLECentrifuge: C1
@@ -421,9 +421,10 @@ class SLLECentrifuge(Unit):
         assert self._solids_isplit['7732-18-5'] == 0, 'cannot define water split, only moisture content'
 
     def _run(self):
+        feed = self.ins[0]
         top, bottom, solids = self.outs
-        sep.lle(self.ins[0], top, bottom, self.top_chemical, self.efficiency)
-        bottom.split_to(solids, bottom, self.solids_split, energy_balance=False)
+        feed.split_to(solids, top, self.solids_split, energy_balance=False)
+        sep.lle(top, top, bottom, self.top_chemical, self.efficiency)
         sep.adjust_moisture_content(solids, bottom, self.moisture_content)
 
 

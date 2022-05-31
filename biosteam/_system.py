@@ -944,7 +944,6 @@ class System:
                 i._other_units = other_units = units.copy()
                 other_units.remove(i)
 
-
     def _set_facility_recycle(self, recycle):
         if recycle:
             sys = self._downstream_system(recycle._sink)

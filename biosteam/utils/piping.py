@@ -172,6 +172,8 @@ class MissingStream:
     def isempty(self):
         return True
     
+    def empty(self): pass
+    
     @property
     def source(self):
         return self._source
@@ -234,6 +236,7 @@ class Dependency:
     F_mass = MissingStream.F_mass
     F_vol = MissingStream.F_vol
     isempty = MissingStream.isempty
+    empty = MissingStream.empty
     cost = MissingStream.cost
     __bool__ = MissingStream.__bool__
     __repr__ = MissingStream.__repr__
@@ -302,6 +305,7 @@ class MockStream:
     F_mass = MissingStream.F_mass
     F_vol = MissingStream.F_vol
     isempty = MissingStream.isempty
+    empty = MissingStream.empty
     cost = MissingStream.cost
     
     __str__ = Stream.__str__

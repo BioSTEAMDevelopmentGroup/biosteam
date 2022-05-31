@@ -79,7 +79,6 @@ class UtilityAgent(Stream):
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
             flow[:] = self.mol / factor
-        self._islinked = False
         self._sink = self._source = None
         self._user_equilibrium = None
         self.reset_cache()
@@ -128,7 +127,6 @@ class UtilityAgent(Stream):
         
         """
         new = Stream.__new__(Stream)
-        new._islinked = False
         new._sink = new._source = None
         new._thermo = self._thermo
         new._imol = self._imol.copy()
