@@ -1237,7 +1237,7 @@ class MultiStageMixerSettlers(bst.Unit):
     
     def _setup(self):
         super()._setup()
-        args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache
+        args = (self.N_stages, self.feed_stages, self.extract_side_draws, self.use_cache,
                 *self._ins, self.raffinate_side_draws, self.solvent_ID, self.partition_data)
         if args != self._last_args:
             self.stages = sep.MultiStageEquilibrium(
