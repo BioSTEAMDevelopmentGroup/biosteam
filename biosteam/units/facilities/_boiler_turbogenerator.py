@@ -61,7 +61,7 @@ class Boiler(Facility):
         [4] Remainder feed gas.
         
     boiler_efficiency : float
-        Fraction of heat transfered to steam.
+        Fraction of heat transferred to steam.
     agent : UtilityAgent, optional
         Steam produced. Defaults to low pressure steam.
     other_agents = () : Iterable[UtilityAgent]
@@ -283,7 +283,7 @@ class Boiler(Facility):
             lime_index = chemicals.index(self._ID_lime)
             self.desulfurization_reaction.force_reaction(emissions)
             # FGD lime scaled based on SO2 generated,	
-            # 20% stoichiometetric excess based on P52 of ref [1]
+            # 20% stoichiometric excess based on P52 of ref [1]
             
             lime.mol[lime_index] = lime_mol = max(0, - emissions_mol[lime_index] * 1.2)
             emissions_mol[emissions_mol < 0.] = 0.
@@ -567,7 +567,7 @@ class BoilerTurbogenerator(Facility):
             sulfur_index = emissions.chemicals.index('CaSO4')
             self.desulfurization_reaction.force_reaction(emissions)
             # FGD lime scaled based on SO2 generated,	
-            # 20% stoichiometetric excess based on P52 of ref [1]
+            # 20% stoichiometric excess based on P52 of ref [1]
             
             lime.mol[lime_index] = lime_mol = max(0, emissions_mol[sulfur_index] * 1.2)
             emissions_mol[emissions_mol < 0.] = 0.
