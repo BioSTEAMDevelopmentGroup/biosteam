@@ -343,7 +343,7 @@ class BoilerTurbogenerator(Facility):
         [2] Ash disposal.
         
     boiler_efficiency : float
-        Fraction of heat transfered to steam.
+        Fraction of heat transferred to steam.
     turbo_generator_efficiency : float
         Fraction of steam heat converted to electricity.
     agent : UtilityAgent, optional
@@ -351,9 +351,11 @@ class BoilerTurbogenerator(Facility):
     other_agents = () : Iterable[UtilityAgent]
         Other steams produced.
     natural_gas_price : float
-        Price of natural gas [USD/kg]. Defaults to 0.218.
+        Price of natural gas [USD/kg]. Same as `bst.stream_utility_prices['Natural gas']`,
+        defaults to 0.218.
     ash_disposal_price : float
-        Price of disposing ash [USD/kg]. Defaults to -0.0318.
+        Price of disposing ash [USD/kg]. Same as `bst.stream_utility_prices['Ash disposal']`,
+        defaults to -0.0318.
         
     Notes
     -----
@@ -448,7 +450,7 @@ class BoilerTurbogenerator(Facility):
     
     @property
     def natural_gas_price(self):
-        """[Float] Price of natural gas."""
+        """[Float] Price of natural gas, same as `bst.stream_utility_prices['Natural gas']`."""
         return bst.stream_utility_prices['Natural gas']
     
     @natural_gas_price.setter
@@ -457,7 +459,7 @@ class BoilerTurbogenerator(Facility):
     
     @property
     def ash_disposal_price(self):
-        """[Float] Price of natural gas."""
+        """[Float] Price of ash disposal, same as `bst.stream_utility_prices['Ash disposal']`."""
         return bst.stream_utility_prices['Ash disposal']
     
     @ash_disposal_price.setter

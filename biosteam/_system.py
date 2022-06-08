@@ -2,7 +2,7 @@
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2022, Yoel Cortes-Pena <yoelcortes@gmail.com>,
 #                          Joy Zhang <joycheung1994@gmail.com>,
-#                          Yalin Li <zoe.yalin.li@gmail.com>
+#                          Yalin Li <mailto.yalin.li@gmail.com>
 #                          Sarang Bhagwat <sarangb2@illinois.edu>,
 #
 # This module is under the UIUC open-source license. See
