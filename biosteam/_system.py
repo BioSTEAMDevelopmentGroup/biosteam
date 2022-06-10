@@ -680,7 +680,8 @@ class System:
         self._recycle = other._recycle
         self._connections = other._connections
 
-    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False, maxiter=None):
+    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, 
+                      subsystems=False, maxiter=None, subfactor=None):
         """
         Set the convergence tolerance of the system.
 
@@ -698,7 +699,9 @@ class System:
             Whether to also set tolerance of subsystems as well.
         maxiter : int, optional
             Maximum number if iterations.
-
+        subfactor : float, optional
+            Factor to reduce tolerance in subsystems.
+        
         """
         if mol: self.molar_tolerance = float(mol)
         if rmol: self.relative_molar_tolerance = float(rmol)
@@ -706,7 +709,10 @@ class System:
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
         if subsystems:
-            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
+            if subfactor:
+                for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)], subsystems, maxiter)
+            else:
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
 
     ins = MockSystem.ins
     outs = MockSystem.outs

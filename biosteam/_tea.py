@@ -640,18 +640,18 @@ class TEA:
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
         FCI = self.FCI
-        net_earnings = (1-self.income_tax)*(self.sales-self._AOC(FCI))
+        net_earnings = self.net_earnings
         TCI = FCI*(1.+self.WC_over_FCI)
         return net_earnings/TCI
     @property
     def net_earnings(self):
         """Net earnings without accounting for annualized depreciation."""
-        return (1-self.income_tax)*(self.sales-self.AOC)
+        return self._net_earnings_and_nontaxable_cashflow_arrays()[0]
     @property
     def PBP(self):
         """Pay back period (yr) without accounting for annualized depreciation."""
         FCI = self.FCI
-        net_earnings = (1-self.income_tax)*(self.sales-self._AOC(FCI))
+        net_earnings = self.net_earnings
         return FCI/net_earnings
 
     def _get_duration_array(self):
