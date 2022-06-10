@@ -2061,7 +2061,7 @@ class System:
         """Total installed cost (USD)."""
         lang_factor = self.lang_factor
         if lang_factor:
-            return sum([u.purchase_cost * lang_factor for u in self.cost_units])
+            return sum([u.purchase_cost for u in self.cost_units]) * lang_factor
         else:
             return sum([u.installed_cost for u in self.cost_units])
 
