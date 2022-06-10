@@ -19,7 +19,7 @@ class Facility(Unit, isabstract=True,
     
     @staticmethod
     def ordered_facilities(facilities):
-        """Return facilitied ordered according to their network priority."""
+        """Return facilities ordered according to their network priority."""
         return sorted(facilities, key=get_network_priority)
     
     def __init_subclass__(cls,

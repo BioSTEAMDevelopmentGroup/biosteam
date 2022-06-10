@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
-#                          Yalin Li <zoe.yalin.li@gmail.com>
+#                          Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -291,7 +291,7 @@ class TEA:
     backwards to get installed equipment cost. For practical purposes, the
     code assumes that installed equipment cost, total depreciable capital 
     (TDC), and fixed capital investment (FCI) are the same when the Lang
-    factor is in use. In actuallity, the installed equipment cost should be 
+    factor is in use. In actuality, the installed equipment cost should be 
     less than the fixed capital investment. 
     
     Examples

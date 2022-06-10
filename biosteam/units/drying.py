@@ -59,7 +59,7 @@ class DrumDryer(Unit):
     T : float, optional
         Operating temperature [K]. Defaults to 343.15.
     moisture_content : float
-        Moisutre content of solids [wt / wt]. Defaults to 0.10.
+        Moisture content of solids [wt / wt]. Defaults to 0.10.
         
     Notes
     -----
@@ -181,7 +181,7 @@ class ThermalOxidizer(Unit):
     
     Notes
     -----
-    Adiabatic operation is assummed. Simulation and cost is based on [1]_.
+    Adiabatic operation is assumed. Simulation and cost is based on [1]_.
     
     References
     ----------

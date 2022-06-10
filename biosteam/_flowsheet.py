@@ -205,7 +205,7 @@ class Flowsheet:
             defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            compute convinience properties such as utility cost and material cost
+            compute properties such as utility cost and material cost
             on a per year basis. 
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from 

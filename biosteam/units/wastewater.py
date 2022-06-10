@@ -68,19 +68,19 @@ __all__ = (
 
 # %% Functional utilities
 
-#: list[str] IDs for non-digestable components in wastewater
+#: list[str] IDs for non-digestible components in wastewater
 non_digestables = ['WWTsludge', 'Cellulose', 'Xylan', 'CellulaseNutrients',
                    'Mannan', 'Lignin', 'Galactan', 'Glucan', 'Acetate',
                    'Biomass', 'Arabinan', 'Tar', 'CO', 'CO2', 'CH4']
 
 def get_digestable_organic_chemicals(chemicals):
     """
-    Return a list of digestable organic chemical IDs.
+    Return a list of digestible organic chemical IDs.
 
     Parameters
     ----------
     chemicals : :class:`~thermosteam.Chemicals`
-        Digestable organic chemicals will be retrieve from this parameter.
+        Digestible organic chemicals will be retrieve from this parameter.
 
     """
     non_digestable_chemicals = set([chemicals[i] for i in non_digestables if i in chemicals])
@@ -628,7 +628,7 @@ area : int, optional
     If given, IDs of all units will follow the area naming convention as
     explained in :func:`~biosteam.process_tools.utils.rename_unit`.
 udct : bool, optional
-    Whether to also return fictionary of units with their original IDs as keys.
+    Whether to also return dictionary of units with their original IDs as keys.
 NaOH_price : float, optional
     Price of NaOH in USD/kg. The default is 0.15.
 

@@ -629,7 +629,7 @@ class Unit:
         for i in purchase_costs:
             if i not in baseline_purchase_costs:
                 warning = RuntimeWarning(
-                    "adding items to the `purchase_costs` dictionary is "
+                    f"Unit {self.ID}, adding items to the `purchase_costs` dictionary is "
                     "deprecated; add items to `baseline_purchase_costs` "
                     "dictionary instead"
                  )
@@ -846,7 +846,7 @@ class Unit:
         maxiter: 
             Maximum number of iterations. Defaults to 50.
         checkiter: bool, optional
-            Whether to raise a Runtimer error when tolerance could not be 
+            Whether to raise a Runtime error when tolerance could not be 
             satisfied before the maximum number of iterations. Defaults to True.
         checkroot: bool, optional
             Whether satisfying both tolerances, xtol and ytol, are required 
@@ -1320,7 +1320,7 @@ class Unit:
         Parameters
         ----------
         radius : int
-                 Maxium number streams between neighbors.
+                 Maximum number streams between neighbors.
         downstream=True : bool, optional
             Whether to show downstream operations
         upstream=True : bool, optional
