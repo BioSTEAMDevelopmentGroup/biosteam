@@ -212,21 +212,13 @@ class SystemFactory:
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
         system.load_inlet_ports(ins, optional=[ins[i] for i in self.optional_ins_index])
-        try:
-            system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
-        except:
-            breakpoint()
+        system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
+        if udct: unit_dct = {i.ID: i for i in system.units}
         if rename: 
-            units = system.units
-            if udct: unit_dct = {i.ID: i for i in units}
             unit_registry.track(irrelevant_units)
-            utils.rename_units(units, area)
-            if udct: return system, unit_dct
-        elif udct:
-            unit_dct = {i.ID: i for i in system.units}
-            return system, unit_dct
-        return system
+            utils.rename_units(system.units, area)
+        return (system, unit_dct) if udct else system
     
     def show(self):
         """Print decorator in nice format."""
