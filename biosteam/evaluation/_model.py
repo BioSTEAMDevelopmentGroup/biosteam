@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 # Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>,
-#                          Yalin Li <zoe.yalin.li@gmail.com>
+#                          Yalin Li <mailto.yalin.li@gmail.com>
 #
 # This module implements a filtering feature from the stats module of the QSDsan library:
 # QSDsan: Quantitative Sustainable Design for sanitation and resource recovery systems
-# Copyright (C) 2020-2021, Yalin Li <zoe.yalin.li@gmail.com>
+# Copyright (C) 2020-, Yalin Li <mailto.yalin.li@gmail.com>
 # 
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -230,7 +230,7 @@ class Model(State):
             if relative_error[i] > etol:
                 raise RuntimeError(
                     f"inconsistent model; {metrics[idx]} has a value of "
-                    f"{baseline_1[idx]} before evaluating sensitivty and "
+                    f"{baseline_1[idx]} before evaluating sensitivity and "
                     f"{baseline_2[idx]} after"
                 )
         metric_index = var_columns(metrics)
@@ -379,7 +379,7 @@ class Model(State):
             Name of coordinate
         f_coordinate : function
             Should change state of system given the coordinate.
-        coordinte : array
+        coordinate : array
             Coordinate values.
         xlfile : str, optional
             Name of file to save. File must end with ".xlsx"
@@ -438,7 +438,7 @@ class Model(State):
         return metric_data
     
     def spearman(self, parameters=None, metrics=None):
-        warn(DeprecationWarning('this method will be depracated in biosteam 2.25; '
+        warn(DeprecationWarning('this method will be deprecated in biosteam 2.25; '
                                 'use spearman_r instead'), stacklevel=2)
         return self.spearman_r(parameters, metrics)[0]
     
