@@ -310,12 +310,18 @@ class Model(State):
         export = 'export_state_to' in dyn_sim_kwargs
         if autosave:
             layout = table.index, table.columns
-            for number, i in enumerate(index, number): 
+            for number, i in enumerate(index, number + 1): 
                 if export: dyn_sim_kwargs['sample_id'] = i
                 values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
-                    with open(file, 'wb') as f: pickle.dump(obj, f)
+                    try:
+                        with open(file, 'wb') as f: pickle.dump(obj, f)
+                    except FileNotFoundError:
+                        import os
+                        head, tail = os.path.split(file)
+                        os.mkdir(head)
+                        with open(file, 'wb') as f: pickle.dump(obj, f)
         else:
             for i in index: 
                 if export: dyn_sim_kwargs['sample_id'] = i
