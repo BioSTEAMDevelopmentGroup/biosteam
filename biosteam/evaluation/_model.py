@@ -640,7 +640,7 @@ class Model(State):
             
         """
         if not parameters: parameters = self._parameters
-        table = self.table
+        table = self.table.astype('float')
         values = table.values.transpose()
         index = table.columns.get_loc
         parameter_indices = var_indices(parameters)
