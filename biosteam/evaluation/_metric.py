@@ -7,12 +7,12 @@
 # for license details.
 """
 """
-from ._variable import Variable
+from ._feature import Feature
 from ..utils import format_title
 
 __all__ = ('Metric', 'metric')
 
-class Metric(Variable):
+class Metric(Feature):
     """
     Create a Metric object that serves as an argument for Model objects.
     
