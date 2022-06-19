@@ -709,10 +709,11 @@ def plot_montecarlo_across_coordinate(xs, ys,
 def plot_kde(x, y, nbins=100, ax=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
-             xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, **kwargs):
+             xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
+             aspect_ratio=1.25, **kwargs):
     axis_not_given = ax is None
     if axis_not_given:
-        grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, 0.8])
+        grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
         fig, all_axes = plt.subplots(
             ncols=2, nrows=2, 
             gridspec_kw=grid_kw,
@@ -770,12 +771,12 @@ def plot_kde(x, y, nbins=100, ax=None,
     
 def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
                 xticks=None, yticks=None, xticklabels=None, yticklabels=None,
-                autobox=True, xbox_kwargs=None, ybox_kwargs=None,
+                autobox=True, xbox_kwargs=None, ybox_kwargs=None, aspect_ratio=1.,
                 **kwargs):
     N_rows, N_cols, *_ = xs.shape
     if axes is None:
         if autobox:
-            grid_kw = dict(height_ratios=[1/N_cols, *N_rows*[4]], width_ratios=[*N_cols*[4], 1/N_rows])
+            grid_kw = dict(height_ratios=[1/N_cols, *N_rows*[4]], width_ratios=[*N_cols*[4], aspect_ratio/N_rows])
             fig, all_axes = plt.subplots(
                 ncols=N_cols + 1, nrows=N_rows + 1, 
                 gridspec_kw=grid_kw,

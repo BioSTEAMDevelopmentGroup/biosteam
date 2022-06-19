@@ -7,21 +7,21 @@
 # for license details.
 """
 """
-__all__ = ('Variable', 'MockVariable')
+__all__ = ('Feature', 'MockFeature', 'Variable', 'MockVariable')
 from ._name import element_name
 
-class Variable:
+class Feature:
     """
-    Abstract class for a variable in BioSTEAM.
+    Abstract class for a feature in BioSTEAM.
     
     Attributes
     ----------
     name : str
-        Name of variable.
+        Name of feature.
     units : str
         Units of measure.
     element : object
-        Element corresponding to variable.
+        Element corresponding to feature.
         
     """
     __slots__ = ('name', 'units', 'element')
@@ -33,24 +33,24 @@ class Variable:
         self.element = element
     
     def mockup(self):
-        return MockVariable(self.name, self.units, self.element)
+        return MockFeature(self.name, self.units, self.element)
     
     @classmethod
-    def check_index_unique(cls, variable, variables):
-        key = (variable.element, variable.name)
-        keys = {(i.element, i.name) for i in variables}
+    def check_index_unique(cls, feature, features):
+        key = (feature.element, feature.name)
+        keys = {(i.element, i.name) for i in features}
         if key in keys:
             kind = cls.__name__.lower()
             raise ValueError(
                     f"each {kind} must have a unique element and name; "
-                    f"{kind} with element {repr(variable.element)} "
-                    f"and name {repr(variable.name)} already present"
+                    f"{kind} with element {repr(feature.element)} "
+                    f"and name {repr(feature.name)} already present"
                 )
     
     @classmethod
-    def check_indices_unique(cls, variables):
+    def check_indices_unique(cls, features):
         keys = set()
-        for i in variables:
+        for i in features:
             key = (i.element, i.name)
             if key in keys:
                 kind = cls.__name__.lower()
@@ -93,7 +93,7 @@ class Variable:
         return name
     
     def describe(self, number_format='.3g', distribution=True) -> str:
-        """Return description of variable."""
+        """Return description of feature."""
         name = self.name
         if not name.isupper():
             name = name.casefold()
@@ -139,7 +139,7 @@ class Variable:
         print(self._info())
      
 
-class MockVariable(Variable):
+class MockFeature(Feature):
     __slots__ = ()
     def __init__(self, name, units, element):
         self.name = name
@@ -151,4 +151,7 @@ class MockVariable(Variable):
         return self.element
     
     def __repr__(self):
-        return f"MockVariable('{self.name}', '{self.units}', '{self.element}')"
+        return f"{type(self).__name__}('{self.name}', '{self.units}', '{self.element}')"
+
+Variable = Feature
+MockVariable = MockFeature 

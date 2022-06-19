@@ -9,12 +9,12 @@
 """
 __all__ = ('Parameter',)
 
-from ._variable import Variable
+from ._feature import Feature
 from ..utils import format_title
 import biosteam as bst
 from inspect import signature
 
-class Parameter(Variable):
+class Parameter(Feature):
     """
     Create a Parameter object that, when called, runs the setter and
     the simulate functions.

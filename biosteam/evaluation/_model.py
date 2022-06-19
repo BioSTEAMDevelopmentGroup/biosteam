@@ -187,7 +187,7 @@ class Model(State):
         elif samples.ndim != 2:
             raise ValueError('samples must be 2 dimensional')
         if samples.shape[1] != N_parameters:
-            raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(N_parameters)})')
+            raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({N_parameters})')
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
         self._load_sample_order(samples, parameters)
@@ -310,12 +310,18 @@ class Model(State):
         export = 'export_state_to' in dyn_sim_kwargs
         if autosave:
             layout = table.index, table.columns
-            for number, i in enumerate(index, number): 
+            for number, i in enumerate(index, number + 1): 
                 if export: dyn_sim_kwargs['sample_id'] = i
                 values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
-                    with open(file, 'wb') as f: pickle.dump(obj, f)
+                    try:
+                        with open(file, 'wb') as f: pickle.dump(obj, f)
+                    except FileNotFoundError:
+                        import os
+                        head, tail = os.path.split(file)
+                        os.mkdir(head)
+                        with open(file, 'wb') as f: pickle.dump(obj, f)
         else:
             for i in index: 
                 if export: dyn_sim_kwargs['sample_id'] = i
@@ -369,7 +375,8 @@ class Model(State):
     
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
-                                   re_evaluate=True, multi_coordinate=False):
+                                   multi_coordinate=False, 
+                                   f_evaluate):
         """
         Evaluate across coordinate and save sample metrics.
         
@@ -383,10 +390,12 @@ class Model(State):
             Coordinate values.
         xlfile : str, optional
             Name of file to save. File must end with ".xlsx"
-        rule='L' : str
-            Sampling rule.
-        notify=True : bool, optional
-            If True, notify elapsed time after each coordinate evaluation.
+        rule : str, optional
+            Sampling rule. Defaults to 'L'.
+        notify : bool, optional
+            If True, notify elapsed time after each coordinate evaluation. Defaults to True.
+        f_evaluate : callable, optional
+            Function to evaluate model. Defaults to evaluate method.
         
         """
         if self._samples is None: raise RuntimeError('must load samples before evaluating')
@@ -398,21 +407,18 @@ class Model(State):
         metric_indices = var_indices(self.metrics)
         shape = (N_samples, N_points)
         metric_data = {i: np.zeros(shape) for i in metric_indices}
-        f_evaluate = self.evaluate
+        if f_evaluate is None: f_evaluate = self.evaluate
         
         # Initialize timer
-        if re_evaluate: 
-            if notify_coordinate:
-                from biosteam.utils import TicToc
-                timer = TicToc()
-                timer.tic()
-                def evaluate():
-                    f_evaluate(notify=notify)
-                    print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
-            else:
-                evaluate = f_evaluate
+        if notify_coordinate:
+            from biosteam.utils import TicToc
+            timer = TicToc()
+            timer.tic()
+            def evaluate():
+                f_evaluate(notify=notify)
+                print(f"[Coordinate {n}] Elapsed time: {timer.elapsed_time:.0f} sec")
         else:
-            evaluate = lambda: None
+            evaluate = f_evaluate
         
         for n, x in enumerate(coordinate):
             f_coordinate(*x) if multi_coordinate else f_coordinate(x)
