@@ -6,7 +6,7 @@ Use the evaluation package to perform optimized evaluation of system blocks.
 .. toctree::
    :maxdepth: 1
 
-   Variable
+   Feature
    Parameter
    Metric
    Model
