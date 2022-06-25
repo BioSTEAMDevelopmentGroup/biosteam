@@ -1,0 +1,30 @@
+Tutorial
+--------
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Beginner's Tutorial
+   
+   Getting_started
+   Creating_a_Unit
+   Managing_flowsheets
+   -pipe-_notation
+   Unit_operation_results
+   Process_specifications
+   Inheriting_from_Unit
+   Unit_decorators
+   Techno-economic_analysis
+   Life_cycle_assessment
+   Gotchas
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Advanced Tutorial
+   
+   Creating_a_System
+   Building_a_biorefinery
+   Operational_flexibility
+   Uncertainty_and_sensitivity
+   TRY-Analysis

@@ -1,0 +1,12 @@
+Changelog
+---------
+
+.. toctree::
+   :maxdepth: 1
+   :caption: What's new?
+   
+   2.24
+   2.23
+   2.22
+   2.21
+   2.20
