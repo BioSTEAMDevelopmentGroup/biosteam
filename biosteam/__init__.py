@@ -42,7 +42,10 @@ RAISE_GRAPHVIZ_EXCEPTION = False
 GRAPHVIZ_BACKGROUND_COLOR = 'transparent'
 
 #: Color of streams in BioSTEAM graphviz diagrams
-GRAPHVIZ_STREAM_COLOR = 'black'
+GRAPHVIZ_STREAM_COLOR = '#90918e'
+
+#: Color of stream labels in BioSTEAM graphviz diagrams
+GRAPHVIZ_LABEL_COLOR = '#90918e'
 
 # %% Workaround for readthedocs, which fails to cache numba
 

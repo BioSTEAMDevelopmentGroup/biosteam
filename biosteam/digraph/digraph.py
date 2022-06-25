@@ -41,6 +41,7 @@ stream_node = dict(
     fontname="Arial",
 )
 
+depth_colors = ['#7ac0833f', '#a381ba3f', '#ed5a6a']
 
 def sort_streams(streams):
     return sorted(streams, key=lambda x: -x.F_mass + len(x.ID))
@@ -52,7 +53,9 @@ def blank_digraph(format='svg', maxiter='10000000',
                   Damping='0.995', K='0.5', **graph_attrs):
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
-    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K, bgcolor=bst.GRAPHVIZ_BACKGROUND_COLOR, **graph_attrs)
+    f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K,
+           penwidth='0', color='none', bgcolor=bst.GRAPHVIZ_BACKGROUND_COLOR,
+           **graph_attrs)
     return f
 
 def get_section_inlets_and_outlets(units, streams):
@@ -205,9 +208,9 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     depth += 1
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
-            c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", bgcolor='#79bf823f',
-                   style='solid', fontcolor=bst.GRAPHVIZ_STREAM_COLOR,
-                   penwidth='0')
+            c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", color=depth_colors[(depth - 1) % len(depth_colors)], bgcolor='none',
+                   style='dashed', fontcolor='#90918e',
+                   penwidth='5')
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
 def digraph_from_units_and_connections(units, connections, **graph_attrs):
@@ -264,11 +267,13 @@ def get_all_connections(streams):
             for s in streams 
             if (s._source or s._sink)}
 
-def add_connection(f: Digraph, connection, unit_names):
+def add_connection(f: Digraph, connection, unit_names, **edge_options):
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
     style = 'dashed' if stream.isempty() else 'solid'
+    f.attr('edge', label='', taillabel='', headlabel='', labeldistance='2',
+           **edge_options)
     if stream:
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
@@ -277,7 +282,7 @@ def add_connection(f: Digraph, connection, unit_names):
                    width='0.15', 
                    height='0.15',
                    shape='diamond',
-                   fillcolor='white',
+                   fillcolor='#f98f60',
                    color='black',
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
@@ -291,7 +296,7 @@ def add_connection(f: Digraph, connection, unit_names):
                    height='0.2',
                    shape='triangle',
                    orientation='270',
-                   fillcolor='white',
+                   fillcolor='#f98f60',
                    color='black',
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)
@@ -321,10 +326,7 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
     f.attr('node', **stream_node)
     f.attr('graph', overlap='orthoyx', fontname="Arial",
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
-    f.attr('edge', dir='foward', fontname='Arial',
-           color=color or bst.GRAPHVIZ_STREAM_COLOR,
-           fontcolor=fontcolor or bst.GRAPHVIZ_STREAM_COLOR,
-           **edge_options)
+    f.attr('edge', dir='foward', fontname='Arial')
     index = {j: i for i, j in unit_names.items()}
     length = len(index)
     def key(x):
@@ -336,7 +338,10 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
         return value
     connections = sorted(connections, key=key)
     for connection in connections:
-        add_connection(f, connection, unit_names)
+        add_connection(f, connection, unit_names, 
+                       color=color or bst.GRAPHVIZ_STREAM_COLOR,
+                       fontcolor=fontcolor or bst.GRAPHVIZ_LABEL_COLOR,
+                       **edge_options)
 
 def display_digraph(digraph, format): # pragma: no coverage
     if format == 'svg':

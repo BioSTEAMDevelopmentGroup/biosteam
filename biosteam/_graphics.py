@@ -116,7 +116,7 @@ left_edge_in = ({'headport': 'w'},)
 top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'})
 
 box_node = {'shape': 'box',
-            'fillcolor': "#6b737c:#3a4551",
+            'fillcolor': "#6b737c:#434e59",
             'style': 'filled',
             'gradientangle': '0',
             'width': '0.6',
@@ -204,8 +204,8 @@ process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edg
 
 # Process specification graphics
 node = box_node.copy()
-node['fillcolor'] = "#de7e55"
-node['color'] = '#b16444'
+node['fillcolor'] = "#f98f60"
+node['color'] = '#de7e55'
 node['shape'] = 'note'
 node['margin'] = '0.2'
 def tailor_process_specification_node(node, unit): # pragma: no coverage
