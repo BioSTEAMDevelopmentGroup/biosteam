@@ -1209,7 +1209,7 @@ class System:
 
         """
         self._load_configuration()
-        if not kind: kind = 0
+        if not kind: kind = 1
         graph_attrs['format'] = format or 'png'
         original = (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
                     bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,

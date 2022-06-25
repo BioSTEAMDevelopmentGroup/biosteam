@@ -200,7 +200,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     streams = [i for i in all_streams if (not i.sink or i.sink in units) and (not i.source or i.source in units)]
     other_streams.update(all_streams.difference(streams))
     connections = get_all_connections(recycles)
-    add_connections(f, connections, unit_names, color='#ed5a6a', fontcolor='#ed5a6a')
+    add_connections(f, connections, unit_names, color='#f98f60', fontcolor='#f98f60')
     excluded_connections.update(connections)
     connections = get_all_connections(streams).difference(excluded_connections)
     add_connections(f, connections, unit_names)

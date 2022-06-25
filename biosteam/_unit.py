@@ -1262,55 +1262,6 @@ class Unit:
             neighborhood.update(direct_neighborhood)
         return neighborhood
 
-    def get_digraph(self, format='png', **graph_attrs):
-        ins = self.ins
-        outs = self.outs
-        graphics = self._graphics
-
-        # Make a Digraph handle
-        f = Digraph(name='unit', filename='unit', format=format)
-        f.attr('graph', ratio='0.5', outputorder='edgesfirst',
-               nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
-        f.attr(rankdir='LR', **graph_attrs)  # Left to right
-
-        # If many streams, keep streams close
-        if (len(ins) >= 3) or (len(outs) >= 3):
-            f.attr('graph', nodesep='0.4')
-
-        # Initialize node arguments based on unit and make node
-        node = graphics.get_node_tailored_to_unit(self)
-        f.node(**node)
-
-        # Set stream node attributes
-        f.attr('node', shape='rarrow', fillcolor='#79dae8',
-               style='filled', orientation='0', width='0.6',
-               height='0.6', color='black', peripheries='1')
-
-        # Make nodes and edges for input streams
-        di = 0  # Destination position of stream
-        for stream in ins:
-            if not stream: continue
-            f.node(stream.ID)
-            edge_in = graphics.edge_in
-            if di >= len(edge_in): di = 0
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[di])
-            f.edge(stream.ID, node['name'])
-            di += 1
-
-        # Make nodes and edges for output streams
-        oi = 0  # Origin position of stream
-        for stream in outs:
-            if not stream: continue
-            f.node(stream.ID) 
-            edge_out = graphics.edge_out  
-            if oi >= len(edge_out): oi = 0
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **edge_out[oi])
-            f.edge(node['name'], stream.ID)
-            oi += 1
-        return f
-
     def diagram(self, radius=0, upstream=True, downstream=True, 
                 file=None, format='png', display=True, **graph_attrs):
         """
@@ -1340,7 +1291,7 @@ class Unit:
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
-        f = self.get_digraph(format, **graph_attrs)
+        f =  bst.System('', [self]).diagram(format=format, **graph_attrs)
         if display or file: 
             finalize_digraph(f, file, format)
         else:

@@ -174,16 +174,16 @@ def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
         H_in = si.H
         H_out = so.H
         if H_in > H_out:
-            node['fillcolor'] = '#55a8b5'
+            node['fillcolor'] = '#60c1cf'
             node['gradientangle'] = '0'
             line = 'Cooling'
         elif H_in < H_out:
             node['gradientangle'] = '0'
-            node['fillcolor'] = '#d45063'
+            node['fillcolor'] = '#ed5a6a'
             line = 'Heating'
         else:
             node['gradientangle'] = '90'
-            node['fillcolor'] = '#55a8b5:#d45063'
+            node['fillcolor'] = '#60c1cf:#ed5a6a'
             line = 'Heat exchanger'
     except:
         line = 'Heat exchanger'
@@ -221,7 +221,8 @@ node['peripheries'] = '2'
 system_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 node = box_node.copy()
-node['fillcolor'] = 'white:#79dae8'
+node['fillcolor'] = '#60c1cf'
+node['color'] = '#55a8b5'
 stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 

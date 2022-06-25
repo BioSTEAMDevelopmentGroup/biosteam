@@ -376,7 +376,7 @@ class Model(State):
     def evaluate_across_coordinate(self, name, f_coordinate, coordinate,
                                    *, xlfile=None, notify=0, notify_coordinate=True,
                                    multi_coordinate=False, 
-                                   f_evaluate):
+                                   f_evaluate=None):
         """
         Evaluate across coordinate and save sample metrics.
         
