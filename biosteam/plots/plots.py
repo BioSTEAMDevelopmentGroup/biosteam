@@ -48,8 +48,8 @@ __all__ = (
 
 # %% Utilities
 
-default_light_color = c.brown_tint.RGBn
-default_dark_color = c.brown_shade.RGBn
+default_light_color = c.orange_tint.RGBn
+default_dark_color = c.orange_shade.RGBn
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
