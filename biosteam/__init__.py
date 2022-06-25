@@ -38,6 +38,12 @@ PROFILE_UNITS_IN_DIAGRAMS = False
 #: Whether to raise exception regarding problems displaying graphviz diagrams
 RAISE_GRAPHVIZ_EXCEPTION = False
 
+#: Graphviz background color
+GRAPHVIZ_BACKGROUND_COLOR = 'transparent'
+
+#: Color of streams in BioSTEAM graphviz diagrams
+GRAPHVIZ_STREAM_COLOR = 'black'
+
 # %% Workaround for readthedocs, which fails to cache numba
 
 import numba

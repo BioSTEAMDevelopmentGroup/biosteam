@@ -2079,7 +2079,7 @@ class System:
         return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.agent.ID == agent]) 
     
     def get_utility_flow(self, agent):
-        """Return the total utility flow for given agent in kJ/yr."""
+        """Return the total utility flow for given agent in kmol/yr."""
         if not isinstance(agent, str): agent = agent.ID
         return self.operating_hours * sum([i.flow for i in self.heat_utilities if i.agent.ID == agent]) 
     
