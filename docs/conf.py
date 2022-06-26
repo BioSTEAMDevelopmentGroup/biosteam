@@ -62,6 +62,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'nbsphinx']
 
+imgmath_latex_preamble = r'\usepackage{xcolor}'
 nbsphinx_execute = 'never'
 
 # Specify the baseurls for the projects I want to link to
