@@ -47,6 +47,56 @@ GRAPHVIZ_STREAM_COLOR = '#90918e'
 #: Color of stream labels in BioSTEAM graphviz diagrams
 GRAPHVIZ_LABEL_COLOR = '#90918e'
 
+def classic_mode(stream=GRAPHVIZ_STREAM_COLOR, 
+                 label=GRAPHVIZ_LABEL_COLOR, 
+                 bg=GRAPHVIZ_BACKGROUND_COLOR,
+                 save=True):
+    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
+    GRAPHVIZ_BACKGROUND_COLOR = bg
+    GRAPHVIZ_STREAM_COLOR = stream
+    GRAPHVIZ_LABEL_COLOR = label
+    if save: save_mode()
+
+def dark_mode(stream='#98a2ad', label='#e5e5e5', bg='#000000bf', save=True):
+    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
+    GRAPHVIZ_BACKGROUND_COLOR = bg
+    GRAPHVIZ_STREAM_COLOR = stream
+    GRAPHVIZ_LABEL_COLOR = label
+    if save: save_mode()
+
+def light_mode(stream='#4e4e4e', label='#90918e', bg='#ffffffdf', save=True):
+    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
+    GRAPHVIZ_BACKGROUND_COLOR = bg
+    GRAPHVIZ_STREAM_COLOR = stream
+    GRAPHVIZ_LABEL_COLOR = label
+    if save: save_mode()
+
+night_mode = dark_mode
+day_mode = light_mode
+
+def load_mode(file=None):
+    if file is None:
+        import os
+        folder = os.path.dirname(__file__)
+        file = os.path.join(folder, 'graphviz_color_settings.txt')
+    try:
+        global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
+        with open(file) as f:
+            (GRAPHVIZ_BACKGROUND_COLOR,
+             GRAPHVIZ_STREAM_COLOR,
+             GRAPHVIZ_LABEL_COLOR) = f.readlines()
+    except:
+        pass
+    
+def save_mode():
+    import os
+    folder = os.path.dirname(__file__)
+    file = os.path.join(folder, 'graphviz_color_settings.txt')
+    with open(file, 'wb') as f:
+        f.write('\n'.join([GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR]).encode())
+
+load_mode()
+
 # %% Workaround for readthedocs, which fails to cache numba
 
 import numba

@@ -116,7 +116,7 @@ left_edge_in = ({'headport': 'w'},)
 top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'})
 
 box_node = {'shape': 'box',
-            'fillcolor': "#6b737c:#434e59",
+            'fillcolor': "#555f69",
             'style': 'filled',
             'gradientangle': '0',
             'width': '0.6',
@@ -182,8 +182,7 @@ def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
             node['fillcolor'] = '#ed5a6a'
             line = 'Heating'
         else:
-            node['gradientangle'] = '90'
-            node['fillcolor'] = '#60c1cf:#ed5a6a'
+            node['fillcolor'] = box_node['fillcolor']
             line = 'Heat exchanger'
     except:
         line = 'Heat exchanger'
@@ -196,8 +195,10 @@ utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, 
 node = node.copy()
 node['shape'] = 'circle'
 node['margin'] = '0'
+node['gradientangle'] = '90'
+node['fillcolor'] = '#60c1cf:#ed5a6a'
 def tailor_process_heat_exchanger_node(node, unit): # pragma: no coverage
-    node['name'] = unit.ID + "\n Heat exchanger"
+    node['name'] = unit.ID + "\nHeat exchanger"
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
                                                tailor_process_heat_exchanger_node)
@@ -235,7 +236,7 @@ def tailor_junction_node(node, unit): # pragma: no coverage
     else:
         node['width'] = '0.1'
         node['shape'] = 'point'
-        node['fillcolor'] = 'black'
+        node['fillcolor'] = bst.GRAPHVIZ_STREAM_COLOR
     node['color'] = 'none'
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,

@@ -283,7 +283,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
                    height='0.15',
                    shape='diamond',
                    fillcolor='#f98f60',
-                   color='black',
+                   color=bst.GRAPHVIZ_STREAM_COLOR,
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
@@ -297,7 +297,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
                    shape='triangle',
                    orientation='270',
                    fillcolor='#f98f60',
-                   color='black',
+                   color=bst.GRAPHVIZ_STREAM_COLOR,
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,

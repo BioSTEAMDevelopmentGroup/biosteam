@@ -31,8 +31,8 @@ setup(
             'SALib',
         ]
     }, 
-    package_data=
-        {'biosteam': ['report/*',
+    package_data= {
+        'biosteam': ['report/*',
                       'digraph/*',
                       'utils/*',
                       'evaluation/*', 
@@ -43,8 +43,11 @@ setup(
                       'units/facilities/hxn/*',
                       'units/design_tools/*',
                       'units/facilities/*',
-                      'units/decorators/*',
-                      ]},
+                      'units/decorators/*']
+    },
+    exclude_package_data={
+        'biosteam': ['graphviz_color_settings.txt'],
+    },
     python_requires='>=3.8',
     platforms=['Windows', 'Mac', 'Linux'],
     author_email='yoelcortes@gmail.com',
