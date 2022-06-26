@@ -50,12 +50,10 @@ Overview
 BioSTEAM's main components can be categorized by 4 functionality levels: 
 
 .. figure:: images/UML.png
-   :figwidth: 60%
    :class: only-light
    :align: center
 
 .. figure:: images/UML_dark.png
-   :figwidth: 60%
    :class: only-dark
    :align: center
 
