@@ -61,7 +61,7 @@ To get the git version, run:
 
     $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
-For help on common installtion issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/tutorial/Installation.html>`__.
+For help on common installation issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/#installation>`__.
 
 Documentation
 -------------
