@@ -41,8 +41,6 @@ stream_node = dict(
     fontname="Arial",
 )
 
-depth_colors = ['#7ac0833f', '#a381ba3f', '#ed5a6a']
-
 def sort_streams(streams):
     return sorted(streams, key=lambda x: -x.F_mass + len(x.ID))
 
@@ -208,7 +206,8 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     depth += 1
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
-            c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", color=depth_colors[(depth - 1) % len(depth_colors)], bgcolor='none',
+            c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", 
+                   color=bst.GRAPHVIZ_DEPTH_COLORS[(depth - 1) % len(bst.GRAPHVIZ_DEPTH_COLORS)], bgcolor='none',
                    style='dashed', fontcolor='#90918e',
                    penwidth='5')
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)

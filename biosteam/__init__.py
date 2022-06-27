@@ -47,29 +47,29 @@ GRAPHVIZ_STREAM_COLOR = '#90918e'
 #: Color of stream labels in BioSTEAM graphviz diagrams
 GRAPHVIZ_LABEL_COLOR = '#90918e'
 
+#: Color of subsystem clusters in BioSTEAM graphviz diagrams
+GRAPHVIZ_DEPTH_COLORS = ('#7ac0836f',)
+
+def _set_mode(stream, label, bg, cluster, save):
+    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR, GRAPHVIZ_DEPTH_COLORS
+    GRAPHVIZ_BACKGROUND_COLOR = bg
+    GRAPHVIZ_STREAM_COLOR = stream
+    GRAPHVIZ_LABEL_COLOR = label
+    GRAPHVIZ_DEPTH_COLORS = cluster
+    if save: save_mode()
+
 def classic_mode(stream=GRAPHVIZ_STREAM_COLOR, 
                  label=GRAPHVIZ_LABEL_COLOR, 
                  bg=GRAPHVIZ_BACKGROUND_COLOR,
+                 cluster=GRAPHVIZ_DEPTH_COLORS,
                  save=True):
-    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
-    GRAPHVIZ_BACKGROUND_COLOR = bg
-    GRAPHVIZ_STREAM_COLOR = stream
-    GRAPHVIZ_LABEL_COLOR = label
-    if save: save_mode()
+    _set_mode(stream, label, bg, cluster, save)
 
-def dark_mode(stream='#98a2ad', label='#e5e5e5', bg='#000000bf', save=True):
-    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
-    GRAPHVIZ_BACKGROUND_COLOR = bg
-    GRAPHVIZ_STREAM_COLOR = stream
-    GRAPHVIZ_LABEL_COLOR = label
-    if save: save_mode()
+def dark_mode(stream='#98a2ad', label='#e5e5e5', bg='#000000bf', cluster=('#f3c3546f',), save=True):
+    _set_mode(stream, label, bg, cluster, save)
 
-def light_mode(stream='#4e4e4e', label='#90918e', bg='#ffffffdf', save=True):
-    global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
-    GRAPHVIZ_BACKGROUND_COLOR = bg
-    GRAPHVIZ_STREAM_COLOR = stream
-    GRAPHVIZ_LABEL_COLOR = label
-    if save: save_mode()
+def light_mode(stream='#4e4e4e', label='#90918e', bg='#ffffffdf', cluster=('#7ac083af',), save=True):
+    _set_mode(stream, label, bg, cluster, save)
 
 night_mode = dark_mode
 day_mode = light_mode
@@ -80,11 +80,13 @@ def load_mode(file=None):
         folder = os.path.dirname(__file__)
         file = os.path.join(folder, 'graphviz_color_settings.txt')
     try:
-        global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR
+        global GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR, GRAPHVIZ_DEPTH_COLORS
         with open(file) as f:
             (GRAPHVIZ_BACKGROUND_COLOR,
              GRAPHVIZ_STREAM_COLOR,
-             GRAPHVIZ_LABEL_COLOR) = f.readlines()
+             GRAPHVIZ_LABEL_COLOR,
+             GRAPHVIZ_DEPTH_COLORS) = f.readlines()
+        GRAPHVIZ_DEPTH_COLORS = eval(GRAPHVIZ_DEPTH_COLORS)
     except:
         pass
     
@@ -93,7 +95,7 @@ def save_mode():
     folder = os.path.dirname(__file__)
     file = os.path.join(folder, 'graphviz_color_settings.txt')
     with open(file, 'wb') as f:
-        f.write('\n'.join([GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, GRAPHVIZ_LABEL_COLOR]).encode())
+        f.write('\n'.join([GRAPHVIZ_BACKGROUND_COLOR, GRAPHVIZ_STREAM_COLOR, str(GRAPHVIZ_LABEL_COLOR)]).encode())
 
 load_mode()
 
