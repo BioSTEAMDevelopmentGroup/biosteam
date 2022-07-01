@@ -46,7 +46,8 @@ setup(
                       'units/decorators/*']
     },
     exclude_package_data={
-        'biosteam': ['graphviz_color_settings.txt'],
+        'biosteam': ['graphviz_color_settings.txt',
+                     'preferences.yaml'],
     },
     python_requires='>=3.8',
     platforms=['Windows', 'Mac', 'Linux'],
