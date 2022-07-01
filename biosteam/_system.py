@@ -1211,12 +1211,13 @@ class System:
         self._load_configuration()
         if kind is None: kind = 1
         graph_attrs['format'] = format or 'png'
-        original = (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
-                    bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
-                    bst.PROFILE_UNITS_IN_DIAGRAMS)
-        if number is not None: bst.LABEL_PATH_NUMBER_IN_DIAGRAMS = number
-        if label is not None: bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS = label
-        if profile is not None: bst.PROFILE_UNITS_IN_DIAGRAMS = profile
+        preferences = bst.preferences
+        original = (preferences.number_path,
+                    preferences.label_streams,
+                    preferences.profile)
+        if number is not None: preferences.number_path = number
+        if label is not None: preferences.label_streams = label
+        if profile is not None: preferences.profile = profile
         try:
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
@@ -1235,9 +1236,9 @@ class System:
             else:
                 return f
         finally:
-            (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
-             bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
-             bst.PROFILE_UNITS_IN_DIAGRAMS) = original
+            (preferences.number_path,
+             preferences.label_streams,
+             preferences.profile) = original
 
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
@@ -2208,7 +2209,7 @@ class System:
         return recycle
 
     def _ipython_display_(self):
-        if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram('minimal')
+        if bst.preferences.autodisplay: self.diagram('minimal')
         self.show()
 
     def _error_info(self):

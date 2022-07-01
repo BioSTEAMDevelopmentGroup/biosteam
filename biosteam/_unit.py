@@ -687,7 +687,7 @@ class Unit:
         """Return unit node attributes for graphviz."""
         try: self._load_stream_links()
         except: pass
-        if bst.MINIMAL_UNIT_DIAGRAMS:
+        if bst.preferences.minimal_nodes:
             return self._graphics.get_minimal_node(self)
         else:
             return self._graphics.get_node_tailored_to_unit(self)
@@ -1419,7 +1419,7 @@ class Unit:
         print(self._info(layout, T, P, flow, composition, N, IDs, data))
     
     def _ipython_display_(self):
-        if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram()
+        if bst.preferences.autodisplay: self.diagram()
         self.show()
 
     def __repr__(self):

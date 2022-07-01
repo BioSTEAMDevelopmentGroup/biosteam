@@ -84,12 +84,9 @@ class UnitGraphics:
             width = '0.1',
             shape = 'oval',
             style = 'filled',
-            fillcolor = '#3a4551',
+            fillcolor = '#555f69',
             fontcolor = 'white',
         )
-        if bst.GRAPHVIZ_CLASSIC_MODE: 
-            minode['fontcolor'] = "black"
-            minode['fillcolor'] = "#d2d2d2:white"
         return minode
     
     def get_node_tailored_to_unit(self, unit): # pragma: no coverage
@@ -236,7 +233,7 @@ def tailor_junction_node(node, unit): # pragma: no coverage
     else:
         node['width'] = '0.1'
         node['shape'] = 'point'
-        node['fillcolor'] = bst.GRAPHVIZ_STREAM_COLOR
+        node['fillcolor'] = bst.preferences.stream_color
     node['color'] = 'none'
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,

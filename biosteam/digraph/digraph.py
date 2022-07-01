@@ -41,6 +41,8 @@ stream_node = dict(
     fontname="Arial",
 )
 
+preferences = bst.preferences
+
 def sort_streams(streams):
     return sorted(streams, key=lambda x: -x.F_mass + len(x.ID))
 
@@ -52,7 +54,7 @@ def blank_digraph(format='svg', maxiter='10000000',
     # Create a digraph and set direction left to right
     f = Digraph(format=format)
     f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K,
-           penwidth='0', color='none', bgcolor=bst.GRAPHVIZ_BACKGROUND_COLOR,
+           penwidth='0', color='none', bgcolor=preferences.background_color,
            **graph_attrs)
     return f
 
@@ -204,10 +206,11 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     add_connections(f, connections, unit_names)
     excluded_connections.update(connections)
     depth += 1
+    N_colors = len(preferences.depth_colors)
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
             c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", 
-                   color=bst.GRAPHVIZ_DEPTH_COLORS[(depth - 1) % len(bst.GRAPHVIZ_DEPTH_COLORS)], bgcolor='none',
+                   color=preferences.depth_colors[(depth - 1) % N_colors], bgcolor='none',
                    style='dashed', fontcolor='#90918e',
                    penwidth='5')
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
@@ -219,8 +222,8 @@ def digraph_from_units_and_connections(units, connections, **graph_attrs):
 
 def get_unit_names(f: Digraph, units):
     unit_names = {}  # Contains full description (ID and line) by unit
-    label = bst.LABEL_PATH_NUMBER_IN_DIAGRAMS
-    profile = bst.PROFILE_UNITS_IN_DIAGRAMS
+    number = preferences.number_path
+    profile = preferences.profile
     TicToc = bst.utils.TicToc
     info_by_unit = {}
     N_junctions = 0
@@ -232,7 +235,7 @@ def get_unit_names(f: Digraph, units):
             continue
         if u in info_by_unit:
             old_data = info_by_unit[u]
-            if label: old_data[0].append(str(i - N_junctions))
+            if number: old_data[0].append(str(i - N_junctions))
         else:
             if profile: # pragma: no cover
                 t = TicToc()
@@ -242,7 +245,7 @@ def get_unit_names(f: Digraph, units):
                 time = f"{1000 * t.mean:.2g} ms"
             else:
                 time = None
-            index = [str(i - N_junctions)] if label else []
+            index = [str(i - N_junctions)] if number else []
             info_by_unit[u] = [index, time] 
     for u, (index, time) in info_by_unit.items():
         node = u.get_node()
@@ -282,7 +285,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
                    height='0.15',
                    shape='diamond',
                    fillcolor='#f98f60',
-                   color=bst.GRAPHVIZ_STREAM_COLOR,
+                   color=preferences.stream_color,
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
@@ -296,7 +299,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
                    shape='triangle',
                    orientation='270',
                    fillcolor='#f98f60',
-                   color=bst.GRAPHVIZ_STREAM_COLOR,
+                   color=preferences.stream_color,
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
@@ -308,7 +311,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
                    **inlet_options, **outlet_options)
-            label = stream.ID if bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS else ''
+            label = stream.ID if preferences.label_streams else ''
             f.edge(unit_names[source], unit_names[sink], label=label)
         else:
             f.node(stream.ID)
@@ -338,8 +341,8 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
     connections = sorted(connections, key=key)
     for connection in connections:
         add_connection(f, connection, unit_names, 
-                       color=color or bst.GRAPHVIZ_STREAM_COLOR,
-                       fontcolor=fontcolor or bst.GRAPHVIZ_LABEL_COLOR,
+                       color=color or preferences.stream_color,
+                       fontcolor=fontcolor or preferences.label_color,
                        **edge_options)
 
 def display_digraph(digraph, format): # pragma: no coverage
@@ -359,7 +362,7 @@ def save_digraph(digraph, file, format): # pragma: no coverage
     f.close()
     
 def finalize_digraph(digraph, file, format): # pragma: no coverage
-    if bst.RAISE_GRAPHVIZ_EXCEPTION: 
+    if preferences.raise_exception: 
         if file: save_digraph(digraph, file, format)
         else: display_digraph(digraph, format)
     else:
