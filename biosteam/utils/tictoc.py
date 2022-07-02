@@ -25,14 +25,17 @@ class TicToc: # pragma: no coverage
         """Start timer."""
         # Marks the beginning of a time interval
         self._start = time.perf_counter()
+        return self._start
 
-    def toc(self):
+    def toc(self, record=True):
         """Record time interval since last 'tic'."""
         # Appends time difference
-        try: self.record.append(self.elapsed_time)
+        try: elapsed_time = self.elapsed_time
         except TypeError:
             if self._start is None:
                 raise RuntimeError("Must run 'tic' before 'toc'.")    
+        if record: self.record.append(elapsed_time)
+        return elapsed_time
 
     @property
     def elapsed_time(self):

@@ -20,6 +20,7 @@ from ._utils import var_indices, var_columns, indices_to_multiindex
 from biosteam.exceptions import FailedEvaluation
 from warnings import warn
 from collections.abc import Sized
+from biosteam.utils import TicToc
 import pickle
 
 __all__ = ('Model',)
@@ -76,7 +77,6 @@ class Model(State):
     
     def _erase(self):
         """Erase cached data."""
-        super()._erase()
         self._samples = None
     
     @property
@@ -160,14 +160,75 @@ class Model(State):
             return samples
     
     def _load_sample_order(self, samples, parameters):
-        key = lambda x: samples[x, i]
-        index = list(range(samples.shape[0]))
-        for i in range(self._N_parameters_cache-1,  -1, -1):
-            if not parameters[i].system: continue
-            index.sort(key=key)
-        self._index = index
+        """
+        Sort simulation order to optimize convergence speed
+        by minimizing perturbations to the system between simulations.
+        This function may take long depending on the number of parameters 
+        because it uses single-point sensitivity to inform the sorting 
+        algorithm.
         
-    def load_samples(self, samples):
+        """
+        length = samples.shape[0]
+        original_parameters = self._parameters
+        columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
+        parameters = [parameters[i] for i in columns]
+        timer = TicToc()
+        def evaluate(sample, **kwargs):
+            timer.tic()
+            try:
+                self._parameters = parameters
+                self._evaluate_sample(sample, **kwargs)
+            finally:
+                self._parameters = original_parameters
+            return [timer.toc()]
+        
+        baseline, lbs, ubs = self.single_point_sensitivity(
+            etol=np.inf,
+            evaluate=evaluate,
+            parameters=parameters,
+            metrics=['Time'],
+            array=True,
+        )
+        time = ubs + lbs + baseline
+        normalized_time = time / time.max(axis=0) 
+        samples = samples.copy()
+        samples = samples[:, columns]
+        samples_min = samples.min(axis=0)
+        samples_diff = samples.max(axis=0) - samples.min(axis=0)
+        normalized_samples = (samples + samples_min) / samples_diff * normalized_time.transpose()
+        nearest_arr = (normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
+        nearest_arr = np.sum(nearest_arr * nearest_arr, axis=-1)
+        nearest_arr = np.argsort(nearest_arr, axis=1)
+        remaining = set(range(length))
+        self._index = index = [0]
+        nearest = nearest_arr[0, 1]
+        index.append(nearest)
+        remaining.remove(0)
+        remaining.remove(nearest)
+        N_remaining = length - 2
+        N_remaining_last = N_remaining + 1
+        while N_remaining:
+            assert N_remaining_last != N_remaining, "issue in sorting algorithm"
+            N_remaining_last = N_remaining
+            for i in range(1, length):
+                next_nearest = nearest_arr[nearest, i]
+                if next_nearest in remaining:
+                    nearest = next_nearest
+                    remaining.remove(nearest)
+                    index.append(nearest)
+                    N_remaining -= 1
+                    break
+        distance_with_sorting = 0
+        for i in range(length - 1):
+            dist = normalized_samples[index[i]] - normalized_samples[index[i+1]]
+            distance_with_sorting += (dist * dist).sum()
+        distance_without_sorting = 0
+        for i in range(length - 1):
+            dist = normalized_samples[i] - normalized_samples[i+1]
+            distance_without_sorting += (dist * dist).sum()
+        assert distance_with_sorting <= distance_without_sorting
+        
+    def load_samples(self, samples, optimize=False):
         """
         Load samples for evaluation.
         
@@ -175,11 +236,20 @@ class Model(State):
         ----------
         samples : numpy.ndarray, dim=2
         
+        optimize : bool, optional
+            Whether to internally sort the samples to optimize convergence speed
+            by minimizing perturbations to the system between simulations.
+        
+        Warning
+        -------
+        Depending on the number of parameters, optimizing sample simulation 
+        order may take long because it uses single-point sensitivity to inform 
+        the sorting algorithm.
+        
         """
-        self._load_parameters()
         parameters = self._parameters
         Parameter.check_indices_unique(parameters)
-        N_parameters = self._N_parameters_cache
+        N_parameters = len(parameters)
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
         if samples.ndim == 1:
@@ -190,24 +260,30 @@ class Model(State):
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({N_parameters})')
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
-        self._load_sample_order(samples, parameters)
+        if optimize: 
+            self._load_sample_order(samples, parameters)
+        else:
+            self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
         
-    def single_point_sensitivity(self, etol=0.01, **dyn_sim_kwargs):
-        parameters = self.parameters
+    def single_point_sensitivity(self, 
+            etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
+            **dyn_sim_kwargs
+        ):
+        if parameters is None: parameters = self.parameters
         bounds = [i.bounds for i in parameters]
-        sample = self.get_baseline_sample()
+        sample = [i.baseline for i in parameters]
         N_parameters = len(parameters)
         index = range(N_parameters)
-        metrics = self.metrics
+        if metrics is None: metrics = self.metrics
         N_metrics = len(metrics)
         values_lb = np.zeros([N_parameters, N_metrics])
         values_ub = values_lb.copy()
-        evaluate = self._evaluate_sample
-        baseline_1 = np.array(evaluate(sample, True, **dyn_sim_kwargs))
+        if evaluate is None: evaluate = self._evaluate_sample
+        baseline_1 = np.array(evaluate(sample, **dyn_sim_kwargs))
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
@@ -219,9 +295,9 @@ class Model(State):
             else:
                 sample_lb[i] = lb
                 sample_ub[i] = ub
-            values_lb[i, :] = evaluate(sample_lb, True, **dyn_sim_kwargs)
-            values_ub[i, :] = evaluate(sample_ub, True, **dyn_sim_kwargs)
-        baseline_2 = np.array(evaluate(sample, True, **dyn_sim_kwargs))
+            values_lb[i, :] = evaluate(sample_lb, **dyn_sim_kwargs)
+            values_ub[i, :] = evaluate(sample_ub, **dyn_sim_kwargs)
+        baseline_2 = np.array(evaluate(sample, **dyn_sim_kwargs))
         error = np.abs(baseline_2 - baseline_1)
         index, = np.where(error > 1e-6)
         error = error[index]
@@ -233,27 +309,26 @@ class Model(State):
                     f"{baseline_1[idx]} before evaluating sensitivty and "
                     f"{baseline_2[idx]} after"
                 )
-        metric_index = var_columns(metrics)
-        baseline = pd.Series(0.5 * (baseline_1 + baseline_2), index=metric_index)
-        df_lb = pd.DataFrame(values_lb, 
-                            index=var_columns(parameters),
-                            columns=metric_index)
-        df_ub = df_lb.copy()
-        df_ub[:] = values_ub
-        return baseline, df_lb, df_ub
+        baseline = 0.5 * (baseline_1 + baseline_2)
+        if array:
+            return baseline, values_lb, values_ub
+        else:
+            metric_index = var_columns(metrics)
+            baseline = pd.Series(baseline, index=metric_index)
+            df_lb = pd.DataFrame(values_lb, 
+                                index=var_columns(parameters),
+                                columns=metric_index)
+            df_ub = df_lb.copy()
+            df_ub[:] = values_ub
+            return baseline, df_lb, df_ub
     
-    def evaluate(self, thorough=True, notify=0, 
-                 file=None, autosave=0, autoload=False,
+    def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  **dyn_sim_kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
         Parameters
         ----------
-        thorough : bool
-            If True, simulate the whole system with each sample.
-            If False, simulate only the affected parts of the system and
-            skip simulation for repeated states.
         notify=0 : int, optional
             If 1 or greater, notify elapsed time after the given number of sample evaluations. 
         file : str, optional
@@ -276,13 +351,12 @@ class Model(State):
         evaluate_sample = self._evaluate_sample
         table = self.table
         if notify:
-            from biosteam.utils import TicToc
             timer = TicToc()
             timer.tic()
             count = [0]
-            def evaluate(sample, thorough, count=count, **kwargs):
+            def evaluate(sample, count=count, **kwargs):
                 count[0] += 1
-                values = evaluate_sample(sample, thorough, **kwargs)
+                values = evaluate_sample(sample, **kwargs)
                 if not count[0] % notify:
                     print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
@@ -312,7 +386,7 @@ class Model(State):
             layout = table.index, table.columns
             for number, i in enumerate(index, number + 1): 
                 if export: dyn_sim_kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
+                values[i] = evaluate(samples[i], **dyn_sim_kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
                     try:
@@ -325,20 +399,20 @@ class Model(State):
         else:
             for i in index: 
                 if export: dyn_sim_kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
+                values[i] = evaluate(samples[i], **dyn_sim_kwargs)
         table[var_indices(self._metrics)] = values
     
-    def _evaluate_sample(self, sample, thorough, **dyn_sim_kwargs):
+    def _evaluate_sample(self, sample, **dyn_sim_kwargs):
         state_updated = False
         try:
-            self._update_state(sample, thorough, **dyn_sim_kwargs)
+            self._update_state(sample, **dyn_sim_kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
             self._reset_system()
             if self.retry_evaluation and state_updated:
                 try:
-                    self._update_state(sample, thorough, **dyn_sim_kwargs)
+                    self._update_state(sample, **dyn_sim_kwargs)
                     self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 

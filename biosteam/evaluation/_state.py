@@ -45,30 +45,6 @@ if CP4:
 del version_components, CP_MAJOR, CP_MINOR, CP4
 
 
-# %% Functions
-
-class UpdateWithSkipping:
-    __slots__ = ('cache', 'parameters')
-    def __init__(self, parameters):
-        self.parameters = tuple(parameters)
-        self.cache = None
-    def __call__(self, sample, specification=None, thorough=True):
-        try:
-            same_arr = self.cache==sample
-            for p, x, same in zip(self.parameters, sample, same_arr):
-                if same: continue
-                p.setter(x)
-            if specification: specification()
-            for p, x, same in zip(self.parameters, sample, same_arr):
-                if same: continue
-                p.simulate()
-                if p.kind == 'coupled': break
-            self.cache = sample.copy()
-        except Exception as Error:
-            self.cache = None
-            raise Error
-
-
 # %%
     
 class State:
@@ -85,11 +61,11 @@ class State:
         Parameters to sample from.
     
     """
-    __slots__ = ('_system', # [System]
-                 '_parameters', # list[Parameter] All parameters.
-                 '_N_parameters_cache', # [int] Number of parameters previously loaded
-                 '_specification', # [function] Loads specifications once all parameters are set.
-                 '_sample_cache') # [1d array] Last sample evaluated.
+    __slots__ = (
+        '_system', # [System]
+        '_parameters', # list[Parameter] All parameters.
+        '_specification', # [function] Loads specifications once all parameters are set.
+    ) 
     
     load_default_parameters = load_default_parameters
     
@@ -101,7 +77,6 @@ class State:
             self._parameters = []
         self._system = system
         self._specification = specification
-        self._N_parameters_cache = None
     
     specification = System.specification
     
@@ -117,23 +92,19 @@ class State:
         copy = self.__new__(type(self))
         copy._parameters = list(self._parameters)
         copy._system = self._system
-        copy._N_parameters_cache = self._N_parameters_cache
         copy._specification = self._specification
         return copy
     
-    def get_baseline_sample(self):
+    def get_baseline_sample(self, parameters=None, array=False):
         """Return a pandas Series object of parameter baseline values."""
-        parameters = self.get_parameters()
-        sample = {}
+        if parameters is None: parameters = self._parameters
+        sample = [] if array else {}
         for p in parameters:
             baseline = p.baseline
             if baseline is None: raise RuntimeError(f'{p} has no baseline value')  
-            sample[p.index] = baseline
-        return pd.Series(sample)
-    
-    def _erase(self):
-        """Erase cached data."""
-        self._N_parameters_cache = self._sample_cache = None
+            if array: sample.append(baseline)
+            else: sample[p.index] = baseline
+        return np.array(sample) if array else pd.Series(sample)
     
     @property
     def parameters(self):
@@ -150,12 +121,10 @@ class State:
         for i in parameters:
             assert isa(i, Parameter), 'all elements must be Parameter objects'
         Parameter.check_indices_unique(parameters)
-        self._erase()
         self._parameters = parameters
     
     def get_parameters(self):
         """Return parameters."""
-        self._load_parameters()
         return tuple(self._parameters)
     
     def get_joint_distribution(self):
@@ -244,7 +213,6 @@ class State:
                       baseline, bounds, kind, hook, description)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
-        self._erase()
         return p
     
     def problem(self):
@@ -347,38 +315,13 @@ class State:
             samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
-    def _load_parameters(self):
-        """Load parameters."""
-        parameters = self._parameters
-        N_parameters = len(parameters)
-        if N_parameters != self._N_parameters_cache:
-            self._N_parameters_cache = N_parameters
-            Parameter.sort_parameters(parameters)
+    def _update_state(self, sample, **dyn_sim_kwargs):
+        for f, s in zip(self._parameters, sample): f.setter(s)
+        self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
     
-    def _update_state(self, sample, thorough=True, **dyn_sim_kwargs):
-        try:
-            if thorough: 
-                for f, s in zip(self._parameters, sample): f.setter(s)
-                self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
-            else:
-                same_arr = self._sample_cache==sample
-                for p, x, same in zip(self._parameters, sample, same_arr):
-                    if same: continue
-                    p.setter(x)
-                if self._specification: self._specification()
-                for p, x, same in zip(self._parameters, sample, same_arr):
-                    if same: continue
-                    p.simulate(**dyn_sim_kwargs)
-                    if p.kind == 'coupled': break
-                self._sample_cache = sample.copy()
-        except Exception as Error:
-            self._sample_cache = None
-            raise Error
-    
-    def __call__(self, sample, thorough=True):
+    def __call__(self, sample):
         """Update state given sample of parameters."""
-        self._load_parameters()
-        self._update_state(np.asarray(sample, dtype=float), self._specification)
+        self._update_state(np.asarray(sample, dtype=float))
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'
@@ -388,7 +331,6 @@ class State:
     
     def _info(self):
         if not self._parameters: return f'{self._repr()}\n (No parameters)'
-        self._load_parameters()
         lines = []
         lengths_block = []
         lastblk = None
