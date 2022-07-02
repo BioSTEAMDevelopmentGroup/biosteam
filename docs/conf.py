@@ -60,6 +60,7 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
     'sphinx.ext.autosummary',
+    'sphinx_multitoc_numbering',
     'nbsphinx']
 
 imgmath_latex_preamble = r'\usepackage{xcolor}'
