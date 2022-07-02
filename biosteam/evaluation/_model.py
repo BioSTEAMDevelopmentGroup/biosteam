@@ -76,7 +76,6 @@ class Model(State):
     
     def _erase(self):
         """Erase cached data."""
-        super()._erase()
         self._samples = None
     
     @property
@@ -160,14 +159,39 @@ class Model(State):
             return samples
     
     def _load_sample_order(self, samples, parameters):
-        key = lambda x: samples[x, i]
-        index = list(range(samples.shape[0]))
-        for i in range(self._N_parameters_cache-1,  -1, -1):
-            if not parameters[i].system: continue
-            index.sort(key=key)
-        self._index = index
+        """
+        Sort simulation order to optimize convergence speed
+        by minimizing perturbations to the system between simulations.
+        """
+        length = samples.shape[0]
+        columns = [i for i, parameter in enumerate(self._parameters) if parameter.system and parameter.system.recycle]
+        normalized_samples = samples.copy()
+        normalized_samples = normalized_samples[:, columns]
+        normalized_samples /= normalized_samples.max(axis=0) - normalized_samples.min(axis=0)
+        nearest_arr = (normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
+        nearest_arr = np.sum(nearest_arr * nearest_arr, axis=-1)
+        nearest_arr = np.argsort(nearest_arr, axis=1)
+        remaining = set(range(length))
+        self._index = index = [0]
+        nearest = nearest_arr[0, 1]
+        index.append(nearest)
+        remaining.remove(0)
+        remaining.remove(nearest)
+        N_remaining = length - 2
+        N_remaining_last = N_remaining + 1
+        while N_remaining:
+            if N_remaining_last == N_remaining: breakpoint()
+            N_remaining_last = N_remaining
+            for i in range(1, length):
+                next_nearest = nearest_arr[nearest, i]
+                if next_nearest in remaining:
+                    nearest = next_nearest
+                    remaining.remove(nearest)
+                    index.append(nearest)
+                    N_remaining -= 1
+                    break
         
-    def load_samples(self, samples):
+    def load_samples(self, samples, optimize=True):
         """
         Load samples for evaluation.
         
@@ -175,11 +199,14 @@ class Model(State):
         ----------
         samples : numpy.ndarray, dim=2
         
+        optimize : bool, optional
+            Whether to internally sort the samples to optimize convergence speed
+            by minimizing perturbations to the system between simulations.
+            
         """
-        self._load_parameters()
         parameters = self._parameters
         Parameter.check_indices_unique(parameters)
-        N_parameters = self._N_parameters_cache
+        N_parameters = len(parameters)
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
         if samples.ndim == 1:
@@ -190,7 +217,10 @@ class Model(State):
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({N_parameters})')
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
-        self._load_sample_order(samples, parameters)
+        if optimize: 
+            self._load_sample_order(samples, parameters)
+        else:
+            self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics))
@@ -242,18 +272,13 @@ class Model(State):
         df_ub[:] = values_ub
         return baseline, df_lb, df_ub
     
-    def evaluate(self, thorough=True, notify=0, 
-                 file=None, autosave=0, autoload=False,
+    def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  **dyn_sim_kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
         Parameters
         ----------
-        thorough : bool
-            If True, simulate the whole system with each sample.
-            If False, simulate only the affected parts of the system and
-            skip simulation for repeated states.
         notify=0 : int, optional
             If 1 or greater, notify elapsed time after the given number of sample evaluations. 
         file : str, optional
@@ -280,9 +305,9 @@ class Model(State):
             timer = TicToc()
             timer.tic()
             count = [0]
-            def evaluate(sample, thorough, count=count, **kwargs):
+            def evaluate(sample, count=count, **kwargs):
                 count[0] += 1
-                values = evaluate_sample(sample, thorough, **kwargs)
+                values = evaluate_sample(sample, **kwargs)
                 if not count[0] % notify:
                     print(f"{count} Elapsed time: {timer.elapsed_time:.0f} sec")
                 return values
@@ -312,7 +337,7 @@ class Model(State):
             layout = table.index, table.columns
             for number, i in enumerate(index, number + 1): 
                 if export: dyn_sim_kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
+                values[i] = evaluate(samples[i], **dyn_sim_kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
                     try:
@@ -325,20 +350,20 @@ class Model(State):
         else:
             for i in index: 
                 if export: dyn_sim_kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], thorough, **dyn_sim_kwargs)
+                values[i] = evaluate(samples[i], **dyn_sim_kwargs)
         table[var_indices(self._metrics)] = values
     
-    def _evaluate_sample(self, sample, thorough, **dyn_sim_kwargs):
+    def _evaluate_sample(self, sample, **dyn_sim_kwargs):
         state_updated = False
         try:
-            self._update_state(sample, thorough, **dyn_sim_kwargs)
+            self._update_state(sample, **dyn_sim_kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
             self._reset_system()
             if self.retry_evaluation and state_updated:
                 try:
-                    self._update_state(sample, thorough, **dyn_sim_kwargs)
+                    self._update_state(sample, **dyn_sim_kwargs)
                     self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
