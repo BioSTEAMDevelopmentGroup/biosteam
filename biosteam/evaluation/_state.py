@@ -95,15 +95,16 @@ class State:
         copy._specification = self._specification
         return copy
     
-    def get_baseline_sample(self):
+    def get_baseline_sample(self, parameters=None, array=False):
         """Return a pandas Series object of parameter baseline values."""
-        parameters = self.get_parameters()
-        sample = {}
+        if parameters is None: parameters = self._parameters
+        sample = [] if array else {}
         for p in parameters:
             baseline = p.baseline
             if baseline is None: raise RuntimeError(f'{p} has no baseline value')  
-            sample[p.index] = baseline
-        return pd.Series(sample)
+            if array: sample.append(baseline)
+            else: sample[p.index] = baseline
+        return np.array(sample) if array else pd.Series(sample)
     
     @property
     def parameters(self):
@@ -318,9 +319,9 @@ class State:
         for f, s in zip(self._parameters, sample): f.setter(s)
         self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
     
-    def __call__(self, sample, thorough=True):
+    def __call__(self, sample):
         """Update state given sample of parameters."""
-        self._update_state(np.asarray(sample, dtype=float), self._specification)
+        self._update_state(np.asarray(sample, dtype=float))
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'

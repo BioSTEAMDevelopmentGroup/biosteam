@@ -169,12 +169,17 @@ class Model(State):
         
         """
         length = samples.shape[0]
+        original_parameters = self._parameters
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
         parameters = [parameters[i] for i in columns]
         timer = TicToc()
         def evaluate(sample, **kwargs):
             timer.tic()
-            self._evaluate_sample(sample, **kwargs)
+            try:
+                self._parameters = parameters
+                self._evaluate_sample(sample, **kwargs)
+            finally:
+                self._parameters = original_parameters
             return [timer.toc()]
         
         baseline, lbs, ubs = self.single_point_sensitivity(
@@ -182,7 +187,7 @@ class Model(State):
             evaluate=evaluate,
             parameters=parameters,
             metrics=['Time'],
-            df=False,
+            array=True,
         )
         time = ubs + lbs + baseline
         normalized_time = time / time.max(axis=0) 
@@ -220,7 +225,7 @@ class Model(State):
         distance_without_sorting = 0
         for i in range(length - 1):
             dist = normalized_samples[i] - normalized_samples[i+1]
-            distance_with_sorting += (dist * dist).sum()
+            distance_without_sorting += (dist * dist).sum()
         assert distance_with_sorting <= distance_without_sorting
         
     def load_samples(self, samples, optimize=False):
@@ -265,12 +270,12 @@ class Model(State):
         self._samples = samples
         
     def single_point_sensitivity(self, 
-            etol=0.01, df=True, parameters=None, metrics=None, evaluate=None, 
+            etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
             **dyn_sim_kwargs
         ):
         if parameters is None: parameters = self.parameters
         bounds = [i.bounds for i in parameters]
-        sample = self.get_baseline_sample()
+        sample = [i.baseline for i in parameters]
         N_parameters = len(parameters)
         index = range(N_parameters)
         if metrics is None: metrics = self.metrics
@@ -305,7 +310,9 @@ class Model(State):
                     f"{baseline_2[idx]} after"
                 )
         baseline = 0.5 * (baseline_1 + baseline_2)
-        if df:
+        if array:
+            return baseline, values_lb, values_ub
+        else:
             metric_index = var_columns(metrics)
             baseline = pd.Series(baseline, index=metric_index)
             df_lb = pd.DataFrame(values_lb, 
@@ -314,8 +321,6 @@ class Model(State):
             df_ub = df_lb.copy()
             df_ub[:] = values_ub
             return baseline, df_lb, df_ub
-        else:
-            return baseline, values_lb, values_ub
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
                  **dyn_sim_kwargs):
