@@ -1460,6 +1460,11 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
+    def rescale(self, feedstock, ratio):
+        """Rescale feedstock flow rate and update recycle stream flow rate guesses."""
+        feedstock.mol *= ratio
+        for i in self.get_all_recycles(): i.mol *= ratio
+
     def reset_cache(self):
         """Reset cache of all unit operations."""
         if self.isdynamic:
