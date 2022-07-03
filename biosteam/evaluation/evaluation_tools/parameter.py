@@ -70,7 +70,7 @@ def load_default_parameters(self, feedstock, shape=triang,
     add_all_stream_price_params(self, shape, feedstock, include_feedstock_price)
     add_power_utility_price_param(self, shape)
     add_heat_utility_price_params(self, shape)
-    add_flow_rate_param(self, feedstock, shape)
+    add_feedstock_flow_rate_param(self, feedstock, shape)
     add_basic_TEA_params(self, shape, operating_days)
 
 def add_all_cost_item_params(model, shape, exp_shape): # pragma: no cover
@@ -128,6 +128,14 @@ class Setter: # pragma: no cover
         self.attr = attr
     def __call__(self, value):
         setattr(self.obj, self.attr, value)
+
+class FeedstockSetter: # pragma: no cover
+    __slots__ = ('feedstock', 'system')
+    def __init__(self, feedstock, system):
+        self.feedstock = feedstock
+        self.system = system
+    def __call__(self, value):
+        self.system.rescale(self.feedstock, value / self.feedstock.F_mass)
         
 def add_agent_price_params(model, name, agent, shape): # pragma: no cover
     if agent.heat_transfer_price:
@@ -144,6 +152,12 @@ def add_agent_price_params(model, name, agent, shape): # pragma: no cover
 def add_flow_rate_param(model, feed, shape): # pragma: no cover
     baseline = feed.F_mass
     model.parameter(Setter(feed, 'F_mass'), element=feed, units='kg/hr',
+                    distribution=shape(baseline), kind='coupled',
+                    name='Flow rate', baseline=baseline)
+    
+def add_feedstock_flow_rate_param(model, feed, shape): # pragma: no cover
+    baseline = feed.F_mass
+    model.parameter(FeedstockSetter(feed, model.system), element=feed, units='kg/hr',
                     distribution=shape(baseline), kind='coupled',
                     name='Flow rate', baseline=baseline)
     

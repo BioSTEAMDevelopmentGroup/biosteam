@@ -1506,8 +1506,8 @@ class System:
 
     def rescale(self, feedstock, ratio):
         """Rescale feedstock flow rate and update recycle stream flow rate guesses."""
-        feedstock.mol *= ratio
-        for i in self.get_all_recycles(): i.mol *= ratio
+        feedstock.rescale(ratio)
+        for i in self.get_all_recycles(): i.rescale(ratio)
 
     def reset_cache(self):
         """Reset cache of all unit operations."""
