@@ -180,7 +180,7 @@ class Model(State):
                 self._evaluate_sample(sample, **kwargs)
             finally:
                 self._parameters = original_parameters
-            return [timer.toc()]
+            return [timer.toc(record=False)]
         
         baseline, lbs, ubs = self.single_point_sensitivity(
             etol=np.inf,
