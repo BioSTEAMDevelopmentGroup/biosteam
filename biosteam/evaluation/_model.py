@@ -196,8 +196,8 @@ class Model(State):
         samples_min = samples.min(axis=0)
         samples_diff = samples.max(axis=0) - samples.min(axis=0)
         normalized_samples = (samples + samples_min) / samples_diff * normalized_time.transpose()
-        nearest_arr = (normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
-        nearest_arr = np.sum(nearest_arr * nearest_arr, axis=-1)
+        nearest_arr = np.abs(normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
+        nearest_arr = np.sum(nearest_arr, axis=-1)
         nearest_arr = np.argsort(nearest_arr, axis=1)
         remaining = set(range(length))
         self._index = index = [0]
