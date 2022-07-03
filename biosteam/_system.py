@@ -736,7 +736,7 @@ class System:
         maxiter : int, optional
             Maximum number if iterations.
         subfactor : float, optional
-            Factor to reduce tolerance in subsystems.
+            Factor to adjust tolerance in subsystems.
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -2288,12 +2288,15 @@ class System:
 
     def _info(self, layout, T, P, flow, composition, N, IDs, data):
         """Return string with all specifications."""
-        error = self._error_info()
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
-        return (f"System: {self.ID}"
-                + error + '\n'
-                + ins_and_outs)
+        if self._iter == 0:
+            return f"System: {self.ID}\n{ins_and_outs}"
+        else:
+            error = self._error_info()
+            return (f"System: {self.ID}"
+                    + error + '\n'
+                    + ins_and_outs)
 
 class FacilityLoop(System):
     __slots__ = ()

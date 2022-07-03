@@ -127,7 +127,7 @@ class BioSTEAMDisplayPreferences:
         """Set diagram display colors to dark mode."""
         self._set_mode(stream, label, bg, cluster, save)
     
-    def light_mode(self, stream='#4e4e4e', label='#90918e', bg='#ffffffdf', cluster=['#7ac083af'], save=False):
+    def light_mode(self, stream='#4e4e4e', label='#4e4e4e', bg='#ffffffdf', cluster=['#7ac083af'], save=False):
         """Set diagram display colors to light mode."""
         self._set_mode(stream, label, bg, cluster, save)
     
