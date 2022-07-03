@@ -91,7 +91,7 @@ def converge_system_in_path(system):
     if specification:
         method = specification
     else:
-        method = system._converge
+        method = system.converge
     try_method_with_object_stamp(system, method)
 
 def simulate_unit_in_path(unit):
@@ -402,7 +402,7 @@ class System:
                    facility_recycle=None, operating_hours=None,
                    lang_factor=None):
         """
-        Create a System object from all units and streams defined in the flowsheet.
+        Create a System object from all units given.
 
         Parameters
         ----------
@@ -451,6 +451,42 @@ class System:
             system = cls(ID, (), operating_hours=operating_hours)
         return system
 
+    @classmethod
+    def from_segment(cls, ID="", start=None, end=None, operating_hours=None,
+                     lang_factor=None):
+        """
+        Create a System object from all units in between start and end.
+
+        Parameters
+        ----------
+        ID : str, optional
+            Name of system.
+        start : Unit, optional
+            Only downstream units from start are included in the system.
+        end : Unit, optional
+            Only upstream units from end are included in the system.
+        operating_hours : float, optional
+            Number of operating hours in a year. This parameter is used to
+            compute annualized properties such as utility cost and material cost
+            on a per year basis.
+        lang_factor : float, optional
+            Lang factor for getting fixed capital investment from
+            total purchase cost. If no lang factor, installed equipment costs are
+            estimated using bare module factors.
+
+        """
+        if start is None:
+            if end is None: raise ValueError("must pass start and/or end")
+            units = end.get_upstream_units(facilities=False)
+        elif end is None:
+            units = start.get_downstream_units(facilities=False)
+        else:
+            upstream_units = end.get_upstream_units(facilities=False)
+            downstream_units = start.get_downstream_units(facilities=False)
+            units = upstream_units.intersection(downstream_units)
+        return bst.System.from_units(ID, units, operating_hours=operating_hours,
+                                     lang_factor=lang_factor)
+         
     @classmethod
     def from_network(cls, ID, network, facilities=(), facility_recycle=None,
                      operating_hours=None, lang_factor=None):
@@ -1372,16 +1408,24 @@ class System:
     def _solve(self, solver):
         """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
-        f = iter_run = self._iter_run
         try:
-            solver(f, self._get_recycle_data())
+            solver(self._iter_run, self._get_recycle_data())
         except IndexError as error:
             try:
-                solver(f, self._get_recycle_data())
+                solver(self._iter_run, self._get_recycle_data())
             except:
                 raise error
 
-    def _converge(self):
+    def converge(self):
+        """
+        Converge mass and energy balances.
+        
+        Warning
+        -------
+        No design, costing, nor facility algorithms are run.
+        To run full simulation algorithm, see :meth:`biosteam.System.simulate`.
+        
+        """
         if self._N_runs:
             for i in range(self.N_runs): self._run()
         elif self._recycle:
@@ -1502,8 +1546,8 @@ class System:
         """
         if not hasattr(self, '_scope'): self._scope = SystemScope(self)
         elif isinstance(self._scope, dict): 
-            # sys._converge() seems to break WasteStreamScope, so it's now 
-            # set up to initiate the SystemScope object after _converge() when 
+            # sys.converge() seems to break WasteStreamScope, so it's now 
+            # set up to initiate the SystemScope object after converge() when 
             # the system is run the first time 
             subjects = self._scope['subjects']
             kwargs = self._scope['kwargs']
@@ -1652,7 +1696,7 @@ class System:
                 for u in self.units:
                     if not hasattr(u, '_state'): u._init_dynamic()
             # Load initial states
-            self._converge()
+            self.converge()
             y0, idx, nr = self._load_state()
             dk['y0'] = y0
             # Integrate
@@ -1675,9 +1719,9 @@ class System:
                     path = f'{file}_{sample_id}.npy'
                 else: path = f'{file}.{ext}'
                 self.scope.export(path=path, t_eval=t_eval)
-        else: self._converge()
+        else: self.converge()
         self._summary()
-        if self._facility_loop: self._facility_loop._converge()
+        if self._facility_loop: self._facility_loop.converge()
 
 
     # User definitions

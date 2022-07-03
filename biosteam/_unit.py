@@ -67,30 +67,27 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
 
 # %% Path utilities
 
-def find_path_segment(start_unit, end_unit):
-    path_segment = fill_path_segment(start_unit, [], end_unit)
-    if path_segment is None:
-        raise ValueError(f"end unit {repr(end_unit)} not downstream from start unit {repr(start_unit)}")
+def find_path_segment(start, end):
+    path_segment = fill_path_segment(start, [], end, set())
+    if not path_segment:
+        raise ValueError(f"end unit {repr(end)} not downstream from start unit {repr(start)}")
     return path_segment
 
-def fill_path_segment(start_unit, path, end_unit):
-    if start_unit is end_unit:
-        return path
-    if start_unit not in path: 
-        path.append(start_unit)
-        first_outlet, *other_outlets = start_unit._outs
-        for outlet in other_outlets:
-            start_unit = outlet._sink
-            if not start_unit: continue
-            new_path = path.copy()
-            path_segment = fill_path_segment(start_unit, new_path, end_unit)
-            if path_segment: return path_segment
-        start_unit = first_outlet._sink
-        if not start_unit: return None
-        path_segment = fill_path_segment(start_unit, path, end_unit)
-        if path_segment: return path_segment
-        
-
+def fill_path_segment(start, path, end, units):
+    if start is end: return path
+    if start not in units: 
+        path.append(start)
+        units.add(start)
+        success = False
+        for outlet in start._outs:
+            start = outlet._sink
+            if not start: continue
+            path_segment = fill_path_segment(start, [], end, units)
+            if path_segment is not None: 
+                path.extend(path_segment)
+                success = True
+        if success: return path
+    
 # %% Unit Operation
 
 @thermo_user
@@ -888,10 +885,20 @@ class Unit:
         else:
             self._run()
             
-    def path_until(self, unit):
-        """Return a list of units starting from this one until the end unit (not inclusive) by
-        moving along unit connections."""
-        return find_path_segment(self, unit)
+    def path_until(self, unit, inclusive=False):
+        """
+        Return a list of units starting from this one until the end unit 
+        (not inclusive by default).
+        
+        Warning
+        -------
+        This method ignores recycle loops. To account for recyle loops, see
+        :meth:`biosteam.System.from_segment`
+        
+        """
+        path = find_path_segment(self, unit)
+        if inclusive: path.append(unit)
+        return path
             
     def _reevaluate(self):
         """Reevaluate design and costs."""
