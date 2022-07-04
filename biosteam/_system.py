@@ -1271,9 +1271,6 @@ class System:
                 finalize_digraph(f, file, format)
             else:
                 return f
-        except TypeError as e: raise e
-        except Exception as e:
-            if bst.preferences.raise_exception: raise e
         finally:
             (preferences.number_path,
              preferences.label_streams,

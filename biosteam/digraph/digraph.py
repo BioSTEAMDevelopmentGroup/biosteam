@@ -10,7 +10,7 @@
 from biosteam.utils.piping import ignore_docking_warnings, Connection
 from warnings import warn
 import biosteam as bst
-from graphviz import Digraph
+from graphviz import Digraph, ExecutableNotFound
 from IPython import display
 from thermosteam import Stream
 
@@ -369,7 +369,7 @@ def finalize_digraph(digraph, file, format): # pragma: no coverage
         try:
             if file: save_digraph(digraph, file, format)
             else: display_digraph(digraph, format)
-        except (OSError, TypeError) as exp:
+        except (OSError, TypeError, ExecutableNotFound) as exp:
             raise exp from None
         except Exception as exp: 
             raise exp
