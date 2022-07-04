@@ -371,7 +371,7 @@ def finalize_digraph(digraph, file, format): # pragma: no coverage
             else: display_digraph(digraph, format)
         except (OSError, TypeError) as exp:
             raise exp from None
-        except ExecutableNotFound as exp: 
+        except Exception as exp: 
             warn(
                 f"a '{type(exp).__name__}' was raised when generating "
                 "graphviz diagram, possibly due to graphviz installation issues, "
