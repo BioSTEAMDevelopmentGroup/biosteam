@@ -1298,7 +1298,7 @@ class Unit:
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format, **graph_attrs)
-        return bst.System('', [self]).diagram(format=format, **graph_attrs)
+        return bst.System('', [self]).diagram(format=format, display=display, file=file, **graph_attrs)
     
     ### Net input and output flows ###
     

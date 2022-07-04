@@ -89,7 +89,7 @@ class Fermentation(BatchBioreactor):
     outs...
     [0] CO2
         phase: 'g', T: 304.19 K, P: 101325 Pa
-        flow (kmol/hr): Water    9.48
+        flow (kmol/hr): Water    9.49
                         Ethanol  3.52
                         CO2      244
     [1] product

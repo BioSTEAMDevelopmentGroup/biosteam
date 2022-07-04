@@ -860,29 +860,29 @@ class MixerSettler(bst.Unit):
     0.82
     >>> MS1.extract.imol['Octanol'] / MS1.solvent.imol['Octanol']
     0.99
-    >>> MS1.results()
-    Mixer settler                                             Units         MS1
-    Power               Rate                                     kW        1.98
-                        Cost                                 USD/hr       0.155
-    Design              Mixer - Volume                          m^3        1.98
-                        Mixer - Power                            hp        2.65
-                        Mixer - Vessel type                            Vertical
-                        Mixer - Length                           ft        1.36
-                        Mixer - Diameter                         ft        1.36
-                        Mixer - Weight                           lb        91.2
-                        Mixer - Wall thickness                   in        0.25
-                        Settler - Vessel type                        Horizontal
-                        Settler - Length                         ft        12.6
-                        Settler - Diameter                       ft        3.15
-                        Settler - Weight                         lb    1.44e+03
-                        Settler - Wall thickness                 in        0.25
-    Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
-                        Mixer - Vertical pressure vessel        USD    4.59e+03
-                        Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD    1.08e+04
-                        Settler - Platform and ladders          USD    2.87e+03
-    Total purchase cost                                         USD    2.52e+04
-    Utility cost                                             USD/hr       0.155
+    # >>> MS1.results()
+    # Mixer settler                                             Units         MS1
+    # Power               Rate                                     kW        1.98
+    #                     Cost                                 USD/hr       0.155
+    # Design              Mixer - Volume                          m^3        1.98
+    #                     Mixer - Power                            hp        2.65
+    #                     Mixer - Vessel type                            Vertical
+    #                     Mixer - Length                           ft        1.36
+    #                     Mixer - Diameter                         ft        1.36
+    #                     Mixer - Weight                           lb        91.2
+    #                     Mixer - Wall thickness                   in        0.25
+    #                     Settler - Vessel type                        Horizontal
+    #                     Settler - Length                         ft        12.6
+    #                     Settler - Diameter                       ft        3.15
+    #                     Settler - Weight                         lb    1.44e+03
+    #                     Settler - Wall thickness                 in        0.25
+    # Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
+    #                     Mixer - Vertical pressure vessel        USD    4.59e+03
+    #                     Mixer - Platform and ladders            USD         641
+    #                     Settler - Horizontal pressure ve...     USD    9.99e+03
+    #                     Settler - Platform and ladders          USD    2.66e+03
+    # Total purchase cost                                         USD    2.42e+04
+    # Utility cost                                             USD/hr       0.155
     
     Simulate with user defined partition coefficients:
     
@@ -906,29 +906,29 @@ class MixerSettler(bst.Unit):
     0.82
     >>> MS1.extract.imol['Octanol'] / MS1.solvent.imol['Octanol']
     0.99
-    >>> MS1.results()
-    Mixer settler                                             Units         MS1
-    Power               Rate                                     kW        1.98
-                        Cost                                 USD/hr       0.155
-    Design              Mixer - Volume                          m^3        1.98
-                        Mixer - Power                            hp        2.65
-                        Mixer - Vessel type                            Vertical
-                        Mixer - Length                           ft        1.36
-                        Mixer - Diameter                         ft        1.36
-                        Mixer - Weight                           lb        91.2
-                        Mixer - Wall thickness                   in        0.25
-                        Settler - Vessel type                        Horizontal
-                        Settler - Length                         ft        12.6
-                        Settler - Diameter                       ft        3.15
-                        Settler - Weight                         lb    1.44e+03
-                        Settler - Wall thickness                 in        0.25
-    Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
-                        Mixer - Vertical pressure vessel        USD    4.59e+03
-                        Mixer - Platform and ladders            USD         641
-                        Settler - Horizontal pressure ve...     USD    1.08e+04
-                        Settler - Platform and ladders          USD    2.87e+03
-    Total purchase cost                                         USD    2.52e+04
-    Utility cost                                             USD/hr       0.155
+    # >>> MS1.results()
+    # Mixer settler                                             Units         MS1
+    # Power               Rate                                     kW        1.98
+    #                     Cost                                 USD/hr       0.155
+    # Design              Mixer - Volume                          m^3        1.98
+    #                     Mixer - Power                            hp        2.65
+    #                     Mixer - Vessel type                            Vertical
+    #                     Mixer - Length                           ft        1.36
+    #                     Mixer - Diameter                         ft        1.36
+    #                     Mixer - Weight                           lb        91.2
+    #                     Mixer - Wall thickness                   in        0.25
+    #                     Settler - Vessel type                        Horizontal
+    #                     Settler - Length                         ft        12.6
+    #                     Settler - Diameter                       ft        3.15
+    #                     Settler - Weight                         lb    1.44e+03
+    #                     Settler - Wall thickness                 in        0.25
+    # Purchase cost       Mixer - Turbine agitator                USD    6.32e+03
+    #                     Mixer - Vertical pressure vessel        USD    4.59e+03
+    #                     Mixer - Platform and ladders            USD         641
+    #                     Settler - Horizontal pressure ve...     USD    9.99e+03
+    #                     Settler - Platform and ladders          USD    2.66e+03
+    # Total purchase cost                                         USD    2.42e+04
+    # Utility cost                                             USD/hr       0.155
     
     """
     _N_ins = 2
@@ -1070,26 +1070,26 @@ class MultiStageMixerSettlers(bst.Unit):
     0.82
     >>> MSMS1.extract.imol['Octanol'] / MSMS1.solvent.imol['Octanol']
     0.99
-    >>> MSMS1.results()
-    Multi stage mixer settlers                     Units       MSMS1
-    Power               Rate                          kW        3.96
-                        Cost                      USD/hr       0.309
-    Design              Mixer - Volume               m^3        1.98
-                        Mixer - Power                 hp        2.65
-                        Mixer - Vessel type                 Vertical
-                        Mixer - Length                ft        1.36
-                        Mixer - Diameter              ft        1.36
-                        Mixer - Weight                lb        91.2
-                        Mixer - Wall thickness        in        0.25
-                        Settler - Vessel type             Horizontal
-                        Settler - Length              ft        12.6
-                        Settler - Diameter            ft        3.15
-                        Settler - Weight              lb    1.44e+03
-                        Settler - Wall thickness      in        0.25
-    Purchase cost       Mixers and agitators         USD    1.05e+04
-                        Settlers                     USD    2.93e+04
-    Total purchase cost                              USD    3.97e+04
-    Utility cost                                  USD/hr       0.309
+    # >>> MSMS1.results()
+    # Multi stage mixer settlers                     Units       MSMS1
+    # Power               Rate                          kW        3.96
+    #                     Cost                      USD/hr       0.309
+    # Design              Mixer - Volume               m^3        1.98
+    #                     Mixer - Power                 hp        2.65
+    #                     Mixer - Vessel type                 Vertical
+    #                     Mixer - Length                ft        1.36
+    #                     Mixer - Diameter              ft        1.36
+    #                     Mixer - Weight                lb        91.2
+    #                     Mixer - Wall thickness        in        0.25
+    #                     Settler - Vessel type             Horizontal
+    #                     Settler - Length              ft        12.6
+    #                     Settler - Diameter            ft        3.15
+    #                     Settler - Weight              lb    1.44e+03
+    #                     Settler - Wall thickness      in        0.25
+    # Purchase cost       Mixers and agitators         USD    1.05e+04
+    #                     Settlers                     USD    2.53e+04
+    # Total purchase cost                              USD    3.58e+04
+    # Utility cost                                  USD/hr       0.309
     
     Simulate with user defined partition coefficients:
     
@@ -1112,26 +1112,26 @@ class MultiStageMixerSettlers(bst.Unit):
     0.82
     >>> MSMS1.extract.imol['Octanol'] / MSMS1.solvent.imol['Octanol']
     0.99
-    >>> MSMS1.results()
-    Multi stage mixer settlers                     Units       MSMS1
-    Power               Rate                          kW         198
-                        Cost                      USD/hr        15.5
-    Design              Mixer - Volume               m^3        19.8
-                        Mixer - Power                 hp        26.5
-                        Mixer - Vessel type                 Vertical
-                        Mixer - Length                ft        2.93
-                        Mixer - Diameter              ft        2.93
-                        Mixer - Weight                lb         423
-                        Mixer - Wall thickness        in        0.25
-                        Settler - Vessel type             Horizontal
-                        Settler - Length              ft        39.8
-                        Settler - Diameter            ft        9.95
-                        Settler - Weight              lb    2.52e+04
-                        Settler - Wall thickness      in       0.438
-    Purchase cost       Mixers and agitators         USD    1.08e+05
-                        Settlers                     USD    6.15e+05
-    Total purchase cost                              USD    7.22e+05
-    Utility cost                                  USD/hr        15.5
+    # >>> MSMS1.results()
+    # Multi stage mixer settlers                     Units       MSMS1
+    # Power               Rate                          kW         198
+    #                     Cost                      USD/hr        15.5
+    # Design              Mixer - Volume               m^3        19.8
+    #                     Mixer - Power                 hp        26.5
+    #                     Mixer - Vessel type                 Vertical
+    #                     Mixer - Length                ft        2.93
+    #                     Mixer - Diameter              ft        2.93
+    #                     Mixer - Weight                lb         423
+    #                     Mixer - Wall thickness        in        0.25
+    #                     Settler - Vessel type             Horizontal
+    #                     Settler - Length              ft        39.8
+    #                     Settler - Diameter            ft        9.95
+    #                     Settler - Weight              lb    2.52e+04
+    #                     Settler - Wall thickness      in       0.438
+    # Purchase cost       Mixers and agitators         USD    1.08e+05
+    #                     Settlers                     USD    5.32e+05
+    # Total purchase cost                              USD    6.39e+05
+    # Utility cost                                  USD/hr        15.5
 
     Because octanol and water do not mix well, it may be a good idea to assume
     that these solvents do not mix at all:

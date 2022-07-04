@@ -100,7 +100,7 @@ class Flash(design.PressureVessel, Unit):
     Flash: F1
     ins...
     [0] feed
-        phase: 'l', T: 100.7 degC, P: 1 atm
+        phase: 'l', T: 100.67 degC, P: 1 atm
         flow (kmol/hr): Water     1e+03
                         Glycerol  300
     outs...
