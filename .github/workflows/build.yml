@@ -54,6 +54,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install wheel
         pip install -r requirements_test.txt
+        pip install git+https://github.com/BioSTEAMDevelopmentGroup/thermosteam.git
         pip install git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
         pip install git+https://github.com/QSD-Group/QSDsan.git
         pip install git+https://github.com/QSD-Group/EXPOsan.git
