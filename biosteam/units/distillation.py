@@ -1070,13 +1070,13 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Stripper weight                      lb  4.45e+03
     Purchase cost       Condenser - Floating head           USD  3.33e+04
                         Boiler - Floating head              USD  2.67e+04
-                        Rectifier trays                     USD  1.43e+04
-                        Stripper trays                      USD  1.19e+04
-                        Rectifier tower                     USD  4.37e+04
-                        Stripper platform and ladders       USD  1.33e+04
-                        Stripper tower                      USD  3.67e+04
-                        Rectifier platform and ladders      USD  1.09e+04
-    Total purchase cost                                     USD  1.91e+05
+                        Rectifier trays                     USD   1.5e+04
+                        Stripper trays                      USD  1.25e+04
+                        Rectifier tower                     USD  4.58e+04
+                        Stripper platform and ladders       USD   1.4e+04
+                        Stripper tower                      USD  3.84e+04
+                        Rectifier platform and ladders      USD  1.14e+04
+    Total purchase cost                                     USD  1.97e+05
     Utility cost                                         USD/hr      64.3
     
     """
@@ -1483,13 +1483,13 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Stripper weight                      lb  7.96e+03
     Purchase cost       Condenser - Floating head           USD  4.07e+04
                         Boiler - Floating head              USD  2.93e+04
-                        Rectifier trays                     USD  1.51e+04
-                        Stripper trays                      USD  1.92e+04
-                        Rectifier tower                     USD  4.67e+04
-                        Stripper platform and ladders       USD  1.41e+04
-                        Stripper tower                      USD  5.15e+04
-                        Rectifier platform and ladders      USD  1.73e+04
-    Total purchase cost                                     USD  2.34e+05
+                        Rectifier trays                     USD  1.58e+04
+                        Stripper trays                      USD  2.01e+04
+                        Rectifier tower                     USD  4.89e+04
+                        Stripper platform and ladders       USD  1.47e+04
+                        Stripper tower                      USD  5.39e+04
+                        Rectifier platform and ladders      USD  1.81e+04
+    Total purchase cost                                     USD  2.42e+05
     Utility cost                                         USD/hr      85.1
     
     """
