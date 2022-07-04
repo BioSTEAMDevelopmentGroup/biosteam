@@ -88,7 +88,7 @@ def test_pearson_r(model):
     expected = np.array([[1., NaN, 0.],
                          [0,  NaN, 0.]])
     index = ~np.isnan(expected)
-    assert_allclose(rho.values[index], expected[index], atol=0.15)
+    assert_allclose(np.round(rho.values[index]), expected[index], atol=0.15)
     
     with pytest.raises(ValueError):
         rho, p = model.pearson_r(filter='raise nan error')

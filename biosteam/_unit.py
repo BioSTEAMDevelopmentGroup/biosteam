@@ -1294,11 +1294,11 @@ class Unit:
         
         """
         if radius > 0:
-            neighborhood = self.neighborhood(radius, upstream, downstream)
-            neighborhood.add(self)
-            sys = bst.System('', neighborhood)
-            return sys.diagram('thorough', file, format, **graph_attrs)
-        return bst.System('', [self]).diagram(format=format, display=display, file=file, **graph_attrs)
+            units = self.neighborhood(radius, upstream, downstream)
+            units.add(self)
+        else:
+            units = [self]
+        return bst.System('', units).diagram(format=format, display=display, file=file, **graph_attrs)
     
     ### Net input and output flows ###
     
