@@ -159,7 +159,7 @@ class Model(State):
         else:
             return samples
     
-    def _load_sample_order(self, samples, parameters):
+    def _load_sample_order(self, samples, parameters, ss):
         """
         Sort simulation order to optimize convergence speed
         by minimizing perturbations to the system between simulations.
@@ -172,39 +172,41 @@ class Model(State):
         original_parameters = self._parameters
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
         parameters = [parameters[i] for i in columns]
-        timer = TicToc()
-        def evaluate(sample):
-            timer.tic()
-            try:
-                self._parameters = parameters
-                self._update_state(sample)
-            finally:
-                self._parameters = original_parameters
-            return timer.toc(record=False)
-        bounds = [i.bounds for i in parameters]
-        sample = [i.baseline for i in parameters]
-        N_parameters = len(parameters)
-        index = range(N_parameters)
-        time = np.zeros([N_parameters])
-        self._update_state(sample)
-        for i in index:
-            sample_lb = sample.copy()
-            sample_ub = sample.copy()
-            lb, ub = bounds[i]
-            hook = parameters[i].hook
-            if hook:
-                sample_lb[i] = hook(lb)
-                sample_ub[i] = hook(ub)
-            else:
-                sample_lb[i] = lb
-                sample_ub[i] = ub
-            time[i] = evaluate(sample_lb) + evaluate(sample) + evaluate(sample_ub) + evaluate(sample)
-        normalized_time = time / time.max() 
         samples = samples.copy()
         samples = samples[:, columns]
         samples_min = samples.min(axis=0)
         samples_diff = samples.max(axis=0) - samples.min(axis=0)
-        normalized_samples = (samples + samples_min) / samples_diff * normalized_time.transpose()
+        normalized_samples = (samples + samples_min) / samples_diff
+        if ss: 
+            timer = TicToc()
+            def evaluate(sample):
+                timer.tic()
+                try:
+                    self._parameters = parameters
+                    self._update_state(sample)
+                finally:
+                    self._parameters = original_parameters
+                return timer.toc(record=False)
+            bounds = [i.bounds for i in parameters]
+            sample = [i.baseline for i in parameters]
+            N_parameters = len(parameters)
+            index = range(N_parameters)
+            time = np.zeros([N_parameters])
+            self._update_state(sample)
+            for i in index:
+                sample_lb = sample.copy()
+                sample_ub = sample.copy()
+                lb, ub = bounds[i]
+                hook = parameters[i].hook
+                if hook:
+                    sample_lb[i] = hook(lb)
+                    sample_ub[i] = hook(ub)
+                else:
+                    sample_lb[i] = lb
+                    sample_ub[i] = ub
+                time[i] = evaluate(sample_lb) + evaluate(sample) + evaluate(sample_ub) + evaluate(sample)
+            normalized_time = time / time.max() 
+            normalized_samples *= normalized_time.transpose()
         nearest_arr = np.abs(normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
         nearest_arr = np.sum(nearest_arr, axis=-1)
         nearest_arr = np.argsort(nearest_arr, axis=1)
@@ -237,23 +239,24 @@ class Model(State):
             distance_without_sorting += (dist * dist).sum()
         assert distance_with_sorting <= distance_without_sorting
         
-    def load_samples(self, samples, optimize=False):
+    def load_samples(self, samples, optimize=False, ss=False):
         """
         Load samples for evaluation.
         
         Parameters
         ----------
         samples : numpy.ndarray, dim=2
-        
+            All parameter samples to evaluate.
         optimize : bool, optional
             Whether to internally sort the samples to optimize convergence speed
             by minimizing perturbations to the system between simulations.
+        ss : bool, optional
+            Whether to use single point sensitivity to inform the sorting algorithm
         
         Warning
         -------
-        Depending on the number of parameters, optimizing sample simulation 
-        order may take long because it uses single-point sensitivity to inform 
-        the sorting algorithm.
+        Depending on the number of parameters, optimizing sample simulation order 
+        using single-point sensitivity may take long.
         
         """
         parameters = self._parameters
@@ -270,7 +273,7 @@ class Model(State):
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
         if optimize: 
-            self._load_sample_order(samples, parameters)
+            self._load_sample_order(samples, parameters, ss)
         else:
             self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
