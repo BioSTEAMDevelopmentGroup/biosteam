@@ -1,0 +1,6 @@
+ChemicalIndexer
+---------------
+
+.. autoclass:: thermosteam.indexer.ChemicalIndexer
+   :members:
+

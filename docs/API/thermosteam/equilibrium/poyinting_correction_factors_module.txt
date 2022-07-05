@@ -1,0 +1,6 @@
+poyinting_correction_factors
+----------------------------
+
+.. automodule:: thermosteam.equilibrium.poyinting_correction_factors
+   :members:
+   :special-members: __call__

@@ -15,14 +15,14 @@
 import os
 import sys
 
-new_path = ['..\\']
+new_path = ['..\\', '..\\thermosteam\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
 # -- Project information -----------------------------------------------------
 
 project = 'BioSTEAM'
-copyright = '2018-2021, BioSTEAM Development Group'
+copyright = '2018-2022, BioSTEAM Development Group'
 author = 'Yoel Cortes-Pena'
 
 # The short X.Y version
@@ -68,7 +68,6 @@ nbsphinx_execute = 'never'
 
 # Specify the baseurls for the projects I want to link to
 intersphinx_mapping = {
-    'thermosteam':  ('https://thermosteam.readthedocs.io/en/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
 }
 

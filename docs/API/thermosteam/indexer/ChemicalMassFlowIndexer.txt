@@ -1,0 +1,6 @@
+ChemicalMassFlowIndexer
+-----------------------
+
+.. autoclass:: thermosteam.indexer.ChemicalMassFlowIndexer
+   :members:
+

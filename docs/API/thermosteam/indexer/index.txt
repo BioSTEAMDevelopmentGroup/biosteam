@@ -1,0 +1,18 @@
+indexer
+-------
+
+Use the indexer subpackage for fast indexing of chemical arrays.
+
+.. toctree::
+   :maxdepth: 1
+
+   Indexer
+   ChemicalIndexer
+   MaterialIndexer
+   ChemicalMolarFlowIndexer
+   ChemicalMassFlowIndexer
+   ChemicalVolumetricFlowIndexer
+   MolarFlowIndexer
+   MassFlowIndexer   
+   VolumetricFlowIndexer
+   

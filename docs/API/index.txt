@@ -19,6 +19,12 @@ API
    :caption: Equipment
    
    units/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Thermodynamics
+   
+   thermosteam <thermosteam/index>
    
 .. toctree::
    :maxdepth: 2

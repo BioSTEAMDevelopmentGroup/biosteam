@@ -1,0 +1,73 @@
+Thermosteam: BioSTEAM's Premier Thermodynamic Engine
+====================================================
+
+Thermosteam is a standalone thermodynamic engine capable of estimating mixture
+properties, solving thermodynamic phase equilibria, and modeling 
+stoichiometric reactions. Thermosteam builds upon 
+`chemicals <https://github.com/CalebBell/chemicals>`_ and 
+`thermo <https://github.com/CalebBell/thermo>`_, from the
+Chemical Engineering Design Library, with a framework tailored to BioSTEAM
+for the simulation of unit operations.
+
+API
+---
+
+.. toctree::
+   :maxdepth: 2
+   
+   Chemical
+   Chemicals
+   Thermo
+   Stream
+   MultiStream
+   ThermalCondition
+   ThermoData
+   functor
+   functional
+   equilibrium/index
+   reaction/index
+   indexer/index
+   mixture/index
+   separations
+
+Overview
+--------
+
+Thermosteam is an extensive object oriented package for the estimation of 
+thermodynamic equilibrium, mixture properties, and mass and energy balances. 
+The Stream object is the main interface for performing these calculations. 
+Before creating streams, a thermodynamic property package must be defined 
+through a Thermo object, which compiles the working chemicals, mixing rules, 
+and the equlibrium estimation methods. Each Chemical object contains objects 
+that manages the thermodynamic methods and makes sure to use a valid method at 
+given temperatures and pressures whenever estimating properties. 
+
+.. figure:: class_diagram_light.png
+   :class: only-light
+   :align: center
+.. figure:: class_diagram_dark.png
+   :class: only-dark
+   :align: center
+
+A functor-oriented class diagram describes the relationship between the core
+classes of Thermosteam. Overall, the diagram follows the Universal Modeling
+Language (UML) guidelines except for a few modifications. However,
+the function signature of callable objects is presented after their name. 
+For example: an ActivityCoefficients object returns an array of activity 
+coefficients when called with the liquid molar composition (x) and 
+temperature (T). Function signatures with a "..." are abstract signatures 
+so that a child class may implement a variety of signatures.
+
+Related Projects
+----------------
+
+There are many third party open-source Python libraries that may provide additional resources for designing and modeling chemical processes:
+
+* `thermo <https://pypi.org/project/thermo/#documentation>`_: Chemical properties component of Chemical Engineering Design Library. 
+* `chemicals <https://chemicals.readthedocs.io/en/latest/>`_: Chemical database component of Chemical Engineering Design Library.
+* `fluids <https://fluids.readthedocs.io/>`_: Fluid dynamics component of Chemical Engineering Design Library (ChEDL) 
+* `chempy <https://pythonhosted.org/chempy/>`_: A package useful for chemistry written in Python.
+* `thermochem <https://thermochem.readthedocs.io/en/latest/>`_: Useful Python modules for Thermodynamics and Thermochemistry.
+* `chemics <https://chemics.github.io/>`_: A Python package for chemical reactor engineering.
+* `ase <https://gitlab.com/ase/ase>`_: The Atomic Simulation Environment.
+* `pMuTT <https://vlachosgroup.github.io/pMuTT/includeme.html>`_: The Python Multiscale Thermochemistry Toolbox.

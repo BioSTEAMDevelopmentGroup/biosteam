@@ -1,0 +1,5 @@
+Stream
+======
+
+.. autoclass:: thermosteam.Stream
+   :members:

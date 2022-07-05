@@ -1,0 +1,11 @@
+mixture
+-------
+
+.. toctree::
+   :maxdepth: 1
+
+   ideal_mixture_model
+   Mixture
+
+   
+   
