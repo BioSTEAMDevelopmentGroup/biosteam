@@ -173,24 +173,33 @@ class Model(State):
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
         parameters = [parameters[i] for i in columns]
         timer = TicToc()
-        def evaluate(sample, **kwargs):
+        def evaluate(sample):
             timer.tic()
             try:
                 self._parameters = parameters
-                self._evaluate_sample(sample, **kwargs)
+                self._update_state(sample)
             finally:
                 self._parameters = original_parameters
-            return [timer.toc(record=False)]
-        
-        baseline, lbs, ubs = self.single_point_sensitivity(
-            etol=np.inf,
-            evaluate=evaluate,
-            parameters=parameters,
-            metrics=['Time'],
-            array=True,
-        )
-        time = ubs + lbs + baseline
-        normalized_time = time / time.max(axis=0) 
+            return timer.toc(record=False)
+        bounds = [i.bounds for i in parameters]
+        sample = [i.baseline for i in parameters]
+        N_parameters = len(parameters)
+        index = range(N_parameters)
+        time = np.zeros([N_parameters])
+        self._update_state(sample)
+        for i in index:
+            sample_lb = sample.copy()
+            sample_ub = sample.copy()
+            lb, ub = bounds[i]
+            hook = parameters[i].hook
+            if hook:
+                sample_lb[i] = hook(lb)
+                sample_ub[i] = hook(ub)
+            else:
+                sample_lb[i] = lb
+                sample_ub[i] = ub
+            time[i] = evaluate(sample_lb) + evaluate(sample) + evaluate(sample_ub) + evaluate(sample)
+        normalized_time = time / time.max() 
         samples = samples.copy()
         samples = samples[:, columns]
         samples_min = samples.min(axis=0)
