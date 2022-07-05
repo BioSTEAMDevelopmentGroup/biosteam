@@ -1,0 +1,5 @@
+ParallelReaction
+----------------
+
+.. autoclass:: thermosteam.reaction.ParallelReaction
+   :members:

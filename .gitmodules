@@ -1,0 +1,3 @@
+[submodule "thermosteam"]
+	path = thermosteam
+	url = https://github.com/BioSTEAMDevelopmentGroup/thermosteam

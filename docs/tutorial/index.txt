@@ -1,7 +1,6 @@
 Tutorial
 --------
 
-
 .. toctree::
    :maxdepth: 2
    :numbered:
@@ -27,6 +26,16 @@ Tutorial
    Techno-economic_analysis
    Life_cycle_assessment
    Gotchas
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Thermodynamics
+
+   Thermosteam_101
+   Phase_equilibrium
+   Property_packages
+   Stoichiometric_reactions
 
 .. toctree::
    :maxdepth: 2

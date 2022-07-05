@@ -1,0 +1,4 @@
+functor
+=======
+
+.. autofunction:: thermosteam.functor
