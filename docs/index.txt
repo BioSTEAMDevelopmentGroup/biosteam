@@ -63,7 +63,7 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
 
 - :blue:`Equipment` design, costing, and utility requirements are evaluated by :doc:`../API/Unit` objects. All built-in and custom unit operations are subclasses of Unit. Adjustments can be made to the heating and cooling agents of the :doc:`../API/HeatUtility` class (e.g., steam pressure, price) as well as the electricity price of the :doc:`../API/PowerUtility` class.
 
-- :green:`Thermodynamic` equilibrium and mass and energy balances are facilitated by `Stream <https://thermosteam.readthedocs.io/en/latest/Stream.html>`_ objects, which define material flows, temperature and pressure. Chemical properties and models are imported from `thermo <https://thermo.readthedocs.io/>`_, a community-driven open-source library developed by Caleb Bell. 
+- :green:`Thermodynamic` equilibrium and mass and energy balances are facilitated by :doc:`../API/thermosteam/Stream` objects, which define material flows, temperature and pressure. Chemical properties and models are imported from `thermo <https://thermo.readthedocs.io/>`_, a community-driven open-source library developed by Caleb Bell. 
 
 Installation
 ------------
