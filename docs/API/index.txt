@@ -3,6 +3,7 @@ API
 
 .. toctree::
    :maxdepth: 2
+   :caption: Framework
    
    Unit
    PowerUtility
@@ -12,6 +13,21 @@ API
    TEA
    Flowsheet
    exceptions
-   units/units
-   process_tools/process_tools
-   evaluation/evaluation
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Equipment
+   
+   units/index
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Automation
+   
+   evaluation/index
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer's tools
+   
+   process_tools/index
