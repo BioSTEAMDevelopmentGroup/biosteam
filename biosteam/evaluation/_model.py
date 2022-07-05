@@ -192,7 +192,7 @@ class Model(State):
             N_parameters = len(parameters)
             index = range(N_parameters)
             time = np.zeros([N_parameters])
-            self._update_state(sample)
+            evaluate(sample)
             for i in index:
                 sample_lb = sample.copy()
                 sample_ub = sample.copy()
