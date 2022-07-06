@@ -23,11 +23,13 @@ the evaluation of candidate biofuels and bioproducts.
    changelog/index
    contributing/index
 
-.. grid:: 3
-
+.. grid:: 1 2 3 4
+   
+   
     .. grid-item-card:: 
        :link: https://biosteam.readthedocs.io/en/latest/tutorial/Getting_started.html
        :link-type: url
+       :padding: 1
 
        .. figure:: images/aerobic_chamber.png
           :height: 100
@@ -40,6 +42,7 @@ the evaluation of candidate biofuels and bioproducts.
     .. grid-item-card::
        :link: https://biosteam.readthedocs.io/en/latest/API/index.html
        :link-type: url
+       :padding: 1
        
        .. figure:: images/storage.png
           :height: 100
@@ -50,6 +53,7 @@ the evaluation of candidate biofuels and bioproducts.
     .. grid-item-card::
        :link: https://biosteam.readthedocs.io/en/latest/contributing/CONTRIBUTING.html
        :link-type: url
+       :padding: 1
        
        .. figure:: images/fermenter.png
           :height: 100
