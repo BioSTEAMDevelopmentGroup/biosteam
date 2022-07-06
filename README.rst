@@ -32,7 +32,7 @@ techno-economic analysis, and life cycle assessment of biorefineries under uncer
 BioSTEAM is built to streamline and automate early-stage technology evaluations 
 and to enable rigorous sensitivity and uncertainty analyses. Complete 
 biorefinery configurations are available at the `Bioindustrial-Park 
-<https://github.com/BioSTEAMDevelopmentGroup/biosteam>`_ GitHub repository, 
+<https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_ GitHub repository, 
 BioSTEAM's premier repository for biorefinery models and results. The long-term 
 growth and maintenance of BioSTEAM is supported through both community-led 
 development and the research institutions invested in BioSTEAM, including the 
