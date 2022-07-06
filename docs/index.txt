@@ -20,7 +20,7 @@ including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) 
 .. grid:: 1 2 3 4
    
    
-    .. grid-item-card:: Tutorial
+    .. grid-item-card:: Getting Started
        :text-align: center
        :link: https://biosteam.readthedocs.io/en/latest/tutorial/Getting_started.html
        :link-type: url
