@@ -23,7 +23,7 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
    :width: 400
    :class: only-dark
    :align: center
-- :orange:`Automation` of the simulation of large sets of scenarios is facilitated by :doc:`../API/evaluation/Model` objects which define Parameter and Metric objects that dictate the input and output features of the model. 
+- :orange:`Automation` of the simulation of large sets of scenarios is facilitated by :doc:`../API/evaluation/Model` objects which define :doc:`../API/evaluation/Parameter` and :doc:`../API/evaluation/Metric` objects that dictate the input and output features of the model. 
 
 - :red:`Simulation` is carried out by :doc:`../API/System` objects, which can be created without supplying any information on the order of unit simulation. After simulation, :doc:`../API/TEA` objects can perform cashflow analysis to solve for a number of financial indicators.
 

@@ -26,7 +26,8 @@ the evaluation of candidate biofuels and bioproducts.
 .. grid:: 1 2 3 4
    
    
-    .. grid-item-card:: 
+    .. grid-item-card:: Tutorial
+       :text-align: center
        :link: https://biosteam.readthedocs.io/en/latest/tutorial/Getting_started.html
        :link-type: url
        :padding: 1
@@ -35,11 +36,11 @@ the evaluation of candidate biofuels and bioproducts.
           :height: 100
           :align: center
           
-       **Tutorial** An introduction to BioSTEAM's main concepts with useful 
-       explanations.
+       Detailed examples on BioSTEAM's features.
 
 
-    .. grid-item-card::
+    .. grid-item-card:: API Reference
+       :text-align: center
        :link: https://biosteam.readthedocs.io/en/latest/API/index.html
        :link-type: url
        :padding: 1
@@ -48,9 +49,10 @@ the evaluation of candidate biofuels and bioproducts.
           :height: 100
           :align: center
        
-       **API Reference** Detailed documentation on all of BioSTEAM's functionality. 
+       Documentation on all functionality. 
         
-    .. grid-item-card::
+    .. grid-item-card:: Contributor's Guide
+       :text-align: center
        :link: https://biosteam.readthedocs.io/en/latest/contributing/CONTRIBUTING.html
        :link-type: url
        :padding: 1
@@ -59,8 +61,19 @@ the evaluation of candidate biofuels and bioproducts.
           :height: 100
           :align: center
        
-       **Contributor's Guide** Want to add to BioSTEAM? We'll help you through 
-       the process.
+       Want to add to codebase? We'll help.
+       
+    .. grid-item-card:: Bioindustrial-Park
+       :text-align: center
+       :link: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/boiler.png
+          :height: 100
+          :align: center
+       
+       Repository for biorefinery models.
 
 Installation
 ------------
