@@ -81,7 +81,7 @@ Contributing
 ------------
 For guidelines on how to contribute visit:
 
-    https://biosteam.readthedocs.io/en/latest/CONTRIBUTING.html
+    https://biosteam.readthedocs.io/en/latest/contributing/index.html
 
 We also welcome anyone with an interest in discussing contributions to BioSTEAM to join our
 monthly meeting at 8-9:30am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 

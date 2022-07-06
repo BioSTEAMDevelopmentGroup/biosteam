@@ -55,6 +55,7 @@ class Model(State):
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
         '_exception_hook',  # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
+        'sample_weights',   # [array] Parameter weigths for ordering samples for computational efficiency.
     )
     def __init__(self, system, metrics=None, specification=None, 
                  parameters=None, retry_evaluation=True, exception_hook='warn'):
@@ -63,6 +64,7 @@ class Model(State):
         self.exception_hook = exception_hook
         self.retry_evaluation = retry_evaluation
         self.table = None
+        self.sample_weights = 1
         self._erase()
         
     def copy(self):
@@ -206,7 +208,8 @@ class Model(State):
                     sample_ub[i] = ub
                 time[i] = evaluate(sample_lb) + evaluate(sample) + evaluate(sample_ub) + evaluate(sample)
             normalized_time = time / time.max() 
-            normalized_samples *= normalized_time.transpose()
+            self.sample_weights = normalized_time.transpose()
+        normalized_samples *= self.sample_weights
         nearest_arr = np.abs(normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
         nearest_arr = np.sum(nearest_arr, axis=-1)
         nearest_arr = np.argsort(nearest_arr, axis=1)
@@ -239,19 +242,28 @@ class Model(State):
             distance_without_sorting += (dist * dist).sum()
         assert distance_with_sorting <= distance_without_sorting
         
-    def load_samples(self, samples, optimize=False, ss=False):
+    def load_samples(self, samples=None, optimize=None, ss=None, 
+                     file=None, autoload=None, autosave=None):
         """
         Load samples for evaluation.
         
         Parameters
         ----------
-        samples : numpy.ndarray, dim=2
+        samples : numpy.ndarray, dim=2, optional
             All parameter samples to evaluate.
         optimize : bool, optional
             Whether to internally sort the samples to optimize convergence speed
             by minimizing perturbations to the system between simulations.
+            Defaults to False.
         ss : bool, optional
-            Whether to use single point sensitivity to inform the sorting algorithm
+            Whether to use single point sensitivity to inform the sorting algorithm. 
+            Defaults to False.
+        file : str, optional
+            File to load/save samples and simulation order to/from.
+        autosave : bool, optional
+            Whether to save samples and simulation order to file (when not loaded from file).
+        autoload : bool, optional
+            Whether to load samples and simulation order from file (if possible).
         
         Warning
         -------
@@ -261,13 +273,24 @@ class Model(State):
         """
         parameters = self._parameters
         Parameter.check_indices_unique(parameters)
-        N_parameters = len(parameters)
+        if autoload:
+            try:
+                with open(file, "rb") as f: (samples, self._index, self.sample_weights) = pickle.load(f)
+            except FileNotFoundError: pass
+            else:
+                metrics = self._metrics
+                empty_metric_data = np.zeros((len(samples), len(metrics)))
+                self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+                                          columns=var_columns(parameters + metrics))
+                self._samples = samples
+                return 
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
         if samples.ndim == 1:
             samples = samples[:, np.newaxis]
         elif samples.ndim != 2:
             raise ValueError('samples must be 2 dimensional')
+        N_parameters = len(parameters)
         if samples.shape[1] != N_parameters:
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({N_parameters})')
         metrics = self._metrics
@@ -280,6 +303,16 @@ class Model(State):
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
                                   columns=var_columns(parameters + metrics))
         self._samples = samples
+        if autosave:
+            obj = (samples, self._index, self.sample_weights)
+            try:
+                with open(file, 'wb') as f: pickle.dump(obj, f)
+            except FileNotFoundError:
+                import os
+                head, tail = os.path.split(file)
+                os.mkdir(head)
+                with open(file, 'wb') as f: pickle.dump(obj, f)
+            
         
     def single_point_sensitivity(self, 
             etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
