@@ -4,11 +4,8 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 BioSTEAM is an open-source and community-lead platform for the design, 
 simulation, techno-economic analysis (TEA) and life cycle assessment (LCA) of 
 biorefineries across thousands of scenarios for streamlined uncertainty and 
-sensitivity analyses. Complete biorefinery configurations are available at 
-the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_,
-BioSTEAM's premier repository for biorefinery models and results. The 
-long-term growth and maintenance of BioSTEAM is supported through both 
-community-led development and the research institutions invested in BioSTEAM, 
+sensitivity analyses. The long-term growth and maintenance of BioSTEAM is supported
+through both community-led development and the research institutions invested in BioSTEAM, 
 including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_.
 
 .. toctree::
