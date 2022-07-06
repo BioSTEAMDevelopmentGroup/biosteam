@@ -50,6 +50,7 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     # "myst_nb",
     # "sphinx_design",
+    'sphinx_design',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',

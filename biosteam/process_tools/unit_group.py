@@ -13,8 +13,6 @@ from . import utils
 from ..utils import misc
 from .._heat_utility import HeatUtility
 from collections.abc import Mapping
-from ..plots import style_axis
-from math import ceil, floor
 
 __all__ = ('UnitGroup',)
 
@@ -49,8 +47,7 @@ class UnitGroup:
         Unit operations.
     metrics=None : list[Metric], optional
         Metrics to generate results. These metrics are computed when 
-        generating results as dictionaries, pandas series and data frames,
-        and plots.
+        generating results as dictionaries, pandas series, and data frames.
     
     Examples
     --------

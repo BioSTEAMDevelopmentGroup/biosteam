@@ -297,7 +297,7 @@ class TEA:
     
     Examples
     --------
-    :doc:`tutorial/Techno-economic_analysis` 
+    :doc:`../tutorial/Techno-economic_analysis` 
 
     """
     __slots__ = ('system', 'income_tax', 'WC_over_FCI',

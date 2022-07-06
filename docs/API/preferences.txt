@@ -1,0 +1,6 @@
+preferences
+-----------
+
+.. automodule:: biosteam._preferences
+   :members:
+   

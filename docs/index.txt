@@ -1,15 +1,3 @@
-.. raw:: html
-
-   <style> .red {color:#ed5a6a; font-weight:bold} </style>
-   <style> .green {color:#7ac083; font-weight:bold} </style>
-   <style> .orange {color:#f98f60; font-weight:bold} </style>
-   <style> .blue {color:#60c1cf; font-weight:bold} </style>
-
-.. role:: red
-.. role:: green
-.. role:: orange
-.. role:: blue
-
 BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 =========================================================================
 
@@ -26,44 +14,49 @@ community-lead platform, BioSTEAM aims to foster communication and transparency
 within the biorefinery research community for an integrated effort to expedite 
 the evaluation of candidate biofuels and bioproducts.
 
-Scientific Papers
------------------
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   tutorial/index
+   API/index
+   changelog/index
+   contributing/index
 
-Several studies have leveraged the BioSTEAM platform to compare conversion 
-technologies and chart development pathways for various bioproducts:
+.. grid:: 3
 
-* `Bhagwat et al. Sustainable Production of Acrylic Acid via 3-Hydroxypropionic Acid from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.1c05441>`_
+    .. grid-item-card:: 
+       :link: https://biosteam.readthedocs.io/en/latest/tutorial/Getting_started.html
+       :link-type: url
 
-* `McClelland et al. Renewable linear alpha-olefins by base-catalyzed dehydration of biologically-derived fatty alcohols. Green Chemistry 2021 <https://doi.org/10.1039/D1GC00243K>`_
+       .. figure:: images/aerobic_chamber.png
+          :height: 100
+          :align: center
+          
+       **Tutorial** An introduction to BioSTEAM's main concepts with useful 
+       explanations.
 
-* `Li et al. Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
 
-* `Sanchis-Sebastiá et al. Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
-
-* `Shi et al. An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.0c05998>`_
-
-* `Cortes-Peña, et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
-
-Overview
---------
-
-BioSTEAM's main components can be categorized by 4 functionality levels: 
-
-.. figure:: images/UML.png
-   :figwidth: 80%
-   :class: only-light
-   :align: center
-.. figure:: images/UML_dark.png
-   :figwidth: 80%
-   :class: only-dark
-   :align: center
-- :orange:`Automation` of the simulation of large sets of scenarios is facilitated by :doc:`../API/evaluation/Model` objects which define Parameter and Metric objects that dictate the input and output features of the model. 
-
-- :red:`Simulation` is carried out by :doc:`../API/System` objects, which can be created without supplying any information on the order of unit simulation. After simulation, :doc:`../API/TEA` objects can perform cashflow analysis to solve for a number of financial indicators.
-
-- :blue:`Equipment` design, costing, and utility requirements are evaluated by :doc:`../API/Unit` objects. All built-in and custom unit operations are subclasses of Unit. Adjustments can be made to the heating and cooling agents of the :doc:`../API/HeatUtility` class (e.g., steam pressure, price) as well as the electricity price of the :doc:`../API/PowerUtility` class.
-
-- :green:`Thermodynamic` equilibrium and mass and energy balances are facilitated by :doc:`../API/thermosteam/Stream` objects, which define material flows, temperature and pressure. Chemical properties and models are imported from `thermo <https://thermo.readthedocs.io/>`_, a community-driven open-source library developed by Caleb Bell. 
+    .. grid-item-card::
+       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
+       :link-type: url
+       
+       .. figure:: images/storage.png
+          :height: 100
+          :align: center
+       
+       **API Reference** Detailed documentation on all of BioSTEAM's functionality. 
+        
+    .. grid-item-card::
+       :link: https://biosteam.readthedocs.io/en/latest/contributing/CONTRIBUTING.html
+       :link-type: url
+       
+       .. figure:: images/fermenter.png
+          :height: 100
+          :align: center
+       
+       **Contributor's Guide** Want to add to BioSTEAM? We'll help you through 
+       the process.
 
 Installation
 ------------
@@ -109,18 +102,23 @@ Common Issues
 
   Additionally, please follow the following instructions for `installing graphviz on windows <https://forum.graphviz.org/t/new-simplified-installation-procedure-on-windows/224#format-svg-not-recognized-use-one-of>`__.
 
+Scientific Papers
+-----------------
 
-Documentation
--------------
+Several studies have leveraged the BioSTEAM platform to compare conversion 
+technologies and chart development pathways for various bioproducts:
 
-.. toctree::
-   :maxdepth: 2
-   
-   tutorial/index
-   API/index
-   changelog/index
-   contributing/index
+* `Bhagwat et al. Sustainable Production of Acrylic Acid via 3-Hydroxypropionic Acid from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.1c05441>`_
 
+* `McClelland et al. Renewable linear alpha-olefins by base-catalyzed dehydration of biologically-derived fatty alcohols. Green Chemistry 2021 <https://doi.org/10.1039/D1GC00243K>`_
+
+* `Li et al. Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
+
+* `Sanchis-Sebastiá et al. Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
+
+* `Shi et al. An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.0c05998>`_
+
+* `Cortes-Peña, et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
 
 Indices and tables
 ------------------
@@ -128,4 +126,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

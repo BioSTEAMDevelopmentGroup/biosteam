@@ -186,13 +186,13 @@ class Unit:
     
     Examples
     --------
-    :doc:`tutorial/Creating_a_Unit`
+    :doc:`../tutorial/Creating_a_Unit`
     
-    :doc:`tutorial/-pipe-_notation`
+    :doc:`../tutorial/-pipe-_notation`
     
-    :doc:`tutorial/Inheriting_from_Unit`
+    :doc:`../tutorial/Inheriting_from_Unit`
     
-    :doc:`tutorial/Unit_decorators`
+    :doc:`../tutorial/Unit_decorators`
     
     """ 
     
@@ -804,7 +804,7 @@ class Unit:
 
         Examples
         --------
-        :doc:`tutorial/Process_specifications`
+        :doc:`../tutorial/Process_specifications`
 
         See Also
         --------
@@ -855,7 +855,7 @@ class Unit:
             
         Examples
         --------
-        :doc:`tutorial/Process_specifications`
+        :doc:`../tutorial/Process_specifications`
 
         See Also
         --------

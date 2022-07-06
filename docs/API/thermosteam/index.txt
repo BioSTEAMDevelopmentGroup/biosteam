@@ -9,11 +9,9 @@ stoichiometric reactions. Thermosteam builds upon
 Chemical Engineering Design Library, with a framework tailored to BioSTEAM
 for the simulation of unit operations.
 
-API
----
-
 .. toctree::
    :maxdepth: 2
+   :hidden:
    
    Chemical
    Chemicals

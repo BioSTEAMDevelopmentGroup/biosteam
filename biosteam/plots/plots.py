@@ -44,6 +44,7 @@ __all__ = (
     'plot_kde_2d',
     'plot_kde',
     'plot_quadrants',
+    'plot_stacked_bar',
 )
 
 # %% Utilities
@@ -230,6 +231,66 @@ def plot_heatmap(
                offset_yticks=True)
     ax.set_aspect('auto')
     return im, cbar
+
+# %% Plot data tables
+
+def plot_stacked_bar(data, names, xlabels, colors=None, hatches=None, legend=True, 
+                    # format_total=None, bold_label=False, fraction=False, 
+                    legend_kwargs=None, ylabel=None, **kwargs):
+    """Plot data table as a stacked bar chart."""
+    colors, hatches = default_colors_and_hatches(data.shape[0], colors, hatches)
+    N_metrics = len(xlabels)
+    if isinstance(names, pd.MultiIndex): names = [i[-1] for i in names]
+    if ylabel:
+        ylabel, *other = ylabel.split('[')
+        units = other[-1].split(']')[0]
+        units = format_units(units)
+        ylabel += f"[{units}]"
+    # if fraction:
+    #     total = data.sum(axis=0)
+    #     postive_values = np.where(data > 0., data, 0.)
+    #     data *= 100 / postive_values.sum(axis=0, keepdims=True)
+    #     if format_total is None: format_total = lambda x: format(x, '.3g')
+    #     if bold_label:
+    #         bar_labels = [r"$\mathbf{" f"{format_total(i)}" "}$" for i in total]
+    #     else:
+    #         bar_labels = [f"{format_total(i)}" for i in total]
+    # else:
+    #     pass
+    df = pd.DataFrame(data, index=names, columns=xlabels)
+    # values = df.values
+    df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
+    locs, labels = plt.xticks()
+    plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
+    if legend: plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.xticks(rotation=0)
+    fig = plt.gcf()
+    ax = plt.gca()
+    if ylabel is not None: ax.set_ylabel(ylabel)
+    # if fraction:
+    #     negative_values = np.where(values < 0., values, 0.).sum(axis=0)
+    #     lb = min(0., 20 * floor(negative_values.min() / 20))
+    #     plt.ylim(lb, 100)
+    #     style_axis(top=False, yticks=np.arange(lb, 101, 20))
+    # else:
+    #     pass
+    xticks, _ = plt.xticks()
+    xlim = plt.xlim()
+    y_twin = ax.twiny()
+    plt.sca(y_twin)
+    y_twin.tick_params(axis='x', top=True, direction="in", length=0)
+    y_twin.zorder = 2
+    plt.xlim(xlim)
+    # if fraction:
+    #     if len(xticks) != len(bar_labels): xticks = xticks[1:]
+    #     plt.xticks(xticks, bar_labels, va='baseline')
+    # else:
+    plt.xticks(xticks, ['' for i in xticks], va='baseline')
+    N_marks = N_metrics
+    axes = np.array([ax])
+    if legend_kwargs is None: legend_kwargs = {}
+    modify_stacked_bars(axes, N_marks, names, colors, hatches, legend, **legend_kwargs)
+    return fig, axes
 
 # %% Plot unit groups
 
