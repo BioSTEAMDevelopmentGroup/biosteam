@@ -275,15 +275,15 @@ class Model(State):
         Parameter.check_indices_unique(parameters)
         if autoload:
             try:
-                with open(file, "rb") as f: (samples, self._index, self.sample_weights) = pickle.load(f)
+                with open(file, "rb") as f: (self._samples, self._index, self.sample_weights) = pickle.load(f)
             except FileNotFoundError: pass
             else:
-                metrics = self._metrics
-                empty_metric_data = np.zeros((len(samples), len(metrics)))
-                self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                          columns=var_columns(parameters + metrics))
-                self._samples = samples
-                return 
+                if (samples is None or (samples.shape == self._samples.shape and (samples == self._samples).all())):
+                    metrics = self._metrics
+                    empty_metric_data = np.zeros((len(samples), len(metrics)))
+                    self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+                                              columns=var_columns(parameters + metrics))
+                    return 
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
         if samples.ndim == 1:

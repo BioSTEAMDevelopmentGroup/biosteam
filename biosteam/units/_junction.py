@@ -20,9 +20,8 @@ __all__ = ('Junction',)
 
 class Junction(Unit):
     """
-    Create a Junction object that copies specifications from `upstream`
-    to `downstream`. This serves to connect streams with different
-    Species object.
+    Create a Junction object that copies data from `upstream` to `downstream`. 
+    This serves to connect streams with different property packages.
     
     Parameters
     ----------    

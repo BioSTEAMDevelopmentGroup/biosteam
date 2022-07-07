@@ -170,7 +170,7 @@ class State:
     
     def parameter(self, setter=None, element=None, kind='isolated', name=None, 
                   distribution=None, units=None, baseline=None, bounds=None, 
-                  hook=None, description=None):
+                  hook=None, description=None, scale=None):
         """
         Define and register parameter.
         
@@ -196,6 +196,8 @@ class State:
             Lower and upper bounds of parameter.
         hook : Callable, optional
             Should return the new parameter value given the sample.
+        scale : float, optional
+            The sample is multiplied by the scale before setting.
         
         Notes
         -----
@@ -207,10 +209,10 @@ class State:
         if not setter:
             return lambda setter: self.parameter(setter, element, kind, name,
                                                  distribution, units, baseline,
-                                                 bounds, hook, description)
+                                                 bounds, hook, description, scale)
         p = Parameter(name, setter, element or 'biorefinery',
                       self.system, distribution, units, 
-                      baseline, bounds, kind, hook, description)
+                      baseline, bounds, kind, hook, description, scale)
         Parameter.check_index_unique(p, self._parameters)
         self._parameters.append(p)
         return p
@@ -316,7 +318,8 @@ class State:
         return samples
     
     def _update_state(self, sample, **dyn_sim_kwargs):
-        for f, s in zip(self._parameters, sample): f.setter(s)
+        for f, s in zip(self._parameters, sample): 
+            f.setter(s if f.scale is None else f.scale * s)
         self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
     
     def __call__(self, sample):

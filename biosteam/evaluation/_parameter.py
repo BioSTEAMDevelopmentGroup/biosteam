@@ -43,30 +43,31 @@ class Parameter(Feature):
         * 'isolated': Parameter does not affect the system in any way.
     hook : Callable
         Should return the new parameter value given the sample.
+    scale : float, optional
+        The sample is multiplied by the scale before setting.
         
     """
     __slots__ = ('setter', 'system', 'distribution', 
                  'baseline', 'bounds', 'kind', 'hook',
-                 'description')
+                 'description', 'scale')
     
     def __init__(self, name, setter, element, system, distribution,
-                 units, baseline, bounds, kind, hook, description):
+                 units, baseline, bounds, kind, hook, description, scale):
         if not name: name, *_ = signature(setter).parameters.keys()
         super().__init__(format_title(name), units, element)
         self.setter = setter.setter if isinstance(setter, Parameter) else setter
         self.system = system
         self.distribution = distribution
         if not bounds:
-            if distribution:
-                bounds = (distribution.lower[0], distribution.upper[0])
+            if distribution: bounds = (distribution.lower[0], distribution.upper[0])
         if bounds and not baseline:
             baseline = 0.5 * (bounds[0] + bounds[1])
-            if hook: baseline = hook(baseline)
         self.baseline = baseline
         self.bounds = bounds
         self.kind = kind
         self.hook = hook
         self.description = description
+        self.scale = scale
     
     @classmethod
     def sort_parameters(cls, parameters):
@@ -119,7 +120,7 @@ class Parameter(Feature):
     
     def __call__(self, value):
         if self.hook: value = self.hook(value)
-        self.setter(value)
+        self.setter(value if self.scale is None else value * self.scale)
         self.simulate()
     
     def _info(self):
