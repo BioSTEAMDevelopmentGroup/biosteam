@@ -39,6 +39,7 @@ from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settin
 from ._preferences import preferences
 from ._heat_utility import HeatUtility, UtilityAgent
 from ._power_utility import PowerUtility
+from . import plots
 from .utils import *
 from ._unit import Unit
 from . import _system
