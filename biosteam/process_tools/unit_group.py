@@ -66,6 +66,7 @@ class UnitGroup:
     >>> ugroup = UnitGroup('Example group', example_sys.units)
     
     We can autofill metrics to evaluate:
+    
     >>> ugroup.autofill_metrics(electricity_production=True)
     >>> ugroup.metrics
     [<Metric: Installed equipment cost (MM$)>,
