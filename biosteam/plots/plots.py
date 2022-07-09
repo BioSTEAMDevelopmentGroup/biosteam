@@ -1266,7 +1266,7 @@ def label_quadrants(
     return labeled
 
 def plot_quadrants(
-        text, data=None, x=None, y=None, rotate=0, axes=None,
+        text, data=None, x=None, y=None, rotate=0,
     ):
     quadrant_color = deque([
         (*c.CABBI_teal.tint(90).RGBn, 0.9), None,
@@ -1278,18 +1278,13 @@ def plot_quadrants(
     ])
     quadrant_color.rotate(rotate)
     text_color.rotate(rotate)
-    if axes is not None:
-        for ax in axes.flatten():
-            plt.sca(ax)
-            labeled_quadrants = format_quadrants(
-                data, x, y, text, text_color, quadrant_color,
-            )
-            for i, labeled in enumerate(labeled_quadrants):
-                if labeled: text[i] = '()' if text[i].endswith('()') else None
-    
-    return format_quadrants(
+    labeled_quadrants = format_quadrants(
         data, x, y, text, text_color, quadrant_color,
     )
+    for i, labeled in enumerate(labeled_quadrants):
+        if labeled: text[i] = '()' if text[i].endswith('()') else None
+    
+    return labeled_quadrants
 
 def format_quadrants(
         data=None,
