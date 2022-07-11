@@ -260,7 +260,7 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     >>> C1 = units.LLECentrifuge('C1', ins=feed, outs=('light', 'heavy'))
     >>> C1.simulate()
     >>> C1.outs[0].show()
-    Stream: light from <LLEUnit: C1>
+    Stream: light from <LLECentrifuge: C1>
      phase: 'l', T: 333.15 K, P: 101325 Pa
      flow (kmol/hr): Methanol   10.2
                      Glycerol   0.0239
