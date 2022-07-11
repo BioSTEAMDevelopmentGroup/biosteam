@@ -647,7 +647,7 @@ class TEA:
     @property
     def net_earnings(self):
         """Net earnings without accounting for annualized depreciation."""
-        net_earnings = self.sales - self.material_cost - self.utility_cost
+        net_earnings = self.sales - self.AOC
         if net_earnings < 0:
             return net_earnings
         else:
