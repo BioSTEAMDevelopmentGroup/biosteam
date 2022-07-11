@@ -90,27 +90,13 @@ class LLEUnit(bst.Unit, isabstract=True):
     ...               Methanol=32.9, Glycerol=8.97)
     >>> C1 = units.LLEUnit('C1', ins=feed, outs=('light', 'heavy'))
     >>> C1.simulate()
-    >>> C1.show()
-    LLEUnit: C1
-    ins...
-    [0] feed
-        phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   32.9
-                        Glycerol   8.97
-                        Biodiesel  26.9
-                        TriOlein   0.996
-    outs...
-    [0] light
-        phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   10.2
-                        Glycerol   0.0239
-                        Biodiesel  26.9
-                        TriOlein   0.996
-    [1] heavy
-        phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   22.7
-                        Glycerol   8.95
-                        Biodiesel  0.0031
+    >>> C1.outs[0].show()
+    Stream: light from <LLEUnit: C1>
+     phase: 'l', T: 333.15 K, P: 101325 Pa
+     flow (kmol/hr): Methanol   10.2
+                     Glycerol   0.0239
+                     Biodiesel  26.9
+                     TriOlein   0.996
     
     """
     _N_outs = 2
@@ -273,27 +259,13 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     ...               Methanol=32.9, Glycerol=8.97)
     >>> C1 = units.LLECentrifuge('C1', ins=feed, outs=('light', 'heavy'))
     >>> C1.simulate()
-    >>> C1.show()
-    LLECentrifuge: C1
-    ins...
-    [0] feed
-        phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   32.9
-                        Glycerol   8.97
-                        Biodiesel  26.9
-                        TriOlein   0.996
-    outs...
-    [0] light
-        phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   10.2
-                        Glycerol   0.0239
-                        Biodiesel  26.9
-                        TriOlein   0.996
-    [1] heavy
-        phase: 'l', T: 333.15 K, P: 101325 Pa
-        flow (kmol/hr): Methanol   22.7
-                        Glycerol   8.95
-                        Biodiesel  0.0031
+    >>> C1.outs[0].show()
+    Stream: light from <LLEUnit: C1>
+     phase: 'l', T: 333.15 K, P: 101325 Pa
+     flow (kmol/hr): Methanol   10.2
+                     Glycerol   0.0239
+                     Biodiesel  26.9
+                     TriOlein   0.996
     >>> C1.results()
     Liquids centrifuge                          Units       C1
     Power               Rate                       kW     17.1

@@ -10,7 +10,7 @@
 # This module is under the UIUC open-source license. See 
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-
+from scipy.spatial.distance import cdist
 import numpy as np
 import pandas as pd
 from ._state import State
@@ -161,7 +161,7 @@ class Model(State):
         else:
             return samples
     
-    def _load_sample_order(self, samples, parameters, ss):
+    def _load_sample_order(self, samples, parameters, ss, distance):
         """
         Sort simulation order to optimize convergence speed
         by minimizing perturbations to the system between simulations.
@@ -170,6 +170,7 @@ class Model(State):
         algorithm.
         
         """
+        if distance is None: distance = 'cityblock'
         length = samples.shape[0]
         original_parameters = self._parameters
         columns = [i for i, parameter in enumerate(self._parameters) if parameter.kind == 'coupled']
@@ -210,8 +211,7 @@ class Model(State):
             normalized_time = time / time.max() 
             self.sample_weights = normalized_time.transpose()
         normalized_samples *= self.sample_weights
-        nearest_arr = np.abs(normalized_samples[:, np.newaxis, :] - normalized_samples[np.newaxis, :, :])
-        nearest_arr = np.sum(nearest_arr, axis=-1)
+        nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
         nearest_arr = np.argsort(nearest_arr, axis=1)
         remaining = set(range(length))
         self._index = index = [0]
@@ -232,18 +232,9 @@ class Model(State):
                     index.append(nearest)
                     N_remaining -= 1
                     break
-        distance_with_sorting = 0
-        for i in range(length - 1):
-            dist = normalized_samples[index[i]] - normalized_samples[index[i+1]]
-            distance_with_sorting += (dist * dist).sum()
-        distance_without_sorting = 0
-        for i in range(length - 1):
-            dist = normalized_samples[i] - normalized_samples[i+1]
-            distance_without_sorting += (dist * dist).sum()
-        assert distance_with_sorting <= distance_without_sorting
         
     def load_samples(self, samples=None, optimize=None, ss=None, 
-                     file=None, autoload=None, autosave=None):
+                     file=None, autoload=None, autosave=None, distance=None):
         """
         Load samples for evaluation.
         
@@ -264,6 +255,9 @@ class Model(State):
             Whether to save samples and simulation order to file (when not loaded from file).
         autoload : bool, optional
             Whether to load samples and simulation order from file (if possible).
+        distance : str, optional
+            Distance metric used for sorting. Defaults to 'cityblock'.
+            See scipy.spatial.distance.cdist for options.
         
         Warning
         -------
@@ -296,7 +290,7 @@ class Model(State):
         metrics = self._metrics
         samples = self._sample_hook(samples, parameters)
         if optimize: 
-            self._load_sample_order(samples, parameters, ss)
+            self._load_sample_order(samples, parameters, ss, distance)
         else:
             self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
