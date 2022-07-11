@@ -1,69 +1,117 @@
 BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 =========================================================================
 
-.. figure:: ./images/BioSTEAM_logo.png
+BioSTEAM is an open-source and community-lead platform for the design, 
+simulation, techno-economic analysis (TEA) and life cycle assessment (LCA) of 
+biorefineries across thousands of scenarios for streamlined uncertainty and 
+sensitivity analyses. The long-term growth and maintenance of BioSTEAM is supported
+through both community-led development and the research institutions invested in BioSTEAM, 
+including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_.
 
-BioSTEAM is a fast and flexible package for the design, simulation, techno-economic 
-analysis (TEA) and life cycle assessment (LCA) of biorefineries under uncertainty. BioSTEAM 
-is built to streamline and automate early-stage technology evaluations and to enable 
-rigorous sensitivity and uncertainty analyses. Complete biorefinery 
-configurations are available at the `Bioindustrial-Park <https://github.com/yoelcortes/biosteam>`_ 
-GitHub repository, BioSTEAM's premier repository for biorefinery models and 
-results. The long-term growth and maintenance of BioSTEAM is supported 
-through both community-led development and the research institutions invested 
-in BioSTEAM, including the `Center for Advanced Bioenergy and Bioproducts 
-Innovation (CABBI) <https://cabbi.bio/>`_. Through its open-source and 
-community-lead platform, BioSTEAM aims to foster communication and transparency 
-within the biorefinery research community for an integrated effort to expedite 
-the evaluation of candidate biofuels and bioproducts.
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   tutorial/index
+   API/index
+   changelog/index
+   contributing/index
 
-Key Features & Capabilities
----------------------------
-* **Fast and flexible techno-economic analysis.** 
-  BioSTEAM presents basic building blocks to design and simulate a 
-  biorefinery. These include objects that handle material properties, 
-  material flows, unit operations, and recycle loops.
+.. grid:: 1 2 3 4
+   
+   
+    .. grid-item-card:: Getting Started
+       :text-align: center
+       :link: https://biosteam.readthedocs.io/en/latest/tutorial/Getting_started.html
+       :link-type: url
+       :padding: 1
 
-* **Clear representation of streams, unit operations, and recycle systems.**
-  Dynamic generation of flowsheets and a clear representation of data allows 
-  users to visualize biorefineries in detail. BioSTEAM does not yet have a GUI 
-  but we are on our way to building one.
+       .. figure:: images/aerobic_chamber.png
+          :height: 100
+          :align: center
+          
+       Detailed examples on BioSTEAM's features.
 
-* **Automated process and technology evaluations.**
-  The evaluation of thousands of biorefinery designs is streamlined through 
-  smart and efficient management of biorefinery parameters to evaluate sets of 
-  design decisions and scenarios.
 
-* **Complete biorefinery examples.**
-  Two complete biorefineries models are included in BioSTEAM: the co-production 
-  of ethanol and biodiesel from lipid-cane, and 2nd generation ethanol production 
-  from corn stover. Please refer to the tutorial to get started.
+    .. grid-item-card:: API Reference
+       :text-align: center
+       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/storage.png
+          :height: 100
+          :align: center
+       
+       Documentation on all functionality. 
+        
+    .. grid-item-card:: Contributor's Guide
+       :text-align: center
+       :link: https://biosteam.readthedocs.io/en/latest/contributing/CONTRIBUTING.html
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/fermenter.png
+          :height: 100
+          :align: center
+       
+       Want to add to codebase? We'll help.
+       
+    .. grid-item-card:: Bioindustrial-Park
+       :text-align: center
+       :link: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/boiler.png
+          :height: 100
+          :align: center
+       
+       Repository for biorefinery models.
 
-Benchmarks
-----------
+Installation
+------------
 
-The BioSTEAM software has been steadily improved since the original BioSTEAM 
-publication [1]_. In particular, more rigorous thermodynamic and unit operation 
-models have been implemented, improving the accuracy of the software. In the 
-figures below, the applicability of BioSTEAM is demonstrated in the context of 
-(i) the co-production of biodiesel and ethanol from lipid-cane and (ii) the 
-production of second-generation ethanol from corn stover. All results were 
-generated under uncertainty through Monte Carlo simulations, whereby thousands 
-of biorefinery designs were evaluated across a joint distribution of uncertain 
-parameters. Economic metrics evaluated in BioSTEAM closely match benchmark 
-designs modeled in proprietary software (SuperPro Designer, Aspen Plus). 
-Estimates for the net steam demand and electricity production of the co-heat 
-and power facilities have improved since the original BioSTEAM publication. 
-It is thanks to both community involvement and the institutions supporting 
-BioSTEAM that continuous improvements like these are made possible.
+If you have an installation of Python with pip, simple install it with:
 
-.. figure:: ./images/lipidcane_biorefinery_benchmarks_under_uncertainty.png
+.. code-block:: bash
 
-   Sensitivity of (A) internal rate of return, (B) total capital investment, (C) steam demand, (D) ethanol and biodiesel production, (E) production cost, and (F) consumption and excess production of electricity as a function of lipid-cane feedstock lipid content by dry weight. BioSTEAM results are presented with median values (dark, solid lines), 25th to 75th percentiles (shaded region), and 5th and 95th percentiles (dash-dotted lines). BioSTEAM results are presented alongside results from the benchmark study by Huang et al. (circles) simulated in SuperPro Designer [2]_.
+   $ pip install biosteam
 
-.. figure:: ./images/cornstover_biorefinery_benchmarks_under_uncertainty.png
 
-   Relative magnitude of (A) net electricity and (B) installation cost across areas of the corn stover biorefinery in the benchmark study (Humbird et al., simulated in Aspen plus) and estimates of (C) net electricity, (D) installation cost, and (E) steam demand, ethanol production, and MESP under uncertainty from BioSTEAM relative to the benchmark study [3]_. Boxes in (C)–(E) identify 25th to 75th percentiles, lines are median values, whiskers extend to 5th and 95th percentiles, and diamonds represent individual simulations below the 5th percentile or above the 95th percentiles.
+To get the git version, run:
+
+.. code-block:: bash
+   
+   $ git clone --depth 10 git://github.com/BioSTEAMDevelopmentGroup/biosteam
+
+
+Common Issues
+-------------
+
+* **Cannot install/update BioSTEAM:**
+
+  If you are having trouble installing or updating BioSTEAM, it may be due to dependency issues. You can bypass these using:
+  
+  .. code-block:: bash
+
+     $ pip install --user --ignore-installed biosteam
+
+  You can make sure you install the right version by including the version number:
+
+  .. code-block:: bash
+
+     $ pip install biosteam==<version>
+
+* **Unit and system diagrams are not displaying:**
+
+  BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to make flowsheet diagrams. To properly install Graphviz in an anaconda distribution, please run the following line:
+  
+  .. code-block:: bash
+
+     $ conda install graphviz
+
+  Additionally, please follow the following instructions for `installing graphviz on windows <https://forum.graphviz.org/t/new-simplified-installation-procedure-on-windows/224#format-svg-not-recognized-use-one-of>`__.
 
 Scientific Papers
 -----------------
@@ -81,81 +129,7 @@ technologies and chart development pathways for various bioproducts:
 
 * `Shi et al. An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.0c05998>`_
 
-
-.. toctree::
-   :maxdepth: 2
-   :numbered:
-   :caption: Tutorial
-   
-   tutorial/Overview
-   tutorial/Installation
-   tutorial/Getting_started
-   tutorial/Creating_a_Unit
-   tutorial/Managing_flowsheets
-   tutorial/-pipe-_notation
-   tutorial/Unit_operation_results
-   tutorial/Process_specifications
-   tutorial/Inheriting_from_Unit
-   tutorial/Unit_decorators
-   tutorial/Techno-economic_analysis
-   tutorial/Life_cycle_assessment
-   tutorial/Gotchas
-
-.. toctree::
-   :maxdepth: 2
-   :numbered:
-   :caption: Advanced Tutorial
-   
-   tutorial/Creating_a_System
-   tutorial/Building_a_biorefinery
-   tutorial/Operational_flexibility
-   tutorial/Uncertainty_and_sensitivity
-   tutorial/TRY-Analysis
-
-.. toctree::
-   :maxdepth: 2
-   :caption: BioSTEAM API
-   
-   Unit
-   PowerUtility
-   UtilityAgent
-   HeatUtility
-   System
-   TEA
-   Flowsheet
-   exceptions
-   units/units
-   process_tools/process_tools
-   evaluation/evaluation
-
-.. toctree::
-   :maxdepth: 1
-   :caption: What's new?
-   
-   updates/2.24
-   updates/2.23
-   updates/2.22
-   updates/2.21
-   updates/2.20
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Developer's guide
-   
-   AUTHORS
-   LICENSE
-   CONTRIBUTING
-   CODE_OF_CONDUCT
-
-References
-----------
-.. [1] `Cortes-Peña, et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
-
-.. [2] `Huang et al. Techno-Economic Analysis of Biodiesel and Ethanol Co-Production from Lipid-Producing Sugarcane. Biofuels, Bioproducts and Biorefining 2016 <https://doi.org/10.1002/bbb.1640>`_
-
-.. [3] Humbird et al. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover; Technical Report NREL/TP-5100-47764; DOE: NREL, 2011.
-
+* `Cortes-Peña, et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
 
 Indices and tables
 ------------------
@@ -163,4 +137,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

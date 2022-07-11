@@ -157,8 +157,11 @@ class UtilityAgent(Stream):
         self._regeneration_price = price
     
     def _info_phaseTP(self, phase, T_units, P_units):
-        T_limit = convert(self.T_limit, 'K', T_units)
-        T_limit = f"{T_limit:.3g} K" if T_limit else "None"
+        if self.T_limit is None:
+            T_limit = "None"
+        else:
+            T_limit = convert(self.T_limit, 'K', T_units)
+            T_limit = f"{T_limit:.3g} K" if T_limit else "None"
         T = convert(self.T, 'K', T_units)
         P = convert(self.P, 'Pa', P_units)
         s = '' if isinstance(phase, str) else 's'

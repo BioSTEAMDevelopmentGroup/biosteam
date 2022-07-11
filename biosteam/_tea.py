@@ -297,7 +297,7 @@ class TEA:
     
     Examples
     --------
-    :doc:`tutorial/Techno-economic_analysis` 
+    :doc:`../tutorial/Techno-economic_analysis` 
 
     """
     __slots__ = ('system', 'income_tax', 'WC_over_FCI',
@@ -647,7 +647,11 @@ class TEA:
     @property
     def net_earnings(self):
         """Net earnings without accounting for annualized depreciation."""
-        return self._net_earnings_and_nontaxable_cashflow_arrays()[0]
+        net_earnings = self.sales - self.AOC
+        if net_earnings < 0:
+            return net_earnings
+        else:
+            return (1 - self.income_tax) * net_earnings
     @property
     def PBP(self):
         """Pay back period (yr) without accounting for annualized depreciation."""

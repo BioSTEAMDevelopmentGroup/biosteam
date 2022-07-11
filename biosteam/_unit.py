@@ -67,30 +67,27 @@ def repr_ins_and_outs(layout, ins, outs, T, P, flow, composition, N, IDs, data):
 
 # %% Path utilities
 
-def find_path_segment(start_unit, end_unit):
-    path_segment = fill_path_segment(start_unit, [], end_unit)
-    if path_segment is None:
-        raise ValueError(f"end unit {repr(end_unit)} not downstream from start unit {repr(start_unit)}")
+def find_path_segment(start, end):
+    path_segment = fill_path_segment(start, [], end, set())
+    if not path_segment:
+        raise ValueError(f"end unit {repr(end)} not downstream from start unit {repr(start)}")
     return path_segment
 
-def fill_path_segment(start_unit, path, end_unit):
-    if start_unit is end_unit:
-        return path
-    if start_unit not in path: 
-        path.append(start_unit)
-        first_outlet, *other_outlets = start_unit._outs
-        for outlet in other_outlets:
-            start_unit = outlet._sink
-            if not start_unit: continue
-            new_path = path.copy()
-            path_segment = fill_path_segment(start_unit, new_path, end_unit)
-            if path_segment: return path_segment
-        start_unit = first_outlet._sink
-        if not start_unit: return None
-        path_segment = fill_path_segment(start_unit, path, end_unit)
-        if path_segment: return path_segment
-        
-
+def fill_path_segment(start, path, end, units):
+    if start is end: return path
+    if start not in units: 
+        path.append(start)
+        units.add(start)
+        success = False
+        for outlet in start._outs:
+            start = outlet._sink
+            if not start: continue
+            path_segment = fill_path_segment(start, [], end, units)
+            if path_segment is not None: 
+                path.extend(path_segment)
+                success = True
+        if success: return path
+    
 # %% Unit Operation
 
 @thermo_user
@@ -189,13 +186,13 @@ class Unit:
     
     Examples
     --------
-    :doc:`tutorial/Creating_a_Unit`
+    :doc:`../tutorial/Creating_a_Unit`
     
-    :doc:`tutorial/-pipe-_notation`
+    :doc:`../tutorial/-pipe-_notation`
     
-    :doc:`tutorial/Inheriting_from_Unit`
+    :doc:`../tutorial/Inheriting_from_Unit`
     
-    :doc:`tutorial/Unit_decorators`
+    :doc:`../tutorial/Unit_decorators`
     
     """ 
     
@@ -687,7 +684,7 @@ class Unit:
         """Return unit node attributes for graphviz."""
         try: self._load_stream_links()
         except: pass
-        if bst.MINIMAL_UNIT_DIAGRAMS:
+        if bst.preferences.minimal_nodes:
             return self._graphics.get_minimal_node(self)
         else:
             return self._graphics.get_node_tailored_to_unit(self)
@@ -807,7 +804,7 @@ class Unit:
 
         Examples
         --------
-        :doc:`tutorial/Process_specifications`
+        :doc:`../tutorial/Process_specifications`
 
         See Also
         --------
@@ -858,7 +855,7 @@ class Unit:
             
         Examples
         --------
-        :doc:`tutorial/Process_specifications`
+        :doc:`../tutorial/Process_specifications`
 
         See Also
         --------
@@ -888,10 +885,20 @@ class Unit:
         else:
             self._run()
             
-    def path_until(self, unit):
-        """Return a list of units starting from this one until the end unit (not inclusive) by
-        moving along unit connections."""
-        return find_path_segment(self, unit)
+    def path_until(self, unit, inclusive=False):
+        """
+        Return a list of units starting from this one until the end unit 
+        (not inclusive by default).
+        
+        Warning
+        -------
+        This method ignores recycle loops. To account for recyle loops, see
+        :meth:`biosteam.System.from_segment`
+        
+        """
+        path = find_path_segment(self, unit)
+        if inclusive: path.append(unit)
+        return path
             
     def _reevaluate(self):
         """Reevaluate design and costs."""
@@ -1262,55 +1269,6 @@ class Unit:
             neighborhood.update(direct_neighborhood)
         return neighborhood
 
-    def get_digraph(self, format='png', **graph_attrs):
-        ins = self.ins
-        outs = self.outs
-        graphics = self._graphics
-
-        # Make a Digraph handle
-        f = Digraph(name='unit', filename='unit', format=format)
-        f.attr('graph', ratio='0.5', outputorder='edgesfirst',
-               nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
-        f.attr(rankdir='LR', **graph_attrs)  # Left to right
-
-        # If many streams, keep streams close
-        if (len(ins) >= 3) or (len(outs) >= 3):
-            f.attr('graph', nodesep='0.4')
-
-        # Initialize node arguments based on unit and make node
-        node = graphics.get_node_tailored_to_unit(self)
-        f.node(**node)
-
-        # Set stream node attributes
-        f.attr('node', shape='rarrow', fillcolor='#79dae8',
-               style='filled', orientation='0', width='0.6',
-               height='0.6', color='black', peripheries='1')
-
-        # Make nodes and edges for input streams
-        di = 0  # Destination position of stream
-        for stream in ins:
-            if not stream: continue
-            f.node(stream.ID)
-            edge_in = graphics.edge_in
-            if di >= len(edge_in): di = 0
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[di])
-            f.edge(stream.ID, node['name'])
-            di += 1
-
-        # Make nodes and edges for output streams
-        oi = 0  # Origin position of stream
-        for stream in outs:
-            if not stream: continue
-            f.node(stream.ID) 
-            edge_out = graphics.edge_out  
-            if oi >= len(edge_out): oi = 0
-            f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **edge_out[oi])
-            f.edge(node['name'], stream.ID)
-            oi += 1
-        return f
-
     def diagram(self, radius=0, upstream=True, downstream=True, 
                 file=None, format='png', display=True, **graph_attrs):
         """
@@ -1336,15 +1294,11 @@ class Unit:
         
         """
         if radius > 0:
-            neighborhood = self.neighborhood(radius, upstream, downstream)
-            neighborhood.add(self)
-            sys = bst.System('', neighborhood)
-            return sys.diagram('thorough', file, format, **graph_attrs)
-        f = self.get_digraph(format, **graph_attrs)
-        if display or file: 
-            finalize_digraph(f, file, format)
+            units = self.neighborhood(radius, upstream, downstream)
+            units.add(self)
         else:
-            return f
+            units = [self]
+        return bst.System('', units).diagram(format=format, display=display, file=file, **graph_attrs)
     
     ### Net input and output flows ###
     
@@ -1472,7 +1426,7 @@ class Unit:
         print(self._info(layout, T, P, flow, composition, N, IDs, data))
     
     def _ipython_display_(self):
-        if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram()
+        if bst.preferences.autodisplay: self.diagram()
         self.show()
 
     def __repr__(self):

@@ -57,7 +57,7 @@ class Flowsheet:
     """
     Create a Flowsheet object which stores references to all stream, unit,
     and system objects. For a tutorial on flowsheets, visit
-    :doc:`tutorial/Managing_flowsheets`.
+    :doc:`../tutorial/Managing_flowsheets`.
 	
     """
     

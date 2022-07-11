@@ -32,7 +32,7 @@ techno-economic analysis, and life cycle assessment of biorefineries under uncer
 BioSTEAM is built to streamline and automate early-stage technology evaluations 
 and to enable rigorous sensitivity and uncertainty analyses. Complete 
 biorefinery configurations are available at the `Bioindustrial-Park 
-<https://github.com/BioSTEAMDevelopmentGroup/biosteam>`_ GitHub repository, 
+<https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_ GitHub repository, 
 BioSTEAM's premier repository for biorefinery models and results. The long-term 
 growth and maintenance of BioSTEAM is supported through both community-led 
 development and the research institutions invested in BioSTEAM, including the 
@@ -43,9 +43,9 @@ integrated effort to expedite the evaluation of candidate biofuels and
 bioproducts.
 
 All data on chemicals, fitted coefficients, and functions to estimate chemical 
-properties are imported from `chemicals <https://chemicals.readthedocs.io/>`_,
+properties are imported from `chemicals <https://github.com/CalebBell/chemicals>`_,
 a community-driven open-source library developed by Caleb Bell. The 
-`thermosteam <https://thermosteam.readthedocs.io/en/latest/>`_ library, 
+`thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_ library, 
 BioSTEAM's premire thermodynamic engine, creates thermodynamic property packages 
 by implementing both the mixing rules and the algorithms for thermodynamic equilibrium 
 and by relying on the `chemicals` library for pure component models.
@@ -61,7 +61,7 @@ To get the git version, run:
 
     $ git clone git://github.com/BioSTEAMDevelopmentGroup/biosteam
 
-For help on common installtion issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/tutorial/Installation.html>`__.
+For help on common installation issues, please visit the `documentation <https://biosteam.readthedocs.io/en/latest/#installation>`__.
 
 Documentation
 -------------
@@ -81,7 +81,7 @@ Contributing
 ------------
 For guidelines on how to contribute visit:
 
-    https://biosteam.readthedocs.io/en/latest/CONTRIBUTING.html
+    https://biosteam.readthedocs.io/en/latest/contributing/index.html
 
 We also welcome anyone with an interest in discussing contributions to BioSTEAM to join our
 monthly meeting at 8-9:30am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 

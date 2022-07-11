@@ -18,6 +18,7 @@ import matplotlib.patches as mpatches
 from math import floor, ceil
 from matplotlib.ticker import MultipleLocator
 from scipy.stats import kde
+from collections import deque
 
 __all__ = (
     'rounted_tickmarks_from_range',
@@ -44,12 +45,13 @@ __all__ = (
     'plot_kde_2d',
     'plot_kde',
     'plot_quadrants',
+    'plot_stacked_bar',
 )
 
 # %% Utilities
 
-default_light_color = c.brown_tint.RGBn
-default_dark_color = c.brown_shade.RGBn
+default_light_color = c.orange_tint.RGBn
+default_dark_color = c.orange_shade.RGBn
 
 def plot_horizontal_line(y, color='grey', **kwargs): # pragma: no coverage
     """Plot horizontal line."""
@@ -230,6 +232,66 @@ def plot_heatmap(
                offset_yticks=True)
     ax.set_aspect('auto')
     return im, cbar
+
+# %% Plot data tables
+
+def plot_stacked_bar(data, names, xlabels, colors=None, hatches=None, legend=True, 
+                    # format_total=None, bold_label=False, fraction=False, 
+                    legend_kwargs=None, ylabel=None, **kwargs):
+    """Plot data table as a stacked bar chart."""
+    colors, hatches = default_colors_and_hatches(data.shape[0], colors, hatches)
+    N_metrics = len(xlabels)
+    if isinstance(names, pd.MultiIndex): names = [i[-1] for i in names]
+    if ylabel:
+        ylabel, *other = ylabel.split('[')
+        units = other[-1].split(']')[0]
+        units = format_units(units)
+        ylabel += f"[{units}]"
+    # if fraction:
+    #     total = data.sum(axis=0)
+    #     postive_values = np.where(data > 0., data, 0.)
+    #     data *= 100 / postive_values.sum(axis=0, keepdims=True)
+    #     if format_total is None: format_total = lambda x: format(x, '.3g')
+    #     if bold_label:
+    #         bar_labels = [r"$\mathbf{" f"{format_total(i)}" "}$" for i in total]
+    #     else:
+    #         bar_labels = [f"{format_total(i)}" for i in total]
+    # else:
+    #     pass
+    df = pd.DataFrame(data, index=names, columns=xlabels)
+    # values = df.values
+    df.T.plot(kind='bar', stacked=True, edgecolor='k', **kwargs)
+    locs, labels = plt.xticks()
+    plt.xticks(locs, ['\n['.join(i.get_text().split(' [')) for i in labels])
+    if legend: plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.xticks(rotation=0)
+    fig = plt.gcf()
+    ax = plt.gca()
+    if ylabel is not None: ax.set_ylabel(ylabel)
+    # if fraction:
+    #     negative_values = np.where(values < 0., values, 0.).sum(axis=0)
+    #     lb = min(0., 20 * floor(negative_values.min() / 20))
+    #     plt.ylim(lb, 100)
+    #     style_axis(top=False, yticks=np.arange(lb, 101, 20))
+    # else:
+    #     pass
+    xticks, _ = plt.xticks()
+    xlim = plt.xlim()
+    y_twin = ax.twiny()
+    plt.sca(y_twin)
+    y_twin.tick_params(axis='x', top=True, direction="in", length=0)
+    y_twin.zorder = 2
+    plt.xlim(xlim)
+    # if fraction:
+    #     if len(xticks) != len(bar_labels): xticks = xticks[1:]
+    #     plt.xticks(xticks, bar_labels, va='baseline')
+    # else:
+    plt.xticks(xticks, ['' for i in xticks], va='baseline')
+    N_marks = N_metrics
+    axes = np.array([ax])
+    if legend_kwargs is None: legend_kwargs = {}
+    modify_stacked_bars(axes, N_marks, names, colors, hatches, legend, **legend_kwargs)
+    return fig, axes
 
 # %% Plot unit groups
 
@@ -710,7 +772,7 @@ def plot_kde(x, y, nbins=100, ax=None,
              xticks=None, yticks=None, xticklabels=None, yticklabels=None,
              xtick0=True, ytick0=True, xtickf=True, ytickf=True,
              xbox=None, ybox=None, xbox_kwargs=None, ybox_kwargs=None, 
-             aspect_ratio=1.25, **kwargs):
+             aspect_ratio=1.25, cmaps=None, **kwargs):
     axis_not_given = ax is None
     if axis_not_given:
         grid_kw = dict(height_ratios=[1, 8], width_ratios=[8, aspect_ratio])
@@ -726,7 +788,8 @@ def plot_kde(x, y, nbins=100, ax=None,
         ybox = Box(ybox_ax, **(ybox_kwargs or {}))
     xs = x if isinstance(x, tuple) else (x,)
     ys = y if isinstance(y, tuple) else (y,)
-    for x, y in zip(xs, ys):
+    if cmaps is None: cmaps = len(xs) * [None]
+    for x, y, cmap in zip(xs, ys, cmaps):
         # Evaluate a gaussian kde on a regular grid of nbins x nbins over data extents
         k = kde.gaussian_kde([x, y])
         z = k(np.vstack([x, y]))
@@ -736,7 +799,8 @@ def plot_kde(x, y, nbins=100, ax=None,
         
         # 2D Density with shading
         plt.sca(ax)
-        plt.scatter(x, y, c=z, s=1., **kwargs)
+        
+        plt.scatter(x, y, c=z, s=1., cmap=cmap, **kwargs)
         if xbox:
             plt.sca(xbox.axis)
             plot_montecarlo(x, xbox.light, xbox.dark, positions=(xbox.get_position(-1),), vertical=False, outliers=False)
@@ -1112,9 +1176,10 @@ def plot_contour_across_coordinate(X_grid, Y_grid, Z_1d, data,
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
     return fig, axes
             
-def plot_quadrants(x=0, y=0, colors=None, line_color=None,
-                   xlim=None, ylim=None, linewidth=1.0):
-    colors = [[*c.CABBI_teal.tint(90).RGBn, 0.9], None, None, [*c.red.tint(80).RGBn, 0.9]]
+def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None, 
+                    line_color=None, linewidth=1.0):
+    if x is None: x = 0
+    if y is None: y = 0
     if line_color is None: line_color = c.grey.RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
@@ -1122,62 +1187,130 @@ def plot_quadrants(x=0, y=0, colors=None, line_color=None,
     plot_horizontal_line(y, line_color, zorder=0)
     x0, x1 = xlim
     y0, y1 = ylim
-    color = colors[0] # Top left
-    if color is not None:
+    top_left, top_right, bottom_left, bottom_right = color
+    # Top left
+    if top_left is not None:
         plt.fill_between([x0, x], y, y1,
-                         color=color,
+                         color=top_left,
                          linewidth=linewidth,
                          zorder=0)
-    color = colors[1] # Top right
-    if color is not None:
+    # Top right
+    if top_right is not None:
         plt.fill_between([x, x1], y, y1,
-                         color=color,
+                         color=top_right,
                          linewidth=linewidth,
                          zorder=0)
-    color = colors[2] # Bottom left
-    if color is not None:
+    # Bottom left
+    if bottom_left is not None:
         plt.fill_between([x0, x], y0, y,
-                         color=color,
+                         color=bottom_left,
                          linewidth=linewidth,
                          zorder=0)
-    color = colors[3] # Bottom right
-    if color is not None:
+    # Bottom right
+    if bottom_right is not None:
         plt.fill_between([x, x1], y0, y,
-                         color=color,
+                         color=bottom_right,
                          linewidth=linewidth,
                          zorder=0)
-# def plot_contour_across_metric(X_grid, Y_grid, data, 
-#                                xlabel, ylabel, xticks, yticks, 
-#                                metric_bars, Z_value_format=lambda Z: str(Z),
-#                                fillcolor=None):
-#     """Create contour plots and return the figure and the axes."""
-#     ncols = len(metric_bars)
-#     assert data.shape == (*X_grid.shape, ncols), (
-#         "data shape must be (X, Y, M), where (X, Y) is the shape of both X_grid and Y_grid, "
-#         "and M is the number of metric bars"
-#     )
-#     widths = np.ones(ncols + 1)
-#     widths[-1] /= 4
-#     gs_kw = dict(width_ratios=widths)
-#     fig, axes = plt.subplots(ncols=ncols + 1, nrows=1, gridspec_kw=gs_kw)
-#     xticklabels = True
-#     for col in range(ncols):
-#         ax = axes[col]
-#         plt.sca(ax)
-#         style_plot_limits(xticks, yticks)
-#         yticklabels = col == 0
-#         style_axis(ax, xticks, yticks, xticklabels, yticklabels)
-#         if fillcolor is not None: fill_plot(fillcolor)
-#         cp = plt.contourf(X_grid, Y_grid, data[:, :, col],
-#                           cmap=metric_bar.cmap)
-#     cbar_ax = axes[-1]
-#     metric_bar.colorbar(fig, cbar_ax, cp)
-#     for col in range(ncols):
-#         title = Z_value_format(Z_1d[col])
-#         ax = axes[col]
-#         ax.set_title(title)
-#     plt.sca(axes[-1])
-#     plt.axis('off')
-#     set_axes_labels(axes[:-1], xlabel, ylabel)
-#     plt.subplots_adjust(hspace=0.1, wspace=0.1)
-#     return fig, axes
+
+def label_quadrants(
+        x=None, y=None, text=None, color=None,
+    ):
+    xlb, xub = plt.xlim()
+    ylb, yub = plt.ylim()
+    data_given = not (x is None or y is None)
+    if data_given:
+        y_mt_0 = y > 0
+        y_lt_0 = y < 0
+        x_mt_0 = x > 0
+        x_lt_0 = x < 0
+    xpos = lambda x: xlb + (xub - xlb) * x
+    ypos = lambda y: ylb + (yub - ylb) * y
+    xleft = 0.02
+    xright = 0.98
+    ytop = 0.94
+    ybottom = 0.02
+    labeled = 4 * [False]
+    top_left, top_right, bottom_left, bottom_right = text
+    top_left_color, top_right_color, bottom_left_color, bottom_right_color = color
+    if yub > 0. and xlb < 0. and top_left:
+        if data_given and top_left.endswith('()'):
+            p = (y_mt_0 & x_lt_0).sum() / y.size
+            top_left = f"{p:.0%} {top_left.strip('()')}"
+        plt.text(xpos(xleft), ypos(ytop), top_left, color=top_left_color,
+                 horizontalalignment='left', verticalalignment='top',
+                 fontsize=10, fontweight='bold', zorder=10)
+        labeled[0] = True
+    if yub > 0. and xub > 0. and top_right:
+        if data_given and top_right.endswith('()'):
+            p = (y_mt_0 & x_mt_0).sum() / y.size
+            top_right = f"{p:.0%} {top_right.strip('()')}"
+        plt.text(xpos(xright), ypos(ytop), top_right, color=top_right_color,
+                 horizontalalignment='right', verticalalignment='top',
+                 fontsize=10, fontweight='bold', zorder=10)
+        labeled[1] = True
+    if ylb < 0. and xlb < 0. and bottom_left:
+        if data_given and bottom_left.endswith('()'):
+            p = (y_lt_0 & x_lt_0).sum() / y.size
+            bottom_left = f"{p:.0%} {bottom_left.strip('()')}"
+        plt.text(xpos(xleft), ypos(ybottom), bottom_left, color=bottom_left_color,
+                 horizontalalignment='left', verticalalignment='bottom',
+                 fontsize=10, fontweight='bold', zorder=10)
+        labeled[2] = True
+    if ylb < 0. and xub > 0. and bottom_right:
+        if data_given and bottom_right.endswith('()'):
+            p = (y_lt_0 & x_mt_0).sum() / y.size
+            bottom_right = f"{p:.0%} {bottom_right.strip('()')}"
+        plt.text(xpos(xright), ypos(ybottom), bottom_right, color=bottom_right_color,
+                 horizontalalignment='right', verticalalignment='bottom',
+                 fontsize=10, fontweight='bold', zorder=10)
+        labeled[3] = True
+    return labeled
+
+def plot_quadrants(
+        text, data=None, x=None, y=None, rotate=0,
+    ):
+    quadrant_color = deque([
+        (*c.CABBI_teal.tint(90).RGBn, 0.9), None,
+        None, (*c.red.tint(80).RGBn, 0.9)
+    ])
+    text_color = deque([
+        CABBI_colors.teal.shade(50).RGBn, CABBI_colors.grey.shade(75).RGBn, 
+        CABBI_colors.grey.shade(75).RGBn, c.red.shade(50).RGBn
+    ])
+    quadrant_color.rotate(rotate)
+    text_color.rotate(rotate)
+    labeled_quadrants = format_quadrants(
+        data, x, y, text, text_color, quadrant_color,
+    )
+    for i, labeled in enumerate(labeled_quadrants):
+        if labeled: text[i] = '()' if text[i].endswith('()') else None
+    
+    return labeled_quadrants
+
+def format_quadrants(
+        data=None,
+        x=None, y=None, 
+        text=None,
+        text_color=None,
+        quadrant_color=None,
+        xlim=None, ylim=None,
+    ):
+    if data is None: data = (None, None) 
+    color_quadrants(quadrant_color, x, y, xlim, ylim)
+    return label_quadrants(
+        *data, text, text_color,
+    )
+    
+def add_titles(axes, titles, color):
+    if titles:
+        plt.subplots_adjust(
+            top=0.90,
+        )
+        for ax, letter in zip(axes, titles):
+            plt.sca(ax)
+            ylb, yub = plt.ylim()
+            xlb, xub = plt.xlim()
+            plt.text((xlb + xub) * 0.5, ylb + (yub - ylb) * 1.17, letter, color=color,
+                      horizontalalignment='center', verticalalignment='center',
+                      fontsize=12, fontweight='bold')

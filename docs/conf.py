@@ -15,14 +15,14 @@
 import os
 import sys
 
-new_path = ['..\\']
+new_path = ['..\\', '..\\thermosteam\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
 # -- Project information -----------------------------------------------------
 
 project = 'BioSTEAM'
-copyright = '2018-2021, BioSTEAM Development Group'
+copyright = '2018-2022, BioSTEAM Development Group'
 author = 'Yoel Cortes-Pena'
 
 # The short X.Y version
@@ -42,8 +42,15 @@ autodoc_member_order = 'bysource'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
 extensions = [
-    'sphinx_rtd_dark_mode',
+    # 'jupyter_sphinx',
+    # "myst_parser",
+    # "numpydoc",
+    "matplotlib.sphinxext.plot_directive",
+    # "myst_nb",
+    # "sphinx_design",
+    'sphinx_design',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
@@ -54,15 +61,14 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
     'sphinx.ext.autosummary',
+    'sphinx_multitoc_numbering',
     'nbsphinx']
 
-default_dark_mode = False
-
+imgmath_latex_preamble = r'\usepackage{xcolor}'
 nbsphinx_execute = 'never'
 
 # Specify the baseurls for the projects I want to link to
 intersphinx_mapping = {
-    'thermosteam':  ('https://thermosteam.readthedocs.io/en/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
 }
 
@@ -104,19 +110,26 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = 'sphinx_rtd_theme'
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
+
+html_theme = "pydata_sphinx_theme"
+
 #
-# html_theme_options = {}
+html_theme_options = {
+    "logo" : {
+        'image_light': 'logo.png',
+        'image_dark': 'logo_dark.png'
+    }
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ["images"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

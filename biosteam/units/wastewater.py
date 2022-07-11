@@ -253,8 +253,9 @@ class AnaerobicDigestion(Unit):
         biogas.T = waste.T = sludge.T = 35+273.15
         sludge.copy_flow(feed)
         self.reactions(sludge)
+        self.multi_stream.empty()
         self.multi_stream.copy_flow(sludge)
-        self.multi_stream.vle(P=101325, H=self.multi_stream.H)
+        self.multi_stream['g'].receive_vent(self.multi_stream['l'], energy_balance=False)
         biogas.mol[:] = self.multi_stream.imol['g']
         liquid_mol = self.multi_stream.imol['l']
         sludge.mol[:] = liquid_mol * self.sludge_split.data

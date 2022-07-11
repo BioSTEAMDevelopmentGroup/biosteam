@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+import biosteam as bst
 from warnings import warn
 from biosteam.exceptions import GraphicsWarning
 from .utils import colors
@@ -25,11 +26,11 @@ __all__ = ('UnitGraphics',
            'junction_graphics')
 
 # %% Base class for unit graphics
-    
+
 class UnitGraphics:
     """Create a UnitGraphics object that contains specifications for 
     Graphviz node and edge styles."""
-    __slots__ = ('node', 'edge_in', 'edge_out', 'tailor_node_to_unit')
+    __slots__ = ('node', 'dark_node', 'edge_in', 'edge_out', 'tailor_node_to_unit')
     
     def __init__(self, edge_in, edge_out, node, tailor_node_to_unit=None):
         # [dict] Input stream edge settings
@@ -78,13 +79,15 @@ class UnitGraphics:
     
     def get_minimal_node(self, unit):
         """Return minmal node (a single dot)."""
-        return dict(
+        minode = dict(
             name = unit.ID,
             width = '0.1',
             shape = 'oval',
-            fillcolor = "#d2d2d2:white",
             style = 'filled',
+            fillcolor = '#555f69',
+            fontcolor = 'white',
         )
+        return minode
     
     def get_node_tailored_to_unit(self, unit): # pragma: no coverage
         """Return node tailored to unit specifications"""
@@ -110,15 +113,17 @@ left_edge_in = ({'headport': 'w'},)
 top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'})
 
 box_node = {'shape': 'box',
-            'fillcolor': "white:#CDCDCD",
+            'fillcolor': "#555f69",
             'style': 'filled',
             'gradientangle': '0',
             'width': '0.6',
             'height': '0.6',
             'orientation': '0.0',
-            'color': 'black',
+            'color': 'none',
+            'fontcolor': 'white',
             'peripheries': '1',
-            'margin': 'default'}
+            'margin': 'default',
+            'fontname': 'Arial'}
 
 box_graphics = UnitGraphics(single_edge_in, single_edge_out, box_node)
 
@@ -135,7 +140,7 @@ mixer_graphics = UnitGraphics(multi_edge_in, right_edge_out, node)
 node = box_node.copy()
 node['shape'] = 'triangle'
 node['orientation'] = '90'
-node['fillcolor'] = "#bfbfbf:white"
+# node['fillcolor'] = "#bfbfbf:white"
 splitter_graphics = UnitGraphics(left_edge_in, 6 * single_edge_out, node)
 
 # Create distillation column graphics
@@ -166,16 +171,15 @@ def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
         H_in = si.H
         H_out = so.H
         if H_in > H_out:
-            node['fillcolor'] = '#cfecf0'
+            node['fillcolor'] = '#60c1cf'
             node['gradientangle'] = '0'
             line = 'Cooling'
         elif H_in < H_out:
             node['gradientangle'] = '0'
-            node['fillcolor'] = '#fad6d8'
+            node['fillcolor'] = '#ed5a6a'
             line = 'Heating'
         else:
-            node['gradientangle'] = '90'
-            node['fillcolor'] = '#cfecf0:#fad6d8'
+            node['fillcolor'] = box_node['fillcolor']
             line = 'Heat exchanger'
     except:
         line = 'Heat exchanger'
@@ -187,21 +191,19 @@ utility_heat_exchanger_graphics = UnitGraphics(single_edge_in, single_edge_out, 
 # Process heat exchanger network
 node = node.copy()
 node['shape'] = 'circle'
-node['color'] = 'none'
 node['margin'] = '0'
 node['gradientangle'] = '90'
-node['fillcolor'] = '#cfecf0:#fad6d8'
+node['fillcolor'] = '#60c1cf:#ed5a6a'
 def tailor_process_heat_exchanger_node(node, unit): # pragma: no coverage
-    node['name'] = unit.ID + "\n Heat exchanger"
+    node['name'] = unit.ID + "\nHeat exchanger"
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
                                                tailor_process_heat_exchanger_node)
 
 # Process specification graphics
-orange = colors.orange_tint.tint(50)
-orange_tint = orange.tint(75)
 node = box_node.copy()
-node['fillcolor'] = orange_tint.HEX + ':' + orange.HEX
+node['fillcolor'] = "#f98f60"
+node['color'] = '#de7e55'
 node['shape'] = 'note'
 node['margin'] = '0.2'
 def tailor_process_specification_node(node, unit): # pragma: no coverage
@@ -217,7 +219,8 @@ node['peripheries'] = '2'
 system_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 node = box_node.copy()
-node['fillcolor'] = 'white:#79dae8'
+node['fillcolor'] = '#60c1cf'
+node['color'] = '#55a8b5'
 stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 
@@ -230,7 +233,8 @@ def tailor_junction_node(node, unit): # pragma: no coverage
     else:
         node['width'] = '0.1'
         node['shape'] = 'point'
-        node['color'] = node['fillcolor'] = 'black'
+        node['fillcolor'] = bst.preferences.stream_color
+    node['color'] = 'none'
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                  tailor_junction_node)
