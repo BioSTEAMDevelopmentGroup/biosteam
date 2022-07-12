@@ -47,7 +47,7 @@ class PenWidth:
     def __init__(self, name, streams):
         self.name = name
         self.percentiles = np.percentile(
-            [s.get_property(name) for s in streams], 
+            [s.get_property(name) for s in streams if not s.isempty()] or [0], 
             [33, 66, 100]
         )
     

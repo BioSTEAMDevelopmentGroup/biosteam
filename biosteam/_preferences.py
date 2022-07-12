@@ -175,6 +175,6 @@ class BioSTEAMDisplayPreferences:
 
 #: [BioSTEAMDisplayPreferences] All preferences for diagram and results display.
 preferences = BioSTEAMDisplayPreferences()
-# from warnings import filterwarnings; filterwarnings('ignore')
-try: preferences.autoload()
-except: pass 
+from warnings import filterwarnings; filterwarnings('ignore')
+# try: preferences.autoload()
+# except: pass 
