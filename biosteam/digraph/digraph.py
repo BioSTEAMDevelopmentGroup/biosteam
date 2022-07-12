@@ -7,10 +7,11 @@
 # for license details.
 """
 """
-from biosteam.utils.piping import ignore_docking_warnings, Connection
+import numpy as np
+from biosteam.utils.piping import ignore_docking_warnings
 from warnings import warn
 import biosteam as bst
-from graphviz import Digraph, ExecutableNotFound
+from graphviz import Digraph
 from IPython import display
 from thermosteam import Stream
 
@@ -40,6 +41,25 @@ stream_node = dict(
     peripheries='1',
     fontname="Arial",
 )
+
+class PenWidth:
+    __slots__ = ('name', 'percentiles')
+    def __init__(self, name, streams):
+        self.name = name
+        self.percentiles = np.percentile(
+            [s.get_property(name) for s in streams], 
+            [33, 66, 100]
+        )
+    
+    def __call__(self, stream):
+        value = stream.get_property(self.name)
+        for width, percentile in enumerate(self.percentiles, 1):
+            if value <= percentile: return str(width * 0.6 + 0.4)
+        raise Exception(f'{self.name} beyond maximum')
+    
+    def __repr__(self):
+        return f"{type(self).__name__}(name={repr(self.name)}, scale={self.scale:.3g})"
+
 
 preferences = bst.preferences
 
@@ -269,7 +289,7 @@ def get_all_connections(streams):
             for s in streams 
             if (s._source or s._sink)}
 
-def add_connection(f: Digraph, connection, unit_names, **edge_options):
+def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_options):
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
@@ -277,6 +297,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
     f.attr('edge', label='', taillabel='', headlabel='', labeldistance='2',
            **edge_options)
     if stream:
+        penwidth = pen_width(stream) if pen_width else '1.0'
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -289,7 +310,7 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
-                   tailport='e', style=style, **inlet_options)
+                   tailport='e', style=style, penwidth=penwidth, **inlet_options)
             f.edge(stream.ID, unit_names[sink])
         elif has_source and not has_sink:
             # Product stream case
@@ -303,14 +324,14 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
-                   headport='w', style=style, **outlet_options)
+                   headport='w', style=style, penwidth=penwidth, **outlet_options)
             f.edge(unit_names[source], stream.ID)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
-                   **inlet_options, **outlet_options)
+                   **inlet_options, penwidth=penwidth, **outlet_options)
             label = stream.ID if preferences.label_streams else ''
             f.edge(unit_names[source], unit_names[sink], label=label)
         else:
@@ -324,6 +345,12 @@ def add_connection(f: Digraph, connection, unit_names, **edge_options):
         f.edge(unit_names[source], unit_names[sink], style='dashed')
 
 def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=None, **edge_options):
+    stream_width = preferences.stream_width
+    if stream_width:
+        pen_width = PenWidth(stream_width, [i.stream for i in connections])
+    else:
+        pen_width = None
+    
     # Set attributes for graph and streams
     f.attr('node', **stream_node)
     f.attr('graph', overlap='orthoyx', fontname="Arial",
@@ -343,6 +370,7 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
         add_connection(f, connection, unit_names, 
                        color=color or preferences.stream_color,
                        fontcolor=fontcolor or preferences.label_color,
+                       pen_width=pen_width,
                        **edge_options)
 
 def display_digraph(digraph, format): # pragma: no coverage

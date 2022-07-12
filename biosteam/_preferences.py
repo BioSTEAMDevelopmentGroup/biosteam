@@ -17,7 +17,7 @@ class BioSTEAMDisplayPreferences:
     """Class containing preferences for BioSTEAM diagram and results display."""
     __slots__ = ('label_streams', 'autodisplay', 'minimal_nodes', 'number_path',
                  'profile', 'raise_exception', 'background_color', 'stream_color',
-                 'label_color', 'label_color', 'depth_colors')
+                 'label_color', 'label_color', 'depth_colors', 'stream_width')
     
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
@@ -52,6 +52,9 @@ class BioSTEAMDisplayPreferences:
         
         #: Color of subsystem clusters in BioSTEAM graphviz diagrams.
         self.depth_colors = ['#7ac0836f']
+        
+        #: Property to scale stream widths in BioSTEAM graphviz diagrams.
+        self.stream_width = 'F_mass'
         
     def reset(self, save=False):
         """Reset to BioSTEAM defaults."""
@@ -156,6 +159,7 @@ class BioSTEAMDisplayPreferences:
         self.P = data['P']
         self.composition = data['composition']
         self.N = data['N']
+        self.stream_width = data.get('stream_width', 'F_mass')
         
     def save(self):
         folder = os.path.dirname(__file__)
