@@ -40,34 +40,14 @@ filter_cake
 rejected_water_and_blowdown
 Yeast
 s4
-s36
 s60
+s36
 " [color="#55a8b5" fillcolor="#60c1cf" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 	graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
 	edge [dir=foward fontname=Arial]
 	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c style=dashed tailport=c]
-	"sugarcane_sys
-System" -> "s.7
-s.9
-vinasse
-emissions
-s59
-wastewater
-evaporation_and_blowdown
-ethanol
-vent
-ash_disposal
-filter_cake
-rejected_water_and_blowdown
-Yeast
-s4
-s36
-s60
-" [label=""]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c style=dashed tailport=c]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=dashed tailport=c]
 	"s.6
 recirculated_chilled_water
 sugarcane
@@ -93,4 +73,24 @@ dilution_water
 cooling_tower_chemicals
 " -> "sugarcane_sys
 System" [label=""]
+	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=dashed tailport=c]
+	"sugarcane_sys
+System" -> "s.7
+s.9
+vinasse
+emissions
+s59
+wastewater
+evaporation_and_blowdown
+ethanol
+vent
+ash_disposal
+filter_cake
+rejected_water_and_blowdown
+Yeast
+s4
+s60
+s36
+" [label=""]
 }
