@@ -187,7 +187,7 @@ class BioSTEAMDisplayPreferences:
         self.N = data['N']
         self.stream_width = data.get('stream_width', 'F_mass')
         self.unit_color = data.get('unit_color', '#555f69')
-        self.unit_label_color = data.get('unit_color', 'white')
+        self.unit_label_color = data.get('unit_label_color', 'white')
         self.unit_periphery_color = data.get('unit_periphery_color', '#90918e')
         
     def save(self):
