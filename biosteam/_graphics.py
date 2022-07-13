@@ -84,16 +84,22 @@ class UnitGraphics:
             width = '0.1',
             shape = 'oval',
             style = 'filled',
-            fillcolor = '#555f69',
-            fontcolor = 'white',
+            fillcolor = bst.preferences.unit_color,
+            fontcolor = bst.preferences.unit_label_color,
         )
         return minode
     
     def get_node_tailored_to_unit(self, unit): # pragma: no coverage
         """Return node tailored to unit specifications"""
-        node = self.node
+        node = self.node.copy()
         node['name'] = unit.ID + '\n' + unit.line
         tailor_node_to_unit = self.tailor_node_to_unit
+        if 'fillcolor' not in node:
+            node['fillcolor'] = bst.preferences.unit_color
+        if 'fontcolor' not in node:
+            node['fontcolor'] = bst.preferences.unit_label_color
+        if 'color' not in node:
+            node['color'] = bst.preferences.unit_periphery_color
         if tailor_node_to_unit:
             tailor_node_to_unit(node, unit)
         return node
@@ -113,14 +119,11 @@ left_edge_in = ({'headport': 'w'},)
 top_bottom_edge_out = ({'tailport': 'n'}, {'tailport': 's'})
 
 box_node = {'shape': 'box',
-            'fillcolor': "#555f69",
             'style': 'filled',
             'gradientangle': '0',
             'width': '0.6',
             'height': '0.6',
             'orientation': '0.0',
-            'color': 'none',
-            'fontcolor': 'white',
             'peripheries': '1',
             'margin': 'default',
             'fontname': 'Arial'}
@@ -162,7 +165,6 @@ mixer_settler_graphics = UnitGraphics(multi_edge_in, top_bottom_edge_out, node)
 # Single stream heat exchanger node
 node = box_node.copy()
 node['shape'] = 'circle'
-node['color'] = 'none'
 node['margin'] = '0'
 def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
     try:
@@ -171,15 +173,18 @@ def tailor_utility_heat_exchanger_node(node, unit): # pragma: no coverage
         H_in = si.H
         H_out = so.H
         if H_in > H_out:
+            node['color'] = 'none'
             node['fillcolor'] = '#60c1cf'
+            node['fontcolor'] = 'white'
             node['gradientangle'] = '0'
             line = 'Cooling'
         elif H_in < H_out:
+            node['color'] = 'none'
             node['gradientangle'] = '0'
             node['fillcolor'] = '#ed5a6a'
+            node['fontcolor'] = 'white'
             line = 'Heating'
         else:
-            node['fillcolor'] = box_node['fillcolor']
             line = 'Heat exchanger'
     except:
         line = 'Heat exchanger'
@@ -196,6 +201,8 @@ node['gradientangle'] = '90'
 node['fillcolor'] = '#60c1cf:#ed5a6a'
 def tailor_process_heat_exchanger_node(node, unit): # pragma: no coverage
     node['name'] = unit.ID + "\nHeat exchanger"
+    node['fontcolor'] = 'white'
+    node['color'] = 'none'
 
 process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edge_out, node,
                                                tailor_process_heat_exchanger_node)
@@ -204,6 +211,7 @@ process_heat_exchanger_graphics = UnitGraphics(2 * single_edge_in, 2 *single_edg
 node = box_node.copy()
 node['fillcolor'] = "#f98f60"
 node['color'] = '#de7e55'
+node['fontcolor'] = 'white'
 node['shape'] = 'note'
 node['margin'] = '0.2'
 def tailor_process_specification_node(node, unit): # pragma: no coverage
@@ -215,12 +223,13 @@ process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, n
 
 # System unit for creating diagrams
 node = box_node.copy()
-node['peripheries'] = '2'    
+node['peripheries'] = '1'    
 system_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 node = box_node.copy()
 node['fillcolor'] = '#60c1cf'
 node['color'] = '#55a8b5'
+node['fontcolor'] = 'white'
 stream_unit = UnitGraphics(multi_edge_in, multi_edge_out, node)
 
 

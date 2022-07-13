@@ -36,7 +36,7 @@ stream_node = dict(
     orientation='0',
     width='0.6', 
     height='0.6', 
-    color='#448690', 
+    color='#90918e', 
     margin='0',
     peripheries='1',
     fontname="Arial",
@@ -278,7 +278,11 @@ def get_unit_names(f: Digraph, units):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
-        f.node(**node)
+        try:
+            f.node(**node)
+        except:
+            print(node)
+            breakpoint()
     return unit_names
 
 def update_digraph_from_units_and_connections(f: Digraph, units, connections):
@@ -297,11 +301,20 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
     f.attr('edge', label='', taillabel='', headlabel='', labeldistance='2',
            **edge_options)
     if stream:
+        lines = []
+        line = ''
+        for word in stream.ID.split('_'):
+            line += ' ' + word
+            if len(line) > 10: 
+                lines.append(line)
+                line = ''
+        if line: lines.append(line)
+        ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
-            f.node(stream.ID,
+            f.node(ID,
                    width='0.15', 
                    height='0.15',
                    shape='diamond',
@@ -309,12 +322,12 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    color=preferences.stream_color,
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
-            f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
+            f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    tailport='e', style=style, penwidth=penwidth, **inlet_options)
-            f.edge(stream.ID, unit_names[sink])
+            f.edge(ID, unit_names[sink])
         elif has_source and not has_sink:
             # Product stream case
-            f.node(stream.ID, 
+            f.node(ID, 
                    width='0.15', 
                    height='0.2',
                    shape='triangle',
@@ -323,19 +336,19 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    color=preferences.stream_color,
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)
-            f.attr('edge', arrowtail='none', arrowhead='none', label=stream.ID,
+            f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    headport='w', style=style, penwidth=penwidth, **outlet_options)
-            f.edge(unit_names[source], stream.ID)
+            f.edge(unit_names[source], ID)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
                    **inlet_options, penwidth=penwidth, **outlet_options)
-            label = stream.ID if preferences.label_streams else ''
+            label = ID if preferences.label_streams else ''
             f.edge(unit_names[source], unit_names[sink], label=label)
         else:
-            f.node(stream.ID)
+            f.node(ID)
     elif has_sink and has_source:
         # Missing process stream case
         inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
@@ -352,10 +365,10 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
         pen_width = None
     
     # Set attributes for graph and streams
-    f.attr('node', **stream_node)
     f.attr('graph', overlap='orthoyx', fontname="Arial",
-           outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
+           outputorder='edgesfirst', nodesep='0.5', ranksep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward', fontname='Arial')
+    f.attr('node', **stream_node)
     index = {j: i for i, j in unit_names.items()}
     length = len(index)
     def key(x):

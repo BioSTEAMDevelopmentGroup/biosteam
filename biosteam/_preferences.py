@@ -17,7 +17,8 @@ class BioSTEAMDisplayPreferences:
     """Class containing preferences for BioSTEAM diagram and results display."""
     __slots__ = ('label_streams', 'autodisplay', 'minimal_nodes', 'number_path',
                  'profile', 'raise_exception', 'background_color', 'stream_color',
-                 'label_color', 'label_color', 'depth_colors', 'stream_width')
+                 'label_color', 'label_color', 'depth_colors', 'stream_width',
+                 'unit_color', 'unit_label_color', 'unit_periphery_color')
     
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
@@ -55,6 +56,15 @@ class BioSTEAMDisplayPreferences:
         
         #: Property to scale stream widths in BioSTEAM graphviz diagrams.
         self.stream_width = 'F_mass'
+        
+        #: Unit node fill color in BioSTEAM graphviz diagrams.
+        self.unit_color = '#555f69'
+        
+        #: Unit node label color in BioSTEAM graphviz diagrams.
+        self.unit_label_color = 'white'
+        
+        #: Unit node periphery color in BioSTEAM graphviz diagrams.
+        self.unit_periphery_color = '#90918e'
         
     def reset(self, save=False):
         """Reset to BioSTEAM defaults."""
@@ -110,11 +120,15 @@ class BioSTEAMDisplayPreferences:
         for i, j in kwargs.items(): setattr(self, i, j)
         if save: self.save()
         
-    def _set_mode(self, stream, label, bg, cluster, save):
+    def _set_mode(self, stream, label, bg, cluster, unit_color, 
+                  unit_label_color, unit_periphery_color, save):
         self.background_color = bg
         self.stream_color = stream
         self.label_color = label
         self.depth_colors = cluster
+        self.unit_color = unit_color
+        self.unit_label_color = unit_label_color
+        self.unit_periphery_color = unit_periphery_color
         if save: self.save()
     
     def classic_mode(self, 
@@ -122,17 +136,29 @@ class BioSTEAMDisplayPreferences:
                      label='#90918e', 
                      bg='transparent',
                      cluster=('#7ac0836f',),
+                     unit_color='#555f69',
+                     unit_label_color='white',
+                     unit_periphery_color='none',
                      save=False):
         """Set diagram display colors to classic mode."""
-        self._set_mode(stream, label, bg, cluster, save)
+        self._set_mode(stream, label, bg, cluster, unit_color, 
+                       unit_label_color, unit_periphery_color, save)
     
-    def dark_mode(self, stream='#98a2ad', label='#e5e5e5', bg='#1212129f', cluster=['#f3c3546f'], save=False):
+    def dark_mode(self, stream='#98a2ad', label='#e5e5e5', bg='#1212129f',
+                  cluster=['#f3c3546f'], unit_color='#555f69', 
+                  unit_label_color='white', unit_periphery_color='none',
+                  save=False):
         """Set diagram display colors to dark mode."""
-        self._set_mode(stream, label, bg, cluster, save)
+        self._set_mode(stream, label, bg, cluster, unit_color, unit_label_color,
+                       unit_periphery_color, save)
     
-    def light_mode(self, stream='#4e4e4e', label='#4e4e4e', bg='#ffffffdf', cluster=['#7ac083af'], save=False):
+    def light_mode(self, stream='#4e4e4e', label='#4e4e4e', bg='#ffffffff',
+                   cluster=['#7ac083af'], unit_color='white:#CDCDCD', 
+                   unit_label_color='black', unit_periphery_color='#4e4e4e',
+                   save=False):
         """Set diagram display colors to light mode."""
-        self._set_mode(stream, label, bg, cluster, save)
+        self._set_mode(stream, label, bg, cluster, unit_color, unit_label_color, 
+                       unit_periphery_color, save)
     
     night_mode = dark_mode
     day_mode = light_mode
@@ -160,6 +186,9 @@ class BioSTEAMDisplayPreferences:
         self.composition = data['composition']
         self.N = data['N']
         self.stream_width = data.get('stream_width', 'F_mass')
+        self.unit_color = data.get('unit_color', '#555f69')
+        self.unit_label_color = data.get('unit_color', 'white')
+        self.unit_periphery_color = data.get('unit_periphery_color', '#90918e')
         
     def save(self):
         folder = os.path.dirname(__file__)
