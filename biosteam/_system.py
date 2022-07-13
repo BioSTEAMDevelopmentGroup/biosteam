@@ -2447,6 +2447,7 @@ class AgileSystem:
     get_utility_flow = System.get_utility_flow
     get_cooling_duty = System.get_cooling_duty
     get_heating_duty = System.get_heating_duty
+    rescale = System.rescale
 
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, annual_operation_metrics=None,
@@ -2468,6 +2469,9 @@ class AgileSystem:
 
     def _downstream_system(self, unit):
         return self
+
+    def get_all_recycles(self):
+        return set(sum([i.system.get_all_recycles() for i in self.operation_modes], []))
 
     def operation_mode(self, system, operating_hours, **data):
         """
