@@ -48,12 +48,10 @@ given temperatures and pressures whenever estimating properties.
    :align: center
 
 A functor-oriented class diagram describes the relationship between the core
-classes of Thermosteam. Overall, the diagram follows the Universal Modeling
-Language (UML) guidelines except for a few modifications. However,
-the function signature of callable objects is presented after their name. 
-For example, an ActivityCoefficients object returns an array of activity 
-coefficients when called with the liquid molar composition (x) and 
-temperature (T). 
+classes of Thermosteam. The function signature of callable objects is 
+presented after their name. For example, an ActivityCoefficients object 
+returns an array of activity coefficients when called with the liquid molar 
+composition (x) and temperature (T). 
 
 Related Projects
 ----------------
