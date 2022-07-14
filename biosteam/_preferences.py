@@ -18,7 +18,8 @@ class BioSTEAMDisplayPreferences:
     __slots__ = ('label_streams', 'autodisplay', 'minimal_nodes', 'number_path',
                  'profile', 'raise_exception', 'background_color', 'stream_color',
                  'label_color', 'label_color', 'depth_colors', 'stream_width',
-                 'unit_color', 'unit_label_color', 'unit_periphery_color')
+                 'unit_color', 'unit_label_color', 'unit_periphery_color',
+                 'fill_cluster')
     
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
@@ -65,6 +66,9 @@ class BioSTEAMDisplayPreferences:
         
         #: Unit node periphery color in BioSTEAM graphviz diagrams.
         self.unit_periphery_color = '#90918e'
+        
+        #: Whether to fill subsystem boxes in BioSTEAM 'cluster' diagrams.
+        self.fill_cluster = False
         
     def reset(self, save=False):
         """Reset to BioSTEAM defaults."""
@@ -121,7 +125,7 @@ class BioSTEAMDisplayPreferences:
         if save: self.save()
         
     def _set_mode(self, stream, label, bg, cluster, unit_color, 
-                  unit_label_color, unit_periphery_color, save):
+                  unit_label_color, unit_periphery_color, fill_cluster, save):
         self.background_color = bg
         self.stream_color = stream
         self.label_color = label
@@ -129,6 +133,7 @@ class BioSTEAMDisplayPreferences:
         self.unit_color = unit_color
         self.unit_label_color = unit_label_color
         self.unit_periphery_color = unit_periphery_color
+        self.fill_cluster = fill_cluster
         if save: self.save()
     
     def classic_mode(self, 
@@ -139,26 +144,28 @@ class BioSTEAMDisplayPreferences:
                      unit_color='#555f69',
                      unit_label_color='white',
                      unit_periphery_color='none',
+                     fill_cluster=False,
                      save=False):
         """Set diagram display colors to classic mode."""
         self._set_mode(stream, label, bg, cluster, unit_color, 
-                       unit_label_color, unit_periphery_color, save)
+                       unit_label_color, unit_periphery_color,
+                       fill_cluster, save)
     
-    def dark_mode(self, stream='#98a2ad', label='#e5e5e5', bg='#1212129f',
-                  cluster=['#f3c3546f'], unit_color='#555f69', 
+    def dark_mode(self, stream='#98a2ad', label='#e5e5e5', bg='transparent',
+                  cluster=['#5172512f'], unit_color='#555f69', 
                   unit_label_color='white', unit_periphery_color='none',
-                  save=False):
+                  fill_cluster=True, save=False):
         """Set diagram display colors to dark mode."""
         self._set_mode(stream, label, bg, cluster, unit_color, unit_label_color,
-                       unit_periphery_color, save)
+                       unit_periphery_color, fill_cluster, save)
     
     def light_mode(self, stream='#4e4e4e', label='#4e4e4e', bg='#ffffffff',
-                   cluster=['#7ac083af'], unit_color='white:#CDCDCD', 
+                   cluster=['#7ac0832f'], unit_color='white:#CDCDCD', 
                    unit_label_color='black', unit_periphery_color='#4e4e4e',
-                   save=False):
+                   fill_cluster=True, save=False):
         """Set diagram display colors to light mode."""
         self._set_mode(stream, label, bg, cluster, unit_color, unit_label_color, 
-                       unit_periphery_color, save)
+                       unit_periphery_color, fill_cluster, save)
     
     night_mode = dark_mode
     day_mode = light_mode
@@ -189,6 +196,7 @@ class BioSTEAMDisplayPreferences:
         self.unit_color = data.get('unit_color', '#555f69')
         self.unit_label_color = data.get('unit_label_color', 'white')
         self.unit_periphery_color = data.get('unit_periphery_color', '#90918e')
+        self.fill_cluster = data.get('fill_cluster', False)
         
     def save(self):
         folder = os.path.dirname(__file__)

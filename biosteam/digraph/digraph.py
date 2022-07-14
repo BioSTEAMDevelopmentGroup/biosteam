@@ -227,12 +227,15 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     excluded_connections.update(connections)
     depth += 1
     N_colors = len(preferences.depth_colors)
+    color = preferences.depth_colors[(depth - 1) % N_colors]
+    if preferences.fill_cluster:
+        kwargs = dict(bgcolor=color, penwidth='0.2', color=preferences.stream_color)
+    else:
+        kwargs = dict(color=color, bgcolor='none', penwidth='5', style='dashed')
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
             c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", 
-                   color=preferences.depth_colors[(depth - 1) % N_colors], bgcolor='none',
-                   style='dashed', fontcolor='#90918e',
-                   penwidth='5')
+                   fontcolor=preferences.label_color, **kwargs)
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
 def digraph_from_units_and_connections(units, connections, **graph_attrs):
@@ -278,11 +281,7 @@ def get_unit_names(f: Digraph, units):
                 info = time
         if info: name = f"[{info}] {name}"
         unit_names[u] = node['name'] = name
-        try:
-            f.node(**node)
-        except:
-            print(node)
-            breakpoint()
+        f.node(**node)
     return unit_names
 
 def update_digraph_from_units_and_connections(f: Digraph, units, connections):
@@ -297,7 +296,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
     source, source_index, stream, sink_index, sink = connection
     has_source = source in unit_names
     has_sink = sink in unit_names
-    style = 'dashed' if stream.isempty() else 'solid'
+    style = 'dashed' if (stream.isempty() and not isinstance(stream.source, bst.units.DiagramOnlyStreamUnit)) else 'solid'
     f.attr('edge', label='', taillabel='', headlabel='', labeldistance='2',
            **edge_options)
     if stream:
