@@ -75,6 +75,8 @@ def blank_digraph(format='svg', maxiter='10000000',
     f = Digraph(format=format)
     f.attr(rankdir='LR', maxiter=maxiter, Damping=Damping, K=K,
            penwidth='0', color='none', bgcolor=preferences.background_color,
+           fontcolor=preferences.label_color, fontname="Arial",
+           labeljust='l', labelloc='t', fontsize='24',
            **graph_attrs)
     return f
 
@@ -235,7 +237,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
             c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", 
-                   fontcolor=preferences.label_color, **kwargs)
+                   labeljust='l', fontcolor=preferences.label_color, **kwargs)
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
 def digraph_from_units_and_connections(units, connections, **graph_attrs):
@@ -319,7 +321,6 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    shape='diamond',
                    fillcolor='#f98f60',
                    color=preferences.stream_color,
-                   penwidth=penwidth,
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
@@ -333,7 +334,6 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    shape='triangle',
                    orientation='270',
                    fillcolor='#f98f60',
-                   penwidth=penwidth,
                    color=preferences.stream_color,
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)

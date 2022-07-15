@@ -153,7 +153,7 @@ class Flowsheet:
         return new
     
     def diagram(self, kind=None, file=None, format=None, display=True,
-                number=None, profile=None, label=None, **graph_attrs):
+                number=None, profile=None, label=None, title=None, **graph_attrs):
         """
         Display all units and attached streams.
         
@@ -180,9 +180,10 @@ class Flowsheet:
             Whether to label the ID of streams with sources and sinks.
             
         """
+        if title is None: title = ''
         return self.create_system(None).diagram(kind or 'thorough', file, format,
                                                 display, number, profile, label,
-                                                **graph_attrs)
+                                                title, **graph_attrs)
     
     def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None,
                       operating_hours=None, lang_factor=None):

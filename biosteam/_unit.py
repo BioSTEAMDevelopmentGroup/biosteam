@@ -1298,7 +1298,7 @@ class Unit:
             units.add(self)
         else:
             units = [self]
-        return bst.System('', units).diagram(format=format, display=display, file=file, **graph_attrs)
+        return bst.System(None, units).diagram(format=format, display=display, file=file, title='', **graph_attrs)
     
     ### Net input and output flows ###
     

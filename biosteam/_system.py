@@ -1216,7 +1216,7 @@ class System:
         return digraph_from_system(self, **graph_attrs)
 
     def diagram(self, kind=None, file=None, format=None, display=True,
-                number=None, profile=None, label=None, **graph_attrs):
+                number=None, profile=None, label=None, title=None, **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
         the system.
@@ -1247,6 +1247,8 @@ class System:
         self._load_configuration()
         if kind is None: kind = 1
         graph_attrs['format'] = format or 'png'
+        if title is None: title = ''
+        graph_attrs['label'] = title
         preferences = bst.preferences
         original = (preferences.number_path,
                     preferences.label_streams,
