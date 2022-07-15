@@ -319,6 +319,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    shape='diamond',
                    fillcolor='#f98f60',
                    color=preferences.stream_color,
+                   penwidth=penwidth,
                    label='')
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
@@ -332,6 +333,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
                    shape='triangle',
                    orientation='270',
                    fillcolor='#f98f60',
+                   penwidth=penwidth,
                    color=preferences.stream_color,
                    label='')
             outlet_options = source._graphics.get_outlet_options(source, source_index)
