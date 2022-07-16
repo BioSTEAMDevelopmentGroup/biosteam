@@ -58,7 +58,7 @@ jobs:
         pip install git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
         pip install git+https://github.com/QSD-Group/QSDsan.git
         pip install git+https://github.com/QSD-Group/EXPOsan.git
-    - name: Test with numba
+    - name: Test without numba
       run: |
         pytest . -v --disable-numba=1 --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"
       env:
