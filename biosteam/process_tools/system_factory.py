@@ -68,10 +68,6 @@ class SystemFactory:
         Whether the number of inlets must match the number expected.
     fixed_outs_size : bool, optional
         Whether the number of outlets must match the number expected.
-    optional_ins_index : list[int], optional
-        Indexes of inlets that need not be connected to any unit within the system.
-    optional_outs_index : list[int], optional
-        Indexes of inlets that need not be connected to any unit within the system.
     fthermo : callable, optional
         Function that returns a :class:`~thermosteam.Thermo` object. The SystemFactory
         object resorts to this function if no default thermodynamic property package
@@ -161,14 +157,11 @@ class SystemFactory:
         'f', 'ID', 'ins', 'outs',
         'fixed_ins_size',
         'fixed_outs_size',
-        'optional_ins_index',
-        'optional_outs_index',
         'fthermo',
     )
     
     def __new__(cls, f=None, ID=None, ins=None, outs=None,
                 fixed_ins_size=True, fixed_outs_size=True,
-                optional_ins_index=(), optional_outs_index=(),
                 fthermo=None):
         if f:
             params = list(signature(f).parameters)
@@ -186,14 +179,11 @@ class SystemFactory:
             self.outs = outs or []
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
-            self.optional_ins_index = optional_ins_index
-            self.optional_outs_index = optional_outs_index
             self.fthermo = fthermo
             return self
         else:
             return lambda f: cls(f, ID, ins, outs, 
                                  fixed_ins_size, fixed_outs_size,
-                                 optional_ins_index, optional_outs_index,
                                  fthermo)
     
     def __call__(self, ID=None, ins=None, outs=None, mockup=False, area=None, udct=None, 
@@ -211,8 +201,8 @@ class SystemFactory:
                 irrelevant_units = system._irrelevant_units
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
-        system.load_inlet_ports(ins, optional=[ins[i] for i in self.optional_ins_index])
-        system.load_outlet_ports(outs, optional=[outs[i] for i in self.optional_outs_index])
+        system.load_inlet_ports(ins)
+        system.load_outlet_ports(outs)
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if udct: unit_dct = {i.ID: i for i in system.units}
         if rename: 

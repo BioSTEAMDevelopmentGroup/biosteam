@@ -194,28 +194,22 @@ class MockSystem:
             self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
             return outs
 
-    def load_inlet_ports(self, inlets, optional=()):
+    def load_inlet_ports(self, inlets):
         """Load inlet ports to system."""
         all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets:
             if i not in all_inlets:
-                if i in optional:
-                    inlets.remove(i)
-                else:
-                    raise ValueError(f'{i} is not an inlet')
+                raise ValueError(f'{i} is not an inlet')
         self._ins = StreamPorts.from_inlets(inlets)
 
-    def load_outlet_ports(self, outlets, optional=()):
+    def load_outlet_ports(self, outlets):
         """Load outlet ports to system."""
         all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets:
             if i not in all_outlets:
-                if i in optional:
-                    outlets.remove(i)
-                else:
-                    raise ValueError(f'{i} is not an outlet')
+                raise ValueError(f'{i} is not an outlet')
         self._outs = StreamPorts.from_outlets(outlets)
 
     def __enter__(self):
