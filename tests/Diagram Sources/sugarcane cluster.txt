@@ -1,5 +1,5 @@
 digraph {
-	Damping=0.995 K=0.5 bgcolor=transparent color=none maxiter=10000000 penwidth=0 rankdir=LR
+	Damping=0.995 K=0.5 bgcolor=transparent color=none fontcolor="#e5e5e5" fontname=Arial fontsize=24 label="" labeljust=l labelloc=t maxiter=10000000 penwidth=0 rankdir=LR
 	"U101
 Conveying belt" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"U102
@@ -75,7 +75,7 @@ Mixer" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientan
 	"D303
 Divided Distillation Column" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=1.2 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=1]
 	"H303
-Heat exchanger" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=0 orientation=0.0 peripheries=1 shape=circle style=filled width=0.6]
+Cooling" [color=none fillcolor="#60c1cf" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=0 orientation=0.0 peripheries=1 shape=circle style=filled width=0.6]
 	"U301
 Molecular sieve" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"H304
@@ -110,543 +110,566 @@ Chilled water package" [color=none fillcolor="#555f69" fontcolor=white fontname=
 Cooling tower" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"PWC
 Process water center" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
-	node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-	graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+	graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 	edge [dir=foward fontname=Arial]
-	node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-	graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+	node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+	graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 	edge [dir=foward fontname=Arial]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s58 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s58 penwidth=1.0 style=dashed tailport=e]
-	s58 -> "PWC
-Process water center"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"U202
-Conveying belt" -> "BT
-Boiler turbogenerator" [label=bagasse]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"U102
-Magnetic separator" -> "U103
-Shredder" [label=s3]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
-	"P305
-Pump" -> "M304
-Mixer" [label=s53]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	lime [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=lime penwidth=1.0 style=solid tailport=e]
-	lime -> "T204
-Mix tank"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
-	"M301
-Mixer" -> "H301
-Cooling" [label=s28]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+	node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 	"U101
 Conveying belt" -> "U102
-Magnetic separator" [label=s2]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	emissions [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=emissions penwidth=1.6 style=solid tailport=c]
-	"BT
-Boiler turbogenerator" -> emissions
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=e]
-	"M304
-Mixer" -> "T304
-Storage tank" [label=s54]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	"s.6" [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label="s.6" penwidth=2.1999999999999997 style=solid tailport=e]
-	"s.6" -> "CT
+Magnetic separator" [label=" s2"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s.6" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s.6" penwidth=2.1999999999999997 style=solid tailport=e]
+	" s.6" -> "CT
 Cooling tower"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"H201
-Heating" -> "T203
-Mix tank" [label=s12]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"S301
-Splitter" -> "M301
-Mixer" [label=s25]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"F301
-Multi-Effect Evaporator" -> "P306
-Pump" [label=s27]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s36" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s36" penwidth=1.0 style=dashed tailport=c]
+	"T305
+Mix tank" -> " s36"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" recirculated
+ chilled water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" recirculated
+ chilled water" penwidth=2.1999999999999997 style=solid tailport=e]
+	" recirculated
+ chilled water" -> "CWP
+Chilled water package"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 	"T203
 Mix tank" -> "P201
-Pump" [label=s13]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	"s.7" [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label="s.7" penwidth=2.1999999999999997 style=solid tailport=c]
-	"CT
-Cooling tower" -> "s.7"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	stripping_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=stripping_water penwidth=1.6 style=solid tailport=e]
-	stripping_water -> "D301
-Vent scrubber"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s59 [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=s59 penwidth=1.6 style=solid tailport=c]
-	"PWC
-Process water center" -> s59
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
-	"M302
-Mixer" -> "P301
-Pump" [label=s24]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s36 [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=s36 penwidth=1.0 style=dashed tailport=c]
-	"T305
-Mix tank" -> s36
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Pump" [label=" s13"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"H304
 Cooling" -> "T302
-Storage tank" [label=s49]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"P201
-Pump" -> "T205
-Mix tank" [label=s14]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	"s.9" [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label="s.9" penwidth=2.1999999999999997 style=solid tailport=c]
-	"CWP
-Chilled water package" -> "s.9"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=w penwidth=2.1999999999999997 style=solid tailport=c]
-	"S202
-Vibrating screen" -> "S301
-Splitter" [label=screened_juice]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"T202
-Storage tank" -> "H201
-Heating" [label=s6]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
-	"T303
-Storage tank" -> "P305
-Pump" [label=s52]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	vent [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=vent penwidth=1.0 style=solid tailport=c]
-	"D301
-Vent scrubber" -> vent
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"T205
-Mix tank" -> "P202
-Pump" [label=s16]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s62 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s62 penwidth=1.0 style=dashed tailport=e]
-	s62 -> "T305
-Mix tank"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Storage tank" [label=" s49"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"T302
 Storage tank" -> "P304
-Pump" [label=s50]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	ethanol [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=ethanol penwidth=1.6 style=solid tailport=c]
-	"T304
-Storage tank" -> ethanol
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	sugarcane [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=sugarcane penwidth=2.1999999999999997 style=solid tailport=e]
-	sugarcane -> "U101
-Conveying belt"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	denaturant [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=denaturant penwidth=1.0 style=solid tailport=e]
-	denaturant -> "T303
-Storage tank"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	recirculated_chilled_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=recirculated_chilled_water penwidth=2.1999999999999997 style=solid tailport=e]
-	recirculated_chilled_water -> "CWP
-Chilled water package"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	wastewater [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=wastewater penwidth=1.6 style=solid tailport=e]
-	"M305
-Mixer" -> wastewater
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s55 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s55 penwidth=1.0 style=dashed tailport=e]
-	s55 -> "BT
-Boiler turbogenerator"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"P306
-Pump" -> "M301
-Mixer" [label=s37]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	boiler_makeup_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=boiler_makeup_water penwidth=1.0 style=solid tailport=e]
-	boiler_makeup_water -> "BT
-Boiler turbogenerator"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	makeup_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=makeup_water penwidth=1.6 style=solid tailport=e]
-	makeup_water -> "PWC
+Pump" [label=" s50"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s58" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s58" penwidth=1.0 style=dashed tailport=e]
+	" s58" -> "PWC
 Process water center"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	cooling_tower_makeup_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=cooling_tower_makeup_water penwidth=1.6 style=solid tailport=e]
-	cooling_tower_makeup_water -> "CT
-Cooling tower"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"T205
+Mix tank" -> "P202
+Pump" [label=" s16"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s59" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s59" penwidth=1.6 style=solid tailport=c]
+	"PWC
+Process water center" -> " s59"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s.9" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s.9" penwidth=2.1999999999999997 style=solid tailport=c]
+	"CWP
+Chilled water package" -> " s.9"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" wastewater" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" wastewater" penwidth=1.6 style=solid tailport=e]
+	"M305
+Mixer" -> " wastewater"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" vent" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" vent" penwidth=1.0 style=solid tailport=c]
+	"D301
+Vent scrubber" -> " vent"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"H201
+Heating" -> "T203
+Mix tank" [label=" s12"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s.7" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s.7" penwidth=2.1999999999999997 style=solid tailport=c]
+	"CT
+Cooling tower" -> " s.7"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" sugarcane" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" sugarcane" penwidth=2.1999999999999997 style=solid tailport=e]
+	" sugarcane" -> "U101
+Conveying belt"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"S301
+Splitter" -> "M301
+Mixer" [label=" s25"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
+	"T303
+Storage tank" -> "P305
+Pump" [label=" s52"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s61" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s61" penwidth=1.0 style=dashed tailport=e]
+	" s61" -> "T305
+Mix tank"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=e]
+	"M304
+Mixer" -> "T304
+Storage tank" [label=" s54"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"F301
+Multi-Effect Evaporator" -> "P306
+Pump" [label=" s27"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"U202
+Conveying belt" -> "BT
+Boiler turbogenerator" [label=" bagasse"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"T202
+Storage tank" -> "H201
+Heating" [label=" s6"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" lime" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" lime" penwidth=1.0 style=solid tailport=e]
+	" lime" -> "T204
+Mix tank"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" stripping water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" stripping water" penwidth=1.6 style=solid tailport=e]
+	" stripping water" -> "D301
+Vent scrubber"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
+	"M301
+Mixer" -> "H301
+Cooling" [label=" s28"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
+	"P305
+Pump" -> "M304
+Mixer" [label=" s53"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
+	"M302
+Mixer" -> "P301
+Pump" [label=" s24"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"U102
+Magnetic separator" -> "U103
+Shredder" [label=" s3"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" emissions" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" emissions" penwidth=1.6 style=solid tailport=c]
+	"BT
+Boiler turbogenerator" -> " emissions"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=w penwidth=2.1999999999999997 style=solid tailport=c]
+	"S202
+Vibrating screen" -> "S301
+Splitter" [label=" screened juice"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" denaturant" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" denaturant" penwidth=1.0 style=solid tailport=e]
+	" denaturant" -> "T303
+Storage tank"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" ethanol" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" ethanol" penwidth=1.6 style=solid tailport=c]
+	"T304
+Storage tank" -> " ethanol"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"P201
+Pump" -> "T205
+Mix tank" [label=" s14"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s55" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s55" penwidth=1.0 style=dashed tailport=e]
+	" s55" -> "BT
+Boiler turbogenerator"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"P303
 Pump" -> "M305
-Mixer" [label=stripper_bottoms_product]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Mixer" [label=" stripper bottoms
+ product"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" boiler makeup
+ water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" boiler makeup
+ water" penwidth=1.0 style=solid tailport=e]
+	" boiler makeup
+ water" -> "BT
+Boiler turbogenerator"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" makeup water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" makeup water" penwidth=1.6 style=solid tailport=e]
+	" makeup water" -> "PWC
+Process water center"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" cooling tower
+ makeup water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" cooling tower
+ makeup water" penwidth=1.6 style=solid tailport=e]
+	" cooling tower
+ makeup water" -> "CT
+Cooling tower"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"P306
+Pump" -> "M301
+Mixer" [label=" s37"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" natural gas" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" natural gas" penwidth=1.0 style=dashed tailport=e]
+	" natural gas" -> "BT
+Boiler turbogenerator"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"T204
 Mix tank" -> "T205
-Mix tank" [label=s15]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	H3PO4 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=H3PO4 penwidth=1.0 style=solid tailport=e]
-	H3PO4 -> "T203
-Mix tank"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Mix tank" [label=" s15"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"P304
 Pump" -> "M304
-Mixer" [label=s51]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s63 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s63 penwidth=1.0 style=dashed tailport=e]
-	s63 -> "T305
+Mixer" [label=" s51"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s62" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s62" penwidth=1.0 style=dashed tailport=e]
+	" s62" -> "T305
 Mix tank"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	natural_gas [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=natural_gas penwidth=1.0 style=dashed tailport=e]
-	natural_gas -> "BT
-Boiler turbogenerator"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s61 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s61 penwidth=1.0 style=dashed tailport=e]
-	s61 -> "PWC
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" H3PO4" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" H3PO4" penwidth=1.0 style=solid tailport=e]
+	" H3PO4" -> "T203
+Mix tank"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s63" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s63" penwidth=1.0 style=dashed tailport=e]
+	" s63" -> "PWC
 Process water center"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	cooling_tower_chemicals [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=cooling_tower_chemicals penwidth=1.0 style=solid tailport=e]
-	cooling_tower_chemicals -> "CT
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" cooling tower
+ chemicals" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" cooling tower
+ chemicals" penwidth=1.0 style=solid tailport=e]
+	" cooling tower
+ chemicals" -> "CT
 Cooling tower"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	dilution_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=dilution_water penwidth=1.0 style=dashed tailport=e]
-	dilution_water -> "M301
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s56" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s56" penwidth=1.0 style=dashed tailport=e]
+	" s56" -> "BT
+Boiler turbogenerator"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" dilution water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" dilution water" penwidth=1.0 style=dashed tailport=e]
+	" dilution water" -> "M301
 Mixer"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s56 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s56 penwidth=1.0 style=dashed tailport=e]
-	s56 -> "BT
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s57" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s57" penwidth=1.0 style=solid tailport=e]
+	" s57" -> "BT
 Boiler turbogenerator"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s57 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s57 penwidth=1.0 style=solid tailport=e]
-	s57 -> "BT
-Boiler turbogenerator"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	rejected_water_and_blowdown [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=rejected_water_and_blowdown penwidth=1.0 style=solid tailport=c]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" rejected water
+ and blowdown" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" rejected water
+ and blowdown" penwidth=1.0 style=solid tailport=c]
 	"BT
-Boiler turbogenerator" -> rejected_water_and_blowdown
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	evaporation_and_blowdown [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=evaporation_and_blowdown penwidth=1.6 style=solid tailport=c]
-	"CT
-Cooling tower" -> evaporation_and_blowdown
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s60 [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=s60 penwidth=1.0 style=dashed tailport=c]
-	"PWC
-Process water center" -> s60
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Boiler turbogenerator" -> " rejected water
+ and blowdown"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 	"S301
 Splitter" -> "F301
-Multi-Effect Evaporator" [label=s26]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Multi-Effect Evaporator" [label=" s26"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s60" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s60" penwidth=1.0 style=dashed tailport=c]
+	"PWC
+Process water center" -> " s60"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" evaporation
+ and blowdown" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" evaporation
+ and blowdown" penwidth=1.6 style=solid tailport=c]
+	"CT
+Cooling tower" -> " evaporation
+ and blowdown"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s4" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s4" penwidth=1.0 style=dashed tailport=c]
+	"U102
+Magnetic separator" -> " s4"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"S202
 Vibrating screen" -> "M305
-Mixer" [label=fiber_fines]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s4 [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=s4 penwidth=1.0 style=dashed tailport=c]
-	"U102
-Magnetic separator" -> s4
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Mixer" [label=" fiber fines"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
 	"D301
 Vent scrubber" -> "M302
-Mixer" [label=s32]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Mixer" [label=" s32"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
 	"F301
 Multi-Effect Evaporator" -> "M305
-Mixer" [label=evaporator_condensate]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	ash_disposal [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=ash_disposal penwidth=1.0 style=solid tailport=c]
+Mixer" [label=" evaporator
+ condensate"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" ash disposal" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" ash disposal" penwidth=1.0 style=solid tailport=c]
 	"BT
-Boiler turbogenerator" -> ash_disposal
+Boiler turbogenerator" -> " ash disposal"
 	subgraph cluster_SYS1 {
-		bgcolor=none color="#7ac0836f" fontcolor="#90918e" fontname=Arial label="SYS1 [DEPTH 1]" penwidth=5 style=dashed
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+		bgcolor="#5172512f" color="#98a2ad" fontcolor="#e5e5e5" fontname=Arial label="SYS1 [DEPTH 1]" labeljust=l penwidth=0.2
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 		edge [color="#f98f60" fontcolor="#f98f60" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=e]
 		"M201
 Mixer" -> "U201
-Crushing mill" [label=s7]
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+Crushing mill" [label=" s7"]
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		imbibition_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-		edge [arrowhead=none arrowtail=none headport=c label=imbibition_water penwidth=1.0 style=solid tailport=e]
-		imbibition_water -> "M201
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		" imbibition
+ water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+		edge [arrowhead=none arrowtail=none headport=c label=" imbibition
+ water" penwidth=1.0 style=solid tailport=e]
+		" imbibition
+ water" -> "M201
 Mixer"
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-		"U201
-Crushing mill" -> "S201
-Vibrating screen" [label=s9]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
 		"S201
 Vibrating screen" -> "M201
-Mixer" [label=s10]
+Mixer" [label=" s10"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+		"U201
+Crushing mill" -> "S201
+Vibrating screen" [label=" s9"]
 	}
 	subgraph cluster_SYS2 {
-		bgcolor=none color="#7ac0836f" fontcolor="#90918e" fontname=Arial label="SYS2 [DEPTH 1]" penwidth=5 style=dashed
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+		bgcolor="#5172512f" color="#98a2ad" fontcolor="#e5e5e5" fontname=Arial label="SYS2 [DEPTH 1]" labeljust=l penwidth=0.2
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 		edge [color="#f98f60" fontcolor="#f98f60" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 		"P203
 Pump" -> "M202
-Mixer" [label=s18]
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+Mixer" [label=" s18"]
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		filter_cake [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-		edge [arrowhead=none arrowtail=none headport=w label=filter_cake penwidth=1.0 style=solid tailport=c]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		" filter cake" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+		edge [arrowhead=none arrowtail=none headport=w label=" filter cake" penwidth=1.0 style=solid tailport=c]
 		"C202
-Rotary vacuum filter" -> filter_cake
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
-		"M202
-Mixer" -> "H202
-Heating" [label=s19]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Rotary vacuum filter" -> " filter cake"
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 		"H202
 Heating" -> "T206
-Mix tank" [label=s20]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Mix tank" [label=" s20"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 		"T206
 Mix tank" -> "C201
-Clarifier" [label=s21]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		polymer [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-		edge [arrowhead=none arrowtail=none headport=c label=polymer penwidth=1.0 style=solid tailport=e]
-		polymer -> "T206
+Clarifier" [label=" s21"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
+		"M202
+Mixer" -> "H202
+Heating" [label=" s19"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		" polymer" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+		edge [arrowhead=none arrowtail=none headport=c label=" polymer" penwidth=1.0 style=solid tailport=e]
+		" polymer" -> "T206
 Mix tank"
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		rvf_wash_water [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-		edge [arrowhead=none arrowtail=none headport=c label=rvf_wash_water penwidth=1.0 style=solid tailport=e]
-		rvf_wash_water -> "C202
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		" rvf wash water" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+		edge [arrowhead=none arrowtail=none headport=c label=" rvf wash water" penwidth=1.0 style=solid tailport=e]
+		" rvf wash water" -> "C202
 Rotary vacuum filter"
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-		"C201
-Clarifier" -> "C202
-Rotary vacuum filter" [label=s22]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
 		"C202
 Rotary vacuum filter" -> "P203
-Pump" [label=s23]
+Pump" [label=" s23"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+		"C201
+Clarifier" -> "C202
+Rotary vacuum filter" [label=" s22"]
 	}
 	subgraph cluster_SYS3 {
-		bgcolor=none color="#7ac0836f" fontcolor="#90918e" fontname=Arial label="SYS3 [DEPTH 1]" penwidth=5 style=dashed
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+		bgcolor="#5172512f" color="#98a2ad" fontcolor="#e5e5e5" fontname=Arial label="SYS3 [DEPTH 1]" labeljust=l penwidth=0.2
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 		edge [color="#f98f60" fontcolor="#f98f60" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 		"S302
 Splitter" -> "R301
-Fermentation" [label=s35]
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+Fermentation" [label=" s35"]
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=w penwidth=1.6 style=solid tailport=c]
 		"C301
 Solids centrifuge" -> "S302
-Splitter" [label=s33]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Splitter" [label=" s33"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 		"T301
 Beer tank" -> "C301
-Solids centrifuge" [label=s31]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		Yeast [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-		edge [arrowhead=none arrowtail=none headport=w label=Yeast penwidth=1.0 style=solid tailport=c]
-		"S302
-Splitter" -> Yeast
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Solids centrifuge" [label=" s31"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 		"R301
 Fermentation" -> "T301
-Beer tank" [label=s30]
+Beer tank" [label=" s30"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		" Yeast" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+		edge [arrowhead=none arrowtail=none headport=w label=" Yeast" penwidth=1.0 style=solid tailport=c]
+		"S302
+Splitter" -> " Yeast"
 	}
 	subgraph cluster_SYS4 {
-		bgcolor=none color="#7ac0836f" fontcolor="#90918e" fontname=Arial label="SYS4 [DEPTH 1]" penwidth=5 style=dashed
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+		bgcolor="#5172512f" color="#98a2ad" fontcolor="#e5e5e5" fontname=Arial label="SYS4 [DEPTH 1]" labeljust=l penwidth=0.2
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 		edge [color="#f98f60" fontcolor="#f98f60" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 		"P302
 Pump" -> "H302
-Heat exchanger" [label=s41]
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+Heat exchanger" [label=" s41"]
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 		"H302
 Heat exchanger" -> "D302
-Distillation Column" [label=s42]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		vinasse [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-		edge [arrowhead=none arrowtail=none headport=w label=vinasse penwidth=1.0 style=solid tailport=c]
-		"H302
-Heat exchanger" -> vinasse
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Distillation Column" [label=" s42"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=s]
 		"D302
 Distillation Column" -> "P302
-Pump" [label=s40]
+Pump" [label=" s40"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		" vinasse" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+		edge [arrowhead=none arrowtail=none headport=w label=" vinasse" penwidth=1.0 style=solid tailport=c]
+		"H302
+Heat exchanger" -> " vinasse"
 	}
 	subgraph cluster_SYS5 {
-		bgcolor=none color="#7ac0836f" fontcolor="#90918e" fontname=Arial label="SYS5 [DEPTH 1]" penwidth=5 style=dashed
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+		bgcolor="#5172512f" color="#98a2ad" fontcolor="#e5e5e5" fontname=Arial label="SYS5 [DEPTH 1]" labeljust=l penwidth=0.2
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 		edge [color="#f98f60" fontcolor="#f98f60" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 		"U301
 Molecular sieve" -> "M303
-Mixer" [label=s47]
-		node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-		graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+Mixer" [label=" s47"]
+		graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 		edge [dir=foward fontname=Arial]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
-		"M303
-Mixer" -> "D303
-Divided Distillation Column" [label=s43]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+		node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 		"H303
-Heat exchanger" -> "U301
-Molecular sieve" [label=s46]
-		edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Cooling" -> "U301
+Molecular sieve" [label=" s46"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 		edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=n]
 		"D303
 Divided Distillation Column" -> "H303
-Heat exchanger" [label=s44]
+Cooling" [label=" s44"]
+		edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+		edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=e]
+		"M303
+Mixer" -> "D303
+Divided Distillation Column" [label=" s43"]
 	}
-	node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-	graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+	graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 	edge [dir=foward fontname=Arial]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"H301
-Cooling" -> "R301
-Fermentation" [label=s29]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"P301
-Pump" -> "H302
-Heat exchanger" [label=s39]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"U103
-Shredder" -> "U201
-Crushing mill" [label=s1]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"C201
-Clarifier" -> "S202
-Vibrating screen" [label=s5]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=n]
-	"D302
-Distillation Column" -> "M303
-Mixer" [label=s38]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+	node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
 	"U201
 Crushing mill" -> "U202
-Conveying belt" [label=s8]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Conveying belt" [label=" s8"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"P301
+Pump" -> "H302
+Heat exchanger" [label=" s39"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
-	"S201
-Vibrating screen" -> "T202
-Storage tank" [label=s11]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+	"U103
+Shredder" -> "U201
+Crushing mill" [label=" s1"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"H301
+Cooling" -> "R301
+Fermentation" [label=" s29"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=n]
+	"D302
+Distillation Column" -> "M303
+Mixer" [label=" s38"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
 	"P202
 Pump" -> "M202
-Mixer" [label=s17]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Mixer" [label=" s17"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"C201
+Clarifier" -> "S202
+Vibrating screen" [label=" s5"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=2.1999999999999997 style=solid tailport=c]
+	"S201
+Vibrating screen" -> "T202
+Storage tank" [label=" s11"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
 	"R301
 Fermentation" -> "D301
-Vent scrubber" [label=CO2]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
-	"C301
-Solids centrifuge" -> "M302
-Mixer" [label=s34]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
-	"U301
-Molecular sieve" -> "H304
-Cooling" [label=s48]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
+Vent scrubber" [label=" CO2"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=s]
 	"D303
 Divided Distillation Column" -> "P303
-Pump" [label=s45]
+Pump" [label=" s45"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
+	"U301
+Molecular sieve" -> "H304
+Cooling" [label=" s48"]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.6 style=solid tailport=c]
+	"C301
+Solids centrifuge" -> "M302
+Mixer" [label=" s34"]
 }
