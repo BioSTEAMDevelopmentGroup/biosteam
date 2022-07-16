@@ -82,9 +82,10 @@ def test_system_cluster_diagram():
 #     bst.process_tools.default()
     
 if __name__ == '__main__':
+    # save_diagrams()
     test_unit_diagram()
     # test_system_surface_diagram()
     test_system_thorough_diagram()
     test_system_cluster_diagram()
     # test_system_minimal_diagram()
-    test_saving()
+    # test_saving()

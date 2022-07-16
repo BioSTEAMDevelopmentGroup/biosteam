@@ -194,28 +194,22 @@ class MockSystem:
             self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
             return outs
 
-    def load_inlet_ports(self, inlets, optional=()):
+    def load_inlet_ports(self, inlets):
         """Load inlet ports to system."""
         all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets:
             if i not in all_inlets:
-                if i in optional:
-                    inlets.remove(i)
-                else:
-                    raise ValueError(f'{i} is not an inlet')
+                raise ValueError(f'{i} is not an inlet')
         self._ins = StreamPorts.from_inlets(inlets)
 
-    def load_outlet_ports(self, outlets, optional=()):
+    def load_outlet_ports(self, outlets):
         """Load outlet ports to system."""
         all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets:
             if i not in all_outlets:
-                if i in optional:
-                    outlets.remove(i)
-                else:
-                    raise ValueError(f'{i} is not an outlet')
+                raise ValueError(f'{i} is not an outlet')
         self._outs = StreamPorts.from_outlets(outlets)
 
     def __enter__(self):
@@ -1216,7 +1210,7 @@ class System:
         return digraph_from_system(self, **graph_attrs)
 
     def diagram(self, kind=None, file=None, format=None, display=True,
-                number=None, profile=None, label=None, **graph_attrs):
+                number=None, profile=None, label=None, title=None, **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
         the system.
@@ -1247,6 +1241,8 @@ class System:
         self._load_configuration()
         if kind is None: kind = 1
         graph_attrs['format'] = format or 'png'
+        if title is None: title = ''
+        graph_attrs['label'] = title
         preferences = bst.preferences
         original = (preferences.number_path,
                     preferences.label_streams,
@@ -2447,6 +2443,7 @@ class AgileSystem:
     get_utility_flow = System.get_utility_flow
     get_cooling_duty = System.get_cooling_duty
     get_heating_duty = System.get_heating_duty
+    rescale = System.rescale
 
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, annual_operation_metrics=None,
@@ -2468,6 +2465,9 @@ class AgileSystem:
 
     def _downstream_system(self, unit):
         return self
+
+    def get_all_recycles(self):
+        return set(sum([i.system.get_all_recycles() for i in self.operation_modes], []))
 
     def operation_mode(self, system, operating_hours, **data):
         """

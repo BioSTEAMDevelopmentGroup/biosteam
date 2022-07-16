@@ -1,23 +1,23 @@
 digraph {
-	Damping=0.995 K=0.5 bgcolor=transparent color=none maxiter=10000000 penwidth=0 rankdir=LR
+	Damping=0.995 K=0.5 bgcolor=transparent color=none fontcolor="#e5e5e5" fontname=Arial fontsize=24 label="" labeljust=l labelloc=t maxiter=10000000 penwidth=0 rankdir=LR
 	"C201
 Clarifier" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
-	node [color="#448690" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
-	graph [fontname=Arial maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
+	graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 	edge [dir=foward fontname=Arial]
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s5 [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=s5 style=solid tailport=c]
+	node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s5" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s5" penwidth=1.6 style=solid tailport=c]
 	"C201
-Clarifier" -> s5
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s21 [label="" color="#90918e" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
-	edge [arrowhead=none arrowtail=none headport=c label=s21 style=solid tailport=e]
-	s21 -> "C201
+Clarifier" -> " s5"
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s21" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.15 shape=diamond width=0.15]
+	edge [arrowhead=none arrowtail=none headport=c label=" s21" penwidth=2.1999999999999997 style=solid tailport=e]
+	" s21" -> "C201
 Clarifier"
-	edge [color="#90918e" fontcolor="#90918e" headlabel="" label="" labeldistance=2 taillabel=""]
-	s22 [label="" color="#90918e" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
-	edge [arrowhead=none arrowtail=none headport=w label=s22 style=solid tailport=c]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	" s22" [label="" color="#98a2ad" fillcolor="#f98f60" height=0.2 orientation=270 shape=triangle width=0.15]
+	edge [arrowhead=none arrowtail=none headport=w label=" s22" penwidth=1.0 style=solid tailport=c]
 	"C201
-Clarifier" -> s22
+Clarifier" -> " s22"
 }

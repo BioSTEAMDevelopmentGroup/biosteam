@@ -40,21 +40,18 @@ and the equlibrium estimation methods. Each Chemical object contains objects
 that manages the thermodynamic methods and makes sure to use a valid method at 
 given temperatures and pressures whenever estimating properties. 
 
-.. figure:: class_diagram_light.png
+.. figure:: class_diagram_light.svg
    :class: only-light
    :align: center
-.. figure:: class_diagram_dark.png
+.. figure:: class_diagram_dark.svg
    :class: only-dark
    :align: center
 
 A functor-oriented class diagram describes the relationship between the core
-classes of Thermosteam. Overall, the diagram follows the Universal Modeling
-Language (UML) guidelines except for a few modifications. However,
-the function signature of callable objects is presented after their name. 
-For example: an ActivityCoefficients object returns an array of activity 
-coefficients when called with the liquid molar composition (x) and 
-temperature (T). Function signatures with a "..." are abstract signatures 
-so that a child class may implement a variety of signatures.
+classes of Thermosteam. The function signature of callable objects is 
+presented after their name. For example, an ActivityCoefficients object 
+returns an array of activity coefficients when called with the liquid molar 
+composition (x) and temperature (T). 
 
 Related Projects
 ----------------

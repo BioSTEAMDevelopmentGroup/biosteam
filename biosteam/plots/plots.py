@@ -882,7 +882,7 @@ def plot_kde_2d(xs, ys, nbins=100, axes=None, xboxes=None, yboxes=None,
             if yticksi is not None and j != 0:
                 yticklabelsi = len(yticksi) * ['']
             tick0 = i == N_rows - 1 and j == 0
-            tickf = not tick0
+            tickf = i == 0
             plot_kde(x, y, nbins=nbins, ax=ax, 
                      xbox=xbox,
                      ybox=ybox,
