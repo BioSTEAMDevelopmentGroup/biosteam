@@ -89,7 +89,7 @@ you include tests for the following results:
 * Installed equipment cost
 * Utility cost
 * Heating duty
-* Coling duty
+* Cooling duty
 * Electricity consumption
 * Electricity production 
 
