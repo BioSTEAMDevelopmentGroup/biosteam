@@ -150,6 +150,7 @@ class Fermentation(BatchBioreactor):
     
     """
     line = 'Fermentation'
+    _ins_size_is_fixed = False
     
     #: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
