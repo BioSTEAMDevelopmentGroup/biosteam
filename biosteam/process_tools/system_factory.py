@@ -173,11 +173,12 @@ class SystemFactory:
                 if i in other_params:
                     raise ValueError(f"function cannot accept '{i}' as an argument")
             isa = isinstance
+            isfunc = callable
             self = super().__new__(cls)
             self.f = f
             self.ID = ID
-            self.ins = [] if ins is None else [i if isa(i, dict) else dict(ID=i) for i in ins] 
-            self.outs = [] if outs is None else [i if isa(i, dict) else dict(ID=i) for i in outs] 
+            self.ins = [] if ins is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in ins] 
+            self.outs = [] if outs is None else [i if isa(i, dict) or isfunc(i) else dict(ID=i) for i in outs] 
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
             self.fthermo = fthermo
