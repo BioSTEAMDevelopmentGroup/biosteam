@@ -154,6 +154,9 @@ class BatchBioreactor(Unit, isabstract=True):
         return self._N
     @N.setter
     def N(self, N):
+        if N is None: 
+            self._N = N
+            return
         if N <= 1:
             raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
         assert not self._V, 'cannot specify both reactor volume and number of reactors'
