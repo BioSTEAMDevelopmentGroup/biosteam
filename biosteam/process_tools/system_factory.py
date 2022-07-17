@@ -172,11 +172,12 @@ class SystemFactory:
             for i in reserved_parameters:
                 if i in other_params:
                     raise ValueError(f"function cannot accept '{i}' as an argument")
+            isa = isinstance
             self = super().__new__(cls)
             self.f = f
             self.ID = ID
-            self.ins = ins or []
-            self.outs = outs or []
+            self.ins = [] if ins is None else [i if isa(i, dict) else dict(ID=i) for i in ins] 
+            self.outs = [] if outs is None else [i if isa(i, dict) else dict(ID=i) for i in outs] 
             self.fixed_ins_size = fixed_ins_size
             self.fixed_outs_size = fixed_outs_size
             self.fthermo = fthermo
@@ -256,9 +257,13 @@ def create_streams(defaults, user_streams, kind, fixed_size):
     for kwargs, stream in zip(defaults, user_streams):
         if not isa(stream, Stream): 
             if isa(stream, str):
-                kwargs = kwargs.copy()
-                kwargs['ID'] = stream
-                stream = Stream(**kwargs)
+                if isfunc(kwargs): 
+                    stream = kwargs()
+                    stream.ID = stream
+                else:
+                    kwargs = kwargs.copy()
+                    kwargs['ID'] = stream
+                    stream = Stream(**kwargs)
             elif stream:
                 raise TypeError(
                     f"{kind} must be streams, strings, or None; "
