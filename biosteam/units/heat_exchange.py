@@ -389,6 +389,7 @@ class HXutility(HX):
         feed = self.ins[0]
         outlet = self.outs[0]
         outlet.copy_flow(feed)
+        if outlet.isempty(): return
         outlet.P = feed.P
         T = self.T
         V = self.V
