@@ -709,9 +709,9 @@ class LiquidsSplitSettler(LiquidsSettler):
         * [0] Top fluid.
         * [1] Bottom fluid.
     split : Should be one of the following
-            * [float] The fraction of net feed in the 0th outlet stream
-            * [array_like] Componentwise split of feed to 0th outlet stream
-            * [dict] ID-split pairs of feed to 0th outlet stream
+        * [float] The fraction of net feed in the 0th outlet stream
+        * [array_like] Componentwise split of feed to 0th outlet stream
+        * [dict] ID-split pairs of feed to 0th outlet stream
     order=None : Iterable[str], defaults to biosteam.settings.chemicals.IDs
         Chemical order of split.
     vessel_material='Carbon steel' : str, optional

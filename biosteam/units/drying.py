@@ -41,13 +41,13 @@ class DrumDryer(Unit):
     Parameters
     ----------
     ins : stream sequence
-        [0] Wet solids.
-        [1] Air.
-        [2] Natural gas.
+        * [0] Wet solids.
+        * [1] Air.
+        * [2] Natural gas.
     outs : stream sequence
-        [0] Dried solids
-        [1] Hot air
-        [2] Emissions
+        * [0] Dried solids
+        * [1] Hot air
+        * [2] Emissions
     split : dict[str, float]
         Component splits to hot air (stream [1]).
     R : float, optional
