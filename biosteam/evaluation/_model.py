@@ -71,11 +71,12 @@ class Model(State):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
-        if self.table is not None:
-        # if self._N_parameters_cache:
-            copy.table = self.table.copy()
-        else:
+        if self.table is None:
             copy._samples = copy.table = None
+        else:
+            copy.table = self.table.copy()
+            copy._samples = self._samples
+            copy._index = self._index
         return copy
     
     def _erase(self):
