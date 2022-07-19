@@ -490,4 +490,27 @@ def default(utilities=True, CEPCI=True, flowsheet=False):
     for i in (bst.Stream, bst.Unit, bst.System): i.ticket_numbers.clear()
     if flowsheet: 
         for i in bst.main_flowsheet.flowsheet: i.clear(False)
+
+def get_unaccounted_waste_streams(phase='l'):
+    """
+    Return all product streams that do not have a price at the given phase.
+    These are assumed to be waste streams that have not been accounted for 
+    (i.e., is not sold and needs to be treated in some way).
     
+    """
+    isa = isinstance
+    return [i for i in bst.main_flowsheet.stream if 
+            not i.price and i.isproduct() and i.phase==phase
+            and not isa(i.source, bst.Facility)]
+
+def get_fresh_process_water_streams():
+    """
+    Return all feed water streams without a price.
+    
+    """
+    def only_water(stream):
+        chemicals = stream.available_chemicals
+        return len(chemicals) == 1 and chemicals[0].CAS == '7732-18-5'
+        
+    return [i for i in bst.main_flowsheet.stream
+            if not i.price and i.isfeed() and i.phase=='l' and only_water(i)]
