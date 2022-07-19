@@ -297,7 +297,8 @@ class Model(State):
             self._index = list(range(samples.shape[0]))
         empty_metric_data = np.zeros((len(samples), len(metrics)))
         self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                  columns=var_columns(parameters + metrics))
+                                  columns=var_columns(parameters + metrics),
+                                  dtype=float)
         self._samples = samples
         if autosave:
             obj = (samples, self._index, self.sample_weights)
