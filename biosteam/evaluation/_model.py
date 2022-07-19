@@ -277,7 +277,8 @@ class Model(State):
                     metrics = self._metrics
                     empty_metric_data = np.zeros((len(samples), len(metrics)))
                     self.table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
-                                              columns=var_columns(parameters + metrics))
+                                              columns=var_columns(parameters + metrics),
+                                              dtype=float)
                     return 
         if not isinstance(samples, np.ndarray):
             raise TypeError(f'samples must be an ndarray, not a {type(samples).__name__} object')
@@ -760,7 +761,7 @@ class Model(State):
             
         """
         if not parameters: parameters = self._parameters
-        table = self.table.astype('float')
+        table = self.table
         values = table.values.transpose()
         index = table.columns.get_loc
         parameter_indices = var_indices(parameters)
