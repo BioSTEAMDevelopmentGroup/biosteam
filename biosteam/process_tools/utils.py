@@ -43,6 +43,8 @@ __all__ = (
     'heat_exchanger_operation',
     'default_utilities',
     'default',
+    'get_unaccounted_waste_streams',
+    'get_fresh_process_water_streams',
 )
 
 
