@@ -1,0 +1,6 @@
+MassFlowIndexer
+---------------
+
+.. autoclass:: thermosteam.indexer.MassFlowIndexer
+   :members:
+

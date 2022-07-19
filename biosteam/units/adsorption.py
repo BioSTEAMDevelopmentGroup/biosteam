@@ -80,11 +80,11 @@ class AdsorptionColumnTSA(PressureVessel, Splitter):
     Parameters
     ----------
     ins : stream sequence
-        [0] Feed
-        [1] Regeneration fluid
+        * [0] Feed
+        * [1] Regeneration fluid
     outs : stream sequence
-        [0] Effluent
-        [1] Purge
+        * [0] Effluent
+        * [1] Purge
     superficial_velocity : float, optional
         Superficial velocity of the feed. The diameter of the receiving vessel adjusts
         accordingly. Defaults to 7.2 [m / hr]. Typical velocities are 4 to 14.4 m / hr for liquids [1]_.

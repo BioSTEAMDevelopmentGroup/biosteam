@@ -19,5 +19,5 @@ var_indices = lambda vars: [var.index for var in vars]
 var_columns =  lambda vars, names=None: indices_to_multiindex(var_indices(vars), names)
 indices_to_multiindex = lambda indices, names=None: pd.MultiIndex.from_tuples(
                                             indices,
-                                            names=names or ('Element', 'Variable'),
+                                            names=names or ('Element', 'Feature'),
                                         )

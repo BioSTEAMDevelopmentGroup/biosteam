@@ -1,10 +1,8 @@
-thermosteam>=0.27.11
-IPython>=7.9.0
-colorpalette>=0.3.0
-chaospy>=3.3.9
-graphviz>=0.8.3
 sphinx>=4.2.0
-sphinx_rtd_theme
-sphinx_rtd_dark_mode
+thermosteam>=0.28.12
+pydata_sphinx_theme
+sphinx_multitoc_numbering
+sphinx_design
+pyyaml
 ipykernel
 nbsphinx

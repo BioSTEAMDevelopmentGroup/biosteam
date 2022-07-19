@@ -1,6 +1,8 @@
 build
 dist
 biosteam.egg-info
+biosteam/graphviz_color_settings.txt
+biosteam/preferences.yaml
 **/__pycache__
 *.pyc
 *.pyo

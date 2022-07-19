@@ -121,9 +121,9 @@ class SteamMixer(Unit):
     Parameters
     ----------
     ins : stream sequence
-        [0] Feed    
-        [1] Steam
-        [2] Process water
+        * [0] Feed    
+        * [1] Steam
+        * [2] Process water
     outs : stream
         Mixed product.
     P : float

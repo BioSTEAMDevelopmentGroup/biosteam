@@ -202,6 +202,7 @@ def NPV_with_sales(
         sales, 
         taxable_cashflow, 
         nontaxable_cashflow,
+        depreciation,
         sales_coefficients,
         discount_factors,
         fill_tax_and_incentives,
@@ -210,7 +211,7 @@ def NPV_with_sales(
     taxable_cashflow = taxable_cashflow + sales * sales_coefficients
     tax = np.zeros_like(taxable_cashflow)
     incentives = tax.copy()
-    fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+    fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
     cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
     return (cashflow/discount_factors).sum()
 
@@ -296,7 +297,7 @@ class TEA:
     
     Examples
     --------
-    :doc:`tutorial/Techno-economic_analysis` 
+    :doc:`../tutorial/Techno-economic_analysis` 
 
     """
     __slots__ = ('system', 'income_tax', 'WC_over_FCI',
@@ -640,18 +641,22 @@ class TEA:
     def ROI(self):
         """Return on investment (1/yr) without accounting for annualized depreciation."""
         FCI = self.FCI
-        net_earnings = (1-self.income_tax)*(self.sales-self._AOC(FCI))
+        net_earnings = self.net_earnings
         TCI = FCI*(1.+self.WC_over_FCI)
         return net_earnings/TCI
     @property
     def net_earnings(self):
         """Net earnings without accounting for annualized depreciation."""
-        return (1-self.income_tax)*(self.sales-self.AOC)
+        net_earnings = self.sales - self.AOC
+        if net_earnings < 0:
+            return net_earnings
+        else:
+            return (1 - self.income_tax) * net_earnings
     @property
     def PBP(self):
         """Pay back period (yr) without accounting for annualized depreciation."""
         FCI = self.FCI
-        net_earnings = (1-self.income_tax)*(self.sales-self._AOC(FCI))
+        net_earnings = self.net_earnings
         return FCI/net_earnings
 
     def _get_duration_array(self):
@@ -746,7 +751,7 @@ class TEA:
         else:
             taxable_cashflow = S - C - D
             nontaxable_cashflow = D - C_FC - C_WC
-        self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T)
+        self._fill_tax_and_incentives(I, taxable_cashflow, nontaxable_cashflow, T, D)
         NE[:] = taxable_cashflow + I - T
         CF[:] = NE + nontaxable_cashflow
         DF[:] = 1/(1.+self.IRR)**self._get_duration_array()
@@ -760,10 +765,10 @@ class TEA:
     @property
     def NPV(self):
         """Net present value."""
-        taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
+        taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         tax = np.zeros_like(taxable_cashflow)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
         cashflow = nontaxable_cashflow + taxable_cashflow + incentives - tax
         return NPV_at_IRR(self.IRR, cashflow, self._get_duration_array())
     
@@ -771,8 +776,8 @@ class TEA:
         """Return AOC at given FCI"""
         return self._FOC(FCI) + self.VOC
     
-    def _taxable_and_nontaxable_cashflow_arrays(self):
-        """Return taxable and nontaxable cash flows by year as a tuple[1d array, 1d array]."""
+    def _taxable_nontaxable_depreciation_cashflows(self):
+        """Return taxable, nontaxable and depreciation cash flows by year as a tuple[1d array, 1d array, 1d array]."""
         # Cash flow data and parameters
         # C_FC: Fixed capital
         # C_WC: Working capital
@@ -793,30 +798,35 @@ class TEA:
         self._fill_depreciation_array(D, start, years, TDC)
         WC = self.WC_over_FCI * FCI
         system = self.system
-        return taxable_and_nontaxable_cashflows(system.unit_capital_costs if isinstance(system, bst.AgileSystem) else system.cost_units,
-                                                D, C, S, C_FC, C_WC, Loan, LP,
-                                                FCI, WC, TDC, VOC, FOC, self.sales,
-                                                self._startup_time,
-                                                self.startup_VOCfrac,
-                                                self.startup_FOCfrac,
-                                                self.startup_salesfrac,
-                                                self._construction_schedule,
-                                                self.finance_interest,
-                                                self.finance_years,
-                                                self.finance_fraction,
-                                                start, years,
-                                                self.lang_factor)
+        return (
+            *taxable_and_nontaxable_cashflows(
+                system.unit_capital_costs if isinstance(system, bst.AgileSystem) else system.cost_units,
+                D, C, S, C_FC, C_WC, Loan, LP,
+                FCI, WC, TDC, VOC, FOC, self.sales,
+                self._startup_time,
+                self.startup_VOCfrac,
+                self.startup_FOCfrac,
+                self.startup_salesfrac,
+                self._construction_schedule,
+                self.finance_interest,
+                self.finance_years,
+                self.finance_fraction,
+                start, years,
+                self.lang_factor
+            ),
+            D
+        )
     
-    def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax):
+    def _fill_tax_and_incentives(self, incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation):
         index = taxable_cashflow > 0.
         tax[index] = self.income_tax * taxable_cashflow[index]
     
     def _net_earnings_and_nontaxable_cashflow_arrays(self):
-        taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
+        taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         size = taxable_cashflow.size
         tax = np.zeros(size)
         incentives = tax.copy()
-        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
+        self._fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax, depreciation)
         net_earnings = taxable_cashflow + incentives - tax
         return net_earnings, nontaxable_cashflow
     
@@ -927,9 +937,10 @@ class TEA:
         w0 = self._startup_time
         sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         sales = self._sales
-        taxable_cashflow, nontaxable_cashflow = self._taxable_and_nontaxable_cashflow_arrays()
+        taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         args = (taxable_cashflow, 
                 nontaxable_cashflow, 
+                depreciation,
                 sales_coefficients,
                 discount_factors,
                 self._fill_tax_and_incentives)

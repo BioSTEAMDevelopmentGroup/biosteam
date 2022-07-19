@@ -1,0 +1,47 @@
+Tutorial
+--------
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Beginner's Guide
+
+   Getting_started   
+   Creating_a_Unit
+   -pipe-_notation
+   Unit_operation_results
+   Managing_flowsheets
+   Preferences
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Process Development
+
+   Process_specifications
+   Inheriting_from_Unit
+   Unit_decorators
+   Creating_a_System
+   Building_a_biorefinery
+   Techno-economic_analysis
+   Life_cycle_assessment
+   Gotchas
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Thermodynamics
+
+   Thermosteam_101
+   Phase_equilibrium
+   Property_packages
+   Stoichiometric_reactions
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+   :caption: Automation
+   
+   Operational_flexibility
+   Uncertainty_and_sensitivity
+   TRY-Analysis

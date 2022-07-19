@@ -89,7 +89,7 @@ class Fermentation(BatchBioreactor):
     outs...
     [0] CO2
         phase: 'g', T: 304.19 K, P: 101325 Pa
-        flow (kmol/hr): Water    9.48
+        flow (kmol/hr): Water    9.49
                         Ethanol  3.52
                         CO2      244
     [1] product
@@ -150,6 +150,7 @@ class Fermentation(BatchBioreactor):
     
     """
     line = 'Fermentation'
+    _ins_size_is_fixed = False
     
     #: tuple[float] Kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
@@ -164,14 +165,16 @@ class Fermentation(BatchBioreactor):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  tau,  N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
-                 efficiency=0.9, iskinetic=False):
+                 efficiency=0.9, iskinetic=False, fermentation_reaction=None):
         BatchBioreactor.__init__(self, ID, ins, outs, thermo,
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
         self.iskinetic = iskinetic
         chemicals = self.chemicals
         self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00, chemicals)
-        self.fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency, chemicals)
+        if fermentation_reaction is None:
+            fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency, chemicals)
+        self.fermentation_reaction = fermentation_reaction 
         self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
         cell_growth.basis = 'mol'
         if all([i in self.chemicals for i in ('FFA', 'DAG', 'TAG', 'Glycerol')]):
@@ -263,11 +266,12 @@ class Fermentation(BatchBioreactor):
     def _run(self):
         vent, effluent = self.outs
         effluent.mix_from(self.ins)
-        self.hydrolysis_reaction(effluent)
+        self.hydrolysis_reaction.force_reaction(effluent)
         if self.iskinetic:
             self.fermentation_reaction.X = self._calc_efficiency(effluent, self._tau)
-        self.fermentation_reaction(effluent)
-        self.cell_growth_reaction(effluent)
-        if self.lipid_reaction: self.lipid_reaction(effluent)
+        self.fermentation_reaction.force_reaction(effluent)
+        self.cell_growth_reaction.force_reaction(effluent)
+        if self.lipid_reaction: self.lipid_reaction.force_reaction(effluent)
+        effluent.empty_negative_flows()
         vent.empty()
         vent.receive_vent(effluent)

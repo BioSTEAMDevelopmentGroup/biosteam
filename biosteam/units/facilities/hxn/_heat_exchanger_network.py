@@ -254,7 +254,7 @@ class HeatExchangerNetwork(Facility):
             #         hx.Tlim1 = None
             #         hx.Hlim1 = hx.outs[1].sink.H
             try: 
-                sys._converge()
+                sys.converge()
             except:
                 for i in sys.units: i._run()
                 warn('heat exchanger network was not able to converge', RuntimeWarning)

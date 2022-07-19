@@ -91,7 +91,7 @@ def converge_system_in_path(system):
     if specification:
         method = specification
     else:
-        method = system._converge
+        method = system.converge
     try_method_with_object_stamp(system, method)
 
 def simulate_unit_in_path(unit):
@@ -194,28 +194,22 @@ class MockSystem:
             self._outs = outs = StreamPorts.from_outlets(outlets, sort=True)
             return outs
 
-    def load_inlet_ports(self, inlets, optional=()):
+    def load_inlet_ports(self, inlets):
         """Load inlet ports to system."""
         all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
         for i in inlets:
             if i not in all_inlets:
-                if i in optional:
-                    inlets.remove(i)
-                else:
-                    raise ValueError(f'{i} is not an inlet')
+                raise ValueError(f'{i} is not an inlet')
         self._ins = StreamPorts.from_inlets(inlets)
 
-    def load_outlet_ports(self, outlets, optional=()):
+    def load_outlet_ports(self, outlets):
         """Load outlet ports to system."""
         all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
         for i in outlets:
             if i not in all_outlets:
-                if i in optional:
-                    outlets.remove(i)
-                else:
-                    raise ValueError(f'{i} is not an outlet')
+                raise ValueError(f'{i} is not an outlet')
         self._outs = StreamPorts.from_outlets(outlets)
 
     def __enter__(self):
@@ -402,7 +396,7 @@ class System:
                    facility_recycle=None, operating_hours=None,
                    lang_factor=None):
         """
-        Create a System object from all units and streams defined in the flowsheet.
+        Create a System object from all units given.
 
         Parameters
         ----------
@@ -451,6 +445,42 @@ class System:
             system = cls(ID, (), operating_hours=operating_hours)
         return system
 
+    @classmethod
+    def from_segment(cls, ID="", start=None, end=None, operating_hours=None,
+                     lang_factor=None):
+        """
+        Create a System object from all units in between start and end.
+
+        Parameters
+        ----------
+        ID : str, optional
+            Name of system.
+        start : Unit, optional
+            Only downstream units from start are included in the system.
+        end : Unit, optional
+            Only upstream units from end are included in the system.
+        operating_hours : float, optional
+            Number of operating hours in a year. This parameter is used to
+            compute annualized properties such as utility cost and material cost
+            on a per year basis.
+        lang_factor : float, optional
+            Lang factor for getting fixed capital investment from
+            total purchase cost. If no lang factor, installed equipment costs are
+            estimated using bare module factors.
+
+        """
+        if start is None:
+            if end is None: raise ValueError("must pass start and/or end")
+            units = end.get_upstream_units(facilities=False)
+        elif end is None:
+            units = start.get_downstream_units(facilities=False)
+        else:
+            upstream_units = end.get_upstream_units(facilities=False)
+            downstream_units = start.get_downstream_units(facilities=False)
+            units = upstream_units.intersection(downstream_units)
+        return bst.System.from_units(ID, units, operating_hours=operating_hours,
+                                     lang_factor=lang_factor)
+         
     @classmethod
     def from_network(cls, ID, network, facilities=(), facility_recycle=None,
                      operating_hours=None, lang_factor=None):
@@ -680,7 +710,8 @@ class System:
         self._recycle = other._recycle
         self._connections = other._connections
 
-    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, subsystems=False, maxiter=None):
+    def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, 
+                      subsystems=False, maxiter=None, subfactor=None):
         """
         Set the convergence tolerance of the system.
 
@@ -698,7 +729,9 @@ class System:
             Whether to also set tolerance of subsystems as well.
         maxiter : int, optional
             Maximum number if iterations.
-
+        subfactor : float, optional
+            Factor to adjust tolerance in subsystems.
+        
         """
         if mol: self.molar_tolerance = float(mol)
         if rmol: self.relative_molar_tolerance = float(rmol)
@@ -706,7 +739,10 @@ class System:
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
         if subsystems:
-            for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
+            if subfactor:
+                for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)], subsystems, maxiter)
+            else:
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -1174,7 +1210,7 @@ class System:
         return digraph_from_system(self, **graph_attrs)
 
     def diagram(self, kind=None, file=None, format=None, display=True,
-                number=None, profile=None, label=None, **graph_attrs):
+                number=None, profile=None, label=None, title=None, **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
         the system.
@@ -1203,14 +1239,17 @@ class System:
 
         """
         self._load_configuration()
-        if not kind: kind = 0
+        if kind is None: kind = 1
         graph_attrs['format'] = format or 'png'
-        original = (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
-                    bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
-                    bst.PROFILE_UNITS_IN_DIAGRAMS)
-        if number is not None: bst.LABEL_PATH_NUMBER_IN_DIAGRAMS = number
-        if label is not None: bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS = label
-        if profile is not None: bst.PROFILE_UNITS_IN_DIAGRAMS = profile
+        if title is None: title = ''
+        graph_attrs['label'] = title
+        preferences = bst.preferences
+        original = (preferences.number_path,
+                    preferences.label_streams,
+                    preferences.profile)
+        if number is not None: preferences.number_path = number
+        if label is not None: preferences.label_streams = label
+        if profile is not None: preferences.profile = profile
         try:
             if kind == 0 or kind == 'cluster':
                 f = self._cluster_digraph(graph_attrs)
@@ -1229,9 +1268,9 @@ class System:
             else:
                 return f
         finally:
-            (bst.LABEL_PATH_NUMBER_IN_DIAGRAMS,
-             bst.LABEL_PROCESS_STREAMS_IN_DIAGRAMS,
-             bst.PROFILE_UNITS_IN_DIAGRAMS) = original
+            (preferences.number_path,
+             preferences.label_streams,
+             preferences.profile) = original
 
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
@@ -1365,16 +1404,24 @@ class System:
     def _solve(self, solver):
         """Solve the system recycle iteratively using given solver."""
         self._reset_iter()
-        f = iter_run = self._iter_run
         try:
-            solver(f, self._get_recycle_data())
+            solver(self._iter_run, self._get_recycle_data())
         except IndexError as error:
             try:
-                solver(f, self._get_recycle_data())
+                solver(self._iter_run, self._get_recycle_data())
             except:
                 raise error
 
-    def _converge(self):
+    def converge(self):
+        """
+        Converge mass and energy balances.
+        
+        Warning
+        -------
+        No design, costing, nor facility algorithms are run.
+        To run full simulation algorithm, see :meth:`biosteam.System.simulate`.
+        
+        """
         if self._N_runs:
             for i in range(self.N_runs): self._run()
         elif self._recycle:
@@ -1453,6 +1500,11 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
+    def rescale(self, feedstock, ratio):
+        """Rescale feedstock flow rate and update recycle stream flow rate guesses."""
+        feedstock.rescale(ratio)
+        for i in self.get_all_recycles(): i.rescale(ratio)
+
     def reset_cache(self):
         """Reset cache of all unit operations."""
         if self.isdynamic:
@@ -1490,8 +1542,8 @@ class System:
         """
         if not hasattr(self, '_scope'): self._scope = SystemScope(self)
         elif isinstance(self._scope, dict): 
-            # sys._converge() seems to break WasteStreamScope, so it's now 
-            # set up to initiate the SystemScope object after _converge() when 
+            # sys.converge() seems to break WasteStreamScope, so it's now 
+            # set up to initiate the SystemScope object after converge() when 
             # the system is run the first time 
             subjects = self._scope['subjects']
             kwargs = self._scope['kwargs']
@@ -1640,7 +1692,7 @@ class System:
                 for u in self.units:
                     if not hasattr(u, '_state'): u._init_dynamic()
             # Load initial states
-            self._converge()
+            self.converge()
             y0, idx, nr = self._load_state()
             dk['y0'] = y0
             # Integrate
@@ -1663,9 +1715,9 @@ class System:
                     path = f'{file}_{sample_id}.npy'
                 else: path = f'{file}.{ext}'
                 self.scope.export(path=path, t_eval=t_eval)
-        else: self._converge()
+        else: self.converge()
         self._summary()
-        if self._facility_loop: self._facility_loop._converge()
+        if self._facility_loop: self._facility_loop.converge()
 
 
     # User definitions
@@ -2055,7 +2107,7 @@ class System:
         """Total installed cost (USD)."""
         lang_factor = self.lang_factor
         if lang_factor:
-            return sum([u.purchase_cost * lang_factor for u in self.cost_units])
+            return sum([u.purchase_cost for u in self.cost_units]) * lang_factor
         else:
             return sum([u.installed_cost for u in self.cost_units])
 
@@ -2073,7 +2125,7 @@ class System:
         return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.agent.ID == agent]) 
     
     def get_utility_flow(self, agent):
-        """Return the total utility flow for given agent in kJ/yr."""
+        """Return the total utility flow for given agent in kmol/yr."""
         if not isinstance(agent, str): agent = agent.ID
         return self.operating_hours * sum([i.flow for i in self.heat_utilities if i.agent.ID == agent]) 
     
@@ -2202,7 +2254,7 @@ class System:
         return recycle
 
     def _ipython_display_(self):
-        if bst.ALWAYS_DISPLAY_DIAGRAMS: self.diagram('minimal')
+        if bst.preferences.autodisplay: self.diagram('minimal')
         self.show()
 
     def _error_info(self):
@@ -2232,12 +2284,15 @@ class System:
 
     def _info(self, layout, T, P, flow, composition, N, IDs, data):
         """Return string with all specifications."""
-        error = self._error_info()
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
-        return (f"System: {self.ID}"
-                + error + '\n'
-                + ins_and_outs)
+        if self._iter == 0:
+            return f"System: {self.ID}\n{ins_and_outs}"
+        else:
+            error = self._error_info()
+            return (f"System: {self.ID}"
+                    + error + '\n'
+                    + ins_and_outs)
 
 class FacilityLoop(System):
     __slots__ = ()
@@ -2388,6 +2443,7 @@ class AgileSystem:
     get_utility_flow = System.get_utility_flow
     get_cooling_duty = System.get_cooling_duty
     get_heating_duty = System.get_heating_duty
+    rescale = System.rescale
 
     def __init__(self, operation_modes=None, operation_parameters=None, 
                  mode_operation_parameters=None, annual_operation_metrics=None,
@@ -2409,6 +2465,9 @@ class AgileSystem:
 
     def _downstream_system(self, unit):
         return self
+
+    def get_all_recycles(self):
+        return set(sum([i.system.get_all_recycles() for i in self.operation_modes], []))
 
     def operation_mode(self, system, operating_hours, **data):
         """

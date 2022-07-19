@@ -53,9 +53,11 @@ jobs:
         python -c "import platform; print(platform.platform()); print(platform.architecture())"
         python -m pip install --upgrade pip
         python -m pip install wheel
+        pip install -r requirements_test.txt
+        pip install git+https://github.com/BioSTEAMDevelopmentGroup/thermosteam.git
+        pip install git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
         pip install git+https://github.com/QSD-Group/QSDsan.git
         pip install git+https://github.com/QSD-Group/EXPOsan.git
-        pip install -r requirements_test.txt
     - name: Test without numba
       run: |
         pytest . -v --disable-numba=1 --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"

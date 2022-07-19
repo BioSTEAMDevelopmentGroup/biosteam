@@ -57,7 +57,7 @@ class Flowsheet:
     """
     Create a Flowsheet object which stores references to all stream, unit,
     and system objects. For a tutorial on flowsheets, visit
-    :doc:`tutorial/Managing_flowsheets`.
+    :doc:`../tutorial/Managing_flowsheets`.
 	
     """
     
@@ -153,7 +153,7 @@ class Flowsheet:
         return new
     
     def diagram(self, kind=None, file=None, format=None, display=True,
-                number=None, profile=None, label=None, **graph_attrs):
+                number=None, profile=None, label=None, title=None, **graph_attrs):
         """
         Display all units and attached streams.
         
@@ -180,9 +180,10 @@ class Flowsheet:
             Whether to label the ID of streams with sources and sinks.
             
         """
+        if title is None: title = ''
         return self.create_system(None).diagram(kind or 'thorough', file, format,
                                                 display, number, profile, label,
-                                                **graph_attrs)
+                                                title, **graph_attrs)
     
     def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None,
                       operating_hours=None, lang_factor=None):
@@ -205,7 +206,7 @@ class Flowsheet:
             defaults to the outlet of a BlowdownMixer facility (if any).
         operating_hours : float, optional
             Number of operating hours in a year. This parameter is used to
-            conveniently compute properties such as utility cost and material cost
+            compute properties such as utility cost and material cost
             on a per year basis. 
         lang_factor : float, optional
             Lang factor for getting fixed capital investment from 

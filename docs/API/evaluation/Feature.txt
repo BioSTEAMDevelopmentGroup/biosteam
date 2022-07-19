@@ -1,0 +1,6 @@
+Feature
+=======
+
+.. autoclass:: biosteam.evaluation.Feature
+   :members:
+   :special-members: __call__

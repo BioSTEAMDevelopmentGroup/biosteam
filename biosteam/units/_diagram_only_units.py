@@ -36,4 +36,5 @@ class DiagramOnlySystemUnit(DiagramOnlyUnit, isabstract=True):
 class DiagramOnlyStreamUnit(DiagramOnlyUnit, isabstract=True):
     """Dummy unit for displaying a streams as a unit."""
     line = ''
+    _N_ins = _N_outs = 0
     _graphics = stream_unit

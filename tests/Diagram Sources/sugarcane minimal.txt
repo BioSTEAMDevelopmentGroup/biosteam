@@ -1,31 +1,31 @@
 digraph {
-	Damping=0.995 K=0.5 maxiter=10000000 rankdir=LR
+	Damping=0.995 K=0.5 bgcolor=transparent color=none fontcolor="#e5e5e5" fontname=Arial fontsize=24 label="" labeljust=l labelloc=t maxiter=10000000 penwidth=0 rankdir=LR
 	"s.6
 recirculated_chilled_water
 sugarcane
 makeup_water
 imbibition_water
-cooling_tower_makeup_water
 stripping_water
+cooling_tower_makeup_water
 boiler_makeup_water
 denaturant
 lime
 H3PO4
 rvf_wash_water
 s57
+s62
+s63
+s55
 s56
 s58
 s61
-s62
-s55
-s63
 polymer
 natural_gas
 dilution_water
 cooling_tower_chemicals
-" [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
+" [color="#55a8b5" fillcolor="#60c1cf" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"sugarcane_sys
-System" [color=black fillcolor="white:#CDCDCD" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=2 shape=box style=filled width=0.6]
+System" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"s.7
 s.9
 vinasse
@@ -42,56 +42,39 @@ Yeast
 s4
 s36
 s60
-" [color=black fillcolor="white:#79dae8" gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
-	node [color=black fillcolor="#79dae8" height=0.6 orientation=0 peripheries=1 shape=rarrow style=filled width=0.6]
-	graph [maxiter=1000000 nodesep=0.15 outputorder=edgesfirst overlap=orthoyx]
-	edge [dir=foward]
-	s66
-	edge [arrowhead=none arrowtail=none headport=c tailport=e]
-	s66 -> "s.6
+" [color="#55a8b5" fillcolor="#60c1cf" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
+	graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
+	edge [dir=foward fontname=Arial]
+	node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
+	"s.6
 recirculated_chilled_water
 sugarcane
 makeup_water
 imbibition_water
-cooling_tower_makeup_water
 stripping_water
+cooling_tower_makeup_water
 boiler_makeup_water
 denaturant
 lime
 H3PO4
 rvf_wash_water
 s57
+s62
+s63
+s55
 s56
 s58
 s61
-s62
-s55
-s63
 polymer
 natural_gas
 dilution_water
 cooling_tower_chemicals
-"
-	s65
-	edge [arrowhead=none arrowtail=none headport=w tailport=c]
-	"s.7
-s.9
-vinasse
-emissions
-s59
-wastewater
-evaporation_and_blowdown
-ethanol
-vent
-ash_disposal
-filter_cake
-rejected_water_and_blowdown
-Yeast
-s4
-s36
-s60
-" -> s65
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
+" -> "sugarcane_sys
+System" [label=" "]
+	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
+	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=dashed tailport=c]
 	"sugarcane_sys
 System" -> "s.7
 s.9
@@ -109,31 +92,5 @@ Yeast
 s4
 s36
 s60
-" [style=dashed]
-	edge [arrowhead=normal arrowtail=none headport=c tailport=c]
-	"s.6
-recirculated_chilled_water
-sugarcane
-makeup_water
-imbibition_water
-cooling_tower_makeup_water
-stripping_water
-boiler_makeup_water
-denaturant
-lime
-H3PO4
-rvf_wash_water
-s57
-s56
-s58
-s61
-s62
-s55
-s63
-polymer
-natural_gas
-dilution_water
-cooling_tower_chemicals
-" -> "sugarcane_sys
-System" [style=dashed]
+" [label=" "]
 }
