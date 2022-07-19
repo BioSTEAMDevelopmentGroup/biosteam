@@ -55,7 +55,7 @@ class Model(State):
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
         '_exception_hook',  # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
-        'sample_weights',   # [array] Parameter weigths for ordering samples for computational efficiency.
+        'sample_weights',   # [array] Parameter weights for ordering samples for computational efficiency.
     )
     def __init__(self, system, metrics=None, specification=None, 
                  parameters=None, retry_evaluation=True, exception_hook='warn'):
@@ -71,7 +71,8 @@ class Model(State):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
-        if self._N_parameters_cache:
+        if self.table is not None:
+        # if self._N_parameters_cache:
             copy.table = self.table.copy()
         else:
             copy._samples = copy.table = None
