@@ -893,15 +893,16 @@ class System:
         if unit not in self.unit_path:
             raise ValueError(f'unit {repr(unit)} not in system')
         path = self._path
-        if (self._recycle or self.N_runs):
-            for index, other in enumerate(path):
-                if unit is other:
-                    self._path = path[index:] + path[:index]
-                    return
-                elif isa(other, System) and unit in other.unit_path:
-                    other.prioritize_unit(unit)
-                    return
-            raise RuntimeError('problem in system algorithm')
+        for index, other in enumerate(path):
+            if unit is other:
+                if (self._recycle or self.N_runs): self._path = path[index:] + path[:index]
+                del self._unit_path
+                return
+            elif isa(other, System) and unit in other.unit_path:
+                other.prioritize_unit(unit)
+                del self._unit_path
+                return
+        raise RuntimeError('problem in system algorithm')
 
 
     def split(self, stream, ID_upstream=None, ID_downstream=None):
