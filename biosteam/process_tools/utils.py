@@ -511,6 +511,7 @@ def get_streams_from_context_level(level=None):
     Get all waste streams created (as registerd in the flowsheet):
         
     >>> import biosteam as bst
+    >>> bst.main_flowsheet.clear()
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> waste = bst.Stream('waste')
     >>> mixer = bst.Mixer('mixer', outs=waste)
@@ -557,6 +558,7 @@ def get_unaccounted_waste_streams(streams=None, phase=None):
     Get all waste streams created (as registerd in the flowsheet):
         
     >>> import biosteam as bst
+    >>> bst.main_flowsheet.clear()
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> waste = bst.Stream('waste')
     >>> mixer = bst.Mixer('mixer', outs=waste)
@@ -585,6 +587,7 @@ def get_fresh_process_water_streams(streams=None):
     Get all fresh process water streams created (as registerd in the flowsheet):
         
     >>> import biosteam as bst
+    >>> bst.main_flowsheet.clear()
     >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
     >>> water = bst.Stream('water', Water=1)
     >>> mixer = bst.Mixer('mixer', ins=water)
