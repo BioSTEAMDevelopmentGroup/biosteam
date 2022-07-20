@@ -242,12 +242,6 @@ class Flash(design.PressureVessel, Unit):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass
         F_mass_liq = liq.F_mass 
-        N_phases = int((F_mass_vap != 0.) + (F_mass_liq != 0.))
-        if N_phases != 2:
-            raise RuntimeError(
-                "at least two phases must be present to design a flash vessel; "
-                f"only {N_phases} present"
-            )
         return 'Vertical' if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
 
     def _run(self):
@@ -255,7 +249,7 @@ class Flash(design.PressureVessel, Unit):
                         self.Q, self.x, self.y, self._multi_stream)
             
     def _design(self):
-        self.no_vessel_needed = self.outs[0].isempty()
+        self.no_vessel_needed = self.outs[0].isempty() or self.outs[1].isempty()
         if self.no_vessel_needed:
             self.design_results.clear()
         else:
