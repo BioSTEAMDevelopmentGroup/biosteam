@@ -7,6 +7,7 @@
 # for license details.
 """
 """
+import biosteam as bst
 from . import Facility
 from ..decorators import cost
 
@@ -38,8 +39,11 @@ class ProcessWaterCenter(Facility):
         [1] Waste.
     makeup_water_streams : streams, optional
         All fresh makeup water streams (must be a subset of `process_water_streams`).
+        Defaults to boiler and cooling tower make-up water streams at run times.
     process_water_streams : streams, optional
         All process water streams (including makeup water streams).
+        Defaults to all fresh process water streams within the system at 
+        run time.
     
     References
     ----------
@@ -67,6 +71,11 @@ class ProcessWaterCenter(Facility):
     
     def update_process_water(self):
         process_water_streams = self.process_water_streams
+        if process_water_streams is None:
+            self.process_water_streams = process_water_streams = [
+                *bst.get_fresh_process_water_streams(),
+                *self.makeup_water_streams
+            ]
         s_process, _ = self.outs
         process_water = sum([stream.imol['7732-18-5'] 
                              for stream in process_water_streams])
@@ -74,13 +83,18 @@ class ProcessWaterCenter(Facility):
 
     def update_makeup_water(self):
         makeup_water_streams = self.makeup_water_streams
+        if makeup_water_streams is None: 
+            self.makeup_water_streams = makeup_water_streams = [
+                i.makeup_water for i in self.system.facilities
+                if hasattr(i, 'makeup_water')
+            ]
         s_recycle, s_makeup, _ = self.ins
         water = sum([stream.imol['7732-18-5'] for stream in makeup_water_streams]) - s_recycle.imol['7732-18-5']
         s_makeup.imol['7732-18-5'] = max(water, 0)
 
     def _run(self): 
-        self.update_process_water()
         self.update_makeup_water()
+        self.update_process_water()
         s_recycle, s_makeup, s_recycle_process = self._ins
         s_process, s_waste = self.outs
         makeup_water = s_makeup.imol['7732-18-5']

@@ -217,7 +217,7 @@ class MockSystem:
             raise RuntimeError("only empty mock systems can enter `with` statement")
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
-        unit_registry._open_dump(self)
+        unit_registry.open_context_level()
         return self
 
     def __exit__(self, type, exception, traceback):
@@ -226,7 +226,7 @@ class MockSystem:
         if self.units:
             raise RuntimeError('mock system was modified before exiting `with` statement')
         unit_registry = self.flowsheet.unit
-        dump = unit_registry._close_dump(self)
+        dump = unit_registry.close_context_level()
         self.units = [i for i in dump if i not in irrelevant_units]
         if exception: raise exception
 
@@ -562,7 +562,7 @@ class System:
         del self._unit_path, self._units, 
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
-        unit_registry._open_dump(self)
+        unit_registry.open_context_level()
         return self
 
     def __exit__(self, type, exception, traceback):
@@ -570,7 +570,7 @@ class System:
         ID = self._ID
         del self._irrelevant_units
         unit_registry = self.flowsheet.unit
-        dump = unit_registry._close_dump(self)
+        dump = unit_registry.close_context_level()
         if exception: raise exception
         if self._path or self._recycle or self._facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
