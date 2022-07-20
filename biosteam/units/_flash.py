@@ -242,7 +242,7 @@ class Flash(design.PressureVessel, Unit):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass
         F_mass_liq = liq.F_mass 
-        N_phases = (F_mass_vap != 0.) + (F_mass_liq != 0.)
+        N_phases = int((F_mass_vap != 0.) + (F_mass_liq != 0.))
         if N_phases != 2:
             raise RuntimeError(
                 "at least two phases must be present to design a flash vessel; "
