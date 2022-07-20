@@ -242,8 +242,13 @@ class Flash(design.PressureVessel, Unit):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass
         F_mass_liq = liq.F_mass 
-        assert F_mass_liq, "no liquid effluent; flash vessel must have liquid to default vessel type"
-        return 'Vertical'if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
+        N_phases = (F_mass_vap == 0.) + (F_mass_liq == 0.)
+        if N_phases != 2:
+            raise RuntimeError(
+                "at least two phases must be present to design a flash vessel; "
+                f"only {N_phases} present"
+            )
+        return 'Vertical' if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
 
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
