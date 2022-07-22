@@ -249,7 +249,8 @@ class Flash(design.PressureVessel, Unit):
                         self.Q, self.x, self.y, self._multi_stream)
             
     def _design(self):
-        self.no_vessel_needed = self.outs[0].isempty() or self.outs[1].isempty()
+        vap, liq = self.outs
+        self.no_vessel_needed = vap.isempty() or liq.isempty()
         if self.no_vessel_needed:
             self.design_results.clear()
         else:
