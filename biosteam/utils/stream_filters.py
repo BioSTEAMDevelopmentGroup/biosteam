@@ -24,9 +24,8 @@ __all__ = (
     'get_inlet_origin',
     'get_streams_from_context_level',
     'get_fresh_process_water_streams',
-    'get_unaccounted_waste_streams',
-    'get_unaccounted_combustible_waste_streams',
     'get_streams_from_context_level',
+    'FreeProductStreams',
 )
 
 feed_priorities = {}
@@ -124,8 +123,9 @@ def get_streams_from_context_level(level=None):
     level : int, optional
         If given, only filter through streams created in the given context 
         level. For example, use:
-        * 0: to account for all streams created in the current context level.
-        * 1: to account for streams created in the next outer context level.
+        * 0: to filter within the current context level.
+        * 1: to filter within the outer context level.
+        * -1: to filter within the outer-most context level.
     
     Examples
     --------
@@ -161,76 +161,6 @@ def get_streams_from_context_level(level=None):
             streams = [i for i in streams_from_units(units) if i]
     return streams
 
-def get_unaccounted_combustible_waste_streams(streams=None):
-    """
-    Return all product streams that do not have a price and have a lower 
-    heating value (LHV) greater than 1 kJ/g. These are assumed to be waste 
-    streams that can potentially be used to generate heat through combustion 
-    and have not been accounted for.
-    
-    Parameters
-    ----------
-    streams : Iterable[Stream], optional
-        Stream to filter through.
-    
-    Examples
-    --------
-    Get all waste streams created (as registerd in the flowsheet):
-        
-    >>> import biosteam as bst
-    >>> bst.main_flowsheet.clear()
-    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
-    >>> waste = bst.Stream('waste', Ethanol=1)
-    >>> mixer = bst.Mixer('mixer', outs=waste)
-    >>> streams = bst.get_unaccounted_waste_streams()
-    >>> assert len(streams) == 1 and streams[0] == waste
-    
-    """
-    if streams is None: streams = bst.main_flowsheet.stream
-    isa = isinstance
-    return [
-        i for i in streams if 
-        not i.price and i.isproduct()
-        and not isa(i.source, bst.Facility) 
-        and i.LHV / i.F_mass > 1000. 
-    ]
-
-def get_unaccounted_waste_streams(streams=None, phase=None):
-    """
-    Return all product streams that do not have a price at the given phase.
-    These are assumed to be waste streams that have not been accounted for 
-    (i.e., is not sold and needs to be treated in some way).
-    
-    Parameters
-    ----------
-    streams : Iterable[Stream], optional
-        Stream to filter through.
-    phase : str, optional
-        Phase of streams. Defaults to 'l' for liquid.
-    
-    Examples
-    --------
-    Get all waste streams created (as registerd in the flowsheet):
-        
-    >>> import biosteam as bst
-    >>> bst.main_flowsheet.clear()
-    >>> bst.settings.set_thermo(['Water', 'Ethanol'], cache=True)
-    >>> waste = bst.Stream('waste')
-    >>> mixer = bst.Mixer('mixer', outs=waste)
-    >>> streams = bst.get_unaccounted_waste_streams()
-    >>> assert len(streams) == 1 and streams[0] == waste
-    
-    """
-    if streams is None: streams = bst.main_flowsheet.stream
-    if phase is None: phase = 'l'
-    isa = isinstance
-    return [
-        i for i in streams if 
-        not i.price and i.isproduct()
-        and i.phase==phase
-        and not isa(i.source, bst.Facility)
-    ]
-
 def get_fresh_process_water_streams(streams=None):
     """
     Return all feed water streams without a price.
@@ -253,12 +183,78 @@ def get_fresh_process_water_streams(streams=None):
     >>> assert len(streams) == 1 and streams[0] == water
     
     """    
-    def only_water(stream):
-        chemicals = stream.available_chemicals
-        return len(chemicals) == 1 and chemicals[0].CAS == '7732-18-5'
-    
     if streams is None: streams = bst.main_flowsheet.stream
     return [
         i for i in streams
-        if not i.price and i.isfeed() and i.phase=='l' and only_water(i)
+        if not i.price and i.isfeed() and i.phase=='l' and has_only_water(i)
     ]
+
+def has_only_water(stream):
+    chemicals = stream.available_chemicals
+    return len(chemicals) == 1 and chemicals[0].CAS == '7732-18-5'
+
+class FreeProductStreams:
+    __slots__ = ('context_level', 'cache')
+    LHV_combustible = 1000.
+    
+    def __init__(self, context_level=-1):
+        self.context_level = context_level
+        self.cache = {}
+       
+    @property
+    def streams(self):
+        cache = self.cache
+        if 'streams' in cache: return cache['streams']
+        streams = get_streams_from_context_level(self.context_level)
+        isa = isinstance
+        cache['streams'] = streams = frozenset([
+            i for i in streams if 
+            not i.price and i.isproduct()
+            and not isa(i.source, bst.Facility)
+        ])
+        return streams
+    
+    @property
+    def combustibles(self):
+        cache = self.cache
+        if 'cumbustibles' in cache: return cache['combustibles']
+        LHV_combustible = self.LHV_combustible
+        cache['combustibles'] = combustibles = frozenset([i for i in self.streams if i.LHV / i.F_mass >= LHV_combustible])
+        return combustibles
+    
+    @property
+    def combustible_gases(self):
+        cache = self.cache
+        if 'combustible_gases' in cache: return cache['combustible_gases']
+        combustibles = self.combustibles
+        cache['combustible_gases'] = gas_combustibles = frozenset([i for i in combustibles if i.phase == 'g'])
+        return gas_combustibles
+    
+    @property
+    def combustible_slurries(self):
+        cache = self.cache
+        if 'combustible_slurries' in cache: return cache['combustible_slurries']
+        combustible_gases = self.combustible_gases
+        combustibles = self.combustibles
+        cache['combustible_slurries'] = combustible_slurries = frozenset([i for i in combustibles if i not in combustible_gases])
+        return combustible_slurries
+    
+    @property
+    def noncombustibles(self):
+        cache = self.cache
+        if 'noncombustibles' in cache: return cache['noncombustibles']
+        combustibles = self.combustibles
+        cache['noncombustibles'] = noncombustibles = frozenset([i for i in self.streams if i not in combustibles])
+        return noncombustibles
+    
+    @property
+    def noncombustible_slurries(self):
+        cache = self.cache
+        if 'noncombustible_slurries' in cache: return cache['noncombustible_slurries']
+        noncombustibles = self.noncombustibles
+        gas_noncombustibles = self.gas_noncombustibles
+        cache['noncombustible_slurries'] = noncombustible_slurries = frozenset([i for i in noncombustibles if i not in gas_noncombustibles])
+        return noncombustible_slurries
+        
+    def __repr__(self):
+        return f"{type(self).__name__}(context_level={self.context_level})"

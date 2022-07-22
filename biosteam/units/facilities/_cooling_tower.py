@@ -10,10 +10,8 @@
 from . import Facility
 from ..decorators import cost
 from ... import HeatUtility
-from thermosteam import Stream
-# from copy import copy
 
-__all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
+__all__ = ('CoolingTower',)
 
 
 # %%
@@ -55,7 +53,7 @@ class CoolingTower(Facility):
         return_cooling_water = cooling_water.to_stream()
         cooling_water = return_cooling_water.flow_proxy()
         cooling_tower_chemicals = return_cooling_water.copy('cooling_tower_chemicals')
-        cooling_tower_chemicals.price=3 
+        cooling_tower_chemicals.price = 3.
         loss = makeup_water.flow_proxy()
         loss.ID = 'evaporation_and_blowdown'
         super().__init__(ID, (return_cooling_water, makeup_water, cooling_tower_chemicals),

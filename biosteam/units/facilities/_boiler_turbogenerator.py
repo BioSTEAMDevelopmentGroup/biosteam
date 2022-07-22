@@ -481,7 +481,7 @@ class BoilerTurbogenerator(Facility):
                     if agent and agent.ID == ID:
                         steam_utilities.add(hu)
         self.electricity_demand = sum([u.power_utility.consumption for u in units])
-    stop = False
+    
     def _design(self):
         B_eff = self.boiler_efficiency
         TG_eff = self.turbogenerator_efficiency
@@ -603,3 +603,32 @@ class BoilerTurbogenerator(Facility):
 # b School of Chemical Engineering, University of Campinas, PO Box 6066 – CEP
 # 13083-970, Campinas – SP, Brazil
 # LHV = 7565 # Bagasse lower heating value (kJ/kg)
+
+
+bst.SystemFactory(
+    ID='CHP_sys',
+    ins=['makeup_water', 'natural_gas', 'lime', 'boiler_chemicals'],
+    outs=['emissions', 'blowdown', 'ash'],
+    fixed_ins_size=False,
+)
+def create_coheat_and_power_system(ins, outs, **kwargs):
+    makeup_water, natural_gas, lime, boiler_chemicals, *combustibles = ins
+    if not combustibles: 
+        streams = bst.FreeProductStreams()
+        combustible_gases = streams.combustible_gases
+        combustible_slurries = streams.combustible_slurries
+        ins.extend(combustible_slurries)
+        ins.extend(combustible_gases)
+    else:
+        combustible_gases = [i for i in combustibles if i.phase == 'g']
+        combustible_slurries = [i for i in combustibles if i.phase != 'g']
+    M1 = bst.Mixer(ins=combustible_slurries)
+    M2 = bst.Mixer(ins=combustible_gases)
+    combustible_slurry = M1.outs[0]
+    combustible_gas = M2.outs[0]
+    BoilerTurbogenerator(
+        ins=[combustible_slurry, combustible_gas, 
+             makeup_water, natural_gas, lime, boiler_chemicals],
+        outs=outs,
+    )
+    
