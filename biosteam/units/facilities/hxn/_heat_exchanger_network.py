@@ -123,7 +123,8 @@ class HeatExchangerNetwork(Facility):
               'Work': 'kW'}
     
     def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3,
-                 force_ideal_thermo=False, cache_network=False, avoid_recycle=False):
+                 force_ideal_thermo=False, cache_network=False, avoid_recycle=False,
+                 acceptable_energy_balance_error=None):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
@@ -132,6 +133,8 @@ class HeatExchangerNetwork(Facility):
         self.force_ideal_thermo = force_ideal_thermo
         self.cache_network = cache_network
         self.avoid_recycle = avoid_recycle
+        if acceptable_energy_balance_error is not None:
+            self.acceptable_energy_balance_error = acceptable_energy_balance_error
         
     def _get_original_heat_utilties(self):
         sys = self.system

@@ -13,6 +13,21 @@ from .utils import streams_from_units
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
+from .utils import OutletPort, MissingStream
+
+# %% Customization to system creation
+
+disjunctions = []
+
+def mark_disjunction(stream):
+    port = OutletPort.from_outlet(stream)
+    if port not in disjunctions:
+        disjunctions.append(port)
+
+def unmark_disjunction(stream):
+    port = OutletPort.from_outlet(stream)
+    if port in disjunctions:
+        disjunctions.remove(port)
 
 # %% Other tools
 
@@ -151,6 +166,14 @@ def nested_network_units(path):
                             f"objects not '{type(i).__name__}' objects")
     return units
 
+def facilities_from_units(units):
+    isa = isinstance
+    return [i for i in units if isa(i, Facility)]
+
+def find_blowdown_recycle(facilities):
+    isa = isinstance
+    for i in facilities:
+        if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 # %% Network
 
@@ -315,6 +338,34 @@ class Network:
         network.add_process_heat_exchangers()
         network.simplify()
         return network
+    
+    @classmethod
+    def from_units(cls, units, ends=None):
+        """
+        Create a System object from all units given.
+
+        Parameters
+        ----------
+        units : Iterable[:class:`biosteam.Unit`]
+            Unit operations to be included.
+        ends : Iterable[:class:`~thermosteam.Stream`], optional
+            End streams of the system which are not products. Specify this
+            argument if only a section of the complete system is wanted, or if
+            recycle streams should be ignored.
+
+        """
+        feeds = bst.utils.feeds_from_units(units) + [MissingStream(None, i) for i in units if not i.ins]
+        bst.utils.sort_feeds_big_to_small(feeds)
+        if feeds:
+            feedstock, *feeds = feeds
+            if not ends:
+                ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
+            system = cls.from_feedstock(
+                feedstock, feeds, ends,
+            )
+        else:
+            system = cls(())
+        return system
     
     def simplify(self):
         isa = isinstance

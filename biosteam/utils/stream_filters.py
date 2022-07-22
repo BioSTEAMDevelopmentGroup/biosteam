@@ -123,9 +123,10 @@ def get_streams_from_context_level(level=None):
     level : int, optional
         If given, only filter through streams created in the given context 
         level. For example, use:
-        * 0: to filter within the current context level.
-        * 1: to filter within the outer context level.
-        * -1: to filter within the outer-most context level.
+        * 0: to filter within the outer-most context level.
+        * -1: to filter within the current context level.
+        * -2: to filter within the outer context level.
+        
     
     Examples
     --------
@@ -151,13 +152,13 @@ def get_streams_from_context_level(level=None):
     if level is None:
         streams = list(bst.main_flowsheet.stream)
     else:
-        context_levels = bst.main_flowsheet.unit.context_levels
+        units = bst.main_flowsheet.unit
+        context_levels = units.context_levels
         N_levels = len(context_levels)
-        if level >= N_levels:
-            streams = bst.main_flowsheet.stream
+        if (level > 0 and level >= N_levels or level < 0 and -level > N_levels):
+            streams = list(bst.main_flowsheet.stream)
         else:
-            index = N_levels - level - 1
-            units = context_levels[index]
+            units = context_levels[level]
             streams = [i for i in streams_from_units(units) if i]
     return streams
 
@@ -186,7 +187,7 @@ def get_fresh_process_water_streams(streams=None):
     if streams is None: streams = bst.main_flowsheet.stream
     return [
         i for i in streams
-        if not i.price and i.isfeed() and i.phase=='l' and has_only_water(i)
+        if not i.price and i.isfeed() and has_only_water(i)
     ]
 
 def has_only_water(stream):
@@ -194,32 +195,24 @@ def has_only_water(stream):
     return len(chemicals) == 1 and chemicals[0].CAS == '7732-18-5'
 
 class FreeProductStreams:
-    __slots__ = ('context_level', 'cache')
-    LHV_combustible = 1000.
+    __slots__ = ('streams', 'cache')
+    LHV_combustible = 200.
     
-    def __init__(self, context_level=-1):
-        self.context_level = context_level
-        self.cache = {}
-       
-    @property
-    def streams(self):
-        cache = self.cache
-        if 'streams' in cache: return cache['streams']
-        streams = get_streams_from_context_level(self.context_level)
+    def __init__(self, streams):
         isa = isinstance
-        cache['streams'] = streams = frozenset([
+        self.streams = streams = frozenset([
             i for i in streams if 
-            not i.price and i.isproduct()
+            not i.price and i.isproduct() and not i.isempty()
             and not isa(i.source, bst.Facility)
         ])
-        return streams
-    
+        self.cache = {}
+       
     @property
     def combustibles(self):
         cache = self.cache
         if 'cumbustibles' in cache: return cache['combustibles']
         LHV_combustible = self.LHV_combustible
-        cache['combustibles'] = combustibles = frozenset([i for i in self.streams if i.LHV / i.F_mass >= LHV_combustible])
+        cache['combustibles'] = combustibles = frozenset([i for i in self.streams if not i.isempty() and i.LHV / i.F_mass >= LHV_combustible])
         return combustibles
     
     @property
@@ -252,9 +245,8 @@ class FreeProductStreams:
         cache = self.cache
         if 'noncombustible_slurries' in cache: return cache['noncombustible_slurries']
         noncombustibles = self.noncombustibles
-        gas_noncombustibles = self.gas_noncombustibles
-        cache['noncombustible_slurries'] = noncombustible_slurries = frozenset([i for i in noncombustibles if i not in gas_noncombustibles])
+        cache['noncombustible_slurries'] = noncombustible_slurries = frozenset([i for i in noncombustibles if i.phase != 'g'])
         return noncombustible_slurries
         
     def __repr__(self):
-        return f"{type(self).__name__}(context_level={self.context_level})"
+        return f"{type(self).__name__}(streams={self.streams})"

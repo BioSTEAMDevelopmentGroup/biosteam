@@ -19,12 +19,12 @@ from .digraph import (digraph_from_units_and_streams,
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
 from .exceptions import try_method_with_object_stamp
-from ._network import Network
+from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
 from .utils import repr_items, ignore_docking_warnings, SystemScope
 from .report import save_report
-from .utils import StreamPorts, OutletPort, colors
+from .utils import StreamPorts, colors
 from .process_tools import utils
 from collections.abc import Iterable
 from warnings import warn
@@ -57,32 +57,6 @@ class ProcessImpactItem:
     def impact(self):
         return self.inventory() * self.CF
 
-
-# %% Customization to system creation
-
-disjunctions = []
-
-def mark_disjunction(stream):
-    port = OutletPort.from_outlet(stream)
-    if port not in disjunctions:
-        disjunctions.append(port)
-
-def unmark_disjunction(stream):
-    port = OutletPort.from_outlet(stream)
-    if port in disjunctions:
-        disjunctions.remove(port)
-
-
-# %% Functions for creating deterministic systems
-
-def facilities_from_units(units):
-    isa = isinstance
-    return [i for i in units if isa(i, Facility)]
-
-def find_blowdown_recycle(facilities):
-    isa = isinstance
-    for i in facilities:
-        if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 # %% Functions for taking care of numerical specifications within a system path
 
@@ -392,7 +366,7 @@ class System:
                                 lang_factor)
 
     @classmethod
-    def from_units(cls, ID="", units=None, feeds=None, ends=None,
+    def from_units(cls, ID="", units=None, ends=None,
                    facility_recycle=None, operating_hours=None,
                    lang_factor=None):
         """
@@ -404,9 +378,6 @@ class System:
             Name of system.
         units : Iterable[:class:`biosteam.Unit`], optional
             Unit operations to be included.
-        feeds : Iterable[:class:`~thermosteam.Stream`], optional
-            All feeds to the system. Specify this argument if only a section
-            of the complete system is wanted as it may disregard some units.
         ends : Iterable[:class:`~thermosteam.Stream`], optional
             End streams of the system which are not products. Specify this
             argument if only a section of the complete system is wanted, or if
@@ -424,26 +395,13 @@ class System:
             estimated using bare module factors.
 
         """
-        if units is None:
-            units = ()
-        elif feeds is None:
-            isa = isinstance
-            Facility = bst.Facility
-            feeds = bst.utils.feeds_from_units([i for i in units if not isa(i, Facility)])
-            bst.utils.sort_feeds_big_to_small(feeds)
-        if feeds:
-            feedstock, *feeds = feeds
-            facilities = facilities_from_units(units) if units else ()
-            if not ends:
-                ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
-            system = cls.from_feedstock(
-                ID, feedstock, feeds, facilities, ends,
-                facility_recycle or find_blowdown_recycle(facilities),
-                operating_hours=operating_hours, lang_factor=lang_factor,
-            )
-        else:
-            system = cls(ID, (), operating_hours=operating_hours)
-        return system
+        isa = isinstance
+        Facility = bst.Facility
+        facilities = [i for i in units if isa(i, Facility)]
+        network = Network.from_units(units, ends)
+        return cls.from_network(ID, network, facilities,
+                                facility_recycle, operating_hours,
+                                lang_factor)
 
     @classmethod
     def from_segment(cls, ID="", start=None, end=None, operating_hours=None,
@@ -510,7 +468,8 @@ class System:
         """
         facilities = Facility.ordered_facilities(facilities)
         isa = isinstance
-        path = [(cls.from_network('', i) if isa(i, Network) else i)
+        ID_subsys = None if ID is None else ''
+        path = [(cls.from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
         self = cls.__new__(cls)
         self.recycle = network.recycle
@@ -555,6 +514,25 @@ class System:
         self._state_header = None
         self._DAE = None
         self.dynsim_kwargs = {}
+
+    def update_configuration(self, units=None, facility_recycle=None):
+        if units is None: units = self.units
+        for i in ('_subsystems', '_units', '_unit_path', '_cost_units', '_streams', '_feeds', '_products'):
+            if hasattr(self, i): delattr(self, i)
+        isa = isinstance
+        Facility = bst.Facility
+        facilities = Facility.ordered_facilities([i for i in units if isa(i, Facility)])
+        ID_subsys = None if '.' in self.ID else ''
+        network = Network.from_units(units)
+        path = [(type(self).from_network(ID_subsys, i) if isa(i, Network) else i)
+                for i in network.path]
+        self.recycle = network.recycle
+        self._reset_errors()
+        self._set_path(path)
+        self._set_facilities(facilities)
+        self._set_facility_recycle(facility_recycle)
+        self._save_configuration()
+        self._load_stream_links()
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:

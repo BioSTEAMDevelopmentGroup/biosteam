@@ -185,7 +185,7 @@ class Flowsheet:
                                                 display, number, profile, label,
                                                 title, **graph_attrs)
     
-    def create_system(self, ID="", feeds=None, ends=(), facility_recycle=None,
+    def create_system(self, ID="", ends=(), facility_recycle=None,
                       operating_hours=None, lang_factor=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
@@ -194,9 +194,6 @@ class Flowsheet:
         ----------
         ID : str, optional
             Name of system.
-        feeds : Iterable[:class:`~thermosteam.Stream`], optional
-            All feeds to the system. Specify this argument if only a section 
-            of the complete system is wanted as it may disregard some units.
         ends : Iterable[:class:`~thermosteam.Stream`], optional
             End streams of the system which are not products. Specify this
             argument if only a section of the complete system is wanted, or if 
@@ -214,7 +211,7 @@ class Flowsheet:
             estimated using bare module factors.
         
         """
-        return System.from_units(ID, self.unit, feeds, ends, facility_recycle,
+        return System.from_units(ID, self.unit, ends, facility_recycle,
                                  operating_hours, lang_factor)
     
     def create_network(self, feeds=None, ends=()):

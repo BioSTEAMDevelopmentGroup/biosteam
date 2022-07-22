@@ -494,7 +494,11 @@ class ReverseOsmosis(Unit):
                  water_recovery=0.987):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.water_recovery = water_recovery
-        
+    
+    @property
+    def treated_water(self):
+        return self.outs[0]
+    
     def _run(self):
         feed, = self.ins
         water, brine = self.outs
@@ -507,7 +511,7 @@ class ReverseOsmosis(Unit):
         brine.mol[water_index] = water_flow - water_recovered
 
 
-def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476):
+def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476, autopopulate=None):
     """
     Create units for wastewater treatment, including anaerobic and aerobic 
     digestion reactors, a membrane bioreactor, a sludge centrifuge, 
@@ -517,8 +521,8 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476):
     ----------
     ins : streams
         Wastewater streams (without solids). Defaults to all product streams
-        that are not sold and cannot generate energy through combustion (i.e. 
-        streams that have no sink, no price, and a LHV less that 1 kJ / g).
+        at run time that are not sold and cannot generate energy through combustion
+        (i.e. streams that have no sink, no price, and a LHV less that 1 kJ / g).
     outs : stream sequence
         * [0] methane
         * [1] sludge
@@ -526,17 +530,23 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476):
         * [3] waste_brine 
     NaOH_price : float, optional
         Price of NaOH in USD/kg. The default is 0.07476.
-    
+    autopopulate : bool, optional
+        Whether to automatically add waste water streams.
     """
-    if not ins: 
-        streams = bst.FreeProductStreams()
-        ins.extend(streams.noncombustible_slurries)
     methane, sludge, treated_water, waste_brine = outs
     air = bst.Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
     caustic = bst.Stream('caustic', Water=2252, NaOH=2252,
                      units='kg/hr', price=NaOH_price)
+    wastewater_mixer = bst.Mixer('M601', ins or [])
+    wastewater_mixer.autopopulate = False if autopopulate is None else autopopulate
     
-    wastewater_mixer = bst.Mixer('M601', ins)
+    @wastewater_mixer.add_specification(run=True)
+    def autopopulate_waste_streams():
+        if wastewater_mixer.autopopulate and not wastewater_mixer.ins: 
+            streams = bst.FreeProductStreams(wastewater_mixer.system.streams)
+            wastewater_mixer.ins.extend(streams.noncombustible_slurries)
+            wastewater_mixer.system.update_configuration()
+            
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
     anaerobic_digestion = AnaerobicDigestion('R601', WWTC-0, (methane, '', ''))
     recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None, None))
@@ -563,6 +573,7 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476):
     sludge_centrifuge-0-1-recycled_sludge_mixer
     reverse_osmosis = ReverseOsmosis('S604', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
+    
 
 def default_wastewater_thermo():
     from biorefineries.cornstover import chemicals

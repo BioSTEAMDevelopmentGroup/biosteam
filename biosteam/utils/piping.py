@@ -285,6 +285,12 @@ class MockStream:
     def ID(self, ID):
         Stream._register(self, ID)
     
+    def isfeed(self):
+        return False
+    
+    def isproduct(self):
+        return False
+    
     get_CF = Stream.get_CF
     set_CF = Stream.set_CF
     get_impact = MissingStream.get_impact
@@ -836,7 +842,6 @@ class StreamPorts:
 Connection = namedtuple('Connection', 
                         ('source', 'source_index', 'stream', 'sink_index', 'sink'),
                         module=__name__)
-
 
 # %% Stream pipping
         
