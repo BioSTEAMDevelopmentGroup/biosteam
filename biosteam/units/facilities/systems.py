@@ -52,38 +52,34 @@ def create_facilities(
             if 'area' not in i: i['area'] = area
         for i in kwargs[2:]: 
             if 'ID' not in i: i['ID'] = area
-    if CT or CT is None:
-        bst.facilities.CoolingTower(**CT_kwargs)
-    if CWP or CWP is None: 
-        bst.facilities.ChilledWaterPackage(**CWP_kwargs)
-    if WWT or WWT is None: 
-        bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
-    if HXN or HXN is None: 
-        bst.HeatExchangerNetwork(**HXN_kwargs)
+    if CT: bst.facilities.CoolingTower(**CT_kwargs)
+    if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
+    if WWT: bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
+    if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
     if recycle_process_water_streams is None: 
         recycle_process_water_streams = ()
     if feedstock is not None:
-        if CIP or CIP is None:
+        if CIP:
             CIP = bst.Stream('CIP', Water=126, units='kg/hr')
             CIP_package = bst.CIPpackage(ins=CIP, **CIP_kwargs)
             CIP_package.CIP_over_feedstock = 0.00121 if CIP_over_feedstock is None else CIP_over_feedstock
             @CIP_package.add_specification(run=True)
             def adjust_CIP(): CIP.imass['Water'] = feedstock.F_mass * CIP_package.CIP_over_feedstock
-        if ADP or ADP is None:
+        if ADP:
             plant_air = bst.Stream('plant_air', N2=83333, units='kg/hr')
             ADP = bst.AirDistributionPackage(ins=plant_air, **ADP_kwargs)
             ADP.plant_air_over_feedstock = 0.8 if plant_air_over_feedstock is None else plant_air_over_feedstock
             @ADP.add_specification(run=True)
             def adjust_plant_air(): plant_air.imass['N2'] = feedstock.F_mass * ADP.plant_air_over_feedstock
-        if FWT or FWT is None:
+        if FWT:
             fire_water = bst.Stream('fire_water', Water=8343, units='kg/hr')
             FT = bst.FireWaterTank(ins=fire_water, **FWT_kwargs)
             FT.fire_water_over_feedstock = 0.08 if fire_water_over_feedstock is None else fire_water_over_feedstock
             @FT.add_specification(run=True)
             def adjust_fire_water(): fire_water.imass['Water'] = feedstock.F_mass * FT.fire_water_over_feedstock
-    if CHP or CHP is None:
+    if CHP:
         create_coheat_and_power_system(mockup=True, autopopulate=True, **CHP_kwargs)
-    if PWC or PWC is None:
+    if PWC:
         process_water_mixer = bst.Mixer(area or '', ins=recycle_process_water_streams or '')
         process_water = process_water_mixer.outs[0]
         if treated_water_streams is None:
