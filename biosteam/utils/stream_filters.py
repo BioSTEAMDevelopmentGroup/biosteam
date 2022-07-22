@@ -195,10 +195,11 @@ def has_only_water(stream):
     return len(chemicals) == 1 and chemicals[0].CAS == '7732-18-5'
 
 class FreeProductStreams:
-    __slots__ = ('streams', 'cache')
-    LHV_combustible = 200.
+    __slots__ = ('streams', 'cache', 'LHV_combustible', 'wastewater_keys')
+    LHV_combustible_default = 200.
+    wastewater_keys_default = {'wastewater',}
     
-    def __init__(self, streams):
+    def __init__(self, streams, LHV_combustible=None, wastewater_keys=None):
         isa = isinstance
         self.streams = streams = frozenset([
             i for i in streams if 
@@ -206,13 +207,21 @@ class FreeProductStreams:
             and not isa(i.source, bst.Facility)
         ])
         self.cache = {}
+        self.wastewater_keys = self.wastewater_keys_default if wastewater_keys is None else wastewater_keys
+        self.LHV_combustible = self.LHV_combustible_default if LHV_combustible is None else LHV_combustible
        
     @property
     def combustibles(self):
         cache = self.cache
         if 'cumbustibles' in cache: return cache['combustibles']
         LHV_combustible = self.LHV_combustible
-        cache['combustibles'] = combustibles = frozenset([i for i in self.streams if not i.isempty() and i.LHV / i.F_mass >= LHV_combustible])
+        wastewater_keys = self.wastewater_keys
+        cache['combustibles'] = combustibles = frozenset([
+            i for i in self.streams 
+            if i.ID.lower() not in wastewater_keys
+            and i.LHV / i.F_mass >= LHV_combustible
+            
+        ])
         return combustibles
     
     @property
