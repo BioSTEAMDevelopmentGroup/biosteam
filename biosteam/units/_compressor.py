@@ -10,17 +10,6 @@ from flexsolve.open_solvers import aitken_secant
 
 __all__ = ('IsentropicCompressor',)
 
-def solve_T_entropy(S_func, phase, mol, S, T_guess, P):
-    Tmax = 2000
-    return aitken_secant(
-            lambda T: S_func(phase, mol, T, P) - S,
-            x0=T_guess,
-            x1=Tmax,
-            xtol=1e-2,
-            ytol=1e-3,
-            checkroot=False
-        )
-
 class IsentropicCompressor(Unit):
     """
     Create an isentropic compressor.
@@ -60,19 +49,12 @@ class IsentropicCompressor(Unit):
         out = self.outs[0]
         out.copy_like(feed)
 
-        # calculate isentropic outlet temperature
-        T_isentropic = solve_T_entropy(
-            S_func=feed.mixture.S,
-            phase=feed.phase,
-            mol=feed.mol,
-            S=feed.S,
-            T_guess=1,
-            P = self.P,
-        )
-        out.T = T_isentropic
+        # calculate isentropic state change
         out.P = self.P
+        out.S = feed.S
+        T_isentropic = out.T
 
-        # calculate actual outlet enthalpy
+        # calculate actual state change (incl. efficiency)
         dh_isentropic = out.h - feed.h
         dh_actual = dh_isentropic / self.eta
         out.h = feed.h + dh_actual
