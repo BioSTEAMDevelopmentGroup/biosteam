@@ -22,7 +22,7 @@ BioSTEAM: Los Modulos de Simulación y Análisis Tecno-Económico de Biorefineri
    :alt: Únete al chat https://gitter.im/BioSTEAM-users/community
    :target: https://gitter.im/BioSTEAM-users/community
 
-*Lea en: *`Inglés <README.rst>`_
+Lea en: `Inglés <README.rst>`_
 
 .. contents::
 
