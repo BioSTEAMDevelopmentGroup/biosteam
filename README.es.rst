@@ -26,7 +26,7 @@ BioSTEAM: Los Modulos de Simulación y Análisis Tecno-Económico de Biorefineri
 
 .. contents::
 
-Qué es BioSTEAM?
+¿Qué es BioSTEAM?
 -----------------
 
 BioSTEAM es un projecto para llevar a cabo el diseño, simulación, 
