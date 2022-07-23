@@ -22,7 +22,7 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
    :alt: Join the chat at https://gitter.im/BioSTEAM-users/community
    :target: https://gitter.im/BioSTEAM-users/community
 
-Read this in: `Español <README.es.rst>`_
+**Read in:** `Español <README.es.rst>`_
 
 .. contents::
 
