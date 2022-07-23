@@ -22,6 +22,8 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
    :alt: Join the chat at https://gitter.im/BioSTEAM-users/community
    :target: https://gitter.im/BioSTEAM-users/community
 
+*Read this in: `Español <README.es.rst>`_*
+
 .. contents::
 
 What is BioSTEAM?
@@ -36,19 +38,18 @@ biorefinery configurations are available at the `Bioindustrial-Park
 BioSTEAM's premier repository for biorefinery models and results. The long-term 
 growth and maintenance of BioSTEAM is supported through both community-led 
 development and the research institutions invested in BioSTEAM, including the 
-`Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_. 
+`Center for Advanced Bioenergy and Bioproducts Innovations (CABBI) <https://cabbi.bio/>`_. 
 Through its open-source and community-lead platform, BioSTEAM aims to foster 
 communication and transparency within the biorefinery research community for an 
 integrated effort to expedite the evaluation of candidate biofuels and 
 bioproducts.
 
-All data on chemicals, fitted coefficients, and functions to estimate chemical 
-properties are imported from `chemicals <https://github.com/CalebBell/chemicals>`_,
-a community-driven open-source library developed by Caleb Bell. The 
-`thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_ library, 
-BioSTEAM's premire thermodynamic engine, creates thermodynamic property packages 
-by implementing both the mixing rules and the algorithms for thermodynamic equilibrium 
-and by relying on the `chemicals` library for pure component models.
+Data on chemicals and algorithms to estimate thermodynamic properties are 
+imported from `chemicals <https://github.com/CalebBell/chemicals>`_
+and `thermo <https://github.com/CalebBell/chemicals>`_,
+community-driven open-source libraries developed by Caleb Bell. BioSTEAM's 
+premire thermodynamic engine, `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, 
+builds upon these libraries to facilitate the creation of thermodynamic property packages.
 
 Installation
 ------------
@@ -79,13 +80,10 @@ To report bugs, please use the BioSTEAM's Bug Tracker at:
 
 Contributing
 ------------
-For guidelines on how to contribute visit:
+For guidelines on how to contribute, visit:
 
     https://biosteam.readthedocs.io/en/latest/contributing/index.html
 
-We also welcome anyone with an interest in discussing contributions to BioSTEAM to join our
-monthly meeting at 8-9:30am CDT, every 3rd Friday. Please email biosteamdevelopmentgroup@gmail.com 
-for a link to join.
 
 License information
 -------------------
@@ -101,10 +99,10 @@ any changes you make back, and benefit the community.
 About the authors
 -----------------
 
-BioSTEAM was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+BioSTEAM was created and developed by `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`__ as part of the `Guest Group <http://engineeringforsustainability.com/yoelcortespena>`__ and the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
 
 References
 ----------
-.. [1] `Cortes-Peña et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. <https://doi.org/10.1021/acssuschemeng.9b07040>`__.
+.. [1] `Cortés-Peña et al. BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020. <https://doi.org/10.1021/acssuschemeng.9b07040>`__.
 
 
