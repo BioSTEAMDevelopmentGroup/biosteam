@@ -31,7 +31,7 @@ Qué es BioSTEAM?
 
 BioSTEAM es un projecto para llevar a cabo el diseño, simulación, 
 análisis tecno-económico, y análisis de cyclo de vida de biorrefinerías bajo
-incertidumbre [1]_. BioSTEAM esta fabricada para facilitar la toma de decisiones
+incertidumbre [1]_. BioSTEAM esta diseñada para facilitar la toma de decisiones
 al simular múltiples escenarios que podrían surgir dentro del desarrollo e
 implementación de una biorrefinería. Configuraciones de biorrefinerías
 estan disponibles en el `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_, 
