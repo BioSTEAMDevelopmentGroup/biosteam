@@ -35,13 +35,13 @@ incertidumbre [1]_. BioSTEAM esta fabricada para facilitar la toma de decisiones
 al simular múltiples escenarios que podrían surgir dentro del desarrollo e
 implementación de una biorrefinería. Configuraciones de biorrefinerías
 estan disponibles en el `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_, 
-el reposito principal de BioSTEAM para modelos and resultados. El crecimiento y 
+el reposito principal de BioSTEAM para modelos y resultados. El crecimiento y 
 mantenimiento de BioSTEAM a largo plazo esta apollada por ambos la communidad de 
 dessarrollo de codigo abierto y las instituciones auspiciado a BioSTEAM, incluyendo
-el `Centro para Innovaciones de Bioenergia and Bioproductos Avanzados (CABBI) <https://cabbi.bio/>`_. 
+el `Centro para Innovaciones de Bioenergia y Bioproductos Avanzados (CABBI) <https://cabbi.bio/>`_. 
 Mediante su plataforma de dessarrollo abierto, BioSTEAM aspira to fomentar
-communicacion and transparencia dentro de la communidad de dessarrollo de biorefinerias 
-para un esfuerzo integrado en acelerar la evaluación de biocombustibles and 
+communicacion y transparencia dentro de la communidad de dessarrollo de biorefinerias 
+para un esfuerzo integrado en acelerar la evaluación de biocombustibles y 
 bioproductos.
 
 Toda data en quimicos y algoritmos para estimar propiedades quimicos son importados 
@@ -102,7 +102,7 @@ About the authors
 
 BioSTEAM fue creada y dessarrollada por `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`_ 
 como parte de el `Grupo Guest <http://engineeringforsustainability.com/yoelcortespena>`_ 
-y el `Centro para Innovaciones de Bioenergia and Bioproductos Avanzados (CABBI) <https://cabbi.bio/>`_ 
+y el `Centro para Innovaciones de Bioenergia y Bioproductos Avanzados (CABBI) <https://cabbi.bio/>`_ 
 en la `Universidad the Illinois en Urbana-Champaign (UIUC) <https://illinois.edu/>`_. 
 
 Referencias
