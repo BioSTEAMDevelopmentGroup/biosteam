@@ -543,8 +543,11 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476, autopopulat
     @wastewater_mixer.add_specification(run=True)
     def autopopulate_waste_streams():
         if wastewater_mixer.autopopulate and not wastewater_mixer.ins: 
-            streams = bst.FreeProductStreams(wastewater_mixer.system.streams)
+            sys = wastewater_mixer.system
+            streams = bst.FreeProductStreams(sys.streams)
             wastewater_mixer.ins.extend(streams.noncombustible_slurries)
+            for i in sys.facilities:
+                if isinstance(i, bst.BlowdownMixer): wastewater_mixer.ins.append(i.outs[0])
             wastewater_mixer.system.update_configuration()
             
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)

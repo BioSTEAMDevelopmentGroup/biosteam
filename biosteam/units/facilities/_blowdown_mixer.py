@@ -16,7 +16,7 @@ __all__ = ('BlowdownMixer',)
 class BlowdownMixer(Facility, Mixer):
     network_priority = 2
     _graphics = mixer_graphics
-    
+    ticket_name = 'BDM'
     def __init__(self, ID='', ins=None, outs=(), thermo=None, rigorous=False):
         Facility.__init__(self, ID, ins, outs, thermo)
         self.rigorous = rigorous

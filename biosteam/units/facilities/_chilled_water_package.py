@@ -65,5 +65,6 @@ class ChilledWaterPackage(Facility):
         hu_cooling(duty, 330)
         used = self.ins[0]
         used.mol[0] = sum([i.flow for i in cwu])
-        used.T = np.array([i.outlet_utility_stream.T for i in cwu]).mean()
+        Ts = [i.outlet_utility_stream.T for i in cwu]
+        if Ts: used.T = np.array(Ts).mean()
         

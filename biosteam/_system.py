@@ -43,6 +43,17 @@ def _reformat(name):
     if name.islower(): name= name.capitalize()
     return name
 
+# %% System creation tools
+
+def facilities_from_units(units):
+    isa = isinstance
+    return [i for i in units if isa(i, Facility)]
+
+def find_blowdown_recycle(facilities):
+    isa = isinstance
+    for i in facilities:
+        if isa(i, bst.BlowdownMixer): return i.outs[0]
+
 # %% LCA
 
 class ProcessImpactItem:
@@ -293,6 +304,7 @@ class System:
         '_streams',
         '_feeds',
         '_products',
+        '_facility_recycle',
         '_state',
         '_state_idx',
         '_state_header',
@@ -395,9 +407,7 @@ class System:
             estimated using bare module factors.
 
         """
-        isa = isinstance
-        Facility = bst.Facility
-        facilities = [i for i in units if isa(i, Facility)]
+        facilities = facilities_from_units(units)
         network = Network.from_units(units, ends)
         return cls.from_network(ID, network, facilities,
                                 facility_recycle, operating_hours,
@@ -467,6 +477,7 @@ class System:
 
         """
         facilities = Facility.ordered_facilities(facilities)
+        if facility_recycle is None: facility_recycle = find_blowdown_recycle(facilities)
         isa = isinstance
         ID_subsys = None if ID is None else ''
         path = [(cls.from_network(ID_subsys, i) if isa(i, Network) else i)
@@ -530,7 +541,7 @@ class System:
         self._reset_errors()
         self._set_path(path)
         self._set_facilities(facilities)
-        self._set_facility_recycle(facility_recycle)
+        self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
         self._save_configuration()
         self._load_stream_links()
 
@@ -961,13 +972,20 @@ class System:
 
     def _set_facility_recycle(self, recycle):
         if recycle:
-            sys = self._downstream_system(recycle._sink)
-            sys.recycle = recycle
-            sys.__class__ = FacilityLoop
-            #: [FacilityLoop] Recycle loop for converging facilities
-            self._facility_loop = sys
+            try:
+                sys = self._downstream_system(recycle._sink)
+                for i in sys.units: i._system = self
+                self._load_facilities()
+                sys.recycle = recycle
+                sys.__class__ = FacilityLoop
+                #: [FacilityLoop] Recycle loop for converging facilities
+                self._facility_loop = sys
+                self._facility_recycle = recycle
+            except:
+                self._facility_loop = None
+                self._facility_recycle = recycle
         else:
-            self._facility_loop = None
+            self._facility_loop = self._facility_recycle = None
 
     # Forward pipping
     __sub__ = Unit.__sub__
@@ -2278,8 +2296,7 @@ class FacilityLoop(System):
 
     def _run(self):
         obj = super()
-        for i in self.units:
-            if i._design or i._cost: Unit._setup(i)
+        for i in self.units: Unit._setup(i)
         obj._run()
         self._summary()
 

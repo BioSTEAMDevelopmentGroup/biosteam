@@ -434,6 +434,10 @@ class BoilerTurbogenerator(Facility):
                 return
     
     @property
+    def blowdown_water(self):
+        return self.outs[1]
+    
+    @property
     def makeup_water(self):
         """[Stream] Makeup water due to boiler blowdown."""
         return self.ins[2]

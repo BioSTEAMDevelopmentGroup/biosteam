@@ -185,9 +185,11 @@ def get_fresh_process_water_streams(streams=None):
     
     """    
     if streams is None: streams = bst.main_flowsheet.stream
+    Facility = bst.Facility
+    isa = isinstance
     return [
         i for i in streams
-        if not i.price and i.isfeed() and has_only_water(i)
+        if not i.price and i.isfeed() and not isa(i.sink, Facility) and has_only_water(i)
     ]
 
 def has_only_water(stream):
@@ -196,8 +198,8 @@ def has_only_water(stream):
 
 class FreeProductStreams:
     __slots__ = ('streams', 'cache', 'LHV_combustible', 'wastewater_keys')
-    LHV_combustible_default = 200.
-    wastewater_keys_default = {'wastewater',}
+    LHV_combustible_default = 500.
+    wastewater_keys_default = {'wastewater', 'brine'}
     
     def __init__(self, streams, LHV_combustible=None, wastewater_keys=None):
         isa = isinstance
@@ -218,9 +220,8 @@ class FreeProductStreams:
         wastewater_keys = self.wastewater_keys
         cache['combustibles'] = combustibles = frozenset([
             i for i in self.streams 
-            if i.ID.lower() not in wastewater_keys
+            if not any([j in i.ID.lower() for j in wastewater_keys])
             and i.LHV / i.F_mass >= LHV_combustible
-            
         ])
         return combustibles
     

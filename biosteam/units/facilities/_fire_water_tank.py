@@ -17,4 +17,5 @@ __all__ = ('FireWaterTank',)
 @cost('Flow rate', 'Pump', S=8343, units='kg/hr',
       CE=522, cost=15000, n=0.8, BM=1.7, kW=94.3375)
 class FireWaterTank(Facility):
+    ticket_name = 'FWT'
     network_priority = 0

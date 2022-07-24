@@ -166,15 +166,6 @@ def nested_network_units(path):
                             f"objects not '{type(i).__name__}' objects")
     return units
 
-def facilities_from_units(units):
-    isa = isinstance
-    return [i for i in units if isa(i, Facility)]
-
-def find_blowdown_recycle(facilities):
-    isa = isinstance
-    for i in facilities:
-        if isa(i, bst.BlowdownMixer): return i.outs[0]
-
 # %% Network
 
 class Network:
@@ -305,9 +296,13 @@ class Network:
         recycle_ends = ends.copy()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
-        network, *linear_networks = [Network(i) for i in linear_paths]
-        for linear_network in linear_networks:
-            network.join_linear_network(linear_network) 
+        linear_networks = [Network(i) for i in linear_paths]
+        if linear_networks:
+            network, *linear_networks = [Network(i) for i in linear_paths]
+            for linear_network in linear_networks:
+                network.join_linear_network(linear_network) 
+        else:
+            network = Network([])
         recycle_networks = [Network(*i) for i in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)

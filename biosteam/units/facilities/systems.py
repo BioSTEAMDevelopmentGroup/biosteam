@@ -11,8 +11,62 @@ import biosteam as bst
 
 __all__ = (
     'create_facilities', 
+    'create_all_facilities',
     'create_coheat_and_power_system',
 )
+
+def create_all_facilities(
+    feedstock,
+    CIP_over_feedstock=None,
+    plant_air_over_feedstock=None,
+    fire_water_over_feedstock=None,
+    recycle_process_water_streams=None,
+    treated_water_streams=None,
+    CT=True,
+    CWP=True,
+    CIP=True,
+    FWT=True,
+    ADP=True,
+    WWT=True,
+    CHP=True,
+    HXN=True,
+    PWC=True,
+    CT_kwargs=None,
+    CWP_kwargs=None,
+    CIP_kwargs=None,
+    FWT_kwargs=None,
+    ADP_kwargs=None,
+    WWT_kwargs=None,
+    CHP_kwargs=None,
+    HXN_kwargs=None,
+    PWC_kwargs=None,
+    area=None,
+    blowdown_recycle=False,
+):
+    return create_facilities(
+        feedstock, CIP_over_feedstock, plant_air_over_feedstock, fire_water_over_feedstock,
+        recycle_process_water_streams, treated_water_streams,
+        CT=CT,
+        CWP=CWP,
+        CIP=CIP,
+        FWT=FWT,
+        ADP=ADP,
+        WWT=WWT,
+        CHP=CHP,
+        HXN=HXN,
+        PWC=PWC,
+        CT_kwargs=CT_kwargs,
+        CWP_kwargs=CWP_kwargs,
+        CIP_kwargs=CIP_kwargs,
+        FWT_kwargs=FWT_kwargs,
+        ADP_kwargs=ADP_kwargs,
+        WWT_kwargs=WWT_kwargs,
+        CHP_kwargs=CHP_kwargs,
+        HXN_kwargs=HXN_kwargs,
+        PWC_kwargs=PWC_kwargs,
+        area=area,
+        blowdown_recycle=blowdown_recycle,
+    )
 
 def create_facilities(
         feedstock=None,
@@ -40,6 +94,7 @@ def create_facilities(
         HXN_kwargs=None,
         PWC_kwargs=None,
         area=None,
+        blowdown_recycle=False,
     ):
     kwargs = (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
               FWT_kwargs, ADP_kwargs, HXN_kwargs, PWC_kwargs)
@@ -54,7 +109,7 @@ def create_facilities(
             if 'ID' not in i: i['ID'] = area
     if CT: bst.facilities.CoolingTower(**CT_kwargs)
     if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
-    if WWT: bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
+    if WWT: WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
     if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
     if recycle_process_water_streams is None: 
         recycle_process_water_streams = ()
@@ -79,6 +134,14 @@ def create_facilities(
             def adjust_fire_water(): fire_water.imass['Water'] = feedstock.F_mass * FT.fire_water_over_feedstock
     if CHP:
         create_coheat_and_power_system(mockup=True, autopopulate=True, **CHP_kwargs)
+    if blowdown_recycle:
+        units = bst.main_flowsheet.unit.get_context_level(0)
+        blowdown_to_wastewater = bst.Stream('blowdown_to_wastewater')
+        bst.BlowdownMixer(
+            area or '',
+            [i.blowdown_water for i in units if hasattr(i, 'blowdown_water')],
+            blowdown_to_wastewater
+        )
     if PWC:
         process_water_mixer = bst.Mixer(area or '', ins=recycle_process_water_streams or '')
         process_water = process_water_mixer.outs[0]
@@ -87,7 +150,7 @@ def create_facilities(
             treated_water_streams = [i.treated_water for i in units if hasattr(i, 'treated_water')]
         treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
         treated_water = treated_water_mixer.outs[0]
-        bst.ProcessWaterCenter(ins=[treated_water, '', process_water], **PWC_kwargs)
+        bst.ProcessWaterCenter(area or '', ins=[treated_water, '', process_water], **PWC_kwargs)
 
 @bst.SystemFactory(
     ID='CHP_sys',
