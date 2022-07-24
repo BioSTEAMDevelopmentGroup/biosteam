@@ -103,7 +103,7 @@ About the authors
 BioSTEAM fue creada y dessarrollada por `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`_ 
 como parte de el `Grupo Guest <http://engineeringforsustainability.com/yoelcortespena>`_ 
 y el `Centro para Innovaciones de Bioenergia y Bioproductos Avanzados (CABBI) <https://cabbi.bio/>`_ 
-en la `Universidad the Illinois en Urbana-Champaign (UIUC) <https://illinois.edu/>`_. 
+en la `Universidad de Illinois en Urbana-Champaign (UIUC) <https://illinois.edu/>`_. 
 
 Referencias
 -----------
