@@ -50,8 +50,8 @@ paquetes abiertos dessarollado por Caleb Bell. El motor thermodynamico principal
 `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, facilita
 la creación de paquetes de propiedades thermodynamicas atravéz de estos paquetes.
 
-Installation
-------------
+Instalación
+-----------
 
 Encuentra la ultima versión de BioSTEAM en `PyPI <https://pypi.python.org/pypi/biosteam/>`_. 
 Si tienes una instalación de Python con pip, instalalo con:
