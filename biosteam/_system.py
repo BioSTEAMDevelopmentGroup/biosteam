@@ -1463,11 +1463,18 @@ class System:
         Parameters
         ----------
         material_flows : array, optional
-            Guess material flows of recycle streams.
+            Guess material flows of recycle streams. Shape must be M by N,
+            where M is the number of recycle streams and N is the number of chemicals.
         recycles : Iterable[Stream], optional
             Recycle streams.
         index : Iterable[str], optional
             Index of chemical IDs for material flows.
+            
+        Returns
+        -------
+        material_flows : array
+            If guess material flows were given, return converged material flows
+            at steady state.
             
         Warning
         -------
