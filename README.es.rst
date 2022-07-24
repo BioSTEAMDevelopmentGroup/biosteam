@@ -97,7 +97,7 @@ por favor cite a BioSTEAM si lo utilizaste. Para el beneficio de la communidad,
 tambien considere contribuyir cualquier cambio o mejora que hallas hecho.
 
 
-About the authors
+Sobre los autores
 -----------------
 
 BioSTEAM fue creada y dessarrollada por `Yoel Cortés-Peña <https://yoelcortes.github.io/me/>`_ 
