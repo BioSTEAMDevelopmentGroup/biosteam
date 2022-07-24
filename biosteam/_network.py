@@ -308,13 +308,15 @@ class Network:
             network.join_recycle_network(recycle_network)
         isa = isinstance
         ends.update(network.streams)
+        disjunction_streams = set([i.get_stream() for i in disjunctions])
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
             downstream_network = cls.from_feedstock(feed, (), ends)
             new_streams = downstream_network.streams
             connections = ends.intersection(new_streams)
             connecting_units = {stream._sink for stream in connections
-                                if stream._source and stream._sink}
+                                if stream._source and stream._sink
+                                and stream not in disjunction_streams}
             ends.update(new_streams)
             N_connections = len(connecting_units)
             if N_connections == 0:
@@ -327,6 +329,7 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
+                    
         recycle_ends.update(network.get_all_recycles())
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
