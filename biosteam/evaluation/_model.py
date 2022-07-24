@@ -55,7 +55,6 @@ class Model(State):
         '_index',           # list[int] Order of sample evaluation for performance.
         '_samples',         # [array] Argument sample space.
         '_exception_hook',  # [callable(exception, sample)] Should return either None or metric value given an exception and the sample.
-        'sample_weights',   # [array] Parameter weights for ordering samples for computational efficiency.
     )
     def __init__(self, system, metrics=None, specification=None, 
                  parameters=None, retry_evaluation=True, exception_hook='warn'):
@@ -64,7 +63,6 @@ class Model(State):
         self.exception_hook = exception_hook
         self.retry_evaluation = retry_evaluation
         self.table = None
-        self.sample_weights = 1
         self._erase()
         
     def copy(self):
@@ -183,21 +181,23 @@ class Model(State):
         samples_diff = samples.max(axis=0) - samples.min(axis=0)
         normalized_samples = (samples + samples_min) / samples_diff
         if ss: 
-            timer = TicToc()
-            def evaluate(sample):
-                timer.tic()
+            def evaluate(sample, **kwargs):
                 try:
                     self._parameters = parameters
-                    self._update_state(sample)
+                    for f, s in zip(self._parameters, sample): 
+                        f.setter(s if f.scale is None else f.scale * s)
+                    diff = self._system.converge(**kwargs)
                 finally:
                     self._parameters = original_parameters
-                return timer.toc(record=False)
+                return diff
             bounds = [i.bounds for i in parameters]
             sample = [i.baseline for i in parameters]
             N_parameters = len(parameters)
             index = range(N_parameters)
-            time = np.zeros([N_parameters])
             evaluate(sample)
+            material_data = self._system.get_material_data()
+            M, N = material_data['material_flows'].shape
+            diffs = np.zeros([N_parameters, M * N])
             for i in index:
                 sample_lb = sample.copy()
                 sample_ub = sample.copy()
@@ -209,10 +209,10 @@ class Model(State):
                 else:
                     sample_lb[i] = lb
                     sample_ub[i] = ub
-                time[i] = evaluate(sample_lb) + evaluate(sample) + evaluate(sample_ub) + evaluate(sample)
-            normalized_time = time / time.max() 
-            self.sample_weights = normalized_time.transpose()
-        normalized_samples *= self.sample_weights
+                lb = evaluate(sample_lb, **material_data).flatten()
+                ub = evaluate(sample_ub, **material_data).flatten()
+                diffs[i] = ub - lb
+            normalized_samples = normalized_samples @ diffs
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
         nearest_arr = np.argsort(nearest_arr, axis=1)
         remaining = set(range(length))
@@ -271,7 +271,7 @@ class Model(State):
         Parameter.check_indices_unique(parameters)
         if autoload:
             try:
-                with open(file, "rb") as f: (self._samples, self._index, self.sample_weights) = pickle.load(f)
+                with open(file, "rb") as f: (self._samples, self._index) = pickle.load(f)
             except FileNotFoundError: pass
             else:
                 if (samples is None or (samples.shape == self._samples.shape and (samples == self._samples).all())):
@@ -302,7 +302,7 @@ class Model(State):
                                   dtype=float)
         self._samples = samples
         if autosave:
-            obj = (samples, self._index, self.sample_weights)
+            obj = (samples, self._index)
             try:
                 with open(file, 'wb') as f: pickle.dump(obj, f)
             except FileNotFoundError:
@@ -314,7 +314,7 @@ class Model(State):
         
     def single_point_sensitivity(self, 
             etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
-            **dyn_sim_kwargs
+            **kwargs
         ):
         if parameters is None: parameters = self.parameters
         bounds = [i.bounds for i in parameters]
@@ -326,7 +326,7 @@ class Model(State):
         values_lb = np.zeros([N_parameters, N_metrics])
         values_ub = values_lb.copy()
         if evaluate is None: evaluate = self._evaluate_sample
-        baseline_1 = np.array(evaluate(sample, **dyn_sim_kwargs))
+        baseline_1 = np.array(evaluate(sample, **kwargs))
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
@@ -338,9 +338,9 @@ class Model(State):
             else:
                 sample_lb[i] = lb
                 sample_ub[i] = ub
-            values_lb[i, :] = evaluate(sample_lb, **dyn_sim_kwargs)
-            values_ub[i, :] = evaluate(sample_ub, **dyn_sim_kwargs)
-        baseline_2 = np.array(evaluate(sample, **dyn_sim_kwargs))
+            values_lb[i, :] = evaluate(sample_lb, **kwargs)
+            values_ub[i, :] = evaluate(sample_ub, **kwargs)
+        baseline_2 = np.array(evaluate(sample, **kwargs))
         error = np.abs(baseline_2 - baseline_1)
         index, = np.where(error > 1e-6)
         error = error[index]
@@ -366,7 +366,7 @@ class Model(State):
             return baseline, df_lb, df_ub
     
     def evaluate(self, notify=0, file=None, autosave=0, autoload=False,
-                 **dyn_sim_kwargs):
+                 **kwargs):
         """
         Evaluate metrics over the loaded samples and save values to `table`.
         
@@ -380,8 +380,8 @@ class Model(State):
             If 1 or greater, save pickled evaluation results after the given number of sample evaluations.
         autoload : bool, optional
             Whether to load pickled evaluation results from file.
-        dyn_sim_kwargs : dict
-            Any keyword arguments passed to `:class:biosteam.System`.simulate() for dynamic simulation
+        kwargs : dict
+            Any keyword arguments passed to :func:`biosteam.System.simulate`.
         
         Warning
         -------
@@ -424,12 +424,12 @@ class Model(State):
             index = self._index
             values = [None] * len(index)
         
-        export = 'export_state_to' in dyn_sim_kwargs
+        export = 'export_state_to' in kwargs
         if autosave:
             layout = table.index, table.columns
             for number, i in enumerate(index, number + 1): 
-                if export: dyn_sim_kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **dyn_sim_kwargs)
+                if export: kwargs['sample_id'] = i
+                values[i] = evaluate(samples[i], **kwargs)
                 if not number % autosave: 
                     obj = (number, values, *layout)
                     try:
@@ -441,22 +441,22 @@ class Model(State):
                         with open(file, 'wb') as f: pickle.dump(obj, f)
         else:
             for i in index: 
-                if export: dyn_sim_kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **dyn_sim_kwargs)
+                if export: kwargs['sample_id'] = i
+                values[i] = evaluate(samples[i], **kwargs)
         table[var_indices(self._metrics)] = values
     
-    def _evaluate_sample(self, sample, **dyn_sim_kwargs):
+    def _evaluate_sample(self, sample, **kwargs):
         state_updated = False
         try:
-            self._update_state(sample, **dyn_sim_kwargs)
+            self._update_state(sample, **kwargs)
             state_updated = True
             return [i() for i in self.metrics]
         except Exception as exception:
             self._reset_system()
             if self.retry_evaluation and state_updated:
                 try:
-                    self._update_state(sample, **dyn_sim_kwargs)
-                    self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
+                    self._update_state(sample, **kwargs)
+                    self._specification() if self._specification else self._system.simulate(**kwargs)
                     return [i() for i in self.metrics]
                 except Exception as new_exception: 
                     if self._exception_hook: 

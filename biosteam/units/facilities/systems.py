@@ -150,7 +150,7 @@ def create_facilities(
             treated_water_streams = [i.treated_water for i in units if hasattr(i, 'treated_water')]
         treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
         treated_water = treated_water_mixer.outs[0]
-        bst.ProcessWaterCenter(area or '', ins=[treated_water, '', process_water], **PWC_kwargs)
+        bst.ProcessWaterCenter(ins=[treated_water, '', process_water], **PWC_kwargs)
 
 @bst.SystemFactory(
     ID='CHP_sys',

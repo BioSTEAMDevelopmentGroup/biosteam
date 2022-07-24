@@ -32,6 +32,7 @@ from inspect import signature
 from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
+import pandas as pd
 from scipy.integrate import solve_ivp
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
@@ -305,6 +306,9 @@ class System:
         '_feeds',
         '_products',
         '_facility_recycle',
+        '_configuration_updated',
+        # Dynamic simulation
+        '_isdynamic',
         '_state',
         '_state_idx',
         '_state_header',
@@ -494,6 +498,7 @@ class System:
         self._load_defaults()
         self._save_configuration()
         self._load_stream_links()
+        self._configuration_updated = False
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
@@ -518,6 +523,7 @@ class System:
         self._load_defaults()
         self._save_configuration()
         self._load_stream_links()
+        self._configuration_updated = False
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
@@ -544,6 +550,7 @@ class System:
         self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
         self._save_configuration()
         self._load_stream_links()
+        self._configuration_updated = True
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -556,7 +563,6 @@ class System:
 
     def __exit__(self, type, exception, traceback):
         irrelevant_units = self._irrelevant_units
-        ID = self._ID
         del self._irrelevant_units
         unit_registry = self.flowsheet.unit
         dump = unit_registry.close_context_level()
@@ -565,9 +571,7 @@ class System:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             units = [i for i in dump if i not in irrelevant_units]
-            system = self.from_units(None, units)
-            self.ID = ID
-            self.copy_like(system)
+            self.update_configuration(units)
 
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]
@@ -696,13 +700,16 @@ class System:
         self._path = other._path
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
+        self._facility_recycle = other._facility_recycle
+        self._configuration_updated = other._configuration_updated
         self._recycle = other._recycle
         self._connections = other._connections
 
     def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, 
-                      subsystems=False, maxiter=None, subfactor=None):
+                      subsystems=False, maxiter=None, subfactor=None,
+                      method=None):
         """
-        Set the convergence tolerance of the system.
+        Set the convergence tolerance and convergence method of the system.
 
         Parameters
         ----------
@@ -715,11 +722,13 @@ class System:
         rT : float, optional
             Relative temperature tolerance.
         subsystems : bool, optional
-            Whether to also set tolerance of subsystems as well.
+            Whether to set tolerance and method of subsystems as well.
         maxiter : int, optional
             Maximum number if iterations.
         subfactor : float, optional
-            Factor to adjust tolerance in subsystems.
+            Factor to rescale tolerance in subsystems.
+        method : str, optional
+            Convergence method.
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -727,11 +736,13 @@ class System:
         if T: self.temperature_tolerance = float(T)
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
+        if method: self.converge_method = method
         if subsystems:
             if subfactor:
-                for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)], subsystems, maxiter)
+                for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
+                                                          subsystems, maxiter, subfactor, method)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -794,10 +805,10 @@ class System:
         isa = isinstance
         recycle = self._recycle
         if recycle:
-            if isa(recycle, Stream):
-                recycles.append(recycle)
-            elif isa(recycle, Iterable):
+            if isa(recycle, Iterable):
                 recycles.extend(recycle)
+            elif isa(recycle, Stream):
+                recycles.append(recycle)
             else:
                 raise_recycle_type_error(recycle)
         for i in self._path:
@@ -1143,14 +1154,26 @@ class System:
 
     @property
     def isdynamic(self):
-        '''Whether the system contains any dynamic Unit.'''
-        return any([unit._isdynamic for unit in self.units])
+        """Whether the system contains any dynamic Unit."""
+        try:
+            return self._isdynamic
+        except:
+            isdynamic = False
+            for i in self.units:
+                if i._isdynamic: 
+                    isdynamic = True
+                    break
+            self._isdynamic = isdynamic
+        return isdynamic
+    @isdynamic.setter
+    def isdynamic(self, isdynamic):
+        self._isdynamic = isdynamic
     
     @property
     def _n_rotate(self):
         nr = 0
         for u in self.units:
-            if not u.isdynamic: nr += 1
+            if not u._isdynamic: nr += 1
             else: break
         return nr
 
@@ -1409,22 +1432,80 @@ class System:
             except:
                 raise error
 
-    def converge(self):
+    def get_material_data(self):
+        """
+        Return a dictionary of an array material flows of recycle streams, 
+        a list of recycle streams, and a dictionary of index-chemical pairs.
+        
+        """
+        recycles = self.get_all_recycles()
+        IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
+        index = {j: i for i, j in enumerate(IDs)}
+        M = len(recycles)
+        N = len(IDs)
+        arr = np.zeros([M, N])
+        for i, s in enumerate(recycles):
+            mol = s.mol
+            s_index = s.chemicals._index
+            for chemical in s.available_chemicals:
+                ID = chemical.ID
+                mol[s_index[ID]] = arr[i, index[ID]]
+        return dict(
+            material_flows=arr,
+            recycles=recycles,
+            index=index
+        )
+
+    def converge(self, material_flows=None, recycles=None, index=None):
         """
         Converge mass and energy balances.
         
+        Parameters
+        ----------
+        material_flows : array, optional
+            Guess material flows of recycle streams.
+        recycles : Iterable[Stream], optional
+            Recycle streams.
+        index : Iterable[str], optional
+            Index of chemical IDs for material flows.
+            
         Warning
         -------
         No design, costing, nor facility algorithms are run.
-        To run full simulation algorithm, see :meth:`biosteam.System.simulate`.
+        To run full simulation algorithm, see :func:`~biosteam.System.simulate`.
         
         """
+        if material_flows is not None: 
+            if recycles is None: recycles = self.get_all_recycles()
+            if index is None:
+                IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
+                index = {j: i for i, j in enumerate(IDs)}
+            for i, s in enumerate(recycles):
+                mol = s.mol
+                mol[:] = 0.
+                s_index = s.chemicals._index
+                for chemical in s.available_chemicals:
+                    ID = chemical.ID
+                    mol[s_index[ID]] = material_flows[i, index[ID]]
         if self._N_runs:
             for i in range(self.N_runs): self._run()
         elif self._recycle:
             self._converge_method()
         else:
             self._run()
+        if material_flows is not None:
+            if recycles is None: recycles = self.get_all_recycles()
+            if index is None:
+                IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
+                index = {j: i for i, j in enumerate(IDs)}
+            material_flows = np.zeros_like(material_flows)
+            for i, s in enumerate(recycles):
+                mol = s.mol
+                s_index = s.chemicals._index
+                for chemical in s.available_chemicals:
+                    ID = chemical.ID
+                    material_flows[i, index[ID]] = mol[s_index[ID]]    
+            return material_flows
 
     def _summary(self):
         simulated_units = set()
@@ -1564,7 +1645,7 @@ class System:
             if unit.hasode: unit._update_state()
 
     def _load_state(self):
-        '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
+        """Returns the initial state (a 1d-array) of the system for dynamic simulation."""
         nr = self._n_rotate
         units = self.units[nr:] + self.units[:nr]
         if self._state is None:
@@ -1618,7 +1699,7 @@ class System:
 
     @property
     def DAE(self):
-        '''System-wide differential algebraic equations.'''
+        """System-wide differential algebraic equations."""
         if self._DAE is None:
             try: self._compile_DAE()
             except AttributeError: return None
@@ -1629,7 +1710,7 @@ class System:
             ws._state2flows()
 
     def clear_state(self):
-        '''Clear all states and dstates (system, units, and streams).'''
+        """Clear all states and dstates (system, units, and streams)."""
         self._state = None
         for u in self.units:
             u._state = None
@@ -1641,13 +1722,38 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, **dynsim_kwargs):
+    def simulate(self, **kwargs):
         """
-        Converge the path and simulate all units.
+        If system is dynamic, run the system dynamically. Otherwise, converge 
+        the path of unit operations to steady state. After running/converging 
+        the system, size and cost all unit operations.
         
         Parameters
         ----------
-        dynsim_kwargs : dict
+        **kwargs : 
+            Additional parameters for :func:`dynamic_run` (if dynamic) or 
+            :func:`converge` (if steady state).
+        
+        """
+        self._configuration_updated = False
+        self._setup()
+        if self.isdynamic: 
+            self.dynamic_run(**kwargs)
+            self._summary()
+        else: 
+            outputs = self.converge(**kwargs)
+            self._summary()
+            if self._configuration_updated: outputs = self.simulate(**kwargs)
+            if self._facility_loop: self._facility_loop.converge()
+            return outputs
+
+    def dynamic_run(self, **dynsim_kwargs):
+        """
+        Run system dynamically without costing unit operations.
+        
+        Parameters
+        ----------
+        **dynsim_kwargs : 
             Dynamic simulation keyword arguments, could include:
 
                 t_span : tuple(float, float)
@@ -1667,55 +1773,50 @@ class System:
         See Also
         --------
         `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
+        
         """
-        self._setup()
-        if self.isdynamic:
-            dk = self.dynsim_kwargs
-            dk.update(dynsim_kwargs)
-            dk_cp = dk.copy()
-            state_reset_hook = dk_cp.pop('state_reset_hook', None)
-            print_msg = dk_cp.pop('print_msg', False)
-            export_state_to = dk_cp.pop('export_state_to', '')
-            sample_id = dk_cp.pop('sample_id', '')
-            t_eval = dk_cp.pop('t_eval', None)
-            # Reset state, if needed
-            if state_reset_hook:
-                if isinstance(state_reset_hook, str):
-                    f = getattr(self, state_reset_hook)
-                else:
-                    f = state_reset_hook # assume to be a function
-                f()
-            else: 
-                for u in self.units:
-                    if not hasattr(u, '_state'): u._init_dynamic()
-            # Load initial states
-            self.converge()
-            y0, idx, nr = self._load_state()
-            dk['y0'] = y0
-            # Integrate
-            self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
-            if print_msg:
-                if sol.status == 0:
-                    print('Simulation completed.')
-                else: print(sol.message)
-            self._write_state()          
-            # Write states to file
-            if export_state_to:
-                try: file, ext = export_state_to.rsplit('.', 1)
-                except ValueError: 
-                    file = export_state_to
-                    ext = 'npy'
-                if sample_id != '':
-                    if ext != 'npy':
-                        warn(f'file extension .{ext} ignored. Time-series data of '
-                              f"{self.ID}'s tracked variables saved as a .npy file.")
-                    path = f'{file}_{sample_id}.npy'
-                else: path = f'{file}.{ext}'
-                self.scope.export(path=path, t_eval=t_eval)
-        else: self.converge()
-        self._summary()
-        if self._facility_loop: self._facility_loop.converge()
-
+        dk = self.dynsim_kwargs
+        dk.update(dynsim_kwargs)
+        dk_cp = dk.copy()
+        state_reset_hook = dk_cp.pop('state_reset_hook', None)
+        print_msg = dk_cp.pop('print_msg', False)
+        export_state_to = dk_cp.pop('export_state_to', '')
+        sample_id = dk_cp.pop('sample_id', '')
+        t_eval = dk_cp.pop('t_eval', None)
+        # Reset state, if needed
+        if state_reset_hook:
+            if isinstance(state_reset_hook, str):
+                f = getattr(self, state_reset_hook)
+            else:
+                f = state_reset_hook # assume to be a function
+            f()
+        else: 
+            for u in self.units:
+                if not hasattr(u, '_state'): u._init_dynamic()
+        # Load initial states
+        self.converge()
+        y0, idx, nr = self._load_state()
+        dk['y0'] = y0
+        # Integrate
+        self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
+        if print_msg:
+            if sol.status == 0:
+                print('Simulation completed.')
+            else: print(sol.message)
+        self._write_state()          
+        # Write states to file
+        if export_state_to:
+            try: file, ext = export_state_to.rsplit('.', 1)
+            except ValueError: 
+                file = export_state_to
+                ext = 'npy'
+            if sample_id != '':
+                if ext != 'npy':
+                    warn(f'file extension .{ext} ignored. Time-series data of '
+                          f"{self.ID}'s tracked variables saved as a .npy file.")
+                path = f'{file}_{sample_id}.npy'
+            else: path = f'{file}.{ext}'
+            self.scope.export(path=path, t_eval=t_eval)
 
     # User definitions
     
@@ -2188,7 +2289,6 @@ class System:
         operation simulation times.
 
         """
-        import pandas as pd
         self._turn_on('profile')
         try: self.simulate()
         finally: self._turn_off()
@@ -2419,10 +2519,9 @@ class AgileSystem:
         'process_impact_items', 'lang_factor', '_OperationMode', 
         '_TEA', '_LCA', '_units', '_streams',
     )
-
+    isdynamic = False
     TEA = System.TEA
     LCA = System.LCA
- 
     define_process_impact = System.define_process_impact
     get_net_heat_utility_impact = System.get_net_heat_utility_impact
     get_net_electricity_impact = System.get_net_electricity_impact

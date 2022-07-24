@@ -317,14 +317,14 @@ class State:
             samples = sampler.sample(problem, N=N, **kwargs)
         return samples
     
-    def _update_state(self, sample, **dyn_sim_kwargs):
+    def _update_state(self, sample, **kwargs):
         for f, s in zip(self._parameters, sample): 
             f.setter(s if f.scale is None else f.scale * s)
-        self._specification() if self._specification else self._system.simulate(**dyn_sim_kwargs)
+        return self._specification() if self._specification else self._system.simulate(**kwargs)
     
-    def __call__(self, sample):
+    def __call__(self, sample, **kwargs):
         """Update state given sample of parameters."""
-        self._update_state(np.asarray(sample, dtype=float))
+        return self._update_state(np.asarray(sample, dtype=float), **kwargs)
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'
