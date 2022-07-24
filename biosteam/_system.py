@@ -805,10 +805,10 @@ class System:
         isa = isinstance
         recycle = self._recycle
         if recycle:
-            if isa(recycle, Iterable):
-                recycles.extend(recycle)
-            elif isa(recycle, Stream):
+            if isa(recycle, Stream):
                 recycles.append(recycle)
+            elif isa(recycle, Iterable):
+                recycles.extend(recycle)
             else:
                 raise_recycle_type_error(recycle)
         for i in self._path:
@@ -1345,33 +1345,35 @@ class System:
         return mol_new, not_converged
 
     def _get_recycle_data(self):
-        recycle = self._recycle
-        if isinstance(recycle, Stream):
-            return recycle._imol.data.copy()
-        elif isinstance(recycle, Iterable):
-            return np.vstack([i._imol.data for i in recycle])
+        recycles = self.get_all_recycles()
+        N = len(recycles)
+        if N == 1:
+            return recycles[0]._imol.data.copy()
+        elif N > 1: 
+            return np.vstack([i._imol.data for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
     def _set_recycle_data(self, data):
-        recycle = self._recycle
+        recycles = self.get_all_recycles()
+        N = len(recycles)
         isa = isinstance
-        if isa(recycle, Stream):
+        if N == 1:
             try:
-                recycle._imol._data[:] = data
+                recycles[0]._imol._data[:] = data
             except IndexError as e:
                 if data.shape[0] != 1:
                     raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
                 else:
                     raise e from None
-        elif isa(recycle, Iterable):
+        elif N > 1:
             length = len
             N_rows = data.shape[0]
-            M_rows = sum([length(i) if isa(i, MultiStream) else 1 for i in recycle])
+            M_rows = sum([length(i) if isa(i, MultiStream) else 1 for i in recycles])
             if M_rows != N_rows:
                 raise IndexError(f'expected {M_rows} rows; got {N_rows} rows instead')
             index = 0
-            for i in recycle:
+            for i in recycles:
                 if isa(i, MultiStream):
                     next_index = index + length(i)
                     i._imol._data[:] = data[index:next_index, :]
