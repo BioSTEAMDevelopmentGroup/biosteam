@@ -1350,7 +1350,7 @@ class System:
         if N == 1:
             return recycles[0]._imol.data.copy()
         elif N > 1: 
-            return np.vstack([i._imol.data for i in recycles])
+            return np.hstack([i._imol.data.flatten() for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
@@ -1367,20 +1367,21 @@ class System:
                 else:
                     raise e from None
         elif N > 1:
-            length = len
-            N_rows = data.shape[0]
-            M_rows = sum([length(i) if isa(i, MultiStream) else 1 for i in recycles])
-            if M_rows != N_rows:
-                raise IndexError(f'expected {M_rows} rows; got {N_rows} rows instead')
+            N = data.size
+            M = sum([i._imol._data.size for i in recycles])
+            if M != N:
+                raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
                 if isa(i, MultiStream):
-                    next_index = index + length(i)
-                    i._imol._data[:] = data[index:next_index, :]
-                    index = next_index
+                    for j in i._imol._data:
+                        end = index + i.chemicals.size
+                        j[:] = data[index:end]
+                        index = end
                 else:
-                    i._imol._data[:] = data[index, :]
-                    index += 1
+                    end = index + i.chemicals.size
+                    i._imol._data[:] = data[index:end]
+                    index = end
         else:
             raise RuntimeError('no recycle available')
 
