@@ -1,7 +1,6 @@
 digraph {
 	Damping=0.995 K=0.5 bgcolor=transparent color=none fontcolor="#e5e5e5" fontname=Arial fontsize=24 label="" labeljust=l labelloc=t maxiter=10000000 penwidth=0 rankdir=LR
-	"s.6
-recirculated_chilled_water
+	"recirculated_chilled_water
 sugarcane
 makeup_water
 imbibition_water
@@ -12,13 +11,12 @@ denaturant
 lime
 H3PO4
 rvf_wash_water
-s57
-s62
-s63
-s55
-s56
+s54
+s.6
 s58
-s61
+s52
+s53
+s55
 polymer
 natural_gas
 dilution_water
@@ -26,30 +24,29 @@ cooling_tower_chemicals
 " [color="#55a8b5" fillcolor="#60c1cf" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	"sugarcane_sys
 System" [color=none fillcolor="#555f69" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
-	"s.7
-s.9
+	"s.8
 vinasse
 emissions
-s59
+s56
 wastewater
-evaporation_and_blowdown
+cooling_tower_evaporation
 ethanol
 vent
 ash_disposal
 filter_cake
 rejected_water_and_blowdown
 Yeast
+cooling_tower_blowdown
 s4
-s36
-s60
+s.7
+s57
 " [color="#55a8b5" fillcolor="#60c1cf" fontcolor=white fontname=Arial gradientangle=0 height=0.6 margin=default orientation=0.0 peripheries=1 shape=box style=filled width=0.6]
 	graph [fontname=Arial maxiter=1000000 nodesep=0.5 outputorder=edgesfirst overlap=orthoyx ranksep=0.15]
 	edge [dir=foward fontname=Arial]
 	node [color="#90918e" fillcolor="#55a8b5" fontcolor=white fontname=Arial height=0.6 margin=0 orientation=0 peripheries=1 style=filled width=0.6]
 	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=solid tailport=c]
-	"s.6
-recirculated_chilled_water
+	"recirculated_chilled_water
 sugarcane
 makeup_water
 imbibition_water
@@ -60,13 +57,12 @@ denaturant
 lime
 H3PO4
 rvf_wash_water
-s57
-s62
-s63
-s55
-s56
+s54
+s.6
 s58
-s61
+s52
+s53
+s55
 polymer
 natural_gas
 dilution_water
@@ -76,21 +72,21 @@ System" [label=" "]
 	edge [color="#98a2ad" fontcolor="#e5e5e5" headlabel="" label="" labeldistance=2 taillabel=""]
 	edge [arrowhead=normal arrowtail=none headport=c penwidth=1.0 style=dashed tailport=c]
 	"sugarcane_sys
-System" -> "s.7
-s.9
+System" -> "s.8
 vinasse
 emissions
-s59
+s56
 wastewater
-evaporation_and_blowdown
+cooling_tower_evaporation
 ethanol
 vent
 ash_disposal
 filter_cake
 rejected_water_and_blowdown
 Yeast
+cooling_tower_blowdown
 s4
-s36
-s60
+s.7
+s57
 " [label=" "]
 }

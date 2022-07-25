@@ -19,7 +19,7 @@ def test_unit_connections():
     assert R301.neighborhood(1) == {T301, D301, S302, H301}
     assert R301.neighborhood(2) == {S302, C301, H301, M302, D301, R301, T301, M301}
     assert R301.neighborhood(100) == R301.neighborhood(1000) == {
-        M305, T304, S301, F301, M301, P302, H301, H302, T204, M303, 
+        M305, T304, F301, M301, P302, H301, H302, T204, M303, 
         P201, U101, R301, D303, T301, T205, U102, U103, P202, M202, 
         M302, H202, D301, T206, S202, P303, C201, H303, C301, U301, 
         S302, P203, T203, T302, P301, C202, D302, H304, P304, P306, 
