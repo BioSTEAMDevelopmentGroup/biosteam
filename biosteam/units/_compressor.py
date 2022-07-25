@@ -5,7 +5,7 @@
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-from .. import Unit
+from .. import Unit, CE
 from flexsolve.open_solvers import aitken_secant
 import warnings
 
@@ -132,5 +132,5 @@ class IsentropicCompressor(Unit):
             S = power
         else:
             a = b = n = S = 0
-        cost["Compressor"] = a + b*S**n
+        cost["Compressor"] = CE / 509.7 * (a + b*S**n)
         pass
