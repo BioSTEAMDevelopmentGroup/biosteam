@@ -33,6 +33,66 @@ class IsentropicCompressor(Unit):
     -----
     Default compressor selection, design and cost algorithms are adapted from [0]_.
 
+    Examples
+    --------
+    Simulate isentropic compression of gaseous hydrogen with 70% efficiency:
+
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(["H2"])
+    >>> feed = bst.Stream(H2=1, T=25 + 273.15, P=101325, phase='g')
+    >>> K = bst.units.IsentropicCompressor(ins=feed, P=50e5, eta=0.7)
+    >>> K.simulate()
+    >>> K.show()
+    IsentropicCompressor: K1
+    ins...
+    [0] s1
+        phase: 'g', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] s2
+        phase: 'g', T: 1151.3 K, P: 5e+06 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Isentropic compressor                               Units       K1
+    Design              Power                              kW     7.03
+                        Isentropic Power                   kW     4.92
+                        Outlet Temperature                  K 1.15e+03
+                        Isentropic Outlet Temperature       K      901
+                        Volumetric Flow Rate           m^3/hr     24.5
+    Purchase cost       Compressor                        USD 4.94e+03
+    Total purchase cost                                   USD 4.94e+03
+    Utility cost                                       USD/hr        0
+
+    Per default, the outlet pahse is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
+    set `vle=True`:
+
+    >>> import biosteam as bst
+    >>> bst.settings.set_thermo(["H2O"])
+    >>> feed = bst.MultiStream(T=372.75, P=1e5, l=[('H2O', 0.1)], g=[('H2O', 0.9)])
+    >>> K = bst.units.IsentropicCompressor(ins=feed, P=100e5, eta=1.0, vle=True)
+    >>> K.simulate()
+    >>> K.show()
+    IsentropicCompressor: K2
+    ins...
+    [0] s3
+        phases: ('g', 'l'), T: 372.75 K, P: 100000 Pa
+        flow (kmol/hr): (g) H2O  0.9
+                        (l) H2O  0.1
+    outs...
+    [0] s4
+        phases: ('g', 'l'), T: 797.75 K, P: 1e+07 Pa
+        flow (kmol/hr): (g) H2O  1
+    >>> K.results()
+    Isentropic compressor                               Units       K2
+    Design              Power                              kW     5.41
+                        Isentropic Power                   kW     5.41
+                        Outlet Temperature                  K      798
+                        Isentropic Outlet Temperature       K      798
+                        Volumetric Flow Rate           m^3/hr     27.9
+    Purchase cost       Compressor                        USD 5.01e+03
+    Total purchase cost                                   USD 5.01e+03
+    Utility cost                                       USD/hr        0
+
     References
     ----------
     .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
