@@ -85,7 +85,6 @@ class Fermentation(BatchBioreactor):
                         Glucose  10.5
                         Sucrose  62.5
                         Yeast    415
-    [1] missing stream
     outs...
     [0] CO2
         phase: 'g', T: 304.19 K, P: 101325 Pa

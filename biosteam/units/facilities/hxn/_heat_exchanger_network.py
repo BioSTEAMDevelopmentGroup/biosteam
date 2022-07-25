@@ -71,9 +71,7 @@ class HeatExchangerNetwork(Facility):
     >>> F1 = Flash('F1', ins=feed2,
     ...                     outs=('vapor', 'liquid'), V = 0.9, P = 101325)
     >>> HXN = HeatExchangerNetwork('trial_HXN', T_min_app = 5.)
-    >>> trial_sys = f.create_system(
-    ... 'trial_sys', feeds=[i for i in f.stream
-    ...                  if i.sink and not i.source])
+    >>> trial_sys = f.create_system('trial_sys')
     >>> trial_sys.simulate()
     >>> HXN.simulate()
     >>> # See all results

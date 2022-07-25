@@ -5,8 +5,8 @@
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
-from .. import Unit, CE
-from flexsolve.open_solvers import aitken_secant
+import biosteam as bst
+from .. import Unit
 import warnings
 
 __all__ = ('IsentropicCompressor',)
@@ -24,10 +24,11 @@ class IsentropicCompressor(Unit):
     P : float
         Outlet pressure [Pa].
     eta : float
-        Isentropic efficiency [-].
+        Isentropic efficiency.
     vle : bool
         Whether to perform phase equilibrium calculations on
-        the outflow or not. Out phase = in phase if False.  [-].
+        the outflow or not. If False, the outlet will be assumed to be the same 
+        phase as the inlet.
 
     Notes
     -----
@@ -39,19 +40,20 @@ class IsentropicCompressor(Unit):
 
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(["H2"])
-    >>> feed = bst.Stream(H2=1, T=25 + 273.15, P=101325, phase='g')
-    >>> K = bst.units.IsentropicCompressor(ins=feed, P=50e5, eta=0.7)
+    >>> feed = bst.Stream('feed', H2=1, T=25 + 273.15, P=101325, phase='g')
+    >>> K = bst.units.IsentropicCompressor('K1', ins=feed, outs='outlet', P=50e5, eta=0.7)
     >>> K.simulate()
     >>> K.show()
     IsentropicCompressor: K1
     ins...
-    [0] s1
+    [0] feed
         phase: 'g', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): H2  1
     outs...
-    [0] s2
+    [0] outlet
         phase: 'g', T: 1151.3 K, P: 5e+06 Pa
         flow (kmol/hr): H2  1
+    
     >>> K.results()
     Isentropic compressor                               Units       K1
     Design              Power                              kW     7.03
@@ -68,20 +70,21 @@ class IsentropicCompressor(Unit):
 
     >>> import biosteam as bst
     >>> bst.settings.set_thermo(["H2O"])
-    >>> feed = bst.MultiStream(T=372.75, P=1e5, l=[('H2O', 0.1)], g=[('H2O', 0.9)])
-    >>> K = bst.units.IsentropicCompressor(ins=feed, P=100e5, eta=1.0, vle=True)
+    >>> feed = bst.MultiStream('feed', T=372.75, P=1e5, l=[('H2O', 0.1)], g=[('H2O', 0.9)])
+    >>> K = bst.units.IsentropicCompressor('K2', ins=feed, outs='outlet', P=100e5, eta=1.0, vle=True)
     >>> K.simulate()
     >>> K.show()
     IsentropicCompressor: K2
     ins...
-    [0] s3
+    [0] feed
         phases: ('g', 'l'), T: 372.75 K, P: 100000 Pa
         flow (kmol/hr): (g) H2O  0.9
                         (l) H2O  0.1
     outs...
-    [0] s4
+    [0] outlet
         phases: ('g', 'l'), T: 797.75 K, P: 1e+07 Pa
         flow (kmol/hr): (g) H2O  1
+    
     >>> K.results()
     Isentropic compressor                               Units       K2
     Design              Power                              kW     5.41
@@ -96,6 +99,7 @@ class IsentropicCompressor(Unit):
     References
     ----------
     .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
+    
     """
     _N_ins = 1
     _N_outs = 1
@@ -193,5 +197,5 @@ class IsentropicCompressor(Unit):
             S = power
         else:
             a = b = n = S = 0
-        cost["Compressor"] = CE / 509.7 * (a + b*S**n)
-        pass
+        cost["Compressor"] = bst.CE / 509.7 * (a + b*S**n)
+        
