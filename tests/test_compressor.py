@@ -18,7 +18,7 @@ def test_hydrogen_compressor():
     C.simulate()
     assert allclose(
         a=list(C.design_results.values()),
-        b=[7.02839886238921, 4.919879203671207, 1151.3251608356125, 901.1332666056242],
+        b=[7.02839886238921, 4.919879203671207, 1151.3251608356125, 901.1332666056242, 24.465403697038127],
     )
     pass
 
@@ -31,7 +31,7 @@ def test_two_phase_steam_compressor():
     C.simulate()
     assert allclose(
         a=list(C.design_results.values()),
-        b=[5.410389965766295, 5.410389965201038, 797.7528062886108, 797.7528062360269],
+        b=[5.410389965766295, 5.410389965201038, 797.7528062886108, 797.7528062360269, 27.89482592365777],
     )
     out = C.outs[0]
     assert allclose(
