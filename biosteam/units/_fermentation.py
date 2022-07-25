@@ -165,7 +165,7 @@ class Fermentation(BatchBioreactor):
     
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  tau,  N=None, V=None, T=305.15, P=101325., Nmin=2, Nmax=36,
-                 efficiency=0.9, iskinetic=False, fermentation_reaction=None):
+                 efficiency=None, iskinetic=False, fermentation_reaction=None):
         BatchBioreactor.__init__(self, ID, ins, outs, thermo,
                                  tau=tau, N=N, V=V, T=T, P=P, Nmin=Nmin, Nmax=Nmax)
         self._load_components()
@@ -173,7 +173,10 @@ class Fermentation(BatchBioreactor):
         chemicals = self.chemicals
         self.hydrolysis_reaction = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00, chemicals)
         if fermentation_reaction is None:
+            if efficiency is None: efficiency = 0.9
             fermentation_reaction = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency, chemicals)
+        else:
+            efficiency = fermentation_reaction.X
         self.fermentation_reaction = fermentation_reaction 
         self.cell_growth_reaction = cell_growth = Reaction('Glucose -> Yeast', 'Glucose', 0.70, chemicals, basis='wt')
         cell_growth.basis = 'mol'

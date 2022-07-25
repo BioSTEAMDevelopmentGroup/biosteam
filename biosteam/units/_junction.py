@@ -10,7 +10,7 @@
 from .._unit import Unit
 from .._graphics import junction_graphics
 from .._power_utility import PowerUtility
-from thermosteam import MultiStream
+from ..exceptions import UndefinedChemical
 from ..utils.piping import Inlets, Outlets
 
 __all__ = ('Junction',)
@@ -93,7 +93,10 @@ class Junction(Unit):
         pass
     
     def _run(self): 
-        self._outs[0].copy_like(self._ins[0])
+        try: self._outs[0].copy_like(self._ins[0])
+        except UndefinedChemical:
+            self._reset_thermo(self._ins[0]._thermo)
+            self._outs[0].copy_like(self._ins[0])
     simulate = Unit.run
 
     @property
