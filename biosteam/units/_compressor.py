@@ -24,6 +24,9 @@ class IsentropicCompressor(Unit):
         Outlet pressure [Pa].
     eta : float
         Isentropic efficiency [-].
+    vle : bool
+        Whether to perform phase equilibrium calculations on
+        the outflow or not. Out phase = in phase if False.  [-].
 
     """
     _N_ins = 1
@@ -36,10 +39,11 @@ class IsentropicCompressor(Unit):
         'Isentropic Outlet Temperature': 'K',
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta, vle=False):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P #: Outlet pressure [Pa].
         self.eta = eta  #: Isentropic efficiency [-].
+        self.vle = vle
 
     def _setup(self):
         super()._setup()
@@ -54,10 +58,19 @@ class IsentropicCompressor(Unit):
         out.S = feed.S
         T_isentropic = out.T
 
+        # check phase equilibirum
+        if self.vle is True:
+            out.vle(S=out.S, P=out.P)
+            T_isentropic = out.T
+
         # calculate actual state change (incl. efficiency)
         dh_isentropic = out.h - feed.h
         dh_actual = dh_isentropic / self.eta
         out.h = feed.h + dh_actual
+
+        # check phase equilibirum again
+        if self.vle is True:
+            out.vle(H=out.H, P=out.P)
 
         # save values for _design
         self.T_isentropic = T_isentropic

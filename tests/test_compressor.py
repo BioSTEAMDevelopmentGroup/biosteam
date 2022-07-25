@@ -22,6 +22,24 @@ def test_hydrogen_compressor():
     )
     pass
 
-    
+def test_two_phase_steam_compressor():
+    bst.settings.set_thermo(["H2O"])
+    # feed is steam-water-mixture
+    feed = bst.MultiStream(T=372.75, P=1e5, l=[('H2O', 0.1)], g=[('H2O', 0.9)])
+    # from compress until superheated steam (test case for vle parameter)
+    C = bst.units.IsentropicCompressor(ins=feed, P=100e5, eta=1.0, vle=True)
+    C.simulate()
+    assert allclose(
+        a=list(C.design_results.values()),
+        b=[5.410389965766295, 5.410389965201038, 797.7528062886108, 797.7528062360269],
+    )
+    out = C.outs[0]
+    assert allclose(
+        a = [out.vapor_fraction, out.liquid_fraction, out.P],
+        b = [1.0, 0.0, 100e5],
+    )
+    pass
+
 if __name__ == '__main__':
     test_hydrogen_compressor()
+    test_two_phase_steam_compressor()
