@@ -101,6 +101,7 @@ def rename_unit(unit, area):
     * E = Evaporator
     * F = Flash tank
     * H = Heat exchange
+    * K = Compressor
     * M = Mixer
     * P = Pump (including conveying belt)
     * R = Reactor
@@ -150,6 +151,7 @@ def rename_units(units, area):
     * E = Evaporator
     * F = Flash tank
     * H = Heat exchange
+    * K = Compressor
     * M = Mixer
     * P = Pump (including conveying belt)
     * R = Reactor
