@@ -36,6 +36,7 @@ from ._vent_scrubber import *
 from ._vibrating_screen import *
 from ._carbon_capture import *
 from ._continuous_reactor import *
+from ._compressor import *
 from .drying import *
 from .size_reduction import *
 from .size_enlargement import *
@@ -81,7 +82,8 @@ from . import (
     _diagram_only_units, 
     _batch_bioreactor,
     _batch_crystallizer,
-    _carbon_capture, 
+    _carbon_capture,
+    _compressor,
 )
 
 __all__ = ('Unit',
@@ -120,6 +122,7 @@ __all__ = ('Unit',
            *wastewater.__all__,
            *drying.__all__,
            *adsorption.__all__,
+           *_compressor.__all__,
            'adsorption',
            'drying',
            'tank',
