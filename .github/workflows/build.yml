@@ -55,10 +55,10 @@ jobs:
         python -m pip install wheel
         pip install -r requirements_test.txt
         pip install git+https://github.com/BioSTEAMDevelopmentGroup/thermosteam.git
-        pip install .
         pip install git+https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park.git
         pip install git+https://github.com/QSD-Group/QSDsan.git
         pip install git+https://github.com/QSD-Group/EXPOsan.git
+        pip uninstall biosteam
     - name: Test without numba
       run: |
         pytest . -v --disable-numba=1 --cov-report html --cov=biosteam --cov-report term-missing -m "not slow"
