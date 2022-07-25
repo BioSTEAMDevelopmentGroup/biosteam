@@ -1436,29 +1436,35 @@ class System:
 
     def get_material_data(self):
         """
-        Return a dictionary of an array material flows of recycle streams, 
-        a list of recycle streams, and a dictionary of index-chemical pairs.
+        Return a dictionary defining material flows of recycle streams.
         
         """
         recycles = self.get_all_recycles()
-        IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
-        index = {j: i for i, j in enumerate(IDs)}
-        M = len(recycles)
-        N = len(IDs)
-        arr = np.zeros([M, N])
-        for i, s in enumerate(recycles):
-            mol = s.mol
-            s_index = s.chemicals._index
-            for chemical in s.available_chemicals:
-                ID = chemical.ID
-                mol[s_index[ID]] = arr[i, index[ID]]
+        all_IDs = [s.chemicals.IDs for s in recycles]
+        same_chemicals = len(set(all_IDs)) == 1
+        if same_chemicals:
+            index = recycles[0].chemicals._index
+            M = len(recycles)
+            N = len(all_IDs[0])
+            material_flows = np.zeros([M, N])
+            for i, s in enumerate(recycles): material_flows[i] = s.mol
+        else:
+            IDs = sorted(set(sum(all_IDs, ())))
+            index = {j: i for i, j in enumerate(IDs)}
+            M = len(recycles)
+            N = len(IDs)
+            material_flows = np.zeros([M, N])
+            for i, s in enumerate(recycles):
+                for ID, value in zip(s.chemicals.IDs, s.mol):
+                    material_flows[i, index[ID]] = value
         return dict(
-            material_flows=arr,
+            material_flows=material_flows,
             recycles=recycles,
-            index=index
+            index=index,
+            same_chemicals=same_chemicals,
         )
 
-    def converge(self, material_flows=None, recycles=None, index=None):
+    def converge(self, material_flows=None, recycles=None, index=None, same_chemicals=None):
         """
         Converge mass and energy balances.
         
@@ -1467,10 +1473,15 @@ class System:
         material_flows : array, optional
             Guess material flows of recycle streams. Shape must be M by N,
             where M is the number of recycle streams and N is the number of chemicals.
+        
+        Other Parameters
+        ----------------
         recycles : Iterable[Stream], optional
             Recycle streams.
         index : Iterable[str], optional
             Index of chemical IDs for material flows.
+        same_chemicals : bool, optional
+            Whether all recycles share the same chemicals.
             
         Returns
         -------
@@ -1486,16 +1497,20 @@ class System:
         """
         if material_flows is not None: 
             if recycles is None: recycles = self.get_all_recycles()
-            if index is None:
-                IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
-                index = {j: i for i, j in enumerate(IDs)}
-            for i, s in enumerate(recycles):
-                mol = s.mol
-                mol[:] = 0.
-                s_index = s.chemicals._index
-                for chemical in s.available_chemicals:
-                    ID = chemical.ID
-                    mol[s_index[ID]] = material_flows[i, index[ID]]
+            if same_chemicals is None:
+                all_IDs = [s.chemicals.IDs for s in recycles]
+                same_chemicals = len(set(all_IDs)) == 1
+            if same_chemicals:
+                for i, s in enumerate(recycles):
+                    s.mol[:] = material_flows[i]
+            else:
+                if index is None:
+                    IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
+                    index = {j: i for i, j in enumerate(IDs)}
+                for i, s in enumerate(recycles):
+                    mol = s.mol
+                    for j, ID in enumerate(s.chemicals.IDs):
+                        mol[j] = material_flows[i, index[ID]]
         if self._N_runs:
             for i in range(self.N_runs): self._run()
         elif self._recycle:
@@ -1503,17 +1518,13 @@ class System:
         else:
             self._run()
         if material_flows is not None:
-            if recycles is None: recycles = self.get_all_recycles()
-            if index is None:
-                IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
-                index = {j: i for i, j in enumerate(IDs)}
-            material_flows = np.zeros_like(material_flows)
-            for i, s in enumerate(recycles):
-                mol = s.mol
-                s_index = s.chemicals._index
-                for chemical in s.available_chemicals:
-                    ID = chemical.ID
-                    material_flows[i, index[ID]] = mol[s_index[ID]]    
+            material_flows = material_flows.copy()
+            if same_chemicals:
+                for i, s in enumerate(recycles): material_flows[i] = s.mol
+            else:
+                for i, s in enumerate(recycles):
+                    for ID, value in zip(s.chemicals.IDs, s.mol):
+                        material_flows[i, index[ID]] = value
             return material_flows
 
     def _summary(self):

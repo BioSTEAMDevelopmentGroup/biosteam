@@ -11,6 +11,16 @@ import warnings
 
 __all__ = ('IsentropicCompressor',)
 
+#: TODO: 
+#: * Implement estimate of isentropic efficiency when not given.
+#: * Add option to default efficiencies to heuristic values for each type of compressor. 
+#: * Implement bare-module, design, and material factors.
+#: * Maybe use cost correlations from Warren's Process Development and Design for 
+#:   consistency with factors.
+#: * Move cost coefficients to a dictionary.
+#: * Allow user to enforce a compressor type.
+#: * Only calculate volumetric flow rate if type is Blower.
+#: * Only calculate power if type is not blower.
 class IsentropicCompressor(Unit):
     """
     Create an isentropic compressor.
@@ -27,7 +37,7 @@ class IsentropicCompressor(Unit):
         Isentropic efficiency.
     vle : bool
         Whether to perform phase equilibrium calculations on
-        the outflow or not. If False, the outlet will be assumed to be the same 
+        the outflow. If False, the outlet will be assumed to be the same 
         phase as the inlet.
 
     Notes
@@ -58,7 +68,6 @@ class IsentropicCompressor(Unit):
     Isentropic compressor                               Units       K1
     Design              Power                              kW     7.03
                         Isentropic Power                   kW     4.92
-                        Outlet Temperature                  K 1.15e+03
                         Isentropic Outlet Temperature       K      901
                         Volumetric Flow Rate           m^3/hr     24.5
     Purchase cost       Compressor                        USD 4.94e+03
@@ -89,7 +98,6 @@ class IsentropicCompressor(Unit):
     Isentropic compressor                               Units       K2
     Design              Power                              kW     5.41
                         Isentropic Power                   kW     5.41
-                        Outlet Temperature                  K      798
                         Isentropic Outlet Temperature       K      798
                         Volumetric Flow Rate           m^3/hr     27.9
     Purchase cost       Compressor                        USD 5.01e+03
@@ -116,12 +124,15 @@ class IsentropicCompressor(Unit):
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta, vle=False):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P  #: Outlet pressure [Pa].
-        self.eta = eta  #: Isentropic efficiency [-].
-        self.vle = vle  #: Whether to perform phase equilibrium calculations on the outflow or not. Out phase = in phase if False.  [-].
-        self.type = None  #: Which type of compressor (determined during cost calculation): blower/centrifugal/reciprocating
-
-    def _setup(self):
-        super()._setup()
+        self.eta = eta  #: Isentropic efficiency.
+        
+        #: Whether to perform phase equilibrium calculations on the outflow.
+        #: If False, the outlet will be assumed to be the same phase as the inlet.
+        self.vle = vle  
+        
+        #: Type of compressor (determined during cost calculation):
+        #: blower/centrifugal/reciprocating
+        self.type = None  
 
     def _run(self):
         feed = self.ins[0]
@@ -163,7 +174,7 @@ class IsentropicCompressor(Unit):
         self.design_results['Isentropic Outlet Temperature'] = self.T_isentropic
         self.design_results['Volumetric Flow Rate'] = feed.F_vol
 
-        # determine compressor type based on power specification
+        # Determine compressor type based on power specification
         if 0 <=  power < 93:
             self.type = 'Blower'
         elif 93 <= power < 16800:
@@ -171,8 +182,11 @@ class IsentropicCompressor(Unit):
         elif 16800 <= power <= 30000:
             self.type = 'Centrifugal'
         else:
-            warnings.warn(f"Compressor power {power} outside cost correlation range (0, 30 MW). "
-                          f"Setting cost of compressor {self.ID} to zero.")
+            raise RuntimeError(
+                f"power requirement ({power / 1e3:.3g} MW) is above is outside cost "
+                 "correlation range (0, 30 MW). No fallback for this case has "
+                 "been implemented yet"
+            )
 
     def _cost(self):
         # cost calculation adapted from Sinnott & Towler: Chemical Engineering Design, 6th Edition, 2019, p.296-297

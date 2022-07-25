@@ -432,24 +432,19 @@ class Model(State):
             values = [None] * len(index)
         
         export = 'export_state_to' in kwargs
-        if autosave:
-            layout = table.index, table.columns
-            for number, i in enumerate(index, number + 1): 
-                if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **kwargs)
-                if not number % autosave: 
-                    obj = (number, values, *layout)
-                    try:
-                        with open(file, 'wb') as f: pickle.dump(obj, f)
-                    except FileNotFoundError:
-                        import os
-                        head, tail = os.path.split(file)
-                        os.mkdir(head)
-                        with open(file, 'wb') as f: pickle.dump(obj, f)
-        else:
-            for i in index: 
-                if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **kwargs)
+        layout = table.index, table.columns
+        for number, i in enumerate(index, number + 1): 
+            if export: kwargs['sample_id'] = i
+            values[i] = evaluate(samples[i], **kwargs)
+            if autosave and not number % autosave: 
+                obj = (number, values, *layout)
+                try:
+                    with open(file, 'wb') as f: pickle.dump(obj, f)
+                except FileNotFoundError:
+                    import os
+                    head, tail = os.path.split(file)
+                    os.mkdir(head)
+                    with open(file, 'wb') as f: pickle.dump(obj, f)
         table[var_indices(self._metrics)] = values
     
     def _evaluate_sample(self, sample, **kwargs):
