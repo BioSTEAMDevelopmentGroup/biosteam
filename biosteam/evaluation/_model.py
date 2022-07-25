@@ -328,6 +328,8 @@ class Model(State):
         values_ub = values_lb.copy()
         if evaluate is None: evaluate = self._evaluate_sample
         baseline_1 = np.array(evaluate(sample, **kwargs))
+        sys = self.system
+        if not sys.isdynamic: kwargs.update(sys.get_material_data())
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
