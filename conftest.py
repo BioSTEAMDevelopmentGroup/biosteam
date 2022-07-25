@@ -17,4 +17,5 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     os.environ["NUMBA_DISABLE_JIT"] = config.getoption("--disable-numba")
+    os.environ["DISABLE_PREFERENCES"] = "1"
     
