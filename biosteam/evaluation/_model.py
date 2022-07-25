@@ -196,8 +196,9 @@ class Model(State):
             index = range(N_parameters)
             evaluate(sample)
             material_data = self._system.get_material_data()
-            M, N = material_data['material_flows'].shape
-            diffs = np.zeros([N_parameters, M * N])
+            material_flows = material_data['material_flows']
+            N_elements = material_flows.size
+            diffs = np.zeros([N_parameters, N_elements])
             for i in index:
                 sample_lb = sample.copy()
                 sample_ub = sample.copy()
@@ -213,6 +214,9 @@ class Model(State):
                 lb = evaluate(sample_lb, **material_data).flatten()
                 ub = evaluate(sample_ub, **material_data).flatten()
                 diffs[i] = ub - lb
+            div = diffs.max(axis=0)
+            div[div == 0.] = 1
+            diffs /= div
             normalized_samples = normalized_samples @ diffs
         nearest_arr = cdist(normalized_samples, normalized_samples, metric=distance)
         nearest_arr = np.argsort(nearest_arr, axis=1)
