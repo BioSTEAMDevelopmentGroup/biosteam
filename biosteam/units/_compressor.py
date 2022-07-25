@@ -157,6 +157,7 @@ class IsentropicCompressor(Unit):
 
         # set design parameters
         self.design_results['Power'] = power = (out.H - feed.H) / 3600  # kW
+        self.power_utility(power)
         self.design_results['Isentropic Power'] = (self.dh_isentropic * out.F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
         self.design_results['Outlet Temperature'] = out.T
         self.design_results['Isentropic Outlet Temperature'] = self.T_isentropic
