@@ -178,8 +178,9 @@ class Model(State):
         samples = samples.copy()
         samples = samples[:, columns]
         samples_min = samples.min(axis=0)
-        samples_diff = samples.max(axis=0) - samples.min(axis=0)
-        normalized_samples = (samples + samples_min) / samples_diff
+        samples_max = samples.max(axis=0)
+        samples_diff = samples_max - samples_min
+        normalized_samples = (samples - samples_min) / samples_diff
         if ss: 
             def evaluate(sample, **kwargs):
                 try:
@@ -190,7 +191,6 @@ class Model(State):
                 finally:
                     self._parameters = original_parameters
                 return diff
-            bounds = [i.bounds for i in parameters]
             sample = [i.baseline for i in parameters]
             N_parameters = len(parameters)
             index = range(N_parameters)
@@ -201,7 +201,8 @@ class Model(State):
             for i in index:
                 sample_lb = sample.copy()
                 sample_ub = sample.copy()
-                lb, ub = bounds[i]
+                lb = samples_min[i]
+                ub = samples_max[i]
                 hook = parameters[i].hook
                 if hook:
                     sample_lb[i] = hook(lb)
