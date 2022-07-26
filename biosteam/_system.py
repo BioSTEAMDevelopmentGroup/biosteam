@@ -294,6 +294,7 @@ class System:
         'flowsheet',
         'lang_factor',
         'process_impact_items',
+        'tracked_recycles',
         '_connections',
         '_irrelevant_units',
         '_method',
@@ -515,6 +516,7 @@ class System:
         self._state_header = None
         self._DAE = None
         self.dynsim_kwargs = {}
+        self.tracked_recycles = {}
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -540,6 +542,15 @@ class System:
         self._state_header = None
         self._DAE = None
         self.dynsim_kwargs = {}
+        self.tracked_recycles = {}
+
+    def track_recycle(self, recycle, collector=None):
+        if collector is None: collector = []
+        self.tracked_recycles[recycle] = collector
+        unit = recycle.sink
+        system = self.find_system(unit)
+        if system is self: return
+        system.track_recycle(recycle, collector)
 
     def update_configuration(self, units=None, facility_recycle=None):
         if units is None: units = self.units
@@ -1337,6 +1348,9 @@ class System:
         self._set_recycle_data(mol)
         T = self._get_recycle_temperatures()
         self._run()
+        recycle = self._recycle
+        for i, j in self.tracked_recycles.items():
+            if i is recycle: j.append(i.copy(None)) 
         mol_new = self._get_recycle_data()
         T_new = self._get_recycle_temperatures()
         mol_errors = np.abs(mol - mol_new)
@@ -1580,6 +1594,7 @@ class System:
 
     def _reset_iter(self):
         self._iter = 0
+        for j in self.tracked_recycles.values(): j.clear()
         for system in self.subsystems: system._reset_iter()
 
     def _reset_errors(self):
