@@ -190,7 +190,7 @@ class IsentropicCompressor(Unit):
             self.type = 'Centrifugal'
         else:
             raise RuntimeError(
-                f"power requirement ({power / 1e3:.3g} MW) is above is outside cost "
+                f"power requirement ({power / 1e3:.3g} MW) is outside cost "
                  "correlation range (0, 30 MW). No fallback for this case has "
                  "been implemented yet"
             )
