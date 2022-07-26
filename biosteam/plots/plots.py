@@ -533,7 +533,7 @@ def plot_single_point_sensitivity(baseline, lb, ub,
     if ax is None:
         fig, ax = plt.subplots()
     if colors is None: 
-        colors = c.blue_tint.RGBn, c.red_tint.RGBn
+        colors = c.red_tint.RGBn, c.blue_tint.RGBn
     color_left, color_right = colors
     for i, y in enumerate(yranges):
         xlb = [baseline, lb[i] - baseline]

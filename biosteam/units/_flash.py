@@ -242,15 +242,15 @@ class Flash(design.PressureVessel, Unit):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass
         F_mass_liq = liq.F_mass 
-        assert F_mass_liq, "no liquid effluent; flash vessel must have liquid to default vessel type"
-        return 'Vertical'if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
+        return 'Vertical' if F_mass_vap / F_mass_liq > 0.1 else 'Horizontal'
 
     def _run(self):
         separations.vle(self.ins[0], *self.outs, self.T, self.P, self.V, 
                         self.Q, self.x, self.y, self._multi_stream)
             
     def _design(self):
-        self.no_vessel_needed = self.outs[0].isempty()
+        vap, liq = self.outs
+        self.no_vessel_needed = vap.isempty() or liq.isempty()
         if self.no_vessel_needed:
             self.design_results.clear()
         else:

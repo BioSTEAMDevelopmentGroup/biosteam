@@ -16,7 +16,7 @@ def get_network_priority(facility):
 
 class Facility(Unit, isabstract=True,
                new_graphics=False):
-    
+    autonumber = False # Default ID will not include number
     @staticmethod
     def ordered_facilities(facilities):
         """Return facilities ordered according to their network priority."""

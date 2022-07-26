@@ -315,12 +315,7 @@ class UnitGroup:
         >>> from biosteam import *
         >>> from biorefineries.cornstover import cornstover_sys
         >>> areas = UnitGroup.group_by_area(cornstover_sys.units)
-        >>> for i in areas[-3:]: i.show()
-        UnitGroup: 500
-         units: M501
-        UnitGroup: 600
-         units: M601, R601, M602, R602, S601,
-                S602, M603, S603, S604
+        >>> areas[-1].show()
         UnitGroup: 700
          units: T701, P701, T702, P702, M701,
                 T703

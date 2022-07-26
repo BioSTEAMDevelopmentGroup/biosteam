@@ -101,6 +101,7 @@ def rename_unit(unit, area):
     * E = Evaporator
     * F = Flash tank
     * H = Heat exchange
+    * K = Compressor
     * M = Mixer
     * P = Pump (including conveying belt)
     * R = Reactor
@@ -150,6 +151,7 @@ def rename_units(units, area):
     * E = Evaporator
     * F = Flash tank
     * H = Heat exchange
+    * K = Compressor
     * M = Mixer
     * P = Pump (including conveying belt)
     * R = Reactor
@@ -490,4 +492,3 @@ def default(utilities=True, CEPCI=True, flowsheet=False):
     for i in (bst.Stream, bst.Unit, bst.System): i.ticket_numbers.clear()
     if flowsheet: 
         for i in bst.main_flowsheet.flowsheet: i.clear(False)
-    

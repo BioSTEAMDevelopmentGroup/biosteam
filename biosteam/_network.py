@@ -13,6 +13,21 @@ from .utils import streams_from_units
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
+from .utils import OutletPort, MissingStream
+
+# %% Customization to system creation
+
+disjunctions = []
+
+def mark_disjunction(stream):
+    port = OutletPort.from_outlet(stream)
+    if port not in disjunctions:
+        disjunctions.append(port)
+
+def unmark_disjunction(stream):
+    port = OutletPort.from_outlet(stream)
+    if port in disjunctions:
+        disjunctions.remove(port)
 
 # %% Other tools
 
@@ -151,7 +166,6 @@ def nested_network_units(path):
                             f"objects not '{type(i).__name__}' objects")
     return units
 
-
 # %% Network
 
 class Network:
@@ -282,21 +296,27 @@ class Network:
         recycle_ends = ends.copy()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
             feedstock, ends)
-        network, *linear_networks = [Network(i) for i in linear_paths]
-        for linear_network in linear_networks:
-            network.join_linear_network(linear_network) 
+        linear_networks = [Network(i) for i in linear_paths]
+        if linear_networks:
+            network, *linear_networks = [Network(i) for i in linear_paths]
+            for linear_network in linear_networks:
+                network.join_linear_network(linear_network) 
+        else:
+            network = Network([])
         recycle_networks = [Network(*i) for i in cyclic_paths_with_recycle]
         for recycle_network in recycle_networks:
             network.join_recycle_network(recycle_network)
         isa = isinstance
         ends.update(network.streams)
+        disjunction_streams = set([i.get_stream() for i in disjunctions])
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
             downstream_network = cls.from_feedstock(feed, (), ends)
             new_streams = downstream_network.streams
             connections = ends.intersection(new_streams)
             connecting_units = {stream._sink for stream in connections
-                                if stream._source and stream._sink}
+                                if stream._source and stream._sink
+                                and stream not in disjunction_streams}
             ends.update(new_streams)
             N_connections = len(connecting_units)
             if N_connections == 0:
@@ -309,12 +329,41 @@ class Network:
                 connecting_unit = network.first_unit(connecting_units)
                 network.join_network_at_unit(downstream_network,
                                              connecting_unit)
+                    
         recycle_ends.update(network.get_all_recycles())
         recycle_ends.update(bst.utils.products_from_units(network.units))
         network.sort(recycle_ends)
         network.add_process_heat_exchangers()
         network.simplify()
         return network
+    
+    @classmethod
+    def from_units(cls, units, ends=None):
+        """
+        Create a System object from all units given.
+
+        Parameters
+        ----------
+        units : Iterable[:class:`biosteam.Unit`]
+            Unit operations to be included.
+        ends : Iterable[:class:`~thermosteam.Stream`], optional
+            End streams of the system which are not products. Specify this
+            argument if only a section of the complete system is wanted, or if
+            recycle streams should be ignored.
+
+        """
+        feeds = bst.utils.feeds_from_units(units) + [MissingStream(None, i) for i in units if not i.ins]
+        bst.utils.sort_feeds_big_to_small(feeds)
+        if feeds:
+            feedstock, *feeds = feeds
+            if not ends:
+                ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
+            system = cls.from_feedstock(
+                feedstock, feeds, ends,
+            )
+        else:
+            system = cls(())
+        return system
     
     def simplify(self):
         isa = isinstance

@@ -18,13 +18,14 @@ from .digraph import (digraph_from_units_and_streams,
                       finalize_digraph)
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
-from .exceptions import try_method_with_object_stamp
-from ._network import Network
+from scipy.optimize import anderson
+from .exceptions import try_method_with_object_stamp, Converged
+from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
 from .utils import repr_items, ignore_docking_warnings, SystemScope
 from .report import save_report
-from .utils import StreamPorts, OutletPort, colors
+from .utils import StreamPorts, colors
 from .process_tools import utils
 from collections.abc import Iterable
 from warnings import warn
@@ -32,6 +33,7 @@ from inspect import signature
 from thermosteam.utils import repr_kwargs
 import biosteam as bst
 import numpy as np
+import pandas as pd
 from scipy.integrate import solve_ivp
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
@@ -42,6 +44,17 @@ def _reformat(name):
     name = name.replace('_', ' ')
     if name.islower(): name= name.capitalize()
     return name
+
+# %% System creation tools
+
+def facilities_from_units(units):
+    isa = isinstance
+    return [i for i in units if isa(i, Facility)]
+
+def find_blowdown_recycle(facilities):
+    isa = isinstance
+    for i in facilities:
+        if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 # %% LCA
 
@@ -57,32 +70,6 @@ class ProcessImpactItem:
     def impact(self):
         return self.inventory() * self.CF
 
-
-# %% Customization to system creation
-
-disjunctions = []
-
-def mark_disjunction(stream):
-    port = OutletPort.from_outlet(stream)
-    if port not in disjunctions:
-        disjunctions.append(port)
-
-def unmark_disjunction(stream):
-    port = OutletPort.from_outlet(stream)
-    if port in disjunctions:
-        disjunctions.remove(port)
-
-
-# %% Functions for creating deterministic systems
-
-def facilities_from_units(units):
-    isa = isinstance
-    return [i for i in units if isa(i, Facility)]
-
-def find_blowdown_recycle(facilities):
-    isa = isinstance
-    for i in facilities:
-        if isa(i, bst.BlowdownMixer): return i.outs[0]
 
 # %% Functions for taking care of numerical specifications within a system path
 
@@ -217,7 +204,7 @@ class MockSystem:
             raise RuntimeError("only empty mock systems can enter `with` statement")
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
-        unit_registry._open_dump(self)
+        unit_registry.open_context_level()
         return self
 
     def __exit__(self, type, exception, traceback):
@@ -226,7 +213,7 @@ class MockSystem:
         if self.units:
             raise RuntimeError('mock system was modified before exiting `with` statement')
         unit_registry = self.flowsheet.unit
-        dump = unit_registry._close_dump(self)
+        dump = unit_registry.close_context_level()
         self.units = [i for i in dump if i not in irrelevant_units]
         if exception: raise exception
 
@@ -307,9 +294,10 @@ class System:
         'flowsheet',
         'lang_factor',
         'process_impact_items',
+        'tracked_recycles',
         '_connections',
         '_irrelevant_units',
-        '_converge_method',
+        '_method',
         '_TEA',
         '_LCA',
         '_subsystems',
@@ -319,6 +307,10 @@ class System:
         '_streams',
         '_feeds',
         '_products',
+        '_facility_recycle',
+        '_configuration_updated',
+        # Dynamic simulation
+        '_isdynamic',
         '_state',
         '_state_idx',
         '_state_header',
@@ -348,10 +340,18 @@ class System:
     default_relative_temperature_tolerance = 0.001
 
     #: [str] Default convergence method.
-    default_converge_method = 'Aitken'
+    default_method = 'Aitken'
 
     #: [bool] Whether to raise a RuntimeError when system doesn't converge
     strict_convergence = True
+
+    #: dict[str, (function, bool, kwargs)] Method definitions for convergence
+    available_methods = {}
+
+    @classmethod
+    def register_method(cls, name, function, conditional=False, **kwargs):
+        name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
+        cls.available_methods[name] = (function, conditional, kwargs)
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(),
@@ -392,7 +392,7 @@ class System:
                                 lang_factor)
 
     @classmethod
-    def from_units(cls, ID="", units=None, feeds=None, ends=None,
+    def from_units(cls, ID="", units=None, ends=None,
                    facility_recycle=None, operating_hours=None,
                    lang_factor=None):
         """
@@ -404,9 +404,6 @@ class System:
             Name of system.
         units : Iterable[:class:`biosteam.Unit`], optional
             Unit operations to be included.
-        feeds : Iterable[:class:`~thermosteam.Stream`], optional
-            All feeds to the system. Specify this argument if only a section
-            of the complete system is wanted as it may disregard some units.
         ends : Iterable[:class:`~thermosteam.Stream`], optional
             End streams of the system which are not products. Specify this
             argument if only a section of the complete system is wanted, or if
@@ -424,26 +421,11 @@ class System:
             estimated using bare module factors.
 
         """
-        if units is None:
-            units = ()
-        elif feeds is None:
-            isa = isinstance
-            Facility = bst.Facility
-            feeds = bst.utils.feeds_from_units([i for i in units if not isa(i, Facility)])
-            bst.utils.sort_feeds_big_to_small(feeds)
-        if feeds:
-            feedstock, *feeds = feeds
-            facilities = facilities_from_units(units) if units else ()
-            if not ends:
-                ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
-            system = cls.from_feedstock(
-                ID, feedstock, feeds, facilities, ends,
-                facility_recycle or find_blowdown_recycle(facilities),
-                operating_hours=operating_hours, lang_factor=lang_factor,
-            )
-        else:
-            system = cls(ID, (), operating_hours=operating_hours)
-        return system
+        facilities = facilities_from_units(units)
+        network = Network.from_units(units, ends)
+        return cls.from_network(ID, network, facilities,
+                                facility_recycle, operating_hours,
+                                lang_factor)
 
     @classmethod
     def from_segment(cls, ID="", start=None, end=None, operating_hours=None,
@@ -509,8 +491,10 @@ class System:
 
         """
         facilities = Facility.ordered_facilities(facilities)
+        if facility_recycle is None: facility_recycle = find_blowdown_recycle(facilities)
         isa = isinstance
-        path = [(cls.from_network('', i) if isa(i, Network) else i)
+        ID_subsys = None if ID is None else ''
+        path = [(cls.from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
         self = cls.__new__(cls)
         self.recycle = network.recycle
@@ -524,6 +508,7 @@ class System:
         self._load_defaults()
         self._save_configuration()
         self._load_stream_links()
+        self._configuration_updated = False
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
@@ -531,6 +516,7 @@ class System:
         self._state_header = None
         self._DAE = None
         self.dynsim_kwargs = {}
+        self.tracked_recycles = {}
         return self
 
     def __init__(self, ID, path=(), recycle=None, facilities=(),
@@ -548,6 +534,7 @@ class System:
         self._load_defaults()
         self._save_configuration()
         self._load_stream_links()
+        self._configuration_updated = False
         self.operating_hours = operating_hours
         self.lang_factor = lang_factor
         self._state = None
@@ -555,6 +542,35 @@ class System:
         self._state_header = None
         self._DAE = None
         self.dynsim_kwargs = {}
+        self.tracked_recycles = {}
+
+    def track_recycle(self, recycle, collector=None):
+        if collector is None: collector = []
+        self.tracked_recycles[recycle] = collector
+        unit = recycle.sink
+        system = self.find_system(unit)
+        if system is self: return
+        system.track_recycle(recycle, collector)
+
+    def update_configuration(self, units=None, facility_recycle=None):
+        if units is None: units = self.units
+        for i in ('_subsystems', '_units', '_unit_path', '_cost_units', '_streams', '_feeds', '_products'):
+            if hasattr(self, i): delattr(self, i)
+        isa = isinstance
+        Facility = bst.Facility
+        facilities = Facility.ordered_facilities([i for i in units if isa(i, Facility)])
+        ID_subsys = None if '.' in self.ID else ''
+        network = Network.from_units(units)
+        path = [(type(self).from_network(ID_subsys, i) if isa(i, Network) else i)
+                for i in network.path]
+        self.recycle = network.recycle
+        self._reset_errors()
+        self._set_path(path)
+        self._set_facilities(facilities)
+        self._set_facility_recycle(facility_recycle or find_blowdown_recycle(facilities))
+        self._save_configuration()
+        self._load_stream_links()
+        self._configuration_updated = True
 
     def __enter__(self):
         if self._path or self._recycle or self._facilities:
@@ -562,23 +578,20 @@ class System:
         del self._unit_path, self._units, 
         unit_registry = self.flowsheet.unit
         self._irrelevant_units = set(unit_registry)
-        unit_registry._open_dump(self)
+        unit_registry.open_context_level()
         return self
 
     def __exit__(self, type, exception, traceback):
         irrelevant_units = self._irrelevant_units
-        ID = self._ID
         del self._irrelevant_units
         unit_registry = self.flowsheet.unit
-        dump = unit_registry._close_dump(self)
+        dump = unit_registry.close_context_level()
         if exception: raise exception
         if self._path or self._recycle or self._facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
             units = [i for i in dump if i not in irrelevant_units]
-            system = self.from_units(None, units)
-            self.ID = ID
-            self.copy_like(system)
+            self.update_configuration(units)
 
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]
@@ -707,13 +720,16 @@ class System:
         self._path = other._path
         self._facilities = other._facilities
         self._facility_loop = other._facility_loop
+        self._facility_recycle = other._facility_recycle
+        self._configuration_updated = other._configuration_updated
         self._recycle = other._recycle
         self._connections = other._connections
 
     def set_tolerance(self, mol=None, rmol=None, T=None, rT=None, 
-                      subsystems=False, maxiter=None, subfactor=None):
+                      subsystems=False, maxiter=None, subfactor=None,
+                      method=None):
         """
-        Set the convergence tolerance of the system.
+        Set the convergence tolerance and convergence method of the system.
 
         Parameters
         ----------
@@ -726,11 +742,13 @@ class System:
         rT : float, optional
             Relative temperature tolerance.
         subsystems : bool, optional
-            Whether to also set tolerance of subsystems as well.
+            Whether to set tolerance and method of subsystems as well.
         maxiter : int, optional
             Maximum number if iterations.
         subfactor : float, optional
-            Factor to adjust tolerance in subsystems.
+            Factor to rescale tolerance in subsystems.
+        method : str, optional
+            Convergence method.
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -738,11 +756,13 @@ class System:
         if T: self.temperature_tolerance = float(T)
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
+        if method: self.method = method
         if subsystems:
             if subfactor:
-                for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)], subsystems, maxiter)
+                for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
+                                                          subsystems, maxiter, subfactor, method)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -770,7 +790,7 @@ class System:
         self.relative_temperature_tolerance = self.default_relative_temperature_tolerance
 
         #: [str] Converge method
-        self.converge_method = self.default_converge_method
+        self.method = self.default_method
 
     @property
     def TEA(self):
@@ -893,16 +913,28 @@ class System:
         if unit not in self.unit_path:
             raise ValueError(f'unit {repr(unit)} not in system')
         path = self._path
-        if (self._recycle or self.N_runs):
-            for index, other in enumerate(path):
-                if unit is other:
-                    self._path = path[index:] + path[:index]
-                    return
-                elif isa(other, System) and unit in other.unit_path:
-                    other.prioritize_unit(unit)
-                    return
-            raise RuntimeError('problem in system algorithm')
+        for index, other in enumerate(path):
+            if unit is other:
+                if (self._recycle or self.N_runs): self._path = path[index:] + path[:index]
+                del self._unit_path
+                return
+            elif isa(other, System) and unit in other.unit_path:
+                other.prioritize_unit(unit)
+                del self._unit_path
+                return
+        raise RuntimeError('problem in system algorithm')
 
+    def find_system(self, unit):
+        """
+        Return system containing given unit within it's path.
+        """
+        isa = isinstance
+        for i in self.path:
+            if isa(i, System):
+                if unit in i.units: return i.find_system(unit)
+            elif i is unit:
+                return self
+        raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
 
     def split(self, stream, ID_upstream=None, ID_downstream=None):
         """
@@ -982,13 +1014,20 @@ class System:
 
     def _set_facility_recycle(self, recycle):
         if recycle:
-            sys = self._downstream_system(recycle._sink)
-            sys.recycle = recycle
-            sys.__class__ = FacilityLoop
-            #: [FacilityLoop] Recycle loop for converging facilities
-            self._facility_loop = sys
+            try:
+                sys = self._downstream_system(recycle._sink)
+                for i in sys.units: i._system = self
+                self._load_facilities()
+                sys.recycle = recycle
+                sys.__class__ = FacilityLoop
+                #: [FacilityLoop] Recycle loop for converging facilities
+                self._facility_loop = sys
+                self._facility_recycle = recycle
+            except:
+                self._facility_loop = None
+                self._facility_recycle = recycle
         else:
-            self._facility_loop = None
+            self._facility_loop = self._facility_recycle = None
 
     # Forward pipping
     __sub__ = Unit.__sub__
@@ -1132,28 +1171,43 @@ class System:
         return self._path
 
     @property
-    def converge_method(self):
+    def method(self):
         """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
-        return self._converge_method.__name__[1:]
-    @converge_method.setter
-    def converge_method(self, method):
-        method = method.lower().replace('-', '').replace(' ', '')
+        return self._method
+    @method.setter
+    def method(self, method):
+        method = method.lower().replace('-', '').replace('_', '').replace(' ', '')
         try:
-            self._converge_method = getattr(self, '_' + method)
+            self._method = method
         except:
-            raise ValueError("only 'wegstein', 'aitken', and 'fixedpoint' "
-                            f"methods are valid, not '{method}'")
+            *methods, last_method = list(self.available_methods)
+            methods = ', '.join([repr(i) for i in methods]) + ', and ' + last_method
+            raise ValueError(f"only {methods} are valid methods, not '{method}'")
+
+    converge_method = method # For backwards compatibility
 
     @property
     def isdynamic(self):
-        '''Whether the system contains any dynamic Unit.'''
-        return any([unit._isdynamic for unit in self.units])
+        """Whether the system contains any dynamic Unit."""
+        try:
+            return self._isdynamic
+        except:
+            isdynamic = False
+            for i in self.units:
+                if i._isdynamic: 
+                    isdynamic = True
+                    break
+            self._isdynamic = isdynamic
+        return isdynamic
+    @isdynamic.setter
+    def isdynamic(self, isdynamic):
+        self._isdynamic = isdynamic
     
     @property
     def _n_rotate(self):
         nr = 0
         for u in self.units:
-            if not u.isdynamic: nr += 1
+            if not u._isdynamic: nr += 1
             else: break
         return nr
 
@@ -1273,7 +1327,7 @@ class System:
              preferences.profile) = original
 
     # Methods for running one iteration of a loop
-    def _iter_run(self, mol):
+    def _iter_run_conditional(self, mol):
         """
         Run the system at specified recycle molar flow rate.
 
@@ -1294,6 +1348,9 @@ class System:
         self._set_recycle_data(mol)
         T = self._get_recycle_temperatures()
         self._run()
+        recycle = self._recycle
+        for i, j in self.tracked_recycles.items():
+            if i is recycle: j.append(i.copy(None)) 
         mol_new = self._get_recycle_data()
         T_new = self._get_recycle_temperatures()
         mol_errors = np.abs(mol - mol_new)
@@ -1323,42 +1380,63 @@ class System:
             if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             else: not_converged = False
         return mol_new, not_converged
+        
+    def _iter_run(self, mol):
+        """
+        Run the system at specified recycle molar flow rate.
+
+        Parameters
+        ----------
+        mol : numpy.ndarray
+              Recycle molar flow rates.
+
+        Returns
+        -------
+        mol_new : numpy.ndarray
+            New recycle molar flow rates.
+
+        """
+        mol_new, not_converged = self._iter_run_conditional(mol)
+        if not_converged: return mol_new - mol
+        else: raise Converged
 
     def _get_recycle_data(self):
-        recycle = self._recycle
-        if isinstance(recycle, Stream):
-            return recycle._imol.data.copy()
-        elif isinstance(recycle, Iterable):
-            return np.vstack([i._imol.data for i in recycle])
+        recycles = self.get_all_recycles()
+        N = len(recycles)
+        if N == 1:
+            return recycles[0]._imol.data.copy()
+        elif N > 1: 
+            return np.hstack([i._imol.data.flatten() for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
     def _set_recycle_data(self, data):
-        recycle = self._recycle
+        recycles = self.get_all_recycles()
+        N = len(recycles)
         isa = isinstance
-        if isa(recycle, Stream):
+        if N == 1:
             try:
-                recycle._imol._data[:] = data
+                recycles[0]._imol._data[:] = data
             except IndexError as e:
                 if data.shape[0] != 1:
                     raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
                 else:
                     raise e from None
-        elif isa(recycle, Iterable):
-            length = len
-            N_rows = data.shape[0]
-            M_rows = sum([length(i) if isa(i, MultiStream) else 1 for i in recycle])
-            if M_rows != N_rows:
-                raise IndexError(f'expected {M_rows} rows; got {N_rows} rows instead')
+        elif N > 1:
+            N = data.size
+            M = sum([i._imol._data.size for i in recycles])
+            if M != N: raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
-            for i in recycle:
+            for i in recycles:
                 if isa(i, MultiStream):
-                    next_index = index + length(i)
-                    i._imol._data[:] = data[index:next_index, :]
-                    index = next_index
+                    for j in i._imol._data:
+                        end = index + i.chemicals.size
+                        j[:] = data[index:end]
+                        index = end
                 else:
-                    i._imol._data[:] = data[index, :]
-                    index += 1
+                    end = index + i.chemicals.size
+                    i._imol._data[:] = data[index:end]
+                    index = end
         else:
             raise RuntimeError('no recycle available')
 
@@ -1388,46 +1466,112 @@ class System:
             elif isa(i, System): converge(i)
             else: i() # Assume it's a function
 
-    # Methods for converging the recycle stream
-    def _fixedpoint(self):
-        """Converge system recycle iteratively using fixed-point iteration."""
-        self._solve(flx.conditional_fixed_point)
-
-    def _wegstein(self):
-        """Converge the system recycle iteratively using Wegstein's method."""
-        self._solve(flx.conditional_wegstein)
-
-    def _aitken(self):
-        """Converge the system recycle iteratively using Aitken's method."""
-        self._solve(flx.conditional_aitken)
-
-    def _solve(self, solver):
-        """Solve the system recycle iteratively using given solver."""
+    def _solve(self):
+        """Solve the system recycle iteratively."""
         self._reset_iter()
-        try:
-            solver(self._iter_run, self._get_recycle_data())
+        solver, conditional, kwargs = self.available_methods[self._method]
+        data = self._get_recycle_data()
+        f = self._iter_run_conditional if conditional else self._iter_run
+        try: solver(f, data, **kwargs)
         except IndexError as error:
-            try:
-                solver(self._iter_run, self._get_recycle_data())
-            except:
-                raise error
+            data = self._get_recycle_data()
+            try: solver(f, data, **kwargs)
+            except Converged: pass
+            except: raise error
+        except Converged: pass
 
-    def converge(self):
+    def get_material_data(self):
+        """
+        Return a dictionary defining material flows of recycle streams.
+        
+        """
+        recycles = self.get_all_recycles()
+        all_IDs = [s.chemicals.IDs for s in recycles]
+        same_chemicals = len(set(all_IDs)) == 1
+        if same_chemicals:
+            index = recycles[0].chemicals._index
+            M = len(recycles)
+            N = len(all_IDs[0])
+            material_flows = np.zeros([M, N])
+            for i, s in enumerate(recycles): material_flows[i] = s.mol
+        else:
+            IDs = sorted(set(sum(all_IDs, ())))
+            index = {j: i for i, j in enumerate(IDs)}
+            M = len(recycles)
+            N = len(IDs)
+            material_flows = np.zeros([M, N])
+            for i, s in enumerate(recycles):
+                for ID, value in zip(s.chemicals.IDs, s.mol):
+                    material_flows[i, index[ID]] = value
+        return dict(
+            material_flows=material_flows,
+            recycles=recycles,
+            index=index,
+            same_chemicals=same_chemicals,
+        )
+
+    def converge(self, material_flows=None, recycles=None, index=None, same_chemicals=None):
         """
         Converge mass and energy balances.
         
+        Parameters
+        ----------
+        material_flows : array, optional
+            Guess material flows of recycle streams. Shape must be M by N,
+            where M is the number of recycle streams and N is the number of chemicals.
+        
+        Other Parameters
+        ----------------
+        recycles : Iterable[Stream], optional
+            Recycle streams.
+        index : Iterable[str], optional
+            Index of chemical IDs for material flows.
+        same_chemicals : bool, optional
+            Whether all recycles share the same chemicals.
+            
+        Returns
+        -------
+        material_flows : array
+            If guess material flows were given, return converged material flows
+            at steady state.
+            
         Warning
         -------
         No design, costing, nor facility algorithms are run.
-        To run full simulation algorithm, see :meth:`biosteam.System.simulate`.
+        To run full simulation algorithm, see :func:`~biosteam.System.simulate`.
         
         """
+        if material_flows is not None: 
+            if recycles is None: recycles = self.get_all_recycles()
+            if same_chemicals is None:
+                all_IDs = [s.chemicals.IDs for s in recycles]
+                same_chemicals = len(set(all_IDs)) == 1
+            if same_chemicals:
+                for i, s in enumerate(recycles):
+                    s.mol[:] = material_flows[i]
+            else:
+                if index is None:
+                    IDs = sorted(set(sum([s.chemicals.IDs for s in recycles], ())))
+                    index = {j: i for i, j in enumerate(IDs)}
+                for i, s in enumerate(recycles):
+                    mol = s.mol
+                    for j, ID in enumerate(s.chemicals.IDs):
+                        mol[j] = material_flows[i, index[ID]]
         if self._N_runs:
             for i in range(self.N_runs): self._run()
         elif self._recycle:
-            self._converge_method()
+            self._solve()
         else:
             self._run()
+        if material_flows is not None:
+            material_flows = material_flows.copy()
+            if same_chemicals:
+                for i, s in enumerate(recycles): material_flows[i] = s.mol
+            else:
+                for i, s in enumerate(recycles):
+                    for ID, value in zip(s.chemicals.IDs, s.mol):
+                        material_flows[i, index[ID]] = value
+            return material_flows
 
     def _summary(self):
         simulated_units = set()
@@ -1450,6 +1594,7 @@ class System:
 
     def _reset_iter(self):
         self._iter = 0
+        for j in self.tracked_recycles.values(): j.clear()
         for system in self.subsystems: system._reset_iter()
 
     def _reset_errors(self):
@@ -1567,7 +1712,7 @@ class System:
             if unit.hasode: unit._update_state()
 
     def _load_state(self):
-        '''Returns the initial state (a 1d-array) of the system for dynamic simulation.'''
+        """Returns the initial state (a 1d-array) of the system for dynamic simulation."""
         nr = self._n_rotate
         units = self.units[nr:] + self.units[:nr]
         if self._state is None:
@@ -1621,7 +1766,7 @@ class System:
 
     @property
     def DAE(self):
-        '''System-wide differential algebraic equations.'''
+        """System-wide differential algebraic equations."""
         if self._DAE is None:
             try: self._compile_DAE()
             except AttributeError: return None
@@ -1632,7 +1777,7 @@ class System:
             ws._state2flows()
 
     def clear_state(self):
-        '''Clear all states and dstates (system, units, and streams).'''
+        """Clear all states and dstates (system, units, and streams)."""
         self._state = None
         for u in self.units:
             u._state = None
@@ -1644,13 +1789,38 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, **dynsim_kwargs):
+    def simulate(self, **kwargs):
         """
-        Converge the path and simulate all units.
+        If system is dynamic, run the system dynamically. Otherwise, converge 
+        the path of unit operations to steady state. After running/converging 
+        the system, size and cost all unit operations.
         
         Parameters
         ----------
-        dynsim_kwargs : dict
+        **kwargs : 
+            Additional parameters for :func:`dynamic_run` (if dynamic) or 
+            :func:`converge` (if steady state).
+        
+        """
+        self._configuration_updated = False
+        self._setup()
+        if self.isdynamic: 
+            self.dynamic_run(**kwargs)
+            self._summary()
+        else: 
+            outputs = self.converge(**kwargs)
+            self._summary()
+            if self._configuration_updated: outputs = self.simulate(**kwargs)
+            if self._facility_loop: self._facility_loop.converge()
+            return outputs
+
+    def dynamic_run(self, **dynsim_kwargs):
+        """
+        Run system dynamically without costing unit operations.
+        
+        Parameters
+        ----------
+        **dynsim_kwargs : 
             Dynamic simulation keyword arguments, could include:
 
                 t_span : tuple(float, float)
@@ -1670,55 +1840,50 @@ class System:
         See Also
         --------
         `scipy.integrate.solve_ivp <https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html>`_
+        
         """
-        self._setup()
-        if self.isdynamic:
-            dk = self.dynsim_kwargs
-            dk.update(dynsim_kwargs)
-            dk_cp = dk.copy()
-            state_reset_hook = dk_cp.pop('state_reset_hook', None)
-            print_msg = dk_cp.pop('print_msg', False)
-            export_state_to = dk_cp.pop('export_state_to', '')
-            sample_id = dk_cp.pop('sample_id', '')
-            t_eval = dk_cp.pop('t_eval', None)
-            # Reset state, if needed
-            if state_reset_hook:
-                if isinstance(state_reset_hook, str):
-                    f = getattr(self, state_reset_hook)
-                else:
-                    f = state_reset_hook # assume to be a function
-                f()
-            else: 
-                for u in self.units:
-                    if not hasattr(u, '_state'): u._init_dynamic()
-            # Load initial states
-            self.converge()
-            y0, idx, nr = self._load_state()
-            dk['y0'] = y0
-            # Integrate
-            self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
-            if print_msg:
-                if sol.status == 0:
-                    print('Simulation completed.')
-                else: print(sol.message)
-            self._write_state()          
-            # Write states to file
-            if export_state_to:
-                try: file, ext = export_state_to.rsplit('.', 1)
-                except ValueError: 
-                    file = export_state_to
-                    ext = 'npy'
-                if sample_id != '':
-                    if ext != 'npy':
-                        warn(f'file extension .{ext} ignored. Time-series data of '
-                              f"{self.ID}'s tracked variables saved as a .npy file.")
-                    path = f'{file}_{sample_id}.npy'
-                else: path = f'{file}.{ext}'
-                self.scope.export(path=path, t_eval=t_eval)
-        else: self.converge()
-        self._summary()
-        if self._facility_loop: self._facility_loop.converge()
-
+        dk = self.dynsim_kwargs
+        dk.update(dynsim_kwargs)
+        dk_cp = dk.copy()
+        state_reset_hook = dk_cp.pop('state_reset_hook', None)
+        print_msg = dk_cp.pop('print_msg', False)
+        export_state_to = dk_cp.pop('export_state_to', '')
+        sample_id = dk_cp.pop('sample_id', '')
+        t_eval = dk_cp.pop('t_eval', None)
+        # Reset state, if needed
+        if state_reset_hook:
+            if isinstance(state_reset_hook, str):
+                f = getattr(self, state_reset_hook)
+            else:
+                f = state_reset_hook # assume to be a function
+            f()
+        else: 
+            for u in self.units:
+                if not hasattr(u, '_state'): u._init_dynamic()
+        # Load initial states
+        self.converge()
+        y0, idx, nr = self._load_state()
+        dk['y0'] = y0
+        # Integrate
+        self.scope.sol = sol = solve_ivp(fun=self.DAE, y0=y0, **dk_cp)
+        if print_msg:
+            if sol.status == 0:
+                print('Simulation completed.')
+            else: print(sol.message)
+        self._write_state()          
+        # Write states to file
+        if export_state_to:
+            try: file, ext = export_state_to.rsplit('.', 1)
+            except ValueError: 
+                file = export_state_to
+                ext = 'npy'
+            if sample_id != '':
+                if ext != 'npy':
+                    warn(f'file extension .{ext} ignored. Time-series data of '
+                          f"{self.ID}'s tracked variables saved as a .npy file.")
+                path = f'{file}_{sample_id}.npy'
+            else: path = f'{file}.{ext}'
+            self.scope.export(path=path, t_eval=t_eval)
 
     # User definitions
     
@@ -2191,7 +2356,6 @@ class System:
         operation simulation times.
 
         """
-        import pandas as pd
         self._turn_on('profile')
         try: self.simulate()
         finally: self._turn_off()
@@ -2299,14 +2463,17 @@ class FacilityLoop(System):
 
     def _run(self):
         obj = super()
-        for i in self.units:
-            if i._design or i._cost: Unit._setup(i)
+        for i in self.units: Unit._setup(i)
         obj._run()
         self._summary()
 
 from biosteam import _flowsheet as flowsheet_module
 del ignore_docking_warnings
 
+System.register_method('aitken', flx.conditional_aitken, conditional=True)
+System.register_method('wegstein', flx.conditional_wegstein, conditional=True)
+System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=True)
+System.register_method('anderson', anderson, M=4, w0=0.001)
 
 # %% Working with different operation modes
 
@@ -2377,7 +2544,6 @@ class OperationMode:
         return f"{type(self).__name__}({repr_kwargs(self.__dict__, start='')})"
 
 
-
 class OperationMetric:
     __slots__ = ('getter', 'value')
     
@@ -2389,7 +2555,6 @@ class OperationMetric:
     
     def __repr__(self):
         return f"{type(self).__name__}(getter={self.getter})"
-
 
 
 class AgileSystem:
@@ -2423,10 +2588,9 @@ class AgileSystem:
         'process_impact_items', 'lang_factor', '_OperationMode', 
         '_TEA', '_LCA', '_units', '_streams',
     )
-
+    isdynamic = False
     TEA = System.TEA
     LCA = System.LCA
- 
     define_process_impact = System.define_process_impact
     get_net_heat_utility_impact = System.get_net_heat_utility_impact
     get_net_electricity_impact = System.get_net_electricity_impact

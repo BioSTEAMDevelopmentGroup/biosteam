@@ -293,7 +293,7 @@ class Boiler(Facility):
         ash_disposal.copy_flow(emissions, IDs=tuple(ash_IDs), remove=True)
         ash_disposal.imol['Ash'] += boiler_chems
         dry_ash = ash_disposal.F_mass
-        ash_disposal.imass['Water'] = moisture = dry_ash * 0.3 # ~20% moisture
+        ash_disposal.imass['Water'] = dry_ash * 0.3 # ~20% moisture
         if 'SO2' in chemicals:
             if self._ID_lime == '1305-62-0': # Ca(OH)2
                 lime.imol['Water'] = 4 * lime_mol # Its a slurry
@@ -434,6 +434,10 @@ class BoilerTurbogenerator(Facility):
                 return
     
     @property
+    def blowdown_water(self):
+        return self.outs[1]
+    
+    @property
     def makeup_water(self):
         """[Stream] Makeup water due to boiler blowdown."""
         return self.ins[2]
@@ -481,7 +485,7 @@ class BoilerTurbogenerator(Facility):
                     if agent and agent.ID == ID:
                         steam_utilities.add(hu)
         self.electricity_demand = sum([u.power_utility.consumption for u in units])
-    stop = False
+    
     def _design(self):
         B_eff = self.boiler_efficiency
         TG_eff = self.turbogenerator_efficiency

@@ -217,6 +217,7 @@ class Unit:
                   or 'heater' in line 
                   or 'boiler' in line
                   or 'heat exchanger' in line): cls.ticket_name = 'H'
+            elif 'compressor' in line: cls.ticket_name = 'K'
             elif 'mixer' in line: cls.ticket_name = 'M'
             elif 'pump' in line: cls.ticket_name = 'P'
             elif 'reactor' in line or 'digestion' in line or 'ferment' in line: cls.ticket_name = 'R'
@@ -899,7 +900,24 @@ class Unit:
         path = find_path_segment(self, unit)
         if inclusive: path.append(unit)
         return path
-            
+    
+    def run_until(self, unit, inclusive=False):
+        """
+        Run all units starting from this one until the end unit 
+        (not inclusive by default).
+        
+        Warning
+        -------
+        This method ignores recycle loops. To account for recyle loops, see
+        :meth:`biosteam.System.from_segment`
+        
+        See Also
+        --------
+        path_until
+        
+        """
+        for i in self.path_until(unit, inclusive): i.run()
+        
     def _reevaluate(self):
         """Reevaluate design and costs."""
         self.baseline_purchase_costs.clear()

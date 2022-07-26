@@ -160,7 +160,10 @@ class Splitter(Unit):
         self._isplit = self.thermo.chemicals.isplit(split, order)
         
     def _run(self):
-        self.ins[0].split_to(*self.outs, self.split)
+        feed = self._ins[0]
+        isplit = self._isplit
+        if isplit.chemicals is not feed.chemicals: self._reset_thermo(feed._thermo)
+        feed.split_to(*self.outs, isplit._data)
 
 
 class PhaseSplitter(Unit):

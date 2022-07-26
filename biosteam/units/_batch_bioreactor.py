@@ -35,18 +35,10 @@ class BatchBioreactor(Unit, isabstract=True):
     assuming volumetric scaling with a 6/10th exponent [1]_. 
     
     **Abstract methods**
-        
-    kinetic_model(z, t, *kinetic_constants): 
-        A staticmethod that returns effluent concentrations (z_t; kg/m^3)
-        given the starting concentration (z; kg/m^3), reaction time (t; hr),
-        and kinetic constants.
     
     _run():
         Must set outlet stream flows.
         
-    _cost():
-        Must set purchase cost results.
-    
     Parameters
     ----------
     ins : streams

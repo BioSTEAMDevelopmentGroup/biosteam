@@ -71,9 +71,7 @@ class HeatExchangerNetwork(Facility):
     >>> F1 = Flash('F1', ins=feed2,
     ...                     outs=('vapor', 'liquid'), V = 0.9, P = 101325)
     >>> HXN = HeatExchangerNetwork('trial_HXN', T_min_app = 5.)
-    >>> trial_sys = f.create_system(
-    ... 'trial_sys', feeds=[i for i in f.stream
-    ...                  if i.sink and not i.source])
+    >>> trial_sys = f.create_system('trial_sys')
     >>> trial_sys.simulate()
     >>> HXN.simulate()
     >>> # See all results
@@ -123,7 +121,8 @@ class HeatExchangerNetwork(Facility):
               'Work': 'kW'}
     
     def __init__(self, ID='', T_min_app=5., units=None, ignored=None, Qmin=1e-3,
-                 force_ideal_thermo=False, cache_network=False, avoid_recycle=False):
+                 force_ideal_thermo=False, cache_network=False, avoid_recycle=False,
+                 acceptable_energy_balance_error=None):
         Facility.__init__(self, ID, None, None)
         self.T_min_app = T_min_app
         self.units = units
@@ -132,6 +131,8 @@ class HeatExchangerNetwork(Facility):
         self.force_ideal_thermo = force_ideal_thermo
         self.cache_network = cache_network
         self.avoid_recycle = avoid_recycle
+        if acceptable_energy_balance_error is not None:
+            self.acceptable_energy_balance_error = acceptable_energy_balance_error
         
     def _get_original_heat_utilties(self):
         sys = self.system

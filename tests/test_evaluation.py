@@ -155,6 +155,13 @@ def test_model_sample(model):
     for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule)
     problem = model.problem()
     for rule in ('MORRIS', 'FAST', 'RBD', 'SOBOL'): model.sample(100, rule, problem=problem)
+
+def test_copy(model):
+    copy = model.copy()
+    assert copy.table is not None
+    assert copy.table is not model.table
+    assert copy.table.shape == model.table.shape
+    copy.evaluate() # Make sure it runs
     
 def test_model_exception_hook():
     import biosteam as bst

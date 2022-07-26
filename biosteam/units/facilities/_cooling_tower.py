@@ -10,10 +10,8 @@
 from . import Facility
 from ..decorators import cost
 from ... import HeatUtility
-from thermosteam import Stream
-# from copy import copy
 
-__all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
+__all__ = ('CoolingTower',)
 
 
 # %%
@@ -46,7 +44,7 @@ class CoolingTower(Facility):
     _units = {'Flow rate': 'kmol/hr'}
     _N_heat_utilities = 1
     _N_ins = 3
-    _N_outs = 2 
+    _N_outs = 3
     evaporation = 0.01
     blowdown = 0.001
     def __init__(self, ID='', agent=None):
@@ -55,13 +53,29 @@ class CoolingTower(Facility):
         return_cooling_water = cooling_water.to_stream()
         cooling_water = return_cooling_water.flow_proxy()
         cooling_tower_chemicals = return_cooling_water.copy('cooling_tower_chemicals')
-        cooling_tower_chemicals.price=3 
-        loss = makeup_water.flow_proxy()
-        loss.ID = 'evaporation_and_blowdown'
+        cooling_tower_chemicals.price = 3.
+        blowdown = makeup_water.copy('cooling_tower_blowdown')
+        evaporation = makeup_water.copy('cooling_tower_evaporation')
         super().__init__(ID, (return_cooling_water, makeup_water, cooling_tower_chemicals),
-                         (cooling_water, loss), thermo=cooling_water.thermo)
+                         (cooling_water, blowdown, evaporation), thermo=cooling_water.thermo)
         self.cooling_water_utilities = set()
-        
+    
+    @property
+    def return_cooling_water(self):
+        return self.ins[0]
+    
+    @property
+    def cooling_water(self):
+        return self.outs[0]
+    
+    @property
+    def blowdown_water(self):
+        return self.outs[1]
+    
+    @property
+    def evaporation_water(self):
+        return self.outs[2]
+    
     def _run(self): pass
         
     def _load_utility_agents(self):
@@ -77,17 +91,18 @@ class CoolingTower(Facility):
     def _design(self):
         self._load_utility_agents()
         cwu = self.cooling_water_utilities
-        used, makeup_water, cooling_tower_chemicals = self._ins
+        return_cooling_water, makeup_water, cooling_tower_chemicals = self._ins
         hu = self.heat_utilities[0]
         self._load_utility_agents()
         hu.mix_from(cwu)            
-        used.imol['7732-18-5'] = \
+        return_cooling_water.imol['7732-18-5'] = \
         self.design_results['Flow rate'] = \
-        self.cooling_water = hu.flow 
-        cooling_tower_chemicals.imass['Water'] = 2 * used.F_mol / 4.4e+05
-        cooling_water, loss = self.outs
-        cooling_water.T = hu.inlet_utility_stream.T
-        self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)
-        loss.T = hu.outlet_utility_stream.T
+        cooling_tower_chemicals.imass['Water'] = 2 * return_cooling_water.F_mol / 4.4e+05
+        self.return_cooling_water.T = hu.inlet_utility_stream.T
+        self.evaporation_water.mol[0] = evaporation = hu.flow  * self.evaporation
+        self.blowdown_water.mol[0] = blowdown = hu.flow  * self.blowdown
+        self.makeup_water.mol[0] = evaporation + blowdown
+        self.evaporation_water.T = self.cooling_water.T = self.blowdown_water.T = hu.outlet_utility_stream.T
+        self.evaporation_water.phase = 'g'
         hu.reverse()
 
