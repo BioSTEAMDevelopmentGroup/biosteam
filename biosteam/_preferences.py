@@ -212,7 +212,8 @@ class BioSTEAMDisplayPreferences:
 
 #: [BioSTEAMDisplayPreferences] All preferences for diagram and results display.
 preferences = BioSTEAMDisplayPreferences()
-# from warnings import filterwarnings; filterwarnings('ignore')
+if os.environ.get("FILTER_WARNINGS"):
+    from warnings import filterwarnings; filterwarnings('ignore')
 if not os.environ.get("DISABLE_PREFERENCES") == "1":
     try: preferences.autoload()
     except: pass 
