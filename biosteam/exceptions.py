@@ -15,6 +15,7 @@ __all__ = (
     'GraphicsWarning',
     'FailedEvaluation',
     'UnitInheritanceError',
+    'Converged',
     *exceptions.__all__)
 del exceptions
 
@@ -31,3 +32,6 @@ class FailedEvaluation(RuntimeWarning):
     
 class UnitInheritanceError(Exception):
     """Exception regarding unit inhearitance."""
+    
+class Converged(Exception):
+    """Exception to stop iteration early."""

@@ -316,7 +316,6 @@ class Model(State):
                 os.mkdir(head)
                 with open(file, 'wb') as f: pickle.dump(obj, f)
             
-        
     def single_point_sensitivity(self, 
             etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
             **kwargs

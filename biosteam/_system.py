@@ -18,7 +18,8 @@ from .digraph import (digraph_from_units_and_streams,
                       finalize_digraph)
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
-from .exceptions import try_method_with_object_stamp
+from scipy.optimize import anderson
+from .exceptions import try_method_with_object_stamp, Converged
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
@@ -295,7 +296,7 @@ class System:
         'process_impact_items',
         '_connections',
         '_irrelevant_units',
-        '_converge_method',
+        '_method',
         '_TEA',
         '_LCA',
         '_subsystems',
@@ -338,10 +339,18 @@ class System:
     default_relative_temperature_tolerance = 0.001
 
     #: [str] Default convergence method.
-    default_converge_method = 'Aitken'
+    default_method = 'Aitken'
 
     #: [bool] Whether to raise a RuntimeError when system doesn't converge
     strict_convergence = True
+
+    #: dict[str, (function, bool, kwargs)] Method definitions for convergence
+    available_methods = {}
+
+    @classmethod
+    def register_method(cls, name, function, conditional=False, **kwargs):
+        name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
+        cls.available_methods[name] = (function, conditional, kwargs)
 
     @classmethod
     def from_feedstock(cls, ID, feedstock, feeds=None, facilities=(),
@@ -736,7 +745,7 @@ class System:
         if T: self.temperature_tolerance = float(T)
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
-        if method: self.converge_method = method
+        if method: self.method = method
         if subsystems:
             if subfactor:
                 for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
@@ -770,7 +779,7 @@ class System:
         self.relative_temperature_tolerance = self.default_relative_temperature_tolerance
 
         #: [str] Converge method
-        self.converge_method = self.default_converge_method
+        self.method = self.default_method
 
     @property
     def TEA(self):
@@ -904,6 +913,17 @@ class System:
                 return
         raise RuntimeError('problem in system algorithm')
 
+    def find_system(self, unit):
+        """
+        Return system containing given unit within it's path.
+        """
+        isa = isinstance
+        for i in self.path:
+            if isa(i, System):
+                if unit in i.units: return i.find_system(unit)
+            elif i is unit:
+                return self
+        raise ValueError(f"unit {repr(unit)} not within system {repr(self)}")
 
     def split(self, stream, ID_upstream=None, ID_downstream=None):
         """
@@ -1140,17 +1160,20 @@ class System:
         return self._path
 
     @property
-    def converge_method(self):
+    def method(self):
         """Iterative convergence method ('wegstein', 'aitken', or 'fixedpoint')."""
-        return self._converge_method.__name__[1:]
-    @converge_method.setter
-    def converge_method(self, method):
-        method = method.lower().replace('-', '').replace(' ', '')
+        return self._method
+    @method.setter
+    def method(self, method):
+        method = method.lower().replace('-', '').replace('_', '').replace(' ', '')
         try:
-            self._converge_method = getattr(self, '_' + method)
+            self._method = method
         except:
-            raise ValueError("only 'wegstein', 'aitken', and 'fixedpoint' "
-                            f"methods are valid, not '{method}'")
+            *methods, last_method = list(self.available_methods)
+            methods = ', '.join([repr(i) for i in methods]) + ', and ' + last_method
+            raise ValueError(f"only {methods} are valid methods, not '{method}'")
+
+    converge_method = method # For backwards compatibility
 
     @property
     def isdynamic(self):
@@ -1293,7 +1316,7 @@ class System:
              preferences.profile) = original
 
     # Methods for running one iteration of a loop
-    def _iter_run(self, mol):
+    def _iter_run_conditional(self, mol):
         """
         Run the system at specified recycle molar flow rate.
 
@@ -1343,6 +1366,25 @@ class System:
             if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             else: not_converged = False
         return mol_new, not_converged
+        
+    def _iter_run(self, mol):
+        """
+        Run the system at specified recycle molar flow rate.
+
+        Parameters
+        ----------
+        mol : numpy.ndarray
+              Recycle molar flow rates.
+
+        Returns
+        -------
+        mol_new : numpy.ndarray
+            New recycle molar flow rates.
+
+        """
+        mol_new, not_converged = self._iter_run_conditional(mol)
+        if not_converged: return mol_new - mol
+        else: raise Converged
 
     def _get_recycle_data(self):
         recycles = self.get_all_recycles()
@@ -1410,29 +1452,19 @@ class System:
             elif isa(i, System): converge(i)
             else: i() # Assume it's a function
 
-    # Methods for converging the recycle stream
-    def _fixedpoint(self):
-        """Converge system recycle iteratively using fixed-point iteration."""
-        self._solve(flx.conditional_fixed_point)
-
-    def _wegstein(self):
-        """Converge the system recycle iteratively using Wegstein's method."""
-        self._solve(flx.conditional_wegstein)
-
-    def _aitken(self):
-        """Converge the system recycle iteratively using Aitken's method."""
-        self._solve(flx.conditional_aitken)
-
-    def _solve(self, solver):
-        """Solve the system recycle iteratively using given solver."""
+    def _solve(self):
+        """Solve the system recycle iteratively."""
         self._reset_iter()
-        try:
-            solver(self._iter_run, self._get_recycle_data())
+        solver, conditional, kwargs = self.available_methods[self._method]
+        data = self._get_recycle_data()
+        f = self._iter_run_conditional if conditional else self._iter_run
+        try: solver(f, data, **kwargs)
         except IndexError as error:
-            try:
-                solver(self._iter_run, self._get_recycle_data())
-            except:
-                raise error
+            data = self._get_recycle_data()
+            try: solver(f, data, **kwargs)
+            except Converged: pass
+            except: raise error
+        except Converged: pass
 
     def get_material_data(self):
         """
@@ -1514,7 +1546,7 @@ class System:
         if self._N_runs:
             for i in range(self.N_runs): self._run()
         elif self._recycle:
-            self._converge_method()
+            self._solve()
         else:
             self._run()
         if material_flows is not None:
@@ -2423,6 +2455,10 @@ class FacilityLoop(System):
 from biosteam import _flowsheet as flowsheet_module
 del ignore_docking_warnings
 
+System.register_method('aitken', flx.conditional_aitken, conditional=True)
+System.register_method('wegstein', flx.conditional_wegstein, conditional=True)
+System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=True)
+System.register_method('anderson', anderson, M=4, w0=0.001)
 
 # %% Working with different operation modes
 
@@ -2493,7 +2529,6 @@ class OperationMode:
         return f"{type(self).__name__}({repr_kwargs(self.__dict__, start='')})"
 
 
-
 class OperationMetric:
     __slots__ = ('getter', 'value')
     
@@ -2505,7 +2540,6 @@ class OperationMetric:
     
     def __repr__(self):
         return f"{type(self).__name__}(getter={self.getter})"
-
 
 
 class AgileSystem:
