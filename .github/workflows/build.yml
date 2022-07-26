@@ -4,7 +4,7 @@ name: Build
 
 on:
   push:
-    branches: [ fix-github-build, master, dyn_sim ]
+    branches: [ master, dyn_sim ]
   pull_request:
     branches: [ master, dyn_sim ]
 
