@@ -42,7 +42,15 @@ def test_two_phase_steam_compressor():
     )
     pass
 
+def test_isothermal_ideal_gas_compressor():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream(H2=1, units="kg/s", T=25 + 273.15, P=20e5, phase='g')
+    K = bst.units.IsothermalIdealGasCompressor(ins=feed, P=350e5)
+    K.simulate()
+    pass
+
 
 if __name__ == '__main__':
-    test_hydrogen_compressor()
-    test_two_phase_steam_compressor()
+    # test_hydrogen_compressor()
+    # test_two_phase_steam_compressor()
+    test_isothermal_ideal_gas_compressor()
