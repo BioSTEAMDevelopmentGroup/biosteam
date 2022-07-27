@@ -1148,7 +1148,7 @@ class System:
         elif isa(recycle, Stream):
             self._recycle = recycle
         elif isa(recycle, Iterable):
-            recycle = set(recycle)
+            recycle = sorted(set(recycle), key=lambda x: x._ID)
             for i in recycle:
                 if not isa(i, Stream):
                     raise ValueError("recycle streams must be Stream objects; "

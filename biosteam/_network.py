@@ -13,6 +13,7 @@ from .utils import streams_from_units
 from warnings import warn
 from thermosteam import Stream
 import biosteam as bst
+from collections import Iterable
 from .utils import OutletPort, MissingStream
 
 # %% Customization to system creation
@@ -34,10 +35,10 @@ def unmark_disjunction(stream):
 def get_recycle_sink(recycle):
     if isinstance(recycle, Stream):
         return recycle._sink
-    elif isinstance(recycle, set):
+    elif isinstance(recycle, Iterable):
         for i in recycle: return i._sink
     else: # pragma: no cover
-        raise ValueError('recycle must be either a stream or a set; not a '
+        raise ValueError('recycle must be either a stream or an Iterable; not a '
                         f"'{type(recycle).__name__}' object")
 
 # %% Path tools
@@ -367,10 +368,6 @@ class Network:
     
     def simplify(self):
         isa = isinstance
-        # if isa(self.recycle, set):
-        #     unit = self.recycle_sink
-        #     if unit._N_outs == 1 and unit._outs_size_is_fixed:
-        #         self.recycle = unit.outs[0]
         for i in self.path:
             if isa(i, Network): i.simplify()
     
