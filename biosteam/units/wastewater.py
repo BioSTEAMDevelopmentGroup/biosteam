@@ -303,14 +303,14 @@ class AerobicDigestion(Unit):
         vent, water = self.outs
         vent.phase = 'g'
         water.copy_like(waste)
-        water.mol[:] += air.mol + caustic.mol
+        water.mol[:] += caustic.mol
         self.reactions.force_reaction(water)
-        O2 = float(water.imass['O2'])
-        if O2 < 0:
-            N2 = 0.78 / 0.22 * O2
-            air.imass['O2', 'N2'] += [O2, N2]
-            water.imol['O2'] = 0.
-            water.imass['N2'] += N2
+        O2 = - water.imass['O2']
+        N2 = 0.78 / 0.22 * O2
+        air.empty()
+        air.imass['O2', 'N2'] += [1.5 * O2, 1.5 * N2]
+        water.imol['O2'] = 0.
+        water.imass['N2'] = N2
         vent.copy_flow(water, ('CO2', 'O2', 'N2'))
         water_index = self.chemicals.index('7732-18-5')
         vent.mol[water_index] = water.mol[water_index] * self.evaporation
@@ -511,7 +511,9 @@ class ReverseOsmosis(Unit):
         brine.mol[water_index] = water_flow - water_recovered
 
 
-def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476, autopopulate=None):
+def create_wastewater_treatment_units(ins, outs, 
+        NaOH_price=0.07476, autopopulate=None
+    ):
     """
     Create units for wastewater treatment, including anaerobic and aerobic 
     digestion reactors, a membrane bioreactor, a sludge centrifuge, 

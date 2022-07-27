@@ -18,7 +18,10 @@ from .digraph import (digraph_from_units_and_streams,
                       finalize_digraph)
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
-from scipy.optimize import anderson
+from scipy.optimize import (
+    anderson, diagbroyden, excitingmixing, anderson, linearmixing, 
+    newton_krylov, broyden1, broyden2, fsolve
+)
 from .exceptions import try_method_with_object_stamp, Converged
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
@@ -545,6 +548,8 @@ class System:
         self.tracked_recycles = {}
 
     def track_recycle(self, recycle, collector=None):
+        if not isinstance(recycle, Stream):
+            for i in recycle: self.track_recycle(recycle, collector)
         if collector is None: collector = []
         self.tracked_recycles[recycle] = collector
         unit = recycle.sink
@@ -2473,7 +2478,10 @@ del ignore_docking_warnings
 System.register_method('aitken', flx.conditional_aitken, conditional=True)
 System.register_method('wegstein', flx.conditional_wegstein, conditional=True)
 System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=True)
-System.register_method('anderson', anderson, M=4, w0=0.001)
+for f in (anderson, diagbroyden, excitingmixing, anderson, linearmixing, 
+          newton_krylov, broyden1, broyden2, fsolve):
+    System.register_method(f.__name__, f)
+
 
 # %% Working with different operation modes
 
