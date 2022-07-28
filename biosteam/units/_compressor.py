@@ -12,26 +12,102 @@ from numpy import log
 
 __all__ = ('IsentropicCompressor','IsothermalCompressor')
 
-class IsothermalCompressor(Unit):
+class _CompressorBase(Unit):
     """
-    Create an isothermal compressor.
+    Abstract base class for all compressor types.
     """
     _N_ins = 1
     _N_outs = 1
+    _F_BM_default = {'Compressor': 1.0}
+
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
+        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
+        self.P = P  #: Outlet pressure [Pa].
+
+        #: Whether to perform phase equilibrium calculations on the outflow.
+        #: If False, the outlet will be assumed to be the same phase as the inlet.
+        self.vle = vle
+
+        #: Type of compressor (determined during cost calculation):
+        #: blower/centrifugal/reciprocating
+        self.type = None
+
+    def _setup(self):
+        super()._setup()
+
+    @staticmethod
+    def _determine_compressor_type(power):
+        # Determine compressor type based on power specification
+        if 0 <=  power < 93:
+            return 'Blower'
+        elif 93 <= power < 16800:
+            return 'Reciprocating'
+        elif 16800 <= power <= 30000:
+            return 'Centrifugal'
+        else:
+            raise RuntimeError(
+                f"power requirement ({power / 1e3:.3g} MW) is outside cost "
+                 "correlation range (0, 30 MW). No fallback for this case has "
+                 "been implemented yet"
+            )
+
+    def _calculate_power(self):
+        feed = self.ins[0]
+        out = self.outs[0]
+        dH = out.H-feed.H
+        TdS = feed.T*(out.S-feed.S)
+        return (dH - TdS)/3600 # kW
+
+    def _design(self):
+        feed = self.ins[0]
+        out = self.outs[0]
+
+        # set design parameters
+        power = self._calculate_power()
+        self.design_results['Power'] = power
+        self.power_utility(power)
+        self.design_results['Outlet Temperature'] = out.T
+        self.design_results['Volumetric Flow Rate'] = feed.F_vol
+
+        # determine compressor type depending on power rating
+        self.type = _CompressorBase._determine_compressor_type(power)
+
+    def _cost(self):
+        # cost calculation adapted from Sinnott & Towler: Chemical Engineering Design, 6th Edition, 2019, p.296-297
+        # all costs on U.S. Gulf Coast basis, Jan. 2007 (CEPCI = 509.7)
+        cost = self.baseline_purchase_costs
+        flow_rate = self.design_results['Volumetric Flow Rate']
+        power = self.design_results['Power']
+        if self.type == "Blower":
+            a = 3800
+            b = 49
+            n = 0.8
+            S = flow_rate
+        elif self.type == "Reciprocating":
+            a = 220000
+            b = 2300
+            n = 0.75
+            S = power
+        elif self.type == "Centrifugal":
+            a = 490000
+            b = 16800
+            n = 0.6
+            S = power
+        else:
+            a = b = n = S = 0
+        cost["Compressor"] = bst.CE / 509.7 * (a + b*S**n)
+
+
+class IsothermalCompressor(_CompressorBase):
+    """
+    Create an isothermal compressor.
+    """
     _N_heat_utilities = 1
     _units = {
         'Power': 'kW',
         'Outlet Temperature': 'K',
         'Volumetric Flow Rate': 'm^3/hr',
     }
-
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        self.P = P  #: Outlet pressure [Pa].
-        self.vle = vle  #: Whether to perform phase equilibrium calculations on the outflow or not. Out phase = in phase if False.  [-].
-
-    def _setup(self):
-        super()._setup()
 
     def _run(self):
         feed = self.ins[0]
@@ -47,28 +123,13 @@ class IsothermalCompressor(Unit):
             out.vle(T=out.T, P=out.P)
 
     def _design(self):
-        feed = self.ins[0]
-        out = self.outs[0]
-
-        # calculate power demand
-        dH = out.H-feed.H
-        TdS = feed.T*(out.S-feed.S)
-        power = (dH - TdS)/3600 # kW
-        self.power_utility(power)
-
-        # set design parameters
-        self.design_results['Power'] = power
-        self.design_results['Outlet Temperature'] = out.T
-        self.design_results['Volumetric Flow Rate'] = feed.F_vol
+        # set default design parameters
+        super()._design()
 
         # set heat utility
         u = bst.HeatUtility(heat_transfer_efficiency=1, heat_exchanger=None)
         u(unit_duty=TdS, T_in=feed.T, T_out=out.T)
         self.heat_utilities = (u, bst.HeatUtility(), bst.HeatUtility())
-
-    def _cost(self):
-        # todo
-        pass
 
 
 #: TODO: 
@@ -81,7 +142,7 @@ class IsothermalCompressor(Unit):
 #: * Allow user to enforce a compressor type.
 #: * Only calculate volumetric flow rate if type is Blower.
 #: * Only calculate power if type is not blower.
-class IsentropicCompressor(Unit):
+class IsentropicCompressor(_CompressorBase):
     """
     Create an isentropic compressor.
 
@@ -176,8 +237,6 @@ class IsentropicCompressor(Unit):
     .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
     
     """
-    _N_ins = 1
-    _N_outs = 1
     _N_heat_utilities = 0
     _units = {
         'Power': 'kW',
@@ -186,20 +245,10 @@ class IsentropicCompressor(Unit):
         'Isentropic Outlet Temperature': 'K',
         'Volumetric Flow Rate': 'm^3/hr',
     }
-    _F_BM_default = {'Compressor': 1.0}
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta, vle=False):
-        Unit.__init__(self, ID, ins, outs, thermo)
-        self.P = P  #: Outlet pressure [Pa].
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, vle=False):
+        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo, P=P, vle=vle)
         self.eta = eta  #: Isentropic efficiency.
-        
-        #: Whether to perform phase equilibrium calculations on the outflow.
-        #: If False, the outlet will be assumed to be the same phase as the inlet.
-        self.vle = vle  
-        
-        #: Type of compressor (determined during cost calculation):
-        #: blower/centrifugal/reciprocating
-        self.type = None  
 
     def _run(self):
         feed = self.ins[0]
@@ -230,53 +279,13 @@ class IsentropicCompressor(Unit):
         self.dh_isentropic = dh_isentropic
 
     def _design(self):
+        # set default design parameters
+        super()._design()
+
+        # set isentropic compressor specific design parameters
         feed = self.ins[0]
         out = self.outs[0]
-
-        # set design parameters
-        self.design_results['Power'] = power = (out.H - feed.H) / 3600  # kW
-        self.power_utility(power)
         self.design_results['Isentropic Power'] = (self.dh_isentropic * out.F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
-        self.design_results['Outlet Temperature'] = out.T
         self.design_results['Isentropic Outlet Temperature'] = self.T_isentropic
-        self.design_results['Volumetric Flow Rate'] = feed.F_vol
 
-        # Determine compressor type based on power specification
-        if 0 <=  power < 93:
-            self.type = 'Blower'
-        elif 93 <= power < 16800:
-            self.type = 'Reciprocating'
-        elif 16800 <= power <= 30000:
-            self.type = 'Centrifugal'
-        else:
-            raise RuntimeError(
-                f"power requirement ({power / 1e3:.3g} MW) is outside cost "
-                 "correlation range (0, 30 MW). No fallback for this case has "
-                 "been implemented yet"
-            )
-
-    def _cost(self):
-        # cost calculation adapted from Sinnott & Towler: Chemical Engineering Design, 6th Edition, 2019, p.296-297
-        # all costs on U.S. Gulf Coast basis, Jan. 2007 (CEPCI = 509.7)
-        cost = self.baseline_purchase_costs
-        flow_rate = self.design_results['Volumetric Flow Rate']
-        power = self.design_results['Power']
-        if self.type == "Blower":
-            a = 3800
-            b = 49
-            n = 0.8
-            S = flow_rate
-        elif self.type == "Reciprocating":
-            a = 220000
-            b = 2300
-            n = 0.75
-            S = power
-        elif self.type == "Centrifugal":
-            a = 490000
-            b = 16800
-            n = 0.6
-            S = power
-        else:
-            a = b = n = S = 0
-        cost["Compressor"] = bst.CE / 509.7 * (a + b*S**n)
         
