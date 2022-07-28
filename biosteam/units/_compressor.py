@@ -10,24 +10,20 @@ from .. import Unit
 import warnings
 from numpy import log
 
-__all__ = ('IsentropicCompressor','IsothermalIdealGasCompressor')
+__all__ = ('IsentropicCompressor','IsothermalCompressor')
 
-class IsothermalIdealGasCompressor(Unit):
+class IsothermalCompressor(Unit):
     """
-    Create an isothermal compressor for ideal gases.
+    Create an isothermal compressor.
     """
-
     _N_ins = 1
     _N_outs = 1
-    _N_heat_utilities = 0
+    _N_heat_utilities = 1
     _units = {
         'Power': 'kW',
-        'Duty': 'kW',
         'Outlet Temperature': 'K',
         'Volumetric Flow Rate': 'm^3/hr',
     }
-    rel_err_allowed = 0.001 # relative error allowed when checking if ideal gas law is applicable
-    R = 8.314  # ideal gas constant in [J/mol/K]
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
         Unit.__init__(self, ID, ins, outs, thermo)
@@ -50,31 +46,25 @@ class IsothermalIdealGasCompressor(Unit):
         if self.vle is True:
             out.vle(T=out.T, P=out.P)
 
-    def ideal_gas_law_applicable(self):
-        out = self.outs[0]
-        P_expected = out.P
-        P_ideal_gas = out.F_mol * 1000 * self.R * out.T / out.F_vol
-        if not (1-self.rel_err_allowed) < P_expected/P_ideal_gas < (1+self.rel_err_allowed):
-            return False
-        else:
-            return True
-
     def _design(self):
         feed = self.ins[0]
         out = self.outs[0]
 
-        # check if ideal gas law is applicable
-        if not self.ideal_gas_law_applicable():
-            warnings.warn(f"Ideal gas law not applicable to {self.ID}. Power and duty requirements might be inaccurate.")
-
-        # assuming ideal gas law is applicable
-        power = - self.R * feed.T * log(out.V / feed.V) * (feed.F_mol/3600) # kW
+        # calculate power demand
+        dH = out.H-feed.H
+        TdS = feed.T*(out.S-feed.S)
+        power = (dH - TdS)/3600 # kW
+        self.power_utility(power)
 
         # set design parameters
         self.design_results['Power'] = power
-        self.design_results['Duty'] = -power
         self.design_results['Outlet Temperature'] = out.T
         self.design_results['Volumetric Flow Rate'] = feed.F_vol
+
+        # set heat utility
+        u = bst.HeatUtility(heat_transfer_efficiency=1, heat_exchanger=None)
+        u(unit_duty=TdS, T_in=feed.T, T_out=out.T)
+        self.heat_utilities = (u, bst.HeatUtility(), bst.HeatUtility())
 
     def _cost(self):
         # todo
