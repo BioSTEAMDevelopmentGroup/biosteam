@@ -37,9 +37,10 @@ class _CompressorBase(Unit):
         'Volumetric Flow Rate': 'm^3/hr',
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False, type=None):
-        Unit.__init__(self, ID=ID, ins=ins, outs=outs, thermo=thermo)
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, vle=False, type=None):
+        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
         self.P = P  #: Outlet pressure [Pa].
+        self.eta = eta  #: Isentropic efficiency.
 
         #: Whether to perform phase equilibrium calculations on the outflow.
         #: If False, the outlet will be assumed to be the same phase as the inlet.
@@ -152,8 +153,12 @@ class IsothermalCompressor(_CompressorBase):
         if self.vle is True:
             out.vle(T=out.T, P=out.P)
 
-        # calculate power demand
+        # calculate ideal power demand
         self._calculate_ideal_power()
+
+        # calculate actual power and duty (incl. efficiency)
+        self.power = self.power / self.eta
+        self.Q = self.Q / self.eta
 
     def _design(self):
         # set default design parameters
@@ -274,10 +279,6 @@ class IsentropicCompressor(_CompressorBase):
         'Volumetric Flow Rate': 'm^3/hr',
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, vle=False):
-        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo, P=P, vle=vle)
-        self.eta = eta  #: Isentropic efficiency.
-
     def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
@@ -293,7 +294,7 @@ class IsentropicCompressor(_CompressorBase):
             out.vle(S=out.S, P=out.P)
             T_isentropic = out.T
 
-        # calculate power demand
+        # calculate ideal power demand
         self._calculate_ideal_power()
 
         # calculate actual state change (incl. efficiency)
