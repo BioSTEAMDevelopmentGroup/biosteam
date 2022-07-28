@@ -17,9 +17,16 @@ def test_isentropic_hydrogen_compressor():
     feed = bst.Stream(H2=1, T=25 + 273.15, P=101325, phase='g')
     K = bst.units.IsentropicCompressor(ins=feed, P=50e5, eta=0.7)
     K.simulate()
+    # check outlet state
+    out = K.outs[0]
+    assert allclose(
+        a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+        b=[1.0, 0.0, 1151.3251608356125, 50e5],
+    )
+    # check compressor design
     assert allclose(
         a=list(K.design_results.values()),
-        b=[7.02839886238921, 4.919879203671207, 1151.3251608356125, 901.1332666056242, 24.465403697038127],
+        b=[7.02839886238921, 1151.3251608356125, 24.465403697038127, 4.919879203671207, 901.1332666056242],
     )
     pass
 
@@ -31,14 +38,16 @@ def test_isentropic_two_phase_steam_compressor():
     # from compress until superheated steam (test case for vle parameter)
     K = bst.units.IsentropicCompressor(ins=feed, P=100e5, eta=1.0, vle=True)
     K.simulate()
-    assert allclose(
-        a=list(K.design_results.values()),
-        b=[5.410389965766295, 5.410389965201038, 797.7528062886108, 797.7528062360269, 27.89482592365777],
-    )
+    # check outlet state
     out = K.outs[0]
     assert allclose(
-        a=[out.vapor_fraction, out.liquid_fraction, out.P],
-        b=[1.0, 0.0, 100e5],
+        a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+        b=[1.0, 0.0, 797.7528062886108, 100e5],
+    )
+    # check compressor design
+    assert allclose(
+        a=list(K.design_results.values()),
+        b=[5.410389965766295, 797.7528062886108, 27.89482592365777, 5.410389965201038, 797.7528062360269],
     )
     pass
 
@@ -47,14 +56,21 @@ def test_isothermal_hydrogen_compressor():
     feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
     K = bst.units.IsothermalCompressor(ins=feed, P=350e5)
     K.simulate()
-    assert allclose(
-        a=list(K.design_results.values()),
-        b=[1.970908496944548, 298.15, 1.2394785148011942],
-    )
+    # check outlet state
     out = K.outs[0]
     assert allclose(
         a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
         b=[1.0, 0.0, feed.T, 350e5],
+    )
+    # check compressor design
+    assert allclose(
+        a=list(K.design_results.values()),
+        b=[1.970908496944548, 298.15, 1.2394785148011942],
+    )
+    # check heat utility
+    assert allclose(
+        a=[K.heat_utilities[0].unit_duty, K.heat_utilities[0].duty, K.heat_utilities[0].flow],
+        b=[-7095.270589000373, -7095.270589000373, 7.35376825845714],
     )
     pass
 
