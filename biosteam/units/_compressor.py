@@ -31,6 +31,7 @@ class _CompressorBase(Unit):
     _N_heat_utilities = 1
     _F_BM_default = {'Compressor': 1.0}
     _units = {
+        'Type': '-',
         'Power': 'kW',
         'Outlet Temperature': 'K',
         'Volumetric Flow Rate': 'm^3/hr',
@@ -81,15 +82,20 @@ class _CompressorBase(Unit):
         feed = self.ins[0]
         out = self.outs[0]
 
-        # set design parameters
+        # set power utility
         power = self.power
-        self.design_results['Power'] = power
         self.power_utility(power)
+
+        # determine compressor type depending on power rating
+        type = self.type = _CompressorBase._determine_compressor_type(power)
+
+        # write design parameters
+        self.design_results["Type"] = type
+        self.design_results['Power'] = power
         self.design_results['Outlet Temperature'] = out.T
         self.design_results['Volumetric Flow Rate'] = feed.F_vol
 
-        # determine compressor type depending on power rating
-        self.type = _CompressorBase._determine_compressor_type(power)
+
 
     def _cost(self):
         # cost calculation adapted from Sinnott & Towler: Chemical Engineering Design, 6th Edition, 2019, p.296-297
@@ -247,6 +253,7 @@ class IsentropicCompressor(_CompressorBase):
     """
     _N_heat_utilities = 0
     _units = {
+        'Type': '-',
         'Power': 'kW',
         'Isentropic Power': 'kW',
         'Outlet Temperature': 'K',

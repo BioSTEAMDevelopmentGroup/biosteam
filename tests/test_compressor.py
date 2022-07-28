@@ -25,9 +25,10 @@ def test_isentropic_hydrogen_compressor():
     )
     # check compressor design
     assert allclose(
-        a=list(K.design_results.values()),
+        a=list(K.design_results.values())[1:],
         b=[7.02839886238921, 1151.3251608356125, 24.465403697038127, 4.919879203671207, 901.1332666056242],
     )
+    assert K.design_results["Type"] == "Blower"
     pass
 
 
@@ -46,9 +47,10 @@ def test_isentropic_two_phase_steam_compressor():
     )
     # check compressor design
     assert allclose(
-        a=list(K.design_results.values()),
+        a=list(K.design_results.values())[1:],
         b=[5.410389965766295, 797.7528062886108, 27.89482592365777, 5.410389965201038, 797.7528062360269],
     )
+    assert K.design_results["Type"] == "Blower"
     pass
 
 def test_isothermal_hydrogen_compressor():
@@ -64,9 +66,10 @@ def test_isothermal_hydrogen_compressor():
     )
     # check compressor design
     assert allclose(
-        a=list(K.design_results.values()),
+        a=list(K.design_results.values())[1:],
         b=[1.970908496944548, 298.15, 1.2394785148011942],
     )
+    assert K.design_results["Type"] == "Blower"
     # check heat utility
     assert allclose(
         a=[K.heat_utilities[0].unit_duty, K.heat_utilities[0].duty, K.heat_utilities[0].flow],
