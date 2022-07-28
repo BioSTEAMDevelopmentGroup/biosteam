@@ -12,7 +12,7 @@ import biosteam as bst
 from numpy import allclose
 
 
-def test_hydrogen_compressor():
+def test_isentropic_hydrogen_compressor():
     bst.settings.set_thermo(["H2"])
     feed = bst.Stream(H2=1, T=25 + 273.15, P=101325, phase='g')
     K = bst.units.IsentropicCompressor(ins=feed, P=50e5, eta=0.7)
@@ -24,7 +24,7 @@ def test_hydrogen_compressor():
     pass
 
 
-def test_two_phase_steam_compressor():
+def test_isentropic_two_phase_steam_compressor():
     bst.settings.set_thermo(["H2O"])
     # feed is steam-water-mixture
     feed = bst.MultiStream(T=372.75, P=1e5, l=[('H2O', 0.1)], g=[('H2O', 0.9)])
@@ -42,15 +42,24 @@ def test_two_phase_steam_compressor():
     )
     pass
 
-def test_isothermal_ideal_gas_compressor():
+def test_isothermal_hydrogen_compressor():
     bst.settings.set_thermo(["H2"])
-    feed = bst.Stream(H2=1, units="kg/s", T=25 + 273.15, P=20e5, phase='g')
-    K = bst.units.IsothermalIdealGasCompressor(ins=feed, P=350e5)
+    feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
+    K = bst.units.IsothermalCompressor(ins=feed, P=350e5)
     K.simulate()
+    assert allclose(
+        a=list(K.design_results.values()),
+        b=[1.970908496944548, 298.15, 1.2394785148011942],
+    )
+    out = K.outs[0]
+    assert allclose(
+        a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+        b=[1.0, 0.0, feed.T, 350e5],
+    )
     pass
 
 
 if __name__ == '__main__':
-    # test_hydrogen_compressor()
-    # test_two_phase_steam_compressor()
-    test_isothermal_ideal_gas_compressor()
+    test_isentropic_hydrogen_compressor()
+    test_isentropic_two_phase_steam_compressor()
+    test_isothermal_hydrogen_compressor()
