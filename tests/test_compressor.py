@@ -53,6 +53,7 @@ def test_isentropic_two_phase_steam_compressor():
     assert K.design_results["Type"] == "Blower"
     pass
 
+
 def test_isothermal_hydrogen_compressor():
     bst.settings.set_thermo(["H2"])
     feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
@@ -77,6 +78,7 @@ def test_isothermal_hydrogen_compressor():
     )
     pass
 
+
 def test_compressor_design():
     bst.settings.set_thermo(["H2"])
     feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
@@ -99,6 +101,7 @@ def test_compressor_design():
     K.simulate()
     assert K.design_results["Type"] == "Reciprocating"
     pass
+
 
 if __name__ == '__main__':
     test_compressor_design()

@@ -10,7 +10,8 @@ from .. import Unit
 import warnings
 from numpy import log
 
-__all__ = ('IsentropicCompressor','IsothermalCompressor')
+__all__ = ('IsentropicCompressor', 'IsothermalCompressor')
+
 
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given.
@@ -66,7 +67,7 @@ class _CompressorBase(Unit):
 
         # determine type based on power
         power = self.power
-        if 0 <=  power < 93:
+        if 0 <= power < 93:
             self.type = 'Blower'
         elif 93 <= power < 16800:
             self.type = 'Reciprocating'
@@ -75,17 +76,17 @@ class _CompressorBase(Unit):
         else:
             raise RuntimeError(
                 f"power requirement ({power / 1e3:.3g} MW) is outside cost "
-                 "correlation range (0, 30 MW). No fallback for this case has "
-                 "been implemented yet"
+                "correlation range (0, 30 MW). No fallback for this case has "
+                "been implemented yet"
             )
         return self.type
 
     def _calculate_ideal_power(self):
         feed = self.ins[0]
         out = self.outs[0]
-        dH = out.H-feed.H
-        self.Q = TdS = feed.T*(out.S-feed.S) # kJ/hr
-        self.power = (dH - TdS)/3600 # kW
+        dH = out.H - feed.H
+        self.Q = TdS = feed.T * (out.S - feed.S)  # kJ/hr
+        self.power = (dH - TdS) / 3600  # kW
 
     def _run(self):
         super()._run()
@@ -106,8 +107,6 @@ class _CompressorBase(Unit):
         self.design_results['Power'] = power
         self.design_results['Outlet Temperature'] = out.T
         self.design_results['Volumetric Flow Rate'] = feed.F_vol
-
-
 
     def _cost(self):
         # cost calculation adapted from Sinnott & Towler: Chemical Engineering Design, 6th Edition, 2019, p.296-297
@@ -132,7 +131,7 @@ class _CompressorBase(Unit):
             S = power
         else:
             a = b = n = S = 0
-        cost["Compressor"] = bst.CE / 509.7 * (a + b*S**n)
+        cost["Compressor"] = bst.CE / 509.7 * (a + b * S ** n)
 
 
 class IsothermalCompressor(_CompressorBase):
