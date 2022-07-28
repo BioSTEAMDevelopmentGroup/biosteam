@@ -214,11 +214,12 @@ class IsentropicCompressor(_CompressorBase):
     Isentropic compressor                               Units       K1
     Power               Rate                               kW     7.03
                         Cost                           USD/hr     0.55
-    Design              Power                              kW     7.03
-                        Isentropic Power                   kW     4.92
+    Design              Type                                -   Blower
+                        Power                              kW     7.03
                         Outlet Temperature                  K 1.15e+03
-                        Isentropic Outlet Temperature       K      901
                         Volumetric Flow Rate           m^3/hr     24.5
+                        Isentropic Power                   kW     4.92
+                        Isentropic Outlet Temperature       K      901
     Purchase cost       Compressor                        USD 4.94e+03
     Total purchase cost                                   USD 4.94e+03
     Utility cost                                       USD/hr     0.55
@@ -247,11 +248,12 @@ class IsentropicCompressor(_CompressorBase):
     Isentropic compressor                               Units       K2
     Power               Rate                               kW     5.41
                         Cost                           USD/hr    0.423
-    Design              Power                              kW     5.41
-                        Isentropic Power                   kW     5.41
+    Design              Type                                -   Blower
+                        Power                              kW     5.41
                         Outlet Temperature                  K      798
-                        Isentropic Outlet Temperature       K      798
                         Volumetric Flow Rate           m^3/hr     27.9
+                        Isentropic Power                   kW     5.41
+                        Isentropic Outlet Temperature       K      798
     Purchase cost       Compressor                        USD 5.01e+03
     Total purchase cost                                   USD 5.01e+03
     Utility cost                                       USD/hr    0.423
