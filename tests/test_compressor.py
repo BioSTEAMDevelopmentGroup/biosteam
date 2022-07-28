@@ -26,7 +26,7 @@ def test_isentropic_hydrogen_compressor():
     # check compressor design
     assert allclose(
         a=list(K.design_results.values())[1:],
-        b=[7.02839886238921, 1151.3251608356125, 24.465403697038127, 4.919879203671207, 901.1332666056242],
+        b=[7.02839886238921, 0, 1151.3251608356125, 24.465403697038127, 4.919879203671207, 0, 901.1332666056242],
     )
     assert K.design_results["Type"] == "Blower"
     pass
@@ -47,10 +47,12 @@ def test_isentropic_two_phase_steam_compressor():
     )
     # check compressor design
     assert allclose(
-        a=list(K.design_results.values())[1:],
-        b=[5.410389965766295, 797.7528062886108, 27.89482592365777, 5.410389965201038, 797.7528062360269],
+        a=list(K.design_results.values())[1:2]+list(K.design_results.values())[3:],
+        b=[5.410389965766295, 797.7528062886108, 27.89482592365777, 5.410389965201038, 0, 797.7528062360269],
     )
     assert K.design_results["Type"] == "Blower"
+    tol = 1e-6
+    assert abs(K.design_results["Duty"]) < 1e-6 # testing this with allclose does not work for some reason
     pass
 
 
@@ -70,7 +72,7 @@ def test_isothermal_hydrogen_compressor():
     # check compressor design
     assert allclose(
         a=list(K.design_results.values())[1:],
-        b=[1.970908496944548, 298.15, 1.2394785148011942],
+        b=[1.970908496944548, -7095.270589000373, feed.T, 1.2394785148011942, 1.970908496944548, -7095.270589000373, feed.T],
     )
     assert K.design_results["Type"] == "Blower"
     # check heat utility
@@ -93,7 +95,7 @@ def test_isothermal_hydrogen_compressor():
     # check compressor design
     assert allclose(
         a=list(K.design_results.values())[1:],
-        b=[expected_power, 298.15, 1.2394785148011942],
+        b=[expected_power, expected_duty, feed.T, 1.2394785148011942, expected_power*0.7, expected_duty*0.7, feed.T],
     )
     assert K.design_results["Type"] == "Blower"
     # check heat utility

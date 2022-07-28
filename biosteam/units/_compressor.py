@@ -33,8 +33,12 @@ class _CompressorBase(Unit):
     _units = {
         'Type': '-',
         'Power': 'kW',
+        'Duty': 'kJ/kmol',
         'Outlet Temperature': 'K',
         'Volumetric Flow Rate': 'm^3/hr',
+        'Ideal Power': 'kW',
+        'Ideal Duty': 'kJ/kmol',
+        'Ideal Outlet Temperature': 'K',
     }
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, vle=False, type=None):
@@ -106,6 +110,7 @@ class _CompressorBase(Unit):
         # write design parameters
         self.design_results["Type"] = type
         self.design_results['Power'] = power
+        self.design_results['Duty'] = self.Q
         self.design_results['Outlet Temperature'] = out.T
         self.design_results['Volumetric Flow Rate'] = feed.F_vol
 
@@ -153,8 +158,10 @@ class IsothermalCompressor(_CompressorBase):
         if self.vle is True:
             out.vle(T=out.T, P=out.P)
 
-        # calculate ideal power demand
+        # calculate ideal power demand and duty
         self._calculate_ideal_power()
+        self.ideal_power = self.power
+        self.ideal_duty = self.Q
 
         # calculate actual power and duty (incl. efficiency)
         self.power = self.power / self.eta
@@ -170,6 +177,12 @@ class IsothermalCompressor(_CompressorBase):
         u = bst.HeatUtility(heat_transfer_efficiency=1, heat_exchanger=None)
         u(unit_duty=self.Q, T_in=feed.T, T_out=out.T)
         self.heat_utilities = (u, bst.HeatUtility(), bst.HeatUtility())
+
+        # save other design parameters
+        F_mol = self.outs[0].F_mol
+        self.design_results['Ideal Power'] = self.ideal_power # kW
+        self.design_results['Ideal Duty'] = self.ideal_duty / feed.F_mol # kJ/hr -> kJ/kmol
+        self.design_results['Ideal Outlet Temperature'] = feed.T  # K
 
 
 class IsentropicCompressor(_CompressorBase):
@@ -216,18 +229,21 @@ class IsentropicCompressor(_CompressorBase):
         flow (kmol/hr): H2  1
 
     >>> K.results()
-    Isentropic compressor                               Units       K1
-    Power               Rate                               kW     7.03
-                        Cost                           USD/hr     0.55
-    Design              Type                                -   Blower
-                        Power                              kW     7.03
-                        Outlet Temperature                  K 1.15e+03
-                        Volumetric Flow Rate           m^3/hr     24.5
-                        Isentropic Power                   kW     4.92
-                        Isentropic Outlet Temperature       K      901
-    Purchase cost       Compressor                        USD 4.94e+03
-    Total purchase cost                                   USD 4.94e+03
-    Utility cost                                       USD/hr     0.55
+    Isentropic compressor                           Units       K1
+    Power               Rate                           kW     7.03
+                        Cost                       USD/hr     0.55
+    Design              Type                            -   Blower
+                        Power                          kW     7.03
+                        Duty                      kJ/kmol 9.63e-09
+                        Outlet Temperature              K 1.15e+03
+                        Volumetric Flow Rate       m^3/hr     24.5
+                        Ideal Power                    kW     4.92
+                        Ideal Duty                kJ/kmol        0
+                        Ideal Outlet Temperature        K      901
+    Purchase cost       Compressor                    USD 4.94e+03
+    Total purchase cost                               USD 4.94e+03
+    Utility cost                                   USD/hr     0.55
+
 
     Per default, the outlet pahse is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
     set `vle=True`:
@@ -250,19 +266,20 @@ class IsentropicCompressor(_CompressorBase):
         flow (kmol/hr): (g) H2O  1
 
     >>> K.results()
-    Isentropic compressor                               Units       K2
-    Power               Rate                               kW     5.41
-                        Cost                           USD/hr    0.423
-    Design              Type                                -   Blower
-                        Power                              kW     5.41
-                        Outlet Temperature                  K      798
-                        Volumetric Flow Rate           m^3/hr     27.9
-                        Isentropic Power                   kW     5.41
-                        Isentropic Outlet Temperature       K      798
-    Purchase cost       Compressor                        USD 5.01e+03
-    Total purchase cost                                   USD 5.01e+03
-    Utility cost                                       USD/hr    0.423
-
+    Isentropic compressor                           Units       K2
+    Power               Rate                           kW     5.41
+                        Cost                       USD/hr    0.423
+    Design              Type                            -   Blower
+                        Power                          kW     5.41
+                        Duty                      kJ/kmol 6.67e-07
+                        Outlet Temperature              K      798
+                        Volumetric Flow Rate       m^3/hr     27.9
+                        Ideal Power                    kW     5.41
+                        Ideal Duty                kJ/kmol        0
+                        Ideal Outlet Temperature        K      798
+    Purchase cost       Compressor                    USD 5.01e+03
+    Total purchase cost                               USD 5.01e+03
+    Utility cost                                   USD/hr    0.423
 
     References
     ----------
@@ -270,14 +287,6 @@ class IsentropicCompressor(_CompressorBase):
 
     """
     _N_heat_utilities = 0
-    _units = {
-        'Type': '-',
-        'Power': 'kW',
-        'Isentropic Power': 'kW',
-        'Outlet Temperature': 'K',
-        'Isentropic Outlet Temperature': 'K',
-        'Volumetric Flow Rate': 'm^3/hr',
-    }
 
     def _run(self):
         feed = self.ins[0]
@@ -317,5 +326,6 @@ class IsentropicCompressor(_CompressorBase):
 
         # set isentropic compressor specific design parameters
         F_mol = self.outs[0].F_mol
-        self.design_results['Isentropic Power'] = (self.dh_isentropic * F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
-        self.design_results['Isentropic Outlet Temperature'] = self.T_isentropic
+        self.design_results['Ideal Power'] = (self.dh_isentropic * F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
+        self.design_results['Ideal Duty'] = 0 # kJ/kmol
+        self.design_results['Ideal Outlet Temperature'] = self.T_isentropic # K
