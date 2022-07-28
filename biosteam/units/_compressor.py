@@ -12,16 +12,32 @@ from numpy import log
 
 __all__ = ('IsentropicCompressor','IsothermalCompressor')
 
+#: TODO:
+#: * Implement estimate of isentropic efficiency when not given.
+#: * Add option to default efficiencies to heuristic values for each type of compressor.
+#: * Implement bare-module, design, and material factors.
+#: * Maybe use cost correlations from Warren's Process Development and Design for
+#:   consistency with factors.
+#: * Move cost coefficients to a dictionary.
+#: * Allow user to enforce a compressor type.
+#: * Only calculate volumetric flow rate if type is Blower.
+#: * Only calculate power if type is not blower.
 class _CompressorBase(Unit):
     """
     Abstract base class for all compressor types.
     """
     _N_ins = 1
     _N_outs = 1
+    _N_heat_utilities = 1
     _F_BM_default = {'Compressor': 1.0}
+    _units = {
+        'Power': 'kW',
+        'Outlet Temperature': 'K',
+        'Volumetric Flow Rate': 'm^3/hr',
+    }
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
-        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
+        Unit.__init__(self, ID=ID, ins=ins, outs=outs, thermo=thermo)
         self.P = P  #: Outlet pressure [Pa].
 
         #: Whether to perform phase equilibrium calculations on the outflow.
@@ -51,19 +67,22 @@ class _CompressorBase(Unit):
                  "been implemented yet"
             )
 
-    def _calculate_power(self):
+    def _calculate_ideal_power(self):
         feed = self.ins[0]
         out = self.outs[0]
         dH = out.H-feed.H
-        TdS = feed.T*(out.S-feed.S)
-        return (dH - TdS)/3600 # kW
+        self.Q = TdS = feed.T*(out.S-feed.S) # kJ/hr
+        self.power = (dH - TdS)/3600 # kW
+
+    def _run(self):
+        super()._run()
 
     def _design(self):
         feed = self.ins[0]
         out = self.outs[0]
 
         # set design parameters
-        power = self._calculate_power()
+        power = self.power
         self.design_results['Power'] = power
         self.power_utility(power)
         self.design_results['Outlet Temperature'] = out.T
@@ -102,12 +121,6 @@ class IsothermalCompressor(_CompressorBase):
     """
     Create an isothermal compressor.
     """
-    _N_heat_utilities = 1
-    _units = {
-        'Power': 'kW',
-        'Outlet Temperature': 'K',
-        'Volumetric Flow Rate': 'm^3/hr',
-    }
 
     def _run(self):
         feed = self.ins[0]
@@ -122,26 +135,21 @@ class IsothermalCompressor(_CompressorBase):
         if self.vle is True:
             out.vle(T=out.T, P=out.P)
 
+        # calculate power demand
+        self._calculate_ideal_power()
+
     def _design(self):
         # set default design parameters
         super()._design()
 
         # set heat utility
+        feed = self.ins[0]
+        out = self.outs[0]
         u = bst.HeatUtility(heat_transfer_efficiency=1, heat_exchanger=None)
-        u(unit_duty=TdS, T_in=feed.T, T_out=out.T)
+        u(unit_duty=self.Q, T_in=feed.T, T_out=out.T)
         self.heat_utilities = (u, bst.HeatUtility(), bst.HeatUtility())
 
 
-#: TODO: 
-#: * Implement estimate of isentropic efficiency when not given.
-#: * Add option to default efficiencies to heuristic values for each type of compressor. 
-#: * Implement bare-module, design, and material factors.
-#: * Maybe use cost correlations from Warren's Process Development and Design for 
-#:   consistency with factors.
-#: * Move cost coefficients to a dictionary.
-#: * Allow user to enforce a compressor type.
-#: * Only calculate volumetric flow rate if type is Blower.
-#: * Only calculate power if type is not blower.
 class IsentropicCompressor(_CompressorBase):
     """
     Create an isentropic compressor.
@@ -158,7 +166,7 @@ class IsentropicCompressor(_CompressorBase):
         Isentropic efficiency.
     vle : bool
         Whether to perform phase equilibrium calculations on
-        the outflow. If False, the outlet will be assumed to be the same 
+        the outflow. If False, the outlet will be assumed to be the same
         phase as the inlet.
 
     Notes
@@ -184,7 +192,7 @@ class IsentropicCompressor(_CompressorBase):
     [0] outlet
         phase: 'g', T: 1151.3 K, P: 5e+06 Pa
         flow (kmol/hr): H2  1
-    
+
     >>> K.results()
     Isentropic compressor                               Units       K1
     Power               Rate                               kW     7.03
@@ -217,7 +225,7 @@ class IsentropicCompressor(_CompressorBase):
     [0] outlet
         phases: ('g', 'l'), T: 797.75 K, P: 1e+07 Pa
         flow (kmol/hr): (g) H2O  1
-    
+
     >>> K.results()
     Isentropic compressor                               Units       K2
     Power               Rate                               kW     5.41
@@ -235,7 +243,7 @@ class IsentropicCompressor(_CompressorBase):
     References
     ----------
     .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
-    
+
     """
     _N_heat_utilities = 0
     _units = {
@@ -265,6 +273,9 @@ class IsentropicCompressor(_CompressorBase):
             out.vle(S=out.S, P=out.P)
             T_isentropic = out.T
 
+        # calculate power demand
+        self._calculate_ideal_power()
+
         # calculate actual state change (incl. efficiency)
         dh_isentropic = out.h - feed.h
         dh_actual = dh_isentropic / self.eta
@@ -275,6 +286,7 @@ class IsentropicCompressor(_CompressorBase):
             out.vle(H=out.H, P=out.P)
 
         # save values for _design
+        self.power = self.power / self.eta
         self.T_isentropic = T_isentropic
         self.dh_isentropic = dh_isentropic
 
@@ -283,9 +295,6 @@ class IsentropicCompressor(_CompressorBase):
         super()._design()
 
         # set isentropic compressor specific design parameters
-        feed = self.ins[0]
-        out = self.outs[0]
-        self.design_results['Isentropic Power'] = (self.dh_isentropic * out.F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
+        F_mol = self.outs[0].F_mol
+        self.design_results['Isentropic Power'] = (self.dh_isentropic * F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
         self.design_results['Isentropic Outlet Temperature'] = self.T_isentropic
-
-        
