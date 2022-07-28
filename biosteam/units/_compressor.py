@@ -19,7 +19,6 @@ __all__ = ('IsentropicCompressor','IsothermalCompressor')
 #: * Maybe use cost correlations from Warren's Process Development and Design for
 #:   consistency with factors.
 #: * Move cost coefficients to a dictionary.
-#: * Allow user to enforce a compressor type.
 #: * Only calculate volumetric flow rate if type is Blower.
 #: * Only calculate power if type is not blower.
 class _CompressorBase(Unit):
@@ -37,7 +36,7 @@ class _CompressorBase(Unit):
         'Volumetric Flow Rate': 'm^3/hr',
     }
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False, type=None):
         Unit.__init__(self, ID=ID, ins=ins, outs=outs, thermo=thermo)
         self.P = P  #: Outlet pressure [Pa].
 
@@ -45,28 +44,41 @@ class _CompressorBase(Unit):
         #: If False, the outlet will be assumed to be the same phase as the inlet.
         self.vle = vle
 
-        #: Type of compressor (determined during cost calculation):
-        #: blower/centrifugal/reciprocating
-        self.type = None
+        #: Type of compressor : blower/centrifugal/reciprocating.
+        #: If None, the type will be determined automatically.
+        self.type = type
+
+        # make sure user-given types are not overwritten
+        if type is None:
+            self._overwrite_type = True
+        else:
+            self._overwrite_type = False
 
     def _setup(self):
         super()._setup()
 
-    @staticmethod
-    def _determine_compressor_type(power):
+    def _determine_compressor_type(self):
         # Determine compressor type based on power specification
+
+        # don't overwrite user input
+        if not self._overwrite_type:
+            return self.type
+
+        # determine type based on power
+        power = self.power
         if 0 <=  power < 93:
-            return 'Blower'
+            self.type = 'Blower'
         elif 93 <= power < 16800:
-            return 'Reciprocating'
+            self.type = 'Reciprocating'
         elif 16800 <= power <= 30000:
-            return 'Centrifugal'
+            self.type = 'Centrifugal'
         else:
             raise RuntimeError(
                 f"power requirement ({power / 1e3:.3g} MW) is outside cost "
                  "correlation range (0, 30 MW). No fallback for this case has "
                  "been implemented yet"
             )
+        return self.type
 
     def _calculate_ideal_power(self):
         feed = self.ins[0]
@@ -87,7 +99,7 @@ class _CompressorBase(Unit):
         self.power_utility(power)
 
         # determine compressor type depending on power rating
-        type = self.type = _CompressorBase._determine_compressor_type(power)
+        type = self._determine_compressor_type()
 
         # write design parameters
         self.design_results["Type"] = type

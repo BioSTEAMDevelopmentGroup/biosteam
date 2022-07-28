@@ -77,8 +77,31 @@ def test_isothermal_hydrogen_compressor():
     )
     pass
 
+def test_compressor_design():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
+    K = bst.units.IsothermalCompressor(ins=feed, P=350e5)
+    K.simulate()
+    assert K.design_results["Type"] == "Blower"
+    feed.F_mol = 100
+    K.simulate()
+    assert K.design_results["Type"] == "Reciprocating"
+    feed.F_mol = 1e4
+    K.simulate()
+    assert K.design_results["Type"] == "Centrifugal"
+    # test out of range
+    with pytest.raises(RuntimeError):
+        feed.F_mol = 2e4
+        K.simulate()
+    # test user overwrite
+    feed.F_mol = 1e4
+    K = bst.units.IsothermalCompressor(ins=feed, P=350e5, type="Reciprocating")
+    K.simulate()
+    assert K.design_results["Type"] == "Reciprocating"
+    pass
 
 if __name__ == '__main__':
+    test_compressor_design()
     test_isentropic_hydrogen_compressor()
     test_isentropic_two_phase_steam_compressor()
     test_isothermal_hydrogen_compressor()
