@@ -909,8 +909,7 @@ class TEA:
         """
         if isinstance(streams, bst.Stream): streams = [streams]
         system = self.system
-        price2costs = [system._price2cost(i) for i in streams]
-        price2cost = sum(price2costs)
+        price2cost = sum([system._price2cost(i) for i in streams])
         if price2cost == 0.: raise ValueError('cannot solve price of empty streams')
         try:
             sales = self.solve_sales()
@@ -946,23 +945,15 @@ class TEA:
                 self._fill_tax_and_incentives)
         x0 = sales
         f = NPV_with_sales
-        if not np.isfinite(x0):
-            x0 = 0.
+        if not np.isfinite(x0): x0 = 0.
         y0 = f(x0, *args)
-        x1 = x0 + -y0 / self._years
+        x1 = x0 - y0 / self._years # First estimate
         try:
             sales = flx.aitken_secant(f, x0, x1, xtol=10, ytol=1000.,
                                       maxiter=1000, args=args, checkiter=True)
-        except Exception as e:
-            if x0 == 0: raise e from None
-            x0 = 0.
-            y0 = f(x0, *args)
-            x1 = x0 - y0 
-            try:
-                sales = flx.aitken_secant(f, x0, x1, xtol=100, ytol=1000.,
-                                          maxiter=10000, args=args, checkiter=True)
-            except Exception as e:
-                raise e from None
+        except:
+            bracket = flx.find_bracket(f, x0, x1, args=args)
+            sales = flx.IQ_interpolation(f, *bracket, args=args, xtol=10, ytol=1000, maxiter=1000, checkiter=False)
         self._sales = sales
         return sales
     
