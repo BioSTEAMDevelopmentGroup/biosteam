@@ -143,6 +143,65 @@ class _CompressorBase(Unit):
 class IsothermalCompressor(_CompressorBase):
     """
     Create an isothermal compressor.
+
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid.
+    outs : stream
+        Outlet fluid.
+    P : float
+        Outlet pressure [Pa].
+    eta : float
+        Isothermal efficiency.
+    vle : bool
+        Whether to perform phase equilibrium calculations on
+        the outflow. If False, the outlet will be assumed to be the same
+        phase as the inlet.
+
+    Notes
+    -----
+    Default compressor selection, design and cost algorithms are adapted from [0]_.
+
+    Examples
+    --------
+    Simulate reversible isothermal compression of gaseous hydrogen. Note that we set
+    `include_excess_energies=True` to correctly account for the non-ideal behavior of
+    hydrogen at high pressures. We further use the Soave-Redlich-Kwong (SRK) equation
+    of state instead of the default Peng-Robinson (PR) because it is more accurate in
+    this regime.
+
+    >>> import biosteam as bst
+    >>> from thermo import SRK
+    >>> thermo = bst.Thermo([bst.Chemical('H2', eos=SRK)])
+    >>> thermo.mixture.include_excess_energies = True
+    >>> bst.settings.set_thermo(thermo)
+    >>> feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
+    >>> K = bst.units.IsothermalCompressor(ins=feed, P=350e5, eta=1)
+    >>> K.simulate()
+    >>> K.results()
+    Isothermal compressor                           Units        K3
+    Power               Rate                           kW       2.1
+                        Cost                       USD/hr     0.164
+    Chilled water       Duty                        kJ/hr -7.26e+03
+                        Flow                      kmol/hr      7.53
+                        Cost                       USD/hr    0.0363
+    Design              Type                            -    Blower
+                        Power                          kW       2.1
+                        Duty                      kJ/kmol -7.26e+03
+                        Outlet Temperature              K       298
+                        Volumetric Flow Rate       m^3/hr      1.24
+                        Ideal Power                    kW       2.1
+                        Ideal Duty                kJ/kmol -7.26e+03
+                        Ideal Outlet Temperature        K       298
+    Purchase cost       Compressor                    USD   4.3e+03
+    Total purchase cost                               USD   4.3e+03
+    Utility cost                                   USD/hr     0.201
+
+    References
+    ----------
+    .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
+
     """
 
     def _run(self):
@@ -245,7 +304,7 @@ class IsentropicCompressor(_CompressorBase):
     Utility cost                                   USD/hr     0.55
 
 
-    Per default, the outlet pahse is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
+    Per default, the outlet phase is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
     set `vle=True`:
 
     >>> import biosteam as bst
