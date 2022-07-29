@@ -10,6 +10,7 @@
 import pytest
 import biosteam as bst
 from numpy import allclose
+from thermo import SRK
 
 
 def test_isentropic_hydrogen_compressor():
@@ -57,8 +58,13 @@ def test_isentropic_two_phase_steam_compressor():
 
 
 def test_isothermal_hydrogen_compressor():
-    bst.settings.set_thermo(["H2"])
+    thermo = bst.Thermo([bst.Chemical('H2', eos=SRK)])
+    thermo.mixture.include_excess_energies = True
+    bst.settings.set_thermo(thermo)
     feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
+
+    expected_power = 2.1024573963797715
+    expected_duty = -7261.402248757514
 
     # eta = 1
     K = bst.units.IsothermalCompressor(ins=feed, P=350e5, eta=1)
@@ -72,18 +78,16 @@ def test_isothermal_hydrogen_compressor():
     # check compressor design
     assert allclose(
         a=list(K.design_results.values())[1:],
-        b=[1.970908496944548, -7095.270589000373, feed.T, 1.2394785148011942, 1.970908496944548, -7095.270589000373, feed.T],
+        b=[expected_power, expected_duty, feed.T, 1.2394785148011942, expected_power, expected_duty, feed.T],
     )
     assert K.design_results["Type"] == "Blower"
     # check heat utility
     assert allclose(
         a=[K.heat_utilities[0].unit_duty, K.heat_utilities[0].duty, K.heat_utilities[0].flow],
-        b=[-7095.270589000373, -7095.270589000373, 7.35376825845714],
+        b=[expected_duty, expected_duty, 7.525952491732307],
     )
 
     # repeat with eta=0.7
-    expected_power = K.design_results["Power"]/0.7
-    expected_duty = K.heat_utilities[0].unit_duty/0.7
     K = bst.units.IsothermalCompressor(ins=feed, P=350e5, eta=0.7)
     K.simulate()
     # check outlet state
@@ -95,13 +99,13 @@ def test_isothermal_hydrogen_compressor():
     # check compressor design
     assert allclose(
         a=list(K.design_results.values())[1:],
-        b=[expected_power, expected_duty, feed.T, 1.2394785148011942, expected_power*0.7, expected_duty*0.7, feed.T],
+        b=[expected_power/0.7, expected_duty/0.7, feed.T, 1.2394785148011942, expected_power, expected_duty, feed.T],
     )
     assert K.design_results["Type"] == "Blower"
     # check heat utility
     assert allclose(
         a=[K.heat_utilities[0].unit_duty, K.heat_utilities[0].duty, K.heat_utilities[0].flow],
-        b=[expected_duty, expected_duty, 10.505383226367345],
+        b=[expected_duty/0.7, expected_duty/0.7, 10.751360702474724],
     )
     pass
 
