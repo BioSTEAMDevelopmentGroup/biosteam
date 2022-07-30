@@ -2188,7 +2188,7 @@ class System:
         impact += self.get_process_impact(key)
         return impact / total_property
     
-    def get_property_allocation_factors(self, name, units):
+    def get_property_allocation_factors(self, name, units=None):
         heat_utilities = self.heat_utilities
         power_utility = self.power_utility
         operating_hours = self.operating_hours
