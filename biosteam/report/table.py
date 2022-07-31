@@ -458,7 +458,10 @@ def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_proper
     units = sorted(system.units, key=lambda x: x.line)
     cost_units = [i for i in units if i._design or i._cost]
     try:
-        system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
+        with bst.preferences.temporary() as p:
+            p.reset()
+            p.light_mode()
+            system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
     except:
         diagram_completed = False
         warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)

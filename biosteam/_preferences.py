@@ -11,7 +11,7 @@ from thermosteam import Stream
 import yaml
 import os
 
-__all__ = ('preferences',)
+__all__ = ('preferences', 'TemporaryPreferences')
 
 class BioSTEAMDisplayPreferences:
     """Class containing preferences for BioSTEAM diagram and results display."""
@@ -69,6 +69,11 @@ class BioSTEAMDisplayPreferences:
         
         #: Whether to fill subsystem boxes in BioSTEAM 'cluster' diagrams.
         self.fill_cluster = False
+        
+    def temporary(self):
+        """Return a TemporaryPreferences object that will revert back to original
+        preferences after context management."""
+        return TemporaryPreferences()
         
     def reset(self, save=False):
         """Reset to BioSTEAM defaults."""
@@ -176,39 +181,40 @@ class BioSTEAMDisplayPreferences:
         with open(file, 'r') as stream: 
             data = yaml.full_load(stream)
             assert isinstance(data, dict), 'yaml file must return a dict' 
+        self.update(**data)
         
-        self.label_streams = data['label_streams']
-        self.autodisplay = data['autodisplay']
-        self.minimal_nodes = data['minimal_nodes']
-        self.number_path = data['number_path']
-        self.profile = data['profile']
-        self.raise_exception = data['raise_exception']
-        self.background_color = data['background_color']
-        self.stream_color = data['stream_color']
-        self.label_color = data['label_color']
-        self.depth_colors = data['depth_colors']
-        self.flow = data['flow']
-        self.T = data['T']
-        self.P = data['P']
-        self.composition = data['composition']
-        self.N = data['N']
-        self.stream_width = data.get('stream_width', 'F_mass')
-        self.unit_color = data.get('unit_color', '#555f69')
-        self.unit_label_color = data.get('unit_label_color', 'white')
-        self.unit_periphery_color = data.get('unit_periphery_color', '#90918e')
-        self.fill_cluster = data.get('fill_cluster', False)
+    def to_dict(self):
+        dct = {i: getattr(self, i) for i in BioSTEAMDisplayPreferences.__slots__}
+        dct['flow'] = self.flow
+        dct['T'] = self.T
+        dct['P'] = self.P
+        dct['composition'] = self.composition
+        dct['N'] = self.N
+        return dct
         
     def save(self):
         folder = os.path.dirname(__file__)
         file = os.path.join(folder, 'preferences.yaml')
         with open(file, 'w') as file:
-            dct = {i: getattr(self, i) for i in BioSTEAMDisplayPreferences.__slots__}
-            dct['flow'] = self.flow
-            dct['T'] = self.T
-            dct['P'] = self.P
-            dct['composition'] = self.composition
-            dct['N'] = self.N
+            dct = self.to_dict()
             yaml.dump(dct, file)
+
+
+class TemporaryPreferences:
+    
+    def __enter__(self):
+        dct = self.__dict__
+        dct.update({i: getattr(preferences, i) for i in BioSTEAMDisplayPreferences.__slots__})
+        dct['flow'] = preferences.flow
+        dct['T'] = preferences.T
+        dct['P'] = preferences.P
+        dct['composition'] = preferences.composition
+        dct['N'] = preferences.N
+        return preferences
+        
+    def __exit__(self, type, exception, traceback):
+        preferences.update(**self.__dict__)
+        if exception: raise exception
 
 #: [BioSTEAMDisplayPreferences] All preferences for diagram and results display.
 preferences = BioSTEAMDisplayPreferences()
