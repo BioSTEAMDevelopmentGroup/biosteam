@@ -112,7 +112,8 @@ def create_facilities(
     if WWT: WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
     if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
     if recycle_process_water_streams is None: 
-        recycle_process_water_streams = ()
+        streams = bst.get_streams_from_context_level(0)
+        recycle_process_water_streams = [i for i in streams if i.isproduct() and 'process_water' in i.ID]
     if feedstock is not None:
         if CIP:
             CIP = bst.Stream('CIP', Water=126, units='kg/hr')

@@ -1049,6 +1049,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = c.neutral_shade.RGBn
+    other_axes = []
     for row in range(nrows):
         for col in range(ncols):
             ax = axes[row, col]
@@ -1072,7 +1073,8 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
                           colors=['k'], zorder=1)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
-            style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            other_axes.append(dct)
     cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=0.5)
     plt.sca(ax_colorbar)
     plt.axis('off')
@@ -1082,7 +1084,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
             ax.set_title(title)
     set_axes_labels(axes[:, :-1], xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
-    return fig, axes, cps, cb
+    return fig, axes, cps, cb, other_axes
 
 def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data, 
                     xlabel, ylabel, xticks, yticks, 
