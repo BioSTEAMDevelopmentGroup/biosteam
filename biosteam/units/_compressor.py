@@ -10,7 +10,7 @@ from .. import Unit
 import warnings
 from numpy import log
 
-__all__ = ('IsentropicCompressor', 'IsothermalCompressor')
+__all__ = ('IsentropicCompressor', 'IsothermalCompressor', 'PolytropicCompressor')
 
 
 #: TODO:
@@ -352,7 +352,7 @@ class IsentropicCompressor(_CompressorBase):
         out = self.outs[0]
         out.copy_like(feed)
 
-        # calculate isentropic state change
+        # calculate isentropic outlet state
         out.P = self.P
         out.S = feed.S
         T_isentropic = out.T
@@ -388,3 +388,181 @@ class IsentropicCompressor(_CompressorBase):
         self.design_results['Ideal Power'] = (self.dh_isentropic * F_mol) / 3600  # kJ/kmol * kmol/hr / 3600 s/hr -> kW
         self.design_results['Ideal Duty'] = 0 # kJ/kmol
         self.design_results['Ideal Outlet Temperature'] = self.T_isentropic # K
+
+
+class PolytropicCompressor(_CompressorBase):
+    """
+    Create a polytropic compressor.
+
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid.
+    outs : stream
+        Outlet fluid.
+    P : float
+        Outlet pressure [Pa].
+    eta : float
+        Polytropic efficiency.
+    vle : bool
+        Whether to perform phase equilibrium calculations on
+        the outflow. If False, the outlet will be assumed to be the same
+        phase as the inlet.
+    method: str
+        'schultz'/'hundseid'. Calculation method for polytropic work. 'hundseid' is recommend
+        for real gases at high ressure ratios.
+    n_steps: int
+        Number of virtual steps used in numerical integration for hundseid method.
+
+    Notes
+    -----
+    Default compressor selection, design and cost algorithms are adapted from [0]_.
+
+    Examples
+    --------
+    Simulate polytropic compression of hydrogen with 70% efficiency using the Schultz method [1]_:
+
+    >>> import biosteam as bst
+    >>> thermo = bst.Thermo([bst.Chemical('H2')])
+    >>> thermo.mixture.include_excess_energies = True
+    >>> bst.settings.set_thermo(thermo)
+    >>> feed = bst.Stream('feed', H2=1, T=25 + 273.15, P=20e5, phase='g')
+    >>> K = bst.units.PolytropicCompressor('K1', ins=feed, outs='outlet', P=350e5, eta=0.7, method='schultz')
+    >>> K.simulate()
+    >>> K.show()
+    PolytropicCompressor: K1
+    ins...
+    [0] feed
+        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] outlet
+        phase: 'g', T: 961.98 K, P: 3.5e+07 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Polytropic compressor                       Units      K1
+    Power               Rate                       kW    5.54
+                        Cost                   USD/hr   0.433
+    Design              Type                        -  Blower
+                        Power                      kW    5.54
+                        Duty                  kJ/kmol       0
+                        Outlet Temperature          K     962
+                        Volumetric Flow Rate   m^3/hr    1.24
+    Purchase cost       Compressor                USD 4.3e+03
+    Total purchase cost                           USD 4.3e+03
+    Utility cost                               USD/hr   0.433
+
+
+    Repeat using Hundseid method [2]_:
+
+    >>> K = bst.units.PolytropicCompressor('K1', ins=feed, outs='outlet', P=350e5, eta=0.7, method='hundseid', n_steps=200)
+    >>> K.simulate()
+    >>> K.show()
+    PolytropicCompressor: K1
+    ins...
+    [0] feed
+        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] outlet
+        phase: 'g', T: 958.12 K, P: 3.5e+07 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Polytropic compressor                       Units      K1
+    Power               Rate                       kW    5.51
+                        Cost                   USD/hr   0.431
+    Design              Type                        -  Blower
+                        Power                      kW    5.51
+                        Duty                  kJ/kmol       0
+                        Outlet Temperature          K     958
+                        Volumetric Flow Rate   m^3/hr    1.24
+    Purchase cost       Compressor                USD 4.3e+03
+    Total purchase cost                           USD 4.3e+03
+    Utility cost                               USD/hr   0.431
+
+
+    References
+    ----------
+    .. [0] Sinnott, R. and Towler, G. (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
+    .. [1] Schultz, J. (1962). "The Polytropic Analysis of Centrifugal Compressors". J. Eng. Power., 84(1): 69-82 (14 pages)
+    .. [2] Hundseid, O., Bakken, L. E. and Helde, T. (2006). “A Revised Compressor Polytropic Performance Analysis,” Proceedings of ASME GT2006, Paper Number 91033, ASME Turbo Expo 2006.
+
+    """
+
+    _N_heat_utilities = 0
+
+    def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, vle=False, type=None, method="schultz",
+                 n_steps=100):
+        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo, P=P, eta=eta, vle=vle, type=type)
+
+        if method == "schultz":
+            self._calculate = self._schultz_method
+        elif method == "hundseid":
+            self._calculate = self._hundseid_method
+            self.n_steps = n_steps
+        else:
+            raise RuntimeError(f"Unrecognized method f{method} for PolytropicCompressor "
+                               f"f{self.ID}. Must be 'schultz' or 'hundseid'.")
+
+    def _schultz_method(self):
+        # calculate polytropic work using Schultz method
+        feed = self.ins[0]
+        out = self.outs[0]
+
+        # calculate polytropic exponent and real gas correction factor
+        out.P = self.P
+        out.S = feed.S
+        k = log(out.P / feed.P) / log(feed.V / out.V)
+        n_1_n = (k - 1) / k # n: polytropic exponent
+        W_poly = feed.P * feed.V / n_1_n * ((out.P/feed.P)**n_1_n - 1) # kJ/kmol
+        W_isen = (out.H - feed.H) # kJ/kmol
+        f = W_isen/W_poly # f: correction factor for real gases
+
+        # calculate non-reversible polytropic work (accounting for eta)
+        n_1_n = n_1_n / self.eta
+        W_actual = f * feed.P * feed.V / n_1_n * ((out.P/feed.P)**n_1_n - 1) / self.eta * out.F_mol # kJ/kmol -> kJ/hr
+
+        # calculate outlet state
+        out.H = feed.H + W_actual # kJ/hr
+
+        return W_actual # kJ/hr
+
+    def _hundseid_method(self):
+        # calculate polytropic work using Hundseid method
+        feed = self.ins[0].copy()
+        out = self.outs[0]
+        n_steps = self.n_steps
+
+        pr = (self.P / feed.P) ** (1 / n_steps) # pressure ratio between discrete steps
+        W_actual = 0
+        for i in range(n_steps):
+            # isentropic pressure change
+            out.P = feed.P * pr
+            out.S = feed.S
+            dH_isen_i = out.H - feed.H
+            # efficiency correction
+            dH_i = dH_isen_i / self.eta
+            out.H = feed.H + dH_i
+            W_actual += dH_i # kJ/hr
+            # next step
+            feed.P = out.P
+            feed.T = out.T
+
+        return W_actual / out.F_mol # kJ/hr
+
+    def _run(self):
+        feed = self.ins[0]
+        out = self.outs[0]
+        out.copy_like(feed)
+
+        # calculate polytropic work and outlet state
+        W = self._calculate() # kJ/hr
+
+        # check phase equilibirum
+        if self.vle is True:
+            out.vle(H=out.H, P=out.P)
+
+        # save values for _design
+        self.Q = 0
+        self.power = W / 3600 # kJ/hr -> kW
+

@@ -10,7 +10,7 @@
 import pytest
 import biosteam as bst
 from numpy import allclose
-from thermo import SRK
+from thermo import SRK, PR
 
 
 def test_isentropic_hydrogen_compressor():
@@ -109,6 +109,53 @@ def test_isothermal_hydrogen_compressor():
     )
     pass
 
+def test_polytropic_hydrogen_compressor():
+    thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
+    thermo.mixture.include_excess_energies = True
+    bst.settings.set_thermo(thermo)
+    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    # eta=1 outlet state should be identical to ideal isentropic compression
+    # schultz method
+    eta = 1.0
+    K = bst.units.PolytropicCompressor(ins=feed, P=P, eta=eta, method="schultz")
+    K.simulate()
+    out_poly = K.outs[0]
+    K_isen = bst.units.IsentropicCompressor(ins=feed, P=P, eta=1.0)
+    K_isen.simulate()
+    out_isen = K_isen.outs[0]
+    assert allclose(
+        a=[out_poly.T, out_poly.P, out_poly.H, K.design_results["Power"], K.design_results["Duty"]],
+        b=[out_isen.T, out_isen.P, out_isen.H, K_isen.design_results["Power"], 0],
+        # note: do not use K_isen duty due to rounding errors
+    )
+    # eta=1, hundseid method
+    K = bst.units.PolytropicCompressor(ins=feed, P=P, eta=eta, method="hundseid")
+    K.simulate()
+    out_poly = K.outs[0]
+    assert allclose(
+        a=[out_poly.T, out_poly.P, out_poly.H, K.design_results["Power"], K.design_results["Duty"]],
+        b=[out_isen.T, out_isen.P, out_isen.H, K_isen.design_results["Power"], 0],
+        # note: do not use K_isen duty due to rounding errors
+    )
+    # eta=0.7, hundseid method
+    eta=0.7
+    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    K = bst.units.PolytropicCompressor(ins=feed, P=P, eta=eta, method="hundseid", n_steps=200)
+    K.simulate()
+    # check outlet state
+    out = K.outs[0]
+    assert allclose(
+        a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+        b=[1.0, 0.0, 958.12, P],
+    )
+    # check compressor design
+    assert allclose(
+        a=list(K.design_results.values())[1:],
+        b=[5.510063319708909, 0, 958.12, 1.2394785148011942],
+    )
+    assert K.design_results["Type"] == "Blower"
+
 
 def test_compressor_design():
     bst.settings.set_thermo(["H2"])
@@ -139,3 +186,4 @@ if __name__ == '__main__':
     test_isentropic_hydrogen_compressor()
     test_isentropic_two_phase_steam_compressor()
     test_isothermal_hydrogen_compressor()
+    test_polytropic_hydrogen_compressor()
