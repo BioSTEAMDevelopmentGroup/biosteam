@@ -159,6 +159,9 @@ class IsothermalCompressor(_CompressorBase):
         Whether to perform phase equilibrium calculations on
         the outflow. If False, the outlet will be assumed to be the same
         phase as the inlet.
+    type: str
+        Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
 
     Notes
     -----
@@ -263,6 +266,9 @@ class IsentropicCompressor(_CompressorBase):
         Whether to perform phase equilibrium calculations on
         the outflow. If False, the outlet will be assumed to be the same
         phase as the inlet.
+    type: str
+        Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
 
     Notes
     -----
@@ -414,6 +420,9 @@ class PolytropicCompressor(_CompressorBase):
         for real gases at high ressure ratios.
     n_steps: int
         Number of virtual steps used in numerical integration for hundseid method.
+    type: str
+        Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
 
     Notes
     -----
