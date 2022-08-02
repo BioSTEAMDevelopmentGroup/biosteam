@@ -579,7 +579,172 @@ class PolytropicCompressor(_CompressorBase):
 
 class MultistageCompressor(Unit):
     """
-    Multistage compressor. Models multistage polytropic or isentropic compression.
+    Create a multistage compressor. Models multistage polytropic or isentropic compression with intermittent cooling.
+
+    There are two setup options:
+
+    * Option 1: Define `pr` and `n_stages` (optionally `eta`, `vle`, `type`).
+        Creates `n_stages` identical isentropic compressors. Each compressor is followed by
+        a heat exchanger, which cools the effluent to inlet temperature.
+
+    * Option 2: Define `compressors` and `hxs`.
+        Takes a list of pre-defined compressors and heat exchangers and connects them in series. This option
+        allows more flexibility in terms of the type of compressor (isentropic/polytropic) and parameterization
+        (e.g. each stage can have different efficiencies and outlet temperatures).
+
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid.
+    outs : stream
+        Outlet fluid.
+    pr : float
+        (setup option 1) Pressure ratio between isentropic stages.
+    n_stages: float
+        (setup option 1) Number of isentropic stages.
+    eta : float
+        (setup option 1) Isentropic efficiency.
+    vle : bool
+        (setup option 1) Whether to perform phase equilibrium calculations on
+        the outflow of each stage. If False, the outlet will be assumed to be the same
+        phase as the inlet.
+    type: str
+        (setup option 1) Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
+    compressors: list[_CompressorBase]
+        (setup option 2) List of compressors to use for each stage.
+    hxs: list[HX]
+        (setup option 2) List of heat exchangers to use for each stage.
+
+    Notes
+    -----
+    Default compressor selection, design and cost algorithms are adapted from [0]_.
+
+    Examples
+    --------
+    Simulate multistage compression of gaseous hydrogen (simple setup). Hydrogen is compressed
+    isentropically (with an efficiency of 70%) from 20 bar to 320 bar in four stages
+    (pressure ratio of two in each stage):
+
+    >>> import biosteam as bst
+    >>> thermo = bst.Thermo([bst.Chemical('H2')])
+    >>> thermo.mixture.include_excess_energies = True
+    >>> bst.settings.set_thermo(thermo)
+    >>> feed = bst.Stream('feed', H2=1, T=298.15, P=20e5, phase='g')
+    >>> K = bst.units.MultistageCompressor(ins=feed, pr=2, n_stages=4, eta=0.7)
+    >>> K.simulate()
+    >>> K.show()
+    MultistageCompressor: K4
+    ins...
+    [0] feed
+        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] s11
+        phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Multistage compressor                           Units                     K4
+    Power               Rate                           kW                   3.14
+                        Cost                       USD/hr                  0.246
+    Chilled water       Duty                        kJ/hr              -1.12e+04
+                        Flow                      kmol/hr                   7.41
+                        Cost                       USD/hr                 0.0559
+    Design              Type                            -  Multistage compressor
+                        Power                          kW                   3.14
+                        Duty                      kJ/kmol              -1.12e+04
+                        Area                         ft^2                   1.54
+                        Tube side pressure drop       psi                     12
+                        Shell side pressure drop      psi                     20
+                        Outlet Temperature              K                    298
+                        Volumetric Flow Rate       m^3/hr                   1.24
+    Purchase cost       K5 - Compressor               USD                4.3e+03
+                        H1 - Double pipe              USD                    568
+                        K6 - Compressor               USD               4.27e+03
+                        H2 - Double pipe              USD                    675
+                        K7 - Compressor               USD               4.25e+03
+                        H3 - Double pipe              USD                    956
+                        K8 - Compressor               USD               4.24e+03
+                        H4 - Double pipe              USD               1.78e+03
+    Total purchase cost                               USD                2.1e+04
+    Utility cost                                   USD/hr                  0.301
+
+    Show the fluid state at the outlet of each heat exchanger:
+    >>> for hx in K.hxs:
+    ...  hx.outs[0].show()
+    ...
+    Stream: s5 from <HXutility: H1> to <IsentropicCompressor: K6>
+     phase: 'g', T: 298.15 K, P: 4e+06 Pa
+     flow (kmol/hr): H2  1
+    Stream: s7 from <HXutility: H2> to <IsentropicCompressor: K7>
+     phase: 'g', T: 298.15 K, P: 8e+06 Pa
+     flow (kmol/hr): H2  1
+    Stream: s9 from <HXutility: H3> to <IsentropicCompressor: K8>
+     phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
+     flow (kmol/hr): H2  1
+    Stream: s11 from <HXutility: H4>
+     phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
+     flow (kmol/hr): H2  1
+
+    If we want to setup more complex multistage compression schemes, we can pre-define the compressors and
+    heat exchangers and pass them as a list to `MultistageCompressor`:
+
+    >>> ks = [
+    ...     bst.units.IsentropicCompressor(P=30e5, eta=0.6),
+    ...     bst.units.PolytropicCompressor(P=50e5, eta=0.65),
+    ...     bst.units.IsentropicCompressor(P=90e5, eta=0.70),
+    ...     bst.units.PolytropicCompressor(P=170e5, eta=0.75),
+    ...     bst.units.IsentropicCompressor(P=320e5, eta=0.80),
+    ... ]
+    >>> hxs = [bst.units.HXutility(T=T) for T in [310, 350, 400, 350, 298]]
+    >>> K = bst.units.MultistageCompressor(ins=feed, compressors=ks, hxs=hxs)
+    >>> K.simulate()
+    >>> K.show()
+    MultistageCompressor: K14
+    ins...
+    [0] feed
+        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] s21
+        phase: 'g', T: 298 K, P: 3.2e+07 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Multistage compressor                           Units                    K14
+    Power               Rate                           kW                   3.57
+                        Cost                       USD/hr                  0.279
+    Chilled water       Duty                        kJ/hr              -5.63e+03
+                        Flow                      kmol/hr                   3.73
+                        Cost                       USD/hr                 0.0282
+    Cooling water       Duty                        kJ/hr              -7.12e+03
+                        Flow                      kmol/hr                   4.87
+                        Cost                       USD/hr                0.00237
+    Design              Type                            -  Multistage compressor
+                        Power                          kW                   3.57
+                        Duty                      kJ/kmol              -1.28e+04
+                        Area                         ft^2                   1.14
+                        Tube side pressure drop       psi                     15
+                        Shell side pressure drop      psi                     25
+                        Outlet Temperature              K                    298
+                        Volumetric Flow Rate       m^3/hr                   1.24
+    Purchase cost       K9 - Compressor               USD                4.3e+03
+                        H5 - Double pipe              USD                    298
+                        K10 - Compressor              USD               4.28e+03
+                        H6 - Double pipe              USD                    198
+                        K11 - Compressor              USD               4.27e+03
+                        H7 - Double pipe              USD                    129
+                        K12 - Compressor              USD               4.26e+03
+                        H8 - Double pipe              USD                    752
+                        K13 - Compressor              USD               4.24e+03
+                        H9 - Double pipe              USD               2.03e+03
+    Total purchase cost                               USD               2.47e+04
+    Utility cost                                   USD/hr                   0.31
+
+
+    References
+    ----------
+    .. [0] Sinnott, R. and Towler, G. (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
+
     """
 
     _N_ins = 1
