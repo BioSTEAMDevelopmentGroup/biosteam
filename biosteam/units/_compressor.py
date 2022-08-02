@@ -7,10 +7,11 @@
 # for license details.
 import biosteam as bst
 from .. import Unit
+from biosteam.units.heat_exchange import HX, HXutility
 import warnings
 from numpy import log
 
-__all__ = ('IsentropicCompressor', 'IsothermalCompressor', 'PolytropicCompressor')
+__all__ = ('IsentropicCompressor', 'IsothermalCompressor', 'PolytropicCompressor', 'MultistageCompressor')
 
 
 #: TODO:
@@ -566,3 +567,143 @@ class PolytropicCompressor(_CompressorBase):
         self.Q = 0
         self.power = W / 3600 # kJ/hr -> kW
 
+
+class MultistageCompressor(Unit):
+    """
+    Multistage compressor. Models multistage polytropic or isentropic compression.
+    """
+
+    _N_ins = 1
+    _N_outs = 1
+    _N_heat_utilities = 0
+    _units = {
+        **_CompressorBase._units,
+        **HX._units,
+    }
+
+    def __init__(
+            self, ID='', ins=None, outs=(), thermo=None, *,
+            pr=None, n_stages=None, eta=0.7, vle=False, type=None,
+            compressors=None, hxs=None,
+    ):
+        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
+
+        # setup option 1: list of compressors and list of heat exchangers
+        if compressors is not None and hxs is not None:
+            if not isinstance(compressors[0], _CompressorBase):
+                raise RuntimeError(f"Invalid parameterization of {self.ID}: `compressors` must "
+                                   f"be a list of compressor objects.")
+            elif not isinstance(hxs[0], HX):
+                raise RuntimeError(f"Invalid parameterization of {self.ID}: `hxd` must "
+                                   f"be a list of heat exchanger objects.")
+            elif len(compressors) != len(hxs):
+                raise RuntimeError(f"Invalid parameterization of {self.ID}: `compressors` and `hxs` "
+                                   f"must have the same length.")
+            else:
+                self.compressors = compressors
+                self.hxs = hxs
+                self.pr = None
+                self.n_stages = None
+
+        # setup option 2: fixed pressure ratio and number of stages
+        elif pr is not None and n_stages is not None:
+            self.pr = pr
+            self.n_stages = n_stages
+            self.eta = eta
+            self.vle=vle
+            self.type=type
+            self.compressors = None
+            self.hxs = None
+        else:
+            raise RuntimeError(f"Invalid parameterization of {self.ID}: Must specify `pr` and "
+                               f"`n_stages` or `compressors` and `hxs`.")
+
+    def _setup(self):
+        super()._setup()
+
+        # helper variables
+        feed = self.ins[0]
+
+        # setup option 1: create connections between compressors and hxs
+        if self.compressors is not None and self.hxs is not None:
+            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
+                if n == 0:
+                    inflow = feed
+                else:
+                    inflow = self.hxs[n-1].outs[0]
+                c.ins[0] = inflow
+                hx.ins[0] = c.outs[0]
+
+        # setup option 2: create connected compressor and hx objects
+        elif self.pr is not None and self.n_stages is not None:
+            self.compressors = []
+            self.hxs = []
+            for n in range(self.n_stages):
+                if n==0:
+                    inflow = feed
+                    P = feed.P * self.pr
+                else:
+                    inflow = hx.outs[0]
+                    P = P * self.pr
+
+                c = IsentropicCompressor(
+                    ins=inflow, P=P, eta=self.eta, vle=self.vle,
+                    type=self.type
+                )
+                hx = HXutility(
+                    ins=c.outs[0], T=inflow.T, rigorous=self.vle
+                )
+                self.compressors.append(c)
+                self.hxs.append(hx)
+
+        # set inlet and outlet reference
+        self._ins = self.compressors[0].ins
+        self._outs = self.hxs[-1].outs
+
+        # set auxillary units
+        units = [u for t in zip(self.compressors,self.hxs) for u in t]
+        self.auxiliary_unit_names = tuple([u.ID for u in units])
+        for u in units:
+            self.__setattr__(u.ID, u)
+
+    def _run(self):
+        # calculate results
+
+        # helper variables
+        units = [u for t in zip(self.compressors, self.hxs) for u in t]
+
+        # simulate all subcomponents
+        for u in units:
+            u.simulate()
+
+        # set power utility = sum of power utilities
+        self.power_utility = sum([u.power_utility for u in units])
+
+        # set heat utility = sum of heat utilities
+        # split by agent
+        self.heat_utilities = sum([h for u in units for h in u.heat_utilities])
+
+
+    def _design(self):
+        self.design_results["Type"] = "Multistage compressor"
+
+        # sum up design values
+        units = [u for t in zip(self.compressors,self.hxs) for u in t]
+        sum_fields = [
+            "Power", "Duty",
+            "Area", "Tube side pressure drop", "Shell side pressure drop"
+        ]
+        for u in units:
+            for k,v in u.design_results.items():
+                if k in sum_fields:
+                    if k in self.design_results:
+                        self.design_results[k] += v
+                    else:
+                        self.design_results[k] = v
+
+        # add heat exchanger duties
+        self.design_results["Duty"] += sum([-hx.Q for hx in self.hxs])
+
+        # manual additions
+        self.design_results["Outlet Temperature"] = self.outs[0].T
+        self.design_results["Volumetric Flow Rate"] = self.ins[0].F_vol
