@@ -191,8 +191,8 @@ class PowerUtility:
         PowerUtility(consumption=50.0, production=120.0)
         
         """
-        self.consumption = sum([i.consumption for i in power_utilities])
-        self.production = sum([i.production for i in power_utilities])
+        self.consumption = sum([i.consumption if hasattr(i, "consumption") else i for i in power_utilities ])
+        self.production = sum([i.production if hasattr(i, "production") else i for i in power_utilities])
     
     def copy_like(self, power_utility):
         """Copy consumption anf production rates from another power utility."""
@@ -241,5 +241,11 @@ class PowerUtility:
     
     def __repr__(self):
         return f'{type(self).__name__}(consumption={self.consumption}, production={self.production})'
+
+    def __add__(self, other):
+        return PowerUtility.sum([self,other])
+
+    def __radd__(self, other):
+        return PowerUtility.sum([self,other])
     
 PowerUtility.default_price()

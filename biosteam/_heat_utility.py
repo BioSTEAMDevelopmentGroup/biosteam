@@ -854,4 +854,15 @@ class HeatUtility:
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
 
+    def __add__(self, other):
+        if hasattr(other, "__iter__"):
+            return HeatUtility.sum_by_agent([self, *other])
+        elif hasattr(other, "agent"):
+            return HeatUtility.sum_by_agent([self, other])
+        else:
+            return self
+
+    def __radd__(self, other):
+        return self + other
+
 HeatUtility.default_agents()
