@@ -8,10 +8,13 @@
 """
 """
 import numpy as np
-from .design_tools.mechanical import (calculate_NPSH,
-                                      pump_efficiency, 
-                                      nearest_NEMA_motor_size,
-                                      nema_sizes_hp)
+from .design_tools.mechanical import (
+    calculate_NPSH,
+    pump_efficiency, 
+    nearest_NEMA_motor_size,
+    nema_sizes_hp,
+    electric_motor_cost
+)
 from .design_tools.specification_factors import (
     pump_material_factors,
     pump_centrifugal_factors)
@@ -243,7 +246,6 @@ class Pump(Unit):
         h = Design['Head']
         p = Design['Pump power']
         I = bst.CE/567
-        lnp = ln(p)
         
         # TODO: Add cost equation for small pumps
         # Head and flow rate is too small, so make conservative estimate on cost
@@ -293,18 +295,15 @@ class Pump(Unit):
             Cb *= q/q_new
             Cost['Pump'] = Cb*I
         elif pump_type == 'MeteringPlunger':
-            Cb = exp(7.9361 + 0.26986*lnp + 0.06718*lnp**2)
+            lnp = ln(p)
+            lnp2 = lnp * lnp
+            Cb = exp(7.9361 + 0.26986*lnp + 0.06718*lnp2)
             Cost['Pump'] = Cb*I
         
         self.F_D['Pump'] = F_T
         
         # Cost electric motor
-        lnp2 = lnp**2
-        lnp3 = lnp2*lnp
-        lnp4 = lnp3*lnp
-        Cost['Motor'] = exp(5.9332 + 0.16829*lnp
-                            - 0.110056*lnp2 + 0.071413*lnp3
-                            - 0.0063788*lnp4)*I
+        Cost['Motor'] = electric_motor_cost(p)
     
         
         

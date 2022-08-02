@@ -14,7 +14,6 @@ from . import (misc,
                not_implemented_method,
                piping,
                stream_link_options,
-               unit_warnings,
                functors,
                stream_filters,
                scope,
@@ -32,7 +31,6 @@ __all__ = ('colors',
            *tictoc.__all__, 
            *piping.__all__, 
            *stream_link_options.__all__,
-           *unit_warnings.__all__,
            *functors.__all__,
            *stream_filters.__all__,
            *scope.__all__,
@@ -44,7 +42,6 @@ from .patches import *
 from .tictoc import *
 from .piping import *
 from .stream_link_options import *
-from .unit_warnings import *
 from .functors import *
 from .stream_filters import *
 from .scope import *

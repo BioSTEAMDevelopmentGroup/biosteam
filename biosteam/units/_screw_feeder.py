@@ -8,7 +8,7 @@
 """
 """
 from .decorators import cost
-from ..utils.unit_warnings import lb_warning
+from ..exceptions import lb_warning
 from .._unit import Unit
 
 __all__ = ('ScrewFeeder',)
