@@ -631,20 +631,20 @@ class MultistageCompressor(Unit):
     >>> thermo.mixture.include_excess_energies = True
     >>> bst.settings.set_thermo(thermo)
     >>> feed = bst.Stream('feed', H2=1, T=298.15, P=20e5, phase='g')
-    >>> K = bst.units.MultistageCompressor(ins=feed, pr=2, n_stages=4, eta=0.7)
+    >>> K = bst.units.MultistageCompressor('K1', ins=feed, outs='outlet', pr=2, n_stages=4, eta=0.7)
     >>> K.simulate()
     >>> K.show()
-    MultistageCompressor: K4
+    MultistageCompressor: K1
     ins...
     [0] feed
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
         flow (kmol/hr): H2  1
     outs...
-    [0] s11
+    [0] outlet
         phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
-    Multistage compressor                           Units                     K4
+    Multistage compressor                           Units                     K1
     Power               Rate                           kW                   3.14
                         Cost                       USD/hr                  0.246
     Chilled water       Duty                        kJ/hr              -1.12e+04
@@ -658,14 +658,14 @@ class MultistageCompressor(Unit):
                         Shell side pressure drop      psi                     20
                         Outlet Temperature              K                    298
                         Volumetric Flow Rate       m^3/hr                   1.24
-    Purchase cost       K5 - Compressor               USD                4.3e+03
-                        H1 - Double pipe              USD                    568
-                        K6 - Compressor               USD               4.27e+03
-                        H2 - Double pipe              USD                    675
-                        K7 - Compressor               USD               4.25e+03
-                        H3 - Double pipe              USD                    956
-                        K8 - Compressor               USD               4.24e+03
-                        H4 - Double pipe              USD               1.78e+03
+    Purchase cost       K1 k1 - Compressor               USD             4.3e+03
+                        K1 h1 - Double pipe              USD                 568
+                        K1 k2 - Compressor               USD            4.27e+03
+                        K1 h2 - Double pipe              USD                 675
+                        K1 k3 - Compressor               USD            4.25e+03
+                        K1 h3 - Double pipe              USD                 956
+                        K1 k4 - Compressor               USD            4.24e+03
+                        K1 h4 - Double pipe              USD            1.78e+03
     Total purchase cost                               USD                2.1e+04
     Utility cost                                   USD/hr                  0.301
 
@@ -673,16 +673,16 @@ class MultistageCompressor(Unit):
     >>> for hx in K.hxs:
     ...  hx.outs[0].show()
     ...
-    Stream: s5 from <HXutility: H1> to <IsentropicCompressor: K6>
+    Stream: K1_H1__K1_K2 from <HXutility: K1_H1> to <IsentropicCompressor: K1_K2>
      phase: 'g', T: 298.15 K, P: 4e+06 Pa
      flow (kmol/hr): H2  1
-    Stream: s7 from <HXutility: H2> to <IsentropicCompressor: K7>
+    Stream: K1_H2__K1_K3 from <HXutility: K1_H2> to <IsentropicCompressor: K1_K3>
      phase: 'g', T: 298.15 K, P: 8e+06 Pa
      flow (kmol/hr): H2  1
-    Stream: s9 from <HXutility: H3> to <IsentropicCompressor: K8>
+    Stream: K1_H3__K1_K4 from <HXutility: K1_H3> to <IsentropicCompressor: K1_K4>
      phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
      flow (kmol/hr): H2  1
-    Stream: s11 from <HXutility: H4>
+    Stream: outlet from <MultistageCompressor: K1>
      phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
      flow (kmol/hr): H2  1
 
@@ -697,20 +697,20 @@ class MultistageCompressor(Unit):
     ...     bst.units.IsentropicCompressor(P=320e5, eta=0.80),
     ... ]
     >>> hxs = [bst.units.HXutility(T=T) for T in [310, 350, 400, 350, 298]]
-    >>> K = bst.units.MultistageCompressor(ins=feed, compressors=ks, hxs=hxs)
+    >>> K = bst.units.MultistageCompressor('K2', ins=feed, outs='outlet', compressors=ks, hxs=hxs)
     >>> K.simulate()
     >>> K.show()
-    MultistageCompressor: K14
+    MultistageCompressor: K2
     ins...
     [0] feed
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
         flow (kmol/hr): H2  1
     outs...
-    [0] s21
+    [0] outlet
         phase: 'g', T: 298 K, P: 3.2e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
-    Multistage compressor                           Units                    K14
+    Multistage compressor                           Units                     K2
     Power               Rate                           kW                   3.57
                         Cost                       USD/hr                  0.279
     Chilled water       Duty                        kJ/hr              -5.63e+03
@@ -727,16 +727,16 @@ class MultistageCompressor(Unit):
                         Shell side pressure drop      psi                     25
                         Outlet Temperature              K                    298
                         Volumetric Flow Rate       m^3/hr                   1.24
-    Purchase cost       K9 - Compressor               USD                4.3e+03
-                        H5 - Double pipe              USD                    298
-                        K10 - Compressor              USD               4.28e+03
-                        H6 - Double pipe              USD                    198
-                        K11 - Compressor              USD               4.27e+03
-                        H7 - Double pipe              USD                    129
-                        K12 - Compressor              USD               4.26e+03
-                        H8 - Double pipe              USD                    752
-                        K13 - Compressor              USD               4.24e+03
-                        H9 - Double pipe              USD               2.03e+03
+    Purchase cost       K2 k1 - Compressor            USD                4.3e+03
+                        K2 h1 - Double pipe           USD                    298
+                        K2 k2 - Compressor            USD               4.28e+03
+                        K2 h2 - Double pipe           USD                    198
+                        K2 k3 - Compressor            USD               4.27e+03
+                        K2 h3 - Double pipe           USD                    129
+                        K2 k4 - Compressor            USD               4.26e+03
+                        K2 h4 - Double pipe           USD                    752
+                        K2 k5 - Compressor            USD               4.24e+03
+                        K2 h5 - Double pipe           USD               2.03e+03
     Total purchase cost                               USD               2.47e+04
     Utility cost                                   USD/hr                   0.31
 
@@ -792,6 +792,24 @@ class MultistageCompressor(Unit):
             raise RuntimeError(f"Invalid parameterization of {self.ID}: Must specify `pr` and "
                                f"`n_stages` or `compressors` and `hxs`.")
 
+    def _overwrite_subcomponent_id(self, subcomponent, i_stage):
+
+        # overwrite subcomponent id
+        ID = f"{self.ID}_{subcomponent.ticket_name}{i_stage}"
+        subcomponent.ID = ID
+
+        # overwrite inlet id if not multistage inlet
+        if i_stage == 1 and isinstance(subcomponent, _CompressorBase):
+            pass
+        else:
+            subcomponent.ins[0].ID = f"{subcomponent.ins[0].ID}__{ID}"
+
+        # overwrite outlet id if not multistage outlet
+        if i_stage == (self.n_stages or len(self.compressors)) and isinstance(subcomponent, HX):
+            pass
+        else:
+            subcomponent.outs[0].ID = f"{ID}"
+
     def _setup(self):
         super()._setup()
 
@@ -807,6 +825,10 @@ class MultistageCompressor(Unit):
                     inflow = self.hxs[n-1].outs[0]
                 c.ins[0] = inflow
                 hx.ins[0] = c.outs[0]
+                self._overwrite_subcomponent_id(c, n+1)
+                self._overwrite_subcomponent_id(hx, n+1)
+                if n==len(self.compressors)-1:
+                    hx._outs = self.outs
 
         # setup option 2: create connected compressor and hx objects
         elif self.pr is not None and self.n_stages is not None:
@@ -821,12 +843,16 @@ class MultistageCompressor(Unit):
                     P = P * self.pr
 
                 c = IsentropicCompressor(
-                    ins=inflow, P=P, eta=self.eta, vle=self.vle,
-                    type=self.type
+                    ins=inflow, P=P, eta=self.eta,
+                    vle=self.vle, type=self.type
                 )
+                self._overwrite_subcomponent_id(c, n+1)
                 hx = HXutility(
                     ins=c.outs[0], T=inflow.T, rigorous=self.vle
                 )
+                self._overwrite_subcomponent_id(hx, n+1)
+                if n==self.n_stages-1:
+                    hx._outs = self.outs
                 self.compressors.append(c)
                 self.hxs.append(hx)
 
