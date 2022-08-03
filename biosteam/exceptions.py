@@ -104,12 +104,14 @@ def bounds_warning(source, key, value, units, bounds, kind='design'): # pragma: 
     if not (lb <= value <= ub):
         units = ' ' + units if units else ''
         try:
-            msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb:.4g} to {ub:.4g}{units})."
+            msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb:.4g} to {ub:.4g}{units})"
         except:  # Handle format errors
-            msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub}{units})."
+            msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub}{units})"
         if kind == 'design':
             Warning = DesignWarning
+            msg += ' for design algorithm'
         elif kind == 'cost':
+            msg += ' for cost correlation'
             Warning = CostWarning
         else:
             raise ValueError(f"kind must be either 'design' or 'cost', not {repr(kind)}")

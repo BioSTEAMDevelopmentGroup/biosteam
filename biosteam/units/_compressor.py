@@ -7,12 +7,11 @@
 # for license details.
 import biosteam as bst
 from .. import Unit
-from .decorators import cost
 from warnings import warn
 from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
 from ..utils import list_available_names
-from ..exceptions import DesignWarning
+from ..exceptions import DesignWarning, bounds_warning
 
 __all__ = (
     'Compressor',
@@ -25,12 +24,12 @@ __all__ = (
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
 
 class CompressorCostAlgorithm(NamedTuple): 
-    #: Defines preliminary correlation algorithm for however many stages
+    #: Defines preliminary correlation algorithm for a compressor type
     psig_max: float #: Maximum achievable pressure in psig (to autodermine compressor type and/or issue warning)
     hp_bounds: Tuple[float, float] #: Horse power per machine (not a hard limit for costing, but included here for completion)
     acfm_bounds: Tuple[float, float] #: Actual cubic feet per minute (hard limit for parallel units)
-    cost: Callable #: function(horse_power) -> Baseline purchase cost (includes multiple stages/machines)
-    efficiencies: Dict[str, float] #: Heuristic efficiencies of compressor types at 1,000 hp.
+    cost: Callable #: function(horse_power) -> Baseline purchase cost
+    efficiencies: Dict[str, float] #: Heuristic efficiencies at 1,000 hp.
     driver: float #: Default driver (e.g., electric motor, steam turbine or gas turbine).
     CE: float #: Chemical engineering price cost index.
 
@@ -171,7 +170,7 @@ class Compressor(Unit, isabstract=True):
         for name, alg in cost_algorithms.items():
             if psig < alg.psig_max: return name
         warn('no compressor available that is recommended for a pressure of '
-            f'{self.P: .5g}; defaulting to {repr(name)}', DesignWarning)
+            f'{self.P:.5g}; defaulting to {name.lower()} compressor', DesignWarning)
         return name
 
     def _calculate_ideal_power_and_duty(self):
@@ -182,8 +181,13 @@ class Compressor(Unit, isabstract=True):
         power_ideal = (dH - TdS) / 3600.  # Power [kW]
         return power_ideal, Q
 
+    def _set_power(self, power):
+        compressor_type = self.design_results['Type']
+        driver = self.design_results['Driver']
+        alg = self.baseline_cost_algorithms[compressor_type]
+        self.power_utility.consumption = power / alg.efficiencies[driver]
+    
     def _design(self):
-        # Note: Must set power utility before running parent design algorithm
         design_results = self.design_results
         compressor_type = self.compressor_type 
         if compressor_type == 'Default': compressor_type = self._determine_compressor_type()
@@ -195,12 +199,14 @@ class Compressor(Unit, isabstract=True):
         design_results['Driver'] = alg.driver if self._driver == 'Default' else self._driver 
     
     def _cost(self):
+        # Note: Must run `_set_power` before running parent cost algorithm
         design_results = self.design_results
         alg = self.baseline_cost_algorithms[design_results['Type']]
         acfm_lb, acfm_ub = alg.acfm_bounds
         Pc = self.power_utility.get_property('consumption', 'hp')
         N = design_results['Compressors in parallel']
         F = Pc / N
+        bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
         self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(F)
         self.F_D['Compressor(s)'] = self._F_D[design_results['Driver']]
 
@@ -256,9 +262,9 @@ class IsothermalCompressor(Compressor):
         flow (kmol/hr): H2  1
     
     >>> K.results()
-    Isothermal compressor                          Units              K1
-    Power               Rate                          kW             2.1
-                        Cost                      USD/hr           0.164
+    Isothermal compressor                          Units               K
+    Power               Rate                          kW            2.47
+                        Cost                      USD/hr           0.193
     Chilled water       Duty                       kJ/hr       -7.26e+03
                         Flow                     kmol/hr            7.53
                         Cost                      USD/hr          0.0363
@@ -267,9 +273,9 @@ class IsothermalCompressor(Compressor):
                         Driver                            Electric motor
                         Ideal power                   kW             2.1
                         Ideal duty                 kJ/hr       -7.26e+03
-    Purchase cost       Compressor(s)                USD             385
-    Total purchase cost                              USD             385
-    Utility cost                                  USD/hr           0.201
+    Purchase cost       Compressor(s)                USD             470
+    Total purchase cost                              USD             470
+    Utility cost                                  USD/hr            0.23
 
     References
     ----------
@@ -286,15 +292,16 @@ class IsothermalCompressor(Compressor):
         if self.vle is True: out.vle(T=out.T, P=out.P)
 
     def _design(self):
+        super()._design()
         feed = self.ins[0]
         outlet = self.outs[0]
         ideal_power, ideal_duty = self._calculate_ideal_power_and_duty()
-        self.power_utility.consumption = ideal_power / self.eta
         Q = ideal_duty / self.eta
-        super()._design()
         self.heat_utilities[0](unit_duty=Q, T_in=feed.T, T_out=outlet.T)
         self.design_results['Ideal power'] = ideal_power # kW
         self.design_results['Ideal duty'] = ideal_duty # kJ / hr
+        self._set_power(ideal_power / self.eta)
+    
 
 
 class IsentropicCompressor(Compressor):
@@ -342,16 +349,16 @@ class IsentropicCompressor(Compressor):
 
     >>> K.results()
     Isentropic compressor                         Units              K1
-    Power               Rate                         kW            7.03
-                        Cost                     USD/hr            0.55
+    Power               Rate                         kW            8.27
+                        Cost                     USD/hr           0.647
     Design              Ideal power                  kW            4.92
                         Ideal duty                kJ/hr               0
                         Type                             Recriprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
-    Purchase cost       Compressor(s)               USD         1.7e+03
-    Total purchase cost                             USD         1.7e+03
-    Utility cost                                 USD/hr            0.55
+    Purchase cost       Compressor(s)               USD        2.07e+03
+    Total purchase cost                             USD        2.07e+03
+    Utility cost                                 USD/hr           0.647
 
 
     Per default, the outlet phase is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
@@ -376,16 +383,16 @@ class IsentropicCompressor(Compressor):
 
     >>> K.results()
     Isentropic compressor                         Units              K2
-    Power               Rate                         kW            5.41
-                        Cost                     USD/hr           0.423
+    Power               Rate                         kW            6.37
+                        Cost                     USD/hr           0.498
     Design              Ideal power                  kW            5.41
                         Ideal duty                kJ/hr               0
                         Type                             Recriprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
-    Purchase cost       Compressor(s)               USD        1.23e+03
-    Total purchase cost                             USD        1.23e+03
-    Utility cost                                 USD/hr           0.423
+    Purchase cost       Compressor(s)               USD         1.5e+03
+    Total purchase cost                             USD         1.5e+03
+    Utility cost                                 USD/hr           0.498
 
     References
     ----------
@@ -407,13 +414,16 @@ class IsentropicCompressor(Compressor):
             T_isentropic = out.T
         self.T_isentropic = T_isentropic
         dH_isentropic = out.H - feed.H
-        self.design_results['Ideal power'] = ideal_power = dH_isentropic / 3600. # kW
+        self.design_results['Ideal power'] = dH_isentropic / 3600. # kW
         self.design_results['Ideal duty'] = 0.
         dH_actual = dH_isentropic / self.eta
         out.H = feed.H + dH_actual        
         if self.vle is True: out.vle(H=out.H, P=out.P)
-        self.power_utility.consumption = ideal_power  / self.eta
-
+        
+    def _design(self):
+        super()._design()
+        self._set_power(self.design_results['Ideal power'] / self.eta)
+        
 
 class PolytropicCompressor(Compressor):
     """
@@ -466,14 +476,15 @@ class PolytropicCompressor(Compressor):
         flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Power               Rate                         kW            5.54
-                        Cost                     USD/hr           0.433
-    Design              Type                             Recriprocating
+    Power               Rate                         kW            6.52
+                        Cost                     USD/hr            0.51
+    Design              Polytropic work                           2e+04
+                        Type                             Recriprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
-    Purchase cost       Compressor(s)               USD        1.27e+03
-    Total purchase cost                             USD        1.27e+03
-    Utility cost                                 USD/hr           0.433
+    Purchase cost       Compressor(s)               USD        1.55e+03
+    Total purchase cost                             USD        1.55e+03
+    Utility cost                                 USD/hr            0.51
 
 
     Repeat using Hundseid method [2]_:
@@ -492,14 +503,15 @@ class PolytropicCompressor(Compressor):
         flow (kmol/hr): H2  1
     >>> K.results()
     Polytropic compressor                         Units              K1
-    Power               Rate                         kW            5.51
-                        Cost                     USD/hr           0.431
-    Design              Type                             Recriprocating
+    Power               Rate                         kW            6.48
+                        Cost                     USD/hr           0.507
+    Design              Polytropic work                        1.98e+04
+                        Type                             Recriprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
-    Purchase cost       Compressor(s)               USD        1.26e+03
-    Total purchase cost                             USD        1.26e+03
-    Utility cost                                 USD/hr           0.431
+    Purchase cost       Compressor(s)               USD        1.54e+03
+    Total purchase cost                             USD        1.54e+03
+    Utility cost                                 USD/hr           0.507
 
 
     References
@@ -574,7 +586,7 @@ class PolytropicCompressor(Compressor):
             feed.P = out.P
             feed.T = out.T
 
-        return W_actual / out.F_mol # kJ/hr
+        return W_actual # kJ/hr
 
     def _run(self):
         feed = self.ins[0]
@@ -582,6 +594,9 @@ class PolytropicCompressor(Compressor):
         out.copy_like(feed)
         name = '_' + self._method
         method = getattr(self, name)
-        W = method() # Polytropic work [kJ/hr]
+        self.design_results['Polytropic work'] = method() # Polytropic work [kJ/hr]
         if self.vle is True: out.vle(H=out.H, P=out.P)
-        self.power_utility.consumption = W / 3600 # kJ/hr -> kW
+        
+    def _design(self):
+        super()._design()
+        self._set_power(self.design_results['Polytropic work'] / 3600) # kJ/hr -> kW
