@@ -854,4 +854,10 @@ class HeatUtility:
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
 
+    def __add__(self, other):
+        if other: return self.__class__.sum([self, other])
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
 HeatUtility.default_agents()

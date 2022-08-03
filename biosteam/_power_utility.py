@@ -241,5 +241,11 @@ class PowerUtility:
     
     def __repr__(self):
         return f'{type(self).__name__}(consumption={self.consumption}, production={self.production})'
+
+    def __add__(self, other):
+        return PowerUtility.sum([self, other])
+
+    def __radd__(self, other):
+        return PowerUtility.sum([self,other])
     
 PowerUtility.default_price()

@@ -229,6 +229,9 @@ class IsothermalCompressor(Compressor):
         Whether to perform phase equilibrium calculations on
         the outflow. If False, the outlet will be assumed to be the same
         phase as the inlet.
+    type: str
+        Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
 
     Notes
     -----
@@ -322,6 +325,9 @@ class IsentropicCompressor(Compressor):
         Whether to perform phase equilibrium calculations on
         the outflow. If False, the outlet will be assumed to be the same
         phase as the inlet.
+    type: str
+        Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
 
     Notes
     -----
@@ -448,6 +454,9 @@ class PolytropicCompressor(Compressor):
         for real gases at high pressure ratios.
     n_steps: int
         Number of virtual steps used in numerical integration for hundseid method.
+    type: str
+        Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
 
     Notes
     -----
@@ -600,3 +609,330 @@ class PolytropicCompressor(Compressor):
     def _design(self):
         super()._design()
         self._set_power(self.design_results['Polytropic work'] / 3600) # kJ/hr -> kW
+
+
+class MultistageCompressor(Unit):
+    """
+    Create a multistage compressor. Models multistage polytropic or isentropic compression with intermittent cooling.
+
+    There are two setup options:
+
+    * Option 1: Define `pr` and `n_stages` (optionally `eta`, `vle`, `type`).
+        Creates `n_stages` identical isentropic compressors. Each compressor is followed by
+        a heat exchanger, which cools the effluent to inlet temperature.
+
+    * Option 2: Define `compressors` and `hxs`.
+        Takes a list of pre-defined compressors and heat exchangers and connects them in series. This option
+        allows more flexibility in terms of the type of compressor (isentropic/polytropic) and parameterization
+        (e.g. each stage can have different efficiencies and outlet temperatures).
+
+    Parameters
+    ----------
+    ins : stream
+        Inlet fluid.
+    outs : stream
+        Outlet fluid.
+    pr : float
+        (setup option 1) Pressure ratio between isentropic stages.
+    n_stages: float
+        (setup option 1) Number of isentropic stages.
+    eta : float
+        (setup option 1) Isentropic efficiency.
+    vle : bool
+        (setup option 1) Whether to perform phase equilibrium calculations on
+        the outflow of each stage. If False, the outlet will be assumed to be the same
+        phase as the inlet.
+    type: str
+        (setup option 1) Type of compressor : blower/centrifugal/reciprocating. If None, the type
+        will be determined automatically.
+    compressors: list[_CompressorBase]
+        (setup option 2) List of compressors to use for each stage.
+    hxs: list[HX]
+        (setup option 2) List of heat exchangers to use for each stage.
+
+    Notes
+    -----
+    Default compressor selection, design and cost algorithms are adapted from [0]_.
+
+    Examples
+    --------
+    Simulate multistage compression of gaseous hydrogen (simple setup). Hydrogen is compressed
+    isentropically (with an efficiency of 70%) from 20 bar to 320 bar in four stages
+    (pressure ratio of two in each stage):
+
+    >>> import biosteam as bst
+    >>> thermo = bst.Thermo([bst.Chemical('H2')])
+    >>> thermo.mixture.include_excess_energies = True
+    >>> bst.settings.set_thermo(thermo)
+    >>> feed = bst.Stream('feed', H2=1, T=298.15, P=20e5, phase='g')
+    >>> K = bst.units.MultistageCompressor('K1', ins=feed, outs='outlet', pr=2, n_stages=4, eta=0.7)
+    >>> K.simulate()
+    >>> K.show()
+    MultistageCompressor: K1
+    ins...
+    [0] feed
+        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] outlet
+        phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Multistage compressor                           Units                     K1
+    Power               Rate                           kW                   3.14
+                        Cost                       USD/hr                  0.246
+    Chilled water       Duty                        kJ/hr              -1.12e+04
+                        Flow                      kmol/hr                   7.41
+                        Cost                       USD/hr                 0.0559
+    Design              Type                            -  Multistage compressor
+                        Power                          kW                   3.14
+                        Duty                      kJ/kmol              -1.12e+04
+                        Area                         ft^2                   1.54
+                        Tube side pressure drop       psi                     12
+                        Shell side pressure drop      psi                     20
+                        Outlet Temperature              K                    298
+                        Volumetric Flow Rate       m^3/hr                   1.24
+    Purchase cost       K1 k1 - Compressor               USD             4.3e+03
+                        K1 h1 - Double pipe              USD                 568
+                        K1 k2 - Compressor               USD            4.27e+03
+                        K1 h2 - Double pipe              USD                 675
+                        K1 k3 - Compressor               USD            4.25e+03
+                        K1 h3 - Double pipe              USD                 956
+                        K1 k4 - Compressor               USD            4.24e+03
+                        K1 h4 - Double pipe              USD            1.78e+03
+    Total purchase cost                               USD                2.1e+04
+    Utility cost                                   USD/hr                  0.301
+
+    Show the fluid state at the outlet of each heat exchanger:
+    >>> for hx in K.hxs:
+    ...  hx.outs[0].show()
+    ...
+    Stream: K1_H1__K1_K2 from <HXutility: K1_H1> to <IsentropicCompressor: K1_K2>
+     phase: 'g', T: 298.15 K, P: 4e+06 Pa
+     flow (kmol/hr): H2  1
+    Stream: K1_H2__K1_K3 from <HXutility: K1_H2> to <IsentropicCompressor: K1_K3>
+     phase: 'g', T: 298.15 K, P: 8e+06 Pa
+     flow (kmol/hr): H2  1
+    Stream: K1_H3__K1_K4 from <HXutility: K1_H3> to <IsentropicCompressor: K1_K4>
+     phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
+     flow (kmol/hr): H2  1
+    Stream: outlet from <MultistageCompressor: K1>
+     phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
+     flow (kmol/hr): H2  1
+
+    If we want to setup more complex multistage compression schemes, we can pre-define the compressors and
+    heat exchangers and pass them as a list to `MultistageCompressor`:
+
+    >>> ks = [
+    ...     bst.units.IsentropicCompressor(P=30e5, eta=0.6),
+    ...     bst.units.PolytropicCompressor(P=50e5, eta=0.65),
+    ...     bst.units.IsentropicCompressor(P=90e5, eta=0.70),
+    ...     bst.units.PolytropicCompressor(P=170e5, eta=0.75),
+    ...     bst.units.IsentropicCompressor(P=320e5, eta=0.80),
+    ... ]
+    >>> hxs = [bst.units.HXutility(T=T) for T in [310, 350, 400, 350, 298]]
+    >>> K = bst.units.MultistageCompressor('K2', ins=feed, outs='outlet', compressors=ks, hxs=hxs)
+    >>> K.simulate()
+    >>> K.show()
+    MultistageCompressor: K2
+    ins...
+    [0] feed
+        phase: 'g', T: 298.15 K, P: 2e+06 Pa
+        flow (kmol/hr): H2  1
+    outs...
+    [0] outlet
+        phase: 'g', T: 298 K, P: 3.2e+07 Pa
+        flow (kmol/hr): H2  1
+    >>> K.results()
+    Multistage compressor                           Units                     K2
+    Power               Rate                           kW                   3.57
+                        Cost                       USD/hr                  0.279
+    Chilled water       Duty                        kJ/hr              -5.63e+03
+                        Flow                      kmol/hr                   3.73
+                        Cost                       USD/hr                 0.0282
+    Cooling water       Duty                        kJ/hr              -7.12e+03
+                        Flow                      kmol/hr                   4.87
+                        Cost                       USD/hr                0.00237
+    Design              Type                            -  Multistage compressor
+                        Power                          kW                   3.57
+                        Duty                      kJ/kmol              -1.28e+04
+                        Area                         ft^2                   1.14
+                        Tube side pressure drop       psi                     15
+                        Shell side pressure drop      psi                     25
+                        Outlet Temperature              K                    298
+                        Volumetric Flow Rate       m^3/hr                   1.24
+    Purchase cost       K2 k1 - Compressor            USD                4.3e+03
+                        K2 h1 - Double pipe           USD                    298
+                        K2 k2 - Compressor            USD               4.28e+03
+                        K2 h2 - Double pipe           USD                    198
+                        K2 k3 - Compressor            USD               4.27e+03
+                        K2 h3 - Double pipe           USD                    129
+                        K2 k4 - Compressor            USD               4.26e+03
+                        K2 h4 - Double pipe           USD                    752
+                        K2 k5 - Compressor            USD               4.24e+03
+                        K2 h5 - Double pipe           USD               2.03e+03
+    Total purchase cost                               USD               2.47e+04
+    Utility cost                                   USD/hr                   0.31
+
+
+    References
+    ----------
+    .. [0] Sinnott, R. and Towler, G. (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
+
+    """
+
+    _N_ins = 1
+    _N_outs = 1
+    _N_heat_utilities = 0
+    _units = {
+        **Compressor._units,
+        **bst.HX._units,
+    }
+
+    def __init__(
+            self, ID='', ins=None, outs=(), thermo=None, *,
+            pr=None, n_stages=None, eta=0.7, vle=False, type=None,
+            compressors=None, hxs=None,
+    ):
+        super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
+
+        # setup option 1: list of compressors and list of heat exchangers
+        if compressors is not None and hxs is not None:
+            if not isinstance(compressors[0], Compressor):
+                raise RuntimeError(f"Invalid parameterization of {self.ID}: `compressors` must "
+                                   f"be a list of compressor objects.")
+            elif not isinstance(hxs[0], bst.HX):
+                raise RuntimeError(f"Invalid parameterization of {self.ID}: `hxd` must "
+                                   f"be a list of heat exchanger objects.")
+            elif len(compressors) != len(hxs):
+                raise RuntimeError(f"Invalid parameterization of {self.ID}: `compressors` and `hxs` "
+                                   f"must have the same length.")
+            else:
+                self.compressors = compressors
+                self.hxs = hxs
+                self.pr = None
+                self.n_stages = None
+
+        # setup option 2: fixed pressure ratio and number of stages
+        elif pr is not None and n_stages is not None:
+            self.pr = pr
+            self.n_stages = n_stages
+            self.eta = eta
+            self.vle=vle
+            self.type=type
+            self.compressors = None
+            self.hxs = None
+        else:
+            raise RuntimeError(f"Invalid parameterization of {self.ID}: Must specify `pr` and "
+                               f"`n_stages` or `compressors` and `hxs`.")
+
+    def _overwrite_subcomponent_id(self, subcomponent, i_stage):
+
+        # overwrite subcomponent id
+        ID = f"{self.ID}_{subcomponent.ticket_name}{i_stage}"
+        subcomponent.ID = ID
+
+        # overwrite inlet id if not multistage inlet
+        if i_stage == 1 and isinstance(subcomponent, Compressor):
+            pass
+        else:
+            subcomponent.ins[0].ID = f"{subcomponent.ins[0].ID}__{ID}"
+
+        # overwrite outlet id if not multistage outlet
+        if i_stage == (self.n_stages or len(self.compressors)) and isinstance(subcomponent, bst.HX):
+            pass
+        else:
+            subcomponent.outs[0].ID = f"{ID}"
+
+    def _setup(self):
+        super()._setup()
+
+        # helper variables
+        feed = self.ins[0]
+
+        # setup option 1: create connections between compressors and hxs
+        if self.compressors is not None and self.hxs is not None:
+            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
+                if n == 0:
+                    inflow = feed
+                else:
+                    inflow = self.hxs[n-1].outs[0]
+                c.ins[0] = inflow
+                hx.ins[0] = c.outs[0]
+                self._overwrite_subcomponent_id(c, n+1)
+                self._overwrite_subcomponent_id(hx, n+1)
+                if n==len(self.compressors)-1:
+                    hx._outs = self.outs
+
+        # setup option 2: create connected compressor and hx objects
+        elif self.pr is not None and self.n_stages is not None:
+            self.compressors = []
+            self.hxs = []
+            for n in range(self.n_stages):
+                if n==0:
+                    inflow = feed
+                    P = feed.P * self.pr
+                else:
+                    inflow = hx.outs[0]
+                    P = P * self.pr
+
+                c = IsentropicCompressor(
+                    ins=inflow, P=P, eta=self.eta,
+                    vle=self.vle, type=self.type
+                )
+                self._overwrite_subcomponent_id(c, n+1)
+                hx = bst.HXutility(
+                    ins=c.outs[0], T=inflow.T, rigorous=self.vle
+                )
+                self._overwrite_subcomponent_id(hx, n+1)
+                if n==self.n_stages-1:
+                    hx._outs = self.outs
+                self.compressors.append(c)
+                self.hxs.append(hx)
+
+        # set inlet and outlet reference
+        self._ins = self.compressors[0].ins
+        self._outs = self.hxs[-1].outs
+
+        # set auxillary units
+        units = [u for t in zip(self.compressors,self.hxs) for u in t]
+        self.auxiliary_unit_names = tuple([u.ID for u in units])
+        for u in units:
+            self.__setattr__(u.ID, u)
+
+    def _run(self):
+        # calculate results
+
+        # helper variables
+        units = [u for t in zip(self.compressors, self.hxs) for u in t]
+
+        # simulate all subcomponents
+        for u in units:
+            u.simulate()
+
+        self.power_utility.mix_from([u.power_utility for u in units])
+        self.heat_utilities = bst.HeatUtility.sum_by_agent([h for u in units for h in u.heat_utilities])
+
+    def _design(self):
+        self.design_results["Type"] = "Multistage compressor"
+
+        # sum up design values
+        units = [u for t in zip(self.compressors,self.hxs) for u in t]
+        sum_fields = [
+            "Power", "Duty",
+            "Area", "Tube side pressure drop", "Shell side pressure drop"
+        ]
+        for u in units:
+            for k,v in u.design_results.items():
+                if k in sum_fields:
+                    if k in self.design_results:
+                        self.design_results[k] += v
+                    else:
+                        self.design_results[k] = v
+
+        # add heat exchanger duties
+        self.design_results["Duty"] += sum([-hx.Q for hx in self.hxs])
+
+        # manual additions
+        self.design_results["Outlet Temperature"] = self.outs[0].T
+        self.design_results["Volumetric Flow Rate"] = self.ins[0].F_vol

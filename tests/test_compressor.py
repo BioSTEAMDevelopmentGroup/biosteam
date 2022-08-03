@@ -157,6 +157,94 @@ def test_polytropic_hydrogen_compressor():
     assert K.design_results["Type"] == "Blower"
 
 
+def test_multistage_hydrogen_compressor_simple():
+    thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
+    thermo.mixture.include_excess_energies = True
+    bst.settings.set_thermo(thermo)
+    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    # test simple setup
+    n_stages = 5
+    pr = (P / feed.P) ** (1 / n_stages)
+    K = bst.units.MultistageCompressor(ins=feed, pr=pr, n_stages=n_stages, eta=0.7)
+    K.simulate()
+    # check outlet state
+    out = K.outs[0]
+    assert allclose(
+        a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+        b=[1.0, 0.0, feed.T, P],
+    )
+    # check compressor design
+    assert allclose(
+        a=list(K.design_results.values())[1:],
+        b=[3.1947634058250136, -11360.047353145392, 1.7911402030788341, 15.0, 25.0, 298.15, 1.2394785148011942],
+    )
+    assert K.design_results["Type"] == 'Multistage compressor'
+    # check heat utilities
+    assert K.heat_utilities[0].ID == 'chilled_water'
+    assert allclose(
+        a=[len(K.heat_utilities), K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
+        b=[1, -11360.047353143065, 7.528681881161173, 0.056800236765715335],
+    )
+    # check power utility
+    assert allclose(
+        a=[K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
+        b=[3.1947634058250136, 0.0, 3.1947634058250136, 0.24983049833551607],
+    )
+    pass
+
+
+def test_multistage_hydrogen_compressor_advanced():
+    thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
+    thermo.mixture.include_excess_energies = True
+    bst.settings.set_thermo(thermo)
+    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    # test advanced setup
+    Ps = [60e5, 90e5, 200e5, 300e5, 350e5]
+    Ts = [450, 400, 350, 300, feed.T]
+    ks = [
+        bst.units.IsentropicCompressor(P=Ps[0], eta=0.6),
+        bst.units.PolytropicCompressor(P=Ps[1], eta=0.7),
+        bst.units.IsentropicCompressor(P=Ps[2], eta=0.75),
+        bst.units.PolytropicCompressor(P=Ps[3], eta=0.8),
+        bst.units.IsentropicCompressor(P=Ps[4], eta=0.85),
+    ]
+    hxs = [bst.units.HXutility(T=T) for T in Ts]
+    K = bst.units.MultistageCompressor(ins=feed, compressors=ks, hxs=hxs)
+    K.simulate()
+    # check hx outlet states
+    for hx, P, T in zip(K.hxs, Ps, Ts):
+        out = hx.outs[0]
+        assert allclose(
+            a=[out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+            b=[1.0, 0.0, T, P],
+        )
+    # check compressor design
+    assert K.design_results["Type"] == 'Multistage compressor'
+    assert allclose(
+        a=list(K.design_results.values())[1:],
+        b=[3.947886783581299, -14071.29151262998, 1.1011570059916886, 15.0, 25.0, 298.15, 1.2394785148011942],
+    )
+    # check heat utilities
+    assert len(K.heat_utilities) == 2
+    assert K.heat_utilities[0].ID == 'chilled_water'
+    assert K.heat_utilities[1].ID == 'cooling_water'
+    assert allclose(
+        a=[K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
+        b=[-3694.971298724524, 2.448780590727134, 0.018474856493622623],
+    )
+    assert allclose(
+        a=[K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        b=[-10376.320213906532, 7.091122145383326, 0.0034594039386252554],
+    )
+    # check power utility
+    assert allclose(
+        a=[K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
+        b=[3.947886783581299, 0.0, 3.947886783581299, 0.3087247464760576],
+    )
+    pass
+
 def test_compressor_design():
     bst.settings.set_thermo(["H2"])
     feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
@@ -187,3 +275,5 @@ if __name__ == '__main__':
     test_isentropic_two_phase_steam_compressor()
     test_isothermal_hydrogen_compressor()
     test_polytropic_hydrogen_compressor()
+    test_multistage_hydrogen_compressor_simple()
+    test_multistage_hydrogen_compressor_advanced()
