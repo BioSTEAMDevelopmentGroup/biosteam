@@ -10,6 +10,7 @@ from .. import Unit
 from warnings import warn
 from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
+from .heat_exchange import HX
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
 
@@ -786,7 +787,7 @@ class MultistageCompressor(Unit):
     _N_heat_utilities = 0
     _units = {
         **Compressor._units,
-        **bst.HX._units,
+        **HX._units,
     }
 
     def __init__(
