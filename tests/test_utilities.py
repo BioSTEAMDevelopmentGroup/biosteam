@@ -19,16 +19,17 @@ def test_heat_util_sum():
         hus += [hu, hu.copy()]
         Q_expected[agent.ID] = 2*Q/agent.heat_transfer_efficiency
 
-    # sum by agent
-    hus = sum(hus)
+    # sum tries to return a HeatUtility object, but cannot due to heat utilities with different agents
+    with pytest.raises(ValueError):
+        sum(hus) 
 
-    # check Q_actual == Q_expected
-    Q_actual = {hu.agent.ID:hu.duty for hu in hus}
-    assert allclose(
-        a = [Q_expected[a] for a in Q_actual.keys()],
-        b = list(Q_actual.values()),
-    )
-    pass
+    # check Q_actual == Q_expected using both pythonic sum and sum_by_agent method
+    hus = bst.HeatUtility.sum_by_agent(hus)
+    heat_utilities_by_agent = bst.HeatUtility.heat_utilities_by_agent(hus)
+    hus_sum = tuple([sum(i) for i in heat_utilities_by_agent.values()])
+    Q_actual_python_sum = {hu.agent.ID: hu.duty for hu in hus_sum}
+    Q_actual = {hu.agent.ID: hu.duty for hu in hus}
+    assert Q_actual_python_sum == Q_actual == Q_expected
 
 def test_power_util_sum():
 

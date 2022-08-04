@@ -243,9 +243,10 @@ class PowerUtility:
         return f'{type(self).__name__}(consumption={self.consumption}, production={self.production})'
 
     def __add__(self, other):
+        if other == 0: return self # Special case to get Python built-in sum to work
         return PowerUtility.sum([self, other])
 
     def __radd__(self, other):
-        return PowerUtility.sum([self,other])
+        return self.__add__(other)
     
 PowerUtility.default_price()
