@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-# Copyright (C) 2020-2021, Yoel Cortes-Pena <yoelcortes@gmail.com>
+# Copyright (C) 2020-2022, Yoel Cortes-Pena <yoelcortes@gmail.com>, Ben Portner <github.com/BenPortner>
 #
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
@@ -68,7 +68,8 @@ class Compressor(Unit, isabstract=True):
     _F_BM_default = {
         'Compressor(s)': 2.15,
     }
-    baseline_cost_algorithms = { #: [str] Compressor type: [CompressorCostAlgorithm]
+    #: dict[str, CompressorCostAlgorithm] Cost algorithms by compressor type.
+    baseline_cost_algorithms = { 
         'Screw': CompressorCostAlgorithm(
                 psig_max=400.,
                 acfm_bounds=(800., 2e4),
