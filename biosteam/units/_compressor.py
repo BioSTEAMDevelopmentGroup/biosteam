@@ -98,7 +98,7 @@ class Compressor(Unit, isabstract=True):
                 driver='Steam turbine',
                 CE=567,
             ),
-        'Recriprocating': CompressorCostAlgorithm(
+        'Reciprocating': CompressorCostAlgorithm(
               psig_max=1e5,
               acfm_bounds=(5., 7000.),
               hp_bounds=(100., 20e3),
@@ -201,6 +201,7 @@ class Compressor(Unit, isabstract=True):
     def _calculate_ideal_power_and_duty(self):
         feed = self.ins[0]
         out = self.outs[0]
+        if feed.P > out.P: raise RuntimeError('inlet pressure is above outlet')
         dH = out.H - feed.H
         Q = TdS = feed.T * (out.S - feed.S)  # Duty [kJ/hr]
         power_ideal = (dH - TdS) / 3600.  # Power [kW]
