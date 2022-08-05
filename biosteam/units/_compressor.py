@@ -932,10 +932,3 @@ class MultistageCompressor(Unit):
                         self.design_results[k] += v
                     else:
                         self.design_results[k] = v
-
-        # add heat exchanger duties
-        self.design_results["Duty"] += sum([-hx.Q for hx in self.hxs])
-
-        # manual additions
-        self.design_results["Outlet Temperature"] = self.outs[0].T
-        self.design_results["Volumetric Flow Rate"] = self.ins[0].F_vol
