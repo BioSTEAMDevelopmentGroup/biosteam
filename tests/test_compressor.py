@@ -283,7 +283,7 @@ def test_multistage_hydrogen_compressor_advanced():
     # check power utility
     assert_allclose(
         [K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        [4.644572686566234, 0.0, 4.644572686566234, 0.3632055840894795],
+        [6.02039501950755, 0.0, 6.02039501950755, 0.47079489052549045],
     )
     pass
 
