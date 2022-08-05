@@ -257,7 +257,7 @@ class IsothermalCompressor(Compressor):
     >>> K = bst.units.IsothermalCompressor('K', ins=feed, P=350e5, eta=1)
     >>> K.simulate()
     >>> K.show()
-    IsothermalCompressor: K1
+    IsothermalCompressor: K
     ins...
     [0] s1
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
@@ -668,10 +668,10 @@ class MultistageCompressor(Unit):
     >>> thermo.mixture.include_excess_energies = True
     >>> bst.settings.set_thermo(thermo)
     >>> feed = bst.Stream('feed', H2=1, T=298.15, P=20e5, phase='g')
-    >>> K = bst.units.MultistageCompressor('K1', ins=feed, outs='outlet', pr=2, n_stages=4, eta=0.7)
+    >>> K = bst.units.MultistageCompressor('K', ins=feed, outs='outlet', pr=2, n_stages=4, eta=0.7)
     >>> K.simulate()
     >>> K.show()
-    MultistageCompressor: K1
+    MultistageCompressor: K
     ins...
     [0] feed
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
@@ -681,28 +681,24 @@ class MultistageCompressor(Unit):
         phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
         flow (kmol/hr): H2  1
     >>> K.results()
-    Multistage compressor                           Units                     K1
-    Power               Rate                           kW                   3.14
-                        Cost                       USD/hr                  0.246
+    Multistage compressor                           Units                      K
+    Power               Rate                           kW                   3.69
+                        Cost                       USD/hr                  0.289
     Chilled water       Duty                        kJ/hr              -1.12e+04
                         Flow                      kmol/hr                   7.41
                         Cost                       USD/hr                 0.0559
     Design              Type                            -  Multistage compressor
-                        Power                          kW                   3.14
-                        Duty                      kJ/kmol              -1.12e+04
                         Area                         ft^2                   1.54
                         Tube side pressure drop       psi                     12
                         Shell side pressure drop      psi                     20
-                        Outlet Temperature              K                    298
-                        Volumetric Flow Rate       m^3/hr                   1.24
-    Purchase cost       K1 k1 - Compressor               USD             4.3e+03
-                        K1 h1 - Double pipe              USD                 568
-                        K1 k2 - Compressor               USD            4.27e+03
-                        K1 h2 - Double pipe              USD                 675
-                        K1 k3 - Compressor               USD            4.25e+03
-                        K1 h3 - Double pipe              USD                 956
-                        K1 k4 - Compressor               USD            4.24e+03
-                        K1 h4 - Double pipe              USD            1.78e+03
+    Purchase cost       K k1 - Compressor               USD              4.3e+03
+                        K h1 - Double pipe              USD                  568
+                        K k2 - Compressor               USD             4.27e+03
+                        K h2 - Double pipe              USD                  675
+                        K k3 - Compressor               USD             4.25e+03
+                        K h3 - Double pipe              USD                  956
+                        K k4 - Compressor               USD             4.24e+03
+                        K h4 - Double pipe              USD             1.78e+03
     Total purchase cost                               USD                2.1e+04
     Utility cost                                   USD/hr                  0.301
 
