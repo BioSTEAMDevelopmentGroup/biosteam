@@ -178,20 +178,14 @@ def test_polytropic_hydrogen_compressor():
     # check compressor design
     assert K.design_results["Type"] == "Recriprocating"
     assert K.design_results["Driver"] == "Electric motor"
-    ideal_duty = 0
-    ideal_power = K_isen.power_utility.rate
-    eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Electric motor"]
-    expected_power = ideal_power / eta / eta_motor
+    assert K.heat_utilities == ()
+    expected_power = 6.482427434951657
     actual_power = K.power_utility.rate
     assert allclose(
-        a=[actual_power, K.design_results['Ideal power'],
-           K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
-        b=[expected_power, ideal_power, ideal_duty, 1],
+        a=[actual_power, K.design_results['Compressors in parallel']],
+        b=[expected_power, 1],
     )
-    assert allclose(
-        a=list(K.design_results.values())[1:],
-        b=[5.510063319708909, 0, 958.12, 1.2394785148011942],
-    )
+    pass
 
 
 def test_multistage_hydrogen_compressor_simple():
@@ -212,11 +206,16 @@ def test_multistage_hydrogen_compressor_simple():
         b=[1.0, 0.0, feed.T, P],
     )
     # check compressor design
+    assert K.design_results["Type"] == "Multistage compressor"
+    # assert K.design_results["Driver"] == "Electric motor"
     assert allclose(
-        a=list(K.design_results.values())[1:],
-        b=[3.1947634058250136, -11360.047353145392, 1.7911402030788341, 15.0, 25.0, 298.15, 1.2394785148011942],
+        a=[
+            K.design_results["Area"],
+            K.design_results['Tube side pressure drop'],
+            K.design_results['Shell side pressure drop'],
+        ],
+        b=[1.7911402030788341, 15.0, 25.0],
     )
-    assert K.design_results["Type"] == 'Multistage compressor'
     # check heat utilities
     assert K.heat_utilities[0].ID == 'chilled_water'
     assert allclose(
@@ -226,7 +225,7 @@ def test_multistage_hydrogen_compressor_simple():
     # check power utility
     assert allclose(
         a=[K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        b=[3.1947634058250136, 0.0, 3.1947634058250136, 0.24983049833551607],
+        b=[3.7585451833235455, 0.0, 3.7585451833235455, 0.2939182333359013],
     )
     pass
 
@@ -258,27 +257,32 @@ def test_multistage_hydrogen_compressor_advanced():
             b=[1.0, 0.0, T, P],
         )
     # check compressor design
-    assert K.design_results["Type"] == 'Multistage compressor'
+    assert K.design_results["Type"] == "Multistage compressor"
+    # assert K.design_results["Driver"] == "Electric motor"
     assert allclose(
-        a=list(K.design_results.values())[1:],
-        b=[3.947886783581299, -14071.29151262998, 1.1011570059916886, 15.0, 25.0, 298.15, 1.2394785148011942],
+        a=[
+            K.design_results["Area"],
+            K.design_results['Tube side pressure drop'],
+            K.design_results['Shell side pressure drop'],
+        ],
+        b=[1.1011570059916886, 15.0, 25.0],
     )
     # check heat utilities
     assert len(K.heat_utilities) == 2
-    assert K.heat_utilities[0].ID == 'chilled_water'
-    assert K.heat_utilities[1].ID == 'cooling_water'
+    assert K.heat_utilities[1].ID == 'chilled_water'
+    assert K.heat_utilities[0].ID == 'cooling_water'
     assert allclose(
-        a=[K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
+        a=[K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
         b=[-3694.971298724524, 2.448780590727134, 0.018474856493622623],
     )
     assert allclose(
-        a=[K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        a=[K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
         b=[-10376.320213906532, 7.091122145383326, 0.0034594039386252554],
     )
     # check power utility
     assert allclose(
         a=[K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        b=[3.947886783581299, 0.0, 3.947886783581299, 0.3087247464760576],
+        b=[4.644572686566234, 0.0, 4.644572686566234, 0.3632055840894795],
     )
     pass
 
@@ -307,10 +311,10 @@ def test_compressor_design():
 
 
 if __name__ == '__main__':
-    # test_compressor_design()
+    test_compressor_design()
     test_isentropic_hydrogen_compressor()
     test_isentropic_two_phase_steam_compressor()
-    # test_isothermal_hydrogen_compressor()
+    test_isothermal_hydrogen_compressor()
     test_polytropic_hydrogen_compressor()
     test_multistage_hydrogen_compressor_simple()
     test_multistage_hydrogen_compressor_advanced()
