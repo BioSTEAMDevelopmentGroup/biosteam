@@ -25,7 +25,6 @@ __all__ = (
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
 #: * update `MultistageCompressor` to implement changes made by Yoel
-#: * let user overwrite motor efficiency
 
 class CompressorCostAlgorithm(NamedTuple): 
     #: Defines preliminary correlation algorithm for a compressor type
@@ -58,12 +57,12 @@ class Compressor(Unit, isabstract=True):
         'Ideal power': 'kW',
         'Ideal duty': 'kJ/hr',
     }
-    _F_D = { # Design factors
+    design_factors = {
         'Electric motor': 1.0,
         'Steam turbine': 1.15,
         'Gas turbine': 1.25,
     }
-    _F_M = { # Material factors
+    material_factors = {
         'Carbon steel': 1.0,
         'Stainless steel': 2.5,
         'Nickel alloy': 5.0,
@@ -116,7 +115,7 @@ class Compressor(Unit, isabstract=True):
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  P, eta=0.7, vle=False, compressor_type=None, 
-                 driver=None, material=None):
+                 driver=None, material=None, driver_efficiency=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P  #: Outlet pressure [Pa].
         self.eta = eta  #: Isentropic efficiency.
@@ -127,13 +126,14 @@ class Compressor(Unit, isabstract=True):
         self.material = 'Carbon steel' if material is None else material 
         self.compressor_type = 'Default' if compressor_type is None else compressor_type 
         self.driver = 'Default' if driver is None else driver
+        self.driver_efficiency = 'Default' if driver_efficiency is None else driver_efficiency
 
     @property
     def compressor_type(self):
         return self._compressor_type
     @compressor_type.setter
     def compressor_type(self, compressor_type):
-        """[str] Type of compressor. If 'Default', the type will be determined based on power."""
+        """[str] Type of compressor. If 'Default', the type will be determined based on the outlet pressure."""
         compressor_type = compressor_type.capitalize()
         if compressor_type not in self.baseline_cost_algorithms and compressor_type != 'Default':
             raise ValueError(
@@ -147,26 +147,46 @@ class Compressor(Unit, isabstract=True):
         return self._driver
     @driver.setter
     def driver(self, driver):
-        """[str] Type of compressor. If 'Default', the type will be determined based on power."""
+        """[str] Type of compressor. If 'Default', the type will be determined 
+        based on type of compressor used. Centrifugal compressors default to 
+        steam turbines while reciprocating and screw compressors default to 
+        electric motors."""
         driver = driver.capitalize()
-        if driver not in self._F_D and driver != 'Default':
+        if driver not in self.design_factors and driver != 'Default':
             raise ValueError(
                 f"driver {repr(driver)} not available; "
-                f"only {list_available_names(self._F_D)} are available"
+                f"only {list_available_names(self.design_factors)} are available"
             )
         self._driver = driver
 
     @property
+    def driver_efficiency(self):
+        return self._driver_efficiency
+    @driver_efficiency.setter
+    def driver_efficiency(self, driver_efficiency):
+        """[str] Efficiency of driver (e.g., steam turbine or electric motor). 
+        If 'Default', a heuristic efficiency will be selected based
+        on the compressor type and the driver."""
+        if isinstance(driver_efficiency, str):
+            if driver_efficiency != 'Default':
+                raise ValueError(
+                    f"driver efficiency must be a number or 'Default'; not {repr(driver_efficiency)}"
+                )
+        else:
+            driver_efficiency = float(driver_efficiency)
+        self._driver_efficiency = driver_efficiency
+
+    @property
     def material(self):
-        """Defaults to 'Carbon steel'"""
+        """[str]. Construction material. Defaults to 'Carbon steel'."""
         return self._material
     @material.setter
     def material(self, material):
         try:
-            self.F_M['Compressor(s)'] = self._F_M[material]
+            self.F_M['Compressor(s)'] = self.material_factors[material]
         except KeyError:
             raise AttributeError("material must be one of the following: "
-                                 f"{list_available_names(self._F_M)}")
+                                 f"{list_available_names(self.material_factors)}")
         self._material = material
 
     def _determine_compressor_type(self):
@@ -187,10 +207,13 @@ class Compressor(Unit, isabstract=True):
         return power_ideal, Q
 
     def _set_power(self, power):
-        compressor_type = self.design_results['Type']
-        driver = self.design_results['Driver']
-        alg = self.baseline_cost_algorithms[compressor_type]
-        self.power_utility.consumption = power / alg.efficiencies[driver]
+        driver_efficiency = self._driver_efficiency
+        if driver_efficiency == 'Default': 
+            compressor_type = self.design_results['Type']
+            driver = self.design_results['Driver']
+            alg = self.baseline_cost_algorithms[compressor_type]
+            driver_efficiency = alg.efficiencies[driver]
+        self.power_utility.consumption = power / driver_efficiency
     
     def _design(self):
         design_results = self.design_results
@@ -213,7 +236,7 @@ class Compressor(Unit, isabstract=True):
         F = Pc / N
         bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
         self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(F)
-        self.F_D['Compressor(s)'] = self._F_D[design_results['Driver']]
+        self.F_D['Compressor(s)'] = self.design_factors[design_results['Driver']]
 
 
 class IsothermalCompressor(Compressor):
