@@ -24,6 +24,8 @@ __all__ = (
 
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
+#: * update `MultistageCompressor` to implement changes made by Yoel
+#: * let user overwrite motor efficiency
 
 class CompressorCostAlgorithm(NamedTuple): 
     #: Defines preliminary correlation algorithm for a compressor type
