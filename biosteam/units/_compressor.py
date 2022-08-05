@@ -645,7 +645,7 @@ class MultistageCompressor(Unit):
         (setup option 1) Whether to perform phase equilibrium calculations on
         the outflow of each stage. If False, the outlet will be assumed to be the same
         phase as the inlet.
-    type: str
+    compressor_type: str
         (setup option 1) Type of compressor : blower/centrifugal/reciprocating. If None, the type
         will be determined automatically.
     compressors: list[_CompressorBase]
@@ -794,7 +794,7 @@ class MultistageCompressor(Unit):
 
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None, *,
-            pr=None, n_stages=None, eta=0.7, vle=False, type=None,
+            pr=None, n_stages=None, eta=0.7, vle=False, compressor_type=None,
             compressors=None, hxs=None,
     ):
         super().__init__(ID=ID, ins=ins, outs=outs, thermo=thermo)
@@ -822,7 +822,7 @@ class MultistageCompressor(Unit):
             self.n_stages = n_stages
             self.eta = eta
             self.vle=vle
-            self.type=type
+            self.compressor_type=compressor_type
             self.compressors = None
             self.hxs = None
         else:
@@ -881,7 +881,7 @@ class MultistageCompressor(Unit):
 
                 c = IsentropicCompressor(
                     ins=inflow, P=P, eta=self.eta,
-                    vle=self.vle, type=self.type
+                    vle=self.vle, compressor_type=self.compressor_type
                 )
                 self._overwrite_subcomponent_id(c, n+1)
                 hx = bst.HXutility(
