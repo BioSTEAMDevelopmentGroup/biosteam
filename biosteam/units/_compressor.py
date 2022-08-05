@@ -213,6 +213,7 @@ class Compressor(Unit, isabstract=True):
             driver = self.design_results['Driver']
             alg = self.baseline_cost_algorithms[compressor_type]
             driver_efficiency = alg.efficiencies[driver]
+        self.design_results['Driver efficiency'] = driver_efficiency
         self.power_utility.consumption = power / driver_efficiency
     
     def _design(self):
