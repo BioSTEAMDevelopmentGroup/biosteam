@@ -933,19 +933,16 @@ class MultistageCompressor(Unit):
         units = [u for t in zip(self.compressors, self.hxs) for u in t]
 
         # simulate all subcomponents
-        for u in units:
-            u.run()
-
-        self.power_utility.mix_from([u.power_utility for u in units])
-        self.heat_utilities = bst.HeatUtility.sum_by_agent([h for u in units for h in u.heat_utilities])
+        for u in units: u.run()
 
     def _design(self):
         self.design_results["Type"] = "Multistage compressor"
 
         # design all subcomponents
         units = [u for t in zip(self.compressors,self.hxs) for u in t]
-        for u in units:
-            u._summary()
+        for u in units: u._summary()
+        self.power_utility.mix_from([u.power_utility for u in units])
+        self.heat_utilities = bst.HeatUtility.sum_by_agent([h for u in units for h in u.heat_utilities])
 
         # sum up design values
         sum_fields = [
