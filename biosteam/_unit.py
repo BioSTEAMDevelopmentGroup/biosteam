@@ -421,6 +421,14 @@ class Unit:
                 elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
                     j._reset_thermo(thermo)
     
+    @property
+    def net_power(self):
+        """Net power consumption [kW]."""
+        return self.power_utility.rate
+    @property
+    def net_duty(self):
+        """Net duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities])
     
     def define_utility(self, name, stream):
         if name not in bst.stream_utility_prices:
