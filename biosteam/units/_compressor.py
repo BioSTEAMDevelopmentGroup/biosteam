@@ -19,6 +19,7 @@ __all__ = (
     'IsentropicCompressor', 
     'IsothermalCompressor', 
     'PolytropicCompressor',
+    'MultistageCompressor'
 )
 
 #: TODO:
