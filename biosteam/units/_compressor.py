@@ -190,7 +190,7 @@ class Compressor(Unit, isabstract=True):
         self._material = material
 
     def _determine_compressor_type(self):
-        psig = (self.P - 101325) * 14.6959
+        psig = (self.P - 101325.) * 14.6959 / 101325.
         cost_algorithms = self.baseline_cost_algorithms
         for name, alg in cost_algorithms.items():
             if psig < alg.psig_max: return name
@@ -233,9 +233,9 @@ class Compressor(Unit, isabstract=True):
         acfm_lb, acfm_ub = alg.acfm_bounds
         Pc = self.power_utility.get_property('consumption', 'hp')
         N = design_results['Compressors in parallel']
-        F = Pc / N
+        Pc_per_compressor = Pc / N
         bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
-        self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(F)
+        self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_compressor)
         self.F_D['Compressor(s)'] = self.design_factors[design_results['Driver']]
 
 
