@@ -100,8 +100,8 @@ class Pump(Unit):
                         Head              ft         96.5
                         Type                  Centrifugal
     Purchase cost       Pump             USD     4.37e+03
-                        Motor            USD          288
-    Total purchase cost                  USD     4.66e+03
+                        Motor            USD          311
+    Total purchase cost                  USD     4.68e+03
     Utility cost                      USD/hr       0.0226
     
     References
