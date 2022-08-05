@@ -222,7 +222,7 @@ class Compressor(Unit, isabstract=True):
         design_results['Type'] = compressor_type
         alg = self.baseline_cost_algorithms[compressor_type]
         acfm_lb, acfm_ub = alg.acfm_bounds
-        acfm = self.outs[0].get_total_flow('cfm')
+        acfm = self.ins[0].get_total_flow('cfm')
         design_results['Compressors in parallel'] = ceil(acfm / acfm_ub) if acfm > acfm_ub else 1
         design_results['Driver'] = alg.driver if self._driver == 'Default' else self._driver 
     
