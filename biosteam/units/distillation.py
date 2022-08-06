@@ -1051,7 +1051,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Rectifier weight                     lb  6.04e+03
                         Stripper weight                      lb  4.45e+03
     Purchase cost       Condenser - Floating head           USD  3.33e+04
-                        Boiler - Floating head              USD  2.67e+04
+                        Boiler - Floating head              USD  2.71e+04
                         Rectifier trays                     USD   1.5e+04
                         Stripper trays                      USD  1.25e+04
                         Rectifier tower                     USD  4.58e+04
@@ -1449,7 +1449,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Rectifier weight                     lb  6.76e+03
                         Stripper weight                      lb  7.96e+03
     Purchase cost       Condenser - Floating head           USD  4.07e+04
-                        Boiler - Floating head              USD  2.93e+04
+                        Boiler - Floating head              USD  2.98e+04
                         Rectifier trays                     USD  1.58e+04
                         Stripper trays                      USD  2.01e+04
                         Rectifier tower                     USD  4.89e+04

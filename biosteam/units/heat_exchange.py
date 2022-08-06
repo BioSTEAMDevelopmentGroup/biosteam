@@ -124,8 +124,8 @@ class HX(Unit, isabstract=True):
         )
 
     def _design(self):
-        # Get duty (kW)
-        Q = abs(self.Q) / 3600
+        # Get heat transfer (kW)
+        Q = abs(self.total_heat_transfer) / 3600
         
         if Q <= 1e-12: 
             self.design_results.clear()
@@ -234,6 +234,11 @@ class HXutility(HX):
         If True, heat exchanger can only heat.
     cool_only : bool, optional
         If True, heat exchanger can only cool.
+    heat_transfer_efficiency : bool, optional
+        User enforced heat transfer efficiency. A value less than 1
+        means that a fraction of heat transfered is lost to the environment.
+        If value is None, it defaults to the heat transfer efficiency of the 
+        heat utility.
         
     Notes
     -----
@@ -267,7 +272,7 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 1.01e+06
                         Flow                                kmol/hr     26.1
                         Cost                                 USD/hr     6.21
-    Design              Area                                   ft^2       57
+    Design              Area                                   ft^2       60
                         Overall heat transfer coefficient  kW/m^2/K      0.5
                         Log-mean temperature difference           K      101
                         Fouling correction factor                          1
@@ -275,8 +280,8 @@ class HXutility(HX):
                         Shell side pressure drop                psi        5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Double pipe                             USD 4.74e+03
-    Total purchase cost                                         USD 4.74e+03
+    Purchase cost       Double pipe                             USD 4.78e+03
+    Total purchase cost                                         USD 4.78e+03
     Utility cost                                             USD/hr     6.21
     
     Run heat exchanger by vapor fraction:
@@ -302,7 +307,7 @@ class HXutility(HX):
     Low pressure steam  Duty                                  kJ/hr 1.94e+07
                         Flow                                kmol/hr      499
                         Cost                                 USD/hr      119
-    Design              Area                                   ft^2      680
+    Design              Area                                   ft^2      716
                         Overall heat transfer coefficient  kW/m^2/K        1
                         Log-mean temperature difference           K     80.8
                         Fouling correction factor                          1
@@ -310,8 +315,8 @@ class HXutility(HX):
                         Shell side pressure drop                psi      1.5
                         Operating pressure                      psi       50
                         Total tube length                        ft       20
-    Purchase cost       Floating head                           USD 2.61e+04
-    Total purchase cost                                         USD 2.61e+04
+    Purchase cost       Floating head                           USD 2.65e+04
+    Total purchase cost                                         USD 2.65e+04
     Utility cost                                             USD/hr      119
 
     """
@@ -326,6 +331,7 @@ class HXutility(HX):
             ft=None,
             heat_only=None,
             cool_only=None,
+            heat_transfer_efficiency=None,
         ):
         super().__init__(ID, ins, outs, thermo)
         self.T = T #: [float] Temperature of outlet stream (K).
@@ -352,6 +358,12 @@ class HXutility(HX):
         
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
+        
+        #: [bool] User enforced heat transfer efficiency. A value less than 1
+        #: means that a fraction of heat transfered is lost to the environment.
+        #: If value is None, it defaults to the heat transfer efficiency of the 
+        #: heat utility.
+        self.heat_transfer_efficiency = heat_transfer_efficiency
     
     def _init_utils(self):
         # tuple[HeatUtility] All heat utilities associated to unit
@@ -362,9 +374,10 @@ class HXutility(HX):
         self.power_utility = bst.PowerUtility()
     
     @property
-    def Q(self):
-        """[float] Total heat transfered."""
-        return abs(self.heat_utilities[0].unit_duty)
+    def total_heat_transfer(self):
+        """[float] Heat transfer in kJ/hr, including environmental losses."""
+        return abs(self.heat_utilities[0].duty)
+    Q = total_heat_transfer # Alias for backward compatibility
     
     @property
     def heat_utilities(self):
@@ -437,7 +450,7 @@ class HXutility(HX):
                             else:
                                 raise RuntimeError('outlet in vapor-liquid equilibrium, but stream is linked')
                         outlet.T = T
-                    except ValueError as e:
+                    except ValueError:
                         outlet.vle(T=T, P=outlet.P)
             else:
                 outlet.vle(H=H, P=outlet.P)
@@ -499,8 +512,7 @@ class HXutility(HX):
 
     def _design(self, duty=None):
         # Set duty and run heat utility
-        if duty is None:
-            duty = self.H_out - self.H_in
+        if duty is None: duty = self.H_out - self.H_in
         inlet = self.ins[0]
         outlet = self.outs[0] 
         T_in = inlet.T
@@ -656,8 +668,8 @@ class HXprocess(HX):
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
         self.U = U
         
-        #: [float] Total heat transfered.
-        self.Q = None
+        #: [float] Total heat transfered in kW (not including losses).
+        self.total_heat_transfer = None
         
         #: Number of shells for LMTD correction factor method.
         self.N_shells = N_shells
@@ -695,6 +707,15 @@ class HXprocess(HX):
         s_out_a, s_out_b  = self.outs
         return s_in_a, s_in_b, s_out_a, s_out_b
     
+    @property
+    def Q(self): 
+        # Alias for backwards compatibility, not documented to avoid users
+        # from depending on it.
+        return self.total_heat_transfer
+    @Q.setter
+    def Q(self, Q):
+        self.total_heat_transfer = Q
+    
     def _setup(self):
         super()._setup()
         if self.reset_source:
@@ -711,11 +732,11 @@ class HXprocess(HX):
         if s1_in.isempty():
             s1_out.empty()
             s2_out.copy_like(s2_in)
-            self.Q = 0.
+            self.total_heat_transfer = 0.
         elif s2_in.isempty():
             s2_out.empty()
             s1_out.copy_like(s1_in)
-            self.Q = 0.
+            self.total_heat_transfer = 0.
         else:
             s1_out.copy_like(s1_in)
             s2_out.copy_like(s2_in)
@@ -726,7 +747,7 @@ class HXprocess(HX):
                     if len(phase) == 1: s_out.phase = phase
     
     def _run_counter_current_heat_exchange(self):
-        self.Q = ht.counter_current_heat_exchange(*self._ins, *self._outs,
-                                                  self.dT, self.T_lim0, self.T_lim1,
-                                                  self.phase0, self.phase1, 
-                                                  self.H_lim0, self.H_lim1)
+        self.total_heat_transfer = ht.counter_current_heat_exchange(
+            *self._ins, *self._outs, self.dT, self.T_lim0, self.T_lim1,
+            self.phase0, self.phase1, self.H_lim0, self.H_lim1
+        )
