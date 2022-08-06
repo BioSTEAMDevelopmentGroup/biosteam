@@ -16,6 +16,8 @@ Authors of the BioSTEAM software include:
   * Sarang Sunil Bhagwat (led the development of the heat exchanger network and contributed expertise in several other areas)
 
   * Yalin Li (contributed general expertise throughout development)
+  
+  * Ben Portner (contributed compressor models and general expertise)
 
 * Direct contributers to code base:
 

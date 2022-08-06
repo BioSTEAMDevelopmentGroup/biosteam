@@ -9,7 +9,7 @@
 """
 from .decorators import cost
 from .._unit import Unit
-from ..utils import lb_warning
+from ..exceptions import lb_warning
 
 __all__ = ('ConveyingBelt',)
 

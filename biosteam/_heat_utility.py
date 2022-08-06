@@ -755,8 +755,11 @@ class HeatUtility:
             heat_utility, *other_heat_utilities = heat_utilities
             agent = heat_utility.agent
             ID = agent.ID
-            assert all([i.agent.ID == ID for i in other_heat_utilities]), (
-                "utility agent must be the same to mix heat utilities")
+            for i in other_heat_utilities:
+                if i.agent.ID != ID:
+                    raise ValueError(
+                        "utility agent must be the same to mix heat utilities"
+                    )
             self.load_agent(agent)
             self.flow = self.inlet_utility_stream.F_mol = sum([i.flow for i in heat_utilities])
             self.duty = sum([i.duty for i in heat_utilities])
@@ -853,5 +856,12 @@ class HeatUtility:
         """Print all specifications"""
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
+
+    def __add__(self, other):
+        if other == 0: return self # Special case to get Python built-in sum to work
+        return self.__class__.sum([self, other])
+        
+    def __radd__(self, other):
+        return self.__add__(other)
 
 HeatUtility.default_agents()

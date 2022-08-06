@@ -24,7 +24,7 @@ from .decorators import cost
 from .splitting import Splitter
 from .design_tools import compute_vacuum_system_power_and_cost
 from warnings import warn
-from ..utils.unit_warnings import lb_warning
+from ..exceptions import lb_warning
 from .decorators import cost
 from biosteam.utils import remove_undefined_chemicals, default_chemical_dict
 import numpy as np
