@@ -293,7 +293,7 @@ def test_compressor_design():
     K = bst.units.IsothermalCompressor(ins=feed, P=350e5)
     
     # Test default compressor types across pressures:
-    psig_to_pascal = lambda psig: (psig - 14.6959) * 101325 / 14.6959
+    psig_to_pascal = lambda psig: (psig + 14.6959) * 101325 / 14.6959
     def compressor_type_at_psig(psig):
         K.P = psig_to_pascal(psig)
         K.simulate()
@@ -338,7 +338,7 @@ def test_compressor_design():
     
     K.driver = K.driver_efficiency = K.compressor_type = 'Default'
     assert_allclose([installed_equipment_cost_at_psig(i) for i in pressures],
-                    [2027202.4105666534, 5156437.360887882, 10474174.862319255])
+                    [ 2267264.256152,  5179043.514644, 10479970.002024])
 
 
 if __name__ == '__main__':
