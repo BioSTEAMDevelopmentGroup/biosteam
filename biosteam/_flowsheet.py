@@ -20,6 +20,22 @@ __all__ = ('main_flowsheet', 'Flowsheet')
 
 # %% Flowsheet search      
 
+class TemporaryFlowsheet:
+    __slots__ = ('original', 'temporary')
+    
+    def __init__(self, temporary):
+        self.temporary = temporary
+    
+    def __enter__(self):
+        self.original = main_flowsheet.get_flowsheet()
+        main_flowsheet.set_flowsheet(self.temporary)
+        return self.temporary
+    
+    def __exit__(self, type, exception, traceback):
+        main_flowsheet.set_flowsheet(self.original)
+        if exception: raise exception
+
+
 class Flowsheets:
     __getitem__ = object.__getattribute__
     
@@ -82,6 +98,11 @@ class Flowsheet:
         self._ID = ID
         self.flowsheet.__dict__[ID] = self
         return self
+    
+    def temporary(self):
+        """Temporarily register all objects in this flowsheet instead of
+        the main flowsheet."""
+        return TemporaryFlowsheet(self)
     
     def __reduce__(self):
         return self.from_registries, self.registries
