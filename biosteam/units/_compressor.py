@@ -301,11 +301,12 @@ class IsothermalCompressor(Compressor):
     Chilled water       Duty                       kJ/hr       -7.26e+03
                         Flow                     kmol/hr            7.53
                         Cost                      USD/hr          0.0363
-    Design              Type                              Recriprocating
+    Design              Type                               Reciprocating
                         Compressors in parallel                        1
                         Driver                            Electric motor
                         Ideal power                   kW             2.1
                         Ideal duty                 kJ/hr       -7.26e+03
+                        Driver efficiency                           0.85
     Purchase cost       Compressor(s)                USD             470
     Total purchase cost                              USD             470
     Utility cost                                  USD/hr            0.23
@@ -384,17 +385,18 @@ class IsentropicCompressor(Compressor):
         flow (kmol/hr): H2  1
 
     >>> K.results()
-    Isentropic compressor                         Units              K1
-    Power               Rate                         kW            8.27
-                        Cost                     USD/hr           0.647
-    Design              Ideal power                  kW            4.92
-                        Ideal duty                kJ/hr               0
-                        Type                             Recriprocating
-                        Compressors in parallel                       1
-                        Driver                           Electric motor
-    Purchase cost       Compressor(s)               USD        2.07e+03
-    Total purchase cost                             USD        2.07e+03
-    Utility cost                                 USD/hr           0.647
+    Isentropic compressor                         Units             K1
+    Power               Rate                         kW           10.8
+                        Cost                     USD/hr          0.846
+    Design              Ideal power                  kW           4.92
+                        Ideal duty                kJ/hr              0
+                        Type                               Centrifugal
+                        Compressors in parallel                      1
+                        Driver                           Steam turbine
+                        Driver efficiency                         0.65
+    Purchase cost       Compressor(s)               USD       5.87e+04
+    Total purchase cost                             USD       5.87e+04
+    Utility cost                                 USD/hr          0.846
 
 
     Per default, the outlet phase is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
@@ -418,17 +420,18 @@ class IsentropicCompressor(Compressor):
         flow (kmol/hr): (g) H2O  1
 
     >>> K.results()
-    Isentropic compressor                         Units              K2
-    Power               Rate                         kW            6.37
-                        Cost                     USD/hr           0.498
-    Design              Ideal power                  kW            5.41
-                        Ideal duty                kJ/hr               0
-                        Type                             Recriprocating
-                        Compressors in parallel                       1
-                        Driver                           Electric motor
-    Purchase cost       Compressor(s)               USD         1.5e+03
-    Total purchase cost                             USD         1.5e+03
-    Utility cost                                 USD/hr           0.498
+    Isentropic compressor                         Units             K2
+    Power               Rate                         kW           8.32
+                        Cost                     USD/hr          0.651
+    Design              Ideal power                  kW           5.41
+                        Ideal duty                kJ/hr              0
+                        Type                               Centrifugal
+                        Compressors in parallel                      1
+                        Driver                           Steam turbine
+                        Driver efficiency                         0.65
+    Purchase cost       Compressor(s)               USD       4.98e+04
+    Total purchase cost                             USD       4.98e+04
+    Utility cost                                 USD/hr          0.651
 
     References
     ----------
@@ -518,9 +521,10 @@ class PolytropicCompressor(Compressor):
     Power               Rate                         kW            6.52
                         Cost                     USD/hr            0.51
     Design              Polytropic work                           2e+04
-                        Type                             Recriprocating
+                        Type                              Reciprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
+                        Driver efficiency                          0.85
     Purchase cost       Compressor(s)               USD        1.55e+03
     Total purchase cost                             USD        1.55e+03
     Utility cost                                 USD/hr            0.51
@@ -540,14 +544,16 @@ class PolytropicCompressor(Compressor):
     [0] outlet
         phase: 'g', T: 958.12 K, P: 3.5e+07 Pa
         flow (kmol/hr): H2  1
+    
     >>> K.results()
     Polytropic compressor                         Units              K1
     Power               Rate                         kW            6.48
                         Cost                     USD/hr           0.507
     Design              Polytropic work                        1.98e+04
-                        Type                             Recriprocating
+                        Type                              Reciprocating
                         Compressors in parallel                       1
                         Driver                           Electric motor
+                        Driver efficiency                          0.85
     Purchase cost       Compressor(s)               USD        1.54e+03
     Total purchase cost                             USD        1.54e+03
     Utility cost                                 USD/hr           0.507
@@ -707,42 +713,42 @@ class MultistageCompressor(Unit):
     [0] outlet
         phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
         flow (kmol/hr): H2  1
+    
     >>> K.results()
     Multistage compressor                           Units                      K
-    Power               Rate                           kW                   3.69
-                        Cost                       USD/hr                  0.289
+    Power               Rate                           kW                   4.83
+                        Cost                       USD/hr                  0.378
     Chilled water       Duty                        kJ/hr              -1.12e+04
                         Flow                      kmol/hr                   7.41
                         Cost                       USD/hr                 0.0559
-    Design              Type                            -  Multistage compressor
+    Design              Type                               Multistage compressor
                         Area                         ft^2                   1.54
                         Tube side pressure drop       psi                     12
                         Shell side pressure drop      psi                     20
-    Purchase cost       K k1 - Compressor               USD              4.3e+03
-                        K h1 - Double pipe              USD                  568
-                        K k2 - Compressor               USD             4.27e+03
-                        K h2 - Double pipe              USD                  675
-                        K k3 - Compressor               USD             4.25e+03
-                        K h3 - Double pipe              USD                  956
-                        K k4 - Compressor               USD             4.24e+03
-                        K h4 - Double pipe              USD             1.78e+03
-    Total purchase cost                               USD                2.1e+04
-    Utility cost                                   USD/hr                  0.301
+    Purchase cost       K k1 - Compressor(s)          USD               1.45e+04
+                        K h1 - Double pipe            USD                    568
+                        K k2 - Compressor(s)          USD               1.46e+04
+                        K h2 - Double pipe            USD                    675
+                        K k3 - Compressor(s)          USD               1.48e+04
+                        K h3 - Double pipe            USD                    956
+                        K k4 - Compressor(s)          USD               1.52e+04
+                        K h4 - Double pipe            USD               1.78e+03
+    Total purchase cost                               USD                6.3e+04
+    Utility cost                                   USD/hr                  0.434
 
     Show the fluid state at the outlet of each heat exchanger:
     >>> for hx in K.hxs:
     ...  hx.outs[0].show()
-    ...
-    Stream: K1_H1__K1_K2 from <HXutility: K1_H1> to <IsentropicCompressor: K1_K2>
+    Stream: K_H1__K_K2 from <HXutility: K_H1> to <IsentropicCompressor: K_K2>
      phase: 'g', T: 298.15 K, P: 4e+06 Pa
      flow (kmol/hr): H2  1
-    Stream: K1_H2__K1_K3 from <HXutility: K1_H2> to <IsentropicCompressor: K1_K3>
+    Stream: K_H2__K_K3 from <HXutility: K_H2> to <IsentropicCompressor: K_K3>
      phase: 'g', T: 298.15 K, P: 8e+06 Pa
      flow (kmol/hr): H2  1
-    Stream: K1_H3__K1_K4 from <HXutility: K1_H3> to <IsentropicCompressor: K1_K4>
+    Stream: K_H3__K_K4 from <HXutility: K_H3> to <IsentropicCompressor: K_K4>
      phase: 'g', T: 298.15 K, P: 1.6e+07 Pa
      flow (kmol/hr): H2  1
-    Stream: outlet from <MultistageCompressor: K1>
+    Stream: outlet from <MultistageCompressor: K>
      phase: 'g', T: 298.15 K, P: 3.2e+07 Pa
      flow (kmol/hr): H2  1
 
@@ -771,34 +777,30 @@ class MultistageCompressor(Unit):
         flow (kmol/hr): H2  1
     >>> K.results()
     Multistage compressor                           Units                     K2
-    Power               Rate                           kW                   3.57
-                        Cost                       USD/hr                  0.279
+    Power               Rate                           kW                    5.5
+                        Cost                       USD/hr                   0.43
     Chilled water       Duty                        kJ/hr              -5.63e+03
                         Flow                      kmol/hr                   3.73
                         Cost                       USD/hr                 0.0282
     Cooling water       Duty                        kJ/hr              -7.12e+03
                         Flow                      kmol/hr                   4.87
                         Cost                       USD/hr                0.00237
-    Design              Type                            -  Multistage compressor
-                        Power                          kW                   3.57
-                        Duty                      kJ/kmol              -1.28e+04
+    Design              Type                               Multistage compressor
                         Area                         ft^2                   1.14
                         Tube side pressure drop       psi                     15
                         Shell side pressure drop      psi                     25
-                        Outlet Temperature              K                    298
-                        Volumetric Flow Rate       m^3/hr                   1.24
-    Purchase cost       K2 k1 - Compressor            USD                4.3e+03
+    Purchase cost       K2 k1 - Compressor(s)         USD               1.11e+04
                         K2 h1 - Double pipe           USD                    298
-                        K2 k2 - Compressor            USD               4.28e+03
+                        K2 k2 - Compressor(s)         USD                1.3e+04
                         K2 h2 - Double pipe           USD                    198
-                        K2 k3 - Compressor            USD               4.27e+03
+                        K2 k3 - Compressor(s)         USD               1.44e+04
                         K2 h3 - Double pipe           USD                    129
-                        K2 k4 - Compressor            USD               4.26e+03
+                        K2 k4 - Compressor(s)         USD               1.63e+04
                         K2 h4 - Double pipe           USD                    752
-                        K2 k5 - Compressor            USD               4.24e+03
+                        K2 k5 - Compressor(s)         USD               1.45e+04
                         K2 h5 - Double pipe           USD               2.03e+03
-    Total purchase cost                               USD               2.47e+04
-    Utility cost                                   USD/hr                   0.31
+    Total purchase cost                               USD               7.26e+04
+    Utility cost                                   USD/hr                   0.46
 
 
     References
@@ -825,6 +827,7 @@ class MultistageCompressor(Unit):
         # setup option 1: list of compressors and list of heat exchangers
         if compressors is not None and hxs is not None:
             if not isinstance(compressors[0], Compressor):
+                print(compressors[0].__class__)
                 raise RuntimeError(f"invalid parameterization of {self.ID}: `compressors` must "
                                    f"be a list of compressor objects.")
             elif not isinstance(hxs[0], bst.HX):
