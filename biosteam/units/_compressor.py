@@ -99,18 +99,18 @@ class Compressor(Unit, isabstract=True):
                 CE=567,
             ),
         'Reciprocating': CompressorCostAlgorithm(
-              psig_max=1e5,
-              acfm_bounds=(5., 7000.),
-              hp_bounds=(100., 20e3),
-              cost=lambda Pc: exp(4.6762 + 1.23 * log(Pc)),
-              efficiencies={
-                  'Electric motor': 0.85,
-                  'Steam turbine': 0.65,
-                  'Gas turbine': 0.35,
-              },
-              driver='Electric motor',
-              CE=567,
-          ),
+                psig_max=1e5,
+                acfm_bounds=(5., 7000.),
+                hp_bounds=(100., 20e3),
+                cost=lambda Pc: exp(4.6762 + 1.23 * log(Pc)),
+                efficiencies={
+                    'Electric motor': 0.85,
+                    'Steam turbine': 0.65,
+                    'Gas turbine': 0.35,
+                },
+                driver='Electric motor',
+                CE=567,
+            ),
     }
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
