@@ -735,6 +735,7 @@ class MultistageCompressor(Unit):
     Utility cost                                   USD/hr                  0.434
 
     Show the fluid state at the outlet of each heat exchanger:
+    
     >>> for hx in K.hxs:
     ...  hx.outs[0].show()
     Stream: K_H1__K_K2 from <HXutility: K_H1> to <IsentropicCompressor: K_K2>

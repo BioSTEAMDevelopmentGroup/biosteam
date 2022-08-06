@@ -29,7 +29,7 @@ class PowerUtility:
     
     References
     ----------
-    [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
         & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
     
     Examples
