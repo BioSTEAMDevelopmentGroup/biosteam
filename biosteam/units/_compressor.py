@@ -280,17 +280,17 @@ class IsothermalCompressor(Compressor):
     >>> thermo = bst.Thermo([bst.Chemical('H2', eos=SRK)])
     >>> thermo.mixture.include_excess_energies = True
     >>> bst.settings.set_thermo(thermo)
-    >>> feed = bst.Stream(H2=1, T=298.15, P=20e5, phase='g')
-    >>> K = bst.units.IsothermalCompressor('K', ins=feed, P=350e5, eta=1)
+    >>> feed = bst.Stream('feed', H2=1, T=298.15, P=20e5, phase='g')
+    >>> K = bst.units.IsothermalCompressor('K', ins=feed, outs='outlet', P=350e5, eta=1)
     >>> K.simulate()
     >>> K.show()
     IsothermalCompressor: K
     ins...
-    [0] s1
+    [0] feed
         phase: 'g', T: 298.15 K, P: 2e+06 Pa
         flow (kmol/hr): H2  1
     outs...
-    [0] s2
+    [0] outlet
         phase: 'g', T: 298.15 K, P: 3.5e+07 Pa
         flow (kmol/hr): H2  1
     
