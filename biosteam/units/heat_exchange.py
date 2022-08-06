@@ -10,8 +10,6 @@ This module contains heat exchanger unit operations.
 
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.heat_exchange.HX
 .. autoclass:: biosteam.units.heat_exchange.HXutility
 .. autoclass:: biosteam.units.heat_exchange.HXprocess 

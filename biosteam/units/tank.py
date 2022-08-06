@@ -6,12 +6,8 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for tanks.
-
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.tank.Tank
 .. autoclass:: biosteam.units.tank.MixTank
 .. autoclass:: biosteam.units.tank.StorageTank
@@ -19,6 +15,16 @@ Unit operations
 Factories
 ---------
 .. autofunction:: biosteam.units.tank.tank_factory
+
+References
+----------
+.. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
+    (2009). Techno-economic analysis of a biodiesel production process from
+    vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
+    https://doi.org/10.1016/j.fuproc.2009.04.017
+.. [2] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
+    Ng, M. K. Cost Accounting and Capital Cost Estimation.
+    In Product and Process Design Principles; Wiley, 2017; pp 426–485.
 
 """
 from .design_tools.specification_factors import vessel_material_factors
@@ -334,17 +340,6 @@ class StorageTank(Tank):
     Total purchase cost                     USD 8.41e+05
     Utility cost                         USD/hr        0
     
-    
-    References
-    ----------
-    .. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
-        (2009). Techno-economic analysis of a biodiesel production process from
-        vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
-        https://doi.org/10.1016/j.fuproc.2009.04.017
-    .. [2] Seider, W. D.; Lewin, D. R.; Seader, J. D.; Widagdo, S.; Gani, R.; 
-        Ng, M. K. Cost Accounting and Capital Cost Estimation.
-        In Product and Process Design Principles; Wiley, 2017; pp 426–485.
-
     """
     _outs_size_is_fixed = _ins_size_is_fixed = True
     _default_vessel_type = 'Field erected'
@@ -385,18 +380,7 @@ class MixTank(Tank):
     
     The purchase cost algorithm is based on [1]_.
     The electricity rate is based on [2]_.
-
-    References
-    ----------
-    .. [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., Angelopoulos, K. C.
-        (2009). Techno-economic analysis of a biodiesel production process from
-        vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031.
-        https://doi.org/10.1016/j.fuproc.2009.04.017
-
-    .. [2] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
+    
     """
     rigorous = False
     _N_ins = 2

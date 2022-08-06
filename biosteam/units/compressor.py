@@ -5,6 +5,25 @@
 # This module is under the UIUC open-source license. See
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
+"""
+.. contents:: :local:
+
+.. autoclass:: biosteam.units.compressor.Compressor
+.. autoclass:: biosteam.units.compressor.IsothermalCompressor
+.. autoclass:: biosteam.units.compressor.IsentropicCompressor
+.. autoclass:: biosteam.units.compressor.PolytropicCompressor
+.. autoclass:: biosteam.units.compressor.MultistageCompressor
+
+References
+----------
+.. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+    Cost Accounting and Capital Cost Estimation (Chapter 16)
+.. [2] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
+.. [3] Schultz, J. (1962). "The Polytropic Analysis of Centrifugal Compressors". J. Eng. Power., 84(1): 69-82 (14 pages)
+.. [4] Hundseid, O., Bakken, L. E. and Helde, T. (2006). “A Revised Compressor Polytropic Performance Analysis,” Proceedings of ASME GT2006, Paper Number 91033, ASME Turbo Expo 2006.
+
+"""
 import biosteam as bst
 from .. import Unit
 from warnings import warn
@@ -24,7 +43,6 @@ __all__ = (
 
 #: TODO:
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
-#: * update `MultistageCompressor` to implement changes made by Yoel
 
 class CompressorCostAlgorithm(NamedTuple): 
     #: Defines preliminary correlation algorithm for a compressor type
@@ -42,12 +60,6 @@ class Compressor(Unit, isabstract=True):
     Abstract class for compressors that includes design and costing. Child classes
     should implement the `_run` method for mass and energy balances. Preliminary 
     design and costing is estimated according to [1]_.
-    
-    References
-    ----------
-    .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-    Cost Accounting and Capital Cost Estimation (Chapter 16)
     
     """
     _N_ins = 1
@@ -265,7 +277,7 @@ class IsothermalCompressor(Compressor):
 
     Notes
     -----
-    Default compressor selection, design and cost algorithms are adapted from [0]_.
+    Default compressor selection, design and cost algorithms are adapted from [2]_.
 
     Examples
     --------
@@ -310,10 +322,6 @@ class IsothermalCompressor(Compressor):
     Purchase cost       Compressor(s)                USD             470
     Total purchase cost                              USD             470
     Utility cost                                  USD/hr            0.23
-
-    References
-    ----------
-    .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
 
     """
 
@@ -362,7 +370,7 @@ class IsentropicCompressor(Compressor):
 
     Notes
     -----
-    Default compressor selection, design and cost algorithms are adapted from [0]_.
+    Default compressor selection, design and cost algorithms are adapted from [2]_.
 
     Examples
     --------
@@ -433,10 +441,6 @@ class IsentropicCompressor(Compressor):
     Total purchase cost                             USD       4.98e+04
     Utility cost                                 USD/hr          0.651
 
-    References
-    ----------
-    .. [0] Sinnott, R. and Towler, G (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
-
     """
     _N_heat_utilities = 0
 
@@ -493,11 +497,11 @@ class PolytropicCompressor(Compressor):
 
     Notes
     -----
-    Default compressor selection, design and cost algorithms are adapted from [0]_.
+    Default compressor selection, design and cost algorithms are adapted from [2]_.
 
     Examples
     --------
-    Simulate polytropic compression of hydrogen with 70% efficiency using the Schultz method [1]_:
+    Simulate polytropic compression of hydrogen with 70% efficiency using the Schultz method [3]_:
 
     >>> import biosteam as bst
     >>> thermo = bst.Thermo([bst.Chemical('H2')])
@@ -530,7 +534,7 @@ class PolytropicCompressor(Compressor):
     Utility cost                                 USD/hr            0.51
 
 
-    Repeat using Hundseid method [2]_:
+    Repeat using Hundseid method [4]_:
 
     >>> K = bst.units.PolytropicCompressor('K1', ins=feed, outs='outlet', P=350e5, eta=0.7, method='hundseid', n_steps=200)
     >>> K.simulate()
@@ -558,12 +562,6 @@ class PolytropicCompressor(Compressor):
     Total purchase cost                             USD        1.54e+03
     Utility cost                                 USD/hr           0.507
 
-
-    References
-    ----------
-    .. [0] Sinnott, R. and Towler, G. (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
-    .. [1] Schultz, J. (1962). "The Polytropic Analysis of Centrifugal Compressors". J. Eng. Power., 84(1): 69-82 (14 pages)
-    .. [2] Hundseid, O., Bakken, L. E. and Helde, T. (2006). “A Revised Compressor Polytropic Performance Analysis,” Proceedings of ASME GT2006, Paper Number 91033, ASME Turbo Expo 2006.
 
     """
     _N_heat_utilities = 0
@@ -688,7 +686,7 @@ class MultistageCompressor(Unit):
 
     Notes
     -----
-    Default compressor selection, design and cost algorithms are adapted from [0]_.
+    Default compressor selection, design and cost algorithms are adapted from [2]_.
 
     Examples
     --------
@@ -801,11 +799,6 @@ class MultistageCompressor(Unit):
                         K2 h5 - Double pipe           USD               2.03e+03
     Total purchase cost                               USD               7.26e+04
     Utility cost                                   USD/hr                   0.46
-
-
-    References
-    ----------
-    .. [0] Sinnott, R. and Towler, G. (2019). "Chemical Engineering Design: SI Edition (Chemical Engineering Series)". 6th Edition. Butterworth-Heinemann.
 
     """
 

@@ -65,7 +65,7 @@ class Pump(Unit):
     
     Notes
     -----
-    Default pump selection and design and cost algorithms are based on [0]_.
+    Default pump selection and design and cost algorithms are based on [1]_.
     
     Examples
     --------
@@ -106,7 +106,7 @@ class Pump(Unit):
     
     References
     ----------
-    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost
+    .. [1] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost
         Estimation". In Product and Process Design Principles: Synthesis,
         Analysis, and Evaluation (pp. 450-455). New York: Wiley.
     

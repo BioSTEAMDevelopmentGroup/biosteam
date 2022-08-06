@@ -11,13 +11,22 @@ This module contains unit operations for the separation of solids
 
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.solids_separation.SolidsSeparator
 .. autoclass:: biosteam.units.solids_separation.SolidsCentrifuge
 .. autoclass:: biosteam.units.solids_separation.RotaryVacuumFilter 
 .. autoclass:: biosteam.units.solids_separation.PressureFilter
 .. autoclass:: biosteam.units.solids_separation.ScrewPress
+
+References
+----------
+.. [1] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost 
+    Estimation". In Product and Process Design Principles: Synthesis, Analysis,
+    and Evaluation (pp. 481-485). New York: Wiley.
+.. [2] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+    Dudgeon, D. (2011). Process Design and Economics for Biochemical 
+    Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
+    Pretreatment and Enzymatic Hydrolysis of Corn Stover
+    (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
 
 """
 from .decorators import cost
@@ -84,7 +93,7 @@ class SolidsSeparator(Splitter):
 class SolidsCentrifuge(SolidsSeparator):
     """
     Create a solids centrifuge that separates out solids according to
-    user defined split.
+    user defined split. Capital cost is based on [1]_
     
     Parameters
     ----------
@@ -100,17 +109,10 @@ class SolidsCentrifuge(SolidsSeparator):
     solids : tuple[str]
              IDs of solids.
     moisture_content : float
-        Fraction of water in stream [0].
+        Fraction of water in stream.
     centrifuge_type : str
         Type of the centrifuge, either 'reciprocating_pusher' (1-20 ton/hr solids)
         or 'scroll_solid_bowl' (2-40 ton/hr solids).
-    
-    
-    References
-    ----------
-    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost 
-    Estimation". In Product and Process Design Principles: Synthesis, Analysis,
-    and Evaluation (pp. 481-485). New York: Wiley.
     
     """
     _units = {'Solids loading': 'ton/hr',
@@ -319,7 +321,7 @@ _hp2kW = 0.7457
 class PressureFilter(SolidsSeparator):
     """
     Create a pressure filter for the separation of structural carbohydrates, 
-    lignin, cell mass, and other solids.
+    lignin, cell mass, and other solids. Capital costs are based on [2]_.
     
     Parameters
     ----------
@@ -330,17 +332,9 @@ class PressureFilter(SolidsSeparator):
         * [1] Filtrate
     split : array_like or dict[str, float]
         Splits of chemicals to the retantate. Defaults to values used in
-        the 2011 NREL report on cellulosic ethanol as given in [1]_.
+        the 2011 NREL report on cellulosic ethanol as given in [2]_.
     moisture_content : float, optional
         Moisture content of retentate. Defaults to 0.35
-    
-    References
-    ----------
-    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
-        Dudgeon, D. (2011). Process Design and Economics for Biochemical 
-        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
-        Pretreatment and Enzymatic Hydrolysis of Corn Stover
-        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
     _units = {'Retentate flow rate': 'kg/hr'}

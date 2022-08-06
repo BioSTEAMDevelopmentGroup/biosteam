@@ -24,7 +24,7 @@ def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
     if not metacls: metacls = type(supercls)
     cls = metacls.__new__(metacls, clsname, superclasses, {})
     for ID in cost_items:
-        _add_cost(cls, ID, *[(None if i is False else i) for i in cost_items[ID]], None, None)
+        _add_cost(cls, ID, *[(None if i is False else i) for i in cost_items[ID]], None, None, None)
     return cls
 
 def df2dct(df):

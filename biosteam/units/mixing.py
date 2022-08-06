@@ -6,17 +6,14 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for mixing.
-
 .. contents:: :local:
-    
-Unit operations
----------------
+
 .. autoclass:: biosteam.units.mixing.Mixer
 .. autoclass:: biosteam.units.mixing.SteamMixer
+.. autoclass:: biosteam.units.mixing.MockMixer
 
 """
-from ..utils import InletPort, OutletPort, ignore_docking_warnings
+from ..utils import ignore_docking_warnings
 from .._unit import Unit
 from .._graphics import mixer_graphics
 import flexsolve as flx

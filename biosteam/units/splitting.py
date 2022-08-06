@@ -10,12 +10,10 @@ This module contains unit operations for splitting flows.
 
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.splitting.Splitter
 .. autoclass:: biosteam.units.splitting.Splitter
 .. autoclass:: biosteam.units.splitting.PhaseSplitter 
-.. autoclass:: biosteam.units.splitting.FakeSplitter
+.. autoclass:: biosteam.units.splitting.MockSplitter
 .. autoclass:: biosteam.units.splitting.ReversedSplitter
 
 """
@@ -23,7 +21,7 @@ from .. import Unit
 from .._graphics import splitter_graphics
 from thermosteam import separations
 
-__all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
+__all__ = ('Splitter', 'PhaseSplitter', 'MockSplitter', 'MockSplitter',
            'ReversedSplitter')
 
 class Splitter(Unit):

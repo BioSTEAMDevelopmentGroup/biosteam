@@ -6,15 +6,27 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for distillation.
-
 .. contents:: :local:
     
-Unit Operations
----------------
 .. autoclass:: biosteam.units.distillation.Distillation
 .. autoclass:: biosteam.units.distillation.BinaryDistillation 
 .. autoclass:: biosteam.units.distillation.ShortcutColumn
+
+References
+----------
+.. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
+    Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
+
+.. [2] M. Duss, R. Taylor. (2018)
+    Predict Distillation Tray Efficiency. AICHE 
+
+.. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+    Handbook, 9 ed.; McGraw-Hill Education, 2018.
+
+.. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+    Cost Accounting and Capital Cost Estimation (Chapter 16)
+
 
 """
 import numpy as np
@@ -104,21 +116,6 @@ class Distillation(Unit, isabstract=True):
         If None, estimate ratio based on Oliver's estimation [1]_.
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
-
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
 
     """
     line = 'Distillation'
@@ -993,21 +990,6 @@ class BinaryDistillation(Distillation, new_graphics=False):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
     Examples
     --------
     Binary distillation assuming 100% separation on non-keys:
@@ -1408,21 +1390,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
     Examples
     --------
     >>> from biosteam.units import ShortcutColumn
@@ -1758,21 +1725,6 @@ class MESHDistillation(Distillation, new_graphics=False):
         If None, estimate ratio based on Oliver's estimation [1]_.
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
-
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
 
     Notes
     -----
