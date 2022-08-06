@@ -319,6 +319,27 @@ class HXutility(HX):
     Total purchase cost                                         USD 2.65e+04
     Utility cost                                             USD/hr      119
 
+    We can also specify the heat transfer efficiency of the heat exchanger:
+        
+    >>> hx.heat_transfer_efficiency = 1. # Originally 0.95 for low pressure steam
+    >>> hx.simulate()
+    >>> hx.results() # Notice how the duty, utility cost, and capital cost decreased
+    Heat exchanger                                            Units       hx
+    Low pressure steam  Duty                                  kJ/hr 1.84e+07
+                        Flow                                kmol/hr      474
+                        Cost                                 USD/hr      113
+    Design              Area                                   ft^2      680
+                        Overall heat transfer coefficient  kW/m^2/K        1
+                        Log-mean temperature difference           K     80.8
+                        Fouling correction factor                          1
+                        Tube side pressure drop                 psi      1.5
+                        Shell side pressure drop                psi      1.5
+                        Operating pressure                      psi       50
+                        Total tube length                        ft       20
+    Purchase cost       Floating head                           USD 2.61e+04
+    Total purchase cost                                         USD 2.61e+04
+    Utility cost                                             USD/hr      113
+
     """
     line = 'Heat exchanger'
     _graphics = utility_heat_exchanger_graphics
@@ -392,6 +413,8 @@ class HXutility(HX):
         self.ins[0] = stream.proxy()
         hu = self.heat_utilities[0]
         hu.heat_exchanger = None
+        hte = self.heat_transfer_efficiency
+        if hte is not None: hu.heat_transfer_efficiency = hte
         hu(duty, stream.T)
         super()._design()
         self._cost()
@@ -522,7 +545,10 @@ class HXutility(HX):
             if T_out > T_in: T_in = T_out
         else:
             if T_out < T_in: T_out = T_in
-        self.heat_utilities[0](duty, T_in, T_out)
+        hu = self.heat_utilities[0]
+        hte = self.heat_transfer_efficiency
+        if hte is not None: hu.heat_transfer_efficiency = hte
+        hu(duty, T_in, T_out)
         super()._design()
 
 
