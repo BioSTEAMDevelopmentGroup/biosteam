@@ -100,8 +100,24 @@ class Flowsheet:
         return self
     
     def temporary(self):
-        """Temporarily register all objects in this flowsheet instead of
-        the main flowsheet."""
+        """
+        Return a TemporaryFlowsheet object that, through context management,
+        will temporarily register all objects in this flowsheet instead of 
+        the main flowsheet.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> f = bst.Flowsheet('f')
+        >>> with f.temporary():
+        ...     M1 = bst.Mixer('M1')
+        >>> M1 in bst.main_flowsheet.unit
+        False
+        >>> M1 in f.unit
+        True
+        
+        """
         return TemporaryFlowsheet(self)
     
     def __reduce__(self):
