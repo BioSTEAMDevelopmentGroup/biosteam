@@ -237,8 +237,7 @@ class HXutility(HX):
     heat_transfer_efficiency : bool, optional
         User enforced heat transfer efficiency. A value less than 1
         means that a fraction of heat transfered is lost to the environment.
-        If value is None, it defaults to the heat transfer efficiency of the 
-        heat utility.
+        Defaults to the heat transfer efficiency of the utility agent.
         
     Notes
     -----
