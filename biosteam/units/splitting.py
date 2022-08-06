@@ -21,7 +21,7 @@ from .. import Unit
 from .._graphics import splitter_graphics
 from thermosteam import separations
 
-__all__ = ('Splitter', 'PhaseSplitter', 'MockSplitter', 'MockSplitter',
+__all__ = ('Splitter', 'PhaseSplitter', 'FakeSplitter', 'MockSplitter',
            'ReversedSplitter')
 
 class Splitter(Unit):
