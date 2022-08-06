@@ -19,16 +19,18 @@ from .digraph import (digraph_from_units_and_streams,
 from thermosteam import Stream, MultiStream
 from thermosteam.utils import registered
 from scipy.optimize import (
-    anderson, diagbroyden, excitingmixing, anderson, linearmixing, 
+    anderson, diagbroyden, excitingmixing, linearmixing, 
     newton_krylov, broyden1, broyden2, fsolve
 )
 from .exceptions import try_method_with_object_stamp, Converged
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
 from ._unit import Unit, repr_ins_and_outs
-from .utils import repr_items, ignore_docking_warnings, SystemScope
+from .utils import (
+    repr_items, ignore_docking_warnings, SystemScope,
+    StreamPorts, colors, list_available_names
+)
 from .report import save_report
-from .utils import StreamPorts, colors
 from .process_tools import utils
 from collections.abc import Iterable
 from warnings import warn
@@ -1151,8 +1153,8 @@ class System:
             recycle = sorted(set(recycle), key=lambda x: x._ID)
             for i in recycle:
                 if not isa(i, Stream):
-                    raise ValueError("recycle streams must be Stream objects; "
-                                     f"not {type(i).__name__}")
+                    raise AttributeError("recycle streams must be Stream objects; "
+                                        f"not {type(i).__name__}")
             self._recycle = recycle
         else:
             raise_recycle_type_error(recycle)
@@ -1185,9 +1187,10 @@ class System:
         try:
             self._method = method
         except:
-            *methods, last_method = list(self.available_methods)
-            methods = ', '.join([repr(i) for i in methods]) + ', and ' + last_method
-            raise ValueError(f"only {methods} are valid methods, not '{method}'")
+            raise AttributeError(
+                f"method '{method}' not available; only "
+                f"{list_available_names(self.available_methods)} are available"
+            )
 
     converge_method = method # For backwards compatibility
 

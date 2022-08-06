@@ -22,6 +22,7 @@ from .._graphics import utility_heat_exchanger_graphics, process_heat_exchanger_
 from .design_tools.specification_factors import (
     shell_and_tube_material_factor_coefficients,
     compute_shell_and_tube_material_factor)
+from ..utils import list_available_names
 from .design_tools import heat_transfer as ht
 import numpy as np
 import biosteam as bst
@@ -91,14 +92,14 @@ class HX(Unit, isabstract=True):
     @property
     def material(self):
         """Default 'Carbon steel/carbon steel'"""
-        return self.material
+        return self._material
     @material.setter
     def material(self, material):
         try:
             self._F_Mab = shell_and_tube_material_factor_coefficients[material]
         except KeyError:
             raise AttributeError("material must be one of the following: "
-                                 f"{', '.join(shell_and_tube_material_factor_coefficients)}")
+                                 f"{list_available_names(shell_and_tube_material_factor_coefficients)}")
         self._material = material  
     
     @property
@@ -111,7 +112,7 @@ class HX(Unit, isabstract=True):
             self._Cb_func = Cb_dict[heat_exchanger_type]
         except KeyError:
             raise AttributeError("heat exchange type must be one of the following: "
-                                 f"{', '.join(Cb_dict)}")
+                                 f"{list_available_names(Cb_dict)}")
         self._heat_exchanger_type = heat_exchanger_type     
 
     def reset_cache(self, isdynamic=None):

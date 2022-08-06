@@ -17,7 +17,8 @@ __all__ = ('factor', 'checkbounds', 'strtuple',
            'format_title', 'format_unit_name',
            'remove_undefined_chemicals',
            'default_chemical_dict', 'subgroup',
-           'repr_subgroups', 'repr_items')
+           'repr_subgroups', 'repr_items',
+           'list_available_names')
 
 # %% Number functions
 
@@ -29,6 +30,11 @@ def checkbounds(x, bounds):
     return bounds[0] < x < bounds[1]
 
 # %% String functions
+
+def list_available_names(names):
+    *names, last = list(names)
+    names = ', '.join([repr(i) for i in names]) + ', and ' + repr(last)
+    return names
 
 def strtuple(iterable):
     """Return string of all items in the tuple""" 

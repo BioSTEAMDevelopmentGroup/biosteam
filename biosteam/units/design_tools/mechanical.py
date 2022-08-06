@@ -9,11 +9,14 @@
 General functional algorithms for the design of pumps and motors.
 
 """
+import biosteam as bst
 import numpy as np
+from math import log, exp
 from numba import njit
 
 __all__ = ('brake_efficiency', 'motor_efficiency', 'pump_efficiency',
-           'nearest_NEMA_motor_size')
+           'nearest_NEMA_motor_size', 'electric_motor_cost',
+           )
 
 #: [tuple] All NEMA motor sizes in increasing order, in horsepower.
 nema_sizes_hp = (0.25, 0.3333333333333333, 0.5, 0.75, 1.0, 1.5, 2.0,
@@ -32,11 +35,57 @@ def brake_efficiency(q):
 
 @njit(cache=True)
 def motor_efficiency(Pb):
-    """Return motor efficiency given brake power in hp."""
+    """Return motor efficiency given brake power in hp (used for estimating pump efficiency)."""
     if Pb < 1: Pb = 1
     elif Pb > 1500: Pb = 1500
     logPb = np.log(Pb)
     return 0.8 + 0.0319*logPb - 0.00182*logPb*logPb
+
+@njit(cache=True)
+def electric_motor_cost(Pc):
+    """
+    Return the baseline purchase cost of an electric motor given
+    the shaft power in hp.
+    """
+    lnp = log(Pc)
+    lnp2 = lnp*lnp
+    lnp3 = lnp2*lnp
+    lnp4 = lnp3*lnp
+    return exp(5.9332 + 0.16829*lnp
+               - 0.110056*lnp2 + 0.071413*lnp3
+               - 0.0063788*lnp4) * bst.CE / 567
+
+@njit(cache=True)
+def noncondensing_steam_turbine_cost(Pc):
+    """
+    Return the baseline purchase cost of a noncondensing steam turbine given
+    the shaft power in hp.
+    """
+    return 10660. * Pc ** 0.41
+
+@njit(cache=True)
+def condensing_steam_turbine_cost(Pc):
+    """
+    Return the baseline purchase cost of a condensing steam turbine given
+    the shaft power in hp.
+    """
+    return 28350. * Pc ** 0.405
+
+@njit(cache=True)
+def gas_turbine_cost(Pc):
+    """
+    Return the baseline purchase cost of a gas turbine given
+    the shaft power in hp.
+    """
+    return 2835. * Pc ** 0.76
+
+@njit(cache=True)
+def internal_combustion_engine_cost(Pc):
+    """
+    Return the baseline purchase cost of an internal combustion engine given
+    the shaft power in hp.
+    """
+    return 1588. * Pc ** 0.75
 
 @njit(cache=True)
 def pump_efficiency(q, p):
