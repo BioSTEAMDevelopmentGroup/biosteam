@@ -167,23 +167,6 @@ class Unit:
         Thermo object to initialize inlet and outlet streams. Defaults to
         `biosteam.settings.get_thermo()`.
     
-    Attributes
-    ----------
-    ins : Inlets[:class:`~thermosteam.Stream`]
-        Input streams.
-    outs : Outlets[:class:`~thermosteam.Stream`]
-        Output streams.
-    power_utility : PowerUtility
-        Electricity rate requirements are stored here (including auxiliary units).
-    heat_utilities : tuple[:class:`~biosteam.HeatUtility`]
-        Cooling and heating requirements are stored here (including auxiliary units).
-    design_results : dict
-        All design requirements (not including auxiliary units).
-    purchase_costs : dict[str, float]
-        Itemized purchase costs (including auxiliary units).
-    thermo : Thermo
-        The thermodynamic property package used by the unit.
-    
     Examples
     --------
     :doc:`../tutorial/Creating_a_Unit`
@@ -330,11 +313,12 @@ class Unit:
                                     self._outs_size_is_fixed, self._stacklevel)
     
     def _init_utils(self):
-        # tuple[HeatUtility] All heat utilities associated to unit
+        #: tuple[HeatUtility] All heat utilities associated to unit. 
+        #: Cooling and heating requirements are stored here (including auxiliary requirements).
         self.heat_utilities = tuple([HeatUtility() for i in
                                      range(self._N_heat_utilities)])
         
-        # [PowerUtility] Electric utility associated to unit
+        #: [PowerUtility] Electric utility associated to unit (including auxiliary requirements).
         self.power_utility = PowerUtility()
     
     def _init_results(self):
@@ -354,24 +338,24 @@ class Unit:
         #: [dict] All material factors for each purchase cost.
         self.F_M = {}
         
-        # [dict] All design results.
+        #: All design requirements (not including auxiliary units).
         self.design_results = {}
         
-        # [dict] All baseline purchase costs without accounting for design, 
-        # pressure, and material factors.
+        #: [dict] All baseline purchase costs without accounting for design, 
+        #: pressure, and material factors.
         self.baseline_purchase_costs = {}
         
-        # [dict] All purchase costs in USD.
+        #: dict[str, float] Itemized purchase costs (including auxiliary units).
         self.purchase_costs = {}
         
-        # [dict] All installed costs accounting for bare module, design, 
-        # pressure, and material factors.
+        #: [dict] All installed costs accounting for bare module, design, 
+        #: pressure, and material factors.
         self.installed_costs = {}
         
-        # dict[str: tuple(int, float)] Indices of additional utilities given by inlet streams.
+        #: dict[str, int] Indices of additional utilities given by inlet streams.
         self.inlet_utility_indices = {}
         
-        # dict[str: tuple(int, float)] Indices of additional utilities given by outlet streams.
+        #: dict[str, int] Indices of additional utilities given by outlet streams.
         self.outlet_utility_indices = {}
         
         try:
@@ -1169,15 +1153,15 @@ class Unit:
 
     @property
     def thermo(self):
-        """Thermodynamic property package"""
+        """[:class:`~thermosteam.Thermo`] Thermodynamic property package."""
         return self._thermo
     @property
     def ins(self):
-        """All input streams."""
+        """Inlets[:class:`~thermosteam.Stream`] List of all inlet streams."""
         return self._ins    
     @property
     def outs(self):
-        """All output streams."""
+        """Outlets[:class:`~thermosteam.Stream`] List of all outlet streams."""
         return self._outs
 
     def get_available_chemicals(self):
