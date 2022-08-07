@@ -63,7 +63,7 @@ following guidance:
     
     * Pushing to the working branch often.
     
-#. In the event of that a merge conflict does happen:
+#. In the event of a merge conflict:
 
     * Commit the conflict::
         
