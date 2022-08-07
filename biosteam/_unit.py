@@ -382,10 +382,6 @@ class Unit:
             self.equipment_lifetime = copy(self._default_equipment_lifetime)
         except AttributeError:
             self.equipment_lifetime = {}
-        
-        #: [dict] Greenhouse gas emissions for use in BioSTEAM-LCA 
-        #: (https://github.com/scyjth/biosteam_lca)
-        self._GHGs = {}
     
     def _init_specification(self):
         #: list[Callable] All specification functions
@@ -1107,19 +1103,6 @@ class Unit:
                 if include_zeros or utility_cost: 
                     addkey(('Utility cost', ''))
                     addval(('USD/hr', utility_cost))
-            if self._GHGs:
-                a, b = self._totalGHG
-                GHG_units =  self._GHG_units
-                for ko, vo in self._GHGs.items():
-                    for ki, vi in vo.items():
-                        addkey((ko, ki))
-                        addval((GHG_units.get(ko, ''), vi))
-                a_key, b_key = GHG_units.keys()
-                a_unit, b_unit = GHG_units.values()
-                addkey(('Total ' + a_key, ''))
-                addval((a_unit, a))
-                addkey(('Total ' + b_key, ''))
-                addval((b_unit, b))
             if not keys: return None
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
@@ -1169,18 +1152,6 @@ class Unit:
             for ki, vi in self.purchase_costs.items():
                 addkey(('Purchase cost', ki))
                 addval(vi)
-            if self._GHGs:
-                GHG_units = self._GHG_units
-                for ko, vo in self._GHGs.items():
-                    for ki, vi in vo.items():
-                        addkey((ko, ki))
-                        addval(vi)
-                a, b = self._totalGHG
-                a_key, b_key = GHG_units.keys()
-                addkey(('Total ' + a_key, ''))
-                addval(a)
-                addkey(('Total ' + b_key, ''))
-                addval(b)
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(self.purchase_cost)
