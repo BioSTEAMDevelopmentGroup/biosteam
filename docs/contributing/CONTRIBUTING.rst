@@ -49,6 +49,40 @@ Here’s the short summary, complete TOC links are below:
 
    * If your commit introduces a new feature or changes functionality, post in https://github.com/yoelcortes/biosteam/issues to explain your changes. For bug fixes, documentation updates, etc., this is generally not necessary, though if you do not get any reaction, do feel free to ask for review.
 
+Additional Guidance
+-------------------
+
+To keep high standards for authorship and contribution histories, please follow the 
+following guidance:
+
+#. Avoid merge conflicts as much as possible to prevent commit contributions from being mingled on github. This can be done by:
+
+    * Pulling from the master branch and the working branch often. Note that the 
+    working branch is where the contribution is being worked on.
+    
+    * Making small, frequent commits rather than large, compreshensive commits.
+    
+    * Pushing to the working branch often.
+    
+#. In the event of that a merge conflict does happen:
+
+    * Commit the conflict::
+        
+        git commit -m "merge conflict"
+    
+    * Afterwards, resolve the conflict and commit your edits::
+    
+        git commit -m "resolve merge coflict by ..."
+
+#. For significant contributions to a module, please add the name and contact of the authors in the commented copyright header of the module in one of two ways:
+
+    * Option 1: Add your name directly to the copyright of a module during a pull 
+    request and post a comment that you added your name.
+    
+    * Option 2: Email the lead developer that you would like your name in the 
+    copyright header of the module.
+
+
 Testing
 -------
 
