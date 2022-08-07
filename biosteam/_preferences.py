@@ -53,7 +53,7 @@ class BioSTEAMDisplayPreferences:
         self.label_color = '#90918e'
         
         #: Color of subsystem clusters in BioSTEAM graphviz diagrams.
-        self.depth_colors = ['#7ac0836f']
+        self.depth_colors = ['#f98f609f']
         
         #: Property to scale stream widths in BioSTEAM graphviz diagrams.
         self.stream_width = 'F_mass'
@@ -145,7 +145,7 @@ class BioSTEAMDisplayPreferences:
                      stream='#90918e', 
                      label='#90918e', 
                      bg='transparent',
-                     cluster=('#7ac0836f',),
+                     cluster=('#f98f609f',),
                      unit_color='#555f69',
                      unit_label_color='white',
                      unit_periphery_color='none',

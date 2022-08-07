@@ -233,7 +233,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
     if preferences.fill_cluster:
         kwargs = dict(bgcolor=color, penwidth='0.2', color=preferences.stream_color)
     else:
-        kwargs = dict(color=color, bgcolor='none', penwidth='5', style='dashed')
+        kwargs = dict(color=color, bgcolor='none', penwidth='0.75', style='solid')
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
             c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", 
