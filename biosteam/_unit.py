@@ -329,13 +329,13 @@ class Unit:
         except AttributeError:
             self.F_BM = {}
         
-        #: [dict] All design factors for each purchase cost.
+        #: [dict] All design factors for each purchase cost item.
         self.F_D = {}
         
-        #: [dict] All pressure factors for each purchase cost.
+        #: [dict] All pressure factors for each purchase cost item.
         self.F_P = {}
         
-        #: [dict] All material factors for each purchase cost.
+        #: [dict] All material factors for each purchase cost item.
         self.F_M = {}
         
         #: All design requirements (not including auxiliary units).
