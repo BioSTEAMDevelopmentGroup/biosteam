@@ -57,8 +57,7 @@ following guidance:
 
 #. Avoid merge conflicts as much as possible to prevent commit contributions from being mingled on github. This can be done by:
 
-    * Pulling from the master branch and the working branch often. Note that the 
-    working branch is where the contribution is being worked on.
+    * Pulling from the master branch and the working branch often. Note that the working branch is where the contribution is being worked on.
     
     * Making small, frequent commits rather than large, compreshensive commits.
     
@@ -76,11 +75,9 @@ following guidance:
 
 #. For significant contributions to a module, please add the name and contact of the authors in the commented copyright header of the module in one of two ways:
 
-    * Option 1: Add your name directly to the copyright of a module during a pull 
-    request and post a comment that you added your name.
+    * Option 1: Add your name directly to the copyright of a module during a pull request and post a comment that you added your name.
     
-    * Option 2: Email the lead developer that you would like your name in the 
-    copyright header of the module.
+    * Option 2: Email the lead developer that you would like your name in the copyright header of the module.
 
 
 Testing
