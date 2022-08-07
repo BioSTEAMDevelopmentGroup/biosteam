@@ -338,7 +338,8 @@ class Unit:
         #: [dict] All material factors for each purchase cost item.
         self.F_M = {}
         
-        #: All design requirements (not including auxiliary units).
+        #: All design requirements exclusing utility requirments and detailed 
+        #: auxiliary unit requirements.
         self.design_results = {}
         
         #: [dict] All baseline purchase costs without accounting for design, 
