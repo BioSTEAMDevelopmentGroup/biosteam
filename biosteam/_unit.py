@@ -146,7 +146,7 @@ class Unit:
     auxiliary_unit_names :
         **class-attribute** tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
-        without having add these costs in the :attr:`~Unit.purchase_costs` dictionary.
+        without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
         Utility costs, however, are not automatically accounted for and must
         be hardcoded in the unit operation logic.
     
@@ -302,7 +302,7 @@ class Unit:
     
     # tuple[str] Name of attributes that are auxiliary units. These units
     # will be accounted for in the purchase and installed equipment costs
-    # without having add these costs in the `purchase_costs` dictionary
+    # without having add these costs in the `baseline_purchase_costs` dictionary
     auxiliary_unit_names = ()
     
     #: [int] Expected number of inlet streams
