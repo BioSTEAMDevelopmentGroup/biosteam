@@ -616,20 +616,21 @@ class Unit:
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
         installed equipment costs (i.e. bare-module cost) for each item in the 
-        `baseline_purchase_costs` dictionary and in auxiliary units.
+        `baseline_purchase_costs` dictionary and in auxiliary units. This 
+        method is run after the `_cost` method at the end of unit simulation.
         
         Notes
         -----
         As explained in [1]_, the f.o.b. purchase cost is given by:
         
         .. math::
-        
+           
            C_{P} = C_{Pb}F_{D}F_{P}F_{M}
         
         And the installed equipment cost is given by:
         
         .. math::
-        
+           
            C_{BM} = C_{Pb} (F_{BM} + F_{D}F_{P}F_{M} - 1)
         
         Where:
@@ -640,8 +641,8 @@ class Unit:
             * :math:`F_{M}`: Material factor.
         
         Values for the bare-module, design, pressure, and material factors of 
-        each equipment should be stored in the `F_BM`, `F_D`, `F_P`, and 
-        `F_M` dictionaries.
+        each equipment should be stored in the :attr:`~Unit.F_BM`, :attr:`~Unit.F_D`, 
+        :attr:`~Unit.F_P`, :attr:`~Unit.F_M` dictionaries.
         
         Warning
         -------
@@ -652,8 +653,8 @@ class Unit:
         References
         ----------
         .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
+            & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+            Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
         F_BM = self.F_BM
@@ -731,6 +732,22 @@ class Unit:
             return self._graphics.get_node_tailored_to_unit(self)
     
     def get_design_result(self, key, units):
+        """
+        Return design result in a new set of units of measure.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.simulate()
+        >>> tank.get_design_result('Total volume', 'm3')
+        1214.23
+        >>> tank.get_design_result('Total volume', 'L')
+        1214239.47
+        
+        """
         return convert(self.design_results[key], self._units[key], units)
     
     @piping.ignore_docking_warnings
