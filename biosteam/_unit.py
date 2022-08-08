@@ -14,7 +14,7 @@ from graphviz import Digraph
 from ._graphics import UnitGraphics, box_graphics
 from thermosteam import Stream
 from ._heat_utility import HeatUtility
-from .utils import NotImplementedMethod, format_title, static
+from .utils import AbstractMethod, format_title, static
 from .utils import piping
 from ._power_utility import PowerUtility
 from .digraph import finalize_digraph
@@ -94,62 +94,9 @@ def fill_path_segment(start, path, end, units):
 @registered(ticket_name='U')
 class Unit:
     """
-    Abstract parent class for Unit objects. Child objects must contain
-    `_run`, `_design` and `_cost` methods to estimate stream outputs of a
-    Unit and find design and cost information.  
-
-    **Abstract class methods**
-    
-    reset_cache(isdynamic)
-        Reset unit operation cache.
-    _setup()
-        Set stream conditions and constant data.
-    _run()
-        Run simulation and update outlet streams.
-    _design()
-        Add design requirements to the :attr:`~Unit.design_results` dictionary.
-    _cost()
-        Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
-
-    **Abstract class attributes**
-    
-    **line='Unit'**
-        [str] Name denoting the type of Unit class. Defaults to the class
-        name of the first child class.
-    **_F_BM_default** 
-        dict[str, float] Default bare-module factors for each purchase cost item.
-        Items in this dictionary are copied to the :attr:`~Unit.F_BM` attribute during 
-        initialization.
-    **_units**
-        [dict] Units of measure for :attr:`~Unit.design_results` dictionary.
-    **_N_ins=1**
-        [int] Expected number of input streams.
-    **_N_outs=2**
-        [int] Expected number of output streams.
-    **_ins_size_is_fixed=True**
-        [bool] Whether the number of streams in :attr:`~Unit.ins` is fixed.
-    **_outs_size_is_fixed=True**
-        [bool] Whether the number of streams in :attr:`~Unit.outs` is fixed.
-    **_N_heat_utilities=0**
-        [int] Number of heat utilities created with each instance.
-    **auxiliary_unit_names=()**
-        tuple[str] Name of attributes that are auxiliary units. These units
-        will be accounted for in the purchase and installed equipment costs
-        without having add these costs in the :attr:`~Unit.purchase_costs` dictionary.
-        Utility costs, however, are not automatically accounted for and must
-        be hardcoded in the unit operation logic.
-    **_default_equipment_lifetime=None**
-        [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
-        production venture. Use an integer to specify the lifetime for all
-        items in the unit purchase costs. Use a dictionary to specify the 
-        lifetime of each purchase cost item.
-    **_materials_and_maintenance**
-        [set] Cost items that need to be summed across operation modes for 
-        flexible operation (e.g., filtration membranes).
-    **_graphics**
-        [biosteam.Graphics, abstract, optional] Settings for diagram
-        representation. Defaults to a box with the same number of input
-        and output edges as `_N_ins` and `_N_outs`.
+    Abstract class for Unit objects. Child objects must contain
+    :attr:`~Unit._run`, :attr:`~Unit._design` and :attr:`~Unit._cost` methods to 
+    estimate stream outlets of a Unit and find design and cost information.  
 
     Parameters
     ----------
@@ -169,16 +116,66 @@ class Unit:
     
     Attributes
     ----------
+    line : 
+        **class-attribute** [str] Name denoting the type of Unit class. Defaults to the class
+        name of the first child class.
+    
+    _F_BM_default :
+        **class-attribute** dict[str, float] Default bare-module factors for each purchase cost item.
+        Items in this dictionary are copied to the :attr:`~Unit.F_BM` attribute during 
+        initialization.
+    
+    _units :
+        **class-attribute** [dict] Units of measure for :attr:`~Unit.design_results` dictionary.
+    
+    _N_ins : 
+        **class-attribute** [int] Expected number of input streams. Defaults to 1.
+    
+    _N_outs :
+        **class-attribute** [int] Expected number of output streams. Defaults to 1.
+    
+    _ins_size_is_fixed :
+        **class-attribute** [bool] Whether the number of streams in :attr:`~Unit.ins` is fixed.
+    
+    _outs_size_is_fixed :
+        **class-attribute** [bool] Whether the number of streams in :attr:`~Unit.outs` is fixed.
+    
+    _N_heat_utilities :
+        **class-attribute** [int] Number of heat utilities created with each instance. Defaults to 0.
+    
+    auxiliary_unit_names :
+        **class-attribute** tuple[str] Name of attributes that are auxiliary units. These units
+        will be accounted for in the purchase and installed equipment costs
+        without having add these costs in the :attr:`~Unit.purchase_costs` dictionary.
+        Utility costs, however, are not automatically accounted for and must
+        be hardcoded in the unit operation logic.
+    
+    _default_equipment_lifetime :
+        **class-attribute** [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
+        production venture. Use an integer to specify the lifetime for all
+        items in the unit purchase costs. Use a dictionary to specify the 
+        lifetime of each purchase cost item.
+    
+    _materials_and_maintenance :
+        **class-attribute** [set] Cost items that need to be summed across operation modes for 
+        flexible operation (e.g., filtration membranes).
+    
+    _graphics :
+        **class-attribute** [biosteam.Graphics] Settings for diagram
+        representation. Defaults to a box with the same number of input
+        and output edges as :attr:`~Unit._N_ins` and :attr:`~Unit._N_outs`.
+    
     heat_utilities : 
         tuple[:class:`~biosteam.HeatUtility`] All heat utilities associated to unit. Cooling and heating requirements 
-        are stored here (including auxiliary requirements).
+        are stored here (including auxiliary requirements). The number of heat utilities created is given by the
+        class attribute :attr:`~Unit._N_heat_utilities`.
         
     power_utility : 
         [:class:`~biosteam.PowerUtility`] Electric utility associated to unit (including auxiliary requirements).
     
     F_BM : 
         dict[str, float] All bare-module factors for each purchase cost. Defaults to values in 
-        the class attribute `_F_BM_default`.
+        the class attribute :attr:`~Unit._F_BM_default`.
         
     F_D : 
         dict[str, float] All design factors for each purchase cost item.
@@ -210,7 +207,7 @@ class Unit:
         
     equipment_lifetime : 
         int or dict[str, int] Lifetime of equipment. Defaults to values in the class attribute 
-        `_default_equipment_lifetime`. Use an integer to specify the lifetime 
+        :attr:`~Unit._default_equipment_lifetime`. Use an integer to specify the lifetime 
         for all items in the unit purchase costs. Use a dictionary to specify 
         the lifetime of each purchase cost item.
     
@@ -303,9 +300,9 @@ class Unit:
     #: flexible operation.
     _materials_and_maintenance = frozenset()
     
-    #: tuple[str] Name of attributes that are auxiliary units. These units
-    #: will be accounted for in the purchase and installed equipment costs
-    #: without having add these costs in the `purchase_costs` dictionary
+    # tuple[str] Name of attributes that are auxiliary units. These units
+    # will be accounted for in the purchase and installed equipment costs
+    # without having add these costs in the `purchase_costs` dictionary
     auxiliary_unit_names = ()
     
     #: [int] Expected number of inlet streams
@@ -332,11 +329,23 @@ class Unit:
     #: [int] Used for piping warnings.
     _stacklevel = 5
     
-    #: [str] The general type of unit, regardless of class
+    # [str] The general type of unit, regardless of class
     line = 'Unit'
 
-    ### Other defaults ###
+    ### Abstract methods ###
     
+    #: Create auxiliary components.
+    _load_components = AbstractMethod
+    
+    #: Run mass and energy balances and update outlet streams.
+    _run = AbstractMethod
+    
+    #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
+    _design = AbstractMethod
+    
+    #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
+    _cost = AbstractMethod    
+
     def __init__(self, ID='', ins=None, outs=(), thermo=None):
         self._system = None
         self._isdynamic = False
@@ -616,8 +625,8 @@ class Unit:
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
         installed equipment costs (i.e. bare-module cost) for each item in the 
-        `baseline_purchase_costs` dictionary and in auxiliary units. This 
-        method is run after the `_cost` method at the end of unit simulation.
+        :attr:`~Unit.baseline_purchase_costs` dictionary and in auxiliary units. This 
+        method is run after the :attr:`~Unit._cost` method at the end of unit simulation.
         
         Notes
         -----
@@ -692,6 +701,9 @@ class Unit:
                 purchase_costs[name] = Cpb * F
     
     def _setup(self):
+        """Clear all results and setup up stream conditions and constant data.
+        This method is run at the start of unit simulation, before running mass
+        and energy balances."""
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -821,12 +833,6 @@ class Unit:
     # Backwards pipping
     __pow__ = __sub__
     __rpow__ = __rsub__
-    
-    # Abstract methods
-    _load_components = NotImplementedMethod
-    _run = NotImplementedMethod
-    _design = NotImplementedMethod
-    _cost = NotImplementedMethod
     
     def reset_cache(self, isdynamic=None):
         pass

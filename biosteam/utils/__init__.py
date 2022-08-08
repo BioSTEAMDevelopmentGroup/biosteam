@@ -11,7 +11,7 @@ from thermosteam import utils
 from . import (misc,
                patches,
                tictoc,
-               not_implemented_method,
+               abstract_method,
                piping,
                stream_link_options,
                functors,
@@ -22,11 +22,11 @@ __all__ = ('colors',
            'misc', 
            'patches', 
            'tictoc',
-           'not_implemented_method',
+           'abstract_method',
            'functors',
            *utils.__all__,
            *patches.__all__, 
-           *not_implemented_method.__all__, 
+           *abstract_method.__all__, 
            *misc.__all__, 
            *tictoc.__all__, 
            *piping.__all__, 
@@ -36,7 +36,7 @@ __all__ = ('colors',
            *scope.__all__,
 )
 from thermosteam.utils import *
-from .not_implemented_method import *
+from .abstract_method import *
 from .misc import *
 from .patches import *
 from .tictoc import *

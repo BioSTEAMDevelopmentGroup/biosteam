@@ -3,4 +3,4 @@ Unit
 
 .. autoclass:: biosteam.Unit
    :members:
-   :private-members: _summary, _load_capital_costs
+   :private-members: _run, _design, _cost, _summary, _load_capital_costs
