@@ -132,7 +132,7 @@ class Unit:
         [bool] Whether the number of streams in outs is fixed.
     **_N_heat_utilities=0**
         [int] Number of heat utilities created with each instance.
-    **auxiliary_unit_names=()
+    **auxiliary_unit_names=()**
         tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
         without having add these costs in the `purchase_costs` dictionary.
@@ -144,7 +144,7 @@ class Unit:
         items in the unit purchase costs. Use a dictionary to specify the 
         lifetime of each purchase cost item.
     **_materials_and_maintenance**
-        [Set] Cost items that need to be summed across operation modes for 
+        [set] Cost items that need to be summed across operation modes for 
         flexible operation (e.g., filtration membranes).
     **_graphics**
         [biosteam.Graphics, abstract, optional] Settings for diagram
@@ -166,6 +166,53 @@ class Unit:
     thermo=None : :class:`~thermosteam.Thermo`
         Thermo object to initialize inlet and outlet streams. Defaults to
         `biosteam.settings.get_thermo()`.
+    
+    Attributes
+    ----------
+    heat_utilities : 
+        tuple[:class:`~biosteam.HeatUtility`] All heat utilities associated to unit. Cooling and heating requirements 
+        are stored here (including auxiliary requirements).
+        
+    power_utility : 
+        [:class:`~biosteam.PowerUtility`] Electric utility associated to unit (including auxiliary requirements).
+    
+    F_BM : 
+        dict[str, float] All bare-module factors for each purchase cost. Defaults to values in 
+        the class attribute `_F_BM_default`.
+        
+    F_D : 
+        dict[str, float] All design factors for each purchase cost item.
+        
+    F_P : 
+        dict[str, float] All pressure factors for each purchase cost item.
+        
+    F_M : 
+        dict[str, float] All material factors for each purchase cost item.
+        
+    design_results : 
+        dict[str, float or str]  All design requirements excluding utility requirements and detailed 
+        auxiliary unit requirements.
+        
+    baseline_purchase_costs : 
+        dict[str, float] All baseline purchase costs without accounting for design, pressure, 
+        and material factors.
+        
+    purchase_costs : 
+        dict[str, float] Itemized purchase costs (including auxiliary units)
+        accounting for design, pressure, and material factors (i.e., 
+        :attr:`~Unit.F_D`, :attr:`~Unit.F_P`, :attr:`~Unit.F_M`).
+        Items here are automatically updated at the end of unit simulation.
+        
+    installed_costs : 
+        dict[str, float] All installed costs accounting for bare module, design, 
+        pressure, and material factors. Items here are automatically updated
+        at the end of unit simulation.
+        
+    equipment_lifetime : 
+        int or dict[str, int] Lifetime of equipment. Defaults to values in the class attribute 
+        `_default_equipment_lifetime`. Use an integer to specify the lifetime 
+        for all items in the unit purchase costs. Use a dictionary to specify 
+        the lifetime of each purchase cost item.
     
     Examples
     --------
@@ -252,40 +299,40 @@ class Unit:
         
     ### Abstract Attributes ###
     
-    # [Set] Cost items that need to be summed across operation modes for 
-    # flexible operation.
+    #: [Set] Cost items that need to be summed across operation modes for 
+    #: flexible operation.
     _materials_and_maintenance = frozenset()
     
-    # tuple[str] Name of attributes that are auxiliary units. These units
-    # will be accounted for in the purchase and installed equipment costs
-    # without having add these costs in the `purchase_costs` dictionary
+    #: tuple[str] Name of attributes that are auxiliary units. These units
+    #: will be accounted for in the purchase and installed equipment costs
+    #: without having add these costs in the `purchase_costs` dictionary
     auxiliary_unit_names = ()
     
-    # [int] Expected number of inlet streams
+    #: [int] Expected number of inlet streams
     _N_ins = 1  
     
-    # [int] Expected number of outlet streams
+    #: [int] Expected number of outlet streams
     _N_outs = 1
     
-    # [bool] Whether the number of streams in ins is fixed
+    #: [bool] Whether the number of streams in ins is fixed
     _ins_size_is_fixed = True
     
-    # [bool] Whether the number of streams in outs is fixed
+    #: [bool] Whether the number of streams in outs is fixed
     _outs_size_is_fixed = True
     
-    # [int] number of heat utilities
+    #: [int] number of heat utilities
     _N_heat_utilities = 0
     
-    # [StreamLinkOptions] Options for linking streams
+    #: [StreamLinkOptions] Options for linking streams
     _stream_link_options = None
     
-    # [biosteam Graphics] A Graphics object for diagram representation
+    #: [biosteam Graphics] A Graphics object for diagram representation
     _graphics = box_graphics
 
-    # [int] Used for piping warnings.
+    #: [int] Used for piping warnings.
     _stacklevel = 5
     
-    # [str] The general type of unit, regardless of class
+    #: [str] The general type of unit, regardless of class
     line = 'Unit'
 
     ### Other defaults ###
@@ -303,12 +350,12 @@ class Unit:
         self._assert_compatible_property_package()
     
     def _init_ins(self, ins):
-        # Inlets[:class:`~thermosteam.Stream`] Input streams
+        #: Inlets[:class:`~thermosteam.Stream`] Input streams
         self._ins = piping.Inlets(self, self._N_ins, ins, self._thermo, 
                                   self._ins_size_is_fixed, self._stacklevel)
     
     def _init_outs(self, outs):
-        # Outlets[:class:`~thermosteam.Stream`] Output streams
+        #: Outlets[:class:`~thermosteam.Stream`] Output streams
         self._outs = piping.Outlets(self, self._N_outs, outs, self._thermo,
                                     self._outs_size_is_fixed, self._stacklevel)
     
@@ -338,7 +385,7 @@ class Unit:
         #: [dict] All material factors for each purchase cost item.
         self.F_M = {}
         
-        #: All design requirements exclusing utility requirments and detailed 
+        #: dict[str, Object] All design requirements excluding utility requirements and detailed 
         #: auxiliary unit requirements.
         self.design_results = {}
         
@@ -346,11 +393,15 @@ class Unit:
         #: pressure, and material factors.
         self.baseline_purchase_costs = {}
         
-        #: dict[str, float] Itemized purchase costs (including auxiliary units).
+        #: dict[str, float] Itemized purchase costs (including auxiliary units)
+        #: accounting for design, pressure, and material factors (i.e., 
+        #: :attr:`~Unit.F_D`, :attr:`~Unit.F_P`, :attr:`~Unit.F_M`).
+        #: Items here are automatically updated at the end of unit simulation.
         self.purchase_costs = {}
         
         #: [dict] All installed costs accounting for bare module, design, 
-        #: pressure, and material factors.
+        #: pressure, and material factors. Items here are automatically updated
+        #: at the end of unit simulation.
         self.installed_costs = {}
         
         #: dict[str, int] Indices of additional utilities given by inlet streams.
@@ -818,27 +869,27 @@ class Unit:
         
         Parameters
         ----------
-        f: Callable
+        f : Callable
             Objective function in the form of f(x, *args).
-        x: float, optional
+        x : float, optional
             Root guess.
-        x0, x1: float
+        x0, x1 : float
             Root bracket. Solution must lie within x0 and x1.
-        xtol: float, optional
+        xtol : float, optional
             Solver stops when the root lies within xtol. Defaults to 0.
-        ytol: float, optional 
+        ytol : float, optional 
             Solver stops when the f(x) lies within ytol of the root. Defaults to 5e-8.
-        args=(): 
+        args : tuple, optional
             Arguments to pass to f.
-        maxiter: 
+        maxiter : 
             Maximum number of iterations. Defaults to 50.
-        checkiter: bool, optional
+        checkiter : bool, optional
             Whether to raise a Runtime error when tolerance could not be 
             satisfied before the maximum number of iterations. Defaults to True.
-        checkroot: bool, optional
+        checkroot : bool, optional
             Whether satisfying both tolerances, xtol and ytol, are required 
             for termination. Defaults to False.
-        checkbounds: bool, optional
+        checkbounds : bool, optional
             Whether to raise a ValueError when in a bounded solver when the 
             root is not certain to lie within bounds (i.e. f(x0) * f(x1) > 0.).
             Defaults to True.
