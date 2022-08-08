@@ -642,7 +642,7 @@ class Unit:
         
         Values for the bare-module, design, pressure, and material factors of 
         each equipment should be stored in the :attr:`~Unit.F_BM`, :attr:`~Unit.F_D`, 
-        :attr:`~Unit.F_P`, :attr:`~Unit.F_M` dictionaries.
+        :attr:`~Unit.F_P`, and :attr:`~Unit.F_M` dictionaries.
         
         Warning
         -------
