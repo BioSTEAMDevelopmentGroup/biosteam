@@ -652,9 +652,7 @@ class Unit:
         
         References
         ----------
-        .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-            & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-            Cost Accounting and Capital Cost Estimation (Chapter 16)
+        .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
         F_BM = self.F_BM
