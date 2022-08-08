@@ -783,6 +783,8 @@ def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props):
                 phase += 'gas|'
             elif i == 's':
                 phase += 'solid|'
+            elif i == 'S':
+                phase += 'SOLID|'
         phase = phase.rstrip('|')
         phases[j] = phase
         flow_j = s.get_flow(units=flow)
