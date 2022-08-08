@@ -105,11 +105,11 @@ class Unit:
     _setup()
         Set stream conditions and constant data.
     _run()
-        Run simulation and update output streams.
+        Run simulation and update outlet streams.
     _design()
-        Add design requirements to the `design_results` dictionary.
+        Add design requirements to the :attr:`~Unit.design_results` dictionary.
     _cost()
-        Add itemized purchase costs to the `baseline_purchase_costs` dictionary.
+        Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
 
     **Abstract class attributes**
     
@@ -118,24 +118,24 @@ class Unit:
         name of the first child class.
     **_F_BM_default** 
         dict[str, float] Default bare-module factors for each purchase cost item.
-        Items in this dictionary are copied to the `F_BM` attribute during 
+        Items in this dictionary are copied to the :attr:`~Unit.F_BM` attribute during 
         initialization.
     **_units**
-        [dict] Units of measure for `design_results` dictionary.
+        [dict] Units of measure for :attr:`~Unit.design_results` dictionary.
     **_N_ins=1**
         [int] Expected number of input streams.
     **_N_outs=2**
         [int] Expected number of output streams.
     **_ins_size_is_fixed=True**
-        [bool] Whether the number of streams in ins is fixed.
+        [bool] Whether the number of streams in :attr:`~Unit.ins` is fixed.
     **_outs_size_is_fixed=True**
-        [bool] Whether the number of streams in outs is fixed.
+        [bool] Whether the number of streams in :attr:`~Unit.outs` is fixed.
     **_N_heat_utilities=0**
         [int] Number of heat utilities created with each instance.
     **auxiliary_unit_names=()**
         tuple[str] Name of attributes that are auxiliary units. These units
         will be accounted for in the purchase and installed equipment costs
-        without having add these costs in the `purchase_costs` dictionary.
+        without having add these costs in the :attr:`~Unit.purchase_costs` dictionary.
         Utility costs, however, are not automatically accounted for and must
         be hardcoded in the unit operation logic.
     **_default_equipment_lifetime=None**
@@ -157,10 +157,10 @@ class Unit:
         A unique identification. If ID is None, unit will not be
         registered in flowsheet.
     ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
-        Inlet streams or IDs to initialize input streams.
+        Inlet streams or IDs to initialize inlet streams.
         If empty, default IDs will be given. If None, defaults to missing streams.
     outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
-        Outlet streams or IDs to initialize output streams.
+        Outlet streams or IDs to initialize outlet streams.
         If empty, default IDs will be given.
         If None, leave streams missing.
     thermo=None : :class:`~thermosteam.Thermo`
@@ -646,8 +646,8 @@ class Unit:
         
         Warning
         -------
-        If an item is listed in the `purchase_costs` dictionary but not in the
-        `baseline_purchase_costs` dictionary, the baseline purchase cost is 
+        If an item is listed in the :attr:`~Unit.purchase_costs` dictionary but not in the
+        :attr:`~Unit.baseline_purchase_costs` dictionary, the baseline purchase cost is 
         assumed to be the same as the purchase cost.
         
         References
