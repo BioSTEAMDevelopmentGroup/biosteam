@@ -464,11 +464,11 @@ class Unit:
     
     @property
     def net_power(self):
-        """Net power consumption [kW]."""
+        """[float] Net power consumption in kW."""
         return self.power_utility.rate
     @property
     def net_duty(self):
-        """Net duty including heat transfer losses [kJ/hr]."""
+        """[float] Net duty including heat transfer losses in kJ/hr."""
         return sum([i.duty for i in self.heat_utilities])
     
     def define_utility(self, name, stream):
