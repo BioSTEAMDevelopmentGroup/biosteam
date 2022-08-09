@@ -65,6 +65,7 @@ extensions = [
     'sphinx_autodoc_typehints',
     'nbsphinx']
 
+always_document_param_types = False
 typehints_document_rtype = False
 typehints_use_rtype = False
 imgmath_latex_preamble = r'\usepackage{xcolor}'

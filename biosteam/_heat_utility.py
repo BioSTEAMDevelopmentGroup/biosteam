@@ -450,10 +450,10 @@ class HeatUtility:
         #: Utility agent being used.
         self.agent: UtilityAgent|None = None
         
-        #: Inlet utility stream
+        #: Fresh utility stream
         self.inlet_utility_stream: Stream|None = None
         
-        #: Outlet utility stream
+        #: Used utility stream
         self.outlet_utility_stream: Stream|None = None
 
     def __bool__(self) -> bool:
@@ -681,37 +681,29 @@ class HeatUtility:
                                  'to retrieve process stream')
     
     @staticmethod
-    def heat_utilities_by_agent(heat_utilities: Iterable[HeatUtility]) -> dict[UtilityAgent, list[HeatUtility]]:
-        """Return a dictionary of heat utilities sorted by agent."""
+    def heat_utilities_by_agent(heat_utilities: Iterable[HeatUtility]) -> dict[str, list[HeatUtility]]:
+        """Return a dictionary of heat utilities sorted by agent ID."""
         heat_utilities = [i for i in heat_utilities if i.agent]
-        heat_utilities_by_agent = {i.agent: [] for i in heat_utilities}
+        heat_utilities_by_agent = {i.agent.ID for i in heat_utilities}
+        heat_utilities_by_agent = {i: [] for i in sorted(heat_utilities_by_agent)}
         for i in heat_utilities:
-            heat_utilities_by_agent[i.agent].append(i)
+            heat_utilities_by_agent[i.agent.ID].append(i)
         return heat_utilities_by_agent
 
     @classmethod
-    def sum(cls, heat_utilities: list[HeatUtility]) -> HeatUtility:
-        """
-        Return a HeatUtility object that reflects the sum of heat
-        utilities.
-        """
+    def sum(cls, heat_utilities: Iterable[HeatUtility]) -> HeatUtility:
+        """Return a HeatUtility object that reflects the sum of heat
+        utilities."""
         heat_utility = cls()
         heat_utility.mix_from(heat_utilities)
         return heat_utility    
 
     @classmethod
-    def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility], agent: Optional[UtilityAgent]=None) -> tuple[HeatUtility, ...]:
-        """
-        Return a tuple of heat utilities that reflect the sum of heat utilities
-        by agent. If an agent is specified, return a HeatUtility object that
-        reflects the sum of all heat utilities with the given agent.
-        
-        """
+    def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility]) -> tuple[HeatUtility, ...]:
+        """Return a tuple of heat utilities that reflect the sum of heat utilities
+        by agent."""
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
-        if agent:
-            return cls.sum(heat_utilities_by_agent[agent])
-        else:
-            return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
+        return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
 
     @classmethod
     def get_agent(cls, ID: str) -> UtilityAgent:
@@ -863,7 +855,7 @@ class HeatUtility:
             return f'<{type(self).__name__}: None>'
         
     # Representation
-    def _info(self, duty: Optional[str], flow: Optional[str], cost: Optional[str]) -> str:
+    def _info(self, duty: str|None, flow: str|None, cost: str|None) -> str:
         """Return string related to specifications"""
         if not self.agent:
             return (f'{type(self).__name__}: None\n'

@@ -12,7 +12,7 @@ from thermosteam.utils import units_of_measure
 from thermosteam.units_of_measure import (
     DisplayUnits, convert, power_utility_units_of_measure
 )
-from typing import List, Optional, Union, Tuple
+from typing import Optional, Union
 
 __all__ = ('PowerUtility',)
 
@@ -100,7 +100,7 @@ class PowerUtility:
         self.consumption = self.production = 0.
     
     @classmethod
-    def get_CF(cls, key: str, consumption: bool=True, production: bool=True) -> Union[float, Tuple[float, float]]:
+    def get_CF(cls, key: str, consumption: bool=True, production: bool=True) -> Union[float, tuple[float, float]]:
         """
         Return the life-cycle characterization factor for consumption and 
         production on a kg basis given the impact key.
@@ -178,7 +178,7 @@ class PowerUtility:
     def copy(self):
         return self.__class__(self.consumption, self.production)
     
-    def mix_from(self, power_utilities: List[PowerUtility]):
+    def mix_from(self, power_utilities: list[PowerUtility]):
         """
         Mix in requirements of power utilities.
         
@@ -207,7 +207,7 @@ class PowerUtility:
         self.production *= scale
     
     @classmethod
-    def sum(cls, power_utilities: List[PowerUtility]) -> PowerUtility:
+    def sum(cls, power_utilities: list[PowerUtility]) -> PowerUtility:
         """
         Return a PowerUtility object that represents the sum of power utilities.
         
