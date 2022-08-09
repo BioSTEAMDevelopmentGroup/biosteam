@@ -16,9 +16,8 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Iterable
-if TYPE_CHECKING: 
-    from biosteam import HXutility
+from typing import Optional, TYPE_CHECKING, Iterable
+if TYPE_CHECKING: from biosteam import HXutility
 
 __all__ = ('HeatUtility', 'UtilityAgent')
 
@@ -72,8 +71,8 @@ class UtilityAgent(Stream):
     """
     __slots__ = ('T_limit', '_heat_transfer_price',
                  '_regeneration_price', 'heat_transfer_efficiency')
-    def __init__(self, ID: str='', flow: Tuple[float, ...]=(), phase: str='l', T: float=298.15, P: float=101325., units: str='kmol/hr',
-                 thermo: Optional[Thermo]=None, T_limit: Optional[float]=None, heat_transfer_price: float=0.0,
+    def __init__(self, ID: str='', flow: tuple[float, ...]=(), phase: str='l', T: float=298.15, P: float=101325., units: str='kmol/hr',
+                 thermo: Optional[Thermo]=None, T_limit: float|None=None, heat_transfer_price: float=0.0,
                  regeneration_price: float=0.0, heat_transfer_efficiency: float=1.0,                  
                  **chemical_flows):
         self._thermal_condition = ThermalCondition(T, P)
@@ -196,36 +195,11 @@ class HeatUtility:
     
     Parameters
     ----------
-    heat_transfer_efficiency=None : float, optional
+    heat_transfer_efficiency : float, optional
         Enforced fraction of heat transfered from utility (due
         to losses to environment).
-    
-    Attributes
-    ----------
-    cooling_agents : list[UtilityAgent]
-        All cooling utilities available.
-    heating_agents : list[UtilityAgent]
-        All heating utilities available.
-    duty : float
-        Total heat transfered from utility to both the process and the environment [kJ/hr].
-    unit_duty : float
-        Effective heat transfered from utility to the unit operation [kJ/hr].
-    flow : float
-        Flow rate of utility [kmol/hr].
-    cost : float
-        Cost of utility [USD/hr].
-    heat_transfer_efficiency : float
-        Enforced fraction of heat transfered from utility (due
-        to losses to environment).
-    T_pinch : float
-        If cooling, the minimum utility temperature required.
-        If heating, the maximum utility temperature required.
-    iscooling : float
-        Whether the utility is cooling the process.
-    agent : UtilityAgent
-        Utility agent being used.
-    inlet_utility_stream : :class:`~thermosteam.Stream`
-    outlet_utility_stream : :class:`~thermosteam.Stream`
+    heat_exchanger : :class:`~biosteam.HXutility`, optional
+        Parent heat exchanger using this heat utility.
     
     Examples
     --------
@@ -263,22 +237,27 @@ class HeatUtility:
     __slots__ = ('inlet_utility_stream', 'outlet_utility_stream', 'duty',
                  'flow', 'cost', 'heat_transfer_efficiency', 'T_pinch',
                  'heat_exchanger', 'iscooling', 'agent', 'unit_duty')
-    #: [float] Minimum approach temperature difference. Used to assign
+    #: Minimum approach temperature difference. Used to assign
     #: the pinch temperature of the utility stream.
-    dT = 5  
+    dT: float = 5  
     
-    #: [DisplayUnits] Units of measure for IPython display.
-    display_units = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
+    #: Units of measure for IPython display.
+    display_units: DisplayUnits = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
 
-    #: [Thermo] Used broadly throughout BioSTEAM utilities.
-    thermo_water = Thermo(['Water'])
+    #: Used broadly throughout BioSTEAM utilities.
+    thermo_water: Thermo = Thermo(['Water'])
     
-    #: [Thermo] Used for BioSTEAM refrigeration utility.
-    thermo_propane = Thermo(['Propane'])
+    #: Used for BioSTEAM refrigeration utility.
+    thermo_propane: Thermo = Thermo(['Propane'])
 
-    #: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] 
     #: Characterization factor data (value and units) by agent ID and impact key.
-    characterization_factors = {}
+    characterization_factors: dict[tuple[str, str], tuple[float, AbsoluteUnitsOfMeasure]] = {}
+    
+    #: All cooling utilities available.
+    cooling_agents: list[UtilityAgent]
+        
+    #: All heating utilities available.
+    heating_agents: list[UtilityAgent]
     
     @classmethod
     def set_CF(self, ID: str, key: str, value: float, basis: Optional[str]=None, units: Optional[str]=None):
@@ -429,21 +408,52 @@ class HeatUtility:
             raise RuntimeError("unknown error")
 
     def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None):
-        self.heat_transfer_efficiency = heat_transfer_efficiency
-        self.heat_exchanger = heat_exchanger
-        self.empty()
+        #: Enforced fraction of heat transfered from utility (due
+        #: to losses to environment).
+        self.heat_transfer_efficiency: float = heat_transfer_efficiency
+        
+        #: Parent heat exchanger using this heat utility.
+        self.heat_exchanger: HXutility|None = heat_exchanger
+        
+        #: Total heat transfered from utility to both the process and the environment [kJ/hr].
+        self.duty: float = 0.
+        
+        #: Effective heat transfered from utility to the unit operation [kJ/hr].
+        self.unit_duty: float = 0.
+        
+        #: Flow rate of utility [kmol/hr].
+        self.flow: float = 0.
+        
+        #: Cost of utility [USD/hr].
+        self.cost: float = 0.
+        
+        #: If cooling, the minimum utility temperature required.
+        #: If heating, the maximum utility temperature required.
+        self.T_pinch: float|None = None
+        
+        #: Whether the utility is cooling the process.
+        self.iscooling: float|None = None
+        
+        #: Utility agent being used.
+        self.agent: UtilityAgent|None = None
+        
+        #: Inlet utility stream
+        self.inlet_utility_stream: Stream|None = None
+        
+        #: Outlet utility stream
+        self.outlet_utility_stream: Stream|None = None
 
     def __bool__(self) -> bool:
         return bool(self.agent)
 
     @property
     def ID(self) -> str:
-        """[str] ID of utility agent being used."""
+        """ID of utility agent being used."""
         agent = self.agent
         return agent.ID if agent else ""
     @ID.setter
     def ID(self, ID: str):
-        """[str] ID of utility agent being used."""
+        """ID of utility agent being used."""
         self.agent = self.get_agent(ID)
 
     @classmethod
@@ -636,9 +646,9 @@ class HeatUtility:
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
 
     @property
-    def inlet_process_stream(self):
-        """[:class`~thermosteam.Stream`] If a heat exchanger is available,
-        this stream is the inlet process stream to the heat exchanger."""
+    def inlet_process_stream(self) -> Stream:
+        """If a heat exchanger is available, this stream is the inlet 
+        process stream to the heat exchanger."""
         heat_exchanger = self.heat_exchanger
         if heat_exchanger:
             return heat_exchanger.ins[0]
@@ -647,8 +657,8 @@ class HeatUtility:
                                  'to retrieve process stream')
 
     @property
-    def outlet_process_stream(self):
-        """[:class`~thermosteam.Stream`] If a heat exchanger is available,
+    def outlet_process_stream(self) -> Stream:
+        """If a heat exchanger is available,
         this stream is the outlet process stream to the heat exchanger."""
         heat_exchanger = self.heat_exchanger
         if heat_exchanger:
@@ -658,7 +668,7 @@ class HeatUtility:
                                  'to retrieve process stream')
     
     @staticmethod
-    def heat_utilities_by_agent(heat_utilities: Any) -> Dict[UtilityAgent, List[HeatUtility]]:
+    def heat_utilities_by_agent(heat_utilities: Iterable[HeatUtility]) -> dict[UtilityAgent, list[HeatUtility]]:
         """Return a dictionary of heat utilities sorted by agent."""
         heat_utilities = [i for i in heat_utilities if i.agent]
         heat_utilities_by_agent = {i.agent: [] for i in heat_utilities}
@@ -667,7 +677,7 @@ class HeatUtility:
         return heat_utilities_by_agent
 
     @classmethod
-    def sum(cls, heat_utilities: List[HeatUtility]) -> HeatUtility:
+    def sum(cls, heat_utilities: list[HeatUtility]) -> HeatUtility:
         """
         Return a HeatUtility object that reflects the sum of heat
         utilities.
@@ -677,7 +687,7 @@ class HeatUtility:
         return heat_utility    
 
     @classmethod
-    def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility], agent: Optional[UtilityAgent]=None) -> Tuple[HeatUtility, ...]:
+    def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility], agent: Optional[UtilityAgent]=None) -> tuple[HeatUtility, ...]:
         """
         Return a tuple of heat utilities that reflect the sum of heat utilities
         by agent. If an agent is specified, return a HeatUtility object that
@@ -804,7 +814,7 @@ class HeatUtility:
             return T_limit if T_limit and T_limit > T_pinch else T_pinch
         
     @classmethod
-    def get_inlet_and_outlet_pinch_temperature(cls, iscooling: bool, T_in: float, T_out: float) -> Tuple[float, float]:
+    def get_inlet_and_outlet_pinch_temperature(cls, iscooling: bool, T_in: float, T_out: float) -> tuple[float, float]:
         """Return pinch inlet and outlet temperature of utility."""
         dT = cls.dT
         if iscooling:
@@ -819,7 +829,7 @@ class HeatUtility:
             T_pinch_out = T_in + dT
         return T_pinch_in, T_pinch_out
 
-    def _info_data(self, duty: None, flow: None, cost: None) -> Tuple[float, float, float, str, str, str]:
+    def _info_data(self, duty: None, flow: None, cost: None) -> tuple[float, float, float, str, str, str]:
         # Get units of measure
         su = self.display_units
         duty_units = duty or su.duty
@@ -840,7 +850,7 @@ class HeatUtility:
             return f'<{type(self).__name__}: None>'
         
     # Representation
-    def _info(self, duty: None, flow: None, cost: None) -> str:
+    def _info(self, duty: Optional[str], flow: Optional[str], cost: Optional[str]) -> str:
         """Return string related to specifications"""
         if not self.agent:
             return (f'{type(self).__name__}: None\n'
@@ -856,7 +866,7 @@ class HeatUtility:
                     +f' cost:{cost: .3g} {cost_units}')
             
 
-    def show(self, duty: None=None, flow: None=None, cost: None=None):
+    def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None):
         """Print all specifications"""
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
@@ -865,7 +875,7 @@ class HeatUtility:
         if other == 0: return self # Special case to get Python built-in sum to work
         return self.__class__.sum([self, other])
         
-    def __radd__(self, other: int) -> HeatUtility:
+    def __radd__(self, other: HeatUtility) -> HeatUtility:
         return self.__add__(other)
 
 HeatUtility.default_agents()
