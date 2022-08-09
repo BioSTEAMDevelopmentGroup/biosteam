@@ -16,7 +16,7 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, TYPE_CHECKING, Iterable
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING, Iterable
 if TYPE_CHECKING: 
     from biosteam import HXutility
 
@@ -520,7 +520,7 @@ class HeatUtility:
                               chilled_brine,
                               propane]
 
-    def copy(self) -> "HeatUtility":
+    def copy(self) -> HeatUtility:
         hu = HeatUtility()
         hu.copy_like(self)
         return hu
@@ -667,7 +667,7 @@ class HeatUtility:
         return heat_utilities_by_agent
 
     @classmethod
-    def sum(cls, heat_utilities: List[HeatUtility]) -> "HeatUtility":
+    def sum(cls, heat_utilities: List[HeatUtility]) -> HeatUtility:
         """
         Return a HeatUtility object that reflects the sum of heat
         utilities.
@@ -861,11 +861,11 @@ class HeatUtility:
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
 
-    def __add__(self, other: Union[int, HeatUtility]) -> "HeatUtility":
+    def __add__(self, other: HeatUtility) -> HeatUtility:
         if other == 0: return self # Special case to get Python built-in sum to work
         return self.__class__.sum([self, other])
         
-    def __radd__(self, other: int) -> "HeatUtility":
+    def __radd__(self, other: int) -> HeatUtility:
         return self.__add__(other)
 
 HeatUtility.default_agents()

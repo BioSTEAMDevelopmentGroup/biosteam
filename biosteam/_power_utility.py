@@ -7,10 +7,12 @@
 # for license details.
 """
 """
+from __future__ import annotations
 from thermosteam.utils import units_of_measure
 from thermosteam.units_of_measure import (
     DisplayUnits, convert, power_utility_units_of_measure
 )
+from typing import List, Optional, Union, Tuple
 
 __all__ = ('PowerUtility',)
 
@@ -86,7 +88,7 @@ class PowerUtility:
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(rate='kW', cost='USD/hr')
     
-    def __init__(self, consumption=0., production=0.):
+    def __init__(self, consumption: float=0., production: float=0.):
         #: Electricity consumption [kW]
         self.consumption = consumption
         
@@ -98,7 +100,7 @@ class PowerUtility:
         self.consumption = self.production = 0.
     
     @classmethod
-    def get_CF(cls, key, consumption=True, production=True):
+    def get_CF(cls, key: str, consumption=True, production=True) -> Union[float, Tuple[float, float]]:
         """
         Return the life-cycle characterization factor for consumption and 
         production on a kg basis given the impact key.
@@ -118,7 +120,7 @@ class PowerUtility:
             return None
 
     @classmethod
-    def set_CF(cls, key, consumption=None, production=None):
+    def set_CF(cls, key: str, consumption: Optional[float]=None, production: Optional[float]=None):
         """
         Set the life-cycle characterization factors for consumption and production
         on a kg basis given the impact key.
@@ -137,11 +139,11 @@ class PowerUtility:
         cls.price = default_price #: [float] USD/kWhr
     
     @property
-    def rate(self):
-        """Power requirement [kW]."""
+    def rate(self) -> float:
+        """Power requirement in kW."""
         return self.consumption - self.production
     @rate.setter
-    def rate(self, rate):
+    def rate(self, rate: float):
         rate = float(rate)
         if rate >= 0.:
             self.consumption = rate
@@ -151,11 +153,11 @@ class PowerUtility:
             self.production = -rate
     
     @property
-    def cost(self):
+    def cost(self) -> float:
         """Cost [USD/hr]"""
         return self.price * self.rate
     
-    def get_impact(self, key):
+    def get_impact(self, key: str) -> float:
         """Return the impact in impact / hr given characterization factor keys 
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
@@ -166,17 +168,17 @@ class PowerUtility:
             return 0.
         return (cf[0] if rate > 0. else cf[1]) * rate
     
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.consumption or self.production)
     
-    def __call__(self, rate):
+    def __call__(self, rate: float):
         """Set rate in kW."""
         self.rate = rate
     
     def copy(self):
         return self.__class__(self.consumption, self.production)
     
-    def mix_from(self, power_utilities):
+    def mix_from(self, power_utilities: List[PowerUtility]):
         """
         Mix in requirements of power utilities.
         
@@ -194,18 +196,18 @@ class PowerUtility:
         self.consumption = sum([i.consumption for i in power_utilities])
         self.production = sum([i.production for i in power_utilities])
     
-    def copy_like(self, power_utility):
+    def copy_like(self, power_utility: PowerUtility):
         """Copy consumption anf production rates from another power utility."""
         self.consumption = power_utility.consumption
         self.production = power_utility.production
     
-    def scale(self, scale):
+    def scale(self, scale: int):
         """Scale consumption and production accordingly."""
         self.consumption *= scale
         self.production *= scale
     
     @classmethod
-    def sum(cls, power_utilities):
+    def sum(cls, power_utilities: List[PowerUtility]) -> PowerUtility:
         """
         Return a PowerUtility object that represents the sum of power utilities.
         
@@ -223,7 +225,7 @@ class PowerUtility:
         power_utility.mix_from(power_utilities)
         return power_utility
     
-    def show(self, rate=None, cost=None):
+    def show(self, rate: Optional[str]=None, cost: Optional[str]=None):
         # Get units of measure
         display_units = self.display_units
         rate_units = rate or display_units.rate
@@ -239,14 +241,14 @@ class PowerUtility:
               f' cost: {cost:.3g} {cost_units}')
     _ipython_display_ = show    
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{type(self).__name__}(consumption={self.consumption}, production={self.production})'
 
-    def __add__(self, other):
+    def __add__(self, other: PowerUtility) -> PowerUtility:
         if other == 0: return self # Special case to get Python built-in sum to work
         return PowerUtility.sum([self, other])
 
-    def __radd__(self, other):
+    def __radd__(self, other: PowerUtility) -> PowerUtility:
         return self.__add__(other)
     
 PowerUtility.default_price()
