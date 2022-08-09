@@ -72,7 +72,7 @@ class UtilityAgent(Stream):
     """
     __slots__ = ('T_limit', '_heat_transfer_price',
                  '_regeneration_price', 'heat_transfer_efficiency')
-    def __init__(self, ID: str='', flow: Tuple[()]=(), phase: str='l', T: float=298.15, P: float=101325., units: str='kmol/hr',
+    def __init__(self, ID: str='', flow: Tuple[float, ...]=(), phase: str='l', T: float=298.15, P: float=101325., units: str='kmol/hr',
                  thermo: Optional[Thermo]=None, T_limit: Optional[float]=None, heat_transfer_price: float=0.0,
                  regeneration_price: float=0.0, heat_transfer_efficiency: float=1.0,                  
                  **chemical_flows):
@@ -428,7 +428,7 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
-    def __init__(self, heat_transfer_efficiency: None=None, heat_exchanger: Optional[HXutility]=None):
+    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None):
         self.heat_transfer_efficiency = heat_transfer_efficiency
         self.heat_exchanger = heat_exchanger
         self.empty()
