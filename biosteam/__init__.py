@@ -37,7 +37,7 @@ else:
 
 from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, speed_up
 from ._preferences import preferences
-from ._heat_utility import HeatUtility, UtilityAgent
+from ._heat_utility import *
 from ._power_utility import PowerUtility
 from . import plots
 from .utils import *
@@ -59,7 +59,7 @@ from . import exceptions
 from . import report
 
 __all__ = (
-    'Unit', 'PowerUtility', 'HeatUtility', 'UtilityAgent',
+    'Unit', 'PowerUtility',* _heat_utility.__all__,
     'utils', 'units', 'evaluation', 'Chemical', 'Chemicals', 'Stream',
     'MultiStream', 'settings', 'exceptions', 'report',
     'process_tools', 'preferences', *_system.__all__, *_flowsheet.__all__, 

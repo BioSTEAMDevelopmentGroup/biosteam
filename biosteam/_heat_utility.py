@@ -16,7 +16,7 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
-from typing import Optional, TYPE_CHECKING, Iterable
+from typing import Optional, TYPE_CHECKING, Iterable, Literal
 if TYPE_CHECKING: from biosteam import HXutility
 
 __all__ = ('HeatUtility', 'UtilityAgent')
@@ -38,43 +38,52 @@ class UtilityAgent(Stream):
     
     Parameters
     ----------
-    ID='' : str
+    ID :
         A unique identification. If ID is None, utility agent will not be registered.
         If no ID is given, utility agent will be registered with a unique ID.
-    flow=() : tuple
+    flow :
         All flow rates corresponding to chemical `IDs`.
-    phase='l' : 'l', 'g', or 's'
+    phase :
         Either gas (g), liquid (l), or solid (s).
-    T=298.15 : float
-        Temperature [K].
-    P=101325 : float
-        Pressure [Pa].
-    units='kmol/hr' : str
+    T :
+        Temperature [K]. Defaults to 298.15 K.
+    P :
+        Pressure [Pa]. Defaults to 101325 Pa.
+    units :
         Flow rate units of measure (only mass, molar, and
-        volumetric flow rates are valid).
-    thermo=None : Thermo
+        volumetric flow rates are valid). Defaults to kmol/hr.
+    thermo :
         Thermodynamic equilibrium package. Defaults to `biosteam.settings.get_thermo()`.
-    T_limit : float, optional
+    T_limit :
         Temperature limit of outlet utility streams [K]. If no limit is given,
         phase change is assumed. If utility agent heats up, `T_limit` is
         the maximum temperature. If utility agent cools down, `T_limit` is
         the minumum temperature. 
-    heat_transfer_price : float
-        Price of transfered heat [USD/kJ].
-    regeneration_price : float
-        Price of regenerating the fluid for reuse [USD/kmol].
-    heat_transfer_efficiency : float
-        Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1).
-    **chemical_flows : float
+    heat_transfer_price :
+        Price of transfered heat [USD/kJ]. Defautls to 1.
+    regeneration_price :
+        Price of regenerating the fluid for reuse [USD/kmol]. Defaults to 0.
+    heat_transfer_efficiency :
+        Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1). Defaults to 1.
+    **chemical_flows :
         ID - flow pairs.
         
     """
     __slots__ = ('T_limit', '_heat_transfer_price',
                  '_regeneration_price', 'heat_transfer_efficiency')
-    def __init__(self, ID: str='', flow: tuple[float, ...]=(), phase: str='l', T: float=298.15, P: float=101325., units: str='kmol/hr',
-                 thermo: Optional[Thermo]=None, T_limit: float|None=None, heat_transfer_price: float=0.0,
-                 regeneration_price: float=0.0, heat_transfer_efficiency: float=1.0,                  
-                 **chemical_flows):
+    def __init__(self, 
+                 ID: str='', 
+                 flow: tuple[float, ...]=(),
+                 phase: Literal['s', 'l', 'g']='l',
+                 T: float=298.15,
+                 P: float=101325.,
+                 units: str='kmol/hr',
+                 thermo: Optional[Thermo]=None, 
+                 T_limit: Optional[float]=None,
+                 heat_transfer_price: float=0.,
+                 regeneration_price: float=0.,
+                 heat_transfer_efficiency: float=1.,                  
+                 **chemical_flows: float) -> None:
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
@@ -91,11 +100,15 @@ class UtilityAgent(Stream):
         self.regeneration_price = regeneration_price
         self.heat_transfer_efficiency = heat_transfer_efficiency
     
+    @property
     def iscooling_agent(self) -> bool:
+        """Whether the agent is a cooling agent."""
         T_limit = self.T_limit 
         return T_limit > self.T if T_limit else self.phase == 'l'
     
+    @property
     def isheating_agent(self) -> bool:
+        """Whether the agent is a heating agent."""
         T_limit = self.T_limit 
         return T_limit < self.T if T_limit else self.phase == 'g'
     
@@ -195,10 +208,10 @@ class HeatUtility:
     
     Parameters
     ----------
-    heat_transfer_efficiency : float, optional
+    heat_transfer_efficiency : 
         Enforced fraction of heat transfered from utility (due
         to losses to environment).
-    heat_exchanger : :class:`~biosteam.HXutility`, optional
+    heat_exchanger : 
         Parent heat exchanger using this heat utility.
     
     Examples
@@ -260,23 +273,23 @@ class HeatUtility:
     heating_agents: list[UtilityAgent]
     
     @classmethod
-    def set_CF(self, ID: str, key: str, value: float, basis: Optional[str]=None, units: Optional[str]=None):
+    def set_CF(self, ID: str, key: str, value: float, basis: Optional[str]=None, units: Optional[str]=None) -> None:
         """
         Set the cacharacterization factor of a utility agent for a given impact 
         key.
 
         Parameters
         ----------
-        ID : str
+        ID :
             ID of utility agent.
-        key : str
+        key :
             Key of impact indicator.
-        value : float
+        value :
             Characterization factor value.
-        basis : str, optional
+        basis :
             Basis of characterization factor. Valid dimensions include weight, 
             molar, and energy (e.g. 'kg', 'kmol', 'kJ'). Defaults to 'kg'.
-        units : str, optional
+        units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
             thermosteam.settings.define_impact_indicator.
@@ -323,7 +336,7 @@ class HeatUtility:
                 basis_units = mass_basis_units
             elif dim == energy_basis_units.dimensionality:
                 basis_units = energy_basis_units
-                if agent.iscooling_agent() and value > 0.: 
+                if agent.iscooling_agent and value > 0.: 
                     raise ValueError(
                         'duty characterization factor must be negative for cooling agents'
                     )
@@ -343,14 +356,14 @@ class HeatUtility:
 
         Parameters
         ----------
-        ID : str
+        ID :
             ID of utility agent.
-        key : str
+        key :
             Key of impact indicator.
-        basis : str, optional
+        basis :
             Basis of characterization factor. Valid dimensions include weight, 
             molar, and energy (e.g. 'kg', 'kmol', 'kJ'). Defaults to 'kg'.
-        units : str, optional
+        units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
             thermosteam.settings.define_impact_indicator.
@@ -407,7 +420,7 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
-    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None):
+    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None) -> None:
         #: Enforced fraction of heat transfered from utility (due
         #: to losses to environment).
         self.heat_transfer_efficiency: float = heat_transfer_efficiency
@@ -432,7 +445,7 @@ class HeatUtility:
         self.T_pinch: float|None = None
         
         #: Whether the utility is cooling the process.
-        self.iscooling: float|None = None
+        self.iscooling: bool|None = None
         
         #: Utility agent being used.
         self.agent: UtilityAgent|None = None
@@ -457,13 +470,13 @@ class HeatUtility:
         self.agent = self.get_agent(ID)
 
     @classmethod
-    def default_agents(cls):
+    def default_agents(cls) -> None:
         """Reset all agents back to BioSTEAM's defaults."""
         cls.default_heating_agents()
         cls.default_cooling_agents()
 
     @classmethod
-    def default_heating_agents(cls):
+    def default_heating_agents(cls) -> None:
         """Reset all heating agents back to BioSTEAM's defaults."""
         thermo_water = cls.thermo_water
         low_pressure_steam = UtilityAgent(
@@ -492,7 +505,7 @@ class HeatUtility:
                               high_pressure_steam]
         
     @classmethod
-    def default_cooling_agents(cls):
+    def default_cooling_agents(cls) -> None:
         """Reset all cooling agents back to BioSTEAM's defaults."""
         thermo_water = cls.thermo_water
         cooling_water = UtilityAgent(
@@ -535,7 +548,7 @@ class HeatUtility:
         hu.copy_like(self)
         return hu
 
-    def copy_like(self, other: HeatUtility):
+    def copy_like(self, other: HeatUtility) -> None:
         """Copy all data from another heat utility."""
         if other.agent:
             self.load_agent(other.agent)
@@ -549,7 +562,7 @@ class HeatUtility:
         self.T_pinch = other.T_pinch
         self.iscooling = other.iscooling
 
-    def scale(self, factor: float):
+    def scale(self, factor: float) -> None:
         """Scale utility data."""
         self.flow *= factor
         self.duty *= factor
@@ -558,12 +571,12 @@ class HeatUtility:
         # No need to factor the outlet utility stream
         # because it shares the same flow rate data as the inlet
 
-    def empty(self):
+    def empty(self) -> None:
         """Remove utility requirements."""
         self.cost = self.flow = self.duty = self.unit_duty = 0
         self.iscooling = self.agent = self.T_pinch = None
         
-    def set_utility_by_flow_rate(self, agent: Optional[UtilityAgent], F_mol: float):
+    def set_utility_by_flow_rate(self, agent: Optional[UtilityAgent], F_mol: float) -> None:
         if F_mol == 0.: 
             self.empty()
             return
@@ -578,18 +591,18 @@ class HeatUtility:
         self.flow = F_mol
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
         
-    def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None):
+    def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None) -> None:
         """Calculate utility requirements given the essential parameters.
         
         Parameters
         ----------
-        unit_duty : float
+        unit_duty :
                Unit duty requirement (kJ/hr)
-        T_in : float
+        T_in : 
                Inlet process stream temperature (K)
-        T_out : float, optional
+        T_out : 
                Outlet process stream temperature (K)
-        agent : UtilityAgent, optional
+        agent : 
                 Utility agent to use. Defaults to a suitable agent from 
                 predefined heating/cooling utility agents.
         
@@ -742,7 +755,7 @@ class HeatUtility:
         
         Parameters
         ----------
-        T_pinch : float
+        T_pinch : 
             Pinch temperature [K].
         
         """
@@ -750,14 +763,14 @@ class HeatUtility:
             if T_pinch > agent.T: return agent
         raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')    
 
-    def load_agent(self, agent: UtilityAgent):
+    def load_agent(self, agent: UtilityAgent) -> None:
         """Initialize utility streams with given agent."""
         # Initialize streams
         self.inlet_utility_stream = agent.to_stream()
         self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
         self.agent = agent
 
-    def mix_from(self, heat_utilities: Iterable[HeatUtility]):
+    def mix_from(self, heat_utilities: Iterable[HeatUtility]) -> None:
         """Mix all heat utilities to this heat utility."""
         heat_utilities = [i for i in heat_utilities if i.agent]
         N_heat_utilities = len(heat_utilities)
@@ -783,7 +796,7 @@ class HeatUtility:
             self.T_pinch = None
             self.iscooling = None
 
-    def reverse(self):
+    def reverse(self) -> None:
         """Reverse direction of utility. If utility is being consumed,
         the utility is produced instead, and vice-versa."""
         self.flow *= -1
@@ -802,9 +815,9 @@ class HeatUtility:
 
         Parameters
         ----------
-        T_pinch : float
+        T_pinch : 
                   Pinch temperature of utility stream [K].
-        iscooling : bool
+        iscooling : 
                   True if utility is loosing energy.
 
         """
@@ -866,7 +879,7 @@ class HeatUtility:
                     +f' cost:{cost: .3g} {cost_units}')
             
 
-    def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None):
+    def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None) -> None:
         """Print all specifications"""
         print(self._info(duty, flow, cost))
     _ipython_display_ = show

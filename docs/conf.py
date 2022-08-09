@@ -62,8 +62,11 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.autosummary',
     'sphinx_multitoc_numbering',
+    'sphinx_autodoc_typehints',
     'nbsphinx']
 
+typehints_document_rtype = False
+typehints_use_rtype = False
 imgmath_latex_preamble = r'\usepackage{xcolor}'
 nbsphinx_execute = 'never'
 
