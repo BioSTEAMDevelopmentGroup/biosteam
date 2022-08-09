@@ -16,7 +16,7 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING, Iterable
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Iterable
 if TYPE_CHECKING: 
     from biosteam import HXutility
 

@@ -90,17 +90,17 @@ class PowerUtility:
     
     def __init__(self, consumption: float=0., production: float=0.):
         #: Electricity consumption [kW]
-        self.consumption = consumption
+        self.consumption: float = consumption
         
         #: Electricity production [kW]
-        self.production = production
+        self.production: float = production
     
     def empty(self):
         """Set consumption and production to zero."""
         self.consumption = self.production = 0.
     
     @classmethod
-    def get_CF(cls, key: str, consumption=True, production=True) -> Union[float, Tuple[float, float]]:
+    def get_CF(cls, key: str, consumption: bool=True, production: bool=True) -> Union[float, Tuple[float, float]]:
         """
         Return the life-cycle characterization factor for consumption and 
         production on a kg basis given the impact key.
