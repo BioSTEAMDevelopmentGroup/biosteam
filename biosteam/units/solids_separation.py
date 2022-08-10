@@ -194,10 +194,11 @@ class RotaryVacuumFilter(SolidsSeparator):
     radius = 1
     
     #: Suction pressure (Pa)
-    P_suction = 105
+    P_suction = 1500.
     
     #: For crystals (lb/day-ft^2)
     filter_rate = 6000
+    
     _kwargs = {'moisture_content': 0.80} # fraction
     _bounds = {'Individual area': (10, 800)}
     _units = {'Area': 'ft^2',
@@ -244,12 +245,14 @@ class RotaryVacuumFilter(SolidsSeparator):
         Area = self.design_results['Individual area']
         N = self.design_results['# RVF']
         vessel_volume = N * radius*Area*0.0929/2. # m3
-        
+        vacummed_air = s_vacuumed.F_vol # Flow rate sucked-in displaces air
+        air_density = 1.2754 # kg /m3
         vacuum_results = compute_vacuum_system_power_and_cost(
-                0, 0, self.P_suction, vessel_volume)
+                vacummed_air * air_density, vacummed_air, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
         self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
         self.design_results['Vacuum system'] = vacuum_results['Name']
+        self.design_results['Vacuums in parallel'] = vacuum_results['In parallel']
         vacuum_steam, vacuum_cooling_water = self.heat_utilities
         vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
         if vacuum_results['Condenser']: 
@@ -261,7 +264,7 @@ class RotaryVacuumFilter(SolidsSeparator):
     @staticmethod
     def _calc_Area(flow, filter_rate):
         """Return area in ft^2 given flow in kg/hr and filter rate in lb/day-ft^2."""
-        return flow*52.91/filter_rate
+        return flow*52.91 / filter_rate
     
 RVF = RotaryVacuumFilter
 
