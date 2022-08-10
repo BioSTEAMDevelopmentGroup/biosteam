@@ -6,16 +6,22 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
+.. contents:: :local:
+
+.. autodata:: stream_utility_prices
+.. autodata:: CE
+
 """
+from __future__ import annotations
 __version__ = '2.32.18'
 
-#: dict[str, float] Price of stream utilities (in USD/kg) which are defined as 
+#: Price of stream utilities [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
-stream_utility_prices = {'Natural gas': 0.218,
-                         'Ash disposal': -0.0318}
+stream_utility_prices: dict[str, float] = {'Natural gas': 0.218,
+                                           'Ash disposal': -0.0318}
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017).
-CE = 567.5 
+CE: float = 567.5 
 
 
 # %% Workaround for readthedocs, which fails to cache numba

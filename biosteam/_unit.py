@@ -22,7 +22,9 @@ from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
 import thermosteam as tmo
-from typing import Callable
+from typing import Callable, Optional, TYPE_CHECKING, Sequence
+from numpy.typing import NDArray
+if TYPE_CHECKING: System = bst.System
 
 __all__ = ('Unit',)
 
@@ -30,6 +32,13 @@ _count = [0]
 def count():
     _count[0] += 1
     print(_count)
+
+# %% Typing
+
+# from typing import Collection, Union, Annotated
+# streams = Union[Collection[Union[Stream, str, None]], Union[Stream, str, None]]
+# stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
+# stream_sequence = Collection[Union[Stream, str, None]]
 
 # %% Inlet and outlet representation
 
@@ -99,17 +108,18 @@ class Unit:
 
     Parameters
     ----------
-    ID='' : str, defaults to a unique ID
+    ID :
         A unique identification. If ID is None, unit will not be
-        registered in flowsheet.
-    ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
+        registered in flowsheet. By default, a unique ID will be chosen.
+    ins :
         Inlet streams or IDs to initialize inlet streams.
-        If empty, default IDs will be given. If None, defaults to missing streams.
-    outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
+        If empty tuple, streams with default IDs will be created.
+        By default, streams will be missing.
+    outs : 
         Outlet streams or IDs to initialize outlet streams.
-        If empty, default IDs will be given.
-        If None, leave streams missing.
-    thermo=None : :class:`~thermosteam.Thermo`
+        By default, streams with unique IDs will be created.
+        If None, streams will be missing.
+    thermo : 
         Thermo object to initialize inlet and outlet streams. Defaults to
         `biosteam.settings.get_thermo()`.
     
@@ -266,7 +276,7 @@ class Unit:
     #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
     _cost = AbstractMethod    
 
-    def __init__(self, ID='', ins=None, outs=(), thermo=None):
+    def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
         self._system = None
         self._isdynamic = False
         self._register(ID)
@@ -300,13 +310,13 @@ class Unit:
         except AttributeError:
             self.F_BM = {}
         
-        #: All design factors for each purchase cost item in :attr:`~Unit._baseline_purchase_cost`.
+        #: All design factors for each purchase cost item in :attr:`~Unit.baseline_purchase_costs`.
         self.F_D: dict[str, float] = {}
         
-        #: All pressure factors for each purchase cost item in :attr:`~Unit._baseline_purchase_cost`.
+        #: All pressure factors for each purchase cost item in :attr:`~Unit.baseline_purchase_costs`.
         self.F_P: dict[str, float] = {}
         
-        #: All material factors for each purchase cost item in :attr:`~Unit._baseline_purchase_cost`.
+        #: All material factors for each purchase cost item in :attr:`~Unit.baseline_purchase_costs`.
         self.F_M: dict[str, float] = {}
         
         #: All design requirements excluding utility requirements and detailed 
@@ -317,22 +327,22 @@ class Unit:
         #: pressure, and material factors.
         self.baseline_purchase_costs: dict[str, float] = {}
         
-        #: dict[str, float] Itemized purchase costs (including auxiliary units)
+        #: Itemized purchase costs (including auxiliary units)
         #: accounting for design, pressure, and material factors (i.e., 
         #: :attr:`~Unit.F_D`, :attr:`~Unit.F_P`, :attr:`~Unit.F_M`).
         #: Items here are automatically updated at the end of unit simulation.
         self.purchase_costs: dict[str, float] = {}
         
-        #: [dict] All installed costs accounting for bare module, design, 
+        #: All installed costs accounting for bare module, design, 
         #: pressure, and material factors. Items here are automatically updated
         #: at the end of unit simulation.
         self.installed_costs: dict[str, float] = {}
         
         #: Indices of additional utilities given by inlet streams.
-        self.inlet_utility_indices: dict[str, int] = {}
+        self._inlet_utility_indices: dict[str, int] = {}
         
         #: Indices of additional utilities given by outlet streams.
-        self.outlet_utility_indices: dict[str, int] = {}
+        self._outlet_utility_indices: dict[str, int] = {}
         
         try:
             #: Lifetime of equipment. Defaults to values in the class attribute 
@@ -381,31 +391,40 @@ class Unit:
                     j._reset_thermo(thermo)
     
     @property
-    def net_power(self):
-        """[float] Net power consumption in kW."""
+    def net_power(self) -> float:
+        """Net power consumption [kW]."""
         return self.power_utility.rate
     @property
-    def net_duty(self):
-        """[float] Net duty including heat transfer losses in kJ/hr."""
+    def net_duty(self) -> float:
+        """Net duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities])
     
-    def define_utility(self, name, stream):
+    def define_utility(self, name: str, stream: Stream):
+        """
+        Define an inlet or outlet stream as a utility by name.
+        
+        name : 
+            Name of utility, as defined in :data:`~biosteam.stream_utility_prices`.
+        stream :
+            Inlet or outlet utility stream.
+        
+        """
         if name not in bst.stream_utility_prices:
             raise ValueError(f"price of '{name}' must be defined in biosteam.stream_utility_prices")
         if stream._sink is self:
-            self.inlet_utility_indices[name] = self._ins._streams.index(stream)
+            self._inlet_utility_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
-            self.outlet_utility_indices[name] = self._outs._streams.index(stream)
+            self._outlet_utility_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
             
     def get_inlet_utility_flows(self):
         ins = self._ins._streams
-        return {name: ins[index].F_mass for name, index in self.inlet_utility_indices.items()}
+        return {name: ins[index].F_mass for name, index in self._inlet_utility_indices.items()}
     
     def get_outlet_utility_flows(self):
         outs = self._outs._streams
-        return {name: outs[index].F_mass for name, index in self.outlet_utility_indices.items()}
+        return {name: outs[index].F_mass for name, index in self._outlet_utility_indices.items()}
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -414,7 +433,7 @@ class Unit:
             self.purchase_costs.copy(), self.installed_costs.copy(),
         )
     
-    def get_agile_design_and_capital(self, design_and_capital: list):
+    def get_agile_design_and_capital(self, design_and_capital: list[UnitDesignAndCapital]):
         names = (
             'F_BM', 'F_D', 'F_P', 'F_M', 'design_results',
             'baseline_purchase_costs', 'purchase_costs', 'installed_costs',
@@ -631,11 +650,11 @@ class Unit:
             if not s: s.materialize_connection()
     
     @property
-    def system(self):
+    def system(self) -> System|None:
         return self._system
     
     @property
-    def owner(self):
+    def owner(self) -> Unit:
         owner = getattr(self, '_owner', None)
         if owner is None:
             return self
@@ -659,9 +678,16 @@ class Unit:
         else:
             return self._graphics.get_node_tailored_to_unit(self)
     
-    def get_design_result(self, key, units):
+    def get_design_result(self, key: str, units: str):
         """
         Return design result in a new set of units of measure.
+        
+        Parameters
+        ----------
+        key :
+            Name of design result.
+        units :
+            Units of measure.
         
         Examples
         --------
@@ -768,19 +794,23 @@ class Unit:
             except:
                 pass
     
-    def add_specification(self, specification=None, run=None, args=()):
+    def add_specification(self, 
+            specification: Optional[Callable]=None, 
+            run: Optional[bool]=None, 
+            args: Optional[tuple]=()
+        ):
         """
         Add a specification.
 
         Parameters
         ----------
-        specification : Callable
-            Function runned for mass and energy balance. Defaults to None.
-        run : bool, optional
+        specification : 
+            Function runned for mass and energy balance.
+        run : 
             Whether to run the built-in mass and energy balance after 
             specifications. Defaults to False.
-        args : tuple, optional
-            Arguments to pass to the specification function. Defaults to ().
+        args : 
+            Arguments to pass to the specification function.
 
         Examples
         --------
@@ -916,12 +946,12 @@ class Unit:
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
-            - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
+            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
+            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
         )
     
     @property
-    def specification(self):
+    def specification(self) -> list[tuple[Callable, tuple]]:
         """Process specification."""
         return self._specification
     @specification.setter
@@ -933,23 +963,23 @@ class Unit:
             self._specification = []
     
     @property
-    def baseline_purchase_cost(self):
+    def baseline_purchase_cost(self) -> float:
         """Total baseline purchase cost, without accounting for design ,
         pressure, and material factors [USD]."""
         return sum(self.baseline_purchase_costs.values())
     
     @property
-    def purchase_cost(self):
+    def purchase_cost(self) -> float:
         """Total purchase cost [USD]."""
         return sum(self.purchase_costs.values())
     
     @property
-    def installed_cost(self):
+    def installed_cost(self) -> float:
         """Total installed equipment cost [USD]."""
         return sum(self.installed_costs.values())
     
     @property
-    def utility_cost(self):
+    def utility_cost(self) -> float:
         """Total utility cost [USD/hr]."""
         try:
             return self._utility_cost
@@ -960,14 +990,14 @@ class Unit:
             self._utility_cost = (
                 sum([i.cost for i in self.heat_utilities]) 
                 + self.power_utility.cost
-                + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
-                - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
+                + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
+                - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
             )
             return self._utility_cost
 
     @property
-    def auxiliary_units(self):
-        """tuple[Unit] All associated auxiliary units."""
+    def auxiliary_units(self) -> tuple[Unit]:
+        """All associated auxiliary units."""
         getfield = getattr
         return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
 
@@ -1143,16 +1173,16 @@ class Unit:
             return series
 
     @property
-    def thermo(self):
-        """[:class:`~thermosteam.Thermo`] Thermodynamic property package."""
+    def thermo(self) -> tmo.Thermo:
+        """Thermodynamic property package."""
         return self._thermo
     @property
-    def ins(self):
-        """Inlets[:class:`~thermosteam.Stream`] List of all inlet streams."""
+    def ins(self) -> Sequence[Stream]:
+        """List of all inlet streams."""
         return self._ins    
     @property
-    def outs(self):
-        """Outlets[:class:`~thermosteam.Stream`] List of all outlet streams."""
+    def outs(self) -> Sequence[Stream]:
+        """List of all outlet streams."""
         return self._outs
 
     def get_available_chemicals(self):
@@ -1276,111 +1306,111 @@ class Unit:
     
     # Molar flow rates
     @property
-    def mol_in(self):
+    def mol_in(self) -> NDArray[float]:
         """Molar flows going in [kmol/hr]."""
         return sum([s.mol for s in self._ins if s])
     @property
-    def mol_out(self):
+    def mol_out(self) -> NDArray[float]:
         """Molar flows going out [kmol/hr]."""
         return sum([s.mol for s in self._outs if s])
 
     @property
-    def z_mol_in(self):
+    def z_mol_in(self) -> NDArray[float]:
         """Molar fractions going in [kmol/hr]."""
         return self._mol_in/self.F_mol_in
     @property
-    def z_mol_out(self):
+    def z_mol_out(self) -> NDArray[float]:
         """Molar fractions going in."""
         return self._mol_out/self.F_mol_out
 
     @property
-    def F_mol_in(self):
+    def F_mol_in(self) -> float:
         """Net molar flow going in [kmol/hr]."""
         return sum([s.F_mol for s in self._ins if s])
     @property
-    def F_mol_out(self):
+    def F_mol_out(self) -> float:
         """Net molar flow going out [kmol/hr]."""
         return sum([s.F_mol for s in self._outs if s])
 
     # Mass flow rates
     @property
-    def mass_in(self):
+    def mass_in(self)-> NDArray[float]:
         """Mass flows going in [kg/hr]."""
         return sum([s.mol for s in self._ins if s]) * self._thermo.chemicals.MW
     @property
-    def mass_out(self):
+    def mass_out(self)-> NDArray[float]:
         """Mass flows going out [kg/hr]."""
         return sum([s.mol for s in self._outs if s]) * self._thermo.chemicals.MW
 
     @property
-    def z_mass_in(self):
+    def z_mass_in(self)-> NDArray[float]:
         """Mass fractions going in."""
         return self.mass_in/self.F_mass_in
     @property
-    def z_mass_out(self):
+    def z_mass_out(self)-> NDArray[float]:
         """Mass fractions going out."""
         return self.mass_out/self.F_mass_out
 
     @property
-    def F_mass_in(self):
+    def F_mass_in(self)-> float:
         """Net mass flow going in [kg/hr]."""
         return self.mass_in.sum()
     @property
-    def F_mass_out(self):
+    def F_mass_out(self) -> float:
         """Net mass flow going out [kg/hr]."""
         return self.mass_out.sum()
 
     # Volumetric flow rates
     @property
-    def vol_in(self):
+    def vol_in(self) -> NDArray[float]:
         """Volumetric flows going in [m3/hr]."""
         return sum([s.vol for s in self._ins if s])
     @property
-    def F_vol_in(self):
+    def F_vol_in(self) -> float:
         """Net volumetric flow going in [m3/hr]."""
         return sum(self.vol_in)
 
     @property
-    def z_vol_in(self):
+    def z_vol_in(self) -> NDArray[float]:
         """Volumetric fractions going in."""
         return self.vol_in/self.F_vol_in
     @property
-    def vol_out(self):
+    def vol_out(self) -> NDArray[float]:
         """Volumetric flows going out [m3/hr]."""
         return sum([s.vol for s in self._outs if s])
 
     @property
-    def F_vol_out(self):
+    def F_vol_out(self)-> float:
         """Net volumetric flow going out [m3/hr]."""
         return sum(self.vol_out)
     @property
-    def z_vol_out(self):
+    def z_vol_out(self) -> NDArray[float]:
         """Volumetric fractions going out."""
         return self.vol_out/self.F_vol_out
 
     # Enthalpy flow rates
     @property
-    def H_in(self):
+    def H_in(self) -> float:
         """Enthalpy flow going in [kJ/hr]."""
         return sum([s.H for s in self._ins if s])
 
     @property
-    def H_out(self):
+    def H_out(self) -> float:
         """Enthalpy flow going out [kJ/hr]."""
         return sum([s.H for s in self._outs if s])
 
     @property
-    def Hf_in(self):
+    def Hf_in(self) -> float:
         """Enthalpy of formation flow going in [kJ/hr]."""
         return sum([s.Hf for s in self._ins if s])
 
     @property
-    def Hf_out(self):
+    def Hf_out(self) -> float:
         """Enthalpy of formation flow going out [kJ/hr]."""
         return sum([s.Hf for s in self._outs if s])
 
     @property
-    def Hnet(self):
+    def Hnet(self) -> float:
         """Net enthalpy flow, including enthalpies of formation [kJ/hr]."""
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     

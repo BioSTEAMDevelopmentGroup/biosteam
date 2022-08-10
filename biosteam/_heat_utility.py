@@ -83,7 +83,7 @@ class UtilityAgent(Stream):
                  heat_transfer_price: float=0.,
                  regeneration_price: float=0.,
                  heat_transfer_efficiency: float=1.,                  
-                 **chemical_flows: float) -> None:
+                 **chemical_flows: float):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
@@ -126,7 +126,7 @@ class UtilityAgent(Stream):
     def cost(self, cost):
         raise AttributeError(f"'{type(self).__name__}' object has no attribute 'cost'")
     
-    def to_stream(self, ID: Optional[str]=None) -> Stream:
+    def to_stream(self, ID: Optional[str]=None):
         """
         Return a copy as a :class:`~thermosteam.Stream` object.
 
@@ -273,7 +273,7 @@ class HeatUtility:
     heating_agents: list[UtilityAgent]
     
     @classmethod
-    def set_CF(self, ID: str, key: str, value: float, basis: Optional[str]=None, units: Optional[str]=None) -> None:
+    def set_CF(self, ID: str, key: str, value: float, basis: Optional[str]=None, units: Optional[str]=None):
         """
         Set the cacharacterization factor of a utility agent for a given impact 
         key.
@@ -349,7 +349,7 @@ class HeatUtility:
         self.characterization_factors[agent.ID, key] = value, basis_units
 
     @classmethod
-    def get_CF(self, ID: str, key: str, basis: Optional[str]=None, units: Optional[str]=None) -> float:
+    def get_CF(self, ID: str, key: str, basis: Optional[str]=None, units: Optional[str]=None):
         """
         Return the characterization factor of a utility agent for a given impact 
         key.
@@ -395,7 +395,7 @@ class HeatUtility:
         else:
             return value / basis_units.conversion_factor(basis)
 
-    def get_impact(self, key: str) -> float:
+    def get_impact(self, key: str):
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)
         if CF == 0.: return 0.
@@ -408,7 +408,7 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
-    def get_inventory(self, key: str) -> float:
+    def get_inventory(self, key: str):
         agent = self.agent
         CF, basis_units = self.get_CF(agent.ID, key)
         if basis_units == 'kg':
@@ -420,7 +420,7 @@ class HeatUtility:
         else:
             raise RuntimeError("unknown error")
 
-    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None) -> None:
+    def __init__(self, heat_transfer_efficiency: Optional[float]=None, heat_exchanger: Optional[HXutility]=None):
         #: Enforced fraction of heat transfered from utility (due
         #: to losses to environment).
         self.heat_transfer_efficiency: float = heat_transfer_efficiency
@@ -470,13 +470,13 @@ class HeatUtility:
         self.agent = self.get_agent(ID)
 
     @classmethod
-    def default_agents(cls) -> None:
+    def default_agents(cls):
         """Reset all agents back to BioSTEAM's defaults."""
         cls.default_heating_agents()
         cls.default_cooling_agents()
 
     @classmethod
-    def default_heating_agents(cls) -> None:
+    def default_heating_agents(cls):
         """Reset all heating agents back to BioSTEAM's defaults."""
         thermo_water = cls.thermo_water
         low_pressure_steam = UtilityAgent(
@@ -505,7 +505,7 @@ class HeatUtility:
                               high_pressure_steam]
         
     @classmethod
-    def default_cooling_agents(cls) -> None:
+    def default_cooling_agents(cls):
         """Reset all cooling agents back to BioSTEAM's defaults."""
         thermo_water = cls.thermo_water
         cooling_water = UtilityAgent(
@@ -548,7 +548,7 @@ class HeatUtility:
         hu.copy_like(self)
         return hu
 
-    def copy_like(self, other: HeatUtility) -> None:
+    def copy_like(self, other: HeatUtility):
         """Copy all data from another heat utility."""
         if other.agent:
             self.load_agent(other.agent)
@@ -562,7 +562,7 @@ class HeatUtility:
         self.T_pinch = other.T_pinch
         self.iscooling = other.iscooling
 
-    def scale(self, factor: float) -> None:
+    def scale(self, factor: float):
         """Scale utility data."""
         self.flow *= factor
         self.duty *= factor
@@ -571,12 +571,12 @@ class HeatUtility:
         # No need to factor the outlet utility stream
         # because it shares the same flow rate data as the inlet
 
-    def empty(self) -> None:
+    def empty(self):
         """Remove utility requirements."""
         self.cost = self.flow = self.duty = self.unit_duty = 0
         self.iscooling = self.agent = self.T_pinch = None
         
-    def set_utility_by_flow_rate(self, agent: Optional[UtilityAgent], F_mol: float) -> None:
+    def set_utility_by_flow_rate(self, agent: Optional[UtilityAgent], F_mol: float):
         if F_mol == 0.: 
             self.empty()
             return
@@ -591,17 +591,17 @@ class HeatUtility:
         self.flow = F_mol
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
         
-    def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None) -> None:
+    def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None):
         """Calculate utility requirements given the essential parameters.
         
         Parameters
         ----------
         unit_duty :
-               Unit duty requirement (kJ/hr)
+               Unit duty requirement [kJ/hr]
         T_in : 
-               Inlet process stream temperature (K)
+               Inlet process stream temperature [K]
         T_out : 
-               Outlet process stream temperature (K)
+               Outlet process stream temperature [K]
         agent : 
                 Utility agent to use. Defaults to a suitable agent from 
                 predefined heating/cooling utility agents.
@@ -681,7 +681,7 @@ class HeatUtility:
                                  'to retrieve process stream')
     
     @staticmethod
-    def heat_utilities_by_agent(heat_utilities: Iterable[HeatUtility]) -> dict[str, list[HeatUtility]]:
+    def heat_utilities_by_agent(heat_utilities: Iterable[HeatUtility]):
         """Return a dictionary of heat utilities sorted by agent ID."""
         heat_utilities = [i for i in heat_utilities if i.agent]
         heat_utilities_by_agent = {i.agent.ID for i in heat_utilities}
@@ -691,7 +691,7 @@ class HeatUtility:
         return heat_utilities_by_agent
 
     @classmethod
-    def sum(cls, heat_utilities: Iterable[HeatUtility]) -> HeatUtility:
+    def sum(cls, heat_utilities: Iterable[HeatUtility]):
         """Return a HeatUtility object that reflects the sum of heat
         utilities."""
         heat_utility = cls()
@@ -699,35 +699,35 @@ class HeatUtility:
         return heat_utility    
 
     @classmethod
-    def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility]) -> tuple[HeatUtility, ...]:
+    def sum_by_agent(cls, heat_utilities: Iterable[HeatUtility]):
         """Return a tuple of heat utilities that reflect the sum of heat utilities
         by agent."""
         heat_utilities_by_agent = cls.heat_utilities_by_agent(heat_utilities)
         return tuple([cls.sum(i) for i in heat_utilities_by_agent.values()])
 
     @classmethod
-    def get_agent(cls, ID: str) -> UtilityAgent:
+    def get_agent(cls, ID: str):
         """Return utility agent with given ID."""
         for agent in cls.heating_agents + cls.cooling_agents:
             if agent.ID == ID: return agent
         raise LookupError(ID)
 
     @classmethod
-    def get_heating_agent(cls, ID: str) -> UtilityAgent:
+    def get_heating_agent(cls, ID: str):
         """Return heating agent with given ID."""
         for agent in cls.heating_agents:
             if agent.ID == ID: return agent
         raise LookupError(ID)
   
     @classmethod
-    def get_cooling_agent(cls, ID: str) -> UtilityAgent:
+    def get_cooling_agent(cls, ID: str):
         """Return cooling agent with given ID."""
         for agent in cls.cooling_agents:
             if agent.ID == ID: return agent
         raise LookupError(ID)
     
     @classmethod
-    def get_suitable_heating_agent(cls, T_pinch: float) -> UtilityAgent:
+    def get_suitable_heating_agent(cls, T_pinch: float):
         """
         Return a heating agent that works at the pinch temperature.
         
@@ -742,7 +742,7 @@ class HeatUtility:
         raise RuntimeError(f'no heating agent that can heat over {T_pinch} K')    
 
     @classmethod
-    def get_suitable_cooling_agent(cls, T_pinch: float) -> UtilityAgent:
+    def get_suitable_cooling_agent(cls, T_pinch: float):
         """Return a cooling agent that works at the pinch temperature.
         
         Parameters
@@ -755,14 +755,14 @@ class HeatUtility:
             if T_pinch > agent.T: return agent
         raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')    
 
-    def load_agent(self, agent: UtilityAgent) -> None:
+    def load_agent(self, agent: UtilityAgent):
         """Initialize utility streams with given agent."""
         # Initialize streams
         self.inlet_utility_stream = agent.to_stream()
         self.outlet_utility_stream = self.inlet_utility_stream.flow_proxy()
         self.agent = agent
 
-    def mix_from(self, heat_utilities: Iterable[HeatUtility]) -> None:
+    def mix_from(self, heat_utilities: Iterable[HeatUtility]):
         """Mix all heat utilities to this heat utility."""
         heat_utilities = [i for i in heat_utilities if i.agent]
         N_heat_utilities = len(heat_utilities)
@@ -788,7 +788,7 @@ class HeatUtility:
             self.T_pinch = None
             self.iscooling = None
 
-    def reverse(self) -> None:
+    def reverse(self):
         """Reverse direction of utility. If utility is being consumed,
         the utility is produced instead, and vice-versa."""
         self.flow *= -1
@@ -801,7 +801,7 @@ class HeatUtility:
     # Subcalculations
 
     @staticmethod
-    def get_outlet_temperature(T_pinch: float, T_limit: float, iscooling: bool) -> float:
+    def get_outlet_temperature(T_pinch: float, T_limit: float, iscooling: bool):
         """
         Return outlet temperature of the utility in a counter current heat exchanger
 
@@ -819,7 +819,7 @@ class HeatUtility:
             return T_limit if T_limit and T_limit > T_pinch else T_pinch
         
     @classmethod
-    def get_inlet_and_outlet_pinch_temperature(cls, iscooling: bool, T_in: float, T_out: float) -> tuple[float, float]:
+    def get_inlet_and_outlet_pinch_temperature(cls, iscooling: bool, T_in: float, T_out: float):
         """Return pinch inlet and outlet temperature of utility."""
         dT = cls.dT
         if iscooling:
@@ -834,7 +834,7 @@ class HeatUtility:
             T_pinch_out = T_in + dT
         return T_pinch_in, T_pinch_out
 
-    def _info_data(self, duty: None, flow: None, cost: None) -> tuple[float, float, float, str, str, str]:
+    def _info_data(self, duty: None, flow: None, cost: None):
         # Get units of measure
         su = self.display_units
         duty_units = duty or su.duty
@@ -855,7 +855,7 @@ class HeatUtility:
             return f'<{type(self).__name__}: None>'
         
     # Representation
-    def _info(self, duty: str|None, flow: str|None, cost: str|None) -> str:
+    def _info(self, duty: str|None, flow: str|None, cost: str|None):
         """Return string related to specifications"""
         if not self.agent:
             return (f'{type(self).__name__}: None\n'
@@ -871,7 +871,7 @@ class HeatUtility:
                     +f' cost:{cost: .3g} {cost_units}')
             
 
-    def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None) -> None:
+    def show(self, duty: Optional[str]=None, flow: Optional[str]=None, cost: Optional[str]=None):
         """Print all specifications"""
         print(self._info(duty, flow, cost))
     _ipython_display_ = show

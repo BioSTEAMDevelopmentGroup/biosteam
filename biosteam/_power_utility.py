@@ -100,7 +100,7 @@ class PowerUtility:
         self.consumption = self.production = 0.
     
     @classmethod
-    def get_CF(cls, key: str, consumption: bool=True, production: bool=True) -> Union[float, tuple[float, float]]:
+    def get_CF(cls, key: str, consumption: bool=True, production: bool=True):
         """
         Return the life-cycle characterization factor for consumption and 
         production on a kg basis given the impact key.
@@ -157,7 +157,7 @@ class PowerUtility:
         """Cost [USD/hr]"""
         return self.price * self.rate
     
-    def get_impact(self, key: str) -> float:
+    def get_impact(self, key: str):
         """Return the impact in impact / hr given characterization factor keys 
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
@@ -168,7 +168,7 @@ class PowerUtility:
             return 0.
         return (cf[0] if rate > 0. else cf[1]) * rate
     
-    def __bool__(self) -> bool:
+    def __bool__(self):
         return bool(self.consumption or self.production)
     
     def __call__(self, rate: float):
@@ -207,7 +207,7 @@ class PowerUtility:
         self.production *= scale
     
     @classmethod
-    def sum(cls, power_utilities: list[PowerUtility]) -> PowerUtility:
+    def sum(cls, power_utilities: list[PowerUtility]):
         """
         Return a PowerUtility object that represents the sum of power utilities.
         
