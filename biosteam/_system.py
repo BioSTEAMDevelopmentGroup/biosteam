@@ -508,9 +508,9 @@ class System:
 
     def __init__(self, 
             ID: Optional[str]= '', 
-            path: Optional[tuple[Unit|System]]=(), 
+            path: Optional[tuple[Unit|System, ...]]=(), 
             recycle: Optional[Stream]=None, 
-            facilities: tuple[Unit]=(),
+            facilities: tuple[Unit, ...]=(),
             facility_recycle: Optional[Stream]=None, 
             N_runs: Optional[int]=None,
             operating_hours: Optional[float]=None,
@@ -570,7 +570,7 @@ class System:
         system.track_recycle(recycle, collector)
 
     def update_configuration(self,
-            units: Optional[tuple[Unit]]=None,
+            units: Optional[tuple[Unit,...]]=None,
             facility_recycle: Optional[Stream]=None
         ):
         if units is None: units = self.units
@@ -714,7 +714,7 @@ class System:
             if hasattr(self, i): delattr(self, i)
         for i in self.subsystems: i._delete_path_cache()
 
-    def reduce_chemicals(self, required_chemicals: tuple[Chemical]=()):
+    def reduce_chemicals(self, required_chemicals: tuple[Chemical, ...]=()):
         self._delete_path_cache()
         unit_thermo = {}
         mixer_thermo = {}
@@ -1128,7 +1128,7 @@ class System:
             return products
 
     @property
-    def facilities(self)  -> tuple[Facility]:
+    def facilities(self)  -> tuple[Facility, ...]:
         """All system facilities."""
         return self._facilities
 
@@ -1927,13 +1927,13 @@ class System:
     # Convenience methods
 
     @property
-    def heat_utilities(self):
-        """tuple[HeatUtility] the sum of all heat utilities in the system by agent."""
+    def heat_utilities(self) -> tuple[bst.HeatUtility, ...]:
+        """The sum of all heat utilities in the system by agent."""
         return bst.HeatUtility.sum_by_agent(utils.get_heat_utilities(self.cost_units))
 
     @property
-    def power_utility(self):
-        """[PowerUtility] Sum of all power utilities in the system."""
+    def power_utility(self) -> PowerUtility:
+        """Sum of all power utilities in the system."""
         return bst.PowerUtility.sum(utils.get_power_utilities(self.cost_units))
 
     def get_inlet_utility_flows(self):
