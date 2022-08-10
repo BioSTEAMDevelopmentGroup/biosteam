@@ -11,7 +11,7 @@
 """
 """
 from __future__ import annotations
-from annotations import Optional, Callable
+from typing import Optional, Callable
 import flexsolve as flx
 from .digraph import (digraph_from_units_and_streams,
                       digraph_from_system,
