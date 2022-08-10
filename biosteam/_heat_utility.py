@@ -684,8 +684,7 @@ class HeatUtility:
     def heat_utilities_by_agent(heat_utilities: Iterable[HeatUtility]):
         """Return a dictionary of heat utilities sorted by agent ID."""
         heat_utilities = [i for i in heat_utilities if i.agent]
-        heat_utilities_by_agent = {i.agent.ID for i in heat_utilities}
-        heat_utilities_by_agent = {i: [] for i in sorted(heat_utilities_by_agent)}
+        heat_utilities_by_agent = {i.ID: [] for i in heat_utilities}
         for i in heat_utilities:
             heat_utilities_by_agent[i.agent.ID].append(i)
         return heat_utilities_by_agent
