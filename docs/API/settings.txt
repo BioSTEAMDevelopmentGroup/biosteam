@@ -1,0 +1,5 @@
+settings
+--------
+
+.. automodule:: biosteam
+   
