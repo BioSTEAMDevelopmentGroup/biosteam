@@ -12,7 +12,7 @@ from thermosteam.utils import units_of_measure
 from thermosteam.units_of_measure import (
     DisplayUnits, convert, power_utility_units_of_measure
 )
-from typing import Optional, Union
+from typing import Optional
 
 __all__ = ('PowerUtility',)
 
@@ -81,12 +81,11 @@ class PowerUtility:
     """
     __slots__ = ('consumption', 'production')
     
-    #: dict[tuple[str, str], float] Characterization factors for life cycle 
-    #: assessment in impact/kWhr by impact key and kind (None, 'consumption', or 'production').
-    characterization_factors = {}
+    #: Characterization factors for life cycle assessment in impact/kWhr by impact key and kind (None, 'consumption', or 'production').
+    characterization_factors: dict[tuple[str, str], float] = {}
     
-    #: [DisplayUnits] Units of measure for IPython display
-    display_units = DisplayUnits(rate='kW', cost='USD/hr')
+    #: Units of measure for IPython display
+    display_units: DisplayUnits = DisplayUnits(rate='kW', cost='USD/hr')
     
     def __init__(self, consumption: float=0., production: float=0.):
         #: Electricity consumption [kW]
