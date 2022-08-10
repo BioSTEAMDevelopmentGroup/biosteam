@@ -1932,7 +1932,7 @@ class System:
         return bst.HeatUtility.sum_by_agent(utils.get_heat_utilities(self.cost_units))
 
     @property
-    def power_utility(self) -> PowerUtility:
+    def power_utility(self) -> bst.PowerUtility:
         """Sum of all power utilities in the system."""
         return bst.PowerUtility.sum(utils.get_power_utilities(self.cost_units))
 
@@ -1941,7 +1941,7 @@ class System:
         Return a dictionary with inlet stream utility flow rates, including
         natural gas and ash disposal but excluding heating, refrigeration, and
         electricity utilities.
-        
+        s
         """
         dct = {}
         for unit in self.units:
