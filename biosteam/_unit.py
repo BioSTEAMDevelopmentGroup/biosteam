@@ -178,7 +178,7 @@ class Unit:
                     'cannot set `_F_BM_defaults`; implement '
                     '`_F_BM_default` instead'
                 )
-            elif cls._F_BM_default is cls._F_BM_default:
+            elif cls._F_BM_default is Unit._F_BM_default:
                 cls._F_BM_default = {}
             
             if hasattr(cls, '_equipment_lifetime'):
@@ -366,6 +366,40 @@ class Unit:
         self._running_specification: bool = False
         
         self._assert_compatible_property_package()
+    
+    def _init_ins(self, ins):
+        self._ins = piping.Inlets(
+            self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
+        )
+    
+    def _init_outs(self, outs):
+        self._outs = piping.Outlets(
+            self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel
+        )
+
+    def _init_utils(self):
+        self.heat_utilities = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        self.power_utility = PowerUtility()
+        
+    def _init_results(self):
+        try: self.F_BM = self._F_BM_default.copy()
+        except AttributeError: self.F_BM = {}
+        self.F_D = {}
+        self.F_P = {}
+        self.F_M = {}
+        self.design_results = {}
+        self.baseline_purchase_costs = {}
+        self.purchase_costs = {}
+        self.installed_costs = {}
+        self._inlet_utility_indices = {}
+        self._outlet_utility_indices = {}
+        try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
+        except AttributeError: self.equipment_lifetime = {}
+
+    def _init_specification(self):
+        self._specification = []
+        self.run_after_specification = False
+        self._running_specification = False
     
     def _reset_thermo(self, thermo):
         for i in (self._ins._streams + self._outs._streams):
