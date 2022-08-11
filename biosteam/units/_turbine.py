@@ -80,7 +80,7 @@ class Turbine(Unit, isabstract=True):
                     'Steam turbine': 0.65,
                     'Gas turbine': 0.35,
                 },
-                driver='Gas turbine',
+                driver='Electric motor',
                 CE=567,
             ),
     }
@@ -185,7 +185,7 @@ class Turbine(Unit, isabstract=True):
             alg = self.baseline_cost_algorithms[turbine_type]
             driver_efficiency = alg.efficiencies[driver]
         self.design_results['Driver efficiency'] = driver_efficiency
-        self.power_utility.consumption = power / driver_efficiency
+        self.power_utility.consumption = power * driver_efficiency
     
     def _design(self):
         design_results = self.design_results
