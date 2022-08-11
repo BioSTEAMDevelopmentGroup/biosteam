@@ -69,7 +69,21 @@ class Turbine(Unit, isabstract=True):
         'Turbine(s)': 2.15,
     }
     #: dict[str, TurbineCostAlgorithm] Cost algorithms by turbine type.
-    baseline_cost_algorithms = {}
+    baseline_cost_algorithms = {
+        'Default': TurbineCostAlgorithm(
+                psig_max=999999999.,
+                acfm_bounds=(0., 999999999.),
+                hp_bounds=(0., 999999999.),
+                cost=lambda Pc: 0,
+                efficiencies={
+                    'Electric motor': 0.80,
+                    'Steam turbine': 0.65,
+                    'Gas turbine': 0.35,
+                },
+                driver='Gas turbine',
+                CE=567,
+            ),
+    }
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  P, eta=0.3, vle=False, turbine_type=None,
