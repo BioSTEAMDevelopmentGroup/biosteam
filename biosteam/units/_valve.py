@@ -38,8 +38,7 @@ class ValveCostAlgorithm(NamedTuple):
 class Valve(Unit, isabstract=True):
     """
     Abstract class for valves that includes design and costing. Child classes
-    should implement the `_run` method for mass and energy balances. Preliminary 
-    design and costing is estimated according to [1]_.
+    should implement the `_run` method for mass and energy balances.
     
     """
     _N_ins = 1
@@ -139,7 +138,8 @@ class Valve(Unit, isabstract=True):
 
 class IsenthalpicValve(Valve):
     """
-    Create an isenthalpic valve.
+    Create an isenthalpic valve. Reduces the pressure of a fluid while keeping the enthalpy
+    constant (adiabatic flash).
 
     Parameters
     ----------
