@@ -69,7 +69,7 @@ import sphinx_autodoc_typehints as sat
 
 _format_annotation = sat.format_annotation
 def format_annotation(annotation, config):
-    original = str(annotation).replace("'", "")
+    # original = str(annotation).replace("'", "")
     name = _format_annotation(annotation, config)
     if name.startswith('Optional['):
         name = name.replace('Optional[', '')[:-1] + ', optional'
@@ -83,8 +83,8 @@ def format_annotation(annotation, config):
             name = name.replace(i, f':py:class:`~biosteam.{i}`')
         name = name.replace('[', '\\[')
         name = name.replace('.bst', '')
-    file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
-    with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
+    # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
+    # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
     return name
 sat.format_annotation = format_annotation
 
