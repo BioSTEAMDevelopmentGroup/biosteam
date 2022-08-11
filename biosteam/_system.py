@@ -548,7 +548,6 @@ class System:
         self._set_facilities(facilities)
         self._set_facility_recycle(facility_recycle)
         self._register(ID)
-        self._load_defaults()
         self._save_configuration()
         self._load_stream_links()
         self._configuration_updated = False
