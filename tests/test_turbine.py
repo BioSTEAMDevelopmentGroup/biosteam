@@ -39,6 +39,33 @@ def test_isentropic_helium_turbine():
     )
     pass
 
+def test_isentropic_nitrogen_liquefaction():
+    thermo = bst.Thermo([bst.Chemical('N2')])
+    thermo.mixture.include_excess_energies = True
+    bst.settings.set_thermo(thermo, cache=True)
+    eta = 1.0
+    feed = bst.Stream(N2=1, T=-108 + 273.15, P=200e5, phase='g')
+    K = bst.units.IsentropicTurbine(ins=feed, P=1e5, eta=eta, vle=True)
+    K.simulate()
+    # check outlet state
+    out = K.outs[0]
+    assert_allclose(
+        [out.vapor_fraction, out.liquid_fraction, out.T, out.P],
+        [0.526, 0.474, -195.91+273.15, 1e5],
+        rtol=1e-3,
+    )
+    # check compressor design
+    ideal_power = -0.599
+    eta_motor = K.design_results['Driver efficiency']
+    expected_power = ideal_power * eta * eta_motor
+    actual_power = K.power_utility.rate
+    assert_allclose(
+        [actual_power, K.design_results['Ideal power'],
+           K.design_results['Ideal duty'], K.design_results['Turbines in parallel']],
+        [expected_power, ideal_power, 0, 1],
+        rtol=1e-3,
+    )
 
 if __name__ == '__main__':
     test_isentropic_helium_turbine()
+    test_isentropic_nitrogen_liquefaction()
