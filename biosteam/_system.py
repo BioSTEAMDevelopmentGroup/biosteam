@@ -503,7 +503,7 @@ class System:
         ID_subsys = None if ID is None else ''
         path = [(cls.from_network(ID_subsys, i) if isa(i, Network) else i)
                 for i in network.path]
-        return cls(ID, path, None, facilities, facility_recycle, None,
+        return cls(ID, path, network.recycle, facilities, facility_recycle, None,
                    operating_hours, lang_factor)
 
     def __init__(self, 
@@ -516,8 +516,8 @@ class System:
             operating_hours: Optional[float]=None,
             lang_factor: Optional[float]=None
         ):
-        self.recycle = recycle
         self.N_runs = N_runs
+        self.recycle = recycle
         self.method = self.default_method   
         
         #: Maximum number of iterations.
@@ -1646,7 +1646,7 @@ class System:
         for system in self.subsystems:
             system.empty_recycles()
 
-    def rescale(self, feedstock, ratio):
+    def rescale(self, feedstock: Stream, ratio: float):
         """Rescale feedstock flow rate and update recycle stream flow rate guesses."""
         feedstock.rescale(ratio)
         for i in self.get_all_recycles(): i.rescale(ratio)
@@ -1681,9 +1681,9 @@ class System:
                  f'set up a dynamic tracker.')
         
     @property
-    def scope(self):
+    def scope(self) -> SystemScope:
         """
-        [:class:`SystemScope`] A tracker of dynamic data of the system, set up
+        A tracker of dynamic data of the system, set up
         with :class:`System`.`set_dynamic_tracker()`
         """
         if not hasattr(self, '_scope'): self._scope = SystemScope(self)
@@ -1969,15 +1969,15 @@ class System:
                         dct[name] = flow
         return dct
 
-    def get_inlet_flow(self, units, key=None):
+    def get_inlet_flow(self, units: str, key: Optional[tuple[str]|str]=None):
         """
         Return total flow across all inlets per year.
 
         Parameters
         ----------
-        units : str
+        units : 
             Material units of measure (e.g., 'kg', 'gal', 'kmol').
-        key : tuple[str] or str, optional
+        key : 
             Chemical identifiers. If none given, the sum of all chemicals returned
 
         Examples
@@ -2000,15 +2000,15 @@ class System:
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.feeds_from_units(self.units)])
 
-    def get_outlet_flow(self, units, key=None):
+    def get_outlet_flow(self, units: str, key: Optional[tuple[str]|str]=None):
         """
         Return total flow across all outlets per year.
 
         Parameters
         ----------
-        units : str
+        units : 
             Material units of measure (e.g., 'kg', 'gal', 'kmol').
-        key : tuple[str] or str, optional
+        key : 
             Chemical identifiers. If none given, the sum of all chemicals returned
 
         Examples
@@ -2032,19 +2032,19 @@ class System:
         else:
             return self.operating_hours * sum([i.get_total_flow(units) for i in bst.utils.products_from_units(self.units)])
     
-    def get_mass_flow(self, stream):
+    def get_mass_flow(self, stream: Stream):
         """Return the mass flow rate of a stream [kg/yr]."""
         return stream.F_mass * self.operating_hours
     
-    def get_market_value(self, stream):
+    def get_market_value(self, stream: Stream):
         """Return the market value of a stream [USD/yr]."""
         return stream.cost * self.operating_hours
 
-    def has_market_value(self, stream):
+    def has_market_value(self, stream: Stream):
         """Return whether stream has a market value."""
         return bool(stream.price) and not stream.isempty()
         
-    def get_property(self, stream, name, units=None):
+    def get_property(self, stream: Stream, name: str, units=None):
         """Return the annualized property of a stream."""
         return stream.get_property(name, units) * self.operating_hours
 
@@ -2060,7 +2060,10 @@ class System:
         else:
             raise ValueError("stream must be either a feed or a product")
 
-    def get_net_heat_utility_impact(self, agent, key, heat_utilities=None):
+    def get_net_heat_utility_impact(self, 
+            agent: bst.UtilityAgent, key: str,
+            heat_utilities: Optional[tuple[bst.HeatUtility]]=None
+        ):
         if isinstance(agent, str): 
             ID = agent
             agent = bst.HeatUtility.get_agent(ID)
@@ -2253,23 +2256,23 @@ class System:
         return {i: j / total for i, j in allocation_factors.items()}
     
     @property
-    def sales(self):
+    def sales(self) -> float:
         """Annual sales revenue."""
         return sum([s.cost for s in self.products if s.price]) * self.operating_hours
     @property
-    def material_cost(self):
+    def material_cost(self) -> float:
         """Annual material cost."""
         return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
     @property
-    def utility_cost(self):
+    def utility_cost(self) -> float:
         """Total utility cost in USD/yr."""
         return sum([u.utility_cost for u in self.cost_units]) * self.operating_hours
     @property
-    def purchase_cost(self):
+    def purchase_cost(self) -> float:
         """Total purchase cost in USD."""
         return sum([u.purchase_cost for u in self.cost_units])
     @property
-    def installed_equipment_cost(self):
+    def installed_equipment_cost(self) -> float:
         """Total installed cost (USD)."""
         lang_factor = self.lang_factor
         if lang_factor:
