@@ -240,16 +240,22 @@ class IsentropicTurbine(Turbine):
         feed = self.ins[0]
         out = self.outs[0]
         out.copy_like(feed)
-        out.P = self.P
-        out.S = feed.S
-        if self.vle is True: out.vle(S=out.S, P=out.P)
+        if self.vle is True:
+            out.vle(S=feed.S, P=self.P)
+        else:
+            out.P = self.P
+            out.S = feed.S
         self.T_isentropic = out.T
         dH_isentropic = out.H - feed.H
         self.design_results['Ideal power'] = dH_isentropic / 3600. # kW
         self.design_results['Ideal duty'] = 0.
         dH_actual = dH_isentropic * self.eta
-        out.H = feed.H + dH_actual        
-        if self.vle is True: out.vle(H=out.H, P=out.P)
+        H = feed.H + dH_actual
+        if self.vle is True:
+            out.vle(H=H, P=out.P)
+        else:
+            out.H = H
+
         
     def _design(self):
         super()._design()
