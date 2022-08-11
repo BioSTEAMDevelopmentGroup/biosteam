@@ -10,7 +10,7 @@
 from .._unit import Unit
 from .._graphics import junction_graphics
 from .._power_utility import PowerUtility
-from ..exceptions import UndefinedChemicalAlias
+from ..exceptions import UndefinedChemical
 from ..utils.piping import Inlets, Outlets
 
 __all__ = ('Junction',)
@@ -94,7 +94,7 @@ class Junction(Unit):
     
     def _run(self): 
         try: self._outs[0].copy_like(self._ins[0])
-        except UndefinedChemicalAlias:
+        except UndefinedChemical:
             self._reset_thermo(self._ins[0]._thermo)
             self._outs[0].copy_like(self._ins[0])
     simulate = Unit.run
