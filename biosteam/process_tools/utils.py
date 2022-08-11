@@ -108,6 +108,7 @@ def rename_unit(unit, area):
     * S = Splitter (including solid/liquid separator)
     * T = Tank or bin for storage
     * U = Other units
+    * V = Valve
     * J = Junction, not a physical unit (serves to adjust streams)
     * PS = Process specificiation, not a physical unit (serves to adjust streams)
     

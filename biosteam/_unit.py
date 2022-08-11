@@ -164,6 +164,7 @@ class Unit:
             elif 'tank' in line: cls.ticket_name = 'T'
             elif 'junction' == line: cls.ticket_name = 'J'
             elif 'specification' in line: cls.ticket_name = 'PS'
+            elif 'valve' in line: cls.ticket_name = 'V'
             else: cls.ticket_name = 'U'
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
