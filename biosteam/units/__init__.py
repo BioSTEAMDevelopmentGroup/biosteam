@@ -37,6 +37,7 @@ from ._vibrating_screen import *
 from ._carbon_capture import *
 from ._continuous_reactor import *
 from .compressor import *
+from ._valve import *
 from .drying import *
 from .size_reduction import *
 from .size_enlargement import *
@@ -84,6 +85,7 @@ from . import (
     _batch_crystallizer,
     _carbon_capture,
     compressor,
+    _valve,
 )
 
 __all__ = ('Unit',
@@ -123,6 +125,7 @@ __all__ = ('Unit',
            *drying.__all__,
            *adsorption.__all__,
            *compressor.__all__,
+           *_valve.__all__,
            'adsorption',
            'drying',
            'tank',
