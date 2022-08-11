@@ -592,7 +592,8 @@ class HeatUtility:
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
         
     def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None):
-        """Calculate utility requirements given the essential parameters.
+        """
+        Calculate utility requirements given the essential parameters.
         
         Parameters
         ----------
