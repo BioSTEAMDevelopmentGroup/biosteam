@@ -65,7 +65,7 @@ class UtilityAgent(Stream):
         Price of regenerating the fluid for reuse [USD/kmol]. Defaults to 0.
     heat_transfer_efficiency :
         Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1). Defaults to 1.
-    **chemical_flows :
+    **chemical_flows : float
         ID - flow pairs.
         
     """
