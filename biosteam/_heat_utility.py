@@ -16,7 +16,7 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
-from typing import Optional, TYPE_CHECKING, Iterable, Literal
+from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
 if TYPE_CHECKING: from biosteam import HXutility
 
 __all__ = ('HeatUtility', 'UtilityAgent')
@@ -73,7 +73,7 @@ class UtilityAgent(Stream):
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, 
                  ID: str='', 
-                 flow: tuple[float, ...]=(),
+                 flow: Sequence[float]=(),
                  phase: Literal['s', 'l', 'g']='l',
                  T: float=298.15,
                  P: float=101325.,

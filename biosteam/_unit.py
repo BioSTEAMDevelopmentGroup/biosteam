@@ -224,7 +224,7 @@ class Unit:
     #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
     #: Utility costs, however, are not automatically accounted for and must
     #: be hardcoded in the unit operation logic.
-    auxiliary_unit_names: tuple[str] = ()
+    auxiliary_unit_names: tuple[str, ...] = ()
     
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
     _N_ins: int = 1  
@@ -296,7 +296,7 @@ class Unit:
         #: All heat utilities associated to unit. Cooling and heating requirements 
         #: are stored here (including auxiliary requirements). The number of heat utilities created is given by the
         #: class attribute :attr:`~Unit._N_heat_utilities`.
-        self.heat_utilities: tuple[HeatUtility] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        self.heat_utilities: tuple[HeatUtility, ...] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
         
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
@@ -1030,7 +1030,7 @@ class Unit:
             return self._utility_cost
 
     @property
-    def auxiliary_units(self) -> tuple[Unit]:
+    def auxiliary_units(self) -> tuple[Unit, ...]:
         """All associated auxiliary units."""
         getfield = getattr
         return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
