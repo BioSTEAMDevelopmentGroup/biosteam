@@ -360,7 +360,7 @@ class System:
     #: Default relative molar tolerance for each component
     default_relative_molar_tolerance: float = 0.01
 
-    #: Default temperature tolerance (K)
+    #: Default temperature tolerance [K]
     default_temperature_tolerance: float = 0.10
 
     #: Default relative temperature tolerance
