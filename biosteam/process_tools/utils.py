@@ -102,6 +102,7 @@ def rename_unit(unit, area):
     * F = Flash tank
     * H = Heat exchange
     * K = Compressor
+    * Ʞ = Turbine
     * M = Mixer
     * P = Pump (including conveying belt)
     * R = Reactor
