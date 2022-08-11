@@ -65,28 +65,29 @@ extensions = [
     'sphinx_autodoc_typehints',
     'nbsphinx']
 
-import sphinx_autodoc_typehints as sat
-
-_format_annotation = sat.format_annotation
-def format_annotation(annotation, config):
-    # original = str(annotation).replace("'", "")
-    name = _format_annotation(annotation, config)
-    if name.startswith('Optional['):
-        name = name.replace('Optional[', '')[:-1] + ', optional'
-    elif name.startswith(':py:data:`~typing.Optional`\['):
-        name = name.replace(':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
-    if ':py:class:' not in name:
-        for i in ['Iterable', 'Sequence', 'str', 'list', 'tuple', 'dict', 'int',
-                  'bool', 'set', 'frozenset', 'float']:
-            name = name.replace(i, f':py:class:`{i}`')
-        for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
-            name = name.replace(i, f':py:class:`~biosteam.{i}`')
-        name = name.replace('[', '\\[')
-        name = name.replace('.bst', '')
-    # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
-    # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
-    return name
-sat.format_annotation = format_annotation
+try:
+    import sphinx_autodoc_typehints as sat
+except: # Ignore this for testing
+    _format_annotation = sat.format_annotation
+    def format_annotation(annotation, config):
+        # original = str(annotation).replace("'", "")
+        name = _format_annotation(annotation, config)
+        if name.startswith('Optional['):
+            name = name.replace('Optional[', '')[:-1] + ', optional'
+        elif name.startswith(':py:data:`~typing.Optional`\['):
+            name = name.replace(':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
+        if ':py:class:' not in name:
+            for i in ['Iterable', 'Sequence', 'str', 'list', 'tuple', 'dict', 'int',
+                      'bool', 'set', 'frozenset', 'float']:
+                name = name.replace(i, f':py:class:`{i}`')
+            for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
+                name = name.replace(i, f':py:class:`~biosteam.{i}`')
+            name = name.replace('[', '\\[')
+            name = name.replace('.bst', '')
+        # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
+        # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
+        return name
+    sat.format_annotation = format_annotation
 
 simplify_optional_unions = True
 always_document_param_types = False
