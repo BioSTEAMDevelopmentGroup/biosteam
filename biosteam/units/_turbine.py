@@ -31,8 +31,8 @@ __all__ = (
 #: * Implement estimate of isentropic efficiency when not given (is this possible?).
 
 class TurbineCostAlgorithm(NamedTuple):
-    #: Defines preliminary correlation algorithm for a compressor type
-    psig_max: float #: Maximum achievable pressure in psig (to autodermine compressor type and/or issue warning)
+    #: Defines preliminary correlation algorithm for a turbine type
+    psig_max: float #: Maximum achievable pressure in psig (to autodermine turbine type and/or issue warning)
     hp_bounds: Tuple[float, float] #: Horse power per machine (not a hard limit for costing, but included here for completion)
     acfm_bounds: Tuple[float, float] #: Actual cubic feet per minute (hard limit for parallel units)
     cost: Callable #: function(horse_power) -> Baseline purchase cost
@@ -122,7 +122,7 @@ class Turbine(Unit, isabstract=True):
     def driver_efficiency(self, driver_efficiency):
         """[str] Efficiency of driver (e.g., steam turbine or electric motor). 
         If 'Default', a heuristic efficiency will be selected based
-        on the compressor type and the driver."""
+        on the turbine type and the driver."""
         if isinstance(driver_efficiency, str):
             if driver_efficiency != 'Default':
                 raise ValueError(
@@ -168,7 +168,7 @@ class Turbine(Unit, isabstract=True):
         if driver_efficiency == 'Default': 
             turbine_type = self.design_results['Type']
             driver = self.design_results['Driver']
-            alg = self.baseline_cost_algorithms[compressor_type]
+            alg = self.baseline_cost_algorithms[turbine_type]
             driver_efficiency = alg.efficiencies[driver]
         self.design_results['Driver efficiency'] = driver_efficiency
         self.power_utility.consumption = power / driver_efficiency
@@ -178,7 +178,7 @@ class Turbine(Unit, isabstract=True):
         turbine_type = self.turbine_type
         if turbine_type == 'Default': turbine_type = self._determine_turbine_type()
         design_results['Type'] = turbine_type
-        alg = self.baseline_cost_algorithms[compressor_type]
+        alg = self.baseline_cost_algorithms[turbine_type]
         acfm_lb, acfm_ub = alg.acfm_bounds
         acfm = self.ins[0].get_total_flow('cfm')
         design_results['Turbines in parallel'] = ceil(acfm / acfm_ub) if acfm > acfm_ub else 1
@@ -190,11 +190,11 @@ class Turbine(Unit, isabstract=True):
         alg = self.baseline_cost_algorithms[design_results['Type']]
         acfm_lb, acfm_ub = alg.acfm_bounds
         Pc = abs(self.power_utility.get_property('consumption', 'hp'))
-        N = design_results['Compressors in parallel']
+        N = design_results['Turbines in parallel']
         Pc_per_turbine = Pc / N
         bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
-        self.baseline_purchase_costs['Compressor(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_turbine)
-        self.F_D['Compressor(s)'] = self.design_factors[design_results['Driver']]
+        self.baseline_purchase_costs['Turbines(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_turbine)
+        self.F_D['Turbines(s)'] = self.design_factors[design_results['Driver']]
 
 
 class IsentropicTurbine(Turbine):
