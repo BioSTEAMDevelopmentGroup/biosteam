@@ -1,5 +1,4 @@
 sphinx>=4.2.0
-thermosteam>=0.28.12
 pydata_sphinx_theme
 sphinx_multitoc_numbering
 sphinx_autodoc_typehints
