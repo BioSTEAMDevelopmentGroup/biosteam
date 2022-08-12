@@ -2276,23 +2276,23 @@ class System:
     
     @property
     def sales(self) -> float:
-        """Annual sales revenue."""
+        """Annual sales revenue [USD/yr]."""
         return sum([s.cost for s in self.products if s.price]) * self.operating_hours
     @property
     def material_cost(self) -> float:
-        """Annual material cost."""
+        """Annual material cost [USD/yr]."""
         return sum([s.cost for s in self.feeds if s.price]) * self.operating_hours
     @property
     def utility_cost(self) -> float:
-        """Total utility cost in USD/yr."""
+        """Total utility cost [USD/yr]."""
         return sum([u.utility_cost for u in self.cost_units]) * self.operating_hours
     @property
     def purchase_cost(self) -> float:
-        """Total purchase cost in USD."""
+        """Total purchase cost [USD]."""
         return sum([u.purchase_cost for u in self.cost_units])
     @property
     def installed_equipment_cost(self) -> float:
-        """Total installed cost (USD)."""
+        """Total installed cost [USD]."""
         lang_factor = self.lang_factor
         if lang_factor:
             return sum([u.purchase_cost for u in self.cost_units]) * lang_factor

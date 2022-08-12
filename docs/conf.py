@@ -153,17 +153,18 @@ try:
             name = name.replace('Optional[', '')[:-1] + ', optional'
         elif name.startswith(':py:data:`~typing.Optional`\['):
             name = name.replace(':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
-        if ':py:class:' not in name:
+        if not name.startswith(':py:class:') and not name.startswith(':py:data:'):
             pyclass_added = False
-            for i in ['Iterable', 'Sequence', 'str', 'list', 'tuple', 'dict', 'int',
+            for i in ['Iterable', 'Sequence', 'Collection', 'str', 'list', 'tuple', 'dict', 'int',
                       'bool', 'set', 'frozenset', 'float']:
                 name = name.replace(i, f':py:class:`{i}`')
                 pyclass_added = True
-            for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
+            for i in ['Unit', 'Stream', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
                 name = name.replace(i, f':py:class:`~biosteam.{i}`')
                 pyclass_added = True
-            if pyclass_added: name = name.replace('[', '\[')
-            name = name.replace('.bst', '').replace('tmo.', '')
+            if pyclass_added: 
+                name = name.replace('[', '\[').replace(':py:class::py:class:', ':py:class:')
+        name = name.replace('bst.', '').replace('tmo.', '').replace('`biosteam', '`~biosteam').replace('._unit', '')
         # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
         # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
         return name
