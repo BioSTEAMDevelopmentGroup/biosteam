@@ -12,6 +12,8 @@ python:
     - method: pip
       path: .
     - requirements: requirements.txt
+    - method: pip
+      path: ./thermosteam
     
 submodules:
   include:
