@@ -315,7 +315,7 @@ class TEA:
                  '_duration_array_cache')
     
     #: Available depreciation schedules. Defaults include modified 
-    #: accelerated cost recovery system from U.S. IRS publicaiton 946 (MACRS),
+    #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
     #: half-year convention.
     depreciation_schedules: dict[tuple(str, int), NDArray[float]] = {
         ('MACRS', 3): np.array([.3333, .4445, .1481, .0741]),
