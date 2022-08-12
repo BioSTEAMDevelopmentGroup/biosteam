@@ -189,8 +189,8 @@ def digraph_from_system(system, **graph_attrs):
     f = blank_digraph(**graph_attrs) 
     other_streams = set()
     excluded_connections = set()
-    unit_names = get_unit_names(f, system.unit_path)
-    update_digraph_from_path(f, tuple(system.path) + system.facilities, 
+    unit_names = get_unit_names(f, (*system.path, *system.facilities))
+    update_digraph_from_path(f, (*system.path, *system.facilities), 
                              system.recycle, 0, unit_names, excluded_connections,
                              other_streams)
     connections = get_all_connections(other_streams).difference(excluded_connections)
@@ -236,7 +236,7 @@ def update_digraph_from_path(f, path, recycle, depth, unit_names,
         kwargs = dict(color=color, bgcolor='none', penwidth='0.75', style='solid')
     for i in subsystems:
         with f.subgraph(name='cluster_' + i.ID) as c:
-            c.attr(label=i.ID + f' [DEPTH {depth}]', fontname="Arial", 
+            c.attr(label=i.ID, fontname="Arial", 
                    labeljust='l', fontcolor=preferences.label_color, **kwargs)
             update_digraph_from_path(c, i.path, i.recycle, depth, unit_names, excluded_connections, other_streams)
 
@@ -245,22 +245,24 @@ def digraph_from_units_and_connections(units, connections, **graph_attrs):
     update_digraph_from_units_and_connections(f, units, connections)
     return f
 
-def get_unit_names(f: Digraph, units):
-    unit_names = {}  # Contains full description (ID and line) by unit
+def fill_info_from_path(path, indices, info_by_unit):
+    isa = isinstance
     number = preferences.number_path
     profile = preferences.profile
     TicToc = bst.utils.TicToc
-    info_by_unit = {}
-    N_junctions = 0
-    isa = isinstance
-    for i, u in enumerate(units):
+    for u in path:
         if isa(u, bst.Junction):
-            N_junctions += 1
             info_by_unit[u] = [[], None]
             continue
+        if isa(u, bst.System):
+            fill_info_from_path(u.path, [*indices, 0], info_by_unit)
+            indices[-1] += 1
+            continue
+        index = '.'.join([str(i) for i in indices])
+        indices[-1] += 1
         if u in info_by_unit:
             old_data = info_by_unit[u]
-            if number: old_data[0].append(str(i - N_junctions))
+            if number: old_data[0].append(index)
         else:
             if profile: # pragma: no cover
                 t = TicToc()
@@ -270,8 +272,12 @@ def get_unit_names(f: Digraph, units):
                 time = f"{1000 * t.mean:.2g} ms"
             else:
                 time = None
-            index = [str(i - N_junctions)] if number else []
-            info_by_unit[u] = [index, time] 
+            info_by_unit[u] = [[index] if number else [], time] 
+
+def get_unit_names(f: Digraph, path):
+    unit_names = {}  # Contains full description (ID and line) by unit
+    info_by_unit = {}
+    fill_info_from_path(path, [0], info_by_unit)
     for u, (index, time) in info_by_unit.items():
         node = u.get_node()
         name = node['name']
