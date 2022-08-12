@@ -1287,18 +1287,27 @@ class Unit:
             new_length = len(upstream_units)
         return upstream_units
     
-    def neighborhood(self, radius=1, upstream=True, downstream=True, ends=None, facilities=None):
+    def neighborhood(self, 
+            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            downstream: Optional[bool]=True, 
+            ends: Optional[Stream]=None, 
+            facilities: Optional[bool]=None
+        ):
         """
         Return a set of all neighboring units within given radius.
         
         Parameters
         ----------
-        radius : int
-                 Maxium number streams between neighbors.
-        downstream=True : bool, optional
-            Whether to include downstream operations
-        upstream=True : bool, optional
-            Whether to include upstream operations
+        radius : 
+            Maximum number streams between neighbors.
+        downstream : 
+            Whether to include downstream operations.
+        upstream : 
+            Whether to include upstream operations.
+        ends :
+            Streams that mark the end of the neighborhood.
+        facilities :
+            Whether to include facilities.
         
         """
         radius -= 1
@@ -1330,9 +1339,9 @@ class Unit:
         radius : 
             Maximum number streams between neighbors.
         downstream : 
-            Whether to show downstream operations
+            Whether to show downstream operations.
         upstream : 
-            Whether to show upstream operations
+            Whether to show upstream operations.
         file : 
             Must be one of the following:
             
