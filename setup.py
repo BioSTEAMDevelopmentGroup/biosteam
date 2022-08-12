@@ -75,6 +75,8 @@ setup(
                  'Operating System :: POSIX :: Linux',
                  'Operating System :: Unix',
                  'Programming Language :: Python :: 3.8',
+                 'Programming Language :: Python :: 3.9',
+                 'Programming Language :: Python :: 3.10',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Education'],
     keywords=['chemical process simmulation', 'bioprocess engineering', 'mass and energy balance', 'material properties', 'phase equilibrium', 'CABBI', 'biorefinery', 'biofuel', 'bioproducts'],

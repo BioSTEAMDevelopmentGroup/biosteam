@@ -162,8 +162,8 @@ try:
             for i in ['Unit', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
                 name = name.replace(i, f':py:class:`~biosteam.{i}`')
                 pyclass_added = True
-            if pyclass_added: name = name.replace('[', '\\[')
-            name = name.replace('.bst', '')
+            if pyclass_added: name = name.replace('[', '\[')
+            name = name.replace('.bst', '').replace('tmo.', '')
         # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
         # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
         return name

@@ -38,22 +38,23 @@ class UtilityAgent(Stream):
     
     Parameters
     ----------
-    ID :
-        A unique identification. If ID is None, utility agent will not be registered.
-        If no ID is given, utility agent will be registered with a unique ID.
-    flow :
-        All flow rates corresponding to chemical `IDs`.
-    phase :
-        Either gas (g), liquid (l), or solid (s).
-    T :
-        Temperature [K]. Defaults to 298.15 K.
-    P :
-        Pressure [Pa]. Defaults to 101325 Pa.
-    units :
+    ID : 
+        A unique identification. If ID is None, stream will not be registered.
+        If no ID is given, stream will be registered with a unique ID.
+    flow : 
+        All flow rates corresponding to defined chemicals.
+    phase : 
+        'g' for gas, 'l' for liquid, and 's' for solid. Defaults to 'l'.
+    T : 
+        Temperature [K]. Defaults to 298.15.
+    P : 
+        Pressure [Pa]. Defaults to 101325.
+    units : 
         Flow rate units of measure (only mass, molar, and
-        volumetric flow rates are valid). Defaults to kmol/hr.
-    thermo :
-        Thermodynamic equilibrium package. Defaults to `biosteam.settings.get_thermo()`.
+        volumetric flow rates are valid). Defaults to 'kmol/hr'.
+    thermo : 
+        Thermo object to initialize input and output streams. Defaults to
+        `biosteam.settings.get_thermo()`.
     T_limit :
         Temperature limit of outlet utility streams [K]. If no limit is given,
         phase change is assumed. If utility agent heats up, `T_limit` is
@@ -72,12 +73,12 @@ class UtilityAgent(Stream):
     __slots__ = ('T_limit', '_heat_transfer_price',
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, 
-                 ID: str='', 
+                 ID: Optional[str]='', 
                  flow: Sequence[float]=(),
-                 phase: Literal['s', 'l', 'g']='l',
-                 T: float=298.15,
-                 P: float=101325.,
-                 units: str='kmol/hr',
+                 phase: Optional[str]='l',
+                 T: Optional[float]=298.15,
+                 P: Optional[float]=101325.,
+                 units: Optional[str]=None,
                  thermo: Optional[Thermo]=None, 
                  T_limit: Optional[float]=None,
                  heat_transfer_price: float=0.,
@@ -87,7 +88,7 @@ class UtilityAgent(Stream):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
-        if units != 'kmol/hr':
+        if units is not None:
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
             flow[:] = self.mol / factor
