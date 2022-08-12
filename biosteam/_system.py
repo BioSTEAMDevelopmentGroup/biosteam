@@ -355,7 +355,7 @@ class System:
     #: Default maximum number of iterations
     default_maxiter: int = 200
 
-    #: Default molar tolerance for each component (kmol/hr)
+    #: Default molar tolerance for each component [kmol/hr]
     default_molar_tolerance: float = 1.
 
     #: Default relative molar tolerance for each component
