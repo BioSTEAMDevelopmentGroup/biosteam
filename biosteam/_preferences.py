@@ -216,8 +216,8 @@ class TemporaryPreferences:
         preferences.update(**self.__dict__)
         if exception: raise exception
 
-#: [BioSTEAMDisplayPreferences] All preferences for diagram and results display.
-preferences = BioSTEAMDisplayPreferences()
+#: All preferences for diagram and results display.
+preferences: BioSTEAMDisplayPreferences = BioSTEAMDisplayPreferences()
 if os.environ.get("FILTER_WARNINGS"):
     from warnings import filterwarnings; filterwarnings('ignore')
 if not os.environ.get("DISABLE_PREFERENCES") == "1":
