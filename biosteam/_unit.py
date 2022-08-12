@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 from warnings import warn
 from ._graphics import UnitGraphics, box_graphics
-from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
 from ._power_utility import PowerUtility
@@ -24,7 +23,9 @@ import biosteam as bst
 import thermosteam as tmo
 from typing import Callable, Optional, TYPE_CHECKING, Sequence
 from numpy.typing import NDArray
-if TYPE_CHECKING: System = bst.System
+if TYPE_CHECKING: 
+    Stream = tmo.Stream
+    System = bst.System
 
 __all__ = ('Unit',)
 
