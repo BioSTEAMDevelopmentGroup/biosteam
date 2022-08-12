@@ -11,7 +11,7 @@
 """
 """
 from __future__ import annotations
-from typing import Optional, Callable, Iterable, Sequence, Collection
+from typing import Optional, Callable, Iterable, Sequence, Collection, TYPE_CHECKING
 import flexsolve as flx
 from .digraph import (digraph_from_units_and_streams,
                       digraph_from_system,
@@ -45,6 +45,7 @@ from scipy.integrate import solve_ivp
 from . import report
 import os
 import openpyxl
+if TYPE_CHECKING: from ._tea import TEA
 
 __all__ = ('System', 'AgileSystem', 'MockSystem',
            'AgileSystem', 'OperationModeResults',

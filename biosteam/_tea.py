@@ -17,9 +17,10 @@ from numba import njit
 from math import ceil
 from warnings import warn
 import biosteam as bst
-from typing import Optional, Sequence, Collection, Union
+from typing import Optional, Sequence, Collection, TYPE_CHECKING
 from ._unit import Unit
 from numpy.typing import NDArray
+if TYPE_CHECKING: from ._system import System
 
 __all__ = ('TEA',)
 
@@ -382,7 +383,7 @@ class TEA:
             system._TEA = new
         return new
 
-    def __init__(self, system: bst.System, IRR: float, duration: tuple[int, int], 
+    def __init__(self, system: System, IRR: float, duration: tuple[int, int], 
                  depreciation: str|NDArray[float], income_tax: float,
                 operating_days: float, lang_factor: float|None, 
                 construction_schedule: Sequence[float],
@@ -390,7 +391,7 @@ class TEA:
                 startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
                 finance_years: int, finance_fraction: float):
         #: System being evaluated.
-        self.system: bst.System = system
+        self.system: System = system
         
         self.duration = duration
         self.depreciation = depreciation
