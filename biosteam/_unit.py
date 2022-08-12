@@ -267,7 +267,7 @@ class Unit:
     #: Create auxiliary components.
     _load_components = AbstractMethod
     
-    #: Run mass and energy balances and update outlet streams.
+    #: Run mass and energy balances and update outlet streams (without user-defined specifications).
     _run = AbstractMethod
     
     #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
@@ -917,7 +917,16 @@ class Unit:
         return f
     
     def run(self):
-        """Run mass and energy balance."""
+        """
+        Run mass and energy balance with specifications.
+        
+        See Also
+        --------
+        _run
+        add_specification
+        add_bounded_numerical_specification
+        
+        """
         specification = self._specification
         if specification and not self._running_specification:
             self._running_specification = True
