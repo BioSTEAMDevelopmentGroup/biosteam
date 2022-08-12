@@ -1,8 +1,8 @@
 # .readthedocs.yml
 
 build:
-  os: ubuntu-20.04
-  image: testing
-  tools:
+  os: ubuntu20
+  languages:
     python: "3.9"
+  tools:
     setup_py_install: true
