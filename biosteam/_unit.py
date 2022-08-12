@@ -981,7 +981,7 @@ class Unit:
         self._summary()
     
     def _summary(self):
-        """Calculate all results from unit run."""
+        """Run design and cost algorithms and compile capital and utility costs."""
         if not (self._design or self._cost): return
         self._design()
         self._cost()
@@ -998,7 +998,9 @@ class Unit:
     
     @property
     def specification(self) -> list[tuple[Callable, tuple]]:
-        """Process specification."""
+        """Process specifications as a list of specification functions and their 
+        arguments in the following format, [(<function0(*args0)>, args0), 
+        (<function1(*args1)>, args1), ...]."""
         return self._specification
     @specification.setter
     def specification(self, specification):
