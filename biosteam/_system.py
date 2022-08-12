@@ -427,7 +427,8 @@ class System:
                                 lang_factor)
 
     @classmethod
-    def from_units(cls, ID: Optional[str]="", units: Optional[Iterable[Unit]]=None, 
+    def from_units(cls, ID: Optional[str]="",
+                   units: Optional[Iterable[Unit]]=None, 
                    ends: Optional[Iterable[Stream]]=None,
                    facility_recycle: Optional[Stream]=None, 
                    operating_hours: Optional[float]=None,
@@ -2300,29 +2301,29 @@ class System:
             return sum([u.installed_cost for u in self.cost_units])
 
     def get_electricity_consumption(self):
-        """Return the total electricity consumption in kWhr / yr."""
+        """Return the total electricity consumption [kWhr/yr]."""
         return self.operating_hours * self.power_utility.consumption
 
     def get_electricity_production(self):
-        """Return the total electricity production in kWhr / yr."""
+        """Return the total electricity production [kWhr/yr]."""
         return self.operating_hours * self.power_utility.production
     
     def get_utility_duty(self, agent):
-        """Return the total utility duty for given agent in kJ/yr."""
+        """Return the total utility duty for given agent [kJ/yr]."""
         if not isinstance(agent, str): agent = agent.ID
         return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.agent.ID == agent]) 
     
     def get_utility_flow(self, agent):
-        """Return the total utility flow for given agent in kmol/yr."""
+        """Return the total utility flow for given agent [kmol/yr]."""
         if not isinstance(agent, str): agent = agent.ID
         return self.operating_hours * sum([i.flow for i in self.heat_utilities if i.agent.ID == agent]) 
     
     def get_cooling_duty(self):
-        """Return the total cooling duty in kJ/yr."""
+        """Return the total cooling duty [kJ/yr]."""
         return - self.operating_hours * sum([i.duty for i in self.heat_utilities if i.flow * i.duty < 0])
     
     def get_heating_duty(self):
-        """Return the total heating duty in kJ/yr."""
+        """Return the total heating duty [kJ/yr]."""
         return self.operating_hours * sum([i.duty for i in self.heat_utilities if i.flow * i.duty > 0])
     
     # Other
