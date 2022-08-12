@@ -68,7 +68,7 @@ class Flowsheets:
             super().__delattr__(key)
     
     def __repr__(self):
-        return 'Register:\n ' + '\n '.join([repr(i) for i in self])
+        return 'Flowsheets:\n ' + '\n '.join([str(i) for i in self])
     
     
 class Flowsheet:
