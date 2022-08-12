@@ -192,6 +192,10 @@ nbsphinx_execute = 'never'
 # Specify the baseurls for the projects I want to link to
 intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'python': ('https://docs.python.org/3', None),
+    'typing': ('https://docs.python.org/3/library', None),
+    'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
+    'thermo': ('https://thermo.readthedocs.io/', None),
 }
 
 # Allow exceptions to occur in notebooks
