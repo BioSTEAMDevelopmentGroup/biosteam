@@ -572,7 +572,9 @@ class TEA:
     
     @property
     def construction_schedule(self) -> Sequence[float]:
-        """Construction investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5)."""
+        """Construction investment fractions per year, starting from year 0.
+        For example, for 50% capital investment in year 0 and 50% investment 
+        in year 1, use (0.5, 0.5)."""
         return self._construction_schedule
     @construction_schedule.setter
     def construction_schedule(self, schedule):
