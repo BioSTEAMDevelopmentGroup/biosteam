@@ -1317,26 +1317,31 @@ class Unit:
             neighborhood.update(direct_neighborhood)
         return neighborhood
 
-    def diagram(self, radius=0, upstream=True, downstream=True, 
-                file=None, format='png', display=True, **graph_attrs):
+    def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
+                downstream: Optional[bool]=True, file: Optional[str]=None, 
+                format: Optional[str]='png', display: Optional[bool]=True,
+                **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
         of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
-        radius : int
-                 Maximum number streams between neighbors.
-        downstream=True : bool, optional
+        radius : 
+            Maximum number streams between neighbors.
+        downstream : 
             Whether to show downstream operations
-        upstream=True : bool, optional
+        upstream : 
             Whether to show upstream operations
-        file : Must be one of the following:
+        file : 
+            Must be one of the following:
+            
             * [str] File name to save diagram.
             * [None] Display diagram in console.
-        format : str
-                 Format of file.
-        display : bool, optional
+            
+        format : 
+            Format of file.
+        display : 
             Whether to display diagram in console or to return the graphviz 
             object.
         
