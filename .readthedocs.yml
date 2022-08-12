@@ -2,6 +2,7 @@
 
 build:
   os: ubuntu-20.04
+  image: testing
   tools:
     python: "3.9"
     setup_py_install: true
