@@ -230,17 +230,17 @@ class TEA:
     **Abstract methods**
     
     _DPI(installed_equipment_cost) -> float
-        Should return the direct permanent investment [DPI] given the
+        Should return the direct permanent investment (DPI) given the
         installed equipment cost.
     _TDC(DPI) -> float
-        Should take direct permanent investment [TDC] as an argument
-        and return total depreciable capital.
+        Should take direct permanent investment (DPI) as an argument
+        and return total depreciable capital (TDC).
     _FCI(TDC) -> float
-        Should take total depreciable capital [FCI] as an argument and return
-        fixed capital investment.
+        Should take total depreciable capital (TDC) as an argument and return
+        fixed capital investment (FCI).
     _FOC(FCI) -> float
-        Should take fixed capital investment [FOC] as an arguments and return
-        fixed operating cost without depreciation. 
+        Should take fixed capital investment (FCI) as an arguments and return
+        fixed operating cost without depreciation (FOC). 
     _fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
         Should take two empty 1d arrays and fill them with incentive and tax cash flows.
         Additional parameters include taxable_cashflow (sales - costs - 
