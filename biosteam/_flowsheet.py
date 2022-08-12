@@ -373,7 +373,7 @@ class MainFlowsheet(Flowsheet):
         return f'<{type(self).__name__}: {self.ID}>'
     
     
-#: [main_flowsheet] Main flowsheet where objects are registered by ID.
+#: Main flowsheet where objects are registered by ID.
 main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(
