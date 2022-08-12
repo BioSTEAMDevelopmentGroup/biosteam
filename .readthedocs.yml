@@ -14,7 +14,8 @@ python:
     - requirements: requirements.txt
     
 submodules:
-  include: thermosteam
+  include:
+    - thermosteam
     
 sphinx:
    configuration: docs/conf.py
