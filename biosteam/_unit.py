@@ -438,6 +438,8 @@ class Unit:
         """
         Define an inlet or outlet stream as a utility by name.
         
+        Parameters
+        ----------
         name : 
             Name of utility, as defined in :data:`~biosteam.stream_utility_prices`.
         stream :
