@@ -1,8 +1,11 @@
 # .readthedocs.yml
 
 build:
-  os: ubuntu20
-  languages:
-    python: "3.9"
+  os: ubuntu-20.04
   tools:
+    python: "3.9"
     setup_py_install: true
+    
+sphinx:
+   configuration: docs/conf.py
+   
