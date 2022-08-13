@@ -21,7 +21,7 @@ References
 """
 import biosteam as bst
 from math import ceil
-from thermosteam import settings
+from warnings import warn
 from thermosteam.units_of_measure import AbsoluteUnitsOfMeasure
 from ...utils import ExponentialFunctor
 
@@ -103,11 +103,10 @@ def compute_number_of_tanks_and_total_purchase_cost(total_volume,
     V_units = purchase_cost_algorithm.V_units
     V_total /= V_units.conversion_factor('m^3')
     V_min = purchase_cost_algorithm.V_min
-    if settings.debug and V_total < V_min:
-        raise RuntimeError(
-             f"volume ({V_total:.5g} {V_units}) is below "
+    if V_total < V_min:
+        warn(f"volume ({V_total:.5g} {V_units}) is below "
              f"the lower bound ({V_min:.5g} {V_units}) for purchase "
-              "cost estimation")
+              "cost estimation", bst.exceptions.CostWarning)
     N = ceil(V_total / purchase_cost_algorithm.V_max)
     if N:
         V = V_total / N

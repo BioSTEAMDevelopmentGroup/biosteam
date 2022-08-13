@@ -15,14 +15,16 @@
 from __future__ import annotations
 __version__ = '2.32.18'
 
+#: Chemical engineering plant cost index (defaults to 567.5 at 2017).
+CE: float = 567.5 
+
+#: User-defined impact indicators and their units of measure.
+impact_indicators: dict[str, str] = {}
+
 #: Price of stream utilities [USD/kg] which are defined as 
 #: inlets and outlets to unit operations.
 stream_utility_prices: dict[str, float] = {'Natural gas': 0.218,
                                            'Ash disposal': -0.0318}
-
-#: Chemical engineering plant cost index (defaults to 567.5 at 2017).
-CE: float = 567.5 
-
 
 # %% Workaround for readthedocs, which fails to cache numba
 

@@ -196,6 +196,7 @@ class Distillation(Unit, isabstract=True):
                 partial_condenser=True,
         ):
         Unit.__init__(self, ID, ins, outs, thermo)
+        self.check_LHK = True
         
         # Operation specifications
         self.k = k
@@ -534,14 +535,17 @@ class Distillation(Unit, isabstract=True):
                          'between the distillate and bottoms product compositions '
                          '(i.e. z_distillate_HK < z_feed_HK < z_bottoms_HK)')
                 )
-        if tmo.settings.debug:
+        if self.check_LHK:
             intermediate_chemicals = self._intermediate_volatile_chemicals
             intermediate_flows = self.feed.imol[intermediate_chemicals]
             minflow = min(LK_distillate, HK_bottoms)
             for flow, chemical in zip(intermediate_flows, intermediate_chemicals):
-                assert flow > minflow, ("significant intermediate volatile chemical,"
-                                        f"'{chemical}', between light and heavy "
-                                        f"key, {', '.join(LHK)}")
+                if flow > minflow:
+                    raise RuntimeError(
+                        "significant intermediate volatile chemical,"
+                       f"'{chemical}', between light and heavy "
+                       f"keys, {', '.join(LHK)}; to ignore this check, "
+                        "set `<Unit>.check_LHK = False`")
     
     def _run_binary_distillation_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
