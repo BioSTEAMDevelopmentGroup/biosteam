@@ -20,11 +20,10 @@ from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
-import thermosteam as tmo
+from thermosteam import Stream
 from typing import Callable, Optional, TYPE_CHECKING, Sequence
 from numpy.typing import NDArray
 if TYPE_CHECKING: 
-    Stream = tmo.Stream
     System = bst.System
 
 __all__ = ('Unit',)
