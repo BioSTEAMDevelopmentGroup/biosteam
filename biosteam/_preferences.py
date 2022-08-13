@@ -232,7 +232,7 @@ Examples
 --------
 >>> from biosteam import preferences
 >>> preferences.show()
-BioSTEAMDisplayPreferences:
+DisplayPreferences:
  label_streams: True
  autodisplay: True
  minimal_nodes: False
