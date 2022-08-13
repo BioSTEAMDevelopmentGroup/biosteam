@@ -33,6 +33,8 @@ release = ''
 
 # -- General configuration ---------------------------------------------------
 
+add_module_names = False
+
 autodoc_member_order = 'bysource'
 
 # If your documentation needs a minimal Sphinx version, state it here.
