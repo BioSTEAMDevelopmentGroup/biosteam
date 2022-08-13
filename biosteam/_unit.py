@@ -23,8 +23,8 @@ import biosteam as bst
 from thermosteam import Stream
 from typing import Callable, Optional, TYPE_CHECKING, Sequence
 from numpy.typing import NDArray
-if TYPE_CHECKING: 
-    System = bst.System
+import thermosteam as tmo
+if TYPE_CHECKING: System = bst.System
 
 __all__ = ('Unit',)
 
