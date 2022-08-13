@@ -14,6 +14,36 @@ import os
 __all__ = ('preferences', 'TemporaryPreferences')
 
 class DisplayPreferences:
+    """
+    All preferences for BioSTEAM diagram and results display.
+
+    Examples
+    --------
+    >>> from biosteam import preferences
+    >>> preferences.show()
+    DisplayPreferences:
+     label_streams: True
+     autodisplay: True
+     minimal_nodes: False
+     number_path: False
+     profile: False
+     raise_exception: False
+     background_color: transparent
+     stream_color: #90918e
+     label_color: #90918e
+     depth_colors: ['#f98f609f']
+     stream_width: F_mass
+     unit_color: #555f69
+     unit_label_color: white
+     unit_periphery_color: #90918e
+     fill_cluster: False
+     flow: kmol/hr
+     T: K
+     P: Pa
+     composition: False
+     N: 7
+    
+    """
     __slots__ = ('label_streams', 'autodisplay', 'minimal_nodes', 'number_path',
                  'profile', 'raise_exception', 'background_color', 'stream_color',
                  'label_color', 'label_color', 'depth_colors', 'stream_width',
@@ -225,37 +255,6 @@ class TemporaryPreferences:
 
 
 preferences: DisplayPreferences = DisplayPreferences()
-"""
-All preferences for BioSTEAM diagram and results display.
-
-Examples
---------
->>> from biosteam import preferences
->>> preferences.show()
-DisplayPreferences:
- label_streams: True
- autodisplay: True
- minimal_nodes: False
- number_path: False
- profile: False
- raise_exception: False
- background_color: transparent
- stream_color: #90918e
- label_color: #90918e
- depth_colors: ['#f98f609f']
- stream_width: F_mass
- unit_color: #555f69
- unit_label_color: white
- unit_periphery_color: #90918e
- fill_cluster: False
- flow: kmol/hr
- T: K
- P: Pa
- composition: False
- N: 7
-
-"""
-
 
 if os.environ.get("FILTER_WARNINGS"):
     from warnings import filterwarnings; filterwarnings('ignore')
