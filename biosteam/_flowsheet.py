@@ -374,6 +374,7 @@ class MainFlowsheet(Flowsheet):
     
     
 #: Main flowsheet where objects are registered by ID.
+#: Use the `set_flowsheet` to change the main flowsheet.
 main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(

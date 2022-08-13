@@ -159,7 +159,7 @@ try:
                       'bool', 'set', 'frozenset', 'float']:
                 name = name.replace(i, f':py:class:`{i}`')
                 pyclass_added = True
-            for i in ['Unit', 'Stream', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
+            for i in ['Unit', 'Chemical', 'Thermo', 'Stream', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
                 name = name.replace(i, f':py:class:`~biosteam.{i}`')
                 pyclass_added = True
             if pyclass_added: 

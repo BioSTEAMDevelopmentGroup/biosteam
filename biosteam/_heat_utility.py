@@ -885,3 +885,9 @@ class HeatUtility:
         return self.__add__(other)
 
 HeatUtility.default_agents()
+settings_cls = settings.__class__
+settings_cls.get_agent = HeatUtility.get_agent
+settings_cls.get_cooling_agent = HeatUtility.get_cooling_agent
+settings_cls.get_heating_agent = HeatUtility.get_heating_agent
+settings_cls.set_utility_agent_CF = HeatUtility.set_CF
+del settings_cls

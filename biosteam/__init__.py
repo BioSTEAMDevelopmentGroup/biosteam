@@ -43,7 +43,7 @@ else:
 
 # %% Initialize BioSTEAM 
 
-from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, speed_up
+from thermosteam import Chemical, Chemicals, Thermo, Stream, MultiStream, settings, ProcessSettings, speed_up
 from ._preferences import preferences
 from ._heat_utility import *
 from ._power_utility import PowerUtility

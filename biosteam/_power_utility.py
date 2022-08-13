@@ -8,6 +8,7 @@
 """
 """
 from __future__ import annotations
+from thermosteam import settings
 from thermosteam.utils import units_of_measure
 from thermosteam.units_of_measure import (
     DisplayUnits, convert, power_utility_units_of_measure
@@ -135,11 +136,11 @@ class PowerUtility:
     @classmethod
     def default_price(cls):
         """Reset price back to BioSTEAM's default."""
-        cls.price = default_price #: [float] USD/kWhr
+        cls.price: float = default_price #: Electricity price [USD/kWhr]
     
     @property
     def rate(self) -> float:
-        """Power requirement in kW."""
+        """Power requirement [kW]."""
         return self.consumption - self.production
     @rate.setter
     def rate(self, rate: float):
@@ -157,7 +158,7 @@ class PowerUtility:
         return self.price * self.rate
     
     def get_impact(self, key: str):
-        """Return the impact in impact / hr given characterization factor keys 
+        """Return the impact [impact/hr] given characterization factor keys 
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
         rate = self.consumption - self.production
@@ -171,7 +172,7 @@ class PowerUtility:
         return bool(self.consumption or self.production)
     
     def __call__(self, rate: float):
-        """Set rate in kW."""
+        """Set rate [kW]."""
         self.rate = rate
     
     def copy(self):
@@ -251,3 +252,5 @@ class PowerUtility:
         return self.__add__(other)
     
 PowerUtility.default_price()
+settings.__class__.set_electricity_CF = PowerUtility.set_CF
+del settings, units_of_measure
