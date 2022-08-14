@@ -293,7 +293,7 @@ class HeatUtility:
         units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
-            :meth:`thermosteam._settings.ProcessSettings.define_impact_indicator <settings.define_impact_indicator>`.
+            :meth:`settings.define_impact_indicator <thermosteam._settings.ProcessSettings.define_impact_indicator >`.
             Units must also be dimensionally consistent with the default units.
             
         Raises
@@ -367,7 +367,7 @@ class HeatUtility:
         units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
-            :meth:`thermosteam._settings.ProcessSettings.define_impact_indicator <settings.define_impact_indicator>`.
+            :meth:`settings.define_impact_indicator <thermosteam._settings.ProcessSettings.define_impact_indicator >`.
             Units must also be dimensionally consistent with the default units.
             
         Raises
