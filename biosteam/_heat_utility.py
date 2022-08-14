@@ -54,7 +54,7 @@ class UtilityAgent(Stream):
         volumetric flow rates are valid). Defaults to 'kmol/hr'.
     thermo : 
         Thermo object to initialize input and output streams. Defaults to
-        `biosteam.settings.get_thermo()`.
+        :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     T_limit :
         Temperature limit of outlet utility streams [K]. If no limit is given,
         phase change is assumed. If utility agent heats up, `T_limit` is
@@ -293,7 +293,7 @@ class HeatUtility:
         units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
-            thermosteam.settings.define_impact_indicator.
+            :meth:`thermosteam._settings.ProcessSettings.define_impact_indicator <settings.define_impact_indicator>`.
             Units must also be dimensionally consistent with the default units.
             
         Raises
@@ -367,7 +367,7 @@ class HeatUtility:
         units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
-            thermosteam.settings.define_impact_indicator.
+            :meth:`thermosteam._settings.ProcessSettings.define_impact_indicator <settings.define_impact_indicator>`.
             Units must also be dimensionally consistent with the default units.
             
         Raises
@@ -734,7 +734,7 @@ class HeatUtility:
         
         Parameters
         ----------
-        T_pinch : float
+        T_pinch :
             Pinch temperature [K].
         
         """

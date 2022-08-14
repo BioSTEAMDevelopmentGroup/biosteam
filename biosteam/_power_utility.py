@@ -82,7 +82,7 @@ class PowerUtility:
     """
     __slots__ = ('consumption', 'production')
     
-    #: Characterization factors for life cycle assessment in impact/kWhr by impact key and kind (None, 'consumption', or 'production').
+    #: Characterization factors for life cycle assessment [impact/kWhr] by impact key and kind (None, 'consumption', or 'production').
     characterization_factors: dict[tuple[str, str], float] = {}
     
     #: Units of measure for IPython display
