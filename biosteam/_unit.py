@@ -443,9 +443,10 @@ class Unit:
         else: raise AttributeError(f"{repr(self)} has no inlet")
     @feed.setter
     def feed(self, feed): 
-        streams = self._ins._streams
+        ins = self._ins
+        streams = ins._streams
         size = len(streams)
-        if size == 1: streams[0] = feed
+        if size == 1: ins[0] = feed
         elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
         else: raise AttributeError(f"{repr(self)} has no inlet")
     inlet = influent = feed
@@ -460,9 +461,10 @@ class Unit:
         else: raise AttributeError(f"{repr(self)} has no outlet")
     @product.setter
     def product(self, product): 
-        streams = self._outs._streams
+        outs = self._outs
+        streams = outs._streams
         size = len(streams)
-        if size == 1: streams[0] = product
+        if size == 1: outs[0] = product
         elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
         else: raise AttributeError(f"{repr(self)} has no outlet")
     outlet = effluent = product
