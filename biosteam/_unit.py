@@ -33,16 +33,6 @@ def count():
     _count[0] += 1
     print(_count)
 
-# %% Subclassing properties
-
-def get_feed(self) -> Stream: return self._ins[0]
-def set_feed(self, feed): self._ins[0] = feed
-feed = property(get_feed, set_feed, doc="Equivalent to `ins[0]`")
-
-def get_product(self) -> Stream: return self._outs[0]
-def set_product(self, product): self._outs[0] = product
-product = property(get_product, set_product, doc="Equivalent to `outs[0]`")
-
 # %% Typing
 
 # from typing import Collection, Union, Annotated
@@ -204,10 +194,6 @@ class Unit:
             elif cls._default_equipment_lifetime is Unit._default_equipment_lifetime: 
                 cls._default_equipment_lifetime = {}
             if cls._units is Unit._units: cls._units = {}
-            if cls._N_ins == 1:
-                cls.feed = cls.inlet = cls.influent = feed
-            if cls._N_outs == 1:
-                cls.product = cls.outlet = cls.effluent = product
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
@@ -446,6 +432,40 @@ class Unit:
     def net_duty(self) -> float:
         """Net duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities])
+    
+    @property
+    def feed(self) -> Stream:
+        """Equivalent to `ins[0]` when the number of inlets is 1."""
+        streams = self._ins._streams
+        size = len(streams)
+        if size == 1: return streams[0]
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
+        else: raise AttributeError(f"{repr(self)} has no inlet")
+    @feed.setter
+    def feed(self, feed): 
+        streams = self._ins._streams
+        size = len(streams)
+        if size == 1: streams[0] = feed
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
+        else: raise AttributeError(f"{repr(self)} has no inlet")
+    inlet = influent = feed
+    
+    @property
+    def product(self) -> Stream:
+        """Equivalent to `outs[0]` when the number of outlets is 1."""
+        streams = self._outs._streams
+        size = len(streams)
+        if size == 1: return streams[0]
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
+        else: raise AttributeError(f"{repr(self)} has no outlet")
+    @product.setter
+    def product(self, product): 
+        streams = self._outs._streams
+        size = len(streams)
+        if size == 1: streams[0] = product
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
+        else: raise AttributeError(f"{repr(self)} has no outlet")
+    outlet = effluent = product
     
     def define_utility(self, name: str, stream: Stream):
         """
