@@ -325,7 +325,7 @@ class HeatUtility:
         """
         agent = self.get_agent(ID)
         if units is not None:
-            original_units = settings.get_impact_indicator_units(units)
+            original_units = settings.get_impact_indicator_units(key)
             value = original_units.unconvert(value, units)
         if basis is None:
             basis_units = mass_basis_units
@@ -389,7 +389,7 @@ class HeatUtility:
             else:
                 return 0.
         if units is not None:
-            original_units = settings.get_impact_indicator_units(units)
+            original_units = settings.get_impact_indicator_units(key)
             value = original_units.convert(value, units)
         if basis is None:
             return value, basis_units._units
