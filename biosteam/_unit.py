@@ -435,7 +435,7 @@ class Unit:
     
     @property
     def feed(self) -> Stream:
-        """Equivalent to `ins[0]` when the number of inlets is 1."""
+        """Equivalent to :attr:`~Unit.ins`\[0] when the number of inlets is 1."""
         streams = self._ins._streams
         size = len(streams)
         if size == 1: return streams[0]
@@ -452,7 +452,7 @@ class Unit:
     
     @property
     def product(self) -> Stream:
-        """Equivalent to `outs[0]` when the number of outlets is 1."""
+        """Equivalent to :attr:`~Unit.outs`\[0] when the number of outlets is 1."""
         streams = self._outs._streams
         size = len(streams)
         if size == 1: return streams[0]
