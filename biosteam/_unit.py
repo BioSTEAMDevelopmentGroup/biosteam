@@ -121,7 +121,7 @@ class Unit:
         If None, streams will be missing.
     thermo : 
         Thermo object to initialize inlet and outlet streams. Defaults to
-        :meth:`biosteam.ProcessSettings.get_thermo <settings.get_thermo>`.
+        :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     
     Examples
     --------
@@ -474,7 +474,7 @@ class Unit:
         Parameters
         ----------
         name : 
-            Name of utility, as defined in :attr:`~biosteam.ProcessSettings.stream_utility_prices <settings.stream_utility_prices>`.
+            Name of utility, as defined in :meth:`settings.stream_utility_prices <thermosteam._settings.ProcessSettings.stream_utility_prices>`.
         stream :
             Inlet or outlet utility stream.
         
