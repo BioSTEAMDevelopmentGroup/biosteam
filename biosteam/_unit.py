@@ -33,6 +33,16 @@ def count():
     _count[0] += 1
     print(_count)
 
+# %% Subclassing properties
+
+def get_feed(self) -> Stream: return self._ins[0]
+def set_feed(self, feed): self._ins[0] = feed
+feed = property(get_feed, set_feed, doc="Equivalent to `ins[0]`")
+
+def get_product(self) -> Stream: return self._outs[0]
+def set_product(self, product): self._outs[0] = product
+product = property(get_product, set_product, doc="Equivalent to `outs[0]`")
+
 # %% Typing
 
 # from typing import Collection, Union, Annotated
@@ -194,6 +204,10 @@ class Unit:
             elif cls._default_equipment_lifetime is Unit._default_equipment_lifetime: 
                 cls._default_equipment_lifetime = {}
             if cls._units is Unit._units: cls._units = {}
+            if cls._N_ins == 1:
+                cls.feed = cls.inlet = cls.influent = feed
+            if cls._N_outs == 1:
+                cls.product = cls.outlet = cls.effluent = product
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
