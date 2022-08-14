@@ -121,7 +121,7 @@ class Unit:
         If None, streams will be missing.
     thermo : 
         Thermo object to initialize inlet and outlet streams. Defaults to
-        `biosteam.settings.get_thermo()`.
+        :meth:`biosteam.ProcessSettings.get_thermo <settings.get_thermo>`.
     
     Examples
     --------
@@ -474,13 +474,13 @@ class Unit:
         Parameters
         ----------
         name : 
-            Name of utility, as defined in :data:`~biosteam.stream_utility_prices`.
+            Name of utility, as defined in :attr:`~biosteam.ProcessSettings.stream_utility_prices <settings.stream_utility_prices>`.
         stream :
             Inlet or outlet utility stream.
         
         """
         if name not in bst.stream_utility_prices:
-            raise ValueError(f"price of '{name}' must be defined in biosteam.stream_utility_prices")
+            raise ValueError(f"price of '{name}' must be defined in settings.stream_utility_prices")
         if stream._sink is self:
             self._inlet_utility_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
