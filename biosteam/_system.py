@@ -469,7 +469,7 @@ class System:
     @classmethod
     def from_segment(cls, ID: Optional[str]="", start: Optional[Unit]=None, 
                      end: Optional[Unit]=None, operating_hours: Optional[float]=None,
-                     lang_factor: Optional[float]=None):
+                     lang_factor: Optional[float]=None, inclusive=False):
         """
         Create a System object from all units in between start and end.
 
@@ -489,6 +489,8 @@ class System:
             Lang factor for getting fixed capital investment from
             total purchase cost. If no lang factor, installed equipment costs are
             estimated using bare module factors.
+        inclusive :
+            Whether to include start and end units.
 
         """
         if start is None:
@@ -500,6 +502,9 @@ class System:
             upstream_units = end.get_upstream_units(facilities=False)
             downstream_units = start.get_downstream_units(facilities=False)
             units = upstream_units.intersection(downstream_units)
+        if inclusive:
+            if start is not None: units.add(start)
+            if end is not None: units.add(end)
         return bst.System.from_units(ID, units, operating_hours=operating_hours,
                                      lang_factor=lang_factor)
          
