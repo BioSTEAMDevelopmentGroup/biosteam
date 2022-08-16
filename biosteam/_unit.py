@@ -738,9 +738,10 @@ class Unit:
         if owner is self: return
         self._owner = owner
     
-    def disconnect(self):
+    def disconnect(self, discard=False):
         self._ins[:] = ()
         self._outs[:] = ()
+        if discard: bst.main_flowsheet.discard(self)
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -754,7 +755,7 @@ class Unit:
     def get_design_result(self, key: str, units: str):
         """
         Return design result in a new set of units of measure.
-        
+            
         Parameters
         ----------
         key :

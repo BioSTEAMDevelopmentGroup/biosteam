@@ -156,10 +156,7 @@ class Flowsheet:
             for i in (Stream, Unit, System): i.ticket_numbers.clear()
     
     def discard(self, ID):
-        for registry in self.registries:
-            if ID in registry: 
-                registry.discard(ID)
-                return
+        for registry in self.registries: registry.discard(ID)
     
     def remove_unit_and_associated_streams(self, ID):
         stream_registry = self.stream
