@@ -16,7 +16,7 @@ from thermosteam.utils import unregistered, units_of_measure
 from thermosteam import Thermo, Stream, ThermalCondition, settings
 from .exceptions import DimensionError
 from math import copysign
-from typing import Optional, TYPE_CHECKING, Iterable, Literal
+from typing import Optional, TYPE_CHECKING, Iterable, Literal, Sequence
 if TYPE_CHECKING: from biosteam import HXutility
 
 __all__ = ('HeatUtility', 'UtilityAgent')
@@ -38,22 +38,23 @@ class UtilityAgent(Stream):
     
     Parameters
     ----------
-    ID :
-        A unique identification. If ID is None, utility agent will not be registered.
-        If no ID is given, utility agent will be registered with a unique ID.
-    flow :
-        All flow rates corresponding to chemical `IDs`.
-    phase :
-        Either gas (g), liquid (l), or solid (s).
-    T :
-        Temperature [K]. Defaults to 298.15 K.
-    P :
-        Pressure [Pa]. Defaults to 101325 Pa.
-    units :
+    ID : 
+        A unique identification. If ID is None, stream will not be registered.
+        If no ID is given, stream will be registered with a unique ID.
+    flow : 
+        All flow rates corresponding to defined chemicals.
+    phase : 
+        'g' for gas, 'l' for liquid, and 's' for solid. Defaults to 'l'.
+    T : 
+        Temperature [K]. Defaults to 298.15.
+    P : 
+        Pressure [Pa]. Defaults to 101325.
+    units : 
         Flow rate units of measure (only mass, molar, and
-        volumetric flow rates are valid). Defaults to kmol/hr.
-    thermo :
-        Thermodynamic equilibrium package. Defaults to `biosteam.settings.get_thermo()`.
+        volumetric flow rates are valid). Defaults to 'kmol/hr'.
+    thermo : 
+        Thermo object to initialize input and output streams. Defaults to
+        :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     T_limit :
         Temperature limit of outlet utility streams [K]. If no limit is given,
         phase change is assumed. If utility agent heats up, `T_limit` is
@@ -65,19 +66,19 @@ class UtilityAgent(Stream):
         Price of regenerating the fluid for reuse [USD/kmol]. Defaults to 0.
     heat_transfer_efficiency :
         Fraction of heat transfered accounting for losses to the environment (must be between 0 to 1). Defaults to 1.
-    **chemical_flows :
+    **chemical_flows : float
         ID - flow pairs.
         
     """
     __slots__ = ('T_limit', '_heat_transfer_price',
                  '_regeneration_price', 'heat_transfer_efficiency')
     def __init__(self, 
-                 ID: str='', 
-                 flow: tuple[float, ...]=(),
-                 phase: Literal['s', 'l', 'g']='l',
-                 T: float=298.15,
-                 P: float=101325.,
-                 units: str='kmol/hr',
+                 ID: Optional[str]='', 
+                 flow: Sequence[float]=(),
+                 phase: Optional[str]='l',
+                 T: Optional[float]=298.15,
+                 P: Optional[float]=101325.,
+                 units: Optional[str]=None,
                  thermo: Optional[Thermo]=None, 
                  T_limit: Optional[float]=None,
                  heat_transfer_price: float=0.,
@@ -87,7 +88,7 @@ class UtilityAgent(Stream):
         self._thermal_condition = ThermalCondition(T, P)
         thermo = self._load_thermo(thermo)
         self._init_indexer(flow, phase, thermo.chemicals, chemical_flows)
-        if units != 'kmol/hr':
+        if units is not None:
             name, factor = self._get_flow_name_and_factor(units)
             flow = getattr(self, name)
             flow[:] = self.mol / factor
@@ -292,7 +293,7 @@ class HeatUtility:
         units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
-            thermosteam.settings.define_impact_indicator.
+            :meth:`settings.define_impact_indicator <thermosteam._settings.ProcessSettings.define_impact_indicator>`.
             Units must also be dimensionally consistent with the default units.
             
         Raises
@@ -324,7 +325,7 @@ class HeatUtility:
         """
         agent = self.get_agent(ID)
         if units is not None:
-            original_units = settings.get_impact_indicator_units(units)
+            original_units = settings.get_impact_indicator_units(key)
             value = original_units.unconvert(value, units)
         if basis is None:
             basis_units = mass_basis_units
@@ -366,7 +367,7 @@ class HeatUtility:
         units :
             Units of impact indicator. Before using this argument, the default units 
             of the impact indicator should be defined with 
-            thermosteam.settings.define_impact_indicator.
+            :meth:`settings.define_impact_indicator <thermosteam._settings.ProcessSettings.define_impact_indicator>`.
             Units must also be dimensionally consistent with the default units.
             
         Raises
@@ -388,7 +389,7 @@ class HeatUtility:
             else:
                 return 0.
         if units is not None:
-            original_units = settings.get_impact_indicator_units(units)
+            original_units = settings.get_impact_indicator_units(key)
             value = original_units.convert(value, units)
         if basis is None:
             return value, basis_units._units
@@ -592,7 +593,8 @@ class HeatUtility:
         self.cost = agent._heat_transfer_price * abs(duty) + agent._regeneration_price * F_mol
         
     def __call__(self, unit_duty: float, T_in: float, T_out: Optional[float]=None, agent: Optional[UtilityAgent]=None):
-        """Calculate utility requirements given the essential parameters.
+        """
+        Calculate utility requirements given the essential parameters.
         
         Parameters
         ----------
@@ -732,7 +734,7 @@ class HeatUtility:
         
         Parameters
         ----------
-        T_pinch : float
+        T_pinch :
             Pinch temperature [K].
         
         """
@@ -883,3 +885,9 @@ class HeatUtility:
         return self.__add__(other)
 
 HeatUtility.default_agents()
+settings_cls = settings.__class__
+settings_cls.get_agent = HeatUtility.get_agent
+settings_cls.get_cooling_agent = HeatUtility.get_cooling_agent
+settings_cls.get_heating_agent = HeatUtility.get_heating_agent
+settings_cls.set_utility_agent_CF = HeatUtility.set_CF
+del settings_cls

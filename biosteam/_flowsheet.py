@@ -8,6 +8,8 @@
 """
 As BioSTEAM objects are created, they are automatically registered. The `main_flowsheet` object allows the user to find any Unit, Stream or System instance.  When `main_flowsheet` is called, it simply looks up the item and returns it. 
 """
+from __future__ import annotations
+from typing import Optional, Iterable
 import biosteam as bst
 from thermosteam.utils import Registry
 from thermosteam import Stream
@@ -66,7 +68,7 @@ class Flowsheets:
             super().__delattr__(key)
     
     def __repr__(self):
-        return 'Register:\n ' + '\n '.join([repr(i) for i in self])
+        return 'Flowsheets:\n ' + '\n '.join([str(i) for i in self])
     
     
 class Flowsheet:
@@ -77,25 +79,25 @@ class Flowsheet:
 	
     """
     
-    line = "Flowsheet"
+    line: str = "Flowsheet"
     
-    #: [Flowsheets] All flowsheets.
-    flowsheet = Flowsheets()
+    #: All flowsheets.
+    flowsheet: Flowsheets = Flowsheets()
     
     def __new__(cls, ID):        
         self = super().__new__(cls)
         
-        #: [Register] Contains all System objects as attributes.
-        self.system = Registry()
+        #: Contains all System objects as attributes.
+        self.system: Registry = Registry()
         
-        #: [Register] Contains all Unit objects as attributes.
-        self.unit = Registry()
+        #: Contains all Unit objects as attributes.
+        self.unit: Registry = Registry()
         
-        #: [Register] Contains all Stream objects as attributes.
-        self.stream = Registry()
+        #: Contains all Stream objects as attributes.
+        self.stream: Registry = Registry()
         
-        #: [str] ID of flowsheet.
-        self._ID = ID
+        #: ID of flowsheet.
+        self._ID: str = ID
         self.flowsheet.__dict__[ID] = self
         return self
     
@@ -154,10 +156,7 @@ class Flowsheet:
             for i in (Stream, Unit, System): i.ticket_numbers.clear()
     
     def discard(self, ID):
-        for registry in self.registries:
-            if ID in registry: 
-                registry.discard(ID)
-                return
+        for registry in self.registries: registry.discard(ID)
     
     def remove_unit_and_associated_streams(self, ID):
         stream_registry = self.stream
@@ -189,69 +188,76 @@ class Flowsheet:
             new.update(flowsheet)
         return new
     
-    def diagram(self, kind=None, file=None, format=None, display=True,
-                number=None, profile=None, label=None, title=None, **graph_attrs):
+    def diagram(self, kind: Optional[int|str]=None, file: Optional[str]=None, 
+                format: Optional[str]=None, display: Optional[bool]=True,
+                number: Optional[bool]=None, profile: Optional[bool]=None,
+                label: Optional[bool]=None, title: Optional[str]=None,
+                **graph_attrs):
         """
-        Display all units and attached streams.
-        
+        Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of
+        all unit operations.
+
         Parameters
         ----------
-        kind : int or string, optional
+        kind :
             * 0 or 'cluster': Display all units clustered by system.
             * 1 or 'thorough': Display every unit within the path.
             * 2 or 'surface': Display only elements listed in the path.
             * 3 or 'minimal': Display a single box representing all units.
-        file : str, display in console by default
-            File name to save diagram.
-        format : str
-            File format (e.g. "png", "svg"). Defaults to 'png'.
-        display : bool, optional
-            Whether to display diagram in console or to return the graphviz 
+        file : 
+            File name to save diagram. 
+        format:
+            File format (e.g. "png", "svg"). Defaults to 'png'
+        display : 
+            Whether to display diagram in console or to return the graphviz
             object.
-        number : bool, optional
-            Whether to number unit operations according to their 
+        number : 
+            Whether to number unit operations according to their
             order in the system path.
-        profile : bool, optional
+        profile : 
             Whether to clock the simulation time of unit operations.
-        label : bool, optional
+        label : 
             Whether to label the ID of streams with sources and sinks.
-            
+
         """
         if title is None: title = ''
         return self.create_system(None).diagram(kind or 'thorough', file, format,
                                                 display, number, profile, label,
                                                 title, **graph_attrs)
     
-    def create_system(self, ID="", ends=(), facility_recycle=None,
-                      operating_hours=None, lang_factor=None):
+    def create_system(self, ID: Optional[str]="", 
+                      ends: Optional[Iterable[Stream]]=None,
+                      facility_recycle: Optional[Stream]=None, 
+                      operating_hours: Optional[float]=None,
+                      lang_factor: Optional[float]=None):
         """
         Create a System object from all units and streams defined in the flowsheet.
         
         Parameters
         ----------
-        ID : str, optional
+        ID : 
             Name of system.
-        ends : Iterable[:class:`~thermosteam.Stream`], optional
+        ends : 
             End streams of the system which are not products. Specify this
-            argument if only a section of the complete system is wanted, or if 
+            argument if only a section of the complete system is wanted, or if
             recycle streams should be ignored.
-        facility_recycle : :class:`~thermosteam.Stream`, optional
+        facility_recycle : 
             Recycle stream between facilities and system path. This argument
             defaults to the outlet of a BlowdownMixer facility (if any).
-        operating_hours : float, optional
+        operating_hours : 
             Number of operating hours in a year. This parameter is used to
-            compute properties such as utility cost and material cost
-            on a per year basis. 
-        lang_factor : float, optional
-            Lang factor for getting fixed capital investment from 
-            total purchase cost. If no lang factor, installed equipment costs are 
+            compute annualized properties such as utility cost and material cost
+            on a per year basis.
+        lang_factor : 
+            Lang factor for getting fixed capital investment from
+            total purchase cost. If no lang factor, installed equipment costs are
             estimated using bare module factors.
         
         """
         return System.from_units(ID, self.unit, ends, facility_recycle,
                                  operating_hours, lang_factor)
     
-    def create_network(self, feeds=None, ends=()):
+    def _create_network(self, feeds=None, ends=()):
         """
         Create a Network object from all units and streams defined in the flowsheet.
         
@@ -274,15 +280,15 @@ class Flowsheet:
             network = Network([])
         return network
     
-    def __call__(self, ID, strict=False):
+    def __call__(self, ID: str|type[Unit], strict: Optional[bool]=False):
         """
 		Return requested biosteam item or a list of all matching items.
     
         Parameters
         ----------
-        ID : str or type
+        ID :
             ID of the requested item or Unit subclass.
-        strict : bool
+        strict : 
             Whether an exact match is required. 
             
         """
@@ -364,7 +370,8 @@ class MainFlowsheet(Flowsheet):
         return f'<{type(self).__name__}: {self.ID}>'
     
     
-#: [main_flowsheet] Main flowsheet where objects are registered by ID.
+#: Main flowsheet where objects are registered by ID.
+#: Use the `set_flowsheet` to change the main flowsheet.
 main_flowsheet = object.__new__(MainFlowsheet)
 main_flowsheet.set_flowsheet(
     Flowsheet.from_registries(

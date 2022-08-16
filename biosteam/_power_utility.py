@@ -8,15 +8,17 @@
 """
 """
 from __future__ import annotations
+from thermosteam import settings
 from thermosteam.utils import units_of_measure
 from thermosteam.units_of_measure import (
-    DisplayUnits, convert, power_utility_units_of_measure
+    DisplayUnits, convert, power_utility_units_of_measure, AbsoluteUnitsOfMeasure
 )
 from typing import Optional
 
 __all__ = ('PowerUtility',)
 
 
+impact_indicator_basis = AbsoluteUnitsOfMeasure('kWhr')
 default_price = 0.0782
 
 @units_of_measure(power_utility_units_of_measure)
@@ -81,7 +83,7 @@ class PowerUtility:
     """
     __slots__ = ('consumption', 'production')
     
-    #: Characterization factors for life cycle assessment in impact/kWhr by impact key and kind (None, 'consumption', or 'production').
+    #: Characterization factors for life cycle assessment [impact/kWhr] by impact key and kind (None, 'consumption', or 'production').
     characterization_factors: dict[tuple[str, str], float] = {}
     
     #: Units of measure for IPython display
@@ -99,30 +101,81 @@ class PowerUtility:
         self.consumption = self.production = 0.
     
     @classmethod
-    def get_CF(cls, key: str, consumption: bool=True, production: bool=True):
+    def get_CF(cls, key: str, consumption: Optional[bool]=True, 
+               production: Optional[bool]=True, basis: Optional[str]=None, 
+               units: Optional[str]=None):
         """
         Return the life-cycle characterization factor for consumption and 
-        production on a kg basis given the impact key.
+        production on a kWhr basis given the impact key.
+        
+        Parameters
+        ----------
+        key :
+            Name of impact indicator.
+        consumption :
+            Whether to return impact indicator for electricity consumption.
+        production :
+            Whether to return impact indicator for electricity production.
+        basis :
+            Basis of characterization factor. Energy is the only valid dimension. 
+            Defaults to 'kWhr'.
+        units :
+            Units of impact indicator. Before using this argument, the default units 
+            of the impact indicator should be defined with 
+            :meth:`settings.define_impact_indicator <thermosteam._settings.ProcessSettings.define_impact_indicator>`.
+            Units must also be dimensionally consistent with the default units.
+        
         """
         try:
             value = cls.characterization_factors[key]
-        except:
+        except KeyError:
             value = (0., 0.)
         if consumption:
-            if production:
-                return value
-            else:
-                return value[0]
+            if not production:
+                value = value[0]
         elif production:
-            return value[1]
+            value = value[1]
         else:
             return None
+        if units is not None:
+            original_units = settings.get_impact_indicator_units(key)
+            f = original_units.conversion_factor(units)
+            if consumption and production:
+                value = (consumption * f, 
+                         production * f)
+            else:
+                value *= f
+        if basis is not None:
+            f = impact_indicator_basis.conversion_factor(basis)
+            consumption /= f
+            production /= f
+        return value
 
     @classmethod
-    def set_CF(cls, key: str, consumption: Optional[float]=None, production: Optional[float]=None):
+    def set_CF(cls, key: str, consumption: Optional[float]=None,
+               production: Optional[float]=None, basis: Optional[str]=None, 
+               units: Optional[str]=None):
         """
         Set the life-cycle characterization factors for consumption and production
-        on a kg basis given the impact key.
+        on a kWhr basis given the impact key.
+        
+        Parameters
+        ----------
+        key :
+            Name of impact indicator.
+        consumption :
+            Impact indicator for electricity consumption.
+        production :
+            Impact indicator for electricity production.
+        basis :
+            Basis of characterization factor. Energy is the only valid dimension. 
+            Defaults to 'kWhr'.
+        units :
+            Units of impact indicator. Before using this argument, the default units 
+            of the impact indicator should be defined with 
+            :meth:`settings.define_impact_indicator <thermosteam._settings.ProcessSettings.define_impact_indicator>`.
+            Units must also be dimensionally consistent with the default units.
+        
         """
         if consumption is None:
             if production is None:
@@ -130,16 +183,25 @@ class PowerUtility:
             consumption = production
         elif production is None:
             production = consumption
+        if units is not None:
+            original_units = settings.get_impact_indicator_units(key)
+            f = original_units.conversion_factor(units)
+            consumption /= f 
+            production /= f
+        if basis is not None:
+            f = impact_indicator_basis.conversion_factor(basis)
+            consumption *= f
+            production *= f
         cls.characterization_factors[key] = (consumption, production)
     
     @classmethod
     def default_price(cls):
         """Reset price back to BioSTEAM's default."""
-        cls.price = default_price #: [float] USD/kWhr
+        cls.price: float = default_price #: Electricity price [USD/kWhr]
     
     @property
     def rate(self) -> float:
-        """Power requirement in kW."""
+        """Power requirement [kW]."""
         return self.consumption - self.production
     @rate.setter
     def rate(self, rate: float):
@@ -157,7 +219,7 @@ class PowerUtility:
         return self.price * self.rate
     
     def get_impact(self, key: str):
-        """Return the impact in impact / hr given characterization factor keys 
+        """Return the impact [impact/hr] given characterization factor keys 
         for consumption and production. If no production key given, it defaults
         to the consumption key."""
         rate = self.consumption - self.production
@@ -171,7 +233,7 @@ class PowerUtility:
         return bool(self.consumption or self.production)
     
     def __call__(self, rate: float):
-        """Set rate in kW."""
+        """Set rate [kW]."""
         self.rate = rate
     
     def copy(self):
@@ -251,3 +313,5 @@ class PowerUtility:
         return self.__add__(other)
     
 PowerUtility.default_price()
+settings.__class__.set_electricity_CF = PowerUtility.set_CF
+del units_of_measure, AbsoluteUnitsOfMeasure

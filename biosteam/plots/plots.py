@@ -1012,11 +1012,11 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     pad = 0.175
                 else:
                     pad = 0.05
-                cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=0.8, label=clabel, pad=pad)
+                cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=metric_bar.shrink, label=clabel, pad=pad)
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
         if row_bars:
             cbar_ax = axes[row, -1]
-            cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=0.8,)
+            cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=metric_bar.shrink,)
         
         # plt.clim()
     for col in range(ncols):

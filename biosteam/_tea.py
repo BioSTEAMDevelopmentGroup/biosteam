@@ -8,6 +8,7 @@
 # for license details.
 """
 """
+from __future__ import annotations
 import pandas as pd
 import numpy as np
 import flexsolve as flx
@@ -16,6 +17,10 @@ from numba import njit
 from math import ceil
 from warnings import warn
 import biosteam as bst
+from typing import Optional, Sequence, Collection, TYPE_CHECKING
+from ._unit import Unit
+from numpy.typing import NDArray
+if TYPE_CHECKING: from ._system import System
 
 __all__ = ('TEA',)
 
@@ -225,18 +230,18 @@ class TEA:
     
     **Abstract methods**
     
-    _DPI(installed_equipment_cost) -> DPI
-        Should return the direct permanent investment given the
+    _DPI(installed_equipment_cost) -> float
+        Should return the direct permanent investment (DPI) given the
         installed equipment cost.
-    _TDC(DPI) -> TDC
-        Should take direct permanent investment as an argument
-        and return total depreciable capital.
-    _FCI(TDC) -> FCI
-        Should take total depreciable capital as an argument and return
-        fixed capital investment.
-    _FOC(FCI) -> FOC
-        Should take fixed capital investment as an arguments and return
-        fixed operating cost without depreciation. 
+    _TDC(DPI) -> float
+        Should take direct permanent investment (DPI) as an argument
+        and return total depreciable capital (TDC).
+    _FCI(TDC) -> float
+        Should take total depreciable capital (TDC) as an argument and return
+        fixed capital investment (FCI).
+    _FOC(FCI) -> float
+        Should take fixed capital investment (FCI) as an arguments and return
+        fixed operating cost without depreciation (FOC). 
     _fill_tax_and_incentives(incentives, taxable_cashflow, nontaxable_cashflow, tax)
         Should take two empty 1d arrays and fill them with incentive and tax cash flows.
         Additional parameters include taxable_cashflow (sales - costs - 
@@ -245,46 +250,46 @@ class TEA:
     
     Parameters
     ----------
-    system : System
+    system : 
         Should contain feed and product streams.
-    IRR : float
+    IRR : 
         Internal rate of return (fraction).
-    duration : tuple[int, int]
+    duration : 
         Start and end year of venture (e.g. (2018, 2038)).
-    depreciation : array or str
+    depreciation : 
         Depreciation schedule array or a string with format '{schedule}{years}', 
         where years is the number of years until the property value is zero 
         and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), 
         'SL' (straight line), 'DDB' (double declining balance), or 
         'SYD' (sum-of-the-years' digits). If years is not given, it defaults 
         to the venture years at run time. 
-    operating_days : float 
+    operating_days :  
         Number of operating days per year.
-    income_tax : float
+    income_tax : 
         Combined federal and state income tax rate (fraction).
-    lang_factor : float
+    lang_factor : 
         Lang factor for getting fixed capital investment
         from total purchase cost. If no lang factor, estimate
         capital investment using bare module factors.
-    construction_schedule : 1d array [float]
+    construction_schedule : 
         Construction investment fractions per year (e.g. (0.5, 0.5) for 50%
         capital investment in the first year and 50% investment in the second).
-    startup_months : float
+    startup_months : 
         Startup time in months.
-    startup_FOCfrac : float
+    startup_FOCfrac : 
         Fraction of fixed operating costs incurred during startup.
-    startup_VOCfrac : float
+    startup_VOCfrac : 
         Fraction of variable operating costs incurred during startup.
-    startup_salesfrac : float
+    startup_salesfrac : 
         Fraction of sales achieved during startup.
-    WC_over_FCI : float
+    WC_over_FCI : 
         Working capital as a fraction of fixed capital investment.
-    finanace_interest : float
+    finance_interest : 
         Yearly interest of capital cost financing as a fraction.
-    finance_years : int
-                    Number of years the loan is paid for.
-    finance_fraction : float
-                       Fraction of capital cost that needs to be financed.
+    finance_years : 
+        Number of years the loan is paid for.
+    finance_fraction :
+        Fraction of capital cost that needs to be financed.
     
     Warning
     -------
@@ -309,10 +314,10 @@ class TEA:
                  '_years', '_duration', '_start',  'IRR', '_IRR', '_sales',
                  '_duration_array_cache')
     
-    # Defaults include modified accelerated cost recovery system from
-    # U.S. IRS publicaiton 946 (MACRS), half-year convention
-    #: dict[tuple(str, int), 1d-array] Available depreciation schedules.
-    depreciation_schedules = {
+    #: Available depreciation schedules. Defaults include modified 
+    #: accelerated cost recovery system from U.S. IRS publication 946 (MACRS),
+    #: half-year convention.
+    depreciation_schedules: dict[tuple(str, int), NDArray[float]] = {
         ('MACRS', 3): np.array([.3333, .4445, .1481, .0741]),
 
         ('MACRS', 5): np.array([.2000, .3200, .1920,
@@ -343,11 +348,11 @@ class TEA:
                                  0.04462, 0.04461, 0.02231])
     }
     
-    #: dict[str, float] Investment site factors used to multiply the total permanent 
+    #: Investment site factors used to multiply the total permanent 
     #: investment (TPI), also known as total fixed capital (FCI), to 
     #: account for locality cost differences based on labor availability,
     #: workforce efficiency, local rules, etc.
-    investment_site_factors = {
+    investment_site_factors: dict[str, float] = {
         'U.S. Gulf Coast': 1.0,
         'U.S. Southwest': 0.95,
         'U.S. Northwest': 1.10,
@@ -378,13 +383,15 @@ class TEA:
             system._TEA = new
         return new
 
-    def __init__(self, system, IRR, duration, depreciation, income_tax,
-                operating_days, lang_factor, construction_schedule,
-                startup_months, startup_FOCfrac, startup_VOCfrac,
-                startup_salesfrac, WC_over_FCI,  finance_interest,
-                finance_years, finance_fraction):
-        #: [System] System being evaluated.
-        self.system = system
+    def __init__(self, system: System, IRR: float, duration: tuple[int, int], 
+                 depreciation: str|NDArray[float], income_tax: float,
+                operating_days: float, lang_factor: float|None, 
+                construction_schedule: Sequence[float],
+                startup_months: float, startup_FOCfrac: float, startup_VOCfrac: float,
+                startup_salesfrac: float, WC_over_FCI: float,  finance_interest: float,
+                finance_years: int, finance_fraction: float):
+        #: System being evaluated.
+        self.system: System = system
         
         self.duration = duration
         self.depreciation = depreciation
@@ -392,40 +399,40 @@ class TEA:
         self.startup_months = startup_months
         self.operating_days = operating_days
         
-        #: [float]  Internal rate of return (fraction).
-        self.IRR = IRR
+        #: Internal rate of return (fraction).
+        self.IRR: float = IRR
         
-        #: [float] Combined federal and state income tax rate (fraction).
-        self.income_tax = income_tax
+        #: Combined federal and state income tax rate (fraction).
+        self.income_tax: float = income_tax
         
         self.lang_factor = lang_factor
         
-        #: [float] Fraction of fixed operating costs incurred during startup.
-        self.startup_FOCfrac = startup_FOCfrac
+        #: Fraction of fixed operating costs incurred during startup.
+        self.startup_FOCfrac: float = startup_FOCfrac
         
-        #: [float] Fraction of variable operating costs incurred during startup.
-        self.startup_VOCfrac = startup_VOCfrac
+        #: Fraction of variable operating costs incurred during startup.
+        self.startup_VOCfrac: float = startup_VOCfrac
         
-        #: [float] Fraction of sales achieved during startup.
-        self.startup_salesfrac = startup_salesfrac
+        #: Fraction of sales achieved during startup.
+        self.startup_salesfrac: float = startup_salesfrac
         
-        #: [float] Working capital as a fraction of fixed capital investment.
-        self.WC_over_FCI = WC_over_FCI
+        #: Working capital as a fraction of fixed capital investment.
+        self.WC_over_FCI: float = WC_over_FCI
         
-        #: [float] Yearly interest of capital cost financing as a fraction.
-        self.finance_interest = finance_interest
+        #: Yearly interest of capital cost financing as a fraction.
+        self.finance_interest: float = finance_interest
         
-        #: [int] Number of years the loan is paid for.
-        self.finance_years = finance_years
+        #: Number of years the loan is paid for.
+        self.finance_years: int = finance_years
         
-        #: [float] Fraction of capital cost that needs to be financed.
-        self.finance_fraction = finance_fraction
+        #: Fraction of capital cost that needs to be financed.
+        self.finance_fraction: float = finance_fraction
         
         #: Guess IRR for solve_IRR method
-        self._IRR = IRR
+        self._IRR: float = IRR
         
         #: Guess cost for solve_price method
-        self._sales = 0
+        self._sales: float = 0
         
         #: For convenience, set a TEA attribute for the system
         system._TEA = self
@@ -443,41 +450,41 @@ class TEA:
         return TDC # For compatibility with Lang factors
 
     @property
-    def units(self):
-        """set[Unit] All unit operations with costs."""
+    def units(self) -> set[Unit]:
+        """All unit operations with costs."""
         return self.system.cost_units  
 
     @property
-    def feeds(self):
-        """list[Unit] All feed streams."""
+    def feeds(self) -> list[Unit]:
+        """All feed streams."""
         return self.system.feeds  
       
     @property
-    def products(self):
-        """list[Unit] All product streams."""
+    def products(self) -> list[Unit]:
+        """All product streams."""
         return self.system.products
 
     @property
-    def operating_days(self):
-        """[float] Number of operating days per year."""
+    def operating_days(self) -> float:
+        """Number of operating days per year."""
         return self.system.operating_hours / 24
     @operating_days.setter
     def operating_days(self, days):
-        """[float] Number of operating days per year."""
+        """Number of operating days per year."""
         self.operating_hours = 24 * days
     
     @property
-    def operating_hours(self):
-        """[float] Number of operating hours per year."""
+    def operating_hours(self) -> float:
+        """Number of operating hours per year."""
         return self.system.operating_hours
     @operating_hours.setter
     def operating_hours(self, hours):
         self.system.operating_hours = hours
     
     @property
-    def lang_factor(self):
+    def lang_factor(self) -> float|None:
         """
-        [float] Lang factor for getting fixed capital investment from 
+        Lang factor for getting fixed capital investment from 
         total purchase cost. If no lang factor, estimate capital investment 
         using bare module factors.
         
@@ -488,8 +495,8 @@ class TEA:
         self.system.lang_factor = lang_factor
     
     @property
-    def duration(self):
-        """tuple[int, int] Start and end year of venture."""
+    def duration(self) -> tuple[int, int]:
+        """Start and end year of venture."""
         return self._duration
     @duration.setter
     def duration(self, duration):
@@ -498,9 +505,9 @@ class TEA:
         self._years = end - start
 
     @property
-    def depreciation(self):
+    def depreciation(self) -> str|NDArray[float]:
         """
-        [array or str] Depreciation schedule array or a string with format '{schedule}{years}', 
+        Depreciation schedule array or a string with format '{schedule}{years}', 
         where years is the number of years until the property value is zero 
         and schedule is one of the following: 'MACRS' (Modified Accelerated Cost Recovery System), 
         'SL' (straight line), 'DDB' (double declining balance), or 
@@ -564,8 +571,10 @@ class TEA:
             return arr
     
     @property
-    def construction_schedule(self):
-        """tuple[float] Construction investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5)."""
+    def construction_schedule(self) -> Sequence[float]:
+        """Construction investment fractions per year, starting from year 0.
+        For example, for 50% capital investment in year 0 and 50% investment 
+        in year 1, use (0.5, 0.5)."""
         return self._construction_schedule
     @construction_schedule.setter
     def construction_schedule(self, schedule):
@@ -573,7 +582,7 @@ class TEA:
         self._start = len(schedule)
     
     @property
-    def startup_months(self):
+    def startup_months(self) -> float:
         return self._startup_time * 12.
     @startup_months.setter
     def startup_months(self, months):
@@ -581,71 +590,71 @@ class TEA:
         self._startup_time = months/12.
     
     @property
-    def sales(self):
-        """Total sales (USD/yr)."""
+    def sales(self) -> float:
+        """Total sales [USD/yr]."""
         return self.system.sales
     @property
-    def material_cost(self):
-        """Total material cost (USD/yr)."""
+    def material_cost(self) -> float:
+        """Total material cost [USD/yr]."""
         return self.system.material_cost
     @property
-    def utility_cost(self):
-        """Total utility cost (USD/yr)."""
+    def utility_cost(self) -> float:
+        """Total utility cost [USD/yr]."""
         return self.system.utility_cost
     @property
     def purchase_cost(self):
-        """Total purchase cost (USD)."""
+        """Total purchase cost [USD]."""
         return self.system.purchase_cost
     @property
-    def installed_equipment_cost(self):
-        """Total installed cost (USD)."""
+    def installed_equipment_cost(self) -> float:
+        """Total installed cost [USD]."""
         return self.system.installed_equipment_cost
     @property
-    def DPI(self):
-        """Direct permanent investment."""
+    def DPI(self) -> float:
+        """Direct permanent investment [USD]."""
         return self._DPI(self.installed_equipment_cost)
     @property
-    def TDC(self):
-        """Total depreciable capital."""
+    def TDC(self) -> float:
+        """Total depreciable capital [USD]."""
         return self._TDC(self.DPI)
     @property
-    def FCI(self):
-        """Fixed capital investment."""
+    def FCI(self) -> float:
+        """Fixed capital investment [USD]."""
         return self._FCI(self.TDC)
     @property
-    def TCI(self):
-        """Total capital investment."""
+    def TCI(self) -> float:
+        """Total capital investment [USD]."""
         return (1. + self.WC_over_FCI)*self.FCI
     @property
-    def FOC(self):
-        """Fixed operating costs (USD/yr)."""
+    def FOC(self) -> float:
+        """Fixed operating costs [USD/yr]."""
         return self._FOC(self.FCI)
     @property
-    def VOC(self):
-        """Variable operating costs (USD/yr)."""
+    def VOC(self) -> float:
+        """Variable operating costs [USD/yr]."""
         return self.material_cost + self.utility_cost
     @property
-    def AOC(self):
-        """Annual operating cost excluding depreciation (USD/yr)."""
+    def AOC(self) -> float:
+        """Annual operating cost excluding depreciation [USD/yr]."""
         return self.FOC + self.VOC
     @property
-    def working_capital(self):
+    def working_capital(self) -> float:
         return self.WC_over_FCI * self.FCI
     
     @property
-    def annual_depreciation(self):
-        """Depreciation (USD/yr) equivalent to TDC dived by the the duration of the venture."""
+    def annual_depreciation(self) -> float:
+        """Depreciation [USD/yr] equivalent to TDC dived by the the duration of the venture."""
         return self.TDC/(self.duration[1]-self.duration[0])
 
     @property
-    def ROI(self):
-        """Return on investment (1/yr) without accounting for annualized depreciation."""
+    def ROI(self) -> float:
+        """Return on investment [1/yr] without accounting for annualized depreciation."""
         FCI = self.FCI
         net_earnings = self.net_earnings
         TCI = FCI*(1.+self.WC_over_FCI)
         return net_earnings/TCI
     @property
-    def net_earnings(self):
+    def net_earnings(self) -> float:
         """Net earnings without accounting for annualized depreciation."""
         net_earnings = self.sales - self.AOC
         if net_earnings < 0:
@@ -653,8 +662,8 @@ class TEA:
         else:
             return (1 - self.income_tax) * net_earnings
     @property
-    def PBP(self):
-        """Pay back period (yr) without accounting for annualized depreciation."""
+    def PBP(self) -> float:
+        """Pay back period [yr] without accounting for annualized depreciation."""
         FCI = self.FCI
         net_earnings = self.net_earnings
         return FCI/net_earnings
@@ -763,7 +772,7 @@ class TEA:
                             index=np.arange(self._duration[0]-start, self._duration[1]),
                             columns=cashflow_columns)
     @property
-    def NPV(self):
+    def NPV(self) -> float:
         """Net present value."""
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
         tax = np.zeros_like(taxable_cashflow)
@@ -831,24 +840,25 @@ class TEA:
         return net_earnings, nontaxable_cashflow
     
     @property
-    def cashflow_array(self):
-        """[1d array] Cash flows by year."""
+    def cashflow_array(self) -> NDArray[float]:
+        """Cash flows by year."""
         return sum(self._net_earnings_and_nontaxable_cashflow_arrays())
     
     @property
-    def net_earnings_array(self):
-        """[1d array] Net earnings by year."""
+    def net_earnings_array(self) -> NDArray[float]:
+        """Net earnings by year."""
         return self._net_earnings_and_nontaxable_cashflow_arrays()[0]
     
-    def production_costs(self, products, with_annual_depreciation=True):
+    def production_costs(self, products: Sequence[bst.Stream], with_annual_depreciation: Optional[bool]=True):
         """
         Return production cost of products [USD/yr].
         
         Parameters
         ----------
-        products : Iterable[:class:`~thermosteam.Stream`]
-            Main products of the system
-        with_annual_depreciation=True : bool, optional
+        products : 
+            Main products of the system.
+        with_annual_depreciation: 
+            Whether to add annualized depreciation to the production costs.
         
         Notes
         -----
@@ -856,6 +866,7 @@ class TEA:
         proportionally allocated to each of the main products with respect to
         their marketing values. The marketing value of each product is
         determined by the annual production multiplied by its selling price.
+        
         """
         system = self.system
         market_values = np.array([system.get_market_value(i) for i in products])
@@ -863,15 +874,16 @@ class TEA:
         weights = market_values/total_market_value
         return weights * self.total_production_cost(products, with_annual_depreciation)
         
-    def total_production_cost(self, products, with_annual_depreciation):
+    def total_production_cost(self, products: Collection[bst.Stream], with_annual_depreciation: Optional[bool]=True):
         """
         Return total production cost of products [USD/yr].
         
         Parameters
         ----------
-        products : Iterable[:class:`~thermosteam.Stream`]
-                    Main products of the system
-        with_annual_depreciation=True : bool, optional
+        products : 
+            Main products of the system.
+        with_annual_depreciation: 
+            Whether to add annualized depreciation to the production costs.
         
         """
         system = self.system
@@ -896,14 +908,14 @@ class TEA:
         self._IRR = IRR
         return IRR
         
-    def solve_price(self, streams):
+    def solve_price(self, streams: bst.Stream|Collection[bst.Stream]):
         """
-        Return the price (USD/kg) of a stream(s) at the break even point (NPV = 0)
+        Return the price [USD/kg] of a stream(s) at the break even point (NPV = 0)
         through cash flow analysis. 
         
         Parameters
         ----------
-        streams : tuple[:class:`~thermosteam.Stream`] or :class:`~thermosteam.Stream`
+        streams :
             Streams with variable selling price.
             
         """
@@ -925,7 +937,7 @@ class TEA:
         
     def solve_sales(self):
         """
-        Return the required additional sales (USD) to reach the breakeven 
+        Return the required additional sales [USD] to reach the breakeven 
         point (NPV = 0) through cash flow analysis. 
         
         """

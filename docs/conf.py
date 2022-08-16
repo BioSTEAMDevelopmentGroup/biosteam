@@ -33,6 +33,8 @@ release = ''
 
 # -- General configuration ---------------------------------------------------
 
+add_module_names = False
+
 autodoc_member_order = 'bysource'
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -65,6 +67,113 @@ extensions = [
     'sphinx_autodoc_typehints',
     'nbsphinx']
 
+try:
+    import sphinx_autodoc_typehints as sat
+    def format_annotation(annotation, config) -> str:  # noqa: C901 # too complex
+        # Special cases
+        if isinstance(annotation, sat.ForwardRef):
+            return annotation.__forward_arg__
+        if annotation is None or annotation is type(None):  # noqa: E721
+            return ":py:obj:`None`"
+        if annotation is Ellipsis:
+            return ":py:data:`...<Ellipsis>`"
+    
+        if isinstance(annotation, tuple):
+            return sat.format_internal_tuple(annotation, config)
+    
+        try:
+            module = sat.get_annotation_module(annotation)
+            class_name = sat.get_annotation_class_name(annotation, module)
+            args = sat.get_annotation_args(annotation, module, class_name)
+        except ValueError:
+            return str(annotation).strip("'")
+    
+        # Redirect all typing_extensions types to the stdlib typing module
+        if module == "typing_extensions":
+            module = "typing"
+    
+        full_name = f"{module}.{class_name}" if module != "builtins" else class_name
+        fully_qualified: bool = getattr(config, "typehints_fully_qualified", False)
+        prefix = "" if fully_qualified or full_name == class_name else "~"
+        if module == "typing" and class_name in sat._PYDATA_ANNOTATIONS:
+            role = "data"
+        else:
+            role = "class"
+        args_format = "\\[{}]"
+        formatted_args: str | None = ""
+    
+        # Some types require special handling
+        if full_name == "typing.NewType":
+            args_format = f"\\(``{annotation.__name__}``, {{}})"
+            role = "class" if sys.version_info >= (3, 10) else "func"
+        elif full_name == "typing.TypeVar":
+            params = {k: getattr(annotation, f"__{k}__") for k in ("bound", "covariant", "contravariant")}
+            params = {k: v for k, v in params.items() if v}
+            if "bound" in params:
+                params["bound"] = f" {format_annotation(params['bound'], config)}"
+            args_format = f"\\(``{annotation.__name__}``{', {}' if args else ''}"
+            if params:
+                args_format += "".join(f", {k}={v}" for k, v in params.items())
+            args_format += ")"
+            formatted_args = None if args else args_format
+        elif full_name == "typing.Optional":
+            args = tuple(x for x in args if x is not type(None))  # noqa: E721
+        elif full_name in ("typing.Union", "types.UnionType") and type(None) in args:
+            if len(args) == 2:
+                full_name = "typing.Optional"
+                args = tuple(x for x in args if x is not type(None))  # noqa: E721
+            else:
+                simplify_optional_unions: bool = getattr(config, "simplify_optional_unions", True)
+                if not simplify_optional_unions:
+                    full_name = "typing.Optional"
+                    args_format = f"\\[:py:data:`{prefix}typing.Union`\\[{{}}]]"
+                    args = tuple(x for x in args if x is not type(None))  # noqa: E721
+        elif full_name == "typing.Callable" and args and args[0] is not ...:
+            fmt = [format_annotation(arg, config) for arg in args]
+            formatted_args = f"\\[\\[{', '.join(fmt[:-1])}], {fmt[-1]}]"
+        elif full_name == "typing.Literal":
+            formatted_args = f"\\[{', '.join(repr(arg) for arg in args)}]"
+        elif full_name == "types.UnionType":
+            return " | ".join([format_annotation(arg, config) for arg in args])
+    
+        if args and not formatted_args:
+            try:
+                iter(args)
+            except TypeError:
+                fmt = [format_annotation(args, config)]
+            else:
+                fmt = [format_annotation(arg, config) for arg in args]
+            formatted_args = args_format.format(", ".join(fmt))
+    
+        result = f":py:{role}:`{prefix}{full_name}`{formatted_args}"
+        return result
+    
+    def typehints_formatter(annotation, config):
+        # original = str(annotation).replace("'", "")
+        name = format_annotation(annotation, config)
+        if name.startswith('Optional['):
+            name = name.replace('Optional[', '')[:-1] + ', optional'
+        elif name.startswith(':py:data:`~typing.Optional`\['):
+            name = name.replace(':py:data:`~typing.Optional`\[', '')[:-1] + ', optional'
+        if not name.startswith(':py:class:') and not name.startswith(':py:data:'):
+            pyclass_added = False
+            for i in ['Iterable', 'Sequence', 'Collection', 'str', 'list', 'tuple', 'dict', 'int',
+                      'bool', 'set', 'frozenset', 'float']:
+                name = name.replace(i, f':py:class:`{i}`')
+                pyclass_added = True
+            for i in ['Unit', 'Chemical', 'Thermo', 'Stream', 'Facility', 'HeatUtility', 'PowerUtility', 'System', 'TEA', 'HXutility']:
+                name = name.replace(i, f':py:class:`~biosteam.{i}`')
+                pyclass_added = True
+            if pyclass_added: 
+                name = name.replace('[', '\[').replace(':py:class::py:class:', ':py:class:')
+        name = name.replace('bst.', '').replace('tmo.', '').replace('`biosteam', '`~biosteam').replace('._unit', '')
+        # file = os.path.join(os.path.dirname(__file__), 'annotations.txt')
+        # with open(file, 'a') as f: f.write(f"{name}  ({original})\n")
+        return name
+except:
+    pass
+
+simplify_optional_unions = True
 always_document_param_types = False
 typehints_document_rtype = False
 typehints_use_rtype = False
@@ -85,6 +194,10 @@ nbsphinx_execute = 'never'
 # Specify the baseurls for the projects I want to link to
 intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'python': ('https://docs.python.org/3', None),
+    'typing': ('https://docs.python.org/3/library', None),
+    'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
+    'thermo': ('https://thermo.readthedocs.io/', None),
 }
 
 # Allow exceptions to occur in notebooks

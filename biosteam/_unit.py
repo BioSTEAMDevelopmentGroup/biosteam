@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 from warnings import warn
 from ._graphics import UnitGraphics, box_graphics
-from thermosteam import Stream
 from ._heat_utility import HeatUtility
 from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
 from ._power_utility import PowerUtility
@@ -21,9 +20,10 @@ from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
-import thermosteam as tmo
+from thermosteam import Stream
 from typing import Callable, Optional, TYPE_CHECKING, Sequence
 from numpy.typing import NDArray
+import thermosteam as tmo
 if TYPE_CHECKING: System = bst.System
 
 __all__ = ('Unit',)
@@ -121,7 +121,7 @@ class Unit:
         If None, streams will be missing.
     thermo : 
         Thermo object to initialize inlet and outlet streams. Defaults to
-        `biosteam.settings.get_thermo()`.
+        :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     
     Examples
     --------
@@ -165,6 +165,7 @@ class Unit:
             elif 'tank' in line: cls.ticket_name = 'T'
             elif 'junction' == line: cls.ticket_name = 'J'
             elif 'specification' in line: cls.ticket_name = 'PS'
+            elif 'valve' in line: cls.ticket_name = 'V'
             else: cls.ticket_name = 'U'
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
@@ -225,7 +226,7 @@ class Unit:
     #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
     #: Utility costs, however, are not automatically accounted for and must
     #: be hardcoded in the unit operation logic.
-    auxiliary_unit_names: tuple[str] = ()
+    auxiliary_unit_names: tuple[str, ...] = ()
     
     #: **class-attribute** Expected number of inlet streams. Defaults to 1.
     _N_ins: int = 1  
@@ -268,7 +269,7 @@ class Unit:
     #: Create auxiliary components.
     _load_components = AbstractMethod
     
-    #: Run mass and energy balances and update outlet streams.
+    #: Run mass and energy balances and update outlet streams (without user-defined specifications).
     _run = AbstractMethod
     
     #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
@@ -297,7 +298,7 @@ class Unit:
         #: All heat utilities associated to unit. Cooling and heating requirements 
         #: are stored here (including auxiliary requirements). The number of heat utilities created is given by the
         #: class attribute :attr:`~Unit._N_heat_utilities`.
-        self.heat_utilities: tuple[HeatUtility] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        self.heat_utilities: tuple[HeatUtility, ...] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
         
         #: Electric utility associated to unit (including auxiliary requirements).
         self.power_utility: PowerUtility = PowerUtility()
@@ -434,18 +435,56 @@ class Unit:
         """Net duty including heat transfer losses [kJ/hr]."""
         return sum([i.duty for i in self.heat_utilities])
     
+    @property
+    def feed(self) -> Stream:
+        """Equivalent to :attr:`~Unit.ins`\[0] when the number of inlets is 1."""
+        streams = self._ins._streams
+        size = len(streams)
+        if size == 1: return streams[0]
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
+        else: raise AttributeError(f"{repr(self)} has no inlet")
+    @feed.setter
+    def feed(self, feed): 
+        ins = self._ins
+        streams = ins._streams
+        size = len(streams)
+        if size == 1: ins[0] = feed
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
+        else: raise AttributeError(f"{repr(self)} has no inlet")
+    inlet = influent = feed
+    
+    @property
+    def product(self) -> Stream:
+        """Equivalent to :attr:`~Unit.outs`\[0] when the number of outlets is 1."""
+        streams = self._outs._streams
+        size = len(streams)
+        if size == 1: return streams[0]
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
+        else: raise AttributeError(f"{repr(self)} has no outlet")
+    @product.setter
+    def product(self, product): 
+        outs = self._outs
+        streams = outs._streams
+        size = len(streams)
+        if size == 1: outs[0] = product
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
+        else: raise AttributeError(f"{repr(self)} has no outlet")
+    outlet = effluent = product
+    
     def define_utility(self, name: str, stream: Stream):
         """
         Define an inlet or outlet stream as a utility by name.
         
+        Parameters
+        ----------
         name : 
-            Name of utility, as defined in :data:`~biosteam.stream_utility_prices`.
+            Name of utility, as defined in :meth:`settings.stream_utility_prices <thermosteam._settings.ProcessSettings.stream_utility_prices>`.
         stream :
             Inlet or outlet utility stream.
         
         """
         if name not in bst.stream_utility_prices:
-            raise ValueError(f"price of '{name}' must be defined in biosteam.stream_utility_prices")
+            raise ValueError(f"price of '{name}' must be defined in settings.stream_utility_prices")
         if stream._sink is self:
             self._inlet_utility_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
@@ -700,9 +739,10 @@ class Unit:
         if owner is self: return
         self._owner = owner
     
-    def disconnect(self):
+    def disconnect(self, discard=False):
         self._ins[:] = ()
         self._outs[:] = ()
+        if discard: bst.main_flowsheet.discard(self)
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -716,7 +756,7 @@ class Unit:
     def get_design_result(self, key: str, units: str):
         """
         Return design result in a new set of units of measure.
-        
+            
         Parameters
         ----------
         key :
@@ -918,7 +958,16 @@ class Unit:
         return f
     
     def run(self):
-        """Run mass and energy balance."""
+        """
+        Run mass and energy balance with specifications.
+        
+        See Also
+        --------
+        _run
+        add_specification
+        add_bounded_numerical_specification
+        
+        """
         specification = self._specification
         if specification and not self._running_specification:
             self._running_specification = True
@@ -970,7 +1019,7 @@ class Unit:
         self._summary()
     
     def _summary(self):
-        """Calculate all results from unit run."""
+        """Run design and cost algorithms and compile capital and utility costs."""
         if not (self._design or self._cost): return
         self._design()
         self._cost()
@@ -987,7 +1036,9 @@ class Unit:
     
     @property
     def specification(self) -> list[tuple[Callable, tuple]]:
-        """Process specification."""
+        """Process specifications as a list of specification functions and their 
+        arguments in the following format, [(<function0(*args0)>, args0), 
+        (<function1(*args1)>, args1), ...]."""
         return self._specification
     @specification.setter
     def specification(self, specification):
@@ -1031,7 +1082,7 @@ class Unit:
             return self._utility_cost
 
     @property
-    def auxiliary_units(self) -> tuple[Unit]:
+    def auxiliary_units(self) -> tuple[Unit, ...]:
         """All associated auxiliary units."""
         getfield = getattr
         return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
@@ -1276,18 +1327,27 @@ class Unit:
             new_length = len(upstream_units)
         return upstream_units
     
-    def neighborhood(self, radius=1, upstream=True, downstream=True, ends=None, facilities=None):
+    def neighborhood(self, 
+            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            downstream: Optional[bool]=True, 
+            ends: Optional[Stream]=None, 
+            facilities: Optional[bool]=None
+        ):
         """
         Return a set of all neighboring units within given radius.
         
         Parameters
         ----------
-        radius : int
-                 Maxium number streams between neighbors.
-        downstream=True : bool, optional
-            Whether to include downstream operations
-        upstream=True : bool, optional
-            Whether to include upstream operations
+        radius : 
+            Maximum number streams between neighbors.
+        downstream : 
+            Whether to include downstream operations.
+        upstream : 
+            Whether to include upstream operations.
+        ends :
+            Streams that mark the end of the neighborhood.
+        facilities :
+            Whether to include facilities.
         
         """
         radius -= 1
@@ -1306,26 +1366,31 @@ class Unit:
             neighborhood.update(direct_neighborhood)
         return neighborhood
 
-    def diagram(self, radius=0, upstream=True, downstream=True, 
-                file=None, format='png', display=True, **graph_attrs):
+    def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
+                downstream: Optional[bool]=True, file: Optional[str]=None, 
+                format: Optional[str]='png', display: Optional[bool]=True,
+                **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
         of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
-        radius : int
-                 Maximum number streams between neighbors.
-        downstream=True : bool, optional
-            Whether to show downstream operations
-        upstream=True : bool, optional
-            Whether to show upstream operations
-        file : Must be one of the following:
+        radius : 
+            Maximum number streams between neighbors.
+        downstream : 
+            Whether to show downstream operations.
+        upstream : 
+            Whether to show upstream operations.
+        file : 
+            Must be one of the following:
+            
             * [str] File name to save diagram.
             * [None] Display diagram in console.
-        format : str
-                 Format of file.
-        display : bool, optional
+            
+        format : 
+            Format of file.
+        display : 
             Whether to display diagram in console or to return the graphviz 
             object.
         

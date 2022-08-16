@@ -38,6 +38,7 @@ from ._carbon_capture import *
 from ._continuous_reactor import *
 from .compressor import *
 from ._turbine import *
+from .valve import *
 from .drying import *
 from .size_reduction import *
 from .size_enlargement import *
@@ -86,6 +87,7 @@ from . import (
     _carbon_capture,
     compressor,
     _turbine,
+    valve,
 )
 
 __all__ = ('Unit',
@@ -126,6 +128,7 @@ __all__ = ('Unit',
            *adsorption.__all__,
            *compressor.__all__,
            *_turbine.__all__,
+           *valve.__all__,
            'adsorption',
            'drying',
            'tank',

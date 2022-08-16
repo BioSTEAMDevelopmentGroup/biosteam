@@ -197,18 +197,6 @@ class HeatExchangerNetwork(Facility):
                                 s_out.vle(T=s_out.T, P=s_out.P)
                         else:
                             s_out.mol[:] = s_in.mol
-                # for life_cycle in stream_life_cycles:
-                #     heating = life_cycle.cold
-                #     for lc in life_cycle.life_cycle:
-                #         if isinstance(lc.unit, bst.HXutility):
-                #             H = lc.unit.H
-                #         else:
-                #             H = getattr(lc.unit, f'H_lim{lc.index}')
-                #         outlet = lc.unit.outs[lc.index]
-                #         if heating:
-                #             if outlet.H > H: outlet.H = H
-                #         elif outlet.H < H:
-                #             outlet.H = H
             else:
                 hx_utils.sort(key = lambda x: x.duty)
                 self.HXN_flowsheet = HXN_F = bst.main_flowsheet

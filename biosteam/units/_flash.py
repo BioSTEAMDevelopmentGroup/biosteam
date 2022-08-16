@@ -238,6 +238,22 @@ class Flash(design.PressureVessel, Unit):
             self.power_utility = PowerUtility()
         self._P = P
 
+    @property
+    def vapor(self):
+        """Outlet vapor stream (equivalent to outs[0])."""
+        return self._outs[0]
+    @vapor.setter
+    def vapor(self, vapor):
+        self._outs[0] = vapor
+    
+    @property
+    def liquid(self):
+        """Outlet liquid stream (equivalent to outs[1])."""
+        return self._outs[1]
+    @liquid.setter
+    def liquid(self, liquid):
+        self._outs[1] = liquid
+
     def _default_vessel_type(self):
         vap, liq = self.outs
         F_mass_vap = vap.F_mass

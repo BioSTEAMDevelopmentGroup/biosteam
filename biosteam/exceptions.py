@@ -90,13 +90,15 @@ def bounds_warning(source, key, value, units, bounds, kind='design'): # pragma: 
     
     Parameters
     ----------
+    source : Unit
+        Unit where the warning is issued
     key : str
-          Name of value.
+        Name of value.
     value : float
     units : str
-            Units of value        
-    bounds : iterable[float, float]
-             Upper and lower bounds.
+        Units of value        
+    bounds : Iterable[float, float]
+        Upper and lower bounds.
         
     """
     # Warn when value is out of bounds
