@@ -33,52 +33,49 @@ class ProcessFactory:
         new._names = self._names.copy()
         return new
     
-    def _add_name(self, name):
-        if name in self._names: raise ValueError(f'name {repr(name)} already defined')
+    def _add_name(self, name, safe):
+        if safe and name in self._names: raise ValueError(f'name {repr(name)} already defined')
         self._names.add(name) 
     
-    def add_area(self, name, system_factory, number=None):
-        self._add_name(name)
+    def add_area(self, name, system_factory, number=None, safe=True):
+        self._add_name(name, safe)
         self._areas[name] = (system_factory, number)
         
-    def add_connection(self, name, connection_pipe):
-        self._add_name(name)
-        self._connections[name] = connection_pipe
+    def add_connection(self, name, outlet, inlet, safe=True):
+        self._add_name(name, safe)
+        outlet = self._outlets.pop(outlet)
+        inlet = self._inlets.pop(inlet)
+        self._connections[name] = (outlet, inlet)
         
-    def add_inlet(self, name, inlet_pipe):
-        self._add_name(name)
-        self._inlets[name] = inlet_pipe
-    
-    def add_outlet(self, name, outlet_pipe):
-        self._add_name(name)
-        self._outlets[name] = outlet_pipe    
-    
-    def reset_area(self, name, system_factory, number=None):
+    def add_inlet(self, name, inlet_pipe, safe=True):
+        self._add_name(name, safe)
+        area, index = inlet_pipe.split('-')
         if name not in self._areas: raise ValueError('area {repr(name)} does not exist')
-        self._areas[name] = (system_factory, number)
-        
-    def reset_connection(self, name, connection_pipe):
-        if name not in self._connections: raise ValueError('connection {repr(name)} does not exist')
-        self._connections[name] = connection_pipe
-        
-    def reset_inlet(self, name, inlet_pipe):
-        if name not in self._inlets: raise ValueError('inlet {repr(name)} does not exist')
-        self._inlets[name] = inlet_pipe
+        self._inlets[name] = (area, int(index))
     
-    def reset_outlet(self, name, outlet_pipe):
+    def add_outlet(self, name, outlet_pipe, safe=True):
+        self._add_name(name, safe)
+        area, index = outlet_pipe.split('-')
         if name not in self._outlets: raise ValueError('outlet {repr(name)} does not exist')
-        self._outlets[name] = outlet_pipe    
+        self._outlets[name] = (area, int(index))
     
     def __call__(self, ID, **streams):
         areas, connections, numbers, inlets, outlets = self._data
-        dct = locals()
+        systems = {}
         with bst.System(ID) as sys:
-            for name, (SF, N) in areas.items(): dct[name] = SF(name, area=N, mockup=True)
+            for name, (SF, N) in areas.items(): systems[name] = SF(name, area=N, mockup=True)
             for name, stream in streams.items():
-                if name in inlets: eval(inlets[name]).replace(stream)
-                elif name in outlets: eval(outlets[name]).replace(stream)
+                if name in inlets:
+                    sysname, index = inlets[name]
+                    systems[sysname].ins[index] = stream
+                elif name in outlets: 
+                    sysname, index = outlets[name]
+                    systems[sysname].outs[index] = stream
                 else: raise ValueError(f'no inlet or outlet named {repr(name)}')
-            for connection in connections.values(): eval(connection)
+            for connection in connections.values():
+                upstream, uindex = outlets[name]
+                downstream, dindex = inlets[name]
+                systems[downstream].ins[dindex] = systems[upstream].outs[uindex]
         return sys
     
     def _ipython_display_(self):
