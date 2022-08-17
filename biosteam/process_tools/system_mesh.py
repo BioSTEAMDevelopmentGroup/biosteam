@@ -27,9 +27,9 @@ def meshable(obj):
             else:
                 assert False
     except:
-        raise TypeError(f"'{obj}' is not meshable; area must be a System, "
-                        "MockSystem, SystemFactory, Unit, Sequence[Unit], or function"
-                        "object")
+        raise TypeError(f"'{obj}' is not meshable; only System, MockSystem, "
+                        "SystemFactory, Unit, Sequence[Unit], or function "
+                        "objects are meshable")
     return obj
 
 
