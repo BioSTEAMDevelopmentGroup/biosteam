@@ -58,6 +58,7 @@ class SystemMesh:
         old_obj = objs[name] if name in objs else None
         objs[name] = (obj, number, kwargs)
         if old_obj:
+            self._connections.clear()
             self._inlets.clear()
             self._outlets.clear()
             for i, (j, k, _) in objs.items():
@@ -68,6 +69,7 @@ class SystemMesh:
     def remove(self, name, reconnect=True, **kwargs):
         objs = self._objects
         objs.pop(name)
+        self._connections.clear()
         self._inlets.clear()
         self._outlets.clear()
         for i, (j, k, _) in objs.items():
@@ -141,6 +143,11 @@ class SystemMesh:
         if inlet not in self._inlets:
             raise ValueError('inlet {repr(inlet)} does not exist')
         self._connections[outlet] = inlet
+    
+    def disconnect(self, outlet):
+        if outlet not in self._outlets:
+            raise ValueError('outlet {repr(outlet)} does not exist')
+        self._connections.pop(outlet)
     
     def __call__(self, ID, **streams):
         connections = self._connections
