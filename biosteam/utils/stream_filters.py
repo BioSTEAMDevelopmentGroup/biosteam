@@ -154,7 +154,7 @@ def get_streams_from_context_level(level=None):
         units = bst.main_flowsheet.unit
         context_levels = units.context_levels
         N_levels = len(context_levels)
-        if (level > 0 and level >= N_levels or level < 0 and -level > N_levels):
+        if (level >= 0 and level >= N_levels or level < 0 and -level > N_levels):
             streams = list(bst.main_flowsheet.stream)
         else:
             units = context_levels[level]
