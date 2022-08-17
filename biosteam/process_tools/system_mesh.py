@@ -34,10 +34,10 @@ def meshable(obj):
 
 
 class SystemMesh:
-    __slots__ = ('_areas', '_connections', '_inlets', '_outlets')
+    __slots__ = ('_objects', '_connections', '_inlets', '_outlets')
     
     def __init__(self):
-        self._areas = {}
+        self._objects = {}
         self._connections = {}
         self._inlets = {}
         self._outlets = {}
@@ -45,7 +45,7 @@ class SystemMesh:
     def copy(self):
         cls = type(self)
         new = cls.__new__(cls)
-        new._areas = self._areas.copy()
+        new._objects = self._objects.copy()
         new._connections = self._connections.copy()
         new._numbers = self._numbers.copy()
         new._inlets = self._inlets.copy()
@@ -53,30 +53,30 @@ class SystemMesh:
         return new
     
     def add(self, name, obj, number=None, autoconnect=True, **kwargs):
-        area = meshable(obj)
-        areas = self._areas
-        old_area = areas[name] if name in areas else None
-        areas[name] = (area, number, kwargs)
-        if old_area:
+        obj = meshable(obj)
+        objs = self._objects
+        old_obj = objs[name] if name in objs else None
+        objs[name] = (obj, number, kwargs)
+        if old_obj:
             self._inlets.clear()
             self._outlets.clear()
-            for i, (j, k, _) in areas.items():
-                self._load_area(i, j, k, autoconnect)
+            for i, (j, k, _) in objs.items():
+                self._load_obj(i, j, k, autoconnect)
         else:
-            self._load_area(name, area, number, autoconnect)
+            self._load_obj(name, obj, number, autoconnect)
         
     def remove(self, name, reconnect=True, **kwargs):
-        areas = self._areas
-        areas.pop(name)
+        objs = self._objects
+        objs.pop(name)
         self._inlets.clear()
         self._outlets.clear()
-        for i, (j, k, _) in areas.items():
-            self._load_area(i, j, k, reconnect)
+        for i, (j, k, _) in objs.items():
+            self._load_obj(i, j, k, reconnect)
         
-    def _load_area(self, name, area, number, autoconnect):
+    def _load_obj(self, name, obj, number, autoconnect):
         isa = isinstance
         isfunc = callable
-        for index, inlet in enumerate(area.ins):
+        for index, inlet in enumerate(obj.ins):
             if isa(inlet, dict):
                 ID = inlet.get('ID')
                 if ID: self._define_inlet(ID, name, index, autoconnect)
@@ -89,7 +89,7 @@ class SystemMesh:
             elif isa(inlet, bst.Stream):
                 ID = inlet.ID
                 self._define_inlet(ID, name, index, autoconnect)
-        for index, outlet in enumerate(area.outs):
+        for index, outlet in enumerate(obj.outs):
             if isa(outlet, dict):
                 ID = outlet.get('ID')
                 if ID: self._define_outlet(ID, name, index, autoconnect)
@@ -117,19 +117,19 @@ class SystemMesh:
         name = base + '_' + str(int(num) + 1)
         return name
         
-    def _define_inlet(self, name, area, index, autoconnect=True):
-        if area not in self._areas: raise ValueError('area {repr(area)} does not exist')
+    def _define_inlet(self, name, obj, index, autoconnect=True):
+        if obj not in self._objects: raise ValueError('object with name {repr(obj)} does not exist')
         inlets = self._inlets
-        value = (str(area), int(index))
+        value = (str(obj), int(index))
         if name in inlets and value != inlets[name]:
             name = self._rename(inlets, name)
         inlets[name] = value
         if autoconnect and name in self._outlets: self.connect(name, name)
     
-    def _define_outlet(self, name, area, index, autoconnect=True):
-        if area not in self._areas: raise ValueError('area {repr(area)} does not exist')
+    def _define_outlet(self, name, obj, index, autoconnect=True):
+        if obj not in self._objects: raise ValueError('object with name {repr(obj)} does not exist')
         outlets = self._outlets
-        value = (str(area), int(index))
+        value = (str(obj), int(index))
         if name in outlets and value != outlets[name]:
             name = self._rename(outlets, name)
         outlets[name] = value
@@ -143,14 +143,13 @@ class SystemMesh:
         self._connections[outlet] = inlet
     
     def __call__(self, ID, **streams):
-        areas = self._areas
         connections = self._connections
         inlets = self._inlets 
         outlets = self._outlets
         objs = {}
         with bst.System(ID) as sys:
             old_units = []
-            for name, (obj, N, kwargs) in areas.items(): 
+            for name, (obj, N, kwargs) in self._objects.items(): 
                 if isinstance(obj, bst.SystemFactory):
                     objs[name] = obj(name, area=N, mockup=True, **kwargs)
                 elif isinstance(obj, (bst.System, bst.MockSystem)):
@@ -169,7 +168,7 @@ class SystemMesh:
                 elif callable(obj):
                     obj(**kwargs)
                 else:
-                    raise RuntimeError(f"invalid area type '{type(obj).__name__}'")
+                    raise RuntimeError(f"invalid object type '{type(obj).__name__}'")
             for name, stream in streams.items():
                 if name in inlets:
                     objname, index = inlets[name]
@@ -188,7 +187,7 @@ class SystemMesh:
         return sys
     
     def show(self):
-        areas, connections, inlets, outlets = (self._areas, self._connections, self._inlets, self._outlets)
+        objs, connections, inlets, outlets = (self._objects, self._connections, self._inlets, self._outlets)
         info = f"{type(self).__name__}:"
         def get_description(system):
             if isinstance(system, bst.SystemFactory):
@@ -197,30 +196,30 @@ class SystemMesh:
                 return system.ID
             else:
                 return None
-        fields = {i: {'description': get_description(j), 'number': N, 'ins': {}, 'outs': {}} for i, (j, N, kw) in areas.items()}
+        fields = {i: {'description': get_description(j), 'number': N, 'ins': {}, 'outs': {}} for i, (j, N, kw) in objs.items()}
         connections = connections.copy()
         for i, j in connections.items(): connections[j] = i
-        for name, (area, index) in inlets.items():
-            dct = fields[area]['ins']
+        for name, (obj, index) in inlets.items():
+            dct = fields[obj]['ins']
             if name in connections:
                 outname = connections[name]
-                outarea, outindex = outlets[outname]
-                description = f"{name} from {outarea}-{outindex}"
+                outobj, outindex = outlets[outname]
+                description = f"{name} from {outobj}-{outindex}"
             else:
-                stream = areas[area][0].ins[index]
+                stream = objs[obj][0].ins[index]
                 if hasattr(stream, 'source') and stream.source:
                     description = f"{name} from {stream.source}-{stream.source.outs.index(stream)}"
                 else:
                     description = name
             dct[index] = description
-        for name, (area, index) in outlets.items():
-            dct = fields[area]['outs']
+        for name, (obj, index) in outlets.items():
+            dct = fields[obj]['outs']
             if name in connections:
                 inname = connections[name]
-                inarea, inindex = inlets[inname]
-                description = f"{name} to {inindex}-{inarea}"
+                inobj, inindex = inlets[inname]
+                description = f"{name} to {inindex}-{inobj}"
             else:
-                stream = areas[area][0].outs[index]
+                stream = objs[obj][0].outs[index]
                 if hasattr(stream, 'sink') and stream.sink:
                     description = f"{name} to {stream.sink}-{stream.sink.ins.index(stream)}"
                 else:
