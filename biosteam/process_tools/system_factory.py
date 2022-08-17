@@ -52,6 +52,26 @@ def ignore_undefined_chemicals(kwargs, not_chemical=not_chemical):
     chemicals = tmo.settings.chemicals
     return {i: j for i, j in kwargs.items() if i in chemicals or i in not_chemical}
 
+def get_stream(name, lst, ID):
+    isa = isinstance
+    isfunc = callable
+    for i in lst:
+        if isa(i, str):
+            if ID == i: return i
+        elif isa(i, dict):
+           if ID == i.get('ID'): return i
+        elif isfunc(i):
+            if ID == i.__name__: return i
+    raise ValueError(f"no {name} with ID {repr(ID)}")
+    
+def get_name(obj):
+    if isinstance(obj, dict):
+        return obj.get('ID')
+    elif isinstance(obj, str):
+        return obj
+    elif callable(obj):
+        return obj.__name__
+
 # %% System factory
 
 class SystemFactory:
@@ -62,8 +82,7 @@ class SystemFactory:
     Parameters
     ----------
     f : Callable, optional
-        Should return a System object given the ID, inlets, outlets, and 
-        other parameters. `f` should have a signature of function(ID, ins, outs, *args, **kwargs).
+        Should create unit operations. `f` should have a signature of function(ins, outs, *args, **kwargs).
     ID : str, optional
         Default system name.
     ins: list[dict], optional
@@ -174,7 +193,7 @@ class SystemFactory:
             if params[:2] != ['ins', 'outs']:
                 raise ValueError('function must have a signature of function(ins, outs, *args, **kwargs)')
             other_params = params[3:]
-            reserved_parameters = ('mockup', 'area', 'udct')
+            reserved_parameters = ('mockup', 'area', 'udct', 'autorename', 'operating_hours')
             for i in reserved_parameters:
                 if i in other_params:
                     raise ValueError(f"function cannot accept '{i}' as an argument")
@@ -209,8 +228,8 @@ class SystemFactory:
                 irrelevant_units = tuple(unit_registry)
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
-        system.load_inlet_ports(ins)
-        system.load_outlet_ports(outs)
+        system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
+        system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if udct: unit_dct = {i.ID: i for i in system.units}
         if rename: 
@@ -218,17 +237,11 @@ class SystemFactory:
             utils.rename_units(system.units, area)
         return (system, unit_dct) if udct else system
     
-    def get_stream_defaults(self, ID):
-        isa = isinstance
-        isfunc = callable
-        for i in self.ins + self.outs:
-            if isa(i, str):
-                if ID == i: return i
-            elif isa(i, dict):
-               if ID == i.get('ID'): return i
-            elif isfunc(i):
-                if ID == i.__name__: return i
-        raise ValueError(f"no default stream with ID {repr(ID)}")
+    def get_inlet(self, ID):
+        return get_stream('inlet', self._ins, ID)
+    
+    def get_outlet(self, ID):
+        return get_stream('outlet', self._outs, ID)
     
     def __repr__(self):
         return f"<{type(self).__name__}: {self.ID}>"

@@ -18,6 +18,8 @@ def meshable(obj):
         if not hasattr(obj, 'ins') or not hasattr(obj, 'outs'):
             if isinstance(obj, Sequence):
                 obj = bst.MockSystem(obj)
+                obj.load_inlet_ports([])
+                obj.load_outlet_ports([])
             elif callable(obj):
                 if not hasattr(obj, 'ID'): obj.ID = None
                 if not hasattr(obj, 'ins'): obj.ins = []
@@ -129,16 +131,7 @@ class SystemMesh:
             raise ValueError('outlet {repr(outlet)} does not exist')
         if inlet not in self._inlets:
             raise ValueError('inlet {repr(inlet)} does not exist')
-        sink, sink_index = self._inlets[inlet]
-        source, source_index = self._outlets[outlet]
-        sink = self._areas[sink][0]
-        source = self._areas[source][0]
-        sink_stream = sink.ins[sink_index]
-        source_stream = source.outs[source_index]
-        if hasattr(sink_stream, 'sink') and hasattr(source_stream, 'source'):
-            sink.ins[sink_index] = source.outs[source_index]
-        else:
-            self._connections[outlet] = inlet
+        self._connections[outlet] = inlet
     
     def __call__(self, ID, **streams):
         areas = self._areas
@@ -147,6 +140,7 @@ class SystemMesh:
         outlets = self._outlets
         objs = {}
         with bst.System(ID) as sys:
+            old_units = []
             for name, (obj, N, kwargs) in areas.items(): 
                 if isinstance(obj, bst.SystemFactory):
                     objs[name] = obj(name, area=N, mockup=True, **kwargs)
@@ -154,12 +148,13 @@ class SystemMesh:
                     objs[name] = system = obj
                     if N is not None: # Rename if given area number
                         for i in system.units: i.ID = N
+                    old_units.extend(system.units)
                     # Add units to context management
-                    units = system.units
-                    bst.main_flowsheet.unit.context_levels[-1].extend(units)
+                    bst.main_flowsheet.unit.context_levels[-1].extend(system.units)
                 elif isinstance(obj, bst.Unit):
                     objs[name] = unit = obj
                     if N is not None: unit.ID = N # Rename if given area number
+                    old_units.append(unit)
                     # Add units to context management
                     bst.main_flowsheet.unit.context_levels[-1].append(unit)
                 elif callable(obj):
@@ -179,8 +174,8 @@ class SystemMesh:
                 stream = objs[upstream].outs[index]
                 downstream, index = inlets[inname]
                 objs[downstream].ins[index] = stream
-        for i in sys.units:
-            if getattr(i, 'autopopulate', False): i.ins.clear()
+            for i in old_units:
+                if getattr(i, 'autopopulate', False): i.ins.clear()
         return sys
     
     def show(self):

@@ -502,6 +502,7 @@ class StreamSequence:
         if self._fixed_size:
             self._initialize_missing_streams()
         else:
+            for i in self._streams: self._undock(i)
             self._streams.clear()
     
     def __iter__(self):

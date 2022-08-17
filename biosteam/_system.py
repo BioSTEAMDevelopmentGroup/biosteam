@@ -179,14 +179,16 @@ class MockSystem:
     __slots__ = ('units',
                  'flowsheet',
                  '_ins',
-                 '_outs',)
+                 '_outs',
+                 '_inlet_names',
+                 '_outlet_names')
 
     def __init__(self, units=()):
         self.units = units or list(units)
         self._load_flowsheet()
 
     def _load_flowsheet(self):
-        self.flowsheet = flowsheet_module.main_flowsheet.get_flowsheet()
+        self.flowsheet = bst.main_flowsheet.get_flowsheet()
 
     @property
     def ins(self) -> piping.StreamPorts[piping.InletPort]:
@@ -207,7 +209,7 @@ class MockSystem:
             self._outs = outs = piping.StreamPorts.from_outlets(outlets, sort=True)
             return outs
 
-    def load_inlet_ports(self, inlets):
+    def load_inlet_ports(self, inlets, names=None):
         """Load inlet ports to system."""
         all_inlets = bst.utils.feeds_from_units(self.units)
         inlets = list(inlets)
@@ -215,8 +217,9 @@ class MockSystem:
             if i not in all_inlets:
                 raise ValueError(f'{i} is not an inlet')
         self._ins = piping.StreamPorts.from_inlets(inlets)
+        self._inlet_names = {} if names is None else names
 
-    def load_outlet_ports(self, outlets):
+    def load_outlet_ports(self, outlets, names=None):
         """Load outlet ports to system."""
         all_outlets = bst.utils.products_from_units(self.units)
         outlets = list(outlets)
@@ -224,6 +227,27 @@ class MockSystem:
             if i not in all_outlets:
                 raise ValueError(f'{i} is not an outlet')
         self._outs = piping.StreamPorts.from_outlets(outlets)
+        self._outlet_names = {} if names is None else names
+
+    def get_inlet(self, name):
+        if name in self._inlet_names: 
+            return self._ins[self._inlet_names[name]]
+        raise ValueError(f"inlet name {repr(name)} does not exist")
+
+    def get_outlet(self, name):
+        if name in self._outlet_names: 
+            return self._outs[self._outlet_names[name]]
+        raise ValueError(f"outlet name {repr(name)} does not exist")
+
+    def set_inlet(self, ID, inlet):
+        stream = self.get_inlet(ID)
+        sink = stream.sink
+        if sink: sink.ins.replace(stream, inlet)
+    
+    def set_outlet(self, ID, outlet):
+        stream = self.get_outlet(ID)
+        source = stream.sink
+        if source: source.outs.replace(stream, outlet)
 
     def __enter__(self):
         if self.units:
@@ -332,6 +356,8 @@ class System:
         '_products',
         '_facility_recycle',
         '_configuration_updated',
+        '_inlet_names',
+        '_outlet_names',
         # Dynamic simulation
         '_isdynamic',
         '_state',
@@ -817,6 +843,10 @@ class System:
     outs = MockSystem.outs
     load_inlet_ports = MockSystem.load_inlet_ports
     load_outlet_ports = MockSystem.load_outlet_ports
+    get_inlet = MockSystem.get_inlet
+    get_outlet = MockSystem.get_outlet
+    set_inlet = MockSystem.set_inlet
+    set_outlet = MockSystem.set_outlet
     _load_flowsheet  = MockSystem._load_flowsheet
 
     def _load_stream_links(self):
@@ -2581,7 +2611,6 @@ class FacilityLoop(System):
         obj._run()
         self._summary()
 
-from biosteam import _flowsheet as flowsheet_module
 del ignore_docking_warnings
 
 System.register_method('aitken', flx.conditional_aitken, conditional=True)

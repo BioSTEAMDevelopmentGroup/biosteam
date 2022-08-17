@@ -98,62 +98,72 @@ def create_facilities(
         blowdown_recycle=False,
     ):
     """Create facilities specified."""
-    kwargs = (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
-              FWT_kwargs, ADP_kwargs, HXN_kwargs, PWC_kwargs)
-    (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
-     FWT_kwargs, ADP_kwargs, HXN_kwargs, PWC_kwargs) = kwargs = [
-         {} if i is None else i for i in kwargs
-    ]
-    if area:
-        for i in kwargs[:2]: 
-            if 'area' not in i: i['area'] = area
-        for i in kwargs[2:]: 
-            if 'ID' not in i: i['ID'] = area
-    if CT: bst.facilities.CoolingTower(**CT_kwargs)
-    if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
-    if WWT: WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
-    if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
-    if recycle_process_water_streams is None: 
-        streams = bst.get_streams_from_context_level(0)
-        recycle_process_water_streams = [i for i in streams if i.isproduct() and 'process_water' in i.ID]
-    if feedstock is not None:
-        if CIP:
-            CIP = bst.Stream('CIP', Water=126, units='kg/hr')
-            CIP_package = bst.CIPpackage(ins=CIP, **CIP_kwargs)
-            CIP_package.CIP_over_feedstock = 0.00121 if CIP_over_feedstock is None else CIP_over_feedstock
-            @CIP_package.add_specification(run=True)
-            def adjust_CIP(): CIP.imass['Water'] = feedstock.F_mass * CIP_package.CIP_over_feedstock
-        if ADP:
-            plant_air = bst.Stream('plant_air', N2=83333, units='kg/hr')
-            ADP = bst.AirDistributionPackage(ins=plant_air, **ADP_kwargs)
-            ADP.plant_air_over_feedstock = 0.8 if plant_air_over_feedstock is None else plant_air_over_feedstock
-            @ADP.add_specification(run=True)
-            def adjust_plant_air(): plant_air.imass['N2'] = feedstock.F_mass * ADP.plant_air_over_feedstock
-        if FWT:
-            fire_water = bst.Stream('fire_water', Water=8343, units='kg/hr')
-            FT = bst.FireWaterTank(ins=fire_water, **FWT_kwargs)
-            FT.fire_water_over_feedstock = 0.08 if fire_water_over_feedstock is None else fire_water_over_feedstock
-            @FT.add_specification(run=True)
-            def adjust_fire_water(): fire_water.imass['Water'] = feedstock.F_mass * FT.fire_water_over_feedstock
-    if CHP:
-        create_coheat_and_power_system(mockup=True, autopopulate=True, **CHP_kwargs)
-    if blowdown_recycle:
-        units = bst.main_flowsheet.unit.get_context_level(0)
-        blowdown_to_wastewater = bst.Stream('blowdown_to_wastewater')
-        bst.BlowdownMixer(
-            area or '',
-            [i.blowdown_water for i in units if hasattr(i, 'blowdown_water')],
-            blowdown_to_wastewater
-        )
-    if PWC:
-        process_water_mixer = bst.Mixer(area or '', ins=recycle_process_water_streams or '')
-        process_water = process_water_mixer.outs[0]
-        if treated_water_streams is None:
+    with bst.MockSystem() as sys:
+        kwargs = (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
+                  FWT_kwargs, ADP_kwargs, HXN_kwargs, PWC_kwargs)
+        (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
+         FWT_kwargs, ADP_kwargs, HXN_kwargs, PWC_kwargs) = kwargs = [
+             {} if i is None else i for i in kwargs
+        ]
+        if area:
+            for i in kwargs[:2]: 
+                if 'area' not in i: i['area'] = area
+            for i in kwargs[2:]: 
+                if 'ID' not in i: i['ID'] = area
+        if CT: bst.facilities.CoolingTower(**CT_kwargs)
+        if CWP: bst.facilities.ChilledWaterPackage(**CWP_kwargs)
+        if WWT: WWT = bst.create_wastewater_treatment_system(mockup=True, autopopulate=True, **WWT_kwargs)
+        if HXN: bst.HeatExchangerNetwork(**HXN_kwargs)
+        if feedstock is not None:
+            if CIP:
+                CIP = bst.Stream('CIP', Water=126, units='kg/hr')
+                CIP_package = bst.CIPpackage(ins=CIP, **CIP_kwargs)
+                CIP_package.CIP_over_feedstock = 0.00121 if CIP_over_feedstock is None else CIP_over_feedstock
+                @CIP_package.add_specification(run=True)
+                def adjust_CIP(): CIP.imass['Water'] = feedstock.F_mass * CIP_package.CIP_over_feedstock
+            if ADP:
+                plant_air = bst.Stream('plant_air', N2=83333, units='kg/hr')
+                ADP = bst.AirDistributionPackage(ins=plant_air, **ADP_kwargs)
+                ADP.plant_air_over_feedstock = 0.8 if plant_air_over_feedstock is None else plant_air_over_feedstock
+                @ADP.add_specification(run=True)
+                def adjust_plant_air(): plant_air.imass['N2'] = feedstock.F_mass * ADP.plant_air_over_feedstock
+            if FWT:
+                fire_water = bst.Stream('fire_water', Water=8343, units='kg/hr')
+                FT = bst.FireWaterTank(ins=fire_water, **FWT_kwargs)
+                FT.fire_water_over_feedstock = 0.08 if fire_water_over_feedstock is None else fire_water_over_feedstock
+                @FT.add_specification(run=True)
+                def adjust_fire_water(): fire_water.imass['Water'] = feedstock.F_mass * FT.fire_water_over_feedstock
+        if CHP:
+            create_coheat_and_power_system(mockup=True, autopopulate=True, **CHP_kwargs)
+        if blowdown_recycle:
             units = bst.main_flowsheet.unit.get_context_level(0)
-            treated_water_streams = [i.treated_water for i in units if hasattr(i, 'treated_water')]
-        treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
-        treated_water = treated_water_mixer.outs[0]
-        bst.ProcessWaterCenter(ins=[treated_water, '', process_water], **PWC_kwargs)
+            blowdown_to_wastewater = bst.Stream('blowdown_to_wastewater')
+            bst.BlowdownMixer(
+                area or '',
+                [i.blowdown_water for i in units if hasattr(i, 'blowdown_water')],
+                blowdown_to_wastewater
+            )
+        if PWC:
+            process_water_mixer = bst.Mixer(area or '',
+                ins=[] if recycle_process_water_streams is None else recycle_process_water_streams
+            )
+            process_water_mixer.autopopulate = True if recycle_process_water_streams is None else False 
+            
+            @process_water_mixer.add_specification(run=True)
+            def autopopulate_recycle_process_water_streams():
+                if process_water_mixer.autopopulate and not process_water_mixer.ins:
+                    streams = bst.get_streams_from_context_level(0)
+                    process_water_mixer.ins.extend([i for i in streams if i.isproduct() and 'process_water' in i.ID])
+                    process_water_mixer._system.update_configuration()
+            
+            process_water = process_water_mixer.outs[0]
+            if treated_water_streams is None:
+                units = bst.main_flowsheet.unit.get_context_level(0)
+                treated_water_streams = [i.treated_water for i in units if hasattr(i, 'treated_water')]
+            treated_water_mixer = bst.Mixer(area or '', ins=treated_water_streams)
+            treated_water = treated_water_mixer.outs[0]
+            bst.ProcessWaterCenter(ins=[treated_water, '', process_water], **PWC_kwargs)
+    return sys.units
 
 @bst.SystemFactory(
     ID='CHP_sys',
