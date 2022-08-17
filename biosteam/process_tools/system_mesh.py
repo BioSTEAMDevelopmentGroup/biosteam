@@ -28,7 +28,7 @@ def meshable(obj):
                 assert False
     except:
         raise TypeError(f"'{obj}' is not meshable; only System, MockSystem, "
-                        "SystemFactory, Unit, Sequence[Unit], or function "
+                        "SystemFactory, Unit, Sequence[Unit], or callable "
                         "objects are meshable")
     return obj
 
@@ -47,7 +47,6 @@ class SystemMesh:
         new = cls.__new__(cls)
         new._objects = self._objects.copy()
         new._connections = self._connections.copy()
-        new._numbers = self._numbers.copy()
         new._inlets = self._inlets.copy()
         new._outlets = self._outlets.copy()
         return new
