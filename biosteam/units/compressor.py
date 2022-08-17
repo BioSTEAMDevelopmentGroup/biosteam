@@ -25,13 +25,14 @@ References
 
 """
 import biosteam as bst
-from .. import Unit
 from warnings import warn
 from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
 from .heat_exchange import HX
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
+from .. import Unit
+from .._graphics import compressor_graphics
 
 __all__ = (
     'Compressor',
@@ -324,6 +325,7 @@ class IsothermalCompressor(Compressor):
     Utility cost                                  USD/hr            0.23
 
     """
+    _graphics = compressor_graphics
 
     def _run(self):
         feed = self.ins[0]
@@ -443,6 +445,7 @@ class IsentropicCompressor(Compressor):
 
     """
     _N_heat_utilities = 0
+    _graphics = compressor_graphics
 
     def _run(self):
         feed = self.ins[0]
@@ -565,6 +568,7 @@ class PolytropicCompressor(Compressor):
 
     """
     _N_heat_utilities = 0
+    _graphics = compressor_graphics
     available_methods = {'schultz', 'hundseid'}
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, 
                  vle=False, compressor_type=None, method=None, n_steps=None):
@@ -810,6 +814,7 @@ class MultistageCompressor(Unit):
         **Compressor._units,
         **HX._units,
     }
+    _graphics = compressor_graphics
 
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None, *,
