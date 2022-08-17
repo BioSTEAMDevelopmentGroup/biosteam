@@ -202,7 +202,8 @@ class SystemMesh:
                 return system.ID
             else:
                 return None
-        fields = {i: {'description': get_description(j), 'number': N, 'ins': {}, 'outs': {}} for i, (j, N, kw) in objs.items()}
+        fields = {i: {'description': get_description(j), 'number': N, 'ins': {}, 'outs': {}}
+                  for i, (j, N, _) in objs.items()}
         connections = connections.copy()
         for i, j in connections.items(): connections[j] = i
         for name, (obj, index) in inlets.items():
