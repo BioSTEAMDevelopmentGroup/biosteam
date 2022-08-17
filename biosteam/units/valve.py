@@ -13,6 +13,7 @@
 
 """
 from .. import Unit
+from .._graphics import valve_graphics
 from warnings import warn
 
 __all__ = (
@@ -60,6 +61,7 @@ class IsenthalpicValve(Valve):
     (which serve preliminary techno-economic analysis purposes).
 
     """
+    _graphics = valve_graphics
     _N_heat_utilities = 0
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):
