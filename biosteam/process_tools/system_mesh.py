@@ -32,6 +32,7 @@ def meshable(obj):
                         "object")
     return obj
 
+
 class SystemMesh:
     __slots__ = ('_areas', '_connections', '_inlets', '_outlets')
     
@@ -55,7 +56,7 @@ class SystemMesh:
         area = meshable(obj)
         areas = self._areas
         old_area = areas[name] if name in areas else None
-        self._areas[name] = (area, number, kwargs)
+        areas[name] = (area, number, kwargs)
         if old_area:
             self._inlets.clear()
             self._outlets.clear()
@@ -63,6 +64,14 @@ class SystemMesh:
                 self._load_area(i, j, k, autoconnect)
         else:
             self._load_area(name, area, number, autoconnect)
+        
+    def remove(self, name, reconnect=True, **kwargs):
+        areas = self._areas
+        areas.pop(name)
+        self._inlets.clear()
+        self._outlets.clear()
+        for i, (j, k, _) in areas.items():
+            self._load_area(i, j, k, reconnect)
         
     def _load_area(self, name, area, number, autoconnect):
         isa = isinstance
