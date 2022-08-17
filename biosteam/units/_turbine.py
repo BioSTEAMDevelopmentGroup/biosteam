@@ -14,13 +14,15 @@
 """
 
 import biosteam as bst
-from .. import Unit
 from warnings import warn
 from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
 from .heat_exchange import HX
+from .. import Unit
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
+from .._graphics import turbine_graphics
+
 
 __all__ = (
     'Turbine',
@@ -234,6 +236,7 @@ class IsentropicTurbine(Turbine):
         will be determined automatically.
 
     """
+    _graphics = turbine_graphics
     _N_heat_utilities = 0
 
     def _run(self):
