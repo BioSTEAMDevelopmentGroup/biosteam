@@ -179,8 +179,7 @@ class MockSystem:
     __slots__ = ('units',
                  'flowsheet',
                  '_ins',
-                 '_outs',
-                 '_irrelevant_units')
+                 '_outs',)
 
     def __init__(self, units=()):
         self.units = units or list(units)
@@ -230,18 +229,15 @@ class MockSystem:
         if self.units:
             raise RuntimeError("only empty mock systems can enter `with` statement")
         unit_registry = self.flowsheet.unit
-        self._irrelevant_units = set(unit_registry)
         unit_registry.open_context_level()
         return self
 
     def __exit__(self, type, exception, traceback):
-        irrelevant_units = self._irrelevant_units
-        del self._irrelevant_units
         if self.units:
             raise RuntimeError('mock system was modified before exiting `with` statement')
         unit_registry = self.flowsheet.unit
         dump = unit_registry.close_context_level()
-        self.units = [i for i in dump if i not in irrelevant_units]
+        self.units = dump
         if exception: raise exception
 
     __sub__ = Unit.__sub__
@@ -324,7 +320,6 @@ class System:
         'process_impact_items',
         'tracked_recycles',
         '_connections',
-        '_irrelevant_units',
         '_method',
         '_TEA',
         '_LCA',
@@ -634,21 +629,17 @@ class System:
             raise RuntimeError("only empty systems can enter `with` statement")
         del self._unit_path, self._units, 
         unit_registry = self.flowsheet.unit
-        self._irrelevant_units = set(unit_registry)
         unit_registry.open_context_level()
         return self
 
     def __exit__(self, type, exception, traceback):
-        irrelevant_units = self._irrelevant_units
-        del self._irrelevant_units
         unit_registry = self.flowsheet.unit
         dump = unit_registry.close_context_level()
         if exception: raise exception
         if self._path or self._recycle or self._facilities:
             raise RuntimeError('system cannot be modified before exiting `with` statement')
         else:
-            units = [i for i in dump if i not in irrelevant_units]
-            self.update_configuration(units)
+            self.update_configuration(dump)
 
     def _save_configuration(self):
         self._connections = [i.get_connection() for i in bst.utils.streams_from_units(self.unit_path)]

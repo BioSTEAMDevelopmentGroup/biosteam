@@ -16,7 +16,7 @@ __all__ = (
 )
 
 def create_all_facilities(
-    feedstock,
+    feedstock=None,
     CIP_over_feedstock=None,
     plant_air_over_feedstock=None,
     fire_water_over_feedstock=None,
@@ -43,6 +43,7 @@ def create_all_facilities(
     area=None,
     blowdown_recycle=False,
 ):
+    """Create all facilities by default."""
     return create_facilities(
         feedstock, CIP_over_feedstock, plant_air_over_feedstock, fire_water_over_feedstock,
         recycle_process_water_streams, treated_water_streams,
@@ -96,6 +97,7 @@ def create_facilities(
         area=None,
         blowdown_recycle=False,
     ):
+    """Create facilities specified."""
     kwargs = (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
               FWT_kwargs, ADP_kwargs, HXN_kwargs, PWC_kwargs)
     (CHP_kwargs, WWT_kwargs, CT_kwargs, CWP_kwargs, CIP_kwargs,
@@ -173,11 +175,11 @@ def create_coheat_and_power_system(
         outs=outs,
         **kwargs,
     )
-    BT.autopopulate = False if autopopulate is None else autopopulate
+    gas_mixer.autopopulate = slurry_mixer.autopopulate = False if autopopulate is None else autopopulate
     
     @BT.add_specification(run=True)
     def autopopulate_combustibles():
-        if BT.autopopulate and not slurry_mixer.ins and not gas_mixer.ins:
+        if gas_mixer.autopopulate and not slurry_mixer.ins and not gas_mixer.ins:
             streams = bst.FreeProductStreams(BT.system.streams)
             slurry_mixer.ins.extend(streams.combustible_slurries)
             gas_mixer.ins.extend(streams.combustible_gases)
