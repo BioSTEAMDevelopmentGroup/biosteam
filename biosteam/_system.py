@@ -232,12 +232,12 @@ class MockSystem:
     def get_inlet(self, name):
         if name in self._inlet_names: 
             return self._ins[self._inlet_names[name]]
-        raise ValueError(f"inlet name {repr(name)} does not exist")
+        raise ValueError(f"inlet named {repr(name)} does not exist")
 
     def get_outlet(self, name):
         if name in self._outlet_names: 
             return self._outs[self._outlet_names[name]]
-        raise ValueError(f"outlet name {repr(name)} does not exist")
+        raise ValueError(f"outlet named {repr(name)} does not exist")
 
     def set_inlet(self, ID, inlet):
         stream = self.get_inlet(ID)
