@@ -95,7 +95,7 @@ class MissingStream:
     """
     __slots__ = ('_source', '_sink')
     line = 'Stream'
-    ID = 'missing_stream'
+    ID = 'missing stream'
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
     disconnect_sink = Stream.disconnect_sink
