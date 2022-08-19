@@ -1837,7 +1837,7 @@ class System:
             ws.state = y*0.0
             ws.dstate = y*0.0
 
-    def simulate(self, **kwargs):
+    def simulate(self, skip_setup=False, **kwargs):
         """
         If system is dynamic, run the system dynamically. Otherwise, converge 
         the path of unit operations to steady state. After running/converging 
@@ -1851,7 +1851,8 @@ class System:
         
         """
         self._configuration_updated = False
-        self._setup()
+        if not skip_setup:
+            self._setup()
         if self.isdynamic: 
             self.dynamic_run(**kwargs)
             self._summary()
