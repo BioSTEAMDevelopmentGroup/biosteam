@@ -835,6 +835,16 @@ class MultistageCompressor(Unit):
                 self.hxs = hxs
                 self.pr = None
                 self.n_stages = None
+              
+            # connect only once
+            if compressors is not None and hxs is not None:
+                last_hx = None
+                for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
+                    if last_hx is not None: c.ins[0] = last_hx.outs[0]
+                    hx.ins[0] = c.outs[0]
+                    last_hx = hx
+                    self._overwrite_subcomponent_id(c, n+1)
+                    self._overwrite_subcomponent_id(hx, n+1)
 
         # setup option 2: fixed pressure ratio and number of stages
         elif pr is not None and n_stages is not None:
@@ -869,6 +879,8 @@ class MultistageCompressor(Unit):
 
     def reset_cache(self, **kwargs):
         super().reset_cache(**kwargs)
+        # Only redo setup for option 2 since we cannot recreate unit operations 
+        # given by the user in option 1.
         if (self.pr is not None
             and self.n_stages is not None
             and self.compressors
@@ -889,18 +901,8 @@ class MultistageCompressor(Unit):
             and hxs[-1]._outs is self._outs):
             return # Skip setup (already done)
         
-        # setup option 1: create connections between compressors and hxs
-        if compressors is not None and hxs is not None:
-            last_hx = None
-            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
-                if last_hx is not None: c.ins[0] = last_hx.outs[0]
-                hx.ins[0] = c.outs[0]
-                last_hx = hx
-                self._overwrite_subcomponent_id(c, n+1)
-                self._overwrite_subcomponent_id(hx, n+1)
-
         # setup option 2: create connected compressor and hx objects
-        elif pr is not None and n_stages is not None:
+        if pr is not None and n_stages is not None:
             T = feed.T
             self.compressors = []
             self.hxs = []
@@ -909,13 +911,10 @@ class MultistageCompressor(Unit):
             # (instead of the main flowsheet) to prevent system creation problems
             self.flowsheet = bst.Flowsheet('Multistage_compressor_' + self.ID)
             with self.flowsheet.temporary(): 
+                hx = None; P = feed.P
                 for n in range(self.n_stages):
-                    if n==0:
-                        inflow = None
-                        P = feed.P * pr
-                    else:
-                        inflow = hx.outs[0]
-                        P = P * pr
+                    inflow = hx.outs[0] if hx else None
+                    P *= pr
                     c = IsentropicCompressor(
                         ins=inflow, P=P, eta=self.eta,
                         vle=self.vle, compressor_type=self.compressor_type
