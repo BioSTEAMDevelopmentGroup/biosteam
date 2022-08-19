@@ -900,7 +900,7 @@ class MultistageCompressor(Unit):
                 self._overwrite_subcomponent_id(hx, n+1)
 
         # setup option 2: create connected compressor and hx objects
-        elif compressors and hxs and pr is not None and n_stages is not None:
+        elif pr is not None and n_stages is not None:
             T = feed.T
             self.compressors = []
             self.hxs = []
