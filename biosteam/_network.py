@@ -73,9 +73,10 @@ class PathSource:
         return f"{type(self).__name__}({str(self.source)})"
         
 
-def find_linear_and_cyclic_paths_with_recycle(feed, ends):
+def find_linear_and_cyclic_paths_with_recycle(feed, ends, units):
     paths_with_recycle, linear_paths = find_paths_with_and_without_recycle(
-        feed, ends)
+        feed, ends, units
+    )
     cyclic_paths_with_recycle = []
     for path_with_recycle in paths_with_recycle:
         cyclic_path_with_recycle = path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle)
@@ -83,15 +84,15 @@ def find_linear_and_cyclic_paths_with_recycle(feed, ends):
     cyclic_paths_with_recycle.sort(key=lambda x: -len(x[0]))
     return simplified_linear_paths(linear_paths), cyclic_paths_with_recycle
 
-def find_paths_with_and_without_recycle(feed, ends):
+def find_paths_with_and_without_recycle(feed, ends, units):
     paths_without_recycle  = []
     paths_with_recycle = []
-    fill_path(feed, [], paths_with_recycle, paths_without_recycle, ends)
+    fill_path(feed, [], paths_with_recycle, paths_without_recycle, ends, units)
     return paths_with_recycle, paths_without_recycle
 
 def fill_path(feed, path, paths_with_recycle,
               paths_without_recycle,
-              ends):
+              ends, units):
     unit = feed.sink
     has_recycle = None
     if feed in ends:
@@ -100,7 +101,7 @@ def fill_path(feed, path, paths_with_recycle,
             for other_path, recycle in paths_with_recycle:
                 has_recycle = recycle.sink is unit
                 if has_recycle: break
-    if not unit or isinstance(unit, Facility) or has_recycle is False:
+    if not unit or isinstance(unit, Facility) or has_recycle is False or unit not in units:
         paths_without_recycle.append(path)
     elif has_recycle or unit in path: 
         path_with_recycle = path, feed
@@ -114,11 +115,11 @@ def fill_path(feed, path, paths_with_recycle,
             fill_path(outlet, new_path,
                       paths_with_recycle,
                       paths_without_recycle,
-                      ends)
+                      ends, units)
         fill_path(first_outlet, path,
                   paths_with_recycle,
                   paths_without_recycle,
-                  ends)
+                  ends, units)
 
 def path_with_recycle_to_cyclic_path_with_recycle(path_with_recycle):
     path, recycle = path_with_recycle
@@ -278,7 +279,7 @@ class Network:
         warn(RuntimeWarning('network path could not be determined'))
     
     @classmethod
-    def from_feedstock(cls, feedstock, feeds=(), ends=None):
+    def from_feedstock(cls, feedstock, feeds=(), ends=None, units=None):
         """
         Create a Network object from a feedstock.
         
@@ -288,15 +289,18 @@ class Network:
             Main feedstock of the process.
         feeds : Iterable[:class:`~thermosteam.Stream`]
             Additional feeds to the process.
-        ends : Iterable[:class:`~thermosteam.Stream`]
+        ends : Iterable[:class:`~thermosteam.Stream`], optional
             Streams that not products, but are ultimately specified through
             process requirements and not by its unit source.
+        units : Iterable[:class:`~biosteam.Unit`], optional
+            All unit operations within the network.
             
         """
         ends = set(ends) if ends else set()
+        units = frozenset(units) if units else frozenset()
         recycle_ends = ends.copy()
         linear_paths, cyclic_paths_with_recycle = find_linear_and_cyclic_paths_with_recycle(
-            feedstock, ends)
+            feedstock, ends, units)
         linear_networks = [Network(i) for i in linear_paths]
         if linear_networks:
             network, *linear_networks = [Network(i) for i in linear_paths]
@@ -312,12 +316,13 @@ class Network:
         disjunction_streams = set([i.get_stream() for i in disjunctions])
         for feed in feeds:
             if feed in ends or isa(feed.sink, Facility): continue
-            downstream_network = cls.from_feedstock(feed, (), ends)
+            downstream_network = cls.from_feedstock(feed, (), ends, units)
             new_streams = downstream_network.streams
             connections = ends.intersection(new_streams)
             connecting_units = {stream._sink for stream in connections
                                 if stream._source and stream._sink
-                                and stream not in disjunction_streams}
+                                and stream not in disjunction_streams
+                                and stream._sink in units}
             ends.update(new_streams)
             N_connections = len(connecting_units)
             if N_connections == 0:
@@ -360,7 +365,7 @@ class Network:
             if not ends:
                 ends = bst.utils.products_from_units(units) + [i.get_stream() for i in disjunctions]
             system = cls.from_feedstock(
-                feedstock, feeds, ends,
+                feedstock, feeds, ends, units,
             )
         else:
             system = cls(())

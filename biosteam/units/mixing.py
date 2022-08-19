@@ -31,6 +31,15 @@ class Mixer(Unit):
         Inlet fluids to be mixed.
     outs : stream
         Mixed outlet fluid.
+    
+    Notes
+    -----
+    When streams at different pressures are mixed, BioSTEAM assumes valves 
+    reduce the pressure of the streams being mixed to prevent backflow 
+    (pressure needs to decrease in the direction of flow according to 
+    Bernoulli's principle). The outlet pressure will be the minimum pressure
+    of all inlet streams.
+    
     Examples
     --------
     Mix two streams:
