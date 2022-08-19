@@ -835,16 +835,6 @@ class MultistageCompressor(Unit):
                 self.hxs = hxs
                 self.pr = None
                 self.n_stages = None
-              
-            # Rename only once
-            if compressors is not None and hxs is not None:
-                last_hx = None
-                for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
-                    if last_hx is not None: c.ins[0] = last_hx.outs[0]
-                    hx.ins[0] = c.outs[0]
-                    last_hx = hx
-                    self._overwrite_subcomponent_id(c, n+1)
-                    self._overwrite_subcomponent_id(hx, n+1)
 
         # setup option 2: fixed pressure ratio and number of stages
         elif pr is not None and n_stages is not None:
@@ -888,20 +878,19 @@ class MultistageCompressor(Unit):
         hxs = self.hxs
         pr = self.pr
         n_stages = self.n_stages
-        new_specifications = (pr, n_stages)
-        if (new_specifications == self._old_specifications
-            and compressors and hxs
-            and compressors[0]._ins is self._ins
-            and hxs[-1]._outs is self._outs):
+        new_specifications = (pr, n_stages, compressors, hxs)
+        if (new_specifications == self._old_specifications):
             return # Skip setup (already done)
         
         # setup option 1: rewire compressors and heat exchangers
         if pr is None and n_stages is None:
             last_hx = None
-            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
+            for n, (c, hx) in enumerate(zip(compressors, hxs)):
                 if last_hx is not None: c.ins[0] = last_hx.outs[0]
                 hx.ins[0] = c.outs[0]
                 last_hx = hx
+                self._overwrite_subcomponent_id(c, n+1)
+                self._overwrite_subcomponent_id(hx, n+1)
         # setup option 2: create connected compressor and hx objects
         else:
             T = feed.T
