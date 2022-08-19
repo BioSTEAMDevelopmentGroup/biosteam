@@ -363,7 +363,21 @@ def test_multistage_setup_does_not_recreate_subcomponents():
     K._setup()
     b = K.compressors[0]
     assert a==b
-    pass
+    
+def test_multistage_setup_updates_after_changing_specifications():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    n_stages = 5
+    pr = (P / feed.P) ** (1 / n_stages)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
+    K._setup()
+    units_5 = (K.compressors, K.hxs)
+    for i in units_5: assert len(i) == 5
+    K.n_stages = 6
+    K._setup()
+    units_6 = (K.compressors, K.hxs)
+    for i in units_6: assert len(i) == 6
 
 
 if __name__ == '__main__':
@@ -375,3 +389,4 @@ if __name__ == '__main__':
     test_multistage_hydrogen_compressor_simple()
     test_multistage_hydrogen_compressor_advanced()
     test_multistage_setup_does_not_recreate_subcomponents()
+    test_multistage_setup_updates_after_changing_specifications()

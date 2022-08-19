@@ -878,8 +878,8 @@ class MultistageCompressor(Unit):
         hxs = self.hxs
         pr = self.pr
         n_stages = self.n_stages
-        new_specifications = (pr, n_stages, compressors, hxs)
-        if (new_specifications == self._old_specifications):
+        specifications = (pr, n_stages, compressors, hxs)
+        if (specifications == self._old_specifications):
             return # Skip setup (already done)
         
         # setup option 1: rewire compressors and heat exchangers
@@ -894,8 +894,8 @@ class MultistageCompressor(Unit):
         # setup option 2: create connected compressor and hx objects
         else:
             T = feed.T
-            self.compressors = []
-            self.hxs = []
+            self.compressors = compressors = []
+            self.hxs = hxs = []
             
             # Temporarily register all units/streams in this flowsheet 
             # (instead of the main flowsheet) to prevent system creation problems
@@ -914,18 +914,18 @@ class MultistageCompressor(Unit):
                         ins=c.outs[0], T=T, rigorous=self.vle
                     )
                     self._overwrite_subcomponent_id(hx, n+1)
-                    self.compressors.append(c)
-                    self.hxs.append(hx)
+                    compressors.append(c)
+                    hxs.append(hx)
 
         # set inlet and outlet reference
-        self.compressors[0]._ins = self._ins
-        self.hxs[-1]._outs = self._outs
+        compressors[0]._ins = self._ins
+        hxs[-1]._outs = self._outs
 
         # set auxillary units
-        units = [u for t in zip(self.compressors, self.hxs) for u in t]
+        units = [u for t in zip(compressors, hxs) for u in t]
         self.auxiliary_unit_names = tuple([u.ID for u in units])
         for u in units: self.__setattr__(u.ID, u)
-        self._old_specifications = new_specifications
+        self._old_specifications = (pr, n_stages, compressors, hxs)
 
     def _run(self):
         # calculate results
