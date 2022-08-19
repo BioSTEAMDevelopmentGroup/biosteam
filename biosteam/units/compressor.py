@@ -836,7 +836,7 @@ class MultistageCompressor(Unit):
                 self.pr = None
                 self.n_stages = None
               
-            # connect only once
+            # Rename only once
             if compressors is not None and hxs is not None:
                 last_hx = None
                 for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
@@ -858,9 +858,9 @@ class MultistageCompressor(Unit):
         else:
             raise RuntimeError(f"invalid parameterization of {self.ID}: Must specify `pr` and "
                                f"`n_stages` or `compressors` and `hxs`.")
+        self._old_specifications = None
 
     def _overwrite_subcomponent_id(self, subcomponent, i_stage):
-
         # overwrite subcomponent id
         ID = f"{self.ID}_{subcomponent.ticket_name}{i_stage}"
         subcomponent.ID = ID
@@ -879,14 +879,7 @@ class MultistageCompressor(Unit):
 
     def reset_cache(self, **kwargs):
         super().reset_cache(**kwargs)
-        # Only redo setup for option 2 since we cannot recreate unit operations 
-        # given by the user in option 1.
-        if (self.pr is not None
-            and self.n_stages is not None
-            and self.compressors
-            and self.hxs):
-            self.compressors.clear()
-            self.hxs.clear()
+        self._old_specifications = None
 
     def _setup(self):
         super()._setup()
@@ -895,14 +888,22 @@ class MultistageCompressor(Unit):
         hxs = self.hxs
         pr = self.pr
         n_stages = self.n_stages
-        
-        if (compressors and hxs
+        new_specifications = (pr, n_stages)
+        if (new_specifications == self._old_specifications
+            and compressors and hxs
             and compressors[0]._ins is self._ins
             and hxs[-1]._outs is self._outs):
             return # Skip setup (already done)
         
+        # setup option 1: rewire compressors and heat exchangers
+        if pr is None and n_stages is None:
+            last_hx = None
+            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
+                if last_hx is not None: c.ins[0] = last_hx.outs[0]
+                hx.ins[0] = c.outs[0]
+                last_hx = hx
         # setup option 2: create connected compressor and hx objects
-        if pr is not None and n_stages is not None:
+        else:
             T = feed.T
             self.compressors = []
             self.hxs = []
@@ -935,6 +936,7 @@ class MultistageCompressor(Unit):
         units = [u for t in zip(self.compressors, self.hxs) for u in t]
         self.auxiliary_unit_names = tuple([u.ID for u in units])
         for u in units: self.__setattr__(u.ID, u)
+        self._old_specifications = new_specifications
 
     def _run(self):
         # calculate results
