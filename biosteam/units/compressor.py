@@ -867,25 +867,40 @@ class MultistageCompressor(Unit):
         else:
             subcomponent.outs[0].ID = f"{ID}"
 
+    def reset_cache(self, **kwargs):
+        super().reset_cache(**kwargs)
+        if (self.pr is not None
+            and self.n_stages is not None
+            and self.compressors
+            and self.hxs):
+            self.compressors.clear()
+            self.hxs.clear()
+
     def _setup(self):
         super()._setup()
         feed = self._ins[0]
-
+        compressors = self.compressors
+        hxs = self.hxs
+        pr = self.pr
+        n_stages = self.n_stages
+        
+        if (compressors and hxs
+            and compressors[0]._ins is self._ins
+            and hxs[-1]._outs is self._outs):
+            return # Skip setup (already done)
+        
         # setup option 1: create connections between compressors and hxs
-        if self.compressors is not None and self.hxs is not None:
+        if compressors is not None and hxs is not None:
+            last_hx = None
             for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
-                if n == 0:
-                    c._ins = self._ins
-                else:
-                    c.ins[0] = self.hxs[n-1].outs[0]
+                if last_hx is not None: c.ins[0] = last_hx.outs[0]
                 hx.ins[0] = c.outs[0]
+                last_hx = hx
                 self._overwrite_subcomponent_id(c, n+1)
                 self._overwrite_subcomponent_id(hx, n+1)
-                if n==len(self.compressors)-1:
-                    hx._outs = self.outs
 
         # setup option 2: create connected compressor and hx objects
-        elif self.pr is not None and self.n_stages is not None:
+        elif compressors and hxs and pr is not None and n_stages is not None:
             T = feed.T
             self.compressors = []
             self.hxs = []
@@ -897,24 +912,19 @@ class MultistageCompressor(Unit):
                 for n in range(self.n_stages):
                     if n==0:
                         inflow = None
-                        P = self._ins[0].P * self.pr
+                        P = feed.P * pr
                     else:
                         inflow = hx.outs[0]
-                        P = P * self.pr
-    
+                        P = P * pr
                     c = IsentropicCompressor(
                         ins=inflow, P=P, eta=self.eta,
                         vle=self.vle, compressor_type=self.compressor_type
                     )
-                    if n == 0: c._ins = self._ins
-                    
                     self._overwrite_subcomponent_id(c, n+1)
                     hx = bst.HXutility(
                         ins=c.outs[0], T=T, rigorous=self.vle
                     )
                     self._overwrite_subcomponent_id(hx, n+1)
-                    if n==self.n_stages-1:
-                        hx._outs = self.outs
                     self.compressors.append(c)
                     self.hxs.append(hx)
 
