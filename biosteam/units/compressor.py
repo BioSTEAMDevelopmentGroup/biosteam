@@ -831,8 +831,8 @@ class MultistageCompressor(Unit):
                 raise RuntimeError(f"invalid parameterization of {self.ID}: `compressors` and `hxs` "
                                    f"must have the same length.")
             else:
-                self.compressors = compressors
-                self.hxs = hxs
+                self.compressors = tuple(compressors)
+                self.hxs = tuple(hxs)
                 self.pr = None
                 self.n_stages = None
 
@@ -894,8 +894,8 @@ class MultistageCompressor(Unit):
         # setup option 2: create connected compressor and hx objects
         else:
             T = feed.T
-            self.compressors = compressors = []
-            self.hxs = hxs = []
+            compressors = []
+            hxs = []
             
             # Temporarily register all units/streams in this flowsheet 
             # (instead of the main flowsheet) to prevent system creation problems
@@ -916,6 +916,8 @@ class MultistageCompressor(Unit):
                     self._overwrite_subcomponent_id(hx, n+1)
                     compressors.append(c)
                     hxs.append(hx)
+            self.compressors = compressors = tuple(compressors)
+            self.hxs =  hxs = tuple(hxs)
 
         # set inlet and outlet reference
         compressors[0]._ins = self._ins
