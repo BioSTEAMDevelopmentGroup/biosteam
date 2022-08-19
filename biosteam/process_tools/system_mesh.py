@@ -21,7 +21,7 @@ def meshable(obj):
                 obj.load_inlet_ports([])
                 obj.load_outlet_ports([])
             elif callable(obj):
-                if not hasattr(obj, 'ID'): obj.ID = None
+                if not hasattr(obj, 'ID'): obj.ID = obj.__name__
                 if not hasattr(obj, 'ins'): obj.ins = []
                 if not hasattr(obj, 'outs'): obj.outs = []
             else:
@@ -195,13 +195,18 @@ class SystemMesh:
     def show(self):
         objs, connections, inlets, outlets = (self._objects, self._connections, self._inlets, self._outlets)
         info = f"{type(self).__name__}:"
-        def get_description(system):
-            if isinstance(system, bst.SystemFactory):
-                return system.f.__name__
-            elif isinstance(system, bst.System):
-                return system.ID
-            else:
-                return None
+        def get_description(obj):
+            if isinstance(obj, bst.SystemFactory):
+                return obj.f.__name__
+            elif hasattr(obj, 'ID'):
+                return obj.ID
+            elif isinstance(obj, bst.MockSystem):
+                if len(obj.units) < 4:
+                    units = obj.units
+                    return ', '.join([i.ID for i in units])
+                else:
+                    units = obj.units[:4]
+                    return ', '.join([i.ID for i in units]) + ', ...'
         fields = {i: {'description': get_description(j), 'number': N, 'ins': {}, 'outs': {}}
                   for i, (j, N, _) in objs.items()}
         connections = connections.copy()
