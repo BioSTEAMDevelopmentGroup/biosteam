@@ -185,6 +185,7 @@ def test_polytropic_hydrogen_compressor():
     assert_allclose(
         [actual_power, K.design_results['Compressors in parallel']],
         [expected_power, 1],
+        rtol=1e-6,
     )
     pass
 
@@ -193,13 +194,18 @@ def test_multistage_hydrogen_compressor_simple():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
-    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
     P = 350e5
     # test simple setup
     n_stages = 5
     pr = (P / feed.P) ** (1 / n_stages)
-    K = bst.units.MultistageCompressor(ins=feed, pr=pr, n_stages=n_stages, eta=0.7)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
     K.simulate()
+    # check inlet and outlet
+    assert K.ins[0].ID == "feed"
+    assert K.compressors[0].ins[0] == K.ins[0]
+    assert K.outs[0].ID == "outlet"
+    assert K.hxs[-1].outs[0] == K.outs[0]
     # check outlet state
     out = K.outs[0]
     assert_allclose(
@@ -235,7 +241,7 @@ def test_multistage_hydrogen_compressor_advanced():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
-    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
     P = 350e5
     # test advanced setup
     Ps = [60e5, 90e5, 200e5, 300e5, 350e5]
@@ -248,8 +254,13 @@ def test_multistage_hydrogen_compressor_advanced():
         bst.units.IsentropicCompressor(P=Ps[4], eta=0.85),
     ]
     hxs = [bst.units.HXutility(T=T) for T in Ts]
-    K = bst.units.MultistageCompressor(ins=feed, compressors=ks, hxs=hxs)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), compressors=ks, hxs=hxs)
     K.simulate()
+    # check inlet and outlet
+    assert K.ins[0].ID == "feed"
+    assert K.compressors[0].ins[0] == K.ins[0]
+    assert K.outs[0].ID == "outlet"
+    assert K.hxs[-1].outs[0] == K.outs[0]
     # check hx outlet states
     for hx, P, T in zip(K.hxs, Ps, Ts):
         out = hx.outs[0]
@@ -340,6 +351,34 @@ def test_compressor_design():
     assert_allclose([installed_equipment_cost_at_psig(i) for i in pressures],
                     [ 2267264.256152,  5179043.514644, 10479970.002024])
 
+def test_multistage_setup_does_not_recreate_subcomponents():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    n_stages = 5
+    pr = (P / feed.P) ** (1 / n_stages)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
+    K._setup()
+    a = K.compressors[0]
+    K._setup()
+    b = K.compressors[0]
+    assert a==b
+    
+def test_multistage_setup_updates_after_changing_specifications():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    n_stages = 5
+    pr = (P / feed.P) ** (1 / n_stages)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
+    K._setup()
+    units_5 = (K.compressors, K.hxs)
+    for i in units_5: assert len(i) == 5
+    K.n_stages = 6
+    K._setup()
+    units_6 = (K.compressors, K.hxs)
+    for i in units_6: assert len(i) == 6
+
 
 if __name__ == '__main__':
     test_compressor_design()
@@ -349,3 +388,5 @@ if __name__ == '__main__':
     test_polytropic_hydrogen_compressor()
     test_multistage_hydrogen_compressor_simple()
     test_multistage_hydrogen_compressor_advanced()
+    test_multistage_setup_does_not_recreate_subcomponents()
+    test_multistage_setup_updates_after_changing_specifications()
