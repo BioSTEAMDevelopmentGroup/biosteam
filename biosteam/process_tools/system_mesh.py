@@ -198,7 +198,7 @@ class SystemMesh:
         def get_description(obj):
             if isinstance(obj, bst.SystemFactory):
                 return obj.f.__name__
-            elif hasattr(obj, 'ID'):
+            elif hasattr(obj, 'ID') and isinstance(obj.ID, str):
                 return obj.ID
             elif isinstance(obj, bst.MockSystem):
                 if len(obj.units) < 4:

@@ -31,7 +31,7 @@ def test_isentropic_hydrogen_compressor():
     ideal_power = 4.919879203671207
     eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
-    actual_power = K.power_utility.rate
+    actual_power = K.power_utility.consumption
     assert_allclose(
         [actual_power, K.design_results['Ideal power'],
            K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
@@ -60,7 +60,7 @@ def test_isentropic_two_phase_steam_compressor():
     ideal_power = 5.41038996517047
     eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
-    actual_power = K.power_utility.rate
+    actual_power = K.power_utility.consumption
     assert_allclose(
         [actual_power, K.design_results['Ideal power'],
            K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
@@ -151,7 +151,7 @@ def test_polytropic_hydrogen_compressor():
     K_isen = bst.units.IsentropicCompressor(ins=feed, P=P, eta=eta)
     K_isen.simulate()
     out_isen = K_isen.outs[0]
-    assert K.heat_utilities == ()
+    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
     assert_allclose(
         [out_poly.T, out_poly.P, out_poly.H, K.power_utility.rate],
         [out_isen.T, out_isen.P, out_isen.H, K_isen.power_utility.rate],
@@ -160,7 +160,7 @@ def test_polytropic_hydrogen_compressor():
     K = bst.units.PolytropicCompressor(ins=feed, P=P, eta=eta, method="hundseid")
     K.simulate()
     out_poly = K.outs[0]
-    assert K.heat_utilities == ()
+    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
     assert_allclose(
         [out_poly.T, out_poly.P, out_poly.H, K.power_utility.rate],
         [out_isen.T, out_isen.P, out_isen.H, K_isen.power_utility.rate],
@@ -179,12 +179,13 @@ def test_polytropic_hydrogen_compressor():
     # check compressor design
     assert K.design_results["Type"] == "Reciprocating"
     assert K.design_results["Driver"] == "Electric motor"
-    assert K.heat_utilities == ()
+    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
     expected_power = 6.482427434951657
     actual_power = K.power_utility.rate
     assert_allclose(
         [actual_power, K.design_results['Compressors in parallel']],
         [expected_power, 1],
+        rtol=1e-6,
     )
     pass
 
@@ -218,15 +219,15 @@ def test_multistage_hydrogen_compressor_simple():
         [1.7911402030788341, 15.0, 25.0],
     )
     # check heat utilities
-    assert K.heat_utilities[0].ID == 'chilled_water'
+    assert K.heat_utilities[1].ID == 'chilled_water'
     assert_allclose(
-        [len(K.heat_utilities), K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
-        [1, -11360.047353143065, 7.528681881161173, 0.056800236765715335],
+        [len(K.heat_utilities), K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        [2, -11360.047353143065, 7.528681881161173, 0.056800236765715335],
     )
     # check power utility
     assert_allclose(
         [K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        [4.668910747071128, 0.0, 4.668910747071128, 0.3651088204209622],
+        [4.66891075898803, 3.8690536578489634, 0.7998571011390667, 0.06254882530907502],
     )
     pass
 
@@ -269,23 +270,23 @@ def test_multistage_hydrogen_compressor_advanced():
         [1.1011570059916886, 15.0, 25.0],
     )
     # check heat utilities
-    assert len(K.heat_utilities) == 2
-    assert K.heat_utilities[1].ID == 'chilled_water'
-    assert K.heat_utilities[0].ID == 'cooling_water'
+    assert len(K.heat_utilities) == 3
+    assert K.heat_utilities[2].ID == 'chilled_water'
+    assert K.heat_utilities[1].ID == 'cooling_water'
+    assert K.heat_utilities[0].ID == 'high_pressure_steam'
     assert_allclose(
-        [K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        [K.heat_utilities[2].duty, K.heat_utilities[2].flow, K.heat_utilities[2].cost],
         [-3694.971298724524, 2.448780590727134, 0.018474856493622623],
     )
     assert_allclose(
-        [K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
+        [K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
         [-10376.320213906532, 7.091122145383326, 0.0034594039386252554],
     )
     # check power utility
     assert_allclose(
         [K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        [6.02039501950755, 0.0, 6.02039501950755, 0.47079489052549045],
+        [6.02039501950643, 5.8472449149978205, 0.17315010450860946, 0.01354033817257326],
     )
-    pass
 
 def test_compressor_design():
     bst.settings.set_thermo(["H2"], cache=True)
@@ -323,12 +324,12 @@ def test_compressor_design():
     # Test user overwrite:
     K.P = psig_to_pascal(1e3) 
     K.compressor_type = "Centrifugal"
-    K.driver = 'Gas turbine'
-    K.driver_efficiency = 0.5
+    K.driver = 'Electric motor'
+    K.driver_efficiency = 0.9
     K.simulate()
     assert K.design_results['Type'] == 'Centrifugal'
-    assert K.design_results['Driver'] == 'Gas turbine'
-    assert K.design_results['Driver efficiency'] == 0.5
+    assert K.design_results['Driver'] == 'Electric motor'
+    assert K.design_results['Driver efficiency'] == 0.9
     
     # Test capital cost correlations and factors
     def installed_equipment_cost_at_psig(psig):
