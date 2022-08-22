@@ -51,7 +51,7 @@ def test_isentropic_nitrogen_liquefaction():
     out = K.outs[0]
     assert_allclose(
         [out.vapor_fraction, out.liquid_fraction, out.T, out.P],
-        [0.520, 0.480, -195.91+273.15, 1e5],
+        [5.256182e-01, 4.743818e-01, 7.723638e+01, 1e+05],
         rtol=1e-3,
     )
     # check compressor design
