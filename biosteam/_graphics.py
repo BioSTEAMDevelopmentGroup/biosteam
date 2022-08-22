@@ -280,10 +280,16 @@ turbine_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_tu
 
 # Valve graphics
 node = box_node.copy()
-node['image'] = os.path.join(file_path, "units/graphics/valve.png")
+if bst.preferences.unit_color == "#555f69":
+    filename = "units/graphics/valve_dark.png"
+elif bst.preferences.unit_color == "white:#CDCDCD":
+    filename = "units/graphics/valve_light.png"
+else:
+    filename = "units/graphics/valve_dark.png"
+node['image'] = os.path.join(file_path, filename)
 node['fillcolor'] = 'None'
 node['peripheries'] = '0'
-node['fontcolor'] = bst.preferences.unit_color
+node['fontcolor'] = bst.preferences.label_color
 def tailor_valve_node(node, unit): # pragma: no coverage
     node['name'] = ''
     node['xlabel'] = "\t" + unit.ID + "\n\tValve"
