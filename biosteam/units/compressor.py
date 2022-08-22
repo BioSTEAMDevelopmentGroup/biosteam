@@ -859,8 +859,8 @@ class MultistageCompressor(Unit):
                 raise RuntimeError(f"invalid parameterization of {self.ID}: `compressors` and `hxs` "
                                    f"must have the same length.")
             else:
-                self.compressors = compressors
-                self.hxs = hxs
+                self.compressors = tuple(compressors)
+                self.hxs = tuple(hxs)
                 self.pr = None
                 self.n_stages = None
 
@@ -876,9 +876,9 @@ class MultistageCompressor(Unit):
         else:
             raise RuntimeError(f"invalid parameterization of {self.ID}: Must specify `pr` and "
                                f"`n_stages` or `compressors` and `hxs`.")
+        self._old_specifications = None
 
     def _overwrite_subcomponent_id(self, subcomponent, i_stage):
-
         # overwrite subcomponent id
         ID = f"{self.ID}_{subcomponent.ticket_name}{i_stage}"
         subcomponent.ID = ID
@@ -895,65 +895,67 @@ class MultistageCompressor(Unit):
         else:
             subcomponent.outs[0].ID = f"{ID}"
 
+    def reset_cache(self, **kwargs):
+        super().reset_cache(**kwargs)
+        self._old_specifications = None
+
     def _setup(self):
         super()._setup()
         feed = self._ins[0]
-
-        # setup option 1: create connections between compressors and hxs
-        if self.compressors is not None and self.hxs is not None:
-            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
-                if n == 0:
-                    c._ins = self._ins
-                else:
-                    c.ins[0] = self.hxs[n-1].outs[0]
+        compressors = self.compressors
+        hxs = self.hxs
+        pr = self.pr
+        n_stages = self.n_stages
+        specifications = (pr, n_stages, compressors, hxs)
+        if (specifications == self._old_specifications):
+            return # Skip setup (already done)
+        
+        # setup option 1: rewire compressors and heat exchangers
+        if pr is None and n_stages is None:
+            last_hx = None
+            for n, (c, hx) in enumerate(zip(compressors, hxs)):
+                if last_hx is not None: c.ins[0] = last_hx.outs[0]
                 hx.ins[0] = c.outs[0]
+                last_hx = hx
                 self._overwrite_subcomponent_id(c, n+1)
                 self._overwrite_subcomponent_id(hx, n+1)
-                if n==len(self.compressors)-1:
-                    hx._outs = self.outs
-
         # setup option 2: create connected compressor and hx objects
-        elif self.pr is not None and self.n_stages is not None:
+        else:
             T = feed.T
-            self.compressors = []
-            self.hxs = []
+            compressors = []
+            hxs = []
             
             # Temporarily register all units/streams in this flowsheet 
             # (instead of the main flowsheet) to prevent system creation problems
             self.flowsheet = bst.Flowsheet('Multistage_compressor_' + self.ID)
             with self.flowsheet.temporary(): 
+                hx = None; P = feed.P
                 for n in range(self.n_stages):
-                    if n==0:
-                        inflow = None
-                        P = self._ins[0].P * self.pr
-                    else:
-                        inflow = hx.outs[0]
-                        P = P * self.pr
-    
+                    inflow = hx.outs[0] if hx else None
+                    P *= pr
                     c = IsentropicCompressor(
                         ins=inflow, P=P, eta=self.eta,
                         vle=self.vle, compressor_type=self.compressor_type
                     )
-                    if n == 0: c._ins = self._ins
-                    
                     self._overwrite_subcomponent_id(c, n+1)
                     hx = bst.HXutility(
                         ins=c.outs[0], T=T, rigorous=self.vle
                     )
                     self._overwrite_subcomponent_id(hx, n+1)
-                    if n==self.n_stages-1:
-                        hx._outs = self.outs
-                    self.compressors.append(c)
-                    self.hxs.append(hx)
+                    compressors.append(c)
+                    hxs.append(hx)
+            self.compressors = compressors = tuple(compressors)
+            self.hxs =  hxs = tuple(hxs)
 
         # set inlet and outlet reference
-        self.compressors[0]._ins = self._ins
-        self.hxs[-1]._outs = self._outs
+        compressors[0]._ins = self._ins
+        hxs[-1]._outs = self._outs
 
         # set auxillary units
-        units = [u for t in zip(self.compressors, self.hxs) for u in t]
+        units = [u for t in zip(compressors, hxs) for u in t]
         self.auxiliary_unit_names = tuple([u.ID for u in units])
         for u in units: self.__setattr__(u.ID, u)
+        self._old_specifications = (pr, n_stages, compressors, hxs)
 
     def _run(self):
         # calculate results
