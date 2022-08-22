@@ -28,7 +28,7 @@ def test_isentropic_helium_turbine():
     )
     # check compressor design
     ideal_power = -0.278
-    eta_motor = K.design_results['Driver efficiency']
+    eta_motor = K.efficiency
     expected_power = ideal_power * eta * eta_motor
     actual_power = K.power_utility.rate
     assert_allclose(
@@ -56,7 +56,7 @@ def test_isentropic_nitrogen_liquefaction():
     )
     # check compressor design
     ideal_power = -0.607
-    eta_motor = K.design_results['Driver efficiency']
+    eta_motor = K.efficiency
     expected_power = ideal_power * eta * eta_motor
     actual_power = K.power_utility.rate
     assert_allclose(

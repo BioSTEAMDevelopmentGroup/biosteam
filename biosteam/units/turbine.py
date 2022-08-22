@@ -38,7 +38,6 @@ class TurbineCostAlgorithm(NamedTuple):
     hp_bounds: Tuple[float, float] #: Horse power per machine (not a hard limit for costing, but included here for completion)
     acfm_bounds: Tuple[float, float] #: Actual cubic feet per minute (hard limit for parallel units)
     cost: Callable #: function(horse_power) -> Baseline purchase cost
-    efficiency: float #: Heuristic electric motor efficiency (on reverse) at 1,000 hp.
     CE: float #: Chemical engineering price cost index.
 
 
@@ -72,16 +71,13 @@ class Turbine(Unit, isabstract=True):
                 acfm_bounds=(0., 1e12),
                 hp_bounds=(0., 1e12),
                 cost=lambda Pc: 0,
-                efficiency={
-                    'Electric motor': 0.65,
-                },
                 CE=567,
             ),
     }
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, 
                  P, eta=0.3, vle=False, turbine_type=None,
-                 driver=None, material=None, driver_efficiency=None):
+                 material=None, efficiency=None):
         Unit.__init__(self, ID, ins, outs, thermo)
         self.P = P  #: Outlet pressure [Pa].
         self.eta = eta  #: Isentropic efficiency.
@@ -91,8 +87,7 @@ class Turbine(Unit, isabstract=True):
         self.vle = vle
         self.material = 'Carbon steel' if material is None else material 
         self.turbine_type = 'Default' if turbine_type is None else turbine_type
-        self.driver = 'Default' if driver is None else driver
-        self.driver_efficiency = 'Default' if driver_efficiency is None else driver_efficiency
+        self.efficiency = 0.65 if efficiency is None else efficiency
 
     @property
     def turbine_type(self):
@@ -109,36 +104,12 @@ class Turbine(Unit, isabstract=True):
         self._turbine_type = turbine_type
 
     @property
-    def driver(self):
-        return self._driver
-    @driver.setter
-    def driver(self, driver):
-        """[str] Type of turbine. If 'Default', the type will be determined
-        based on type of turbine used."""
-        driver = driver.capitalize()
-        if driver not in self.design_factors and driver != 'Default':
-            raise ValueError(
-                f"driver {repr(driver)} not available; "
-                f"only {list_available_names(self.design_factors)} are available"
-            )
-        self._driver = driver
-
-    @property
-    def driver_efficiency(self):
-        return self._driver_efficiency
-    @driver_efficiency.setter
-    def driver_efficiency(self, driver_efficiency):
-        """[str] Efficiency of driver (e.g., steam turbine or electric motor). 
-        If 'Default', a heuristic efficiency will be selected based
-        on the turbine type and the driver."""
-        if isinstance(driver_efficiency, str):
-            if driver_efficiency != 'Default':
-                raise ValueError(
-                    f"driver efficiency must be a number or 'Default'; not {repr(driver_efficiency)}"
-                )
-        else:
-            driver_efficiency = float(driver_efficiency)
-        self._driver_efficiency = driver_efficiency
+    def efficiency(self):
+        return self._efficiency
+    @efficiency.setter
+    def efficiency(self, efficiency):
+        """[float] Efficiency of driver of work to electricity conversion."""
+        self._efficiency = float(efficiency)
 
     @property
     def material(self):
@@ -172,14 +143,8 @@ class Turbine(Unit, isabstract=True):
         return power_ideal, Q
 
     def _set_power(self, power):
-        driver_efficiency = self._driver_efficiency
-        if driver_efficiency == 'Default': 
-            turbine_type = self.design_results['Type']
-            driver = self.design_results['Driver']
-            alg = self.baseline_cost_algorithms[turbine_type]
-            driver_efficiency = alg.efficiencies[driver]
-        self.design_results['Driver efficiency'] = driver_efficiency
-        self.power_utility.consumption = power * driver_efficiency
+        self.design_results['Motor efficiency'] = efficiency = self._efficiency
+        self.power_utility(power * efficiency)
     
     def _design(self):
         if self.P > self.feed.P: return
@@ -191,7 +156,6 @@ class Turbine(Unit, isabstract=True):
         acfm_lb, acfm_ub = alg.acfm_bounds
         acfm = self.ins[0].get_total_flow('cfm')
         design_results['Turbines in parallel'] = ceil(acfm / acfm_ub) if acfm > acfm_ub else 1
-        design_results['Driver'] = alg.driver if self._driver == 'Default' else self._driver 
     
     def _cost(self):
         if self.P > self.feed.P: return
@@ -199,12 +163,11 @@ class Turbine(Unit, isabstract=True):
         design_results = self.design_results
         alg = self.baseline_cost_algorithms[design_results['Type']]
         acfm_lb, acfm_ub = alg.acfm_bounds
-        Pc = abs(self.power_utility.get_property('consumption', 'hp'))
+        Pc = abs(self.power_utility.get_property('rate', 'hp'))
         N = design_results['Turbines in parallel']
         Pc_per_turbine = Pc / N
         bounds_warning(self, 'power', Pc, 'hp', alg.hp_bounds, 'cost')
         self.baseline_purchase_costs['Turbines(s)'] = N * bst.CE / alg.CE * alg.cost(Pc_per_turbine)
-        self.F_D['Turbines(s)'] = self.design_factors[design_results['Driver']]
 
 
 class IsentropicTurbine(Turbine, new_graphics=False):
