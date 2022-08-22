@@ -291,4 +291,5 @@ def tailor_valve_node(node, unit): # pragma: no coverage
     node['fillcolor'] = 'None'
     node['image'] = os.path.join(file_path, filename)
     node['xlabel'] = unit.ID + "\nValve"
+    node['fontcolor'] = bst.preferences.label_color
 valve_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_valve_node)
