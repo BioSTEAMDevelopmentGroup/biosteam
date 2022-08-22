@@ -66,6 +66,15 @@ def test_isentropic_nitrogen_liquefaction():
         rtol=1e-3,
     )
 
+def test_turbine_invalid_pressure_warning():
+    bst.settings.set_thermo(["N2"], cache=True)
+    feed = bst.Stream(N2=1, T=298, P=1e5, phase='g')
+    K = bst.units.IsentropicTurbine(ins=feed, P=2e5, eta=1, vle=False)
+    with pytest.warns(RuntimeWarning):
+        K.simulate()
+
+
 if __name__ == '__main__':
     test_isentropic_helium_turbine()
     test_isentropic_nitrogen_liquefaction()
+    test_turbine_invalid_pressure_warning()

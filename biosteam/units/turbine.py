@@ -243,23 +243,28 @@ class IsentropicTurbine(Turbine):
         feed = self.ins[0]
         out = self.outs[0]
         out.copy_like(feed)
-        if self.vle is True:
-            out.vle(S=feed.S, P=self.P)
+        if self.P < feed.P:
+            if self.vle is True:
+                out.vle(S=feed.S, P=self.P)
+            else:
+                out.P = self.P
+                out.S = feed.S
+            self.T_isentropic = out.T
+            dH_isentropic = out.H - feed.H
+            self.design_results['Ideal power'] = dH_isentropic / 3600. # kW
+            self.design_results['Ideal duty'] = 0.
+            dH_actual = dH_isentropic * self.eta
+            H = feed.H + dH_actual
+            if self.vle is True:
+                out.vle(H=H, P=out.P)
+            else:
+                out.H = H
         else:
-            out.P = self.P
-            out.S = feed.S
-        self.T_isentropic = out.T
-        dH_isentropic = out.H - feed.H
-        self.design_results['Ideal power'] = dH_isentropic / 3600. # kW
-        self.design_results['Ideal duty'] = 0.
-        dH_actual = dH_isentropic * self.eta
-        H = feed.H + dH_actual
-        if self.vle is True:
-            out.vle(H=H, P=out.P)
-        else:
-            out.H = H
+            warn(f"feed pressure ({feed.P:.5g} Pa) is lower or equal than outlet "
+                 f"specification ({self.P:.5g} Pa); valve {self.ID} is ignored", RuntimeWarning)
 
         
     def _design(self):
         super()._design()
-        self._set_power(self.design_results['Ideal power'] * self.eta)
+        if 'Ideal power' in self.design_results: # Ideal power is not set if self.P > feed.P
+            self._set_power(self.design_results['Ideal power'] * self.eta)
