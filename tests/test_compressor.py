@@ -31,7 +31,7 @@ def test_isentropic_hydrogen_compressor():
     ideal_power = 4.919879203671207
     eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
-    actual_power = K.power_utility.rate
+    actual_power = K.power_utility.consumption
     assert_allclose(
         [actual_power, K.design_results['Ideal power'],
            K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
@@ -60,7 +60,7 @@ def test_isentropic_two_phase_steam_compressor():
     ideal_power = 5.41038996517047
     eta_motor = K.baseline_cost_algorithms[K.design_results["Type"]].efficiencies["Steam turbine"]
     expected_power = ideal_power / eta / eta_motor
-    actual_power = K.power_utility.rate
+    actual_power = K.power_utility.consumption
     assert_allclose(
         [actual_power, K.design_results['Ideal power'],
            K.design_results['Ideal duty'], K.design_results['Compressors in parallel']],
@@ -151,7 +151,7 @@ def test_polytropic_hydrogen_compressor():
     K_isen = bst.units.IsentropicCompressor(ins=feed, P=P, eta=eta)
     K_isen.simulate()
     out_isen = K_isen.outs[0]
-    assert K.heat_utilities == ()
+    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
     assert_allclose(
         [out_poly.T, out_poly.P, out_poly.H, K.power_utility.rate],
         [out_isen.T, out_isen.P, out_isen.H, K_isen.power_utility.rate],
@@ -160,7 +160,7 @@ def test_polytropic_hydrogen_compressor():
     K = bst.units.PolytropicCompressor(ins=feed, P=P, eta=eta, method="hundseid")
     K.simulate()
     out_poly = K.outs[0]
-    assert K.heat_utilities == ()
+    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
     assert_allclose(
         [out_poly.T, out_poly.P, out_poly.H, K.power_utility.rate],
         [out_isen.T, out_isen.P, out_isen.H, K_isen.power_utility.rate],
@@ -179,12 +179,13 @@ def test_polytropic_hydrogen_compressor():
     # check compressor design
     assert K.design_results["Type"] == "Reciprocating"
     assert K.design_results["Driver"] == "Electric motor"
-    assert K.heat_utilities == ()
+    assert len(K.heat_utilities) == 1 and K.heat_utilities[0].duty == 0.
     expected_power = 6.482427434951657
     actual_power = K.power_utility.rate
     assert_allclose(
         [actual_power, K.design_results['Compressors in parallel']],
         [expected_power, 1],
+        rtol=1e-6,
     )
     pass
 
@@ -193,13 +194,18 @@ def test_multistage_hydrogen_compressor_simple():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
-    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
     P = 350e5
     # test simple setup
     n_stages = 5
     pr = (P / feed.P) ** (1 / n_stages)
-    K = bst.units.MultistageCompressor(ins=feed, pr=pr, n_stages=n_stages, eta=0.7)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
     K.simulate()
+    # check inlet and outlet
+    assert K.ins[0].ID == "feed"
+    assert K.compressors[0].ins[0] == K.ins[0]
+    assert K.outs[0].ID == "outlet"
+    assert K.hxs[-1].outs[0] == K.outs[0]
     # check outlet state
     out = K.outs[0]
     assert_allclose(
@@ -218,15 +224,15 @@ def test_multistage_hydrogen_compressor_simple():
         [1.7911402030788341, 15.0, 25.0],
     )
     # check heat utilities
-    assert K.heat_utilities[0].ID == 'chilled_water'
+    assert K.heat_utilities[1].ID == 'chilled_water'
     assert_allclose(
-        [len(K.heat_utilities), K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
-        [1, -11360.047353143065, 7.528681881161173, 0.056800236765715335],
+        [len(K.heat_utilities), K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        [2, -11360.047353143065, 7.528681881161173, 0.056800236765715335],
     )
     # check power utility
     assert_allclose(
         [K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        [4.668910747071128, 0.0, 4.668910747071128, 0.3651088204209622],
+        [4.66891075898803, 3.8690536578489634, 0.7998571011390667, 0.06254882530907502],
     )
     pass
 
@@ -235,7 +241,7 @@ def test_multistage_hydrogen_compressor_advanced():
     thermo = bst.Thermo([bst.Chemical('H2', eos=PR)])
     thermo.mixture.include_excess_energies = True
     bst.settings.set_thermo(thermo)
-    feed = bst.Stream(H2=1, T=25 + 273.15, P=20e5, phase='g')
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
     P = 350e5
     # test advanced setup
     Ps = [60e5, 90e5, 200e5, 300e5, 350e5]
@@ -248,8 +254,13 @@ def test_multistage_hydrogen_compressor_advanced():
         bst.units.IsentropicCompressor(P=Ps[4], eta=0.85),
     ]
     hxs = [bst.units.HXutility(T=T) for T in Ts]
-    K = bst.units.MultistageCompressor(ins=feed, compressors=ks, hxs=hxs)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), compressors=ks, hxs=hxs)
     K.simulate()
+    # check inlet and outlet
+    assert K.ins[0].ID == "feed"
+    assert K.compressors[0].ins[0] == K.ins[0]
+    assert K.outs[0].ID == "outlet"
+    assert K.hxs[-1].outs[0] == K.outs[0]
     # check hx outlet states
     for hx, P, T in zip(K.hxs, Ps, Ts):
         out = hx.outs[0]
@@ -269,23 +280,23 @@ def test_multistage_hydrogen_compressor_advanced():
         [1.1011570059916886, 15.0, 25.0],
     )
     # check heat utilities
-    assert len(K.heat_utilities) == 2
-    assert K.heat_utilities[1].ID == 'chilled_water'
-    assert K.heat_utilities[0].ID == 'cooling_water'
+    assert len(K.heat_utilities) == 3
+    assert K.heat_utilities[2].ID == 'chilled_water'
+    assert K.heat_utilities[1].ID == 'cooling_water'
+    assert K.heat_utilities[0].ID == 'high_pressure_steam'
     assert_allclose(
-        [K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
+        [K.heat_utilities[2].duty, K.heat_utilities[2].flow, K.heat_utilities[2].cost],
         [-3694.971298724524, 2.448780590727134, 0.018474856493622623],
     )
     assert_allclose(
-        [K.heat_utilities[0].duty, K.heat_utilities[0].flow, K.heat_utilities[0].cost],
+        [K.heat_utilities[1].duty, K.heat_utilities[1].flow, K.heat_utilities[1].cost],
         [-10376.320213906532, 7.091122145383326, 0.0034594039386252554],
     )
     # check power utility
     assert_allclose(
         [K.power_utility.consumption, K.power_utility.production, K.power_utility.rate, K.power_utility.cost],
-        [6.02039501950755, 0.0, 6.02039501950755, 0.47079489052549045],
+        [6.02039501950643, 5.8472449149978205, 0.17315010450860946, 0.01354033817257326],
     )
-    pass
 
 def test_compressor_design():
     bst.settings.set_thermo(["H2"], cache=True)
@@ -323,12 +334,12 @@ def test_compressor_design():
     # Test user overwrite:
     K.P = psig_to_pascal(1e3) 
     K.compressor_type = "Centrifugal"
-    K.driver = 'Gas turbine'
-    K.driver_efficiency = 0.5
+    K.driver = 'Electric motor'
+    K.driver_efficiency = 0.9
     K.simulate()
     assert K.design_results['Type'] == 'Centrifugal'
-    assert K.design_results['Driver'] == 'Gas turbine'
-    assert K.design_results['Driver efficiency'] == 0.5
+    assert K.design_results['Driver'] == 'Electric motor'
+    assert K.design_results['Driver efficiency'] == 0.9
     
     # Test capital cost correlations and factors
     def installed_equipment_cost_at_psig(psig):
@@ -340,6 +351,34 @@ def test_compressor_design():
     assert_allclose([installed_equipment_cost_at_psig(i) for i in pressures],
                     [ 2267264.256152,  5179043.514644, 10479970.002024])
 
+def test_multistage_setup_does_not_recreate_subcomponents():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    n_stages = 5
+    pr = (P / feed.P) ** (1 / n_stages)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
+    K._setup()
+    a = K.compressors[0]
+    K._setup()
+    b = K.compressors[0]
+    assert a==b
+    
+def test_multistage_setup_updates_after_changing_specifications():
+    bst.settings.set_thermo(["H2"])
+    feed = bst.Stream("feed", H2=1, T=25 + 273.15, P=20e5, phase='g')
+    P = 350e5
+    n_stages = 5
+    pr = (P / feed.P) ** (1 / n_stages)
+    K = bst.units.MultistageCompressor(ins=feed, outs=('outlet'), pr=pr, n_stages=n_stages, eta=0.7)
+    K._setup()
+    units_5 = (K.compressors, K.hxs)
+    for i in units_5: assert len(i) == 5
+    K.n_stages = 6
+    K._setup()
+    units_6 = (K.compressors, K.hxs)
+    for i in units_6: assert len(i) == 6
+
 
 if __name__ == '__main__':
     test_compressor_design()
@@ -349,3 +388,5 @@ if __name__ == '__main__':
     test_polytropic_hydrogen_compressor()
     test_multistage_hydrogen_compressor_simple()
     test_multistage_hydrogen_compressor_advanced()
+    test_multistage_setup_does_not_recreate_subcomponents()
+    test_multistage_setup_updates_after_changing_specifications()

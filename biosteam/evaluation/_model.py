@@ -213,7 +213,7 @@ class Model(State):
                 lb = evaluate(sample_lb, material_data).flatten()
                 ub = evaluate(sample_ub, material_data).flatten()
                 diffs[i] = ub - lb
-            div = diffs.max(axis=0)
+            div = np.abs(diffs).max(axis=0)
             div[div == 0.] = 1
             diffs /= div
             normalized_samples = normalized_samples @ diffs

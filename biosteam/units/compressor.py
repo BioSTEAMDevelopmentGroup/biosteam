@@ -221,15 +221,33 @@ class Compressor(Unit, isabstract=True):
         return power_ideal, Q
 
     def _set_power(self, power):
+        driver = self.design_results['Driver']
         driver_efficiency = self._driver_efficiency
         if driver_efficiency == 'Default': 
             compressor_type = self.design_results['Type']
-            driver = self.design_results['Driver']
             alg = self.baseline_cost_algorithms[compressor_type]
             driver_efficiency = alg.efficiencies[driver]
         self.design_results['Driver efficiency'] = driver_efficiency
-        self.power_utility.consumption = power / driver_efficiency
-    
+        if driver == 'Electric motor':
+            self.power_utility(power / driver_efficiency)
+        else:
+            # The turbine produces the power that the compressor consumes.
+            # This may not be the most elegant way showing this, but it 
+            # makes it easy for design and costing.
+            self.power_utility.consumption = self.power_utility.production = power / driver_efficiency
+            if driver == 'Steam turbine':
+                # Use high pressure steam utility as the driver. 
+                # Assume that the recondenser cost is negligible and that 
+                # heat integration is used (which are commonly the case).
+                hps = bst.settings.get_heating_agent('high_pressure_steam')
+                self.heat_utilities[0](self.power_utility.consumption, T_in=298.15, agent=hps)
+            elif driver == 'Gas turbine':
+                # TODO: Possibly have an optional inlet stream that can work
+                # as either steam or gas feed to the turbine.
+                raise RuntimeError('gas turbine driver is not yet available in BioSTEAM')
+            else:
+                raise RuntimeError(f"invalid driver '{driver}'")
+        
     def _design(self):
         design_results = self.design_results
         compressor_type = self.compressor_type 
@@ -345,7 +363,6 @@ class IsothermalCompressor(Compressor):
         self.design_results['Ideal power'] = ideal_power # kW
         self.design_results['Ideal duty'] = ideal_duty # kJ / hr
         self._set_power(ideal_power / self.eta)
-    
 
 
 class IsentropicCompressor(Compressor):
@@ -395,18 +412,21 @@ class IsentropicCompressor(Compressor):
         flow (kmol/hr): H2  1
 
     >>> K.results()
-    Isentropic compressor                         Units             K1
-    Power               Rate                         kW           10.8
-                        Cost                     USD/hr          0.846
-    Design              Ideal power                  kW           4.92
-                        Ideal duty                kJ/hr              0
-                        Type                               Centrifugal
-                        Compressors in parallel                      1
-                        Driver                           Steam turbine
-                        Driver efficiency                         0.65
-    Purchase cost       Compressor(s)               USD       5.87e+04
-    Total purchase cost                             USD       5.87e+04
-    Utility cost                                 USD/hr          0.846
+    Isentropic compressor                          Units             K1
+    Power               Rate                          kW              0
+                        Cost                      USD/hr              0
+    High pressure steam Duty                       kJ/hr           12.7
+                        Flow                     kmol/hr       0.000396
+                        Cost                      USD/hr       0.000126
+    Design              Ideal power                   kW           4.92
+                        Ideal duty                 kJ/hr              0
+                        Type                                Centrifugal
+                        Compressors in parallel                       1
+                        Driver                            Steam turbine
+                        Driver efficiency                          0.65
+    Purchase cost       Compressor(s)                USD       5.87e+04
+    Total purchase cost                              USD       5.87e+04
+    Utility cost                                  USD/hr       0.000126
 
 
     Per default, the outlet phase is assumed to be the same as the inlet phase. If phase changes are to be accounted for,
@@ -430,18 +450,21 @@ class IsentropicCompressor(Compressor):
         flow (kmol/hr): (g) H2O  1
 
     >>> K.results()
-    Isentropic compressor                         Units             K2
-    Power               Rate                         kW           8.32
-                        Cost                     USD/hr          0.651
-    Design              Ideal power                  kW           5.41
-                        Ideal duty                kJ/hr              0
-                        Type                               Centrifugal
-                        Compressors in parallel                      1
-                        Driver                           Steam turbine
-                        Driver efficiency                         0.65
-    Purchase cost       Compressor(s)               USD       4.98e+04
-    Total purchase cost                             USD       4.98e+04
-    Utility cost                                 USD/hr          0.651
+    Isentropic compressor                          Units             K2
+    Power               Rate                          kW              0
+                        Cost                      USD/hr              0
+    High pressure steam Duty                       kJ/hr           9.79
+                        Flow                     kmol/hr       0.000305
+                        Cost                      USD/hr       9.67e-05
+    Design              Ideal power                   kW           5.41
+                        Ideal duty                 kJ/hr              0
+                        Type                                Centrifugal
+                        Compressors in parallel                       1
+                        Driver                            Steam turbine
+                        Driver efficiency                          0.65
+    Purchase cost       Compressor(s)                USD       4.98e+04
+    Total purchase cost                              USD       4.98e+04
+    Utility cost                                  USD/hr       9.67e-05
 
     """
     _N_heat_utilities = 0
@@ -718,8 +741,11 @@ class MultistageCompressor(Unit):
     
     >>> K.results()
     Multistage compressor                           Units                      K
-    Power               Rate                           kW                   4.83
-                        Cost                       USD/hr                  0.378
+    Power               Rate                           kW                      0
+                        Cost                       USD/hr                      0
+    High pressure steam Duty                        kJ/hr                   5.68
+                        Flow                      kmol/hr               0.000177
+                        Cost                       USD/hr               5.61e-05
     Chilled water       Duty                        kJ/hr              -1.12e+04
                         Flow                      kmol/hr                   7.41
                         Cost                       USD/hr                 0.0559
@@ -736,7 +762,7 @@ class MultistageCompressor(Unit):
                         K k4 - Compressor(s)          USD               1.52e+04
                         K h4 - Double pipe            USD               1.78e+03
     Total purchase cost                               USD                6.3e+04
-    Utility cost                                   USD/hr                  0.434
+    Utility cost                                   USD/hr                  0.056
 
     Show the fluid state at the outlet of each heat exchanger:
     
@@ -778,10 +804,14 @@ class MultistageCompressor(Unit):
     [0] outlet
         phase: 'g', T: 298 K, P: 3.2e+07 Pa
         flow (kmol/hr): H2  1
+    
     >>> K.results()
     Multistage compressor                           Units                     K2
-    Power               Rate                           kW                    5.5
-                        Cost                       USD/hr                   0.43
+    Power               Rate                           kW                      0
+                        Cost                       USD/hr                      0
+    High pressure steam Duty                        kJ/hr                   6.47
+                        Flow                      kmol/hr               0.000201
+                        Cost                       USD/hr               6.39e-05
     Chilled water       Duty                        kJ/hr              -5.63e+03
                         Flow                      kmol/hr                   3.73
                         Cost                       USD/hr                 0.0282
@@ -803,7 +833,7 @@ class MultistageCompressor(Unit):
                         K2 k5 - Compressor(s)         USD               1.45e+04
                         K2 h5 - Double pipe           USD               2.03e+03
     Total purchase cost                               USD               7.26e+04
-    Utility cost                                   USD/hr                   0.46
+    Utility cost                                   USD/hr                 0.0306
 
     """
 
@@ -836,8 +866,8 @@ class MultistageCompressor(Unit):
                 raise RuntimeError(f"invalid parameterization of {self.ID}: `compressors` and `hxs` "
                                    f"must have the same length.")
             else:
-                self.compressors = compressors
-                self.hxs = hxs
+                self.compressors = tuple(compressors)
+                self.hxs = tuple(hxs)
                 self.pr = None
                 self.n_stages = None
 
@@ -853,9 +883,9 @@ class MultistageCompressor(Unit):
         else:
             raise RuntimeError(f"invalid parameterization of {self.ID}: Must specify `pr` and "
                                f"`n_stages` or `compressors` and `hxs`.")
+        self._old_specifications = None
 
     def _overwrite_subcomponent_id(self, subcomponent, i_stage):
-
         # overwrite subcomponent id
         ID = f"{self.ID}_{subcomponent.ticket_name}{i_stage}"
         subcomponent.ID = ID
@@ -872,65 +902,67 @@ class MultistageCompressor(Unit):
         else:
             subcomponent.outs[0].ID = f"{ID}"
 
+    def reset_cache(self, **kwargs):
+        super().reset_cache(**kwargs)
+        self._old_specifications = None
+
     def _setup(self):
         super()._setup()
         feed = self._ins[0]
-
-        # setup option 1: create connections between compressors and hxs
-        if self.compressors is not None and self.hxs is not None:
-            for n, (c, hx) in enumerate(zip(self.compressors, self.hxs)):
-                if n == 0:
-                    c._ins = self._ins
-                else:
-                    c.ins[0] = self.hxs[n-1].outs[0]
+        compressors = self.compressors
+        hxs = self.hxs
+        pr = self.pr
+        n_stages = self.n_stages
+        specifications = (pr, n_stages, compressors, hxs)
+        if (specifications == self._old_specifications):
+            return # Skip setup (already done)
+        
+        # setup option 1: rewire compressors and heat exchangers
+        if pr is None and n_stages is None:
+            last_hx = None
+            for n, (c, hx) in enumerate(zip(compressors, hxs)):
+                if last_hx is not None: c.ins[0] = last_hx.outs[0]
                 hx.ins[0] = c.outs[0]
+                last_hx = hx
                 self._overwrite_subcomponent_id(c, n+1)
                 self._overwrite_subcomponent_id(hx, n+1)
-                if n==len(self.compressors)-1:
-                    hx._outs = self.outs
-
         # setup option 2: create connected compressor and hx objects
-        elif self.pr is not None and self.n_stages is not None:
+        else:
             T = feed.T
-            self.compressors = []
-            self.hxs = []
+            compressors = []
+            hxs = []
             
             # Temporarily register all units/streams in this flowsheet 
             # (instead of the main flowsheet) to prevent system creation problems
             self.flowsheet = bst.Flowsheet('Multistage_compressor_' + self.ID)
             with self.flowsheet.temporary(): 
+                hx = None; P = feed.P
                 for n in range(self.n_stages):
-                    if n==0:
-                        inflow = None
-                        P = self._ins[0].P * self.pr
-                    else:
-                        inflow = hx.outs[0]
-                        P = P * self.pr
-    
+                    inflow = hx.outs[0] if hx else None
+                    P *= pr
                     c = IsentropicCompressor(
                         ins=inflow, P=P, eta=self.eta,
                         vle=self.vle, compressor_type=self.compressor_type
                     )
-                    if n == 0: c._ins = self._ins
-                    
                     self._overwrite_subcomponent_id(c, n+1)
                     hx = bst.HXutility(
                         ins=c.outs[0], T=T, rigorous=self.vle
                     )
                     self._overwrite_subcomponent_id(hx, n+1)
-                    if n==self.n_stages-1:
-                        hx._outs = self.outs
-                    self.compressors.append(c)
-                    self.hxs.append(hx)
+                    compressors.append(c)
+                    hxs.append(hx)
+            self.compressors = compressors = tuple(compressors)
+            self.hxs =  hxs = tuple(hxs)
 
         # set inlet and outlet reference
-        self.compressors[0]._ins = self._ins
-        self.hxs[-1]._outs = self._outs
+        compressors[0]._ins = self._ins
+        hxs[-1]._outs = self._outs
 
         # set auxillary units
-        units = [u for t in zip(self.compressors, self.hxs) for u in t]
+        units = [u for t in zip(compressors, hxs) for u in t]
         self.auxiliary_unit_names = tuple([u.ID for u in units])
         for u in units: self.__setattr__(u.ID, u)
+        self._old_specifications = (pr, n_stages, compressors, hxs)
 
     def _run(self):
         # calculate results

@@ -107,7 +107,7 @@ class SolidsCentrifuge(SolidsSeparator):
     order=None : Iterable[str]
         Species order of split. Defaults to Stream.chemicals.IDs.
     solids : tuple[str]
-             IDs of solids.
+        IDs of solids.
     moisture_content : float
         Fraction of water in stream.
     centrifuge_type : str
