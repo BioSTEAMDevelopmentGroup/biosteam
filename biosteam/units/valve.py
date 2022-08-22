@@ -33,8 +33,9 @@ class Valve(Unit, isabstract=True):
     analysis purposes).
     
     """
+    _graphics = valve_graphics
 
-class IsenthalpicValve(Valve):
+class IsenthalpicValve(Valve, new_graphics=False):
     """
     Create an isenthalpic valve. Reduces the pressure of a fluid while keeping the enthalpy
     constant (adiabatic flash). 
@@ -61,7 +62,6 @@ class IsenthalpicValve(Valve):
     (which serve preliminary techno-economic analysis purposes).
 
     """
-    _graphics = valve_graphics
     _N_heat_utilities = 0
 
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, vle=False):

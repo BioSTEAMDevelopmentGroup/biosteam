@@ -38,8 +38,7 @@ class TurbineCostAlgorithm(NamedTuple):
     hp_bounds: Tuple[float, float] #: Horse power per machine (not a hard limit for costing, but included here for completion)
     acfm_bounds: Tuple[float, float] #: Actual cubic feet per minute (hard limit for parallel units)
     cost: Callable #: function(horse_power) -> Baseline purchase cost
-    efficiencies: Dict[str, float] #: Heuristic efficiencies at 1,000 hp.
-    driver: float #: Default driver (e.g., electric motor, steam turbine or gas turbine).
+    efficiency: float #: Heuristic electric motor efficiency (on reverse) at 1,000 hp.
     CE: float #: Chemical engineering price cost index.
 
 
@@ -50,17 +49,13 @@ class Turbine(Unit, isabstract=True):
     design and costing is estimated according to [1]_.
     
     """
+    _graphics = turbine_graphics
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
     _units = {
         'Ideal power': 'kW',
         'Ideal duty': 'kJ/hr',
-    }
-    design_factors = {
-        'Electric motor': 1.0,
-        'Steam turbine': 1.15,
-        'Gas turbine': 1.25,
     }
     material_factors = {
         'Carbon steel': 1.0,
@@ -73,16 +68,13 @@ class Turbine(Unit, isabstract=True):
     #: dict[str, TurbineCostAlgorithm] Cost algorithms by turbine type.
     baseline_cost_algorithms = {
         'Default': TurbineCostAlgorithm(
-                psig_max=999999999.,
-                acfm_bounds=(0., 999999999.),
-                hp_bounds=(0., 999999999.),
+                psig_max=1e12,
+                acfm_bounds=(0., 1e12),
+                hp_bounds=(0., 1e12),
                 cost=lambda Pc: 0,
-                efficiencies={
-                    'Electric motor': 0.80,
-                    'Steam turbine': 0.65,
-                    'Gas turbine': 0.35,
+                efficiency={
+                    'Electric motor': 0.65,
                 },
-                driver='Electric motor',
                 CE=567,
             ),
     }
@@ -190,6 +182,7 @@ class Turbine(Unit, isabstract=True):
         self.power_utility.consumption = power * driver_efficiency
     
     def _design(self):
+        if self.P > self.feed.P: return
         design_results = self.design_results
         turbine_type = self.turbine_type
         if turbine_type == 'Default': turbine_type = self._determine_turbine_type()
@@ -201,6 +194,7 @@ class Turbine(Unit, isabstract=True):
         design_results['Driver'] = alg.driver if self._driver == 'Default' else self._driver 
     
     def _cost(self):
+        if self.P > self.feed.P: return
         # Note: Must run `_set_power` before running parent cost algorithm
         design_results = self.design_results
         alg = self.baseline_cost_algorithms[design_results['Type']]
@@ -213,7 +207,7 @@ class Turbine(Unit, isabstract=True):
         self.F_D['Turbines(s)'] = self.design_factors[design_results['Driver']]
 
 
-class IsentropicTurbine(Turbine):
+class IsentropicTurbine(Turbine, new_graphics=False):
     """
     Create an isentropic turbine.
 
@@ -236,7 +230,6 @@ class IsentropicTurbine(Turbine):
         will be determined automatically.
 
     """
-    _graphics = turbine_graphics
     _N_heat_utilities = 0
 
     def _run(self):
@@ -261,7 +254,7 @@ class IsentropicTurbine(Turbine):
                 out.H = H
         else:
             warn(f"feed pressure ({feed.P:.5g} Pa) is lower or equal than outlet "
-                 f"specification ({self.P:.5g} Pa); valve {self.ID} is ignored", RuntimeWarning)
+                 f"specification ({self.P:.5g} Pa); turbine {self.ID} is ignored", RuntimeWarning)
 
         
     def _design(self):

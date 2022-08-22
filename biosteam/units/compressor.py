@@ -63,6 +63,7 @@ class Compressor(Unit, isabstract=True):
     design and costing is estimated according to [1]_.
     
     """
+    _graphics = compressor_graphics
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
@@ -272,7 +273,7 @@ class Compressor(Unit, isabstract=True):
         self.F_D['Compressor(s)'] = self.design_factors[design_results['Driver']]
 
 
-class IsothermalCompressor(Compressor):
+class IsothermalCompressor(Compressor, new_graphics=False):
     """
     Create an isothermal compressor.
 
@@ -343,8 +344,7 @@ class IsothermalCompressor(Compressor):
     Utility cost                                  USD/hr            0.23
 
     """
-    _graphics = compressor_graphics
-
+    
     def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
@@ -365,7 +365,7 @@ class IsothermalCompressor(Compressor):
         self._set_power(ideal_power / self.eta)
 
 
-class IsentropicCompressor(Compressor):
+class IsentropicCompressor(Compressor, new_graphics=False):
     """
     Create an isentropic compressor.
 
@@ -467,7 +467,6 @@ class IsentropicCompressor(Compressor):
     Utility cost                                  USD/hr       9.67e-05
 
     """
-    _graphics = compressor_graphics
 
     def _run(self):
         feed = self.ins[0]
@@ -493,7 +492,7 @@ class IsentropicCompressor(Compressor):
         self._set_power(self.design_results['Ideal power'] / self.eta)
         
 
-class PolytropicCompressor(Compressor):
+class PolytropicCompressor(Compressor, new_graphics=False):
     """
     Create a polytropic compressor.
 
@@ -589,7 +588,6 @@ class PolytropicCompressor(Compressor):
 
 
     """
-    _graphics = compressor_graphics
     available_methods = {'schultz', 'hundseid'}
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, 
                  vle=False, compressor_type=None, method=None, n_steps=None):
@@ -842,7 +840,6 @@ class MultistageCompressor(Unit):
         **Compressor._units,
         **HX._units,
     }
-    _graphics = compressor_graphics
 
     def __init__(
             self, ID='', ins=None, outs=(), thermo=None, *,
