@@ -467,7 +467,6 @@ class IsentropicCompressor(Compressor):
     Utility cost                                  USD/hr       9.67e-05
 
     """
-    _N_heat_utilities = 0
     _graphics = compressor_graphics
 
     def _run(self):
@@ -590,7 +589,6 @@ class PolytropicCompressor(Compressor):
 
 
     """
-    _N_heat_utilities = 0
     _graphics = compressor_graphics
     available_methods = {'schultz', 'hundseid'}
     def __init__(self, ID='', ins=None, outs=(), thermo=None, *, P, eta=0.7, 
