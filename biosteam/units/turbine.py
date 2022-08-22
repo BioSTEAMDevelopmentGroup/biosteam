@@ -144,7 +144,7 @@ class Turbine(Unit, isabstract=True):
 
     def _set_power(self, power):
         self.design_results['Motor efficiency'] = efficiency = self._efficiency
-        self.power_utility(power / efficiency)
+        self.power_utility(power * efficiency)
     
     def _design(self):
         if self.P > self.feed.P: return
