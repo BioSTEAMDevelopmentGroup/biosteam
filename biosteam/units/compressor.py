@@ -228,7 +228,7 @@ class Compressor(Unit, isabstract=True):
             driver_efficiency = alg.efficiencies[driver]
         self.design_results['Driver efficiency'] = driver_efficiency
         if driver == 'Electric motor':
-            self.power_utility.consumption = power / driver_efficiency
+            self.power_utility(power / driver_efficiency)
         else:
             # The turbine produces the power that the compressor consumes.
             # This may not be the most elegant way showing this, but it 
