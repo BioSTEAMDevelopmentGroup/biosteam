@@ -14,6 +14,8 @@ import biosteam as bst
 from graphviz import Digraph
 from IPython import display
 from thermosteam import Stream
+from xml.etree import ElementTree
+import re
 
 __all__ = ('digraph_from_system',
            'digraph_from_units',
@@ -400,11 +402,61 @@ def display_digraph(digraph, format): # pragma: no coverage
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
 
-def save_digraph(digraph, file, format): # pragma: no coverage
+def inject_javascript(img:bytes):
+    html = ElementTree.Element('html')
+    # insert javascript
+    head = ElementTree.SubElement(html, 'head')
+    srcs = [
+        "https://unpkg.com/@popperjs/core@2",
+        "https://unpkg.com/tippy.js@6",
+        "digraph/digraph.js",
+    ]
+    for src in srcs:
+        script = ElementTree.SubElement(head, 'script')
+        script.set("src", src)
+
+    body = ElementTree.SubElement(html, 'body')
+    svg = ElementTree.fromstring(img)
+    # remove namespaces from tags and attributes
+    for e in svg.getiterator():
+        e.tag = re.sub("{.*?}","",e.tag)
+        for key, value in e.attrib.copy().items():
+            if "{" in key:
+                clean = re.sub("{.*?}","",key)
+                e.attrib[clean] = value
+                del e.attrib[key]
+    # make tippy tooltips
+    for e in svg.getiterator():
+        for key, value in e.attrib.copy().items():
+            if key == "class" and value == "node":
+                title = e.find("./title")
+                if title is not None:
+                    default_tooltip = title.text
+                else:
+                    default_tooltip = e.text
+                custom_tooltip = (e.find("./g/a") or e).attrib.get("title", None)
+                tooltip = custom_tooltip or default_tooltip
+                if tooltip is not None:
+                    e.attrib["data-tippy-content"] = tooltip.strip()
+    # remove default tooltips
+    for e in svg.getiterator():
+        t = e.find("./title")
+        if t is not None:
+            e.remove(t)
+    body.append(svg)
+    return ElementTree.tostring(html, encoding='utf8', method='html')
+
+def save_digraph(digraph, file, format, inject_js:bool=True): # pragma: no coverage
     if '.' not in file:
-        if format is None: format='svg'
+        if format is None:
+            if inject_js is True:
+                format = 'html'
+            else:
+                format = 'svg'
         file += '.' + format
     img = digraph.pipe(format=format)
+    if inject_js is True:
+        img = inject_javascript(img)
     f = open(file, 'wb')
     f.write(img)
     f.close()
