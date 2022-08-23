@@ -7,8 +7,6 @@
 # for license details.
 """
 """
-import os
-os.environ["NUMBA_DISABLE_JIT"] = '1'
 import pytest
 import biosteam as bst
 from numpy.testing import assert_allclose
@@ -48,13 +46,13 @@ def test_isentropic_nitrogen_liquefaction():
     eta = 1.0
     feed = bst.Stream(N2=1, T=-108 + 273.15, P=200e5, phase='g')
     K = bst.units.IsentropicTurbine(ins=feed, P=1e5, eta=eta, vle=True)
-    K.simulate()
+    for i in range(3): K.simulate()
     # check outlet state
     out = K.outs[0]
     assert_allclose(
         [out.vapor_fraction, out.liquid_fraction, out.T, out.P],
         [5.203225e-01,  4.796775e-01, 7.723638e+01, 1e+05],
-        rtol=1e-3,
+        rtol=5e-3,
     )
     # check compressor design
     ideal_power = -0.607
@@ -65,7 +63,7 @@ def test_isentropic_nitrogen_liquefaction():
         [actual_power, K.design_results['Ideal power'],
            K.design_results['Ideal duty'], K.design_results['Turbines in parallel']],
         [expected_power, ideal_power, 0, 1],
-        rtol=1e-3,
+        rtol=5e-3,
     )
 
 def test_turbine_invalid_pressure_warning():
