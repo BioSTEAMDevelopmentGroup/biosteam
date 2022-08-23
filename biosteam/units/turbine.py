@@ -147,7 +147,9 @@ class Turbine(Unit, isabstract=True):
         self.power_utility(power * efficiency)
     
     def _design(self):
-        if self.P > self.feed.P: return
+        if self.P > self.feed.P:
+            self.power_utility(0.)
+            return
         design_results = self.design_results
         turbine_type = self.turbine_type
         if turbine_type == 'Default': turbine_type = self._determine_turbine_type()

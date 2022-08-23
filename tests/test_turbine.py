@@ -7,6 +7,8 @@
 # for license details.
 """
 """
+import os
+os.environ["NUMBA_DISABLE_JIT"] = '1'
 import pytest
 import biosteam as bst
 from numpy.testing import assert_allclose
@@ -51,7 +53,7 @@ def test_isentropic_nitrogen_liquefaction():
     out = K.outs[0]
     assert_allclose(
         [out.vapor_fraction, out.liquid_fraction, out.T, out.P],
-        [5.256182e-01, 4.743818e-01, 7.723638e+01, 1e+05],
+        [5.203225e-01,  4.796775e-01, 7.723638e+01, 1e+05],
         rtol=1e-3,
     )
     # check compressor design
