@@ -10,7 +10,9 @@
 import biosteam as bst
 from warnings import warn
 from biosteam.exceptions import GraphicsWarning
-from .utils import colors
+import os
+
+file_path = os.path.dirname(__file__)
 
 __all__ = ('UnitGraphics',
            'box_graphics',
@@ -23,7 +25,10 @@ __all__ = ('UnitGraphics',
            'process_specification_graphics',
            'system_unit',
            'stream_unit',
-           'junction_graphics')
+           'junction_graphics',
+           'compressor_graphics',
+           'turbine_graphics',
+           'valve_graphics')
 
 # %% Base class for unit graphics
 
@@ -221,6 +226,7 @@ def tailor_process_specification_node(node, unit): # pragma: no coverage
 process_specification_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                               tailor_process_specification_node)
 
+
 # System unit for creating diagrams
 node = box_node.copy()
 node['peripheries'] = '1'    
@@ -247,3 +253,43 @@ def tailor_junction_node(node, unit): # pragma: no coverage
 
 junction_graphics = UnitGraphics(single_edge_in, single_edge_out, node,
                                  tailor_junction_node)
+
+
+# Compressor graphics
+node = box_node.copy()
+node['shape'] = 'trapezium'
+node['orientation'] = '270'
+node['height'] = '1.5'
+node['margin'] = '0'
+def tailor_compressor_node(node, unit): # pragma: no coverage
+    node['name'] = unit.ID + "\nCompressor"
+compressor_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_compressor_node)
+
+
+# Turbine graphics
+node = box_node.copy()
+node['shape'] = 'trapezium'
+node['orientation'] = '90'
+node['height'] = '1.5'
+node['margin'] = '0'
+def tailor_turbine_node(node, unit): # pragma: no coverage
+    node['name'] = unit.ID + "\nTurbine"
+turbine_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_turbine_node)
+
+
+# Valve graphics
+node = box_node.copy()
+node['peripheries'] = '0'
+def tailor_valve_node(node, unit): # pragma: no coverage
+    node['name'] = ''
+    if bst.preferences.unit_color == "#555f69":
+        filename = "graphics/valve_dark.png"
+    elif bst.preferences.unit_color == "white:#CDCDCD":
+        filename = "graphics/valve_light.png"
+    else:
+        filename = "graphics/valve_dark.png"
+    node['fillcolor'] = 'None'
+    node['image'] = os.path.join(file_path, filename)
+    node['xlabel'] = unit.ID + "\nValve"
+    node['fontcolor'] = bst.preferences.label_color
+valve_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_valve_node)

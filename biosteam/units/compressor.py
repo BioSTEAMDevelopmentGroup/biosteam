@@ -25,13 +25,14 @@ References
 
 """
 import biosteam as bst
-from .. import Unit
 from warnings import warn
 from math import log, exp, ceil
 from typing import NamedTuple, Tuple, Callable, Dict
 from .heat_exchange import HX
 from ..utils import list_available_names
 from ..exceptions import DesignWarning, bounds_warning
+from .. import Unit
+from .._graphics import compressor_graphics
 
 __all__ = (
     'Compressor',
@@ -62,6 +63,7 @@ class Compressor(Unit, isabstract=True):
     design and costing is estimated according to [1]_.
     
     """
+    _graphics = compressor_graphics
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
@@ -271,7 +273,7 @@ class Compressor(Unit, isabstract=True):
         self.F_D['Compressor(s)'] = self.design_factors[design_results['Driver']]
 
 
-class IsothermalCompressor(Compressor):
+class IsothermalCompressor(Compressor, new_graphics=False):
     """
     Create an isothermal compressor.
 
@@ -342,7 +344,7 @@ class IsothermalCompressor(Compressor):
     Utility cost                                  USD/hr            0.23
 
     """
-
+    
     def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
@@ -363,7 +365,7 @@ class IsothermalCompressor(Compressor):
         self._set_power(ideal_power / self.eta)
 
 
-class IsentropicCompressor(Compressor):
+class IsentropicCompressor(Compressor, new_graphics=False):
     """
     Create an isentropic compressor.
 
@@ -490,7 +492,7 @@ class IsentropicCompressor(Compressor):
         self._set_power(self.design_results['Ideal power'] / self.eta)
         
 
-class PolytropicCompressor(Compressor):
+class PolytropicCompressor(Compressor, new_graphics=False):
     """
     Create a polytropic compressor.
 

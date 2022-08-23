@@ -13,6 +13,7 @@
 
 """
 from .. import Unit
+from .._graphics import valve_graphics
 from warnings import warn
 
 __all__ = (
@@ -32,8 +33,9 @@ class Valve(Unit, isabstract=True):
     analysis purposes).
     
     """
+    _graphics = valve_graphics
 
-class IsenthalpicValve(Valve):
+class IsenthalpicValve(Valve, new_graphics=False):
     """
     Create an isenthalpic valve. Reduces the pressure of a fluid while keeping the enthalpy
     constant (adiabatic flash). 

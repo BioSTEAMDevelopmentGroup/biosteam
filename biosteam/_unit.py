@@ -157,6 +157,7 @@ class Unit:
                   or 'boiler' in line
                   or 'heat exchanger' in line): cls.ticket_name = 'H'
             elif 'compressor' in line: cls.ticket_name = 'K'
+            elif 'turbine' in line: cls.ticket_name = 'Ʞ'
             elif 'mixer' in line: cls.ticket_name = 'M'
             elif 'pump' in line: cls.ticket_name = 'P'
             elif 'reactor' in line or 'digestion' in line or 'ferment' in line: cls.ticket_name = 'R'
