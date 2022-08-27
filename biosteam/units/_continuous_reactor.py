@@ -15,7 +15,7 @@ from biosteam.units.design_tools.geometry import cylinder_diameter_from_volume
 __all__ = ('ContinuousReactor',)
 
 
-class ContinuousReactor(Unit, PressureVessel, isabstract=True):
+class ContinuousReactor(PressureVessel, Unit, isabstract=True):
     '''    
     Abstract class for reactor unit, modeled as a pressure vessel with 
     a given aspect ratio and residence time.
@@ -103,8 +103,11 @@ class ContinuousReactor(Unit, PressureVessel, isabstract=True):
                 baseline_purchase_costs[i] = 0
             self.power_utility(0)
         else:
-            baseline_purchase_costs.update(self._vessel_purchase_cost(
-                Design['Weight'], Design['Diameter'], Design['Length']))
+            baseline_purchase_costs.update(
+                self._vessel_purchase_cost(
+                    Design['Weight'], Design['Diameter'], Design['Length']
+                )
+            )
             for i, j in baseline_purchase_costs.items():
                 baseline_purchase_costs[i] *= Design['Number of reactors']
             self.power_utility(self.kW_per_m3 * Design['Total volume'])
