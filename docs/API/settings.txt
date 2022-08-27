@@ -1,0 +1,7 @@
+settings
+--------
+
+.. autodata:: thermosteam._settings.settings
+
+.. autoclass:: thermosteam._settings.ProcessSettings
+   :members:

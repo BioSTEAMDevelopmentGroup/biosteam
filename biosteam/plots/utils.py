@@ -36,6 +36,7 @@ class MetricBar(NamedTuple): # pragma: no coverage
     ylabelkwargs: dict = {}
     center: bool = None
     title_position: str = 'top'
+    shrink: bool = 0.8
     
     def fmt(self, x):
         value = f'{round(x, self.N_decimals):,}'

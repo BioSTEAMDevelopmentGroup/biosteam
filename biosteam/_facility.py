@@ -16,6 +16,8 @@ def get_network_priority(facility):
 
 class Facility(Unit, isabstract=True,
                new_graphics=False):
+    """Abstract class for facilities that are run after simulation of all
+    unit operations within a system path."""
     autonumber = False # Default ID will not include number
     @staticmethod
     def ordered_facilities(facilities):

@@ -7,23 +7,24 @@
 # for license details.
 """
 """
+from __future__ import annotations
 import numpy as np
 import pandas as pd
 from warnings import warn
-from graphviz import Digraph
 from ._graphics import UnitGraphics, box_graphics
-from thermosteam import Stream
 from ._heat_utility import HeatUtility
-from .utils import NotImplementedMethod, format_title, static
-from .utils import piping
+from .utils import AbstractMethod, format_title, static, piping, StreamLinkOptions
 from ._power_utility import PowerUtility
-from .digraph import finalize_digraph
 from .exceptions import UnitInheritanceError
 from thermosteam.utils import thermo_user, registered
 from thermosteam.units_of_measure import convert
 from copy import copy
 import biosteam as bst
+from thermosteam import Stream
+from typing import Callable, Optional, TYPE_CHECKING, Sequence
+from numpy.typing import NDArray
 import thermosteam as tmo
+if TYPE_CHECKING: System = bst.System
 
 __all__ = ('Unit',)
 
@@ -31,6 +32,13 @@ _count = [0]
 def count():
     _count[0] += 1
     print(_count)
+
+# %% Typing
+
+# from typing import Collection, Union, Annotated
+# streams = Union[Collection[Union[Stream, str, None]], Union[Stream, str, None]]
+# stream = Union[Annotated[Union[Stream, str, None], 1], Union[Stream, str, None]]
+# stream_sequence = Collection[Union[Stream, str, None]]
 
 # %% Inlet and outlet representation
 
@@ -94,95 +102,26 @@ def fill_path_segment(start, path, end, units):
 @registered(ticket_name='U')
 class Unit:
     """
-    Abstract parent class for Unit objects. Child objects must contain
-    `_run`, `_design` and `_cost` methods to estimate stream outputs of a
-    Unit and find design and cost information.  
-
-    **Abstract class methods**
-    
-    reset_cache(isdynamic)
-        Reset unit operation cache.
-    _setup()
-        Set stream conditions and constant data.
-    _run()
-        Run simulation and update output streams.
-    _design()
-        Add design requirements to the `design_results` dictionary.
-    _cost()
-        Add itemized purchase costs to the `baseline_purchase_costs` dictionary.
-
-    **Abstract class attributes**
-    
-    **line='Unit'**
-        [str] Name denoting the type of Unit class. Defaults to the class
-        name of the first child class.
-    **_F_BM_default** 
-        dict[str, float] Default bare-module factors for each purchase cost item.
-        Items in this dictionary are copied to the `F_BM` attribute during 
-        initialization.
-    **_units**
-        [dict] Units of measure for `design_results` dictionary.
-    **_N_ins=1**
-        [int] Expected number of input streams.
-    **_N_outs=2**
-        [int] Expected number of output streams.
-    **_ins_size_is_fixed=True**
-        [bool] Whether the number of streams in ins is fixed.
-    **_outs_size_is_fixed=True**
-        [bool] Whether the number of streams in outs is fixed.
-    **_N_heat_utilities=0**
-        [int] Number of heat utilities created with each instance.
-    **auxiliary_unit_names=()
-        tuple[str] Name of attributes that are auxiliary units. These units
-        will be accounted for in the purchase and installed equipment costs
-        without having add these costs in the `purchase_costs` dictionary.
-        Utility costs, however, are not automatically accounted for and must
-        be hardcoded in the unit operation logic.
-    **_default_equipment_lifetime=None**
-        [int] or dict[str, int] Lifetime of equipment. Defaults to lifetime of
-        production venture. Use an integer to specify the lifetime for all
-        items in the unit purchase costs. Use a dictionary to specify the 
-        lifetime of each purchase cost item.
-    **_materials_and_maintenance**
-        [Set] Cost items that need to be summed across operation modes for 
-        flexible operation (e.g., filtration membranes).
-    **_graphics**
-        [biosteam.Graphics, abstract, optional] Settings for diagram
-        representation. Defaults to a box with the same number of input
-        and output edges as `_N_ins` and `_N_outs`.
+    Abstract class for Unit objects. Child objects must contain
+    :attr:`~Unit._run`, :attr:`~Unit._design` and :attr:`~Unit._cost` methods to 
+    estimate stream outlets of a Unit and find design and cost information.  
 
     Parameters
     ----------
-    ID='' : str, defaults to a unique ID
+    ID :
         A unique identification. If ID is None, unit will not be
-        registered in flowsheet.
-    ins=None : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
-        Inlet streams or IDs to initialize input streams.
-        If empty, default IDs will be given. If None, defaults to missing streams.
-    outs=() : Iterable[:class:`~thermosteam.Stream`, or str], :class:`~thermosteam.Stream`, or str
-        Outlet streams or IDs to initialize output streams.
-        If empty, default IDs will be given.
-        If None, leave streams missing.
-    thermo=None : :class:`~thermosteam.Thermo`
+        registered in flowsheet. By default, a unique ID will be chosen.
+    ins :
+        Inlet streams or IDs to initialize inlet streams.
+        If empty tuple, streams with default IDs will be created.
+        By default, streams will be missing.
+    outs : 
+        Outlet streams or IDs to initialize outlet streams.
+        By default, streams with unique IDs will be created.
+        If None, streams will be missing.
+    thermo : 
         Thermo object to initialize inlet and outlet streams. Defaults to
-        `biosteam.settings.get_thermo()`.
-    
-    Attributes
-    ----------
-    ins : Inlets[:class:`~thermosteam.Stream`]
-        Input streams.
-    outs : Outlets[:class:`~thermosteam.Stream`]
-        Output streams.
-    power_utility : PowerUtility
-        Electricity rate requirements are stored here (including auxiliary units).
-    heat_utilities : tuple[:class:`~biosteam.HeatUtility`]
-        Cooling and heating requirements are stored here (including auxiliary units).
-    design_results : dict
-        All design requirements (not including auxiliary units).
-    purchase_costs : dict[str, float]
-        Itemized purchase costs (including auxiliary units).
-    thermo : Thermo
-        The thermodynamic property package used by the unit.
+        :meth:`settings.thermo <thermosteam._settings.ProcessSettings.thermo>`.
     
     Examples
     --------
@@ -218,6 +157,7 @@ class Unit:
                   or 'boiler' in line
                   or 'heat exchanger' in line): cls.ticket_name = 'H'
             elif 'compressor' in line: cls.ticket_name = 'K'
+            elif 'turbine' in line: cls.ticket_name = 'Ʞ'
             elif 'mixer' in line: cls.ticket_name = 'M'
             elif 'pump' in line: cls.ticket_name = 'P'
             elif 'reactor' in line or 'digestion' in line or 'ferment' in line: cls.ticket_name = 'R'
@@ -225,6 +165,7 @@ class Unit:
             elif 'tank' in line: cls.ticket_name = 'T'
             elif 'junction' == line: cls.ticket_name = 'J'
             elif 'specification' in line: cls.ticket_name = 'PS'
+            elif 'valve' in line: cls.ticket_name = 'V'
             else: cls.ticket_name = 'U'
         if '_graphics' not in dct and new_graphics:
             # Set new graphics for specified line
@@ -239,7 +180,7 @@ class Unit:
                     'cannot set `_F_BM_defaults`; implement '
                     '`_F_BM_default` instead'
                 )
-            elif not hasattr(cls, '_F_BM_default'):
+            elif cls._F_BM_default is Unit._F_BM_default:
                 cls._F_BM_default = {}
             
             if hasattr(cls, '_equipment_lifetime'):
@@ -252,9 +193,9 @@ class Unit:
                     'cannot set `_default_equipment_lifetimes`; implement '
                     '`_default_equipment_lifetime` instead'
                 )
-            elif not hasattr(cls, '_default_equipment_lifetime'): 
+            elif cls._default_equipment_lifetime is Unit._default_equipment_lifetime: 
                 cls._default_equipment_lifetime = {}
-            if not hasattr(cls, '_units'): cls._units = {}
+            if cls._units is Unit._units: cls._units = {}
             if not cls._run:
                 if cls._N_ins == 1 and cls._N_outs == 1:
                     static(cls)
@@ -268,134 +209,198 @@ class Unit:
             cls._stacklevel += 1
         
     ### Abstract Attributes ###
+    #: **class-attribute** Units of measure for :attr:`~Unit.design_results` dictionary.
+    _units: dict[str, str] = {}
     
-    # [Set] Cost items that need to be summed across operation modes for 
-    # flexible operation.
-    _materials_and_maintenance = frozenset()
+    #: **class-attribute** Default bare-module factors for each purchase cost item.
+    #: Items in this dictionary are copied to the :attr:`~Unit.F_BM` attribute during 
+    #: initialization.
+    _F_BM_default: dict[str, float] = {}
     
-    # tuple[str] Name of attributes that are auxiliary units. These units
-    # will be accounted for in the purchase and installed equipment costs
-    # without having add these costs in the `purchase_costs` dictionary
-    auxiliary_unit_names = ()
+    #: **class-attribute** Cost items that need to be summed across operation modes for 
+    #: flexible operation (e.g., filtration membranes).
+    _materials_and_maintenance: frozenset[str] = frozenset()
     
-    # [int] Expected number of inlet streams
-    _N_ins = 1  
+    #: **class-attribute** Name of attributes that are auxiliary units. These units
+    #: will be accounted for in the purchase and installed equipment costs
+    #: without having to add these costs in the :attr:`~Unit.baseline_purchase_costs` dictionary.
+    #: Utility costs, however, are not automatically accounted for and must
+    #: be hardcoded in the unit operation logic.
+    auxiliary_unit_names: tuple[str, ...] = ()
     
-    # [int] Expected number of outlet streams
-    _N_outs = 1
+    #: **class-attribute** Expected number of inlet streams. Defaults to 1.
+    _N_ins: int = 1  
     
-    # [bool] Whether the number of streams in ins is fixed
-    _ins_size_is_fixed = True
+    #: **class-attribute** Expected number of outlet streams. Defaults to 1
+    _N_outs: int = 1
     
-    # [bool] Whether the number of streams in outs is fixed
-    _outs_size_is_fixed = True
+    #: **class-attribute** Whether the number of streams in :attr:`~Unit.ins` is fixed.
+    _ins_size_is_fixed: bool = True
     
-    # [int] number of heat utilities
-    _N_heat_utilities = 0
+    #: **class-attribute** Whether the number of streams in :attr:`~Unit.outs` is fixed.
+    _outs_size_is_fixed: bool = True
     
-    # [StreamLinkOptions] Options for linking streams
-    _stream_link_options = None
+    #: **class-attribute** Number of heat utilities created with each instance. Defaults to 0.
+    _N_heat_utilities: int = 0
     
-    # [biosteam Graphics] A Graphics object for diagram representation
-    _graphics = box_graphics
+    #: **class-attribute** Options for linking streams
+    _stream_link_options: StreamLinkOptions = None
 
-    # [int] Used for piping warnings.
-    _stacklevel = 5
+    #: **class-attribute** Used for piping warnings.
+    _stacklevel: int = 5
     
-    # [str] The general type of unit, regardless of class
-    line = 'Unit'
+    #: **class-attribute** Name denoting the type of Unit class. Defaults to the class
+    #: name of the first child class
+    line: str = 'Unit'
 
-    ### Other defaults ###
+    #: **class-attribute** Lifetime of equipment. Defaults to lifetime of
+    #: production venture. Use an integer to specify the lifetime for all
+    #: items in the unit purchase costs. Use a dictionary to specify the 
+    #: lifetime of each purchase cost item.
+    _default_equipment_lifetime: int|dict[str, int] = {}
+
+    #: **class-attribute** Settings for diagram representation. Defaults to a 
+    #: box with the same number of inlet and outlet edges as :attr:`~Unit._N_ins` 
+    #: and :attr:`~Unit._N_outs`.
+    _graphics: UnitGraphics = box_graphics
+
+    ### Abstract methods ###
     
-    def __init__(self, ID='', ins=None, outs=(), thermo=None):
+    #: Create auxiliary components.
+    _load_components = AbstractMethod
+    
+    #: Run mass and energy balances and update outlet streams (without user-defined specifications).
+    _run = AbstractMethod
+    
+    #: Add design requirements to the :attr:`~Unit.design_results` dictionary.
+    _design = AbstractMethod
+    
+    #: Add itemized purchase costs to the :attr:`~Unit.baseline_purchase_costs` dictionary.
+    _cost = AbstractMethod    
+
+    def __init__(self, ID: Optional[str]='', ins=None, outs=(), thermo: tmo.Thermo=None):
         self._system = None
         self._isdynamic = False
         self._register(ID)
         self._load_thermo(thermo)
-        self._init_ins(ins)
-        self._init_outs(outs)
-        self._init_utils()
-        self._init_results()
-        self._init_specification()
-        self._assert_compatible_property_package()
     
-    def _init_ins(self, ins):
-        # Inlets[:class:`~thermosteam.Stream`] Input streams
-        self._ins = piping.Inlets(self, self._N_ins, ins, self._thermo, 
-                                  self._ins_size_is_fixed, self._stacklevel)
-    
-    def _init_outs(self, outs):
-        # Outlets[:class:`~thermosteam.Stream`] Output streams
-        self._outs = piping.Outlets(self, self._N_outs, outs, self._thermo,
-                                    self._outs_size_is_fixed, self._stacklevel)
-    
-    def _init_utils(self):
-        # tuple[HeatUtility] All heat utilities associated to unit
-        self.heat_utilities = tuple([HeatUtility() for i in
-                                     range(self._N_heat_utilities)])
+        ### Initialize streams
         
-        # [PowerUtility] Electric utility associated to unit
-        self.power_utility = PowerUtility()
+        self._ins = piping.Inlets(
+            self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
+        )
+        self._outs = piping.Outlets(
+            self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel
+        )
     
-    def _init_results(self):
+        ### Initialize utilities
+    
+        #: All heat utilities associated to unit. Cooling and heating requirements 
+        #: are stored here (including auxiliary requirements). The number of heat utilities created is given by the
+        #: class attribute :attr:`~Unit._N_heat_utilities`.
+        self.heat_utilities: tuple[HeatUtility, ...] = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        
+        #: Electric utility associated to unit (including auxiliary requirements).
+        self.power_utility: PowerUtility = PowerUtility()
+    
+        ### Initialize design and cost results
+        
         try:
-            #: [dict] All bare-module factors for each purchase cost.
-            #: Defaults to values in the class attribute `_F_BM_default`.
-            self.F_BM = self._F_BM_default.copy()
+            #: All bare-module factors for each purchase cost. Defaults to values in 
+            #: the class attribute :attr:`~Unit._F_BM_default`.
+            self.F_BM: dict[str, float] = self._F_BM_default.copy()
         except AttributeError:
             self.F_BM = {}
         
-        #: [dict] All design factors for each purchase cost.
-        self.F_D = {}
+        #: All design factors for each purchase cost item in :attr:`~Unit.baseline_purchase_costs`.
+        self.F_D: dict[str, float] = {}
         
-        #: [dict] All pressure factors for each purchase cost.
-        self.F_P = {}
+        #: All pressure factors for each purchase cost item in :attr:`~Unit.baseline_purchase_costs`.
+        self.F_P: dict[str, float] = {}
         
-        #: [dict] All material factors for each purchase cost.
-        self.F_M = {}
+        #: All material factors for each purchase cost item in :attr:`~Unit.baseline_purchase_costs`.
+        self.F_M: dict[str, float] = {}
         
-        # [dict] All design results.
-        self.design_results = {}
+        #: All design requirements excluding utility requirements and detailed 
+        #: auxiliary unit requirements.
+        self.design_results: dict[str, object] = {}
         
-        # [dict] All baseline purchase costs without accounting for design, 
-        # pressure, and material factors.
-        self.baseline_purchase_costs = {}
+        #: All baseline purchase costs without accounting for design, 
+        #: pressure, and material factors.
+        self.baseline_purchase_costs: dict[str, float] = {}
         
-        # [dict] All purchase costs in USD.
-        self.purchase_costs = {}
+        #: Itemized purchase costs (including auxiliary units)
+        #: accounting for design, pressure, and material factors (i.e., 
+        #: :attr:`~Unit.F_D`, :attr:`~Unit.F_P`, :attr:`~Unit.F_M`).
+        #: Items here are automatically updated at the end of unit simulation.
+        self.purchase_costs: dict[str, float] = {}
         
-        # [dict] All installed costs accounting for bare module, design, 
-        # pressure, and material factors.
-        self.installed_costs = {}
+        #: All installed costs accounting for bare module, design, 
+        #: pressure, and material factors. Items here are automatically updated
+        #: at the end of unit simulation.
+        self.installed_costs: dict[str, float] = {}
         
-        # dict[str: tuple(int, float)] Indices of additional utilities given by inlet streams.
-        self.inlet_utility_indices = {}
+        #: Indices of additional utilities given by inlet streams.
+        self._inlet_utility_indices: dict[str, int] = {}
         
-        # dict[str: tuple(int, float)] Indices of additional utilities given by outlet streams.
-        self.outlet_utility_indices = {}
+        #: Indices of additional utilities given by outlet streams.
+        self._outlet_utility_indices: dict[str, int] = {}
         
         try:
-            #: [int] or dict[str, int] Lifetime of equipment. Defaults to values in
-            #: the class attribute `_default_equipment_lifetime`. Use an integer 
-            #: to specify the lifetime for all items in the unit purchase costs.
-            #: Use a dictionary to specify the lifetime of each purchase cost item.
-            self.equipment_lifetime = copy(self._default_equipment_lifetime)
+            #: Lifetime of equipment. Defaults to values in the class attribute 
+            #: :attr:`~Unit._default_equipment_lifetime`. Use an integer to specify the lifetime 
+            #: for all items in the unit purchase costs. Use a dictionary to specify 
+            #: the lifetime of each purchase cost item.
+            self.equipment_lifetime: int|dict[str, int] = copy(self._default_equipment_lifetime)
         except AttributeError:
             self.equipment_lifetime = {}
-        
-        #: [dict] Greenhouse gas emissions for use in BioSTEAM-LCA 
-        #: (https://github.com/scyjth/biosteam_lca)
-        self._GHGs = {}
     
-    def _init_specification(self):
-        #: list[Callable] All specification functions
-        self._specification = []
+        ### Initialize specification    
+    
+        #: All specification functions
+        self._specification: list[Callable] = []
         
-        #: [bool] Whether to run mass and energy balance after calling
+        #: Whether to run mass and energy balance after calling
         #: specification functions
-        self.run_after_specification = False 
+        self.run_after_specification: bool = False 
         
-        #: [bool] Safety toggle to prevent infinite recursion
+        #: Safety toggle to prevent infinite recursion
+        self._running_specification: bool = False
+        
+        self._assert_compatible_property_package()
+    
+    def _init_ins(self, ins):
+        self._ins = piping.Inlets(
+            self, self._N_ins, ins, self._thermo, self._ins_size_is_fixed, self._stacklevel
+        )
+    
+    def _init_outs(self, outs):
+        self._outs = piping.Outlets(
+            self, self._N_outs, outs, self._thermo, self._outs_size_is_fixed, self._stacklevel
+        )
+
+    def _init_utils(self):
+        self.heat_utilities = tuple([HeatUtility() for i in range(self._N_heat_utilities)])
+        self.power_utility = PowerUtility()
+        
+    def _init_results(self):
+        try: self.F_BM = self._F_BM_default.copy()
+        except AttributeError: self.F_BM = {}
+        self.F_D = {}
+        self.F_P = {}
+        self.F_M = {}
+        self.design_results = {}
+        self.baseline_purchase_costs = {}
+        self.purchase_costs = {}
+        self.installed_costs = {}
+        self._inlet_utility_indices = {}
+        self._outlet_utility_indices = {}
+        try: self.equipment_lifetime = copy(self._default_equipment_lifetime)
+        except AttributeError: self.equipment_lifetime = {}
+
+    def _init_specification(self):
+        self._specification = []
+        self.run_after_specification = False
         self._running_specification = False
     
     def _reset_thermo(self, thermo):
@@ -421,24 +426,79 @@ class Unit:
                 elif hasattr(j, '_reset_thermo') and j.thermo is not thermo:
                     j._reset_thermo(thermo)
     
+    @property
+    def net_power(self) -> float:
+        """Net power consumption [kW]."""
+        return self.power_utility.rate
+    @property
+    def net_duty(self) -> float:
+        """Net duty including heat transfer losses [kJ/hr]."""
+        return sum([i.duty for i in self.heat_utilities])
     
-    def define_utility(self, name, stream):
+    @property
+    def feed(self) -> Stream:
+        """Equivalent to :attr:`~Unit.ins`\[0] when the number of inlets is 1."""
+        streams = self._ins._streams
+        size = len(streams)
+        if size == 1: return streams[0]
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
+        else: raise AttributeError(f"{repr(self)} has no inlet")
+    @feed.setter
+    def feed(self, feed): 
+        ins = self._ins
+        streams = ins._streams
+        size = len(streams)
+        if size == 1: ins[0] = feed
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one inlet")
+        else: raise AttributeError(f"{repr(self)} has no inlet")
+    inlet = influent = feed
+    
+    @property
+    def product(self) -> Stream:
+        """Equivalent to :attr:`~Unit.outs`\[0] when the number of outlets is 1."""
+        streams = self._outs._streams
+        size = len(streams)
+        if size == 1: return streams[0]
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
+        else: raise AttributeError(f"{repr(self)} has no outlet")
+    @product.setter
+    def product(self, product): 
+        outs = self._outs
+        streams = outs._streams
+        size = len(streams)
+        if size == 1: outs[0] = product
+        elif size > 1: raise AttributeError(f"{repr(self)} has more than one outlet")
+        else: raise AttributeError(f"{repr(self)} has no outlet")
+    outlet = effluent = product
+    
+    def define_utility(self, name: str, stream: Stream):
+        """
+        Define an inlet or outlet stream as a utility by name.
+        
+        Parameters
+        ----------
+        name : 
+            Name of utility, as defined in :meth:`settings.stream_utility_prices <thermosteam._settings.ProcessSettings.stream_utility_prices>`.
+        stream :
+            Inlet or outlet utility stream.
+        
+        """
         if name not in bst.stream_utility_prices:
-            raise ValueError(f"price of '{name}' must be defined in biosteam.stream_utility_prices")
+            raise ValueError(f"price of '{name}' must be defined in settings.stream_utility_prices")
         if stream._sink is self:
-            self.inlet_utility_indices[name] = self._ins._streams.index(stream)
+            self._inlet_utility_indices[name] = self._ins._streams.index(stream)
         elif stream._source is self:
-            self.outlet_utility_indices[name] = self._outs._streams.index(stream)
+            self._outlet_utility_indices[name] = self._outs._streams.index(stream)
         else:
             raise ValueError(f"stream '{stream.ID}' must be connected to {repr(self)}")
             
     def get_inlet_utility_flows(self):
         ins = self._ins._streams
-        return {name: ins[index].F_mass for name, index in self.inlet_utility_indices.items()}
+        return {name: ins[index].F_mass for name, index in self._inlet_utility_indices.items()}
     
     def get_outlet_utility_flows(self):
         outs = self._outs._streams
-        return {name: outs[index].F_mass for name, index in self.outlet_utility_indices.items()}
+        return {name: outs[index].F_mass for name, index in self._outlet_utility_indices.items()}
     
     def get_design_and_capital(self):
         return UnitDesignAndCapital(
@@ -447,7 +507,7 @@ class Unit:
             self.purchase_costs.copy(), self.installed_costs.copy(),
         )
     
-    def get_agile_design_and_capital(self, design_and_capital: list):
+    def get_agile_design_and_capital(self, design_and_capital: list[UnitDesignAndCapital]):
         names = (
             'F_BM', 'F_D', 'F_P', 'F_M', 'design_results',
             'baseline_purchase_costs', 'purchase_costs', 'installed_costs',
@@ -576,20 +636,21 @@ class Unit:
         r"""
         Calculate and save free on board (f.o.b.) purchase costs and
         installed equipment costs (i.e. bare-module cost) for each item in the 
-        `baseline_purchase_costs` dictionary and in auxiliary units.
+        :attr:`~Unit.baseline_purchase_costs` dictionary and in auxiliary units. This 
+        method is run after the :attr:`~Unit._cost` method at the end of unit simulation.
         
         Notes
         -----
         As explained in [1]_, the f.o.b. purchase cost is given by:
         
         .. math::
-        
+           
            C_{P} = C_{Pb}F_{D}F_{P}F_{M}
         
         And the installed equipment cost is given by:
         
         .. math::
-        
+           
            C_{BM} = C_{Pb} (F_{BM} + F_{D}F_{P}F_{M} - 1)
         
         Where:
@@ -600,20 +661,18 @@ class Unit:
             * :math:`F_{M}`: Material factor.
         
         Values for the bare-module, design, pressure, and material factors of 
-        each equipment should be stored in the `F_BM`, `F_D`, `F_P`, and 
-        `F_M` dictionaries.
+        each equipment should be stored in the :attr:`~Unit.F_BM`, :attr:`~Unit.F_D`, 
+        :attr:`~Unit.F_P`, and :attr:`~Unit.F_M` dictionaries.
         
         Warning
         -------
-        If an item is listed in the `purchase_costs` dictionary but not in the
-        `baseline_purchase_costs` dictionary, the baseline purchase cost is 
+        If an item is listed in the :attr:`~Unit.purchase_costs` dictionary but not in the
+        :attr:`~Unit.baseline_purchase_costs` dictionary, the baseline purchase cost is 
         assumed to be the same as the purchase cost.
         
         References
         ----------
-        .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
+        .. [1] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)
         
         """
         F_BM = self.F_BM
@@ -653,6 +712,9 @@ class Unit:
                 purchase_costs[name] = Cpb * F
     
     def _setup(self):
+        """Clear all results and setup up stream conditions and constant data.
+        This method is run at the start of unit simulation, before running mass
+        and energy balances."""
         self.baseline_purchase_costs.clear()
         self.purchase_costs.clear()
         self.installed_costs.clear()
@@ -662,11 +724,11 @@ class Unit:
             if not s: s.materialize_connection()
     
     @property
-    def system(self):
+    def system(self) -> System|None:
         return self._system
     
     @property
-    def owner(self):
+    def owner(self) -> Unit:
         owner = getattr(self, '_owner', None)
         if owner is None:
             return self
@@ -677,9 +739,10 @@ class Unit:
         if owner is self: return
         self._owner = owner
     
-    def disconnect(self):
+    def disconnect(self, discard=False):
         self._ins[:] = ()
         self._outs[:] = ()
+        if discard: bst.main_flowsheet.discard(self)
     
     def get_node(self):
         """Return unit node attributes for graphviz."""
@@ -690,7 +753,30 @@ class Unit:
         else:
             return self._graphics.get_node_tailored_to_unit(self)
     
-    def get_design_result(self, key, units):
+    def get_design_result(self, key: str, units: str):
+        """
+        Return design result in a new set of units of measure.
+            
+        Parameters
+        ----------
+        key :
+            Name of design result.
+        units :
+            Units of measure.
+        
+        Examples
+        --------
+        >>> import biosteam as bst
+        >>> bst.settings.set_thermo(['Water'], cache=True)
+        >>> feed = bst.Stream(None, Water=100)
+        >>> tank = bst.StorageTank(None, feed)
+        >>> tank.simulate()
+        >>> tank.get_design_result('Total volume', 'm3')
+        1214.23
+        >>> tank.get_design_result('Total volume', 'L')
+        1214239.47
+        
+        """
         return convert(self.design_results[key], self._units[key], units)
     
     @piping.ignore_docking_warnings
@@ -767,12 +853,6 @@ class Unit:
     __pow__ = __sub__
     __rpow__ = __rsub__
     
-    # Abstract methods
-    _load_components = NotImplementedMethod
-    _run = NotImplementedMethod
-    _design = NotImplementedMethod
-    _cost = NotImplementedMethod
-    
     def reset_cache(self, isdynamic=None):
         pass
     
@@ -789,19 +869,23 @@ class Unit:
             except:
                 pass
     
-    def add_specification(self, specification=None, run=None, args=()):
+    def add_specification(self, 
+            specification: Optional[Callable]=None, 
+            run: Optional[bool]=None, 
+            args: Optional[tuple]=()
+        ):
         """
         Add a specification.
 
         Parameters
         ----------
-        specification : Callable
-            Function runned for mass and energy balance. Defaults to None.
-        run : bool, optional
+        specification : 
+            Function runned for mass and energy balance.
+        run : 
             Whether to run the built-in mass and energy balance after 
             specifications. Defaults to False.
-        args : tuple, optional
-            Arguments to pass to the specification function. Defaults to ().
+        args : 
+            Arguments to pass to the specification function.
 
         Examples
         --------
@@ -829,27 +913,27 @@ class Unit:
         
         Parameters
         ----------
-        f: Callable
+        f : Callable
             Objective function in the form of f(x, *args).
-        x: float, optional
+        x : float, optional
             Root guess.
-        x0, x1: float
+        x0, x1 : float
             Root bracket. Solution must lie within x0 and x1.
-        xtol: float, optional
+        xtol : float, optional
             Solver stops when the root lies within xtol. Defaults to 0.
-        ytol: float, optional 
+        ytol : float, optional 
             Solver stops when the f(x) lies within ytol of the root. Defaults to 5e-8.
-        args=(): 
+        args : tuple, optional
             Arguments to pass to f.
-        maxiter: 
+        maxiter : 
             Maximum number of iterations. Defaults to 50.
-        checkiter: bool, optional
+        checkiter : bool, optional
             Whether to raise a Runtime error when tolerance could not be 
             satisfied before the maximum number of iterations. Defaults to True.
-        checkroot: bool, optional
+        checkroot : bool, optional
             Whether satisfying both tolerances, xtol and ytol, are required 
             for termination. Defaults to False.
-        checkbounds: bool, optional
+        checkbounds : bool, optional
             Whether to raise a ValueError when in a bounded solver when the 
             root is not certain to lie within bounds (i.e. f(x0) * f(x1) > 0.).
             Defaults to True.
@@ -874,7 +958,16 @@ class Unit:
         return f
     
     def run(self):
-        """Run mass and energy balance."""
+        """
+        Run mass and energy balance with specifications.
+        
+        See Also
+        --------
+        _run
+        add_specification
+        add_bounded_numerical_specification
+        
+        """
         specification = self._specification
         if specification and not self._running_specification:
             self._running_specification = True
@@ -926,7 +1019,7 @@ class Unit:
         self._summary()
     
     def _summary(self):
-        """Calculate all results from unit run."""
+        """Run design and cost algorithms and compile capital and utility costs."""
         if not (self._design or self._cost): return
         self._design()
         self._cost()
@@ -937,13 +1030,15 @@ class Unit:
         self._utility_cost = (
             sum([i.cost for i in self.heat_utilities]) 
             + self.power_utility.cost
-            + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
-            - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
+            + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
+            - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
         )
     
     @property
-    def specification(self):
-        """Process specification."""
+    def specification(self) -> list[tuple[Callable, tuple]]:
+        """Process specifications as a list of specification functions and their 
+        arguments in the following format, [(<function0(*args0)>, args0), 
+        (<function1(*args1)>, args1), ...]."""
         return self._specification
     @specification.setter
     def specification(self, specification):
@@ -954,23 +1049,23 @@ class Unit:
             self._specification = []
     
     @property
-    def baseline_purchase_cost(self):
+    def baseline_purchase_cost(self) -> float:
         """Total baseline purchase cost, without accounting for design ,
         pressure, and material factors [USD]."""
         return sum(self.baseline_purchase_costs.values())
     
     @property
-    def purchase_cost(self):
+    def purchase_cost(self) -> float:
         """Total purchase cost [USD]."""
         return sum(self.purchase_costs.values())
     
     @property
-    def installed_cost(self):
+    def installed_cost(self) -> float:
         """Total installed equipment cost [USD]."""
         return sum(self.installed_costs.values())
     
     @property
-    def utility_cost(self):
+    def utility_cost(self) -> float:
         """Total utility cost [USD/hr]."""
         try:
             return self._utility_cost
@@ -981,14 +1076,14 @@ class Unit:
             self._utility_cost = (
                 sum([i.cost for i in self.heat_utilities]) 
                 + self.power_utility.cost
-                + sum([ins[index].F_mass * prices[name] for name, index in self.inlet_utility_indices.items()])
-                - sum([outs[index].F_mass * prices[name] for name, index in self.outlet_utility_indices.items()])
+                + sum([ins[index].F_mass * prices[name] for name, index in self._inlet_utility_indices.items()])
+                - sum([outs[index].F_mass * prices[name] for name, index in self._outlet_utility_indices.items()])
             )
             return self._utility_cost
 
     @property
-    def auxiliary_units(self):
-        """tuple[Unit] All associated auxiliary units."""
+    def auxiliary_units(self) -> tuple[Unit, ...]:
+        """All associated auxiliary units."""
         getfield = getattr
         return tuple([getfield(self, i) for i in self.auxiliary_unit_names])
 
@@ -1099,19 +1194,6 @@ class Unit:
                 if include_zeros or utility_cost: 
                     addkey(('Utility cost', ''))
                     addval(('USD/hr', utility_cost))
-            if self._GHGs:
-                a, b = self._totalGHG
-                GHG_units =  self._GHG_units
-                for ko, vo in self._GHGs.items():
-                    for ki, vi in vo.items():
-                        addkey((ko, ki))
-                        addval((GHG_units.get(ko, ''), vi))
-                a_key, b_key = GHG_units.keys()
-                a_unit, b_unit = GHG_units.values()
-                addkey(('Total ' + a_key, ''))
-                addval((a_unit, a))
-                addkey(('Total ' + b_key, ''))
-                addval((b_unit, b))
             if not keys: return None
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
@@ -1161,18 +1243,6 @@ class Unit:
             for ki, vi in self.purchase_costs.items():
                 addkey(('Purchase cost', ki))
                 addval(vi)
-            if self._GHGs:
-                GHG_units = self._GHG_units
-                for ko, vo in self._GHGs.items():
-                    for ki, vi in vo.items():
-                        addkey((ko, ki))
-                        addval(vi)
-                a, b = self._totalGHG
-                a_key, b_key = GHG_units.keys()
-                addkey(('Total ' + a_key, ''))
-                addval(a)
-                addkey(('Total ' + b_key, ''))
-                addval(b)
             if include_total_cost:
                 addkey(('Total purchase cost', ''))
                 addval(self.purchase_cost)
@@ -1189,16 +1259,16 @@ class Unit:
             return series
 
     @property
-    def thermo(self):
-        """Thermodynamic property package"""
+    def thermo(self) -> tmo.Thermo:
+        """Thermodynamic property package."""
         return self._thermo
     @property
-    def ins(self):
-        """All input streams."""
+    def ins(self) -> Sequence[Stream]:
+        """List of all inlet streams."""
         return self._ins    
     @property
-    def outs(self):
-        """All output streams."""
+    def outs(self) -> Sequence[Stream]:
+        """List of all outlet streams."""
         return self._outs
 
     def get_available_chemicals(self):
@@ -1257,18 +1327,27 @@ class Unit:
             new_length = len(upstream_units)
         return upstream_units
     
-    def neighborhood(self, radius=1, upstream=True, downstream=True, ends=None, facilities=None):
+    def neighborhood(self, 
+            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            downstream: Optional[bool]=True, 
+            ends: Optional[Stream]=None, 
+            facilities: Optional[bool]=None
+        ):
         """
         Return a set of all neighboring units within given radius.
         
         Parameters
         ----------
-        radius : int
-                 Maxium number streams between neighbors.
-        downstream=True : bool, optional
-            Whether to include downstream operations
-        upstream=True : bool, optional
-            Whether to include upstream operations
+        radius : 
+            Maximum number streams between neighbors.
+        downstream : 
+            Whether to include downstream operations.
+        upstream : 
+            Whether to include upstream operations.
+        ends :
+            Streams that mark the end of the neighborhood.
+        facilities :
+            Whether to include facilities.
         
         """
         radius -= 1
@@ -1287,26 +1366,31 @@ class Unit:
             neighborhood.update(direct_neighborhood)
         return neighborhood
 
-    def diagram(self, radius=0, upstream=True, downstream=True, 
-                file=None, format='png', display=True, **graph_attrs):
+    def diagram(self, radius: Optional[int]=0, upstream: Optional[bool]=True,
+                downstream: Optional[bool]=True, file: Optional[str]=None, 
+                format: Optional[str]='png', display: Optional[bool]=True,
+                **graph_attrs):
         """
         Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram
         of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
-        radius : int
-                 Maximum number streams between neighbors.
-        downstream=True : bool, optional
-            Whether to show downstream operations
-        upstream=True : bool, optional
-            Whether to show upstream operations
-        file : Must be one of the following:
+        radius : 
+            Maximum number streams between neighbors.
+        downstream : 
+            Whether to show downstream operations.
+        upstream : 
+            Whether to show upstream operations.
+        file : 
+            Must be one of the following:
+            
             * [str] File name to save diagram.
             * [None] Display diagram in console.
-        format : str
-                 Format of file.
-        display : bool, optional
+            
+        format : 
+            Format of file.
+        display : 
             Whether to display diagram in console or to return the graphviz 
             object.
         
@@ -1322,111 +1406,111 @@ class Unit:
     
     # Molar flow rates
     @property
-    def mol_in(self):
+    def mol_in(self) -> NDArray[float]:
         """Molar flows going in [kmol/hr]."""
         return sum([s.mol for s in self._ins if s])
     @property
-    def mol_out(self):
+    def mol_out(self) -> NDArray[float]:
         """Molar flows going out [kmol/hr]."""
         return sum([s.mol for s in self._outs if s])
 
     @property
-    def z_mol_in(self):
+    def z_mol_in(self) -> NDArray[float]:
         """Molar fractions going in [kmol/hr]."""
         return self._mol_in/self.F_mol_in
     @property
-    def z_mol_out(self):
+    def z_mol_out(self) -> NDArray[float]:
         """Molar fractions going in."""
         return self._mol_out/self.F_mol_out
 
     @property
-    def F_mol_in(self):
+    def F_mol_in(self) -> float:
         """Net molar flow going in [kmol/hr]."""
         return sum([s.F_mol for s in self._ins if s])
     @property
-    def F_mol_out(self):
+    def F_mol_out(self) -> float:
         """Net molar flow going out [kmol/hr]."""
         return sum([s.F_mol for s in self._outs if s])
 
     # Mass flow rates
     @property
-    def mass_in(self):
+    def mass_in(self)-> NDArray[float]:
         """Mass flows going in [kg/hr]."""
         return sum([s.mol for s in self._ins if s]) * self._thermo.chemicals.MW
     @property
-    def mass_out(self):
+    def mass_out(self)-> NDArray[float]:
         """Mass flows going out [kg/hr]."""
         return sum([s.mol for s in self._outs if s]) * self._thermo.chemicals.MW
 
     @property
-    def z_mass_in(self):
+    def z_mass_in(self)-> NDArray[float]:
         """Mass fractions going in."""
         return self.mass_in/self.F_mass_in
     @property
-    def z_mass_out(self):
+    def z_mass_out(self)-> NDArray[float]:
         """Mass fractions going out."""
         return self.mass_out/self.F_mass_out
 
     @property
-    def F_mass_in(self):
+    def F_mass_in(self)-> float:
         """Net mass flow going in [kg/hr]."""
         return self.mass_in.sum()
     @property
-    def F_mass_out(self):
+    def F_mass_out(self) -> float:
         """Net mass flow going out [kg/hr]."""
         return self.mass_out.sum()
 
     # Volumetric flow rates
     @property
-    def vol_in(self):
+    def vol_in(self) -> NDArray[float]:
         """Volumetric flows going in [m3/hr]."""
         return sum([s.vol for s in self._ins if s])
     @property
-    def F_vol_in(self):
+    def F_vol_in(self) -> float:
         """Net volumetric flow going in [m3/hr]."""
         return sum(self.vol_in)
 
     @property
-    def z_vol_in(self):
+    def z_vol_in(self) -> NDArray[float]:
         """Volumetric fractions going in."""
         return self.vol_in/self.F_vol_in
     @property
-    def vol_out(self):
+    def vol_out(self) -> NDArray[float]:
         """Volumetric flows going out [m3/hr]."""
         return sum([s.vol for s in self._outs if s])
 
     @property
-    def F_vol_out(self):
+    def F_vol_out(self)-> float:
         """Net volumetric flow going out [m3/hr]."""
         return sum(self.vol_out)
     @property
-    def z_vol_out(self):
+    def z_vol_out(self) -> NDArray[float]:
         """Volumetric fractions going out."""
         return self.vol_out/self.F_vol_out
 
     # Enthalpy flow rates
     @property
-    def H_in(self):
+    def H_in(self) -> float:
         """Enthalpy flow going in [kJ/hr]."""
         return sum([s.H for s in self._ins if s])
 
     @property
-    def H_out(self):
+    def H_out(self) -> float:
         """Enthalpy flow going out [kJ/hr]."""
         return sum([s.H for s in self._outs if s])
 
     @property
-    def Hf_in(self):
+    def Hf_in(self) -> float:
         """Enthalpy of formation flow going in [kJ/hr]."""
         return sum([s.Hf for s in self._ins if s])
 
     @property
-    def Hf_out(self):
+    def Hf_out(self) -> float:
         """Enthalpy of formation flow going out [kJ/hr]."""
         return sum([s.Hf for s in self._outs if s])
 
     @property
-    def Hnet(self):
+    def Hnet(self) -> float:
         """Net enthalpy flow, including enthalpies of formation [kJ/hr]."""
         return self.H_out - self.H_in + self.Hf_out - self.Hf_in
     

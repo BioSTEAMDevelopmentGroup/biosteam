@@ -37,7 +37,7 @@ implementación de una biorrefinería. Configuraciones de biorrefinerías
 estan disponibles en el `Bioindustrial-Park <https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park>`_, 
 el reposito principal de BioSTEAM para modelos y resultados. El crecimiento y 
 mantenimiento de BioSTEAM a largo plazo esta apollada por ambos la communidad de 
-dessarrollo de codigo abierto y las instituciones auspiciado a BioSTEAM, incluyendo
+dessarrollo de codigo abierto y las instituciones auspiciando a BioSTEAM, incluyendo
 el `Centro para Innovaciones de Bioenergia y Bioproductos Avanzados (CABBI) <https://cabbi.bio/>`_. 
 Mediante su plataforma de dessarrollo abierto, BioSTEAM aspira fomentar
 communicacion y transparencia dentro de la communidad de dessarrollo de biorefinerias 

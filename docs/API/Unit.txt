@@ -3,4 +3,4 @@ Unit
 
 .. autoclass:: biosteam.Unit
    :members:
-
+   :private-members: _run, _design, _cost, _summary, _load_capital_costs, _units, _F_BM_default, _materials_and_maintenance, _N_ins, _N_outs, _ins_size_is_fixed, _outs_size_is_fixed,_N_heat_utilities, _default_equipment_lifetime, _graphics

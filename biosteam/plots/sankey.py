@@ -159,9 +159,9 @@ class Handle: # pragma: no coverage
         has_width = self.stream_width
         return [i for i in streams if has_width(i)]
     
-    stream_width = bst.utils.NotImplementedMethod
-    stream_color = bst.utils.NotImplementedMethod
-    process_color = bst.utils.NotImplementedMethod
+    stream_width = bst.utils.AbstractMethod
+    stream_color = bst.utils.AbstractMethod
+    process_color = bst.utils.AbstractMethod
     
     def next_index(self):
         index = self.size

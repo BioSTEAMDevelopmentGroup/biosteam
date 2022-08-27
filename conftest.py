@@ -12,10 +12,10 @@ def pytest_ignore_collect(path):
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--disable-numba", action="store", default="0", help="my option: 0 or 1"
+        "--disable-numba", action="store", default="1", help="my option: 0 or 1"
     )
 
 def pytest_configure(config):
     os.environ["NUMBA_DISABLE_JIT"] = config.getoption("--disable-numba")
     os.environ["DISABLE_PREFERENCES"] = "1"
-    
+    os.environ["FILTER_WARNINGS"] = "1"

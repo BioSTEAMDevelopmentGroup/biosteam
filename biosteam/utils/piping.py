@@ -15,7 +15,8 @@ from warnings import warn
 __all__ = ('Dependency', 'MissingStream', 'MockStream', 'Inlets', 
            'Outlets', 'Sink', 'Source', 'InletPort', 'OutletPort', 'StreamPorts', 
            'Connection', 'as_stream', 'as_upstream', 'as_downstream', 
-           'materialize_connections', 'ignore_docking_warnings')
+           'materialize_connections', 'ignore_docking_warnings',
+           'IgnoreDockingWarnings')
 
 DOCKING_WARNINGS = True
 
@@ -30,6 +31,21 @@ def ignore_docking_warnings(f):
             DOCKING_WARNINGS = warn
     g.__name__ = f.__name__
     return g
+
+class IgnoreDockingWarnings:
+    __slots__ = ('original_value',)
+    
+    def __enter__(self): 
+        global DOCKING_WARNINGS
+        self.original_value = DOCKING_WARNINGS
+        DOCKING_WARNINGS = False
+        return 
+    
+    def __exit__(self, type, exception, traceback):
+        global DOCKING_WARNINGS
+        DOCKING_WARNINGS = self.original_value
+        if exception: raise exception
+        
 
 # %% Utilities
 
@@ -79,7 +95,7 @@ class MissingStream:
     """
     __slots__ = ('_source', '_sink')
     line = 'Stream'
-    
+    ID = 'missing stream'
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
     disconnect_sink = Stream.disconnect_sink
@@ -189,7 +205,7 @@ class MissingStream:
         return f'<{type(self).__name__}>'
     
     def __str__(self):
-        return 'missing stream'
+        return self.ID
 
 class Dependency:
     """
@@ -200,6 +216,8 @@ class Dependency:
     disconnect = Stream.disconnect
     disconnect_source = Stream.disconnect_source
     disconnect_sink = Stream.disconnect_sink
+    line = 'Dependency'
+    ID = 'dependency'
     
     def __init__(self, source=None, sink=None):
         self._source = source
@@ -484,6 +502,7 @@ class StreamSequence:
         if self._fixed_size:
             self._initialize_missing_streams()
         else:
+            for i in self._streams: self._undock(i)
             self._streams.clear()
     
     def __iter__(self):

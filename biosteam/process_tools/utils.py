@@ -102,12 +102,14 @@ def rename_unit(unit, area):
     * F = Flash tank
     * H = Heat exchange
     * K = Compressor
+    * Ʞ = Turbine
     * M = Mixer
     * P = Pump (including conveying belt)
     * R = Reactor
     * S = Splitter (including solid/liquid separator)
     * T = Tank or bin for storage
     * U = Other units
+    * V = Valve
     * J = Junction, not a physical unit (serves to adjust streams)
     * PS = Process specificiation, not a physical unit (serves to adjust streams)
     

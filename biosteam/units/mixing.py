@@ -6,17 +6,14 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for mixing.
-
 .. contents:: :local:
-    
-Unit operations
----------------
+
 .. autoclass:: biosteam.units.mixing.Mixer
 .. autoclass:: biosteam.units.mixing.SteamMixer
+.. autoclass:: biosteam.units.mixing.MockMixer
 
 """
-from ..utils import InletPort, OutletPort, ignore_docking_warnings
+from ..utils import ignore_docking_warnings
 from .._unit import Unit
 from .._graphics import mixer_graphics
 import flexsolve as flx
@@ -34,6 +31,15 @@ class Mixer(Unit):
         Inlet fluids to be mixed.
     outs : stream
         Mixed outlet fluid.
+    
+    Notes
+    -----
+    When streams at different pressures are mixed, BioSTEAM assumes valves 
+    reduce the pressure of the streams being mixed to prevent backflow 
+    (pressure needs to decrease in the direction of flow according to 
+    Bernoulli's principle). The outlet pressure will be the minimum pressure
+    of all inlet streams.
+    
     Examples
     --------
     Mix two streams:

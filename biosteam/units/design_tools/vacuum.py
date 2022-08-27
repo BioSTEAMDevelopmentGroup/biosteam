@@ -13,6 +13,7 @@ References
 """
 from numpy import log as ln
 from . import mechanical as mch
+from math import ceil
 from biosteam.utils import checkbounds
 from biosteam.exceptions import DesignError
 from numba import njit
@@ -82,7 +83,7 @@ def compute_vacuum_system_power_and_cost(
     F_mass_kgph = (F_mass + 0.4536*F_mass_air)*factor # kg/hr
     F_mass_lbph = 2.205 * F_mass_kgph
     vacuum_systems = get_prefered_vacuum_systems(vacuum_system_preference)
-    name, grade = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)
+    name, grade, N = select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction)
     base_cost = calculate_vacuum_cost(name, grade, F_mass_lbph, F_vol_cfm, P_suction)
     cost = bst.CE / 567.  * base_cost
     if name == 'Steam-jet ejector':
@@ -97,8 +98,9 @@ def compute_vacuum_system_power_and_cost(
         steam = 0.
         work = calculate_vacuum_power(F_mass_kgph, P_suction)
     return {'Work': work, 
-            'Cost': cost, 
+            'Cost': N * cost, 
             'Name': f"{name}, {grade.lower()}",
+            'In parallel': N,
             'Condenser': has_condenser,
             'Steam flow rate': steam, 
             'Heating agent': agent}
@@ -155,12 +157,13 @@ def select_vacuum_system(vacuum_systems, F_vol_cfm, P_suction):
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
             if checkbounds(F_vol_cfm, flowrange) and P_suction > minsuction:
-                return (name, grade)
-    for name, vacuum_sys in vacuum_systems.items():
+                return (name, grade, 1)
+    for name, vacuum_sys in vacuum_systems.items(): # Flow rate too large
         for grade, flowrange_minsuction in vacuum_sys.items():
             flowrange, minsuction = flowrange_minsuction
-            if F_vol_cfm < flowrange[-1] and P_suction > minsuction:
-                return (name, grade)
+            if P_suction > minsuction:
+                N = ceil(F_vol_cfm / flowrange[-1])
+                return (name, grade, N)
     raise DesignError(f'no vacuum system available at current flow ({F_vol_cfm:.2f} cfm) and suction pressure ({P_suction:.2f} Torr)')
 
 @njit(cache=True)

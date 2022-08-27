@@ -303,14 +303,14 @@ class AerobicDigestion(Unit):
         vent, water = self.outs
         vent.phase = 'g'
         water.copy_like(waste)
-        water.mol[:] += air.mol + caustic.mol
+        water.mol[:] += caustic.mol
         self.reactions.force_reaction(water)
-        O2 = float(water.imass['O2'])
-        if O2 < 0:
-            N2 = 0.78 / 0.22 * O2
-            air.imass['O2', 'N2'] += [O2, N2]
-            water.imol['O2'] = 0.
-            water.imass['N2'] += N2
+        O2 = - water.imass['O2']
+        N2 = 0.78 / 0.22 * O2
+        air.empty()
+        air.imass['O2', 'N2'] += [1.5 * O2, 1.5 * N2]
+        water.imol['O2'] = 0.
+        water.imass['N2'] = N2
         vent.copy_flow(water, ('CO2', 'O2', 'N2'))
         water_index = self.chemicals.index('7732-18-5')
         vent.mol[water_index] = water.mol[water_index] * self.evaporation
@@ -511,7 +511,9 @@ class ReverseOsmosis(Unit):
         brine.mol[water_index] = water_flow - water_recovered
 
 
-def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476, autopopulate=None):
+def create_wastewater_treatment_units(ins, outs, 
+        NaOH_price=0.07476, autopopulate=None
+    ):
     """
     Create units for wastewater treatment, including anaerobic and aerobic 
     digestion reactors, a membrane bioreactor, a sludge centrifuge, 
@@ -552,7 +554,7 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476, autopopulat
             
     WWTC = WastewaterSystemCost('WWTC', wastewater_mixer-0)
     anaerobic_digestion = AnaerobicDigestion('R601', WWTC-0, (methane, '', ''))
-    recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, None, None))
+    recycled_sludge_mixer = bst.Mixer('M602', (anaerobic_digestion-1, ''))
     
     caustic_over_waste = caustic.imol['Water', 'NaOH'] / 2544301
     air_over_waste = air.imol['O2', 'N2'] / 2544301
@@ -571,9 +573,8 @@ def create_wastewater_treatment_units(ins, outs, NaOH_price=0.07476, autopopulat
     membrane_bioreactor = MembraneBioreactor('S601', aerobic_digestion-1)
     sludge_splitter = bst.Splitter('S602', membrane_bioreactor-1, split=0.96)
     fresh_sludge_mixer = bst.Mixer('M603', (anaerobic_digestion-2, sludge_splitter-1))
-    sludge_splitter-0-2-recycled_sludge_mixer
     sludge_centrifuge = SludgeCentrifuge('S603', fresh_sludge_mixer-0, outs=('', sludge))
-    sludge_centrifuge-0-1-recycled_sludge_mixer
+    bst.Mixer('M604', [sludge_splitter-0, sludge_centrifuge-0], 0-recycled_sludge_mixer)
     reverse_osmosis = ReverseOsmosis('S604', membrane_bioreactor-0,
                                      outs=(treated_water, waste_brine))
     

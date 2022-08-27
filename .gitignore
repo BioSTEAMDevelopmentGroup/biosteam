@@ -68,3 +68,4 @@ docs/_templates/*
 ehthumbs.db
 Thumbs.db
 surfaces
+CoolPropFluids*.json

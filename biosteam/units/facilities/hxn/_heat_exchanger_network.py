@@ -156,9 +156,7 @@ class HeatExchangerNetwork(Facility):
     def _cost(self):
         sys = self.system
         hx_utils = self._get_original_heat_utilties()
-        original_flowsheet = sys.flowsheet
-        HXN_ID = sys.ID + '_HXN'
-        bst.main_flowsheet.set_flowsheet(HXN_ID)
+        flowsheet = bst.Flowsheet(sys.ID + '_HXN')
         use_cached_network = False
         if self.cache_network and hasattr(self, 'original_heat_utils'):
             hxs_cache = self.original_heat_exchangers
@@ -167,8 +165,7 @@ class HeatExchangerNetwork(Facility):
             try: hxs = [hxs_dct[i.owner, i._ID] for i in hxs_cache]
             except: pass
             else: use_cached_network = len(hxs) == len(hx_utils)
-        try:
-            piping.DOCKING_WARNINGS = False
+        with flowsheet.temporary(), piping.IgnoreDockingWarnings():
             if use_cached_network:
                 hx_utils_rearranged = [i.heat_utilities[0] for i in hxs]
                 stream_life_cycles = self.stream_life_cycles
@@ -197,18 +194,6 @@ class HeatExchangerNetwork(Facility):
                                 s_out.vle(T=s_out.T, P=s_out.P)
                         else:
                             s_out.mol[:] = s_in.mol
-                # for life_cycle in stream_life_cycles:
-                #     heating = life_cycle.cold
-                #     for lc in life_cycle.life_cycle:
-                #         if isinstance(lc.unit, bst.HXutility):
-                #             H = lc.unit.H
-                #         else:
-                #             H = getattr(lc.unit, f'H_lim{lc.index}')
-                #         outlet = lc.unit.outs[lc.index]
-                #         if heating:
-                #             if outlet.H > H: outlet.H = H
-                #         elif outlet.H < H:
-                #             outlet.H = H
             else:
                 hx_utils.sort(key = lambda x: x.duty)
                 self.HXN_flowsheet = HXN_F = bst.main_flowsheet
@@ -244,8 +229,7 @@ class HeatExchangerNetwork(Facility):
                         if s_out: unit.ins[i.index] = s_out
                         s_out = unit.outs[i.index]
                 self.HXN_sys = sys = bst.System.from_units(None, all_units)
-                sys.converge_method = 'fixedpoint'
-                for i in sys.subsystems: i.converge_method = 'fixedpoint'
+                sys.set_tolerance(method='fixedpoint', subsystems=True)
             
             original_purchase_costs = [hx.purchase_cost for hx in hxs]
             original_installed_costs = [hx.installed_cost for hx in hxs]
@@ -354,9 +338,6 @@ class HeatExchangerNetwork(Facility):
                     raise RuntimeError(msg)
                 else:
                     warn(msg, RuntimeWarning, stacklevel=2)
-        finally:
-            bst.main_flowsheet.set_flowsheet(original_flowsheet)
-            piping.DOCKING_WARNINGS = True
     
     def _energy_balance_error_contributions(self):
         original_ignored = ignored = self.ignored

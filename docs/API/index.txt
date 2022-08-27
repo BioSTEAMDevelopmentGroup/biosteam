@@ -55,6 +55,7 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
    :hidden:
    
    Unit
+   Facility
    PowerUtility
    UtilityAgent
    HeatUtility
@@ -74,3 +75,4 @@ BioSTEAM's main components can be categorized by 4 functionality levels:
    
    exceptions
    preferences
+   settings

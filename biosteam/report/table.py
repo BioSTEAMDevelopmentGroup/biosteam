@@ -9,18 +9,15 @@
 """
 import numpy as np
 import pandas as pd
-from warnings import warn
-import openpyxl
 import thermosteam as tmo
 import biosteam as bst
 from .._heat_utility import HeatUtility
-import os
 
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
-__all__ = ('stream_table', 'cost_table', 'save_system_results',
-           'save_report', 'unit_result_tables', 'heat_utility_tables',
+__all__ = ('stream_table', 'cost_table',
+           'unit_result_tables', 'heat_utility_tables',
            'power_utility_table', 'tables_to_excel', 'voc_table',
            'lca_displacement_allocation_table', 
            'lca_inventory_table',
@@ -351,7 +348,7 @@ def lca_displacement_allocation_table(systems, key, items,
                         columns=(f'Characterization factor [{impact_units}/kg]', *columns))
 
 def lca_property_allocation_factor_table(
-        systems, property, units, system_names=None
+        systems, property, units=None, system_names=None
     ):
     system_allocation_factors = [i.get_property_allocation_factors(property, units) for i in systems]
     table_index = sorted(set(sum([tuple(i) for i in system_allocation_factors], ())))
@@ -436,100 +433,6 @@ def tables_to_excel(tables, writer, sheet='Sheet1', n_row=1, row_spacing=2):
     return n_row
 
 # %% Units
-
-def save_report(system, file='report.xlsx', dpi='300', tea=None, **stream_properties): 
-    """
-    Save a system report as an xlsx file.
-    
-    Parameters
-    ----------
-    file : str
-        File name to save report
-    dpi : str, optional
-        Resolution of the flowsheet. Defaults to '300'
-    tea : TEA, optional
-        Object for techno-economic analysis and cashflows. Defaults to the
-        TEA object linked to the system.
-    **stream_properties : str
-        Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
-        
-    """
-    writer = ExcelWriter(file)
-    units = sorted(system.units, key=lambda x: x.line)
-    cost_units = [i for i in units if i._design or i._cost]
-    try:
-        system.diagram('thorough', file='flowsheet', dpi=str(dpi), format='png')
-    except:
-        diagram_completed = False
-        warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
-    else:
-        import PIL.Image
-        try:
-            # Assume openpyxl is used
-            worksheet = writer.book.create_sheet('Flowsheet')
-            flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
-            worksheet.add_image(flowsheet, anchor='A1')
-        except PIL.Image.DecompressionBombError:
-            PIL.Image.MAX_IMAGE_PIXELS = int(1e9)
-            flowsheet = openpyxl.drawing.image.Image('flowsheet.png')
-            worksheet.add_image(flowsheet, anchor='A1')
-        except:
-            # Assume xlsx writer is used
-            try:
-                worksheet = writer.book.add_worksheet('Flowsheet')
-            except:
-                warn("problem in saving flowsheet; please submit issue to BioSTEAM with"
-                     "your current version of openpyxl and xlsx writer", RuntimeWarning)
-            worksheet.insert_image('A1', 'flowsheet.png')
-        diagram_completed = True
-    
-    if tea is None: tea = system.TEA
-    if tea:
-        tea = system.TEA
-        cost = cost_table(tea)
-        cost.to_excel(writer, 'Itemized costs')
-        tea.get_cashflow_table().to_excel(writer, 'Cash flow')
-    else:
-        warn(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.',
-             RuntimeWarning, stacklevel=2)
-    
-    # Stream tables
-    # Organize streams by chemicals first
-    streams_by_chemicals = {}
-    for i in system.streams:
-        if not i: continue
-        chemicals = i.chemicals
-        if chemicals in streams_by_chemicals:
-            streams_by_chemicals[chemicals].append(i)
-        else:
-            streams_by_chemicals[chemicals] = [i]
-    stream_tables = []
-    for chemicals, streams in streams_by_chemicals.items():
-        stream_tables.append(stream_table(streams, chemicals=chemicals, T='K', **stream_properties))
-    tables_to_excel(stream_tables, writer, 'Stream table')
-    
-    # Heat utility tables
-    heat_utilities = heat_utility_tables(cost_units)
-    n_row = tables_to_excel(heat_utilities, writer, 'Utilities')
-    
-    # Power utility table
-    power_utility = power_utility_table(cost_units)
-    power_utility.to_excel(writer, 'Utilities', 
-                           index_label='Electricity',
-                           startrow=n_row)
-    
-    # General desing requirements
-    results = unit_result_tables(cost_units)
-    tables_to_excel(results, writer, 'Design requirements')
-    
-    # Reaction tables
-    reactions = unit_reaction_tables(units)
-    tables_to_excel(reactions, writer, 'Reactions')
-    
-    writer.save()
-    if diagram_completed: os.remove("flowsheet.png")
-
-save_system_results = save_report
 
 def unit_reaction_tables(units):
     isa = isinstance
@@ -780,6 +683,8 @@ def stream_table(streams, flow='kg/hr', percent=True, chemicals=None, **props):
                 phase += 'gas|'
             elif i == 's':
                 phase += 'solid|'
+            elif i == 'S':
+                phase += 'SOLID|'
         phase = phase.rstrip('|')
         phases[j] = phase
         flow_j = s.get_flow(units=flow)

@@ -6,25 +6,39 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for mixing.
-
 .. contents:: :local:
     
-Unit operations
----------------
+Abstract Unit Operations
+------------------------
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LLEUnit
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsCentrifuge
+.. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsSettler
+
+Centrifuges
+-----------
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsSplitCentrifuge
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LLECentrifuge
 .. autoclass:: biosteam.units.liquid_liquid_extraction.SLLECentrifuge
 .. autoclass:: biosteam.units.liquid_liquid_extraction.SolidLiquidsSplitCentrifuge
+
+Mixer-Settlers
+--------------
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsMixingTank
-.. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsSettler
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LLESettler
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsSplitSettler
 .. autoclass:: biosteam.units.liquid_liquid_extraction.LiquidsPartitionSettler
 .. autoclass:: biosteam.units.liquid_liquid_extraction.MixerSettler
 .. autoclass:: biosteam.units.liquid_liquid_extraction.MultiStageMixerSettlers
+
+References
+----------
+.. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
+    K. C. Techno-Economic Analysis of a Biodiesel Production Process 
+    from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
+.. [2] Kwiatkowski, J. R.; McAloon, A. J.; Taylor, F.; Johnston, D. B. 
+    Modeling the Process and Costs of Fuel Ethanol Production by the Corn 
+    Dry-Grind Process. Industrial Crops and Products 2006, 23 (3), 288–296.
+    https://doi.org/10.1016/j.indcrop.2005.08.004.
 
 """
 import biosteam as bst
@@ -160,12 +174,6 @@ class LiquidsCentrifuge(Unit, isabstract=True):
         
        C_{f.o.b}^{2007} = 28100 Q^{0.574} \ (Q < 100 \frac{m^3}{h})
     
-    References
-    ----------
-    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
-        K. C. Techno-Economic Analysis of a Biodiesel Production Process 
-        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
-    
     """
     _N_outs = 2
     line = 'Liquids centrifuge'
@@ -205,12 +213,6 @@ class LiquidsSplitCentrifuge(LiquidsCentrifuge):
         
        C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})
     
-    References
-    ----------
-    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
-        K. C. Techno-Economic Analysis of a Biodiesel Production Process 
-        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
-    
     """
     line = 'Liquids centrifuge'
     __init__ = Splitter.__init__
@@ -242,12 +244,6 @@ class LLECentrifuge(LLEUnit, LiquidsCentrifuge):
     .. math::
         
        C_{f.o.b}^{2007} = 28100 Q^{0.574} (Q < 100 \frac{m^3}{h})
-    
-    References
-    ----------
-    .. [1] Apostolakou, A. A.; Kookos, I. K.; Marazioti, C.; Angelopoulos, 
-        K. C. Techno-Economic Analysis of a Biodiesel Production Process 
-        from Vegetable Oils. Fuel Process. Technol. 2009, 90, 1023−1031
     
     Examples
     --------
@@ -312,7 +308,7 @@ class SLLECentrifuge(Unit):
     Cost algorithm is based on a 3-phase decanter centrifuge from 
     a conventional dry-grind corn ethanol plant that separates
     aqueous, oil, and solid fractions (i.e. DDGS) from the bottoms product 
-    of the beer column [1]_.
+    of the beer column [2]_.
     
     Examples
     --------
@@ -352,13 +348,6 @@ class SLLECentrifuge(Unit):
     Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
     Total purchase cost                                 USD 2.87e+05
     Utility cost                                     USD/hr  0.00079
-    
-    References
-    ----------
-    .. [1] Kwiatkowski, J. R.; McAloon, A. J.; Taylor, F.; Johnston, D. B. 
-        Modeling the Process and Costs of Fuel Ethanol Production by the Corn 
-        Dry-Grind Process. Industrial Crops and Products 2006, 23 (3), 288–296.
-        https://doi.org/10.1016/j.indcrop.2005.08.004.
 
     """
     line = '3-Phase decanter centrifuge'
@@ -426,7 +415,7 @@ class SolidLiquidsSplitCentrifuge(Unit):
     Cost algorithm is based on a 3-phase decanter centrifuge from 
     a conventional dry-grind corn ethanol plant that separates
     aqueous, oil, and solid fractions (i.e. DDGS) from the bottoms product 
-    of the beer column [1]_.
+    of the beer column [2]_.
     
     The unit operation first splits the feed to the aqueous and oil fluids, 
     then fractionates the solids from the aqueous phase.
@@ -474,13 +463,6 @@ class SolidLiquidsSplitCentrifuge(Unit):
     Purchase cost       3-Phase decanter centrifuge     USD 2.87e+05
     Total purchase cost                                 USD 2.87e+05
     Utility cost                                     USD/hr  0.00079
-    
-    References
-    ----------
-    .. [1] Kwiatkowski, J. R.; McAloon, A. J.; Taylor, F.; Johnston, D. B. 
-        Modeling the Process and Costs of Fuel Ethanol Production by the Corn 
-        Dry-Grind Process. Industrial Crops and Products 2006, 23 (3), 288–296.
-        https://doi.org/10.1016/j.indcrop.2005.08.004.
     
     """
     line = SLLECentrifuge.line
