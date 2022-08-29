@@ -1538,7 +1538,7 @@ class System:
             index = 0
             for i in recycles:
                 end = index + i._imol._data.size + 2
-                set_recycle_data(data[index:end], f)
+                set_recycle_data(i, data[index:end], f)
                 index = end
         else:
             raise RuntimeError('no recycle available')
