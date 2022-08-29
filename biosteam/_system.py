@@ -306,8 +306,7 @@ class System:
     facility_recycle : 
         Recycle stream between facilities and system path.
     N_runs : 
-        Number of iterations to run system. This parameter is applicable
-        only to systems with no recycle loop.
+        Number of iterations to converge the system.
     operating_hours :
         Number of operating hours in a year. This parameter is used to
         compute annualized properties such as utility cost and material cost
@@ -1197,7 +1196,6 @@ class System:
     @recycle.setter
     def recycle(self, recycle):
         isa = isinstance
-        self._N_runs = None
         if recycle is None:
             self._recycle = recycle
         elif isa(recycle, Stream):
@@ -1214,11 +1212,10 @@ class System:
 
     @property
     def N_runs(self) -> int|None:
-        """Number of times to run the path."""
+        """Number of times to converge the path."""
         return self._N_runs
     @N_runs.setter
     def N_runs(self, N_runs):
-        if N_runs: self._recycle = None
         self._N_runs = N_runs
 
     @property
@@ -1605,12 +1602,14 @@ class System:
                     mol = s.mol
                     for j, ID in enumerate(s.chemicals.IDs):
                         mol[j] = material_flows[i, index[ID]]
-        if self._N_runs:
-            for i in range(self.N_runs): self._run()
-        elif self._recycle:
-            self._solve()
+        if self._recycle:
+            method = self._solve
         else:
-            self._run()
+            method = self._run
+        if self._N_runs:
+            for i in range(self._N_runs): method()
+        else:
+            method()
         if material_data is not None:
             material_flows = material_flows.copy()
             if same_chemicals:
