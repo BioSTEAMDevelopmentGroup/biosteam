@@ -1354,9 +1354,6 @@ class System:
         """
         self._load_configuration()
         if kind is None: kind = 1
-        graph_attrs['format'] = format or 'png'
-        if format == 'html':
-            graph_attrs['format'] = 'svg' # because html will cause error
         if title is None: title = ''
         graph_attrs['label'] = title
         preferences = bst.preferences
