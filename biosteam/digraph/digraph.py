@@ -406,8 +406,14 @@ def inject_javascript(img:bytes):
     html = ElementTree.Element('html')
     head = ElementTree.SubElement(html, 'head')
     # insert css
-    link = ElementTree.SubElement(head, 'link')
-    link.set("href", "https://unpkg.com/browse/tippy.js@6.3.7/themes/translucent.css")
+    links = [
+        "https://unpkg.com/tippy.js@6.3.7/themes/translucent.css",
+        "digraph/digraph.css",
+    ]
+    for href in links:
+        link = ElementTree.SubElement(head, 'link')
+        link.set("rel", "stylesheet")
+        link.set("href", href)
     # insert javascript
     srcs = [
         "https://unpkg.com/@popperjs/core@2",
