@@ -71,7 +71,35 @@ class MaterialData:
         self.index = index
         self.same_chemicals = same_chemicals
         
-        
+   
+def get_recycle_data(stream):
+    """
+    Return stream temperature, pressure, and molar flow rates as a
+    1d array.
+    
+    """
+    data = stream._imol._data
+    TP = stream._thermal_condition
+    arr = np.zeros(data.size + 2)
+    arr[0] = TP.T
+    arr[1] = TP.P
+    arr[2:] = data.flat
+    return arr
+
+def set_recycle_data(stream, arr, f):
+    """
+    Set stream temperature, pressure, and molar flow rates with a
+    1d array.
+    
+    """
+    data = stream._imol._data
+    data.flat[:] = arr[2:]
+    TP = stream._thermal_condition
+    T = arr[0]
+    P = arr[1]
+    TP.T = T * (1 - f) + TP.T * f
+    TP.P = P * (1 - f) + TP.P * f
+   
 # %% System creation tools
 
 def facilities_from_units(units):
@@ -337,6 +365,7 @@ class System:
         'relative_molar_tolerance',
         'temperature_tolerance',
         'relative_temperature_tolerance',
+        'thermal_stabilization_factor',
         'operating_hours',
         'flowsheet',
         'lang_factor',
@@ -395,6 +424,11 @@ class System:
 
     #: Method definitions for convergence
     available_methods: dict[str, tuple(Callable, bool, dict)] = {}
+
+    #: The actual guess temperature and pressure will be a equal to a linear
+    #: combination of the solver's guess and the fixed-point iteration guess
+    #: weighted this stabilization factor (i.e. T_guess = T_guess * (1 - f) + T_iter * f)
+    default_thermal_stabilization_factor: float = 0.5
 
     @classmethod
     def register_method(cls, name, function, conditional=False, **kwargs):
@@ -599,6 +633,11 @@ class System:
         #: Lang factor for computing fixed capital cost from purchase costs
         self.lang_factor: float|None = lang_factor
 
+        #: The actual guess temperature and pressure will be a equal to a linear
+        #: combination of the solver's guess and the fixed-point iteration guess
+        #: weighted this stabilization factor (i.e. T_guess = T_guess * (1 - f) + T_iter * f)
+        self.thermal_stabilization_factor: float = self.default_thermal_stabilization_factor
+
         self._set_path(path)
         self._specification = None
         self._load_flowsheet()
@@ -801,7 +840,8 @@ class System:
     def set_tolerance(self, mol: Optional[float]=None, rmol: Optional[float]=None,
                       T: Optional[float]=None, rT: Optional[float]=None, 
                       subsystems: bool=False, maxiter: Optional[int]=None, 
-                      subfactor: Optional[float]=None, method: Optional[str]=None):
+                      subfactor: Optional[float]=None, method: Optional[str]=None,
+                      TP_stabilization_factor: Optional[float]=None):
         """
         Set the convergence tolerance and convergence method of the system.
 
@@ -823,6 +863,11 @@ class System:
             Factor to rescale tolerance in subsystems.
         method :
             Convergence method.
+        TP_stabilization_factor : 
+            The actual guess temperature and pressure will be a equal to a linear
+            combination of the solver's guess and the fixed-point iteration guess
+            weighted this stabilization factor (i.e., T_guess = T_guess * (1 - f) + T_iter * f).
+            
         
         """
         if mol: self.molar_tolerance = float(mol)
@@ -831,12 +876,14 @@ class System:
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
         if method: self.method = method
+        if TP_stabilization_factor is not None: 
+            self.thermal_stabilization_factor = TP_stabilization_factor
         if subsystems:
             if subfactor:
                 for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
-                                                          subsystems, maxiter, subfactor, method)
+                                                          subsystems, maxiter, subfactor, method, TP_stabilization_factor)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method, TP_stabilization_factor)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -1384,14 +1431,14 @@ class System:
              preferences.profile) = original
 
     # Methods for running one iteration of a loop
-    def _iter_run_conditional(self, mol):
+    def _iter_run_conditional(self, data):
         """
         Run the system at specified recycle molar flow rate.
 
         Parameters
         ----------
-        mol : numpy.ndarray
-              Recycle molar flow rates.
+        data : numpy.ndarray
+              Recycle molar flow rates, temperature, and pressure.
 
         Returns
         -------
@@ -1401,14 +1448,15 @@ class System:
             True if recycle has not converged.
 
         """
-        mol[mol < 0.] = 0.
-        self._set_recycle_data(mol)
+        data[data < 0.] = 0.
         T = self._get_recycle_temperatures()
+        self._set_recycle_data(data)
+        mol = self._get_recycle_mol()
         self._run()
         recycle = self._recycle
         for i, j in self.tracked_recycles.items():
-            if i is recycle: j.append(i.copy(None)) 
-        mol_new = self._get_recycle_data()
+            if i is recycle: j.append(i.copy(None))
+        mol_new = self._get_recycle_mol()
         T_new = self._get_recycle_temperatures()
         mol_errors = np.abs(mol - mol_new)
         positive_index = mol_errors > 1e-16
@@ -1436,16 +1484,16 @@ class System:
         if not_converged and self._iter >= self.maxiter:
             if self.strict_convergence: raise RuntimeError(f'{repr(self)} could not converge' + self._error_info())
             else: not_converged = False
-        return mol_new, not_converged
+        return self._get_recycle_data(), not_converged
         
-    def _iter_run(self, mol):
+    def _iter_run(self, data):
         """
         Run the system at specified recycle molar flow rate.
 
         Parameters
         ----------
-        mol : numpy.ndarray
-              Recycle molar flow rates.
+        data : numpy.ndarray
+              Recycle temperature, pressure, and molar flow rates.
 
         Returns
         -------
@@ -1453,47 +1501,45 @@ class System:
             New recycle molar flow rates.
 
         """
-        mol_new, not_converged = self._iter_run_conditional(mol)
-        if not_converged: return mol_new - mol
+        data_new, not_converged = self._iter_run_conditional(data)
+        if not_converged: return data_new - data
         else: raise Converged
+
+    def _get_recycle_mol(self):
+        recycles = self.get_all_recycles()
+        N = len(recycles)
+        if N == 1:
+            return recycles[0]._imol._data
+        elif N > 1: 
+            return np.hstack([i._imol._data for i in recycles])
+        else:
+            raise RuntimeError('no recycle available')
 
     def _get_recycle_data(self):
         recycles = self.get_all_recycles()
         N = len(recycles)
         if N == 1:
-            return recycles[0]._imol.data.copy()
+            return get_recycle_data(recycles[0])
         elif N > 1: 
-            return np.hstack([i._imol.data.flatten() for i in recycles])
+            return np.hstack([get_recycle_data(i) for i in recycles])
         else:
             raise RuntimeError('no recycle available')
 
     def _set_recycle_data(self, data):
         recycles = self.get_all_recycles()
+        f = self.thermal_stabilization_factor
         N = len(recycles)
-        isa = isinstance
         if N == 1:
-            try:
-                recycles[0]._imol._data[:] = data
-            except IndexError as e:
-                if data.shape[0] != 1:
-                    raise IndexError(f'expected 1 row; got {data.shape[0]} rows instead')
-                else:
-                    raise e from None
+            set_recycle_data(recycles[0], data, f)
         elif N > 1:
             N = data.size
-            M = sum([i._imol._data.size for i in recycles])
+            M = sum([i._imol._data.size + 2 for i in recycles])
             if M != N: raise IndexError(f'expected {N} elements; got {M} instead')
             index = 0
             for i in recycles:
-                if isa(i, MultiStream):
-                    for j in i._imol._data:
-                        end = index + i.chemicals.size
-                        j[:] = data[index:end]
-                        index = end
-                else:
-                    end = index + i.chemicals.size
-                    i._imol._data[:] = data[index:end]
-                    index = end
+                end = index + i._imol._data.size + 2
+                set_recycle_data(data[index:end], f)
+                index = end
         else:
             raise RuntimeError('no recycle available')
 
