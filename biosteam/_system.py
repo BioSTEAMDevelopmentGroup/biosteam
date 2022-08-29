@@ -95,10 +95,10 @@ def set_recycle_data(stream, arr):
     data = stream._imol._data
     data.flat[:] = arr[2:]
     TP = stream._thermal_condition
-    T = arr[0]
-    P = arr[1]
-    if T == 0: TP.T = (T + TP.T) * 0.5
-    if P == 0: TP.P = (P + TP.P) * 0.5
+    T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
+    P = float(arr[1])
+    if T == 0.: TP._T = (T + TP._T) * 0.5
+    if P == 0.: TP._P = (P + TP._P) * 0.5
    
 # %% System creation tools
 
