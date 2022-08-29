@@ -1185,8 +1185,6 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     if line_color is None: line_color = c.grey.RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
-    plot_vertical_line(x, line_color, zorder=0)
-    plot_horizontal_line(y, line_color, zorder=0)
     x0, x1 = xlim
     y0, y1 = ylim
     top_left, top_right, bottom_left, bottom_right = color
@@ -1214,6 +1212,8 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
                          color=bottom_right,
                          linewidth=linewidth,
                          zorder=0)
+    plot_vertical_line(x, line_color, zorder=0)
+    plot_horizontal_line(y, line_color, zorder=0)
 
 def label_quadrants(
         x=None, y=None, text=None, color=None,
