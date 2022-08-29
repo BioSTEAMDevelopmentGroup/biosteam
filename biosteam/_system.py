@@ -97,8 +97,9 @@ def set_recycle_data(stream, arr):
     TP = stream._thermal_condition
     T = float(arr[0]) # ndfloat objects are slow and parasitic (don't go away)
     P = float(arr[1])
-    if T == 0.: TP._T = (T + TP._T) * 0.5
-    if P == 0.: TP._P = (P + TP._P) * 0.5
+    TP._T = (T + TP._T) * 0.5 if T == 0 else T
+    TP._P = (P + TP._P) * 0.5 if P == 0. else P
+    
    
 # %% System creation tools
 
