@@ -320,6 +320,8 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
         if line: lines.append(line)
         ID = '\n'.join(lines)
         penwidth = pen_width(stream) if pen_width else '1.0'
+        tooltip = connection.stream._info(None, None, None, None, None, None, None). \
+            replace("<", "").replace(">", "").replace("\n", "<br>")
         # Make stream nodes / unit-stream edges / unit-unit edges
         if has_sink and not has_source:
             # Feed stream case
@@ -333,7 +335,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    tailport='e', style=style, penwidth=penwidth, **inlet_options)
-            f.edge(ID, unit_names[sink])
+            f.edge(ID, unit_names[sink], labeltooltip=tooltip)
         elif has_source and not has_sink:
             # Product stream case
             f.node(ID, 
@@ -347,7 +349,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             outlet_options = source._graphics.get_outlet_options(source, source_index)
             f.attr('edge', arrowtail='none', arrowhead='none', label=ID,
                    headport='w', style=style, penwidth=penwidth, **outlet_options)
-            f.edge(unit_names[source], ID)
+            f.edge(unit_names[source], ID, labeltooltip=tooltip)
         elif has_sink and has_source:
             # Process stream case
             inlet_options = sink._graphics.get_inlet_options(sink, sink_index)
@@ -355,7 +357,7 @@ def add_connection(f: Digraph, connection, unit_names, pen_width=None, **edge_op
             f.attr('edge', arrowtail='none', arrowhead='normal', style=style, 
                    **inlet_options, penwidth=penwidth, **outlet_options)
             label = ID if preferences.label_streams else ''
-            f.edge(unit_names[source], unit_names[sink], label=label)
+            f.edge(unit_names[source], unit_names[sink], label=label, labeltooltip=tooltip)
         else:
             f.node(ID)
     elif has_sink and has_source:
@@ -437,7 +439,7 @@ def inject_javascript(img:bytes):
     # make tippy tooltips
     for e in svg.getiterator():
         for key, value in e.attrib.copy().items():
-            if key == "class" and value == "node":
+            if key == "class" and value in ["node", "edge"]:
                 title = e.find("./title")
                 if title is not None:
                     default_tooltip = title.text
