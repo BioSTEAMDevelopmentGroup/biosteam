@@ -446,17 +446,16 @@ def inject_javascript(img:bytes):
     body.append(svg)
     return ElementTree.tostring(html, encoding='utf8', method='html')
 
-def save_digraph(digraph, file, format, inject_js:bool=True): # pragma: no coverage
+def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
         if format is None:
-            if inject_js is True:
-                format = 'html'
-            else:
-                format = 'svg'
+            format = 'svg'
         file += '.' + format
-    img = digraph.pipe(format=format)
-    if inject_js is True:
+    if format == 'html':
+        img = digraph.pipe(format='svg')
         img = inject_javascript(img)
+    else:
+        img = digraph.pipe(format=format)
     f = open(file, 'wb')
     f.write(img)
     f.close()
