@@ -447,7 +447,10 @@ def inject_javascript(img:bytes):
         if t is not None:
             e.remove(t)
     body.append(svg)
-    return ElementTree.tostring(html, encoding='utf8', method='html')
+    # add docstring declaration
+    s = ElementTree.tostring(html, encoding='utf8', method='html')
+    s = b"<!DOCTYPE html>"+s
+    return s
 
 def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
