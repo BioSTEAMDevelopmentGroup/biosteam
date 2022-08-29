@@ -725,7 +725,7 @@ class HXprocess(HX):
         
         self.material = material
         self.heat_exchanger_type = heat_exchanger_type
-        self.reset_source = True
+        self.reset_streams_at_setup = False
         
     def get_streams(self):
         s_in_a, s_in_b = self.ins
@@ -743,7 +743,7 @@ class HXprocess(HX):
     
     def _setup(self):
         super()._setup()
-        if self.reset_source:
+        if self.reset_streams_at_setup:
             for i in self._ins:
                 if i.source: i.empty()
             
