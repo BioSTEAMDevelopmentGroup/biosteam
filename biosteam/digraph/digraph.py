@@ -404,8 +404,11 @@ def display_digraph(digraph, format): # pragma: no coverage
 
 def inject_javascript(img:bytes):
     html = ElementTree.Element('html')
-    # insert javascript
     head = ElementTree.SubElement(html, 'head')
+    # insert css
+    link = ElementTree.SubElement(head, 'link')
+    link.set("href", "https://unpkg.com/browse/tippy.js@6.3.7/themes/translucent.css")
+    # insert javascript
     srcs = [
         "https://unpkg.com/@popperjs/core@2",
         "https://unpkg.com/tippy.js@6",
@@ -414,7 +417,7 @@ def inject_javascript(img:bytes):
     for src in srcs:
         script = ElementTree.SubElement(head, 'script')
         script.set("src", src)
-
+    # body
     body = ElementTree.SubElement(html, 'body')
     svg = ElementTree.fromstring(img)
     # remove namespaces from tags and attributes
