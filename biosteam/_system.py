@@ -86,7 +86,7 @@ def get_recycle_data(stream):
     arr[2:] = data.flat
     return arr
 
-def set_recycle_data(stream, arr, f):
+def set_recycle_data(stream, arr):
     """
     Set stream temperature, pressure, and molar flow rates with a
     1d array.
@@ -97,8 +97,8 @@ def set_recycle_data(stream, arr, f):
     TP = stream._thermal_condition
     T = arr[0]
     P = arr[1]
-    TP.T = T * (1 - f) + TP.T * f
-    TP.P = P * (1 - f) + TP.P * f
+    if T == 0: TP.T = (T + TP.T) * 0.5
+    if P == 0: TP.P = (P + TP.P) * 0.5
    
 # %% System creation tools
 
@@ -365,7 +365,6 @@ class System:
         'relative_molar_tolerance',
         'temperature_tolerance',
         'relative_temperature_tolerance',
-        'thermal_stabilization_factor',
         'operating_hours',
         'flowsheet',
         'lang_factor',
@@ -424,11 +423,6 @@ class System:
 
     #: Method definitions for convergence
     available_methods: dict[str, tuple(Callable, bool, dict)] = {}
-
-    #: The actual guess temperature and pressure will be a equal to a linear
-    #: combination of the solver's guess and the fixed-point iteration guess
-    #: weighted this stabilization factor (i.e. T_guess = T_guess * (1 - f) + T_iter * f)
-    default_thermal_stabilization_factor: float = 0.5
 
     @classmethod
     def register_method(cls, name, function, conditional=False, **kwargs):
@@ -633,11 +627,6 @@ class System:
         #: Lang factor for computing fixed capital cost from purchase costs
         self.lang_factor: float|None = lang_factor
 
-        #: The actual guess temperature and pressure will be a equal to a linear
-        #: combination of the solver's guess and the fixed-point iteration guess
-        #: weighted this stabilization factor (i.e. T_guess = T_guess * (1 - f) + T_iter * f)
-        self.thermal_stabilization_factor: float = self.default_thermal_stabilization_factor
-
         self._set_path(path)
         self._specification = None
         self._load_flowsheet()
@@ -840,8 +829,7 @@ class System:
     def set_tolerance(self, mol: Optional[float]=None, rmol: Optional[float]=None,
                       T: Optional[float]=None, rT: Optional[float]=None, 
                       subsystems: bool=False, maxiter: Optional[int]=None, 
-                      subfactor: Optional[float]=None, method: Optional[str]=None,
-                      TP_stabilization_factor: Optional[float]=None):
+                      subfactor: Optional[float]=None, method: Optional[str]=None):
         """
         Set the convergence tolerance and convergence method of the system.
 
@@ -863,10 +851,6 @@ class System:
             Factor to rescale tolerance in subsystems.
         method :
             Convergence method.
-        TP_stabilization_factor : 
-            The actual guess temperature and pressure will be a equal to a linear
-            combination of the solver's guess and the fixed-point iteration guess
-            weighted this stabilization factor (i.e., T_guess = T_guess * (1 - f) + T_iter * f).
             
         
         """
@@ -876,14 +860,12 @@ class System:
         if rT: self.temperature_tolerance = float(rT)
         if maxiter: self.maxiter = int(maxiter)
         if method: self.method = method
-        if TP_stabilization_factor is not None: 
-            self.thermal_stabilization_factor = TP_stabilization_factor
         if subsystems:
             if subfactor:
                 for i in self.subsystems: i.set_tolerance(*[(i * subfactor if i else i) for i in (mol, rmol, T, rT)],
-                                                          subsystems, maxiter, subfactor, method, TP_stabilization_factor)
+                                                          subsystems, maxiter, subfactor, method)
             else:
-                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method, TP_stabilization_factor)
+                for i in self.subsystems: i.set_tolerance(mol, rmol, T, rT, subsystems, maxiter, subfactor, method)
 
     ins = MockSystem.ins
     outs = MockSystem.outs
@@ -1449,8 +1431,8 @@ class System:
 
         """
         data[data < 0.] = 0.
-        T = self._get_recycle_temperatures()
         self._set_recycle_data(data)
+        T = self._get_recycle_temperatures()
         mol = self._get_recycle_mol()
         self._run()
         recycle = self._recycle
@@ -1527,10 +1509,9 @@ class System:
 
     def _set_recycle_data(self, data):
         recycles = self.get_all_recycles()
-        f = self.thermal_stabilization_factor
         N = len(recycles)
         if N == 1:
-            set_recycle_data(recycles[0], data, f)
+            set_recycle_data(recycles[0], data)
         elif N > 1:
             N = data.size
             M = sum([i._imol._data.size + 2 for i in recycles])
@@ -1538,7 +1519,7 @@ class System:
             index = 0
             for i in recycles:
                 end = index + i._imol._data.size + 2
-                set_recycle_data(i, data[index:end], f)
+                set_recycle_data(i, data[index:end])
                 index = end
         else:
             raise RuntimeError('no recycle available')
