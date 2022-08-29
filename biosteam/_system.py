@@ -1491,7 +1491,7 @@ class System:
         recycles = self.get_all_recycles()
         N = len(recycles)
         if N == 1:
-            return recycles[0]._imol._data
+            return recycles[0]._imol._data.copy()
         elif N > 1: 
             return np.hstack([i._imol._data for i in recycles])
         else:
