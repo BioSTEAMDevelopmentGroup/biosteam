@@ -263,7 +263,6 @@ node['height'] = '1.5'
 node['margin'] = '0'
 def tailor_compressor_node(node, unit): # pragma: no coverage
     node['name'] = unit.ID + "\nCompressor"
-    node['tooltip'] = " " + unit.results().to_html(justify='unset').replace("\n","").replace("  ","") + " "
 compressor_graphics = UnitGraphics(single_edge_in, single_edge_out, node, tailor_compressor_node)
 
 
