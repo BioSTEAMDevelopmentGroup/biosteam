@@ -410,7 +410,7 @@ def inject_javascript(img:bytes):
     # insert css
     links = [
         "https://unpkg.com/tippy.js@6.3.7/themes/translucent.css",
-        "digraph/digraph.css",
+        "https://rawcdn.githack.com/BioSTEAMDevelopmentGroup/biosteam/e065aca079c216d72b75949bbcbb74a3bbddb75d/biosteam/digraph/digraph.css",
     ]
     for href in links:
         link = ElementTree.SubElement(head, 'link')
@@ -420,7 +420,7 @@ def inject_javascript(img:bytes):
     srcs = [
         "https://unpkg.com/@popperjs/core@2",
         "https://unpkg.com/tippy.js@6",
-        "digraph/digraph.js",
+        "https://rawcdn.githack.com/BioSTEAMDevelopmentGroup/biosteam/e065aca079c216d72b75949bbcbb74a3bbddb75d/biosteam/digraph/digraph.js",
     ]
     for src in srcs:
         script = ElementTree.SubElement(head, 'script')
