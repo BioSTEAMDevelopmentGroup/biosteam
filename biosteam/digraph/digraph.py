@@ -397,17 +397,6 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
                        pen_width=pen_width,
                        **edge_options)
 
-def display_digraph(digraph, format): # pragma: no coverage
-    if format == 'svg':
-        x = display.SVG(digraph.pipe(format=format))
-    elif format == 'html':
-        img = digraph.pipe(format='svg')
-        img = inject_javascript(img)
-        x = display.HTML(img.decode("utf-8") )
-    else:
-        x = display.Image(digraph.pipe(format='png'))
-    display.display(x)
-
 def inject_javascript(img:bytes):
     html = ElementTree.Element('html')
     head = ElementTree.SubElement(html, 'head')
@@ -463,6 +452,17 @@ def inject_javascript(img:bytes):
     s = ElementTree.tostring(html, encoding='utf8', method='html')
     s = b"<!DOCTYPE html>"+s
     return s
+
+def display_digraph(digraph, format): # pragma: no coverage
+    if format == 'svg':
+        x = display.SVG(digraph.pipe(format=format))
+    elif format == 'html':
+        img = digraph.pipe(format='svg')
+        img = inject_javascript(img)
+        x = display.HTML(img.decode("utf-8") )
+    else:
+        x = display.Image(digraph.pipe(format='png'))
+    display.display(x)
 
 def save_digraph(digraph, file, format): # pragma: no coverage
     if '.' not in file:
