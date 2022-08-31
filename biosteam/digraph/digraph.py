@@ -400,6 +400,10 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
 def display_digraph(digraph, format): # pragma: no coverage
     if format == 'svg':
         x = display.SVG(digraph.pipe(format=format))
+    elif format == 'html':
+        img = digraph.pipe(format='svg')
+        img = inject_javascript(img)
+        x = display.HTML(img.decode("utf-8") )
     else:
         x = display.Image(digraph.pipe(format='png'))
     display.display(x)
