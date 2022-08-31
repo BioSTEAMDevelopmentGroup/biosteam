@@ -397,6 +397,41 @@ def add_connections(f: Digraph, connections, unit_names, color=None, fontcolor=N
                        pen_width=pen_width,
                        **edge_options)
 
+def fix_valve_symbol_in_svg_output(
+        img:bytes,
+        unit_color:str = bst.preferences.unit_color,
+        unit_periphery_color:str = bst.preferences.unit_periphery_color,
+        label_color:str = bst.preferences.label_color,
+):
+    """Fix valve symbols because images cannot be loaded when choosing `format='svg'`"""
+    # get all image tags
+    tree = ElementTree.fromstring(img)
+    images = [e for e in tree.iter() if 'image' in e.tag]
+    # make polygon
+    parent_map = {c: p for p in tree.iter() for c in p}
+    polygons = [c for i in images for c in parent_map[i].getchildren() if 'polygon' in c.tag]
+    for p in polygons:
+        points = p.attrib["points"].split(' ')
+        # turn rect into valve symbol
+        buffer = points[1]
+        points[1] = points[2]
+        points[2] = buffer
+        p.attrib["points"] = ' '.join(points)
+        # fix color
+        p.attrib["fill"] = unit_color
+        p.attrib["stroke"] = unit_periphery_color
+    # fix label text color and position
+    label_image = [(c,i) for i in images for c in parent_map[parent_map[parent_map[i]]].getchildren() if 'text' in c.tag]
+    for l,i in label_image:
+        l.attrib["fill"] = label_color
+        width = int(i.attrib['width'].replace('px',''))
+        x = float(i.attrib["x"])
+        l.attrib["x"] = f"{x+width/2}"
+    # delete image tags
+    for i in images:
+        parent_map[i].remove(i)
+    return ElementTree.tostring(tree)
+
 def inject_javascript(img:bytes):
     html = ElementTree.Element('html')
     head = ElementTree.SubElement(html, 'head')
@@ -455,9 +490,12 @@ def inject_javascript(img:bytes):
 
 def display_digraph(digraph, format): # pragma: no coverage
     if format == 'svg':
-        x = display.SVG(digraph.pipe(format=format))
+        img = digraph.pipe(format=format)
+        img = fix_valve_symbol_in_svg_output(img)
+        x = display.SVG(img)
     elif format == 'html':
         img = digraph.pipe(format='svg')
+        img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
         x = display.HTML(img.decode("utf-8") )
     else:
@@ -471,9 +509,12 @@ def save_digraph(digraph, file, format): # pragma: no coverage
         file += '.' + format
     if format == 'html':
         img = digraph.pipe(format='svg')
+        img = fix_valve_symbol_in_svg_output(img)
         img = inject_javascript(img)
     else:
         img = digraph.pipe(format=format)
+        if format == 'svg':
+            img = fix_valve_symbol_in_svg_output(img)
     f = open(file, 'wb')
     f.write(img)
     f.close()
