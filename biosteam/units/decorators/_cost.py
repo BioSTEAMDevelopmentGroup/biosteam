@@ -42,11 +42,14 @@ class CostItem:
         Attribute name for number of parallel units.
     f : function, optional
         Should return the cost given the size `S` at the given CE.
+    condition : function(dict), optional
+        Cost item is only evaluated if `condition` returns True given the 
+        `design_results` dictionary.
     
     """
     __slots__ = ('_basis', '_units', 'S', 'lb', 'ub', 'CE',
-                 'cost', 'n', 'kW', 'N', 'f')
-    def __init__(self, basis, units, S, lb, ub, CE, cost, n, kW, N, f):
+                 'cost', 'n', 'kW', 'N', 'f', 'condition')
+    def __init__(self, basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition):
         if f:
             if (cost is not None or n is not None):
                 raise ValueError('cannot define parameters `cost` and `n` '
@@ -74,6 +77,7 @@ class CostItem:
         self.kW = 0. if kW is None else float(kW)
         self.N = N
         self.f = f
+        self.condition = condition
     
     __getitem__ = object.__getattribute__
     __setitem__ = object.__setattr__
@@ -91,6 +95,7 @@ class CostItem:
         new.kW = self.kW
         new.N = self.N
         new.f = self.f
+        new.condition = self.condition
         return new
     
     @property
@@ -120,6 +125,8 @@ def _decorated_cost(self):
     C = self.baseline_purchase_costs
     kW = 0
     for i, x in self.cost_items.items():
+        if x.condition is not None: 
+            if not x.condition(): continue
         S = D[x._basis]
         if x.lb is not None and S < x.lb:
             S = x.lb
@@ -167,7 +174,7 @@ def copy_algorithm(other, cls=None, run=True, design=True, cost=True):
     return cls
 
 def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=None, BM=1.,
-         units=None, N=None, lifetime=None, f=None, annual=None):    
+         units=None, N=None, lifetime=None, f=None, annual=None, condition=None):    
     r"""
     Add item (free-on-board) purchase cost based on exponential scale up.
     
@@ -203,6 +210,9 @@ def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=No
         Whether to annualize design basis. For example, the yearly flow rate of
         treated water should be annualized to account for operating hours and
         plant downtime.
+    condition : function(dict), optional
+        Cost item is only evaluated if `condition` returns True given the 
+        `design_results` dictionary.
         
     Examples
     --------
@@ -210,9 +220,9 @@ def cost(basis, ID=None, *, CE, cost=None, n=None, S=1., lb=None, ub=None, kW=No
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual)
+    return lambda cls: add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual, condition)
 
-def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual):
+def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime, f, annual, condition):
     # Make sure new _units dictionary is defined
     if '_units' not in cls.__dict__:
         cls._units = cls._units.copy() if hasattr(cls, '_units') else {}
@@ -232,12 +242,12 @@ def add_cost(cls, ID, basis, units, S, lb, ub, CE, cost, n, kW, BM, N, lifetime,
             raise ValueError("must pass an 'ID' for purchase cost item")
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
-        cls.cost_items[ID] = CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f)
+        cls.cost_items[ID] = CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition)
         cls._F_BM_default[ID] = BM
         if lifetime: cls._default_equipment_lifetime[ID] = lifetime
     else:
         ID = ID or cls.line
-        cls.cost_items = {ID: CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f)}
+        cls.cost_items = {ID: CostItem(basis, units, S, lb, ub, CE, cost, n, kW, N, f, condition)}
         if '_F_BM_default' not in cls.__dict__:
             cls._F_BM_default = cls._F_BM_default.copy() if hasattr(cls, '_F_BM_default') else {}
         if '_default_equipment_lifetime' not in cls.__dict__:

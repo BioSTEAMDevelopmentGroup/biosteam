@@ -24,7 +24,6 @@ __all__ = (
     'get_inlet_origin',
     'get_streams_from_context_level',
     'get_fresh_process_water_streams',
-    'get_streams_from_context_level',
     'FreeProductStreams',
 )
 
@@ -155,7 +154,7 @@ def get_streams_from_context_level(level=None):
         units = bst.main_flowsheet.unit
         context_levels = units.context_levels
         N_levels = len(context_levels)
-        if (level > 0 and level >= N_levels or level < 0 and -level > N_levels):
+        if (level >= 0 and level >= N_levels or level < 0 and -level > N_levels):
             streams = list(bst.main_flowsheet.stream)
         else:
             units = context_levels[level]
@@ -205,7 +204,7 @@ class FreeProductStreams:
         isa = isinstance
         self.streams = streams = frozenset([
             i for i in streams if 
-            not i.price and i.isproduct() and not i.isempty()
+            not i.price and i.isproduct() and 'recycle' not in i._ID and not i.isempty()
             and not isa(i.source, bst.Facility)
         ])
         self.cache = {}

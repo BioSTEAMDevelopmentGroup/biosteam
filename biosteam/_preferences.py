@@ -11,10 +11,39 @@ from thermosteam import Stream
 import yaml
 import os
 
-__all__ = ('preferences',)
+__all__ = ('preferences', 'TemporaryPreferences')
 
-class BioSTEAMDisplayPreferences:
-    """Class containing preferences for BioSTEAM diagram and results display."""
+class DisplayPreferences:
+    """
+    All preferences for BioSTEAM diagram and results display.
+
+    Examples
+    --------
+    >>> from biosteam import preferences
+    >>> preferences.show()
+    DisplayPreferences:
+     label_streams: True
+     autodisplay: True
+     minimal_nodes: False
+     number_path: False
+     profile: False
+     raise_exception: False
+     background_color: transparent
+     stream_color: #90918e
+     label_color: #90918e
+     depth_colors: ['#f98f609f']
+     stream_width: F_mass
+     unit_color: #555f69
+     unit_label_color: white
+     unit_periphery_color: #90918e
+     fill_cluster: False
+     flow: kmol/hr
+     T: K
+     P: Pa
+     composition: False
+     N: 7
+    
+    """
     __slots__ = ('label_streams', 'autodisplay', 'minimal_nodes', 'number_path',
                  'profile', 'raise_exception', 'background_color', 'stream_color',
                  'label_color', 'label_color', 'depth_colors', 'stream_width',
@@ -24,51 +53,56 @@ class BioSTEAMDisplayPreferences:
     def __init__(self):
         #: Whether to label the ID of streams with sources and sinks in process 
         #: flow diagrams.
-        self.label_streams = True
+        self.label_streams: bool = True
         
         #: Whether to automatically generate diagrams when displaying an object in the
         #: IPython console.
-        self.autodisplay = True
+        self.autodisplay: bool = True
         
         #: Whether to ignore unit graphics and display unit nodes as dots in process
         #: flow diagrams.
-        self.minimal_nodes = False
+        self.minimal_nodes: bool = False
         
         #: Whether to number unit operations according to their order in the system path.
-        self.number_path = False
+        self.number_path: bool = False
         
         #: Whether to clock the simulation time of unit operations in diagrams.
-        self.profile = False
+        self.profile: bool = False
         
         #: Whether to raise exception regarding problems displaying graphviz diagrams.
-        self.raise_exception = False
+        self.raise_exception: bool = False
         
         #: Background color in graphviz diagrams.
-        self.background_color = 'transparent'
+        self.background_color: str = 'transparent'
         
         #: Color of streams in graphviz diagrams.
-        self.stream_color = '#90918e'
+        self.stream_color: str = '#90918e'
         
         #: Color of stream labels in graphviz diagrams.
-        self.label_color = '#90918e'
+        self.label_color: str = '#90918e'
         
         #: Color of subsystem clusters in BioSTEAM graphviz diagrams.
-        self.depth_colors = ['#7ac0836f']
+        self.depth_colors: list[str] = ['#f98f609f']
         
         #: Property to scale stream widths in BioSTEAM graphviz diagrams.
-        self.stream_width = 'F_mass'
+        self.stream_width: str = 'F_mass'
         
         #: Unit node fill color in BioSTEAM graphviz diagrams.
-        self.unit_color = '#555f69'
+        self.unit_color: str = '#555f69'
         
         #: Unit node label color in BioSTEAM graphviz diagrams.
-        self.unit_label_color = 'white'
+        self.unit_label_color: str = 'white'
         
         #: Unit node periphery color in BioSTEAM graphviz diagrams.
-        self.unit_periphery_color = '#90918e'
+        self.unit_periphery_color: str = '#90918e'
         
         #: Whether to fill subsystem boxes in BioSTEAM 'cluster' diagrams.
-        self.fill_cluster = False
+        self.fill_cluster: bool = False
+        
+    def temporary(self):
+        """Return a TemporaryPreferences object that will revert back to original
+        preferences after context management."""
+        return TemporaryPreferences()
         
     def reset(self, save=False):
         """Reset to BioSTEAM defaults."""
@@ -81,40 +115,40 @@ class BioSTEAMDisplayPreferences:
         if save: self.save()
         
     @property
-    def flow(self):
-        """[str] Flow rate units."""
+    def flow(self) -> str:
+        """Flow rate units."""
         return Stream.display_units.flow
     @flow.setter
     def flow(self, units):
         Stream.display_units.flow = units
         
     @property
-    def T(self):
-        """[str] Temperature units."""
+    def T(self) -> str:
+        """Temperature units."""
         return Stream.display_units.T
     @T.setter
     def T(self, units):
         Stream.display_units.T = units
 
     @property
-    def P(self):
-        """[str] Pressure units."""
+    def P(self) -> str:
+        """Pressure units."""
         return Stream.display_units.P
     @P.setter
     def P(self, units):
         Stream.display_units.P = units
 
     @property
-    def composition(self):
-        """[bool] Whether to show composition.""" 
+    def composition(self) -> bool:
+        """Whether to show composition.""" 
         return Stream.display_units.composition
     @composition.setter
     def composition(self, composition):
         Stream.display_units.composition = composition
 
     @property
-    def N(self):
-        """[int] Number of compounds to display."""
+    def N(self) -> int:
+        """Number of compounds to display."""
         return Stream.display_units.N
     @N.setter
     def N(self, N):
@@ -140,7 +174,7 @@ class BioSTEAMDisplayPreferences:
                      stream='#90918e', 
                      label='#90918e', 
                      bg='transparent',
-                     cluster=('#7ac0836f',),
+                     cluster=('#f98f609f',),
                      unit_color='#555f69',
                      unit_label_color='white',
                      unit_periphery_color='none',
@@ -176,43 +210,54 @@ class BioSTEAMDisplayPreferences:
         with open(file, 'r') as stream: 
             data = yaml.full_load(stream)
             assert isinstance(data, dict), 'yaml file must return a dict' 
+        self.update(**data)
         
-        self.label_streams = data['label_streams']
-        self.autodisplay = data['autodisplay']
-        self.minimal_nodes = data['minimal_nodes']
-        self.number_path = data['number_path']
-        self.profile = data['profile']
-        self.raise_exception = data['raise_exception']
-        self.background_color = data['background_color']
-        self.stream_color = data['stream_color']
-        self.label_color = data['label_color']
-        self.depth_colors = data['depth_colors']
-        self.flow = data['flow']
-        self.T = data['T']
-        self.P = data['P']
-        self.composition = data['composition']
-        self.N = data['N']
-        self.stream_width = data.get('stream_width', 'F_mass')
-        self.unit_color = data.get('unit_color', '#555f69')
-        self.unit_label_color = data.get('unit_label_color', 'white')
-        self.unit_periphery_color = data.get('unit_periphery_color', '#90918e')
-        self.fill_cluster = data.get('fill_cluster', False)
+    def to_dict(self):
+        """Return dictionary of all preferences."""
+        dct = {i: getattr(self, i) for i in preferences.__slots__}
+        dct['flow'] = self.flow
+        dct['T'] = self.T
+        dct['P'] = self.P
+        dct['composition'] = self.composition
+        dct['N'] = self.N
+        return dct
         
     def save(self):
+        """Save preferences."""
         folder = os.path.dirname(__file__)
         file = os.path.join(folder, 'preferences.yaml')
         with open(file, 'w') as file:
-            dct = {i: getattr(self, i) for i in BioSTEAMDisplayPreferences.__slots__}
-            dct['flow'] = self.flow
-            dct['T'] = self.T
-            dct['P'] = self.P
-            dct['composition'] = self.composition
-            dct['N'] = self.N
+            dct = self.to_dict()
             yaml.dump(dct, file)
 
-#: [BioSTEAMDisplayPreferences] All preferences for diagram and results display.
-preferences = BioSTEAMDisplayPreferences()
-from warnings import filterwarnings; filterwarnings('ignore')
-# if not os.environ.get("DISABLE_PREFERENCES") == "1":
-#     try: preferences.autoload()
-#     except: pass 
+    def show(self):
+        """Print all specifications."""
+        dct = self.to_dict()
+        print(f'{type(self).__name__}:\n' + '\n'.join([f" {i}: {j}" for i, j in dct.items()])) 
+    _ipython_display_ = show
+
+
+class TemporaryPreferences:
+    
+    def __enter__(self):
+        dct = self.__dict__
+        dct.update({i: getattr(preferences, i) for i in preferences.__slots__})
+        dct['flow'] = preferences.flow
+        dct['T'] = preferences.T
+        dct['P'] = preferences.P
+        dct['composition'] = preferences.composition
+        dct['N'] = preferences.N
+        return preferences
+        
+    def __exit__(self, type, exception, traceback):
+        preferences.update(**self.__dict__)
+        if exception: raise exception
+
+#: 
+preferences: DisplayPreferences = DisplayPreferences()
+
+if os.environ.get("FILTER_WARNINGS"):
+    from warnings import filterwarnings; filterwarnings('ignore')
+if not os.environ.get("DISABLE_PREFERENCES") == "1":
+    try: preferences.autoload()
+    except: pass 

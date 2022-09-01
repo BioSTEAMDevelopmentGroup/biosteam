@@ -412,8 +412,8 @@ class MultiEffectEvaporator(Unit):
         
         # Find area and cost of evaporators
         As = [A]
-        A_min, A_max = A_range
         evap = evaporators[-1]
+        bounds_warning = bst.exceptions.bounds_warning
         for evap in evaporators[1:]:
             Q = evap.design_results['Heat transfer']
             if Q <= 1e-12: 
@@ -425,8 +425,7 @@ class MultiEffectEvaporator(Unit):
                 LMTD = Th - Tc
                 A = compute_heat_transfer_area(LMTD, U, Q, 1.)
                 As.append(A)
-                if settings.debug and not A_min < A < A_max:
-                    warn(f'area requirement ({A}) is out of range, {A_range}')
+                bounds_warning(self, 'heat transfer area requirement', A, 'ft2', A_range, 'cost')
                 evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)

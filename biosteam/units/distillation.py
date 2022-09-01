@@ -6,15 +6,27 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for distillation.
-
 .. contents:: :local:
     
-Unit Operations
----------------
 .. autoclass:: biosteam.units.distillation.Distillation
 .. autoclass:: biosteam.units.distillation.BinaryDistillation 
 .. autoclass:: biosteam.units.distillation.ShortcutColumn
+
+References
+----------
+.. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
+    Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
+
+.. [2] M. Duss, R. Taylor. (2018)
+    Predict Distillation Tray Efficiency. AICHE 
+
+.. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
+    Handbook, 9 ed.; McGraw-Hill Education, 2018.
+
+.. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
+    & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
+    Cost Accounting and Capital Cost Estimation (Chapter 16)
+
 
 """
 import numpy as np
@@ -105,21 +117,6 @@ class Distillation(Unit, isabstract=True):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
     """
     line = 'Distillation'
     auxiliary_unit_names = ('condenser', 'boiler')
@@ -199,6 +196,7 @@ class Distillation(Unit, isabstract=True):
                 partial_condenser=True,
         ):
         Unit.__init__(self, ID, ins, outs, thermo)
+        self.check_LHK = True
         
         # Operation specifications
         self.k = k
@@ -231,7 +229,7 @@ class Distillation(Unit, isabstract=True):
         thermo = self.thermo
         
         #: [MultiStream] Overall feed to the distillation column
-        self.feed = tmo.MultiStream(None, thermo=thermo)
+        self.mixed_feed = tmo.MultiStream(None, thermo=thermo)
         
         #: [HXutility] Condenser.
         if not condenser_thermo: condenser_thermo = thermo
@@ -537,18 +535,21 @@ class Distillation(Unit, isabstract=True):
                          'between the distillate and bottoms product compositions '
                          '(i.e. z_distillate_HK < z_feed_HK < z_bottoms_HK)')
                 )
-        if tmo.settings.debug:
+        if self.check_LHK:
             intermediate_chemicals = self._intermediate_volatile_chemicals
-            intermediate_flows = self.feed.imol[intermediate_chemicals]
+            intermediate_flows = self.mixed_feed.imol[intermediate_chemicals]
             minflow = min(LK_distillate, HK_bottoms)
             for flow, chemical in zip(intermediate_flows, intermediate_chemicals):
-                assert flow > minflow, ("significant intermediate volatile chemical,"
-                                        f"'{chemical}', between light and heavy "
-                                        f"key, {', '.join(LHK)}")
+                if flow > minflow:
+                    raise RuntimeError(
+                        "significant intermediate volatile chemical,"
+                       f"'{chemical}', between light and heavy "
+                       f"keys, {', '.join(LHK)}; to ignore this check, "
+                        "set `<Unit>.check_LHK = False`")
     
     def _run_binary_distillation_mass_balance(self):
         # Get all important flow rates (both light and heavy keys and non-keys)
-        feed = self.feed
+        feed = self.mixed_feed
         feed.mix_from(self.ins)
         feed.vle(H=feed.H, P=self.P)
         mol = feed.mol
@@ -610,12 +611,12 @@ class Distillation(Unit, isabstract=True):
     def _setup(self):
         super()._setup()
         distillate, bottoms_product = self.outs
-        self.boiler.ins[0].P = self.condenser.ins[0].P = self.condenser.outs[0].P = self.feed.P = distillate.P = bottoms_product.P = self.P
+        self.boiler.ins[0].P = self.condenser.ins[0].P = self.condenser.outs[0].P = self.mixed_feed.P = distillate.P = bottoms_product.P = self.P
         distillate.phase = 'g' if self._partial_condenser else 'l'
         bottoms_product.phase = 'l'
 
     def get_feed_quality(self):
-        feed = self.feed
+        feed = self.mixed_feed
         data = feed.get_data()
         H_feed = feed.H
         try: dp = feed.dew_point_at_P()
@@ -633,7 +634,7 @@ class Distillation(Unit, isabstract=True):
         return q
 
     def _run_condenser_and_boiler(self):
-        feed = self.feed
+        feed = self.mixed_feed
         distillate, bottoms_product = self.outs
         condenser = self.condenser
         boiler = self.boiler
@@ -696,7 +697,7 @@ class Distillation(Unit, isabstract=True):
     
     def _compute_N_stages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
-        feed = self.feed
+        feed = self.mixed_feed
         vap, liq = self.outs
         Design = self.design_results
         R = Design['Reflux']
@@ -993,21 +994,6 @@ class BinaryDistillation(Distillation, new_graphics=False):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
     Examples
     --------
     Binary distillation assuming 100% separation on non-keys:
@@ -1069,7 +1055,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
                         Rectifier weight                     lb  6.04e+03
                         Stripper weight                      lb  4.45e+03
     Purchase cost       Condenser - Floating head           USD  3.33e+04
-                        Boiler - Floating head              USD  2.67e+04
+                        Boiler - Floating head              USD  2.71e+04
                         Rectifier trays                     USD   1.5e+04
                         Stripper trays                      USD  1.25e+04
                         Rectifier tower                     USD  4.58e+04
@@ -1100,7 +1086,7 @@ class BinaryDistillation(Distillation, new_graphics=False):
         LHK_index = chemicals.get_index(LHK)
 
         # Feed light key mol fraction
-        feed = self.feed
+        feed = self.mixed_feed
         liq_mol = feed.imol['l']
         vap_mol = feed.imol['g']
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
@@ -1408,21 +1394,6 @@ class ShortcutColumn(Distillation, new_graphics=False):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
     Examples
     --------
     >>> from biosteam.units import ShortcutColumn
@@ -1482,7 +1453,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
                         Rectifier weight                     lb  6.76e+03
                         Stripper weight                      lb  7.96e+03
     Purchase cost       Condenser - Floating head           USD  4.07e+04
-                        Boiler - Floating head              USD  2.93e+04
+                        Boiler - Floating head              USD  2.98e+04
                         Rectifier trays                     USD  1.58e+04
                         Stripper trays                      USD  2.01e+04
                         Rectifier tower                     USD  4.89e+04
@@ -1514,7 +1485,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         self._run_binary_distillation_mass_balance()
         
         # Initialize objects to calculate bubble and dew points
-        vle_chemicals = self.feed.vle_chemicals
+        vle_chemicals = self.mixed_feed.vle_chemicals
         reset_cache = self._vle_chemicals != vle_chemicals
         if reset_cache:
             self._dew_point = DewPoint(vle_chemicals, self.thermo)
@@ -1530,7 +1501,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         # Add temporary specification
         composition_spec = self.product_specification_format == 'Composition'
         if composition_spec:
-            feed = self.feed
+            feed = self.mixed_feed
             distillate, bottoms = self.outs
             LK_index, HK_index = LHK_index = self._LHK_index
             LK_feed, HK_feed = feed.mol[LHK_index]
@@ -1632,7 +1603,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
         distillate, bottoms = self.outs
         LNK_index = self._LNK_index
         HNK_index = self._HNK_index
-        feed_mol = self.feed.mol
+        feed_mol = self.mixed_feed.mol
         LNK_mol = feed_mol[LNK_index]
         HNK_mol = feed_mol[HNK_index]
         bottoms.mol[LNK_index] = LNK_trace = 0.0001 * LNK_mol
@@ -1666,7 +1637,7 @@ class ShortcutColumn(Distillation, new_graphics=False):
                                                                     self._LHK_vle_index)
         
     def _update_distillate_recoveries(self, distillate_recoveries):
-        feed = self.feed
+        feed = self.mixed_feed
         distillate, bottoms = self.outs
         IDs = self._IDs_vle
         feed_mol = feed.imol[IDs]
@@ -1759,21 +1730,6 @@ class MESHDistillation(Distillation, new_graphics=False):
     is_divided=False : bool
         True if the stripper and rectifier are two separate columns.
 
-    References
-    ----------
-    .. [1] J.D. Seader, E.J. Henley, D.K. Roper. (2011)
-        Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. 
-
-    .. [2] M. Duss, R. Taylor. (2018)
-        Predict Distillation Tray Efficiency. AICHE 
-    
-    .. [3] Green, D. W. Distillation. In Perry’s Chemical Engineers’
-        Handbook, 9 ed.; McGraw-Hill Education, 2018.
-
-    .. [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R.,
-        & Ng, M. K. (2017). Product and Process Design Principles. Wiley.
-        Cost Accounting and Capital Cost Estimation (Chapter 16)
-
     Notes
     -----
     Not yet ready for users.
@@ -1863,7 +1819,7 @@ class MESHDistillation(Distillation, new_graphics=False):
         self._run_binary_distillation_mass_balance()
         
         # Initialize objects to calculate bubble and dew points
-        vle_chemicals = self.feed.vle_chemicals
+        vle_chemicals = self.mixed_feed.vle_chemicals
         reset_cache = self._vle_chemicals != vle_chemicals
         if reset_cache:
             self._dew_point = DewPoint(vle_chemicals, self.thermo)
@@ -1879,7 +1835,7 @@ class MESHDistillation(Distillation, new_graphics=False):
         # Add temporary specification
         composition_spec = self.product_specification_format == 'Composition'
         if composition_spec:
-            feed = self.feed
+            feed = self.mixed_feed
             distillate, bottoms = self.outs
             LK_index, HK_index = LHK_index = self._LHK_index
             LK_feed, HK_feed = feed.mol[LHK_index]

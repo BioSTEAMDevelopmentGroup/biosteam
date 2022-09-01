@@ -276,4 +276,4 @@ class Fermentation(BatchBioreactor):
         if self.lipid_reaction: self.lipid_reaction.force_reaction(effluent)
         effluent.empty_negative_flows()
         vent.empty()
-        vent.receive_vent(effluent)
+        vent.receive_vent(effluent, energy_balance=False)

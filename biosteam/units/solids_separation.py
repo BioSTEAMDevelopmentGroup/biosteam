@@ -11,20 +11,29 @@ This module contains unit operations for the separation of solids
 
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.solids_separation.SolidsSeparator
 .. autoclass:: biosteam.units.solids_separation.SolidsCentrifuge
 .. autoclass:: biosteam.units.solids_separation.RotaryVacuumFilter 
 .. autoclass:: biosteam.units.solids_separation.PressureFilter
 .. autoclass:: biosteam.units.solids_separation.ScrewPress
 
+References
+----------
+.. [1] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost 
+    Estimation". In Product and Process Design Principles: Synthesis, Analysis,
+    and Evaluation (pp. 481-485). New York: Wiley.
+.. [2] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+    Dudgeon, D. (2011). Process Design and Economics for Biochemical 
+    Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
+    Pretreatment and Enzymatic Hydrolysis of Corn Stover
+    (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
+
 """
 from .decorators import cost
 from .splitting import Splitter
 from .design_tools import compute_vacuum_system_power_and_cost
 from warnings import warn
-from ..utils.unit_warnings import lb_warning
+from ..exceptions import lb_warning
 from .decorators import cost
 from biosteam.utils import remove_undefined_chemicals, default_chemical_dict
 import numpy as np
@@ -84,7 +93,7 @@ class SolidsSeparator(Splitter):
 class SolidsCentrifuge(SolidsSeparator):
     """
     Create a solids centrifuge that separates out solids according to
-    user defined split.
+    user defined split. Capital cost is based on [1]_
     
     Parameters
     ----------
@@ -98,19 +107,12 @@ class SolidsCentrifuge(SolidsSeparator):
     order=None : Iterable[str]
         Species order of split. Defaults to Stream.chemicals.IDs.
     solids : tuple[str]
-             IDs of solids.
+        IDs of solids.
     moisture_content : float
-        Fraction of water in stream [0].
+        Fraction of water in stream.
     centrifuge_type : str
         Type of the centrifuge, either 'reciprocating_pusher' (1-20 ton/hr solids)
         or 'scroll_solid_bowl' (2-40 ton/hr solids).
-    
-    
-    References
-    ----------
-    .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost 
-    Estimation". In Product and Process Design Principles: Synthesis, Analysis,
-    and Evaluation (pp. 481-485). New York: Wiley.
     
     """
     _units = {'Solids loading': 'ton/hr',
@@ -192,10 +194,11 @@ class RotaryVacuumFilter(SolidsSeparator):
     radius = 1
     
     #: Suction pressure (Pa)
-    P_suction = 105
+    P_suction = 1500.
     
     #: For crystals (lb/day-ft^2)
     filter_rate = 6000
+    
     _kwargs = {'moisture_content': 0.80} # fraction
     _bounds = {'Individual area': (10, 800)}
     _units = {'Area': 'ft^2',
@@ -242,12 +245,14 @@ class RotaryVacuumFilter(SolidsSeparator):
         Area = self.design_results['Individual area']
         N = self.design_results['# RVF']
         vessel_volume = N * radius*Area*0.0929/2. # m3
-        
+        vacummed_air = s_vacuumed.F_vol # Flow rate sucked-in displaces air
+        air_density = 1.2754 # kg /m3
         vacuum_results = compute_vacuum_system_power_and_cost(
-                0, 0, self.P_suction, vessel_volume)
+                vacummed_air * air_density, vacummed_air, self.P_suction, vessel_volume)
         #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
         self.baseline_purchase_costs['Vacuum system'] = vacuum_results['Cost']
         self.design_results['Vacuum system'] = vacuum_results['Name']
+        self.design_results['Vacuums in parallel'] = vacuum_results['In parallel']
         vacuum_steam, vacuum_cooling_water = self.heat_utilities
         vacuum_steam.set_utility_by_flow_rate(vacuum_results['Heating agent'], vacuum_results['Steam flow rate'])
         if vacuum_results['Condenser']: 
@@ -259,7 +264,7 @@ class RotaryVacuumFilter(SolidsSeparator):
     @staticmethod
     def _calc_Area(flow, filter_rate):
         """Return area in ft^2 given flow in kg/hr and filter rate in lb/day-ft^2."""
-        return flow*52.91/filter_rate
+        return flow*52.91 / filter_rate
     
 RVF = RotaryVacuumFilter
 
@@ -319,7 +324,7 @@ _hp2kW = 0.7457
 class PressureFilter(SolidsSeparator):
     """
     Create a pressure filter for the separation of structural carbohydrates, 
-    lignin, cell mass, and other solids.
+    lignin, cell mass, and other solids. Capital costs are based on [2]_.
     
     Parameters
     ----------
@@ -330,17 +335,9 @@ class PressureFilter(SolidsSeparator):
         * [1] Filtrate
     split : array_like or dict[str, float]
         Splits of chemicals to the retantate. Defaults to values used in
-        the 2011 NREL report on cellulosic ethanol as given in [1]_.
+        the 2011 NREL report on cellulosic ethanol as given in [2]_.
     moisture_content : float, optional
         Moisture content of retentate. Defaults to 0.35
-    
-    References
-    ----------
-    .. [1] Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
-        Dudgeon, D. (2011). Process Design and Economics for Biochemical 
-        Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid 
-        Pretreatment and Enzymatic Hydrolysis of Corn Stover
-        (No. NREL/TP-5100-47764, 1013269). https://doi.org/10.2172/1013269
     
     """
     _units = {'Retentate flow rate': 'kg/hr'}

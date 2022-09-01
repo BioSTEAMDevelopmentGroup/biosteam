@@ -182,12 +182,12 @@ class Model(State):
         samples_diff = samples_max - samples_min
         normalized_samples = (samples - samples_min) / samples_diff
         if ss: 
-            def evaluate(sample, **kwargs):
+            def evaluate(sample, material_data):
                 try:
                     self._parameters = parameters
                     for f, s in zip(self._parameters, sample): 
                         f.setter(s if f.scale is None else f.scale * s)
-                    diff = self._system.converge(**kwargs)
+                    diff = self._system.converge(material_data=material_data)
                 finally:
                     self._parameters = original_parameters
                 return diff
@@ -196,8 +196,7 @@ class Model(State):
             index = range(N_parameters)
             evaluate(sample)
             material_data = self._system.get_material_data()
-            material_flows = material_data['material_flows']
-            N_elements = material_flows.size
+            N_elements = material_data.material_flows.size
             diffs = np.zeros([N_parameters, N_elements])
             for i in index:
                 sample_lb = sample.copy()
@@ -211,10 +210,10 @@ class Model(State):
                 else:
                     sample_lb[i] = lb
                     sample_ub[i] = ub
-                lb = evaluate(sample_lb, **material_data).flatten()
-                ub = evaluate(sample_ub, **material_data).flatten()
+                lb = evaluate(sample_lb, material_data).flatten()
+                ub = evaluate(sample_ub, material_data).flatten()
                 diffs[i] = ub - lb
-            div = diffs.max(axis=0)
+            div = np.abs(diffs).max(axis=0)
             div[div == 0.] = 1
             diffs /= div
             normalized_samples = normalized_samples @ diffs
@@ -316,7 +315,6 @@ class Model(State):
                 os.mkdir(head)
                 with open(file, 'wb') as f: pickle.dump(obj, f)
             
-        
     def single_point_sensitivity(self, 
             etol=0.01, array=False, parameters=None, metrics=None, evaluate=None, 
             **kwargs
@@ -333,7 +331,7 @@ class Model(State):
         if evaluate is None: evaluate = self._evaluate_sample
         baseline_1 = np.array(evaluate(sample, **kwargs))
         sys = self.system
-        if not sys.isdynamic: kwargs.update(sys.get_material_data())
+        if not sys.isdynamic: kwargs['material_data'] = sys.get_material_data()
         for i in index:
             sample_lb = sample.copy()
             sample_ub = sample.copy()
@@ -432,24 +430,19 @@ class Model(State):
             values = [None] * len(index)
         
         export = 'export_state_to' in kwargs
-        if autosave:
-            layout = table.index, table.columns
-            for number, i in enumerate(index, number + 1): 
-                if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **kwargs)
-                if not number % autosave: 
-                    obj = (number, values, *layout)
-                    try:
-                        with open(file, 'wb') as f: pickle.dump(obj, f)
-                    except FileNotFoundError:
-                        import os
-                        head, tail = os.path.split(file)
-                        os.mkdir(head)
-                        with open(file, 'wb') as f: pickle.dump(obj, f)
-        else:
-            for i in index: 
-                if export: kwargs['sample_id'] = i
-                values[i] = evaluate(samples[i], **kwargs)
+        layout = table.index, table.columns
+        for number, i in enumerate(index, number + 1): 
+            if export: kwargs['sample_id'] = i
+            values[i] = evaluate(samples[i], **kwargs)
+            if autosave and not number % autosave: 
+                obj = (number, values, *layout)
+                try:
+                    with open(file, 'wb') as f: pickle.dump(obj, f)
+                except FileNotFoundError:
+                    import os
+                    head, tail = os.path.split(file)
+                    os.mkdir(head)
+                    with open(file, 'wb') as f: pickle.dump(obj, f)
         table[var_indices(self._metrics)] = values
     
     def _evaluate_sample(self, sample, **kwargs):

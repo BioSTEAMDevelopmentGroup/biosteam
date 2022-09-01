@@ -1012,11 +1012,11 @@ def plot_contour_2d(X_grid, Y_grid, Z_1d, data,
                     pad = 0.175
                 else:
                     pad = 0.05
-                cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=0.8, label=clabel, pad=pad)
+                cbs[row, col] = metric_bar.colorbar(fig, ax, cp, shrink=metric_bar.shrink, label=clabel, pad=pad)
             style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
         if row_bars:
             cbar_ax = axes[row, -1]
-            cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=0.8,)
+            cbs[row] = metric_bar.colorbar(fig, cbar_ax, cp, fraction=0.5, shrink=metric_bar.shrink,)
         
         # plt.clim()
     for col in range(ncols):
@@ -1049,6 +1049,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
     if styleaxiskw is None: styleaxiskw = {}
     cps = np.zeros([nrows, ncols], dtype=object)
     linecolor = c.neutral_shade.RGBn
+    other_axes = []
     for row in range(nrows):
         for col in range(ncols):
             ax = axes[row, col]
@@ -1072,7 +1073,8 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
                           colors=['k'], zorder=1)
                 for i in clabels: i.set_rotation(0)
             cps[row, col] = cp
-            style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            dct = style_axis(ax, xticks, yticks, xticklabels, yticklabels, **styleaxiskw)
+            other_axes.append(dct)
     cb = metric_bar.colorbar(fig, ax_colorbar, cp, fraction=0.5)
     plt.sca(ax_colorbar)
     plt.axis('off')
@@ -1082,7 +1084,7 @@ def plot_contour_single_metric(X_grid, Y_grid, data,
             ax.set_title(title)
     set_axes_labels(axes[:, :-1], xlabel, ylabel)
     plt.subplots_adjust(hspace=0.1, wspace=0.1)
-    return fig, axes, cps, cb
+    return fig, axes, cps, cb, other_axes
 
 def plot_contour_2d_curves(X_grid, Y_grid, Z_1d, data, 
                     xlabel, ylabel, xticks, yticks, 
@@ -1183,8 +1185,6 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
     if line_color is None: line_color = c.grey.RGBn
     if xlim is None: xlim = plt.xlim()
     if ylim is None: ylim = plt.ylim()
-    plot_vertical_line(x, line_color, zorder=0)
-    plot_horizontal_line(y, line_color, zorder=0)
     x0, x1 = xlim
     y0, y1 = ylim
     top_left, top_right, bottom_left, bottom_right = color
@@ -1212,6 +1212,8 @@ def color_quadrants(color=None, x=None, y=None, xlim=None, ylim=None,
                          color=bottom_right,
                          linewidth=linewidth,
                          zorder=0)
+    plot_vertical_line(x, line_color, zorder=0)
+    plot_horizontal_line(y, line_color, zorder=0)
 
 def label_quadrants(
         x=None, y=None, text=None, color=None,

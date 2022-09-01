@@ -22,11 +22,11 @@ def test_trivial_case():
     f.set_flowsheet('trivial_case')
     settings.set_thermo(['Water'], cache=True)
     trivial_sys_a = f.create_system('trivial_sys_a')
-    network_a = trivial_sys_a.to_network()
+    network_a = trivial_sys_a._to_network()
     Stream('feedstock', Water=1000)
     Stream('water', Water=10)
     trivial_sys_b = f.create_system('trivial_sys_b')
-    network_b = trivial_sys_b.to_network()
+    network_b = trivial_sys_b._to_network()
     actual_network = Network(
         [])
     assert network_a == network_b == actual_network
@@ -47,7 +47,7 @@ def test_linear_case():
     M1 = Mixer('M1', [feedstock, water])
     S1 = Splitter('S1', M1-0, [product, byproduct], split=0.5)
     linear_sys = f.create_system('linear_sys')
-    network = linear_sys.to_network()
+    network = linear_sys._to_network()
     actual_network = Network(
         [M1,
          S1])
@@ -69,7 +69,7 @@ def test_simple_recycle_loop():
     M1 = Mixer('M1', [feedstock, water, recycle])
     S1 = Splitter('S1', M1-0, [product, recycle], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [M1,
          S1],
@@ -102,7 +102,7 @@ def test_unconnected_case():
     M1_b = Mixer('M1_b', [feedstock_b, water_b])
     S1_b = Splitter('S1_b', M1_b-0, [product_b, byproduct_b], split=0.5)
     parallel_sys = f.create_system('parallel_sys')
-    network = parallel_sys.to_network()
+    network = parallel_sys._to_network()
     actual_network = Network(
         [M1_a,
          S1_a,
@@ -134,7 +134,7 @@ def test_unconnected_recycle_loop():
     M1_b = Mixer('M1_b', [feedstock_b, water_b])
     S1_b = Splitter('S1_b', M1_b-0, [product_b, byproduct_b], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [Network(
             [M1_a,
@@ -154,7 +154,7 @@ def test_unconnected_recycle_loop():
     
     feedstock_b.F_mol = 1200 # Larger flow means b has higher priority
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [M1_b,
          S1_b,
@@ -190,7 +190,7 @@ def test_unconnected_recycle_loops():
     M1_b = Mixer('M1_b', [feedstock_b, water_b, recycle_b])
     S1_b = Splitter('S1_b', M1_b-0, [product_b, recycle_b], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [Network(
             [M1_a,
@@ -223,7 +223,7 @@ def test_inner_recycle_loop():
     M1 = Mixer('M1', [P1-0, P2-0, recycle])
     S1 = Splitter('S1', M1-0, [product, recycle], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1,
          P2,
@@ -258,7 +258,7 @@ def test_inner_recycle_loop_with_bifurcated_feed():
     M2 = Mixer('M2', [S1-0, S2-1])
     S3 = Splitter('S3', M2-0, [product, recycle], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1,
          P2,
@@ -306,7 +306,7 @@ def test_bifurcated_recycle_loops():
     M2_b = Mixer('M2_b', [S1_b-0, S2_b-1, S3_a-0])
     S3_b = Splitter('S3_b', M2_b-0, [product_b, recycle_b], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1_b,
          P1_a,
@@ -355,7 +355,7 @@ def test_two_recycle_loops_with_complete_overlap():
     S2 = Splitter('S2', M2-0, ['', inner_recycle], split=0.5)
     S1 = Splitter('S1', S2-0, [product, recycle], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1,
          P2,
@@ -398,7 +398,7 @@ def test_two_recycle_loops_with_partial_overlap():
     S3 = Splitter('S3', S2-0, [coproduct, inner_recycle], split=0.5)
     S1 = Splitter('S1', S2-1, [product, recycle], split=0.5)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1,
          P2,
@@ -452,7 +452,7 @@ def test_feed_forward_recycle_loop():
     S2 = Splitter('S2', M2-0, [inner_recycle, product], split=0.5)
     P3 = Pump('P3', product)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = (
         Network(
             [P1,
@@ -462,7 +462,7 @@ def test_feed_forward_recycle_loop():
                  S1,
                  M2,
                  S2],
-                recycle=M1-0),
+                recycle=[S2-0, S1-1]),
              P3])
     )
     assert network == actual_network 
@@ -498,7 +498,7 @@ def test_separate_recycle_loops():
     recycles = [recycle_a, recycle_b]
     recycle_loop_sys = f.create_system('recycle_loop_sys')
     recycle_loop_sys.simulate()
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1_a,
          P2_a,
@@ -564,7 +564,7 @@ def test_nested_recycle_loops():
     M8 = Mixer('M8', [S3-1, S1-1, S5-0], product)
     recycle_loop_sys = f.create_system('recycle_loop_sys')
     recycle_loop_sys.simulate()
-    network = recycle_loop_sys.to_network()
+    network = recycle_loop_sys._to_network()
     actual_network = Network(
         [P1,
          P3,
@@ -612,7 +612,7 @@ def test_sugarcane_ethanol_biorefinery_network():
     from biorefineries.sugarcane import flowsheet as f
     sugarcane_sys = f.create_system('sugarcane_sys')
     globals().update(f.unit.data)
-    network = sugarcane_sys.to_network()
+    network = sugarcane_sys._to_network()
     actual_network = Network(
         [U101,
          U102,

@@ -6,14 +6,9 @@
 # github.com/BioSTEAMDevelopmentGroup/biosteam/blob/master/LICENSE.txt
 # for license details.
 """
-This module contains unit operations for size enlargement.
-
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.PelletMill
-
 .. autoclass:: biosteam.units.BagassePelletMill
 
 """

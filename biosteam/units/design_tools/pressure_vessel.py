@@ -10,7 +10,7 @@
 from .specification_factors import (pressure_vessel_material_factors,
                                     material_densities_lb_per_ft3)
 from . import flash_vessel_design as design
-from ...utils import bounds_warning, DesignWarning
+from ...exceptions import bounds_warning, DesignWarning
 from warnings import warn
 
 __all__ = ('PressureVessel',)

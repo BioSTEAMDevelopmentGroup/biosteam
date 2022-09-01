@@ -10,8 +10,6 @@ This module contains unit operations for drying solids.
 
 .. contents:: :local:
     
-Unit operations
----------------
 .. autoclass:: biosteam.units.drying.DrumDryer
 
 

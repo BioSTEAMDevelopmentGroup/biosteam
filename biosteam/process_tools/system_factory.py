@@ -46,6 +46,32 @@ def stream_kwargs(
         kwargs['characterization_factors'] = characterization_factors
     return kwargs
 
+not_chemical = {'characterization_factors', 'thermo', 'total_flow', 
+                'price', 'flow', 'units', 'P', 'T', 'phase', 'flow', 'ID'}
+def ignore_undefined_chemicals(kwargs, not_chemical=not_chemical):
+    chemicals = tmo.settings.chemicals
+    return {i: j for i, j in kwargs.items() if i in chemicals or i in not_chemical}
+
+def get_stream(name, lst, ID):
+    isa = isinstance
+    isfunc = callable
+    for i in lst:
+        if isa(i, str):
+            if ID == i: return i
+        elif isa(i, dict):
+           if ID == i.get('ID'): return i
+        elif isfunc(i):
+            if ID == i.__name__: return i
+    raise ValueError(f"no {name} with ID {repr(ID)}")
+    
+def get_name(obj):
+    if isinstance(obj, dict):
+        return obj.get('ID')
+    elif isinstance(obj, str):
+        return obj
+    elif callable(obj):
+        return obj.__name__
+
 # %% System factory
 
 class SystemFactory:
@@ -56,8 +82,7 @@ class SystemFactory:
     Parameters
     ----------
     f : Callable, optional
-        Should return a System object given the ID, inlets, outlets, and 
-        other parameters. `f` should have a signature of function(ID, ins, outs, *args, **kwargs).
+        Should create unit operations. `f` should have a signature of function(ins, outs, *args, **kwargs).
     ID : str, optional
         Default system name.
     ins: list[dict], optional
@@ -168,7 +193,7 @@ class SystemFactory:
             if params[:2] != ['ins', 'outs']:
                 raise ValueError('function must have a signature of function(ins, outs, *args, **kwargs)')
             other_params = params[3:]
-            reserved_parameters = ('mockup', 'area', 'udct')
+            reserved_parameters = ('mockup', 'area', 'udct', 'autorename', 'operating_hours')
             for i in reserved_parameters:
                 if i in other_params:
                     raise ValueError(f"function cannot accept '{i}' as an argument")
@@ -200,17 +225,26 @@ class SystemFactory:
         with (bst.MockSystem() if mockup else bst.System(ID or self.ID, operating_hours=operating_hours)) as system:
             if rename: 
                 unit_registry = system.flowsheet.unit
-                irrelevant_units = system._irrelevant_units
+                irrelevant_units = tuple(unit_registry)
                 unit_registry.untrack(irrelevant_units)
             self.f(ins, outs, **kwargs)
-        system.load_inlet_ports(ins)
-        system.load_outlet_ports(outs)
+        system.load_inlet_ports(ins, {k: i for i, j in enumerate(self.ins) if (k:=get_name(j)) is not None})
+        system.load_outlet_ports(outs, {k: i for i, j in enumerate(self.outs) if (k:=get_name(j)) is not None})
         if autorename is not None: tmo.utils.Registry.AUTORENAME = original_autorename
         if udct: unit_dct = {i.ID: i for i in system.units}
         if rename: 
             unit_registry.track(irrelevant_units)
             utils.rename_units(system.units, area)
         return (system, unit_dct) if udct else system
+    
+    def get_inlet(self, ID):
+        return get_stream('inlet', self._ins, ID)
+    
+    def get_outlet(self, ID):
+        return get_stream('outlet', self._outs, ID)
+    
+    def __repr__(self):
+        return f"<{type(self).__name__}: {self.ID}>"
     
     def show(self):
         """Print decorator in nice format."""
@@ -245,7 +279,7 @@ def create_streams(defaults, user_streams, kind, fixed_size):
     isfunc = callable
     isa = isinstance
     if user_streams is None:
-        return [(kwargs() if isfunc(kwargs) else Stream(**kwargs)) for kwargs in defaults]
+        return [(kwargs() if isfunc(kwargs) else Stream(**ignore_undefined_chemicals(kwargs))) for kwargs in defaults]
     if isa(user_streams, Stream):
         user_streams = [user_streams]
     N_defaults = len(defaults)
@@ -264,7 +298,7 @@ def create_streams(defaults, user_streams, kind, fixed_size):
                 else:
                     kwargs = kwargs.copy()
                     kwargs['ID'] = stream
-                    stream = Stream(**kwargs)
+                    stream = Stream(**ignore_undefined_chemicals(kwargs))
             elif stream:
                 raise TypeError(
                     f"{kind} must be streams, strings, or None; "
@@ -273,11 +307,12 @@ def create_streams(defaults, user_streams, kind, fixed_size):
             elif isfunc(kwargs):
                 stream = kwargs()
             else:
-                stream = Stream(**kwargs)
+                stream = Stream(**ignore_undefined_chemicals(kwargs))
         streams.append(stream)
         index += 1
     if N_streams < N_defaults:
-        streams += [(kwargs() if isfunc(kwargs) else Stream(**kwargs)) for kwargs in defaults[index:]]
+        streams += [(kwargs() if isfunc(kwargs) else Stream(**ignore_undefined_chemicals(kwargs)))
+                    for kwargs in defaults[index:]]
     elif N_streams > N_defaults:
         streams += [as_stream(i) for i in user_streams[N_defaults:]]
     return streams
