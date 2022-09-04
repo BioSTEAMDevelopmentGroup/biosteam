@@ -311,7 +311,7 @@ class HeatExchangerNetwork(Facility):
                 self.heat_utilities = hus_final
             else: # if no matches were made, retain all original HXutilities (i.e., don't add the -- relatively minor -- differences between new and original HXutilities)
                 self.installed_costs['Heat exchangers'] = 0.
-                self.baseline_purchase_costs['Heat exchangers'] = 0.
+                self.baseline_purchase_costs['Heat exchangers'] = self.purchase_costs['Heat exchangers'] = 0.
                 self.heat_utilities = tuple([])
                 
             self.original_heat_utils = hx_utils_rearranged
