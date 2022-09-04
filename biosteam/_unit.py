@@ -1328,7 +1328,8 @@ class Unit:
         return upstream_units
     
     def neighborhood(self, 
-            radius: Optional[int]=1, upstream: Optional[bool]=True,
+            radius: Optional[int]=1, 
+            upstream: Optional[bool]=True,
             downstream: Optional[bool]=True, 
             ends: Optional[Stream]=None, 
             facilities: Optional[bool]=None
