@@ -949,6 +949,12 @@ class TEA:
         sales_coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         sales = self._sales
         taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
+        if np.isnan(taxable_cashflow).any():
+            warn('nan encountered in cashflow array; resimulating system', category=RuntimeWarning)
+            self.system.simulate()
+            taxable_cashflow, nontaxable_cashflow, depreciation = self._taxable_nontaxable_depreciation_cashflows()
+            if np.isnan(taxable_cashflow).any():
+                raise RuntimeError('nan encountered in cashflow array')
         args = (taxable_cashflow, 
                 nontaxable_cashflow, 
                 depreciation,
