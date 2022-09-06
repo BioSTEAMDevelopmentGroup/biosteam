@@ -195,7 +195,6 @@ nbsphinx_execute = 'never'
 intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
     'python': ('https://docs.python.org/3', None),
-    'typing': ('https://docs.python.org/3/library', None),
     'qsdsan': ('https://qsdsan.readthedocs.io/en/latest/', None),
     'thermo': ('https://thermo.readthedocs.io/', None),
 }
@@ -251,7 +250,11 @@ html_theme_options = {
     "logo" : {
         'image_light': 'logo.png',
         'image_dark': 'logo_dark.png'
-    }
+    },
+    "announcement": (
+        "<p>Join us every 3rd Monday, 10am CST, for monthly updates on BioSTEAM and "
+        "open Q&A! <a href='mailto: biosteamdevelopmentgroup@gmail.com'>Email us for details</a></p>"
+    ),
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

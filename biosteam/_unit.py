@@ -131,8 +131,6 @@ class Unit:
     
     :doc:`../tutorial/Inheriting_from_Unit`
     
-    :doc:`../tutorial/Unit_decorators`
-    
     """ 
     
     def __init_subclass__(cls,
