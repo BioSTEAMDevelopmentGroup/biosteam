@@ -10,8 +10,8 @@
 .. role:: orange
 .. role:: blue
 
-API
----
+API reference
+-------------
 
 BioSTEAM's main components can be categorized by 4 functionality levels: 
 

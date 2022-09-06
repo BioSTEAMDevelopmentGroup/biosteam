@@ -51,23 +51,6 @@ community-driven open-source libraries developed by Caleb Bell. BioSTEAM's
 premire thermodynamic engine, `thermosteam <https://github.com/BioSTEAMDevelopmentGroup/thermosteam>`_, 
 builds upon these libraries to facilitate the creation of thermodynamic property packages.
 
-Workshops
----------
-Join us for Yoel's Fall 2022 kick-off workshops! Yoel, the lead developer,
-will be going over the tutorial in detail, answer any questions, and provide 
-help with related issues.
-
-* Aug 8 [10-11am CST]: Thermodynamics
-
-* Aug 10 [10-11am CST]: Beginner's Guide
-
-* Aug 15 [10-11am CST]: Process Development
-
-* Aug 17 [10-11am CST]: Automation
-
-For details on how to join (virtually or in-person), please email 
-biosteamdevelopmentgroup@gmail.com 
-
 Installation
 ------------
 

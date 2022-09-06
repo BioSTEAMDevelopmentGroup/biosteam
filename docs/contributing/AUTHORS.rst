@@ -9,15 +9,15 @@ Authors of the BioSTEAM software include:
 * Contributers who committed significant resources, expertise, and other 
   impactful efforts:
 
-  * Yoel Cortes-Pena (lead BioSTEAM author, developer, and maintainer)
+  * `Yoel Cortes-Pena <https://yoelcortes.github.io/me/>`__ (lead BioSTEAM author, developer, and maintainer)
 
-  * Jeremy Guest (led efforts to found, develop, coordinate, and expand the software)
+  * `Jeremy Guest <http://engineeringforsustainability.com/people/>`__ (led efforts to found, develop, coordinate, and expand the software)
 
-  * Sarang Sunil Bhagwat (led the development of the heat exchanger network and contributed expertise in several other areas)
+  * `Sarang Sunil Bhagwat <https://github.com/sarangbhagwat>`__ (led the development of the heat exchanger network and more)
 
-  * Yalin Li (contributed general expertise throughout development)
+  * `Yalin Li <https://yalinli.me/>`__ (contributed general expertise)
   
-  * Ben Portner (contributed compressor models and general expertise)
+  * `Ben Portner <https://github.com/BenPortner>`__ (led the development of compressor models and more)
 
 * Direct contributers to code base:
 
@@ -26,28 +26,27 @@ Authors of the BioSTEAM software include:
 
 * Developers who have contributed in person and through email, including:
 
-  * Lisa Pardini
+  * `Lisa Pardini <https://www.linkedin.com/in/lisa-pardini-073769186/>`__ (contributed heat exchanger design and costing)
 
-  * Bugrah Mirsat Sahin
+  * `Bugrah Mirsat Sahin <https://www.linkedin.com/in/bu%C4%9Fra-mirsat-%C5%9F-5a956b108/>`__ (contributed pump design and costing)
 
-  * Rui Shi
+  * `Rui Shi <https://www.linkedin.com/in/chuyingshi/>`__ (contributed kinetic fermentation model)
 
-  * Brent Scheidemantle
 
 Acknowledgements
 ----------------
 
 The development of the BioSTEAM software was greatly expedited thanks to 
 third-party, open-source chemical engineering software which have provided
-critical functionality to BioSTEAM. Special thanks to  Caleb Bell, who has 
-coordinated efforts with the lead BioSTEAM developer to tailor functionality of 
+critical functionality to BioSTEAM. Special thanks to  `Caleb Bell <https://github.com/CalebBell>`__,
+who has coordinated efforts with the lead BioSTEAM developer to tailor functionality of 
 his open-source software to the needs of the BioSTEAM software:
   
-* Caleb Bell and Contributors (2016-2021). chemicals: Chemical properties component of Chemical Engineering Design Library (ChEDL)
+* Caleb Bell, Yoel Rene Cortes-Pena, Contributors (2016-2022). chemicals: Chemical properties component of Chemical Engineering Design Library (ChEDL)
   https://github.com/CalebBell/chemicals.
 
-* Caleb Bell (2016-2021). fluids: Fluid dynamics component of Chemical Engineering Design Library (ChEDL)
+* Caleb Bell (2016-2022). fluids: Fluid dynamics component of Chemical Engineering Design Library (ChEDL)
   https://github.com/CalebBell/fluids.
 
-* Caleb Bell and Contributors (2016-2021). thermo: Chemical properties component of Chemical Engineering Design Library (ChEDL)
+* Caleb Bell and Contributors (2016-2022). thermo: Thermodynamics and Phase Equilibrium component of Chemical Engineering Design Library (ChEDL) 
   https://github.com/CalebBell/thermo.
