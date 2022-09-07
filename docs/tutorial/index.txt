@@ -11,6 +11,7 @@ User guide
    -pipe-_notation
    Unit_operation_results
    Managing_flowsheets
+   Convergence
    Preferences
 
 .. toctree::

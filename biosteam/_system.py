@@ -21,10 +21,7 @@ from .digraph import (digraph_from_units_and_streams,
 from thermosteam import Stream, MultiStream, Chemical
 from . import HeatUtility, PowerUtility
 from thermosteam.utils import registered
-from scipy.optimize import (
-    anderson, diagbroyden, excitingmixing, linearmixing, 
-    newton_krylov, broyden1, broyden2, fsolve
-)
+from scipy.optimize import root
 from .exceptions import try_method_with_object_stamp, Converged
 from ._network import Network, mark_disjunction, unmark_disjunction
 from ._facility import Facility
@@ -426,9 +423,21 @@ class System:
     available_methods: dict[str, tuple(Callable, bool, dict)] = {}
 
     @classmethod
-    def register_method(cls, name, function, conditional=False, **kwargs):
+    def register_method(cls, name, solver, conditional=False, **kwargs):
+        """
+        Register new convergence method (root solver). Two solver signatures
+        are supported:
+        
+        * If conditional is False, the signature must be solver(f, x, **kwargs) 
+        where f(x) = 0 is the solution. This is common for scipy solvers
+        
+        * If conditional is True, the signature must be solver(f, x, **kwargs) 
+        where f(x, converged) = x is the solution and the solver stops when
+        converged is True. This method is prefered in BioSTEAM.
+        
+        """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
-        cls.available_methods[name] = (function, conditional, kwargs)
+        cls.available_methods[name] = (solver, conditional, kwargs)
 
     @classmethod
     def from_feedstock(cls,
@@ -1737,6 +1746,7 @@ class System:
             self.scope.reset_cache()
         for unit in self.units:
             unit.reset_cache(self.isdynamic)
+        for i in self.streams: i.reset_cache()
             
     def set_dynamic_tracker(self, *subjects, **kwargs):
         """
@@ -2597,13 +2607,20 @@ class System:
         """Return information on convergence."""
         recycle = self._recycle
         if recycle:
+            if self._iter == 0: return None
             s = '' if isinstance(recycle, Stream) else 's'
             return (f"\nHighest convergence error among components in recycle"
                     f"\nstream{s} {self._get_recycle_info()} after {self._iter} loops:"
                     f"\n- flow rate   {self._mol_error:.2e} kmol/hr ({self._rmol_error*100.:.2g}%)"
                     f"\n- temperature {self._T_error:.2e} K ({self._rT_error*100.:.2g}%)")
-        else:
-            return ""
+        elif self.subsystems:
+            sys = max(
+                self.subsystems, key=lambda i: max(
+                    [i._mol_error / i.molar_tolerance, i._rmol_error / i.relative_molar_tolerance,
+                     i._T_error / i.temperature_tolerance, i._rT_error / i.relative_temperature_tolerance]
+                )
+            )
+            return sys._error_info()
 
     def __str__(self):
         if self.ID: return self.ID
@@ -2622,13 +2639,13 @@ class System:
         """Return string with all specifications."""
         ins_and_outs = repr_ins_and_outs(layout, self.ins, self.outs,
                                          T, P, flow, composition, N, IDs, data)
-        if self._iter == 0:
-            return f"System: {self.ID}\n{ins_and_outs}"
-        else:
-            error = self._error_info()
+        error = self._error_info()
+        if error:
             return (f"System: {self.ID}"
                     + error + '\n'
                     + ins_and_outs)
+        else:
+            return f"System: {self.ID}\n{ins_and_outs}"
 
 class FacilityLoop(System):
     __slots__ = ()
@@ -2644,9 +2661,10 @@ del ignore_docking_warnings
 System.register_method('aitken', flx.conditional_aitken, conditional=True)
 System.register_method('wegstein', flx.conditional_wegstein, conditional=True)
 System.register_method('fixedpoint', flx.conditional_fixed_point, conditional=True)
-for f in (anderson, diagbroyden, excitingmixing, anderson, linearmixing, 
-          newton_krylov, broyden1, broyden2, fsolve):
-    System.register_method(f.__name__, f)
+options = dict(fatol=1e-24, xatol=1e-24, xtol=1e-24, ftol=1e-24, maxiter=int(1e6))
+for name in ('anderson', 'diagbroyden', 'excitingmixing', 'linearmixing', 'broyden1', 'broyden2'):
+    System.register_method(name, root, method=name, options=options)
+del root, name, options
 
 
 # %% Working with different operation modes
