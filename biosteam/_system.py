@@ -429,11 +429,11 @@ class System:
         are supported:
         
         * If conditional is False, the signature must be solver(f, x, **kwargs) 
-        where f(x) = 0 is the solution. This is common for scipy solvers
+          where f(x) = 0 is the solution. This is common for scipy solvers.
         
         * If conditional is True, the signature must be solver(f, x, **kwargs) 
-        where f(x, converged) = x is the solution and the solver stops when
-        converged is True. This method is prefered in BioSTEAM.
+          where f(x, converged) = x is the solution and the solver stops when
+          converged is True. This method is prefered in BioSTEAM.
         
         """
         name = name.lower().replace('-', '').replace('_', '').replace(' ', '')
