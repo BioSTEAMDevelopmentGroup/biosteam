@@ -113,9 +113,6 @@ class HX(Unit, isabstract=True):
                                  f"{list_available_names(Cb_dict)}")
         self._heat_exchanger_type = heat_exchanger_type     
 
-    def reset_cache(self, isdynamic=None):
-        for i in self.outs: i.reset_cache()
-
     def _assert_compatible_property_package(self):
         assert all([i.chemicals is j.chemicals for i, j in zip(self._ins, self._outs) if (i and j)]), (
             "inlet and outlet stream chemicals are incompatible; "
