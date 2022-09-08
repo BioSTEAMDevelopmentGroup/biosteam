@@ -8,7 +8,7 @@ sensitivity analyses. BioSTEAM is also leveraged by `QSDsan <https://qsdsan.read
 a library for the quantitative sustainable design of sanitation and resource recovery
 systems. The long-term growth and maintenance of BioSTEAM is supported
 through both community-led development and the research institutions invested in BioSTEAM, 
-including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) <https://cabbi.bio/>`_.
+including the `Center for Advanced Bioenergy and Bioproducts Innovation <https://cabbi.bio/>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -133,8 +133,6 @@ technologies and chart development pathways for various bioproducts:
 * `Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 2021 <https://doi.org/10.1021/acssuschemeng.0c08055>`_
 
 * `Techno-Economic Evaluation of Biorefineries Based on Low-Value Feedstocks Using the BioSTEAM Software: A Case Study for Animal Bedding. Processes 2020 <https://doi.org/10.3390/pr8080904>`_
-
-* `An Integrated Modeling Framework for Agile Life Cycle Assessment of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.0c05998>`_
 
 * `BioSTEAM: A Fast and Flexible Platform for the Design, Simulation, and Techno-Economic Analysis of Biorefineries under Uncertainty. ACS Sustainable Chem. Eng. 2020 <https://doi.org/10.1021/acssuschemeng.9b07040>`_
 
