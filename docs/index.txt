@@ -2,7 +2,7 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 =========================================================================
 
 BioSTEAM is an open-source and community-lead platform for the design, 
-simulation, techno-economic analysis (TEA) and life cycle assessment (LCA) of 
+simulation, techno-economic analysis (TEA) and life-cycle assessment (LCA) of 
 biorefineries across thousands of scenarios for streamlined uncertainty and 
 sensitivity analyses. The long-term growth and maintenance of BioSTEAM is supported
 through both community-led development and the research institutions invested in BioSTEAM, 
@@ -29,33 +29,9 @@ including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) 
           :height: 100
           :align: center
           
-       Detailed examples on BioSTEAM's features.
+       Tutorial on BioSTEAM's features.
 
 
-    .. grid-item-card:: API Reference
-       :text-align: center
-       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
-       :link-type: url
-       :padding: 1
-       
-       .. figure:: images/storage.png
-          :height: 100
-          :align: center
-       
-       Documentation on all functionality. 
-        
-    .. grid-item-card:: Contributor's Guide
-       :text-align: center
-       :link: https://biosteam.readthedocs.io/en/latest/contributing/CONTRIBUTING.html
-       :link-type: url
-       :padding: 1
-       
-       .. figure:: images/fermenter.png
-          :height: 100
-          :align: center
-       
-       Want to add to codebase? We'll help.
-       
     .. grid-item-card:: Bioindustrial-Park
        :text-align: center
        :link: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park
@@ -67,6 +43,32 @@ including the `Center for Advanced Bioenergy and Bioproducts Innovation (CABBI) 
           :align: center
        
        Repository for biorefinery models.
+
+        
+    .. grid-item-card:: API Reference
+       :text-align: center
+       :link: https://biosteam.readthedocs.io/en/latest/API/index.html
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/fermenter.png
+          :height: 100
+          :align: center
+       
+       Documentation on all functionality. 
+       
+       
+    .. grid-item-card:: QSDsan
+       :text-align: center
+       :link: https://qsdsan.readthedocs.io/en/latest/
+       :link-type: url
+       :padding: 1
+       
+       .. figure:: images/GG_logo.png
+          :height: 100
+          :align: center
+       
+       Sanitation and resource recovery. 
 
 Installation
 ------------
@@ -117,6 +119,8 @@ Scientific Papers
 
 Several studies have leveraged the BioSTEAM platform to compare conversion 
 technologies and chart development pathways for various bioproducts:
+
+* `Rewiring yeast metabolism for producing 2,3-butanediol and two downstream applications: Techno-economic analysis and life cycle assessment of methyl ethyl ketone (MEK) and agricultural biostimulant production. Chemical Engineering Journal 2022 <https://doi.org/10.1016/j.cej.2022.138886>`_
 
 * `An agent-based modeling tool supporting bioenergy and bio-product community communication regarding cellulosic bioeconomy development. Renewable and Sustainable Energy Reviews 2022 <https://doi.org/10.1016/j.rser.2022.112745>`_
 
